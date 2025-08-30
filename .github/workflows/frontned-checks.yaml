@@ -8,8 +8,8 @@ on:
   pull_request:
     branches:
       - main
-#    paths:
-#      - 'frontend/**'
+    paths:
+      - 'frontend/**'
 
 # Sets a default working directory
 defaults:
@@ -20,6 +20,10 @@ jobs:
   tests:
     name: Tests (${{ matrix.package }})
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      actions: read
+      checks: write
     strategy:
       fail-fast: false
       matrix:
@@ -35,17 +39,27 @@ jobs:
         with:
           channel: stable
           cache: true
+
       - name: Get dependencies
         run: |
           cd packages/${{ matrix.package }}
-          dart pub get
+          flutter pub get
+
       - name: Run tests
         run: |
           cd packages/${{ matrix.package }}
-          dart test
+          flutter test --file-reporter=json:reports/test-results.json
+      - name: Publish Test Results
+        uses: dorny/test-reporter@v2
+        if: ${{ !cancelled() }}
+        with:
+          name: Frontend Tests (${{ matrix.package }})
+          path: frontend/packages/${{ matrix.package }}/reports/test-results.json
+          reporter: flutter-json
+          working-directory: ./
 
-  format-and-lint:
-    name: Format & Lint
+  format:
+    name: Format
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -61,5 +75,21 @@ jobs:
         run: flutter pub get
       - name: Verify formatting
         run: dart format --output=none --set-exit-if-changed .
+
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+      - name: Set up Dart
+        uses: dart-lang/setup-dart@v1
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+      - name: Install dependencies
+        run: flutter pub get
       - name: Analyze (lint)
         run: flutter analyze --fatal-warnings
