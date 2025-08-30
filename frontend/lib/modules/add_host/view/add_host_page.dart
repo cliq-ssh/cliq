@@ -4,6 +4,7 @@ import 'package:cliq/shared/validators.dart';
 import 'package:cliq_ui/cliq_ui.dart';
 import 'package:drift/drift.dart' hide Column;
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
 import '../../../routing/page_path.dart';
@@ -157,7 +158,9 @@ class _AddHostsPageState extends ConsumerState<AddHostsPage> {
                               ),
                             );
 
-                            // TODO: loading state, close page on success
+                            // TODO: loading state, success toast
+                            if (!mounted) return;
+                            context.pop();
                           },
                         ),
                       ),
