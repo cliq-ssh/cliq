@@ -1,0 +1,49 @@
+name: Frontend Checks
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'frontend/**'
+  pull_request:
+    branches:
+      - main
+#    paths:
+#      - 'frontend/**'
+
+# Sets a default working directory
+defaults:
+  run:
+    working-directory: ./frontend  # Change the working directory to /frontend
+
+jobs:
+  format-and-lint:
+    name: Format & Lint
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Flutter version
+        run: flutter --version
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Verify formatting
+        run: dart format --set-exit-if-changed .
+
+      - name: Analyze (lint)
+        run: flutter analyze .
+
+      - name: Report Dart / Flutter environment (on failure)
+        if: failure()
+        run: |
+          flutter doctor -v
+          dart --version
