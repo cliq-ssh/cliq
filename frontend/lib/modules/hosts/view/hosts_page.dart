@@ -1,6 +1,8 @@
+import 'package:cliq/data/sqlite/database.dart';
 import 'package:cliq/routing/router.extension.dart';
 import 'package:cliq_ui/cliq_ui.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lucide_flutter/lucide_flutter.dart';
 
@@ -20,6 +22,15 @@ class _HostsPageState extends ConsumerState<HostsPage> {
   @override
   Widget build(BuildContext context) {
     final typography = context.theme.typography;
+    final connections = useState(<Connection>[]);
+
+    // Fetch connections from database
+    useEffect(() {
+      Future.microtask(() async {
+        connections.value = await CliqDatabase.connectionsRepository.findAll();
+      });
+      return null;
+    }, []);
 
     buildNoHosts() {
       return CliqGridContainer(
@@ -60,6 +71,36 @@ class _HostsPageState extends ConsumerState<HostsPage> {
       );
     }
 
-    return CliqScaffold(body: buildNoHosts());
+    if (connections.value.isEmpty) {
+      return CliqScaffold(body: buildNoHosts());
+    }
+
+    return ListView.separated(
+      padding: EdgeInsets.symmetric(vertical: 80),
+      itemCount: connections.value.length,
+      separatorBuilder: (ctx, index) => const SizedBox(height: 16),
+      itemBuilder: (ctx, index) {
+        final connection = connections.value[index];
+        return CliqGridContainer(
+          children: [
+            CliqGridRow(
+              children: [
+                CliqGridColumn(
+                  child: GestureDetector(
+                    onTap: () {
+                      // TODO:
+                    },
+                    child: CliqCard(
+                      title: Text(connection.address),
+                      subtitle: Text('Last connected:'),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        );
+      },
+    );
   }
 }

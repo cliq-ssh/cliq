@@ -1,5 +1,8 @@
+import 'package:cliq/data/sqlite/credentials/credential_type.dart';
+import 'package:cliq/data/sqlite/database.dart';
 import 'package:cliq/shared/validators.dart';
 import 'package:cliq_ui/cliq_ui.dart';
+import 'package:drift/drift.dart' hide Column;
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
@@ -88,11 +91,27 @@ class _AddHostsPageState extends ConsumerState<AddHostsPage> {
                                   AutovalidateMode.onUserInteraction,
                             ),
                             CliqTextFormField(
-                              label: Text('Identity'),
+                              label: Text('Username'),
                               hint: Text('root'),
                               controller: _usernameController,
                               autovalidateMode:
                                   AutovalidateMode.onUserInteraction,
+                            ),
+                            CliqTextFormField(
+                              label: Text('Private Key (PEM)'),
+                              hint: Text('-----BEGIN OPENSSH PRIVATE KEY-----'),
+                              controller: _pemController,
+                              validator: Validators.pem,
+                              minLines: 1,
+                              autovalidateMode:
+                                  AutovalidateMode.onUserInteraction,
+                            ),
+                            CliqTextFormField(
+                              label: Text('Private Key Password'),
+                              hint: Text('secret'),
+                              controller: _pemPasswordController,
+                              obscure: true,
+                              maxLines: 1,
                             ),
                           ],
                         ),
@@ -101,20 +120,44 @@ class _AddHostsPageState extends ConsumerState<AddHostsPage> {
                         width: double.infinity,
                         child: CliqButton(
                           label: Text('Save Host'),
-                          onPressed: () {
+                          onPressed: () async {
                             if (!_formKey.currentState!.validate()) {
                               return;
                             }
 
-                            //                            CliqDatabase.hostRepository.insert(
-                            //                              HostsCompanion.insert(
-                            //                                  label: _labelController.text.trim(),
-                            //                                  address: _addressController.text.trim(),
-                            //                                  port: int.parse(_portController.text.trim()),
-                            //                                  username: _usernameController.text.trim(),
-                            //                                  password: _pemPasswordController.text.trim(),
-                            //                              )
-                            //                            );
+                            // TODO: refactor to support multiple credentials, identity selector
+                            print(_addressController.text);
+
+                            final credentialId = await CliqDatabase
+                                .credentialsRepository
+                                .insert(
+                                  CredentialsCompanion.insert(
+                                    type: CredentialType.key,
+                                    secret: Value(_pemController.text.trim()),
+                                    passphrase: Value(
+                                      _pemPasswordController.text.trim(),
+                                    ),
+                                  ),
+                                );
+                            final identityId = await CliqDatabase
+                                .identityService
+                                .createIdentity(
+                                  IdentitiesCompanion.insert(
+                                    username: _usernameController.text.trim(),
+                                  ),
+                                  [credentialId],
+                                );
+                            await CliqDatabase.connectionsRepository.insert(
+                              ConnectionsCompanion.insert(
+                                address: _addressController.text.trim(),
+                                port: Value.absentIfNull(
+                                  int.tryParse(_portController.text.trim()),
+                                ),
+                                identityId: identityId,
+                              ),
+                            );
+
+                            // TODO: loading state, close page on success
                           },
                         ),
                       ),

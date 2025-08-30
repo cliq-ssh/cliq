@@ -240,26 +240,8 @@ class Credentials extends Table with TableInfo<Credentials, Credential> {
     requiredDuringInsert: false,
     $customConstraints: '',
   );
-  static const VerificationMeta _priorityMeta = const VerificationMeta(
-    'priority',
-  );
-  late final GeneratedColumn<int> priority = GeneratedColumn<int>(
-    'priority',
-    aliasedName,
-    false,
-    type: DriftSqlType.int,
-    requiredDuringInsert: false,
-    $customConstraints: 'NOT NULL DEFAULT 0',
-    defaultValue: const CustomExpression('0'),
-  );
   @override
-  List<GeneratedColumn> get $columns => [
-    id,
-    type,
-    secret,
-    passphrase,
-    priority,
-  ];
+  List<GeneratedColumn> get $columns => [id, type, secret, passphrase];
   @override
   String get aliasedName => _alias ?? actualTableName;
   @override
@@ -285,12 +267,6 @@ class Credentials extends Table with TableInfo<Credentials, Credential> {
       context.handle(
         _passphraseMeta,
         passphrase.isAcceptableOrUnknown(data['passphrase']!, _passphraseMeta),
-      );
-    }
-    if (data.containsKey('priority')) {
-      context.handle(
-        _priorityMeta,
-        priority.isAcceptableOrUnknown(data['priority']!, _priorityMeta),
       );
     }
     return context;
@@ -320,10 +296,6 @@ class Credentials extends Table with TableInfo<Credentials, Credential> {
         DriftSqlType.string,
         data['${effectivePrefix}passphrase'],
       ),
-      priority: attachedDatabase.typeMapping.read(
-        DriftSqlType.int,
-        data['${effectivePrefix}priority'],
-      )!,
     );
   }
 
@@ -343,13 +315,11 @@ class Credential extends DataClass implements Insertable<Credential> {
   final CredentialType type;
   final String? secret;
   final String? passphrase;
-  final int priority;
   const Credential({
     required this.id,
     required this.type,
     this.secret,
     this.passphrase,
-    required this.priority,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -364,7 +334,6 @@ class Credential extends DataClass implements Insertable<Credential> {
     if (!nullToAbsent || passphrase != null) {
       map['passphrase'] = Variable<String>(passphrase);
     }
-    map['priority'] = Variable<int>(priority);
     return map;
   }
 
@@ -378,7 +347,6 @@ class Credential extends DataClass implements Insertable<Credential> {
       passphrase: passphrase == null && nullToAbsent
           ? const Value.absent()
           : Value(passphrase),
-      priority: Value(priority),
     );
   }
 
@@ -394,7 +362,6 @@ class Credential extends DataClass implements Insertable<Credential> {
       ),
       secret: serializer.fromJson<String?>(json['secret']),
       passphrase: serializer.fromJson<String?>(json['passphrase']),
-      priority: serializer.fromJson<int>(json['priority']),
     );
   }
   @override
@@ -405,7 +372,6 @@ class Credential extends DataClass implements Insertable<Credential> {
       'type': serializer.toJson<int>(Credentials.$convertertype.toJson(type)),
       'secret': serializer.toJson<String?>(secret),
       'passphrase': serializer.toJson<String?>(passphrase),
-      'priority': serializer.toJson<int>(priority),
     };
   }
 
@@ -414,13 +380,11 @@ class Credential extends DataClass implements Insertable<Credential> {
     CredentialType? type,
     Value<String?> secret = const Value.absent(),
     Value<String?> passphrase = const Value.absent(),
-    int? priority,
   }) => Credential(
     id: id ?? this.id,
     type: type ?? this.type,
     secret: secret.present ? secret.value : this.secret,
     passphrase: passphrase.present ? passphrase.value : this.passphrase,
-    priority: priority ?? this.priority,
   );
   Credential copyWithCompanion(CredentialsCompanion data) {
     return Credential(
@@ -430,7 +394,6 @@ class Credential extends DataClass implements Insertable<Credential> {
       passphrase: data.passphrase.present
           ? data.passphrase.value
           : this.passphrase,
-      priority: data.priority.present ? data.priority.value : this.priority,
     );
   }
 
@@ -440,14 +403,13 @@ class Credential extends DataClass implements Insertable<Credential> {
           ..write('id: $id, ')
           ..write('type: $type, ')
           ..write('secret: $secret, ')
-          ..write('passphrase: $passphrase, ')
-          ..write('priority: $priority')
+          ..write('passphrase: $passphrase')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode => Object.hash(id, type, secret, passphrase, priority);
+  int get hashCode => Object.hash(id, type, secret, passphrase);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -455,8 +417,7 @@ class Credential extends DataClass implements Insertable<Credential> {
           other.id == this.id &&
           other.type == this.type &&
           other.secret == this.secret &&
-          other.passphrase == this.passphrase &&
-          other.priority == this.priority);
+          other.passphrase == this.passphrase);
 }
 
 class CredentialsCompanion extends UpdateCompanion<Credential> {
@@ -464,34 +425,29 @@ class CredentialsCompanion extends UpdateCompanion<Credential> {
   final Value<CredentialType> type;
   final Value<String?> secret;
   final Value<String?> passphrase;
-  final Value<int> priority;
   const CredentialsCompanion({
     this.id = const Value.absent(),
     this.type = const Value.absent(),
     this.secret = const Value.absent(),
     this.passphrase = const Value.absent(),
-    this.priority = const Value.absent(),
   });
   CredentialsCompanion.insert({
     this.id = const Value.absent(),
     required CredentialType type,
     this.secret = const Value.absent(),
     this.passphrase = const Value.absent(),
-    this.priority = const Value.absent(),
   }) : type = Value(type);
   static Insertable<Credential> custom({
     Expression<int>? id,
     Expression<int>? type,
     Expression<String>? secret,
     Expression<String>? passphrase,
-    Expression<int>? priority,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
       if (type != null) 'type': type,
       if (secret != null) 'secret': secret,
       if (passphrase != null) 'passphrase': passphrase,
-      if (priority != null) 'priority': priority,
     });
   }
 
@@ -500,14 +456,12 @@ class CredentialsCompanion extends UpdateCompanion<Credential> {
     Value<CredentialType>? type,
     Value<String?>? secret,
     Value<String?>? passphrase,
-    Value<int>? priority,
   }) {
     return CredentialsCompanion(
       id: id ?? this.id,
       type: type ?? this.type,
       secret: secret ?? this.secret,
       passphrase: passphrase ?? this.passphrase,
-      priority: priority ?? this.priority,
     );
   }
 
@@ -526,9 +480,6 @@ class CredentialsCompanion extends UpdateCompanion<Credential> {
     if (passphrase.present) {
       map['passphrase'] = Variable<String>(passphrase.value);
     }
-    if (priority.present) {
-      map['priority'] = Variable<int>(priority.value);
-    }
     return map;
   }
 
@@ -538,8 +489,7 @@ class CredentialsCompanion extends UpdateCompanion<Credential> {
           ..write('id: $id, ')
           ..write('type: $type, ')
           ..write('secret: $secret, ')
-          ..write('passphrase: $passphrase, ')
-          ..write('priority: $priority')
+          ..write('passphrase: $passphrase')
           ..write(')'))
         .toString();
   }
@@ -551,6 +501,16 @@ class IdentityCredentials extends Table
   final GeneratedDatabase attachedDatabase;
   final String? _alias;
   IdentityCredentials(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  late final GeneratedColumn<int> id = GeneratedColumn<int>(
+    'id',
+    aliasedName,
+    false,
+    hasAutoIncrement: true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    $customConstraints: 'PRIMARY KEY AUTOINCREMENT',
+  );
   static const VerificationMeta _identityIdMeta = const VerificationMeta(
     'identityId',
   );
@@ -560,7 +520,7 @@ class IdentityCredentials extends Table
     false,
     type: DriftSqlType.int,
     requiredDuringInsert: true,
-    $customConstraints: 'NOT NULL',
+    $customConstraints: 'NOT NULL REFERENCES identities(id)ON DELETE CASCADE',
   );
   static const VerificationMeta _credentialIdMeta = const VerificationMeta(
     'credentialId',
@@ -571,10 +531,27 @@ class IdentityCredentials extends Table
     false,
     type: DriftSqlType.int,
     requiredDuringInsert: true,
-    $customConstraints: 'NOT NULL',
+    $customConstraints: 'NOT NULL REFERENCES credentials(id)ON DELETE CASCADE',
+  );
+  static const VerificationMeta _priorityMeta = const VerificationMeta(
+    'priority',
+  );
+  late final GeneratedColumn<int> priority = GeneratedColumn<int>(
+    'priority',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    $customConstraints: 'NOT NULL DEFAULT 0',
+    defaultValue: const CustomExpression('0'),
   );
   @override
-  List<GeneratedColumn> get $columns => [identityId, credentialId];
+  List<GeneratedColumn> get $columns => [
+    id,
+    identityId,
+    credentialId,
+    priority,
+  ];
   @override
   String get aliasedName => _alias ?? actualTableName;
   @override
@@ -587,6 +564,9 @@ class IdentityCredentials extends Table
   }) {
     final context = VerificationContext();
     final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
     if (data.containsKey('identity_id')) {
       context.handle(
         _identityIdMeta,
@@ -606,15 +586,29 @@ class IdentityCredentials extends Table
     } else if (isInserting) {
       context.missing(_credentialIdMeta);
     }
+    if (data.containsKey('priority')) {
+      context.handle(
+        _priorityMeta,
+        priority.isAcceptableOrUnknown(data['priority']!, _priorityMeta),
+      );
+    }
     return context;
   }
 
   @override
-  Set<GeneratedColumn> get $primaryKey => {identityId, credentialId};
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  List<Set<GeneratedColumn>> get uniqueKeys => [
+    {identityId, credentialId},
+  ];
   @override
   IdentityCredential map(Map<String, dynamic> data, {String? tablePrefix}) {
     final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
     return IdentityCredential(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}id'],
+      )!,
       identityId: attachedDatabase.typeMapping.read(
         DriftSqlType.int,
         data['${effectivePrefix}identity_id'],
@@ -622,6 +616,10 @@ class IdentityCredentials extends Table
       credentialId: attachedDatabase.typeMapping.read(
         DriftSqlType.int,
         data['${effectivePrefix}credential_id'],
+      )!,
+      priority: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}priority'],
       )!,
     );
   }
@@ -633,9 +631,7 @@ class IdentityCredentials extends Table
 
   @override
   List<String> get customConstraints => const [
-    'PRIMARY KEY(identity_id, credential_id)',
-    'FOREIGN KEY(identity_id)REFERENCES identities(id)ON DELETE CASCADE',
-    'FOREIGN KEY(credential_id)REFERENCES credentials(id)ON DELETE CASCADE',
+    'UNIQUE(identity_id, credential_id)',
   ];
   @override
   bool get dontWriteConstraints => true;
@@ -643,24 +639,32 @@ class IdentityCredentials extends Table
 
 class IdentityCredential extends DataClass
     implements Insertable<IdentityCredential> {
+  final int id;
   final int identityId;
   final int credentialId;
+  final int priority;
   const IdentityCredential({
+    required this.id,
     required this.identityId,
     required this.credentialId,
+    required this.priority,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
+    map['id'] = Variable<int>(id);
     map['identity_id'] = Variable<int>(identityId);
     map['credential_id'] = Variable<int>(credentialId);
+    map['priority'] = Variable<int>(priority);
     return map;
   }
 
   IdentityCredentialsCompanion toCompanion(bool nullToAbsent) {
     return IdentityCredentialsCompanion(
+      id: Value(id),
       identityId: Value(identityId),
       credentialId: Value(credentialId),
+      priority: Value(priority),
     );
   }
 
@@ -670,104 +674,130 @@ class IdentityCredential extends DataClass
   }) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return IdentityCredential(
+      id: serializer.fromJson<int>(json['id']),
       identityId: serializer.fromJson<int>(json['identity_id']),
       credentialId: serializer.fromJson<int>(json['credential_id']),
+      priority: serializer.fromJson<int>(json['priority']),
     );
   }
   @override
   Map<String, dynamic> toJson({ValueSerializer? serializer}) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return <String, dynamic>{
+      'id': serializer.toJson<int>(id),
       'identity_id': serializer.toJson<int>(identityId),
       'credential_id': serializer.toJson<int>(credentialId),
+      'priority': serializer.toJson<int>(priority),
     };
   }
 
-  IdentityCredential copyWith({int? identityId, int? credentialId}) =>
-      IdentityCredential(
-        identityId: identityId ?? this.identityId,
-        credentialId: credentialId ?? this.credentialId,
-      );
+  IdentityCredential copyWith({
+    int? id,
+    int? identityId,
+    int? credentialId,
+    int? priority,
+  }) => IdentityCredential(
+    id: id ?? this.id,
+    identityId: identityId ?? this.identityId,
+    credentialId: credentialId ?? this.credentialId,
+    priority: priority ?? this.priority,
+  );
   IdentityCredential copyWithCompanion(IdentityCredentialsCompanion data) {
     return IdentityCredential(
+      id: data.id.present ? data.id.value : this.id,
       identityId: data.identityId.present
           ? data.identityId.value
           : this.identityId,
       credentialId: data.credentialId.present
           ? data.credentialId.value
           : this.credentialId,
+      priority: data.priority.present ? data.priority.value : this.priority,
     );
   }
 
   @override
   String toString() {
     return (StringBuffer('IdentityCredential(')
+          ..write('id: $id, ')
           ..write('identityId: $identityId, ')
-          ..write('credentialId: $credentialId')
+          ..write('credentialId: $credentialId, ')
+          ..write('priority: $priority')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode => Object.hash(identityId, credentialId);
+  int get hashCode => Object.hash(id, identityId, credentialId, priority);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
       (other is IdentityCredential &&
+          other.id == this.id &&
           other.identityId == this.identityId &&
-          other.credentialId == this.credentialId);
+          other.credentialId == this.credentialId &&
+          other.priority == this.priority);
 }
 
 class IdentityCredentialsCompanion extends UpdateCompanion<IdentityCredential> {
+  final Value<int> id;
   final Value<int> identityId;
   final Value<int> credentialId;
-  final Value<int> rowid;
+  final Value<int> priority;
   const IdentityCredentialsCompanion({
+    this.id = const Value.absent(),
     this.identityId = const Value.absent(),
     this.credentialId = const Value.absent(),
-    this.rowid = const Value.absent(),
+    this.priority = const Value.absent(),
   });
   IdentityCredentialsCompanion.insert({
+    this.id = const Value.absent(),
     required int identityId,
     required int credentialId,
-    this.rowid = const Value.absent(),
+    this.priority = const Value.absent(),
   }) : identityId = Value(identityId),
        credentialId = Value(credentialId);
   static Insertable<IdentityCredential> custom({
+    Expression<int>? id,
     Expression<int>? identityId,
     Expression<int>? credentialId,
-    Expression<int>? rowid,
+    Expression<int>? priority,
   }) {
     return RawValuesInsertable({
+      if (id != null) 'id': id,
       if (identityId != null) 'identity_id': identityId,
       if (credentialId != null) 'credential_id': credentialId,
-      if (rowid != null) 'rowid': rowid,
+      if (priority != null) 'priority': priority,
     });
   }
 
   IdentityCredentialsCompanion copyWith({
+    Value<int>? id,
     Value<int>? identityId,
     Value<int>? credentialId,
-    Value<int>? rowid,
+    Value<int>? priority,
   }) {
     return IdentityCredentialsCompanion(
+      id: id ?? this.id,
       identityId: identityId ?? this.identityId,
       credentialId: credentialId ?? this.credentialId,
-      rowid: rowid ?? this.rowid,
+      priority: priority ?? this.priority,
     );
   }
 
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<int>(id.value);
+    }
     if (identityId.present) {
       map['identity_id'] = Variable<int>(identityId.value);
     }
     if (credentialId.present) {
       map['credential_id'] = Variable<int>(credentialId.value);
     }
-    if (rowid.present) {
-      map['rowid'] = Variable<int>(rowid.value);
+    if (priority.present) {
+      map['priority'] = Variable<int>(priority.value);
     }
     return map;
   }
@@ -775,9 +805,10 @@ class IdentityCredentialsCompanion extends UpdateCompanion<IdentityCredential> {
   @override
   String toString() {
     return (StringBuffer('IdentityCredentialsCompanion(')
+          ..write('id: $id, ')
           ..write('identityId: $identityId, ')
           ..write('credentialId: $credentialId, ')
-          ..write('rowid: $rowid')
+          ..write('priority: $priority')
           ..write(')'))
         .toString();
   }
@@ -819,8 +850,19 @@ class Connections extends Table with TableInfo<Connections, Connection> {
     $customConstraints: 'NOT NULL DEFAULT 22',
     defaultValue: const CustomExpression('22'),
   );
+  static const VerificationMeta _identityIdMeta = const VerificationMeta(
+    'identityId',
+  );
+  late final GeneratedColumn<int> identityId = GeneratedColumn<int>(
+    'identity_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+    $customConstraints: 'NOT NULL REFERENCES identities(id)',
+  );
   @override
-  List<GeneratedColumn> get $columns => [id, address, port];
+  List<GeneratedColumn> get $columns => [id, address, port, identityId];
   @override
   String get aliasedName => _alias ?? actualTableName;
   @override
@@ -850,6 +892,14 @@ class Connections extends Table with TableInfo<Connections, Connection> {
         port.isAcceptableOrUnknown(data['port']!, _portMeta),
       );
     }
+    if (data.containsKey('identity_id')) {
+      context.handle(
+        _identityIdMeta,
+        identityId.isAcceptableOrUnknown(data['identity_id']!, _identityIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_identityIdMeta);
+    }
     return context;
   }
 
@@ -871,6 +921,10 @@ class Connections extends Table with TableInfo<Connections, Connection> {
         DriftSqlType.int,
         data['${effectivePrefix}port'],
       )!,
+      identityId: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}identity_id'],
+      )!,
     );
   }
 
@@ -887,10 +941,12 @@ class Connection extends DataClass implements Insertable<Connection> {
   final int id;
   final String address;
   final int port;
+  final int identityId;
   const Connection({
     required this.id,
     required this.address,
     required this.port,
+    required this.identityId,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -898,6 +954,7 @@ class Connection extends DataClass implements Insertable<Connection> {
     map['id'] = Variable<int>(id);
     map['address'] = Variable<String>(address);
     map['port'] = Variable<int>(port);
+    map['identity_id'] = Variable<int>(identityId);
     return map;
   }
 
@@ -906,6 +963,7 @@ class Connection extends DataClass implements Insertable<Connection> {
       id: Value(id),
       address: Value(address),
       port: Value(port),
+      identityId: Value(identityId),
     );
   }
 
@@ -918,6 +976,7 @@ class Connection extends DataClass implements Insertable<Connection> {
       id: serializer.fromJson<int>(json['id']),
       address: serializer.fromJson<String>(json['address']),
       port: serializer.fromJson<int>(json['port']),
+      identityId: serializer.fromJson<int>(json['identity_id']),
     );
   }
   @override
@@ -927,19 +986,25 @@ class Connection extends DataClass implements Insertable<Connection> {
       'id': serializer.toJson<int>(id),
       'address': serializer.toJson<String>(address),
       'port': serializer.toJson<int>(port),
+      'identity_id': serializer.toJson<int>(identityId),
     };
   }
 
-  Connection copyWith({int? id, String? address, int? port}) => Connection(
-    id: id ?? this.id,
-    address: address ?? this.address,
-    port: port ?? this.port,
-  );
+  Connection copyWith({int? id, String? address, int? port, int? identityId}) =>
+      Connection(
+        id: id ?? this.id,
+        address: address ?? this.address,
+        port: port ?? this.port,
+        identityId: identityId ?? this.identityId,
+      );
   Connection copyWithCompanion(ConnectionsCompanion data) {
     return Connection(
       id: data.id.present ? data.id.value : this.id,
       address: data.address.present ? data.address.value : this.address,
       port: data.port.present ? data.port.value : this.port,
+      identityId: data.identityId.present
+          ? data.identityId.value
+          : this.identityId,
     );
   }
 
@@ -948,45 +1013,53 @@ class Connection extends DataClass implements Insertable<Connection> {
     return (StringBuffer('Connection(')
           ..write('id: $id, ')
           ..write('address: $address, ')
-          ..write('port: $port')
+          ..write('port: $port, ')
+          ..write('identityId: $identityId')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode => Object.hash(id, address, port);
+  int get hashCode => Object.hash(id, address, port, identityId);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
       (other is Connection &&
           other.id == this.id &&
           other.address == this.address &&
-          other.port == this.port);
+          other.port == this.port &&
+          other.identityId == this.identityId);
 }
 
 class ConnectionsCompanion extends UpdateCompanion<Connection> {
   final Value<int> id;
   final Value<String> address;
   final Value<int> port;
+  final Value<int> identityId;
   const ConnectionsCompanion({
     this.id = const Value.absent(),
     this.address = const Value.absent(),
     this.port = const Value.absent(),
+    this.identityId = const Value.absent(),
   });
   ConnectionsCompanion.insert({
     this.id = const Value.absent(),
     required String address,
     this.port = const Value.absent(),
-  }) : address = Value(address);
+    required int identityId,
+  }) : address = Value(address),
+       identityId = Value(identityId);
   static Insertable<Connection> custom({
     Expression<int>? id,
     Expression<String>? address,
     Expression<int>? port,
+    Expression<int>? identityId,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
       if (address != null) 'address': address,
       if (port != null) 'port': port,
+      if (identityId != null) 'identity_id': identityId,
     });
   }
 
@@ -994,11 +1067,13 @@ class ConnectionsCompanion extends UpdateCompanion<Connection> {
     Value<int>? id,
     Value<String>? address,
     Value<int>? port,
+    Value<int>? identityId,
   }) {
     return ConnectionsCompanion(
       id: id ?? this.id,
       address: address ?? this.address,
       port: port ?? this.port,
+      identityId: identityId ?? this.identityId,
     );
   }
 
@@ -1014,6 +1089,9 @@ class ConnectionsCompanion extends UpdateCompanion<Connection> {
     if (port.present) {
       map['port'] = Variable<int>(port.value);
     }
+    if (identityId.present) {
+      map['identity_id'] = Variable<int>(identityId.value);
+    }
     return map;
   }
 
@@ -1022,7 +1100,8 @@ class ConnectionsCompanion extends UpdateCompanion<Connection> {
     return (StringBuffer('ConnectionsCompanion(')
           ..write('id: $id, ')
           ..write('address: $address, ')
-          ..write('port: $port')
+          ..write('port: $port, ')
+          ..write('identityId: $identityId')
           ..write(')'))
         .toString();
   }
@@ -1071,6 +1150,56 @@ typedef $IdentitiesCreateCompanionBuilder =
 typedef $IdentitiesUpdateCompanionBuilder =
     IdentitiesCompanion Function({Value<int> id, Value<String> username});
 
+final class $IdentitiesReferences
+    extends BaseReferences<_$CliqDatabase, Identities, Identity> {
+  $IdentitiesReferences(super.$_db, super.$_table, super.$_typedResult);
+
+  static MultiTypedResultKey<IdentityCredentials, List<IdentityCredential>>
+  _identityCredentialsRefsTable(_$CliqDatabase db) =>
+      MultiTypedResultKey.fromTable(
+        db.identityCredentials,
+        aliasName: $_aliasNameGenerator(
+          db.identities.id,
+          db.identityCredentials.identityId,
+        ),
+      );
+
+  $IdentityCredentialsProcessedTableManager get identityCredentialsRefs {
+    final manager = $IdentityCredentialsTableManager(
+      $_db,
+      $_db.identityCredentials,
+    ).filter((f) => f.identityId.id.sqlEquals($_itemColumn<int>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(
+      _identityCredentialsRefsTable($_db),
+    );
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
+
+  static MultiTypedResultKey<Connections, List<Connection>>
+  _connectionsRefsTable(_$CliqDatabase db) => MultiTypedResultKey.fromTable(
+    db.connections,
+    aliasName: $_aliasNameGenerator(
+      db.identities.id,
+      db.connections.identityId,
+    ),
+  );
+
+  $ConnectionsProcessedTableManager get connectionsRefs {
+    final manager = $ConnectionsTableManager(
+      $_db,
+      $_db.connections,
+    ).filter((f) => f.identityId.id.sqlEquals($_itemColumn<int>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(_connectionsRefsTable($_db));
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
+}
+
 class $IdentitiesFilterComposer extends Composer<_$CliqDatabase, Identities> {
   $IdentitiesFilterComposer({
     required super.$db,
@@ -1088,6 +1217,56 @@ class $IdentitiesFilterComposer extends Composer<_$CliqDatabase, Identities> {
     column: $table.username,
     builder: (column) => ColumnFilters(column),
   );
+
+  Expression<bool> identityCredentialsRefs(
+    Expression<bool> Function($IdentityCredentialsFilterComposer f) f,
+  ) {
+    final $IdentityCredentialsFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.identityCredentials,
+      getReferencedColumn: (t) => t.identityId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $IdentityCredentialsFilterComposer(
+            $db: $db,
+            $table: $db.identityCredentials,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+
+  Expression<bool> connectionsRefs(
+    Expression<bool> Function($ConnectionsFilterComposer f) f,
+  ) {
+    final $ConnectionsFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.connections,
+      getReferencedColumn: (t) => t.identityId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $ConnectionsFilterComposer(
+            $db: $db,
+            $table: $db.connections,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
 }
 
 class $IdentitiesOrderingComposer extends Composer<_$CliqDatabase, Identities> {
@@ -1123,6 +1302,56 @@ class $IdentitiesAnnotationComposer
 
   GeneratedColumn<String> get username =>
       $composableBuilder(column: $table.username, builder: (column) => column);
+
+  Expression<T> identityCredentialsRefs<T extends Object>(
+    Expression<T> Function($IdentityCredentialsAnnotationComposer a) f,
+  ) {
+    final $IdentityCredentialsAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.identityCredentials,
+      getReferencedColumn: (t) => t.identityId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $IdentityCredentialsAnnotationComposer(
+            $db: $db,
+            $table: $db.identityCredentials,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+
+  Expression<T> connectionsRefs<T extends Object>(
+    Expression<T> Function($ConnectionsAnnotationComposer a) f,
+  ) {
+    final $ConnectionsAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.connections,
+      getReferencedColumn: (t) => t.identityId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $ConnectionsAnnotationComposer(
+            $db: $db,
+            $table: $db.connections,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
 }
 
 class $IdentitiesTableManager
@@ -1136,9 +1365,12 @@ class $IdentitiesTableManager
           $IdentitiesAnnotationComposer,
           $IdentitiesCreateCompanionBuilder,
           $IdentitiesUpdateCompanionBuilder,
-          (Identity, BaseReferences<_$CliqDatabase, Identities, Identity>),
+          (Identity, $IdentitiesReferences),
           Identity,
-          PrefetchHooks Function()
+          PrefetchHooks Function({
+            bool identityCredentialsRefs,
+            bool connectionsRefs,
+          })
         > {
   $IdentitiesTableManager(_$CliqDatabase db, Identities table)
     : super(
@@ -1162,9 +1394,66 @@ class $IdentitiesTableManager
                 required String username,
               }) => IdentitiesCompanion.insert(id: id, username: username),
           withReferenceMapper: (p0) => p0
-              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .map(
+                (e) =>
+                    (e.readTable(table), $IdentitiesReferences(db, table, e)),
+              )
               .toList(),
-          prefetchHooksCallback: null,
+          prefetchHooksCallback:
+              ({identityCredentialsRefs = false, connectionsRefs = false}) {
+                return PrefetchHooks(
+                  db: db,
+                  explicitlyWatchedTables: [
+                    if (identityCredentialsRefs) db.identityCredentials,
+                    if (connectionsRefs) db.connections,
+                  ],
+                  addJoins: null,
+                  getPrefetchedDataCallback: (items) async {
+                    return [
+                      if (identityCredentialsRefs)
+                        await $_getPrefetchedData<
+                          Identity,
+                          Identities,
+                          IdentityCredential
+                        >(
+                          currentTable: table,
+                          referencedTable: $IdentitiesReferences
+                              ._identityCredentialsRefsTable(db),
+                          managerFromTypedResult: (p0) => $IdentitiesReferences(
+                            db,
+                            table,
+                            p0,
+                          ).identityCredentialsRefs,
+                          referencedItemsForCurrentItem:
+                              (item, referencedItems) => referencedItems.where(
+                                (e) => e.identityId == item.id,
+                              ),
+                          typedResults: items,
+                        ),
+                      if (connectionsRefs)
+                        await $_getPrefetchedData<
+                          Identity,
+                          Identities,
+                          Connection
+                        >(
+                          currentTable: table,
+                          referencedTable: $IdentitiesReferences
+                              ._connectionsRefsTable(db),
+                          managerFromTypedResult: (p0) => $IdentitiesReferences(
+                            db,
+                            table,
+                            p0,
+                          ).connectionsRefs,
+                          referencedItemsForCurrentItem:
+                              (item, referencedItems) => referencedItems.where(
+                                (e) => e.identityId == item.id,
+                              ),
+                          typedResults: items,
+                        ),
+                    ];
+                  },
+                );
+              },
         ),
       );
 }
@@ -1179,9 +1468,12 @@ typedef $IdentitiesProcessedTableManager =
       $IdentitiesAnnotationComposer,
       $IdentitiesCreateCompanionBuilder,
       $IdentitiesUpdateCompanionBuilder,
-      (Identity, BaseReferences<_$CliqDatabase, Identities, Identity>),
+      (Identity, $IdentitiesReferences),
       Identity,
-      PrefetchHooks Function()
+      PrefetchHooks Function({
+        bool identityCredentialsRefs,
+        bool connectionsRefs,
+      })
     >;
 typedef $CredentialsCreateCompanionBuilder =
     CredentialsCompanion Function({
@@ -1189,7 +1481,6 @@ typedef $CredentialsCreateCompanionBuilder =
       required CredentialType type,
       Value<String?> secret,
       Value<String?> passphrase,
-      Value<int> priority,
     });
 typedef $CredentialsUpdateCompanionBuilder =
     CredentialsCompanion Function({
@@ -1197,8 +1488,36 @@ typedef $CredentialsUpdateCompanionBuilder =
       Value<CredentialType> type,
       Value<String?> secret,
       Value<String?> passphrase,
-      Value<int> priority,
     });
+
+final class $CredentialsReferences
+    extends BaseReferences<_$CliqDatabase, Credentials, Credential> {
+  $CredentialsReferences(super.$_db, super.$_table, super.$_typedResult);
+
+  static MultiTypedResultKey<IdentityCredentials, List<IdentityCredential>>
+  _identityCredentialsRefsTable(_$CliqDatabase db) =>
+      MultiTypedResultKey.fromTable(
+        db.identityCredentials,
+        aliasName: $_aliasNameGenerator(
+          db.credentials.id,
+          db.identityCredentials.credentialId,
+        ),
+      );
+
+  $IdentityCredentialsProcessedTableManager get identityCredentialsRefs {
+    final manager = $IdentityCredentialsTableManager(
+      $_db,
+      $_db.identityCredentials,
+    ).filter((f) => f.credentialId.id.sqlEquals($_itemColumn<int>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(
+      _identityCredentialsRefsTable($_db),
+    );
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
+}
 
 class $CredentialsFilterComposer extends Composer<_$CliqDatabase, Credentials> {
   $CredentialsFilterComposer({
@@ -1229,10 +1548,30 @@ class $CredentialsFilterComposer extends Composer<_$CliqDatabase, Credentials> {
     builder: (column) => ColumnFilters(column),
   );
 
-  ColumnFilters<int> get priority => $composableBuilder(
-    column: $table.priority,
-    builder: (column) => ColumnFilters(column),
-  );
+  Expression<bool> identityCredentialsRefs(
+    Expression<bool> Function($IdentityCredentialsFilterComposer f) f,
+  ) {
+    final $IdentityCredentialsFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.identityCredentials,
+      getReferencedColumn: (t) => t.credentialId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $IdentityCredentialsFilterComposer(
+            $db: $db,
+            $table: $db.identityCredentials,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
 }
 
 class $CredentialsOrderingComposer
@@ -1263,11 +1602,6 @@ class $CredentialsOrderingComposer
     column: $table.passphrase,
     builder: (column) => ColumnOrderings(column),
   );
-
-  ColumnOrderings<int> get priority => $composableBuilder(
-    column: $table.priority,
-    builder: (column) => ColumnOrderings(column),
-  );
 }
 
 class $CredentialsAnnotationComposer
@@ -1293,8 +1627,30 @@ class $CredentialsAnnotationComposer
     builder: (column) => column,
   );
 
-  GeneratedColumn<int> get priority =>
-      $composableBuilder(column: $table.priority, builder: (column) => column);
+  Expression<T> identityCredentialsRefs<T extends Object>(
+    Expression<T> Function($IdentityCredentialsAnnotationComposer a) f,
+  ) {
+    final $IdentityCredentialsAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.identityCredentials,
+      getReferencedColumn: (t) => t.credentialId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $IdentityCredentialsAnnotationComposer(
+            $db: $db,
+            $table: $db.identityCredentials,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
 }
 
 class $CredentialsTableManager
@@ -1308,9 +1664,9 @@ class $CredentialsTableManager
           $CredentialsAnnotationComposer,
           $CredentialsCreateCompanionBuilder,
           $CredentialsUpdateCompanionBuilder,
-          (Credential, BaseReferences<_$CliqDatabase, Credentials, Credential>),
+          (Credential, $CredentialsReferences),
           Credential,
-          PrefetchHooks Function()
+          PrefetchHooks Function({bool identityCredentialsRefs})
         > {
   $CredentialsTableManager(_$CliqDatabase db, Credentials table)
     : super(
@@ -1329,13 +1685,11 @@ class $CredentialsTableManager
                 Value<CredentialType> type = const Value.absent(),
                 Value<String?> secret = const Value.absent(),
                 Value<String?> passphrase = const Value.absent(),
-                Value<int> priority = const Value.absent(),
               }) => CredentialsCompanion(
                 id: id,
                 type: type,
                 secret: secret,
                 passphrase: passphrase,
-                priority: priority,
               ),
           createCompanionCallback:
               ({
@@ -1343,18 +1697,51 @@ class $CredentialsTableManager
                 required CredentialType type,
                 Value<String?> secret = const Value.absent(),
                 Value<String?> passphrase = const Value.absent(),
-                Value<int> priority = const Value.absent(),
               }) => CredentialsCompanion.insert(
                 id: id,
                 type: type,
                 secret: secret,
                 passphrase: passphrase,
-                priority: priority,
               ),
           withReferenceMapper: (p0) => p0
-              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .map(
+                (e) =>
+                    (e.readTable(table), $CredentialsReferences(db, table, e)),
+              )
               .toList(),
-          prefetchHooksCallback: null,
+          prefetchHooksCallback: ({identityCredentialsRefs = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [
+                if (identityCredentialsRefs) db.identityCredentials,
+              ],
+              addJoins: null,
+              getPrefetchedDataCallback: (items) async {
+                return [
+                  if (identityCredentialsRefs)
+                    await $_getPrefetchedData<
+                      Credential,
+                      Credentials,
+                      IdentityCredential
+                    >(
+                      currentTable: table,
+                      referencedTable: $CredentialsReferences
+                          ._identityCredentialsRefsTable(db),
+                      managerFromTypedResult: (p0) => $CredentialsReferences(
+                        db,
+                        table,
+                        p0,
+                      ).identityCredentialsRefs,
+                      referencedItemsForCurrentItem: (item, referencedItems) =>
+                          referencedItems.where(
+                            (e) => e.credentialId == item.id,
+                          ),
+                      typedResults: items,
+                    ),
+                ];
+              },
+            );
+          },
         ),
       );
 }
@@ -1369,22 +1756,82 @@ typedef $CredentialsProcessedTableManager =
       $CredentialsAnnotationComposer,
       $CredentialsCreateCompanionBuilder,
       $CredentialsUpdateCompanionBuilder,
-      (Credential, BaseReferences<_$CliqDatabase, Credentials, Credential>),
+      (Credential, $CredentialsReferences),
       Credential,
-      PrefetchHooks Function()
+      PrefetchHooks Function({bool identityCredentialsRefs})
     >;
 typedef $IdentityCredentialsCreateCompanionBuilder =
     IdentityCredentialsCompanion Function({
+      Value<int> id,
       required int identityId,
       required int credentialId,
-      Value<int> rowid,
+      Value<int> priority,
     });
 typedef $IdentityCredentialsUpdateCompanionBuilder =
     IdentityCredentialsCompanion Function({
+      Value<int> id,
       Value<int> identityId,
       Value<int> credentialId,
-      Value<int> rowid,
+      Value<int> priority,
     });
+
+final class $IdentityCredentialsReferences
+    extends
+        BaseReferences<
+          _$CliqDatabase,
+          IdentityCredentials,
+          IdentityCredential
+        > {
+  $IdentityCredentialsReferences(
+    super.$_db,
+    super.$_table,
+    super.$_typedResult,
+  );
+
+  static Identities _identityIdTable(_$CliqDatabase db) =>
+      db.identities.createAlias(
+        $_aliasNameGenerator(
+          db.identityCredentials.identityId,
+          db.identities.id,
+        ),
+      );
+
+  $IdentitiesProcessedTableManager get identityId {
+    final $_column = $_itemColumn<int>('identity_id')!;
+
+    final manager = $IdentitiesTableManager(
+      $_db,
+      $_db.identities,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_identityIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+
+  static Credentials _credentialIdTable(_$CliqDatabase db) =>
+      db.credentials.createAlias(
+        $_aliasNameGenerator(
+          db.identityCredentials.credentialId,
+          db.credentials.id,
+        ),
+      );
+
+  $CredentialsProcessedTableManager get credentialId {
+    final $_column = $_itemColumn<int>('credential_id')!;
+
+    final manager = $CredentialsTableManager(
+      $_db,
+      $_db.credentials,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_credentialIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+}
 
 class $IdentityCredentialsFilterComposer
     extends Composer<_$CliqDatabase, IdentityCredentials> {
@@ -1395,15 +1842,61 @@ class $IdentityCredentialsFilterComposer
     super.$addJoinBuilderToRootComposer,
     super.$removeJoinBuilderFromRootComposer,
   });
-  ColumnFilters<int> get identityId => $composableBuilder(
-    column: $table.identityId,
+  ColumnFilters<int> get id => $composableBuilder(
+    column: $table.id,
     builder: (column) => ColumnFilters(column),
   );
 
-  ColumnFilters<int> get credentialId => $composableBuilder(
-    column: $table.credentialId,
+  ColumnFilters<int> get priority => $composableBuilder(
+    column: $table.priority,
     builder: (column) => ColumnFilters(column),
   );
+
+  $IdentitiesFilterComposer get identityId {
+    final $IdentitiesFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.identityId,
+      referencedTable: $db.identities,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $IdentitiesFilterComposer(
+            $db: $db,
+            $table: $db.identities,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  $CredentialsFilterComposer get credentialId {
+    final $CredentialsFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.credentialId,
+      referencedTable: $db.credentials,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $CredentialsFilterComposer(
+            $db: $db,
+            $table: $db.credentials,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
 }
 
 class $IdentityCredentialsOrderingComposer
@@ -1415,15 +1908,61 @@ class $IdentityCredentialsOrderingComposer
     super.$addJoinBuilderToRootComposer,
     super.$removeJoinBuilderFromRootComposer,
   });
-  ColumnOrderings<int> get identityId => $composableBuilder(
-    column: $table.identityId,
+  ColumnOrderings<int> get id => $composableBuilder(
+    column: $table.id,
     builder: (column) => ColumnOrderings(column),
   );
 
-  ColumnOrderings<int> get credentialId => $composableBuilder(
-    column: $table.credentialId,
+  ColumnOrderings<int> get priority => $composableBuilder(
+    column: $table.priority,
     builder: (column) => ColumnOrderings(column),
   );
+
+  $IdentitiesOrderingComposer get identityId {
+    final $IdentitiesOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.identityId,
+      referencedTable: $db.identities,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $IdentitiesOrderingComposer(
+            $db: $db,
+            $table: $db.identities,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  $CredentialsOrderingComposer get credentialId {
+    final $CredentialsOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.credentialId,
+      referencedTable: $db.credentials,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $CredentialsOrderingComposer(
+            $db: $db,
+            $table: $db.credentials,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
 }
 
 class $IdentityCredentialsAnnotationComposer
@@ -1435,15 +1974,57 @@ class $IdentityCredentialsAnnotationComposer
     super.$addJoinBuilderToRootComposer,
     super.$removeJoinBuilderFromRootComposer,
   });
-  GeneratedColumn<int> get identityId => $composableBuilder(
-    column: $table.identityId,
-    builder: (column) => column,
-  );
+  GeneratedColumn<int> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
 
-  GeneratedColumn<int> get credentialId => $composableBuilder(
-    column: $table.credentialId,
-    builder: (column) => column,
-  );
+  GeneratedColumn<int> get priority =>
+      $composableBuilder(column: $table.priority, builder: (column) => column);
+
+  $IdentitiesAnnotationComposer get identityId {
+    final $IdentitiesAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.identityId,
+      referencedTable: $db.identities,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $IdentitiesAnnotationComposer(
+            $db: $db,
+            $table: $db.identities,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  $CredentialsAnnotationComposer get credentialId {
+    final $CredentialsAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.credentialId,
+      referencedTable: $db.credentials,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $CredentialsAnnotationComposer(
+            $db: $db,
+            $table: $db.credentials,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
 }
 
 class $IdentityCredentialsTableManager
@@ -1457,16 +2038,9 @@ class $IdentityCredentialsTableManager
           $IdentityCredentialsAnnotationComposer,
           $IdentityCredentialsCreateCompanionBuilder,
           $IdentityCredentialsUpdateCompanionBuilder,
-          (
-            IdentityCredential,
-            BaseReferences<
-              _$CliqDatabase,
-              IdentityCredentials,
-              IdentityCredential
-            >,
-          ),
+          (IdentityCredential, $IdentityCredentialsReferences),
           IdentityCredential,
-          PrefetchHooks Function()
+          PrefetchHooks Function({bool identityId, bool credentialId})
         > {
   $IdentityCredentialsTableManager(_$CliqDatabase db, IdentityCredentials table)
     : super(
@@ -1481,28 +2055,90 @@ class $IdentityCredentialsTableManager
               $IdentityCredentialsAnnotationComposer($db: db, $table: table),
           updateCompanionCallback:
               ({
+                Value<int> id = const Value.absent(),
                 Value<int> identityId = const Value.absent(),
                 Value<int> credentialId = const Value.absent(),
-                Value<int> rowid = const Value.absent(),
+                Value<int> priority = const Value.absent(),
               }) => IdentityCredentialsCompanion(
+                id: id,
                 identityId: identityId,
                 credentialId: credentialId,
-                rowid: rowid,
+                priority: priority,
               ),
           createCompanionCallback:
               ({
+                Value<int> id = const Value.absent(),
                 required int identityId,
                 required int credentialId,
-                Value<int> rowid = const Value.absent(),
+                Value<int> priority = const Value.absent(),
               }) => IdentityCredentialsCompanion.insert(
+                id: id,
                 identityId: identityId,
                 credentialId: credentialId,
-                rowid: rowid,
+                priority: priority,
               ),
           withReferenceMapper: (p0) => p0
-              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .map(
+                (e) => (
+                  e.readTable(table),
+                  $IdentityCredentialsReferences(db, table, e),
+                ),
+              )
               .toList(),
-          prefetchHooksCallback: null,
+          prefetchHooksCallback: ({identityId = false, credentialId = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [],
+              addJoins:
+                  <
+                    T extends TableManagerState<
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic
+                    >
+                  >(state) {
+                    if (identityId) {
+                      state =
+                          state.withJoin(
+                                currentTable: table,
+                                currentColumn: table.identityId,
+                                referencedTable: $IdentityCredentialsReferences
+                                    ._identityIdTable(db),
+                                referencedColumn: $IdentityCredentialsReferences
+                                    ._identityIdTable(db)
+                                    .id,
+                              )
+                              as T;
+                    }
+                    if (credentialId) {
+                      state =
+                          state.withJoin(
+                                currentTable: table,
+                                currentColumn: table.credentialId,
+                                referencedTable: $IdentityCredentialsReferences
+                                    ._credentialIdTable(db),
+                                referencedColumn: $IdentityCredentialsReferences
+                                    ._credentialIdTable(db)
+                                    .id,
+                              )
+                              as T;
+                    }
+
+                    return state;
+                  },
+              getPrefetchedDataCallback: (items) async {
+                return [];
+              },
+            );
+          },
         ),
       );
 }
@@ -1517,25 +2153,48 @@ typedef $IdentityCredentialsProcessedTableManager =
       $IdentityCredentialsAnnotationComposer,
       $IdentityCredentialsCreateCompanionBuilder,
       $IdentityCredentialsUpdateCompanionBuilder,
-      (
-        IdentityCredential,
-        BaseReferences<_$CliqDatabase, IdentityCredentials, IdentityCredential>,
-      ),
+      (IdentityCredential, $IdentityCredentialsReferences),
       IdentityCredential,
-      PrefetchHooks Function()
+      PrefetchHooks Function({bool identityId, bool credentialId})
     >;
 typedef $ConnectionsCreateCompanionBuilder =
     ConnectionsCompanion Function({
       Value<int> id,
       required String address,
       Value<int> port,
+      required int identityId,
     });
 typedef $ConnectionsUpdateCompanionBuilder =
     ConnectionsCompanion Function({
       Value<int> id,
       Value<String> address,
       Value<int> port,
+      Value<int> identityId,
     });
+
+final class $ConnectionsReferences
+    extends BaseReferences<_$CliqDatabase, Connections, Connection> {
+  $ConnectionsReferences(super.$_db, super.$_table, super.$_typedResult);
+
+  static Identities _identityIdTable(_$CliqDatabase db) =>
+      db.identities.createAlias(
+        $_aliasNameGenerator(db.connections.identityId, db.identities.id),
+      );
+
+  $IdentitiesProcessedTableManager get identityId {
+    final $_column = $_itemColumn<int>('identity_id')!;
+
+    final manager = $IdentitiesTableManager(
+      $_db,
+      $_db.identities,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_identityIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+}
 
 class $ConnectionsFilterComposer extends Composer<_$CliqDatabase, Connections> {
   $ConnectionsFilterComposer({
@@ -1559,6 +2218,29 @@ class $ConnectionsFilterComposer extends Composer<_$CliqDatabase, Connections> {
     column: $table.port,
     builder: (column) => ColumnFilters(column),
   );
+
+  $IdentitiesFilterComposer get identityId {
+    final $IdentitiesFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.identityId,
+      referencedTable: $db.identities,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $IdentitiesFilterComposer(
+            $db: $db,
+            $table: $db.identities,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
 }
 
 class $ConnectionsOrderingComposer
@@ -1584,6 +2266,29 @@ class $ConnectionsOrderingComposer
     column: $table.port,
     builder: (column) => ColumnOrderings(column),
   );
+
+  $IdentitiesOrderingComposer get identityId {
+    final $IdentitiesOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.identityId,
+      referencedTable: $db.identities,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $IdentitiesOrderingComposer(
+            $db: $db,
+            $table: $db.identities,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
 }
 
 class $ConnectionsAnnotationComposer
@@ -1603,6 +2308,29 @@ class $ConnectionsAnnotationComposer
 
   GeneratedColumn<int> get port =>
       $composableBuilder(column: $table.port, builder: (column) => column);
+
+  $IdentitiesAnnotationComposer get identityId {
+    final $IdentitiesAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.identityId,
+      referencedTable: $db.identities,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $IdentitiesAnnotationComposer(
+            $db: $db,
+            $table: $db.identities,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
 }
 
 class $ConnectionsTableManager
@@ -1616,9 +2344,9 @@ class $ConnectionsTableManager
           $ConnectionsAnnotationComposer,
           $ConnectionsCreateCompanionBuilder,
           $ConnectionsUpdateCompanionBuilder,
-          (Connection, BaseReferences<_$CliqDatabase, Connections, Connection>),
+          (Connection, $ConnectionsReferences),
           Connection,
-          PrefetchHooks Function()
+          PrefetchHooks Function({bool identityId})
         > {
   $ConnectionsTableManager(_$CliqDatabase db, Connections table)
     : super(
@@ -1636,21 +2364,72 @@ class $ConnectionsTableManager
                 Value<int> id = const Value.absent(),
                 Value<String> address = const Value.absent(),
                 Value<int> port = const Value.absent(),
-              }) => ConnectionsCompanion(id: id, address: address, port: port),
+                Value<int> identityId = const Value.absent(),
+              }) => ConnectionsCompanion(
+                id: id,
+                address: address,
+                port: port,
+                identityId: identityId,
+              ),
           createCompanionCallback:
               ({
                 Value<int> id = const Value.absent(),
                 required String address,
                 Value<int> port = const Value.absent(),
+                required int identityId,
               }) => ConnectionsCompanion.insert(
                 id: id,
                 address: address,
                 port: port,
+                identityId: identityId,
               ),
           withReferenceMapper: (p0) => p0
-              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .map(
+                (e) =>
+                    (e.readTable(table), $ConnectionsReferences(db, table, e)),
+              )
               .toList(),
-          prefetchHooksCallback: null,
+          prefetchHooksCallback: ({identityId = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [],
+              addJoins:
+                  <
+                    T extends TableManagerState<
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic
+                    >
+                  >(state) {
+                    if (identityId) {
+                      state =
+                          state.withJoin(
+                                currentTable: table,
+                                currentColumn: table.identityId,
+                                referencedTable: $ConnectionsReferences
+                                    ._identityIdTable(db),
+                                referencedColumn: $ConnectionsReferences
+                                    ._identityIdTable(db)
+                                    .id,
+                              )
+                              as T;
+                    }
+
+                    return state;
+                  },
+              getPrefetchedDataCallback: (items) async {
+                return [];
+              },
+            );
+          },
         ),
       );
 }
@@ -1665,9 +2444,9 @@ typedef $ConnectionsProcessedTableManager =
       $ConnectionsAnnotationComposer,
       $ConnectionsCreateCompanionBuilder,
       $ConnectionsUpdateCompanionBuilder,
-      (Connection, BaseReferences<_$CliqDatabase, Connections, Connection>),
+      (Connection, $ConnectionsReferences),
       Connection,
-      PrefetchHooks Function()
+      PrefetchHooks Function({bool identityId})
     >;
 
 class $CliqDatabaseManager {

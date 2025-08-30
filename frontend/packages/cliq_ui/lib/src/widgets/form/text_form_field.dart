@@ -31,6 +31,7 @@ class CliqTextFormField extends FormField<String> {
   }) : super(
          builder: (state) {
            return CliqTextField(
+             controller: controller,
              label: label,
              hint: hint,
              error: state.hasError && errorBuilder != null

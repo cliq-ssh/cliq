@@ -1,12 +1,14 @@
 import 'package:cliq/modules/settings/model/settings_module.dart';
 import 'package:cliq/modules/settings/model/theme_module.dart';
 import 'package:cliq/routing/router.extension.dart';
+import 'package:flutter/foundation.dart';
 import 'package:lucide_flutter/lucide_flutter.dart';
 import 'package:cliq_ui/cliq_ui.dart';
 import 'package:flutter/material.dart' hide LicensePage;
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
 import '../../../shared/ui/commons.dart';
+import '../model/debug_module.dart';
 import '../model/sync_module.dart';
 import 'license_page.dart';
 import '../../../routing/page_path.dart';
@@ -24,6 +26,7 @@ class _DashboardPageState extends ConsumerState<SettingsPage> {
   final List<(GlobalKey, SettingsModule)> _modules = [
     (GlobalKey(), SyncModule()),
     (GlobalKey(), ThemeModule()),
+    if (kDebugMode) (GlobalKey(), DebugModule()),
   ];
 
   @override

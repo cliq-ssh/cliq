@@ -1,4 +1,1 @@
-enum CredentialType {
-  password,
-  privateKey
-}
+enum CredentialType { password, key, certificate }
