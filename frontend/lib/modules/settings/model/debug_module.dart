@@ -16,13 +16,18 @@ final class DebugModule extends SettingsModule {
 
   @override
   Widget build(BuildContext context) {
-    return Column(children: [
-      CliqButton(label: Text('Reset SQLite database'), onPressed: () async {
-        await CliqDatabase.connectionsRepository.deleteAll();
-        await CliqDatabase.credentialsRepository.deleteAll();
-        await CliqDatabase.identitiesRepository.deleteAll();
-        await CliqDatabase.identityCredentialsRepository.deleteAll();
-      },)
-    ],);
+    return Column(
+      children: [
+        CliqButton(
+          label: Text('Reset SQLite database'),
+          onPressed: () async {
+            await CliqDatabase.connectionsRepository.deleteAll();
+            await CliqDatabase.credentialsRepository.deleteAll();
+            await CliqDatabase.identitiesRepository.deleteAll();
+            await CliqDatabase.identityCredentialsRepository.deleteAll();
+          },
+        ),
+      ],
+    );
   }
 }
