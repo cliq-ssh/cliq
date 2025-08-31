@@ -1,6 +1,13 @@
 package app.cliq.backend.api.user
 
 import EmailOccupiedConstraint
+import app.cliq.backend.api.error.exception.EmailAlreadyVerifiedException
+import app.cliq.backend.api.error.exception.EmailNotFoundOrValidException
+import app.cliq.backend.api.error.exception.ExpiredEmailVerificationTokenException
+import app.cliq.backend.api.error.exception.InternalServerErrorException
+import app.cliq.backend.api.error.exception.InvalidResetParamsException
+import app.cliq.backend.api.error.exception.InvalidVerifyParamsException
+import app.cliq.backend.api.error.exception.PasswordResetTokenExpired
 import app.cliq.backend.api.user.view.UserResponse
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.media.Content
@@ -13,18 +20,14 @@ import jakarta.validation.constraints.Email
 import jakarta.validation.constraints.NotBlank
 import jakarta.validation.constraints.NotEmpty
 import jakarta.validation.constraints.Size
+import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
-import org.springframework.web.bind.annotation.GetMapping
-import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
-import org.springframework.web.server.ResponseStatusException
-import org.thymeleaf.TemplateEngine
-import org.thymeleaf.context.Context
 
 @RestController
 @RequestMapping("/api/v1/user")
@@ -33,8 +36,9 @@ class UserController(
     private val userFactory: UserFactory,
     private val userService: UserService,
     private val userRepository: UserRepository,
-    private val templateEngine: TemplateEngine,
 ) {
+    private val logger = LoggerFactory.getLogger(this::class.java)
+
     @PostMapping("/register")
     @Operation(summary = "Register a new user")
     @ApiResponses(
@@ -48,7 +52,8 @@ class UserController(
                         schema = Schema(implementation = UserResponse::class),
                     ),
                 ],
-            ), ApiResponse(
+            ),
+            ApiResponse(
                 responseCode = "400",
                 description = "Invalid input",
                 content = [Content()],
@@ -64,7 +69,7 @@ class UserController(
         return ResponseEntity.status(HttpStatus.CREATED).body(response)
     }
 
-    @GetMapping("/verify/{verificationToken}")
+    @PostMapping("/verify")
     @Operation(summary = "Verify a users email address")
     @ApiResponses(
         value = [
@@ -73,37 +78,50 @@ class UserController(
                 description = "Email successfully verified",
                 content = [
                     Content(
-                        mediaType = MediaType.TEXT_HTML_VALUE,
-                        schema = Schema(implementation = String::class),
+                        mediaType = MediaType.APPLICATION_JSON_VALUE,
+                        schema = Schema(implementation = UserResponse::class),
                     ),
                 ],
-            ), ApiResponse(
-                responseCode = "404",
-                description = "Verification token not found",
-                content = [Content()],
+            ),
+            ApiResponse(
+                responseCode = "400",
+                description = "Verification params is invalid",
+                content = [
+                    Content(),
+                ],
+            ),
+            ApiResponse(
+                responseCode = "403",
+                description = "Verification token expired",
+                content = [
+                    Content(),
+                ],
             ),
         ],
     )
     fun verify(
-        @PathVariable
-        @Valid
-        @NotBlank
-        verificationToken: String,
-    ): ResponseEntity<String> {
-        userRepository.findUserByEmailVerificationToken(verificationToken)?.let {
-            userService.verifyUserEmail(it)
+        @Valid @RequestBody verifyParams: VerifyParams,
+    ): ResponseEntity<UserResponse> {
+        val user =
+            userRepository.findUserByEmail(verifyParams.email) ?: throw InvalidVerifyParamsException()
 
-            val context = Context(it.getUserLocale())
-
-            val htmlContent = templateEngine.process("email-verified.html", context)
-
-            return ResponseEntity
-                .ok()
-                .contentType(MediaType.TEXT_HTML)
-                .body(htmlContent)
+        if (user.isEmailVerified()) {
+            throw EmailAlreadyVerifiedException()
         }
 
-        throw ResponseStatusException(HttpStatus.NOT_FOUND)
+        if (user.isEmailVerificationTokenExpired()) {
+            throw ExpiredEmailVerificationTokenException()
+        }
+
+        if (!user.isEmailVerificationTokenValid()) {
+            logger.error("E-Mail verification token of user {} should be valid but is invalid.", user.id)
+
+            throw InternalServerErrorException()
+        }
+
+        userService.verifyUserEmail(user)
+
+        return ResponseEntity.status(HttpStatus.OK).body(UserResponse.fromUser(user))
     }
 
     @PostMapping("/resend-verification-email")
@@ -113,7 +131,8 @@ class UserController(
             ApiResponse(
                 responseCode = "204",
                 description = "Verification email successfully resent",
-            ), ApiResponse(
+            ),
+            ApiResponse(
                 responseCode = "400",
                 description = "Invalid E-Mail or email already verified",
                 content = [Content()],
@@ -135,6 +154,67 @@ class UserController(
 
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).build()
     }
+
+    @PostMapping("/init-reset-password")
+    @Operation(summary = "Start the reset password process")
+    @ApiResponses(
+        value = [
+            ApiResponse(
+                responseCode = "204",
+                description = "Reset password email successfully sent",
+            ),
+            ApiResponse(
+                responseCode = "400",
+                description = "Invalid E-Mail or email not verified",
+                content = [Content()],
+            ),
+        ],
+    )
+    fun startResetPasswordProcess(
+        @Valid @RequestBody params: StartResetPasswordProcessParams,
+    ): ResponseEntity<Void> {
+        // Returning 204 even if the user does not exist is intentional to not leak
+        val user = userRepository.findUserByEmail(params.email) ?: return ResponseEntity.noContent().build()
+
+        if (!user.isEmailVerified()) {
+            throw EmailNotFoundOrValidException()
+        }
+
+        userService.sendResetPasswordEmail(user)
+
+        return ResponseEntity.noContent().build()
+    }
+
+    @PostMapping("/reset-password")
+    @Operation(summary = "Reset a users password")
+    @ApiResponses(
+        value = [
+            ApiResponse(
+                responseCode = "200",
+                description = "Password successfully reset",
+            ),
+            ApiResponse(
+                responseCode = "400",
+                description = "Invalid reset token or password",
+                content = [Content()],
+            ),
+        ],
+    )
+    fun resetPassword(
+        @Valid @RequestBody params: ResetPasswordParams,
+    ): ResponseEntity<UserResponse> {
+        val user =
+            userRepository.findUserByResetTokenAndEmail(params.resetToken, params.email)
+                ?: throw InvalidResetParamsException()
+
+        if (!user.isPasswordResetTokenExpired()) {
+            throw PasswordResetTokenExpired()
+        }
+
+        val newUser = userFactory.updateUserPassword(user, params.password)
+
+        return ResponseEntity.status(HttpStatus.OK).body(UserResponse.fromUser(newUser))
+    }
 }
 
 const val MIN_PASSWORD_LENGTH = 8
@@ -145,27 +225,41 @@ const val EXAMPLE_PASSWORD = "CLIq123!"
 
 @Schema
 data class UserRegistrationParams(
-    @field:Schema(example = EMAIL_EXAMPLE)
-    @field:Email
-    @field:NotEmpty
-    @field:EmailOccupiedConstraint
-    val email: String,
-    @field:Schema(example = EXAMPLE_PASSWORD)
-    @field:NotEmpty
-    @field:Size(min = MIN_PASSWORD_LENGTH, max = MAX_PASSWORD_LENGTH)
-    val password: String,
-    @field:Schema(description = "An arbitrary username. Can be the user's full name", example = "John Doe")
-    @field:NotEmpty
-    val username: String,
-    @field:Schema(example = DEFAULT_LOCALE, defaultValue = DEFAULT_LOCALE)
-    val locale: String = DEFAULT_LOCALE,
+    @field:Schema(example = EMAIL_EXAMPLE) @field:Email @field:NotEmpty @field:EmailOccupiedConstraint val email:
+        String,
+    @field:Schema(example = EXAMPLE_PASSWORD) @field:NotEmpty @field:Size(
+        min = MIN_PASSWORD_LENGTH,
+        max = MAX_PASSWORD_LENGTH,
+    ) val password: String,
+    @field:Schema(
+        description = "An arbitrary username. Can be the user's full name",
+        example = "John Doe",
+    ) @field:NotEmpty val username: String,
+    @field:Schema(example = DEFAULT_LOCALE, defaultValue = DEFAULT_LOCALE) val locale: String = DEFAULT_LOCALE,
+)
+
+@Schema
+data class VerifyParams(
+    @field:Schema(example = EMAIL_EXAMPLE) @field:Email @field:NotEmpty val email: String,
+    @field:NotEmpty val verificationToken: String,
 )
 
 @Schema
 data class ResendVerificationEmailParams(
-    @field:Schema(example = EMAIL_EXAMPLE)
-    @field:Email
-    @field:NotEmpty
-    @field:EmailOccupiedConstraint
-    val email: String,
+    @field:Schema(example = EMAIL_EXAMPLE) @field:Email @field:NotEmpty val email: String,
+)
+
+@Schema
+data class StartResetPasswordProcessParams(
+    @field:Schema(example = EMAIL_EXAMPLE) @field:Email @field:NotEmpty val email: String,
+)
+
+@Schema
+data class ResetPasswordParams(
+    @field:Schema(example = EMAIL_EXAMPLE) @field:Email @field:NotEmpty val email: String,
+    @field:Schema(example = "reset-token") @field:NotBlank val resetToken: String,
+    @field:Schema(example = EXAMPLE_PASSWORD) @field:NotEmpty @field:Size(
+        min = MIN_PASSWORD_LENGTH,
+        max = MAX_PASSWORD_LENGTH,
+    ) val password: String,
 )

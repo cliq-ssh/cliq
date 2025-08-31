@@ -89,7 +89,7 @@ dependencies {
 
     // E-Mail
     implementation("org.springframework.boot:spring-boot-starter-mail")
-    implementation("org.springframework.boot:spring-boot-starter-thymeleaf")
+    implementation("io.pebbletemplates:pebble-spring-boot-starter:3.2.4")
 
     // Validation
     implementation("org.springframework.boot:spring-boot-starter-validation")
@@ -124,6 +124,7 @@ dependencies {
 
     // Kotlin specifics
     testImplementation("org.mockito.kotlin:mockito-kotlin:6.0.0")
+    testImplementation("org.awaitility:awaitility-kotlin:4.3.0")
 }
 
 kotlin {
@@ -154,6 +155,14 @@ tasks.withType<Test> {
         events("passed", "skipped", "failed")
         showStandardStreams = false
     }
+}
+
+tasks.withType<JavaCompile> {
+    options.encoding = "UTF-8"
+}
+
+tasks.withType<Test> {
+    systemProperty("file.encoding", "UTF-8")
 }
 
 // tasks.withType<ProcessResources> {

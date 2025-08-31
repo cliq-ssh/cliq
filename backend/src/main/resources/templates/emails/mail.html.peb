@@ -1,0 +1,58 @@
+{# @pebvariable name="lang" type="String" #}
+<!DOCTYPE html>
+<html lang="{{ lang }}">
+<head>
+    <meta charset="utf-8">
+    <title>{%- block title -%}
+                {# @pebvariable name="subject" type="String" #}
+                {{ subject }}
+            {%- endblock -%}</title>
+    <style>
+        .body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .header {
+            font-size: 24px;
+            margin-bottom: 20px;
+        }
+
+        .content {
+            font-size: 16px;
+            line-height: 1.5;
+        }
+
+        .token {
+            font-family: monospace;
+            font-size: 24px;
+            font-weight: bold;
+            background-color: #cbcbcb;
+            padding: 15px 20px;
+            border-radius: 6px;
+            display: inline-block;
+            letter-spacing: 2px;
+            user-select: all;
+        }
+
+        .mb-20 {
+            margin-bottom: 20px;
+        }
+
+        .text-center {
+            text-align: center;
+        }
+    </style>
+    {% block head %}
+    {% endblock %}
+</head>
+<div class="body">
+        {% block body %}
+    {% endblock %}
+</div>
+</html>

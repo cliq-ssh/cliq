@@ -29,7 +29,7 @@ class EmailServiceTests(
         // Test data
         val toEmail = "test@example.com"
         val subject = "Test Email"
-        val templateName = "test-email"
+        val templateName = "testEmail"
         val context =
             mapOf(
                 "subject" to subject,

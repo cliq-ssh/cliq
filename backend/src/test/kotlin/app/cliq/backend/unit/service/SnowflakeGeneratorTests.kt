@@ -15,6 +15,8 @@ import org.mockito.Mockito
 import org.mockito.junit.jupiter.MockitoExtension
 import org.springframework.test.util.ReflectionTestUtils
 import java.time.Clock
+import java.time.Instant
+import java.time.ZoneId
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.Executors
@@ -80,17 +82,19 @@ class SnowflakeGeneratorTests {
 
     @Test
     fun `should correctly encode sequence in generated IDs`() {
+        val clock = Clock.fixed(Instant.now(), ZoneId.of("UTC"))
+        val snowflakeGenerator = SnowflakeGenerator(instanceHandler, clock)
         // Reset sequence to ensure it starts at 0
         ReflectionTestUtils.setField(snowflakeGenerator, "sequence", AtomicLong(0))
 
         val id = snowflakeGenerator.nextId().getOrThrow()
+        val id2 = snowflakeGenerator.nextId().getOrThrow()
 
         // Extract sequence (bits 0-11)
         val extractedSequence = id and MAX_SEQUENCE
         assertEquals(0L, extractedSequence)
 
         // Generate another ID in the same millisecond
-        val id2 = snowflakeGenerator.nextId().getOrThrow()
         val extractedSequence2 = id2 and MAX_SEQUENCE
         assertEquals(1L, extractedSequence2)
     }

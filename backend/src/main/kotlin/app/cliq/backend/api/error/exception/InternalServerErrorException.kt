@@ -1,0 +1,6 @@
+package app.cliq.backend.api.error.exception
+
+import app.cliq.backend.api.error.ErrorCode
+import org.springframework.http.HttpStatus
+
+class InternalServerErrorException : ApiException(HttpStatus.INTERNAL_SERVER_ERROR, ErrorCode.UNKNOWN_ERROR)

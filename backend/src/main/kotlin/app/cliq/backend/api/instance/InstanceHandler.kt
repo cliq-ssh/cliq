@@ -5,7 +5,6 @@ import jakarta.annotation.PostConstruct
 import jakarta.annotation.PreDestroy
 import jakarta.persistence.EntityManager
 import org.slf4j.LoggerFactory
-import org.springframework.scheduling.annotation.EnableScheduling
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Service
 import org.springframework.transaction.PlatformTransactionManager
@@ -19,7 +18,6 @@ const val INSTANCE_HEARTBEAT_INTERVAL_SECONDS: Long = 10L
 const val INSTANCE_HEARTBEAT_TOLERANCE_SECONDS: Long = 30L // 3 * INSTANCE_HEARTBEAT_INTERVAL_SECONDS
 
 @Service
-@EnableScheduling
 class InstanceHandler(
     private val instanceRepository: InstanceRepository,
     private val clock: Clock,

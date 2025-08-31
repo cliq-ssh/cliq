@@ -1,0 +1,54 @@
+name: backend-build-images.yaml
+on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - 'backend/**'
+
+# Sets a default working directory
+defaults:
+  run:
+    working-directory: ./backend  # Change the working directory to /backend
+
+jobs:
+  build:
+    name: Build (${{ matrix.variant }} / ${{ matrix.platform }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-24.04
+            platform: linux/amd64
+            variant: debian
+            dockerfile: ./backend/docker/prod/debian.Dockerfile
+          - os: ubuntu-24.04-arm
+            platform: linux/arm64
+            variant: debian
+            dockerfile: ./backend/docker/prod/debian.Dockerfile
+          - os: ubuntu-24.04
+            platform: linux/amd64
+            variant: alpine
+            dockerfile: ./backend/docker/prod/alpine.Dockerfile
+          - os: ubuntu-24.04-arm
+            platform: linux/arm64
+            variant: alpine
+            dockerfile: ./backend/docker/prod/alpine.Dockerfile
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      - name: Set up Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build & push (by digest)
+        id: build
+        uses: docker/build-push-action@v6
+        with:
+          context: ./backend
+          file: ${{ matrix.dockerfile }}
+          platforms: ${{ matrix.platform }}

@@ -1,0 +1,35 @@
+{# @pebvariable name="name" type="String" #}
+{# @pebvariable name="verificationToken" type="String" #}
+{% extends "emails/mail.html" %}
+
+{% block head %}
+    <style>
+        .verification-token {
+            color: #007AFF;
+            border: 1px solid #007AFF;
+        }
+    </style>
+{% endblock %}
+
+{% block body %}
+<div class="container">
+    <div class="header">
+        <h1>{{ message('email.verification.header') }}</h1>
+    </div>
+    <div class="content">
+        <p class="mb-20">
+            {{ message('email.verification.greeting', name) }}
+            <br>
+            {{ message('email.verification.message')|nl2br|raw }}
+        </p>
+        <div class="text-center">
+            <div class="token reset-token mb-20 verification-token">
+                {{ verificationToken }}
+            </div>
+        </div>
+        <p>
+            {{ message('email.common.signature')|nl2br|raw }}
+        </p>
+    </div>
+</div>
+{% endblock %}

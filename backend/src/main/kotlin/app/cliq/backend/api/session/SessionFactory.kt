@@ -20,8 +20,7 @@ class SessionFactory(
     ): Session {
         val session = createSession(user, params.name, params.userAgent)
 
-        sessionRepository.save(session)
-        sessionRepository.flush()
+        sessionRepository.saveAndFlush(session)
 
         return session
     }

@@ -1,0 +1,16 @@
+{# @pebvariable name="name" type="String" #}
+{# @pebvariable name="verificationToken" type="String" #}
+
+{{ message('email.verification.header') }}
+
+{{ message('email.verification.greeting', name) }}
+
+{{ message('email.verification.message') }}
+
+==============================================
+
+{{ verificationToken }}
+
+==============================================
+
+{{ message('email.common.signature') }}

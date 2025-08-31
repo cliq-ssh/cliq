@@ -1,0 +1,9 @@
+{# @pebvariable name="subject" type="String" #}
+{# @pebvariable name="userName" type="String" #}
+{# @pebvariable name="message" type="String" #}
+
+{{ subject }}
+
+{{ userName }}
+
+{{ message }}

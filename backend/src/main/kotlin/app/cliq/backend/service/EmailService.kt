@@ -1,20 +1,20 @@
 package app.cliq.backend.service
 
 import app.cliq.backend.config.EmailProperties
+import io.pebbletemplates.pebble.PebbleEngine
 import jakarta.mail.internet.InternetAddress
 import org.slf4j.LoggerFactory
 import org.springframework.mail.javamail.JavaMailSender
 import org.springframework.mail.javamail.MimeMessageHelper
 import org.springframework.stereotype.Service
-import org.thymeleaf.TemplateEngine
-import org.thymeleaf.context.Context
+import java.io.StringWriter
 import java.nio.charset.StandardCharsets
 import java.util.Locale
 
 @Service
 class EmailService(
     private val emailProperties: EmailProperties,
-    private val templateEngine: TemplateEngine,
+    private val pebbleEngine: PebbleEngine,
     private val mailSender: JavaMailSender?,
 ) {
     private val logger = LoggerFactory.getLogger(this::class.java)
@@ -49,6 +49,10 @@ class EmailService(
             logger.warn("Email service is disabled. Not sending email to $to with subject '$subject'.")
             return
         }
+        val mutableContext = context.toMutableMap()
+
+        mutableContext["lang"] = locale.language
+        mutableContext["subject"] = subject
 
         try {
             val fromAddress =
@@ -56,8 +60,17 @@ class EmailService(
                     ?: throw IllegalStateException("From address is not configured")
             val fromName = emailProperties.fromName
 
-            val htmlContent = renderTemplate("emails/$templateName.html", context, locale)
-            val textContent = renderTemplate("emails/$templateName.txt", context, locale)
+            val htmlTemplate = pebbleEngine.getTemplate("emails/$templateName.html")
+            val textTemplate = pebbleEngine.getTemplate("emails/$templateName.txt")
+
+            val htmlContentWriter = StringWriter()
+            val textContentWriter = StringWriter()
+
+            htmlTemplate.evaluate(htmlContentWriter, mutableContext)
+            textTemplate.evaluate(textContentWriter, mutableContext)
+
+            val htmlContent = htmlContentWriter.toString()
+            val textContent = textContentWriter.toString()
 
             if (htmlContent.isBlank() && textContent.isBlank()) {
                 logger.error(
@@ -84,16 +97,4 @@ class EmailService(
             throw e
         }
     }
-
-    /**
-     * Renders a Pebble template with the given context
-     * @param templatePath Path to the template file
-     * @param context Variables to be passed to the template
-     * @return The rendered template as a string
-     */
-    private fun renderTemplate(
-        templatePath: String,
-        context: Map<String, Any>,
-        locale: Locale,
-    ): String = templateEngine.process(templatePath, Context(locale, context))
 }

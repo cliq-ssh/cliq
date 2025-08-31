@@ -1,0 +1,19 @@
+{# @pebvariable name="lang" type="String" #}
+{# @pebvariable name="subject" type="String" #}
+{# @pebvariable name="userName" type="String" #}
+{# @pebvariable name="message" type="String" #}
+<html lang="{{ lang }}">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+    <title>{{ subject }}</title>
+</head>
+
+<body>
+<p>
+    {{ userName }}
+</p>
+<p>
+    {{ message }}
+</p>
+</body>
+</html>

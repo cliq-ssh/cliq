@@ -1,5 +1,6 @@
 package app.cliq.backend.api.user
 
+import app.cliq.backend.api.user.event.PasswordResetEvent
 import app.cliq.backend.api.user.event.UserCreatedEvent
 import app.cliq.backend.service.SnowflakeGenerator
 import org.springframework.context.ApplicationEventPublisher
@@ -16,6 +17,25 @@ class UserFactory(
     private val eventPublisher: ApplicationEventPublisher,
     private val userRepository: UserRepository,
 ) {
+    fun updateUserPassword(
+        user: User,
+        newPassword: String,
+    ): User {
+        val hashedPassword = passwordEncoder.encode(newPassword)
+
+        user.resetToken = null
+        user.resetSentAt = null
+        user.password = hashedPassword
+        user.updatedAt = OffsetDateTime.now(clock)
+
+        val newUser = userRepository.save(user)
+        userRepository.flush()
+
+        eventPublisher.publishEvent(PasswordResetEvent(newUser.id))
+
+        return newUser
+    }
+
     fun createFromRegistrationParams(registrationParams: UserRegistrationParams): User {
         val hashedPassword = passwordEncoder.encode(registrationParams.password)
 

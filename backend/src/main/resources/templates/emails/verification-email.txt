@@ -1,5 +1,0 @@
-[( #{email.verification.greeting} )]
-
-[( #{email.verification.txt.message(${verificationUrl})} )]
-
-[( #{email.common.signature} )]

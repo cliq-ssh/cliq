@@ -2,6 +2,7 @@ package app.cliq.backend.unit.service
 
 import app.cliq.backend.config.EmailProperties
 import app.cliq.backend.service.EmailService
+import io.pebbletemplates.pebble.PebbleEngine
 import jakarta.mail.internet.MimeMessage
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -13,7 +14,6 @@ import org.mockito.kotlin.never
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
 import org.springframework.mail.javamail.JavaMailSender
-import org.thymeleaf.TemplateEngine
 import java.util.Locale
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
@@ -28,7 +28,7 @@ class EmailServiceTests {
     private lateinit var mailSender: JavaMailSender
 
     @Mock
-    private lateinit var templateEngine: TemplateEngine
+    private lateinit var templateEngine: PebbleEngine
 
     private lateinit var emailService: EmailService
 
