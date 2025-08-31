@@ -127,7 +127,6 @@ class _AddHostsPageState extends ConsumerState<AddHostsPage> {
                             }
 
                             // TODO: refactor to support multiple credentials, identity selector
-                            print(_addressController.text);
 
                             final credentialId = await CliqDatabase
                                 .credentialsRepository
@@ -159,7 +158,7 @@ class _AddHostsPageState extends ConsumerState<AddHostsPage> {
                             );
 
                             // TODO: loading state, success toast
-                            if (!mounted) return;
+                            if (!context.mounted) return;
                             context.pop();
                           },
                         ),

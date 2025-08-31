@@ -1,7 +1,4 @@
-import 'dart:ui';
-
 import 'package:cliq_ui/cliq_ui.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 
 extension CliqThemes on Never {
