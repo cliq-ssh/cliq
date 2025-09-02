@@ -95,7 +95,7 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-validation")
 
     // OpenAPI
-    implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.11")
+    implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.12")
 
     // Annotations
     annotationProcessor("org.springframework.boot:spring-boot-configuration-processor")
