@@ -20,6 +20,7 @@ class LicensePage extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return CliqScaffold(
+      extendBehindAppBar: true,
       header: CliqHeader(left: [Commons.backButton(context)]),
       body: FutureWrapper(
         future: LicenseRegistry.licenses.toList(),
@@ -40,6 +41,7 @@ class LicensePage extends ConsumerWidget {
 
           LucideIcons.aArrowDown;
           return ListView.separated(
+            padding: EdgeInsets.symmetric(vertical: 80),
             itemCount: licensesMap.length,
             separatorBuilder: (ctx, index) => const SizedBox(height: 16),
             itemBuilder: (ctx, index) {

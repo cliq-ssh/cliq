@@ -33,7 +33,10 @@ class CliqBlurContainer extends StatelessWidget {
           decoration: BoxDecoration(
             color: color ?? style.color,
             borderRadius: borderRadius ?? style.borderRadius,
-            border: Border.all(color: outlineColor ?? style.outlineColor, width: 1),
+            border: Border.all(
+              color: outlineColor ?? style.outlineColor,
+              width: 1,
+            ),
           ),
           child: Container(padding: padding, child: child),
         ),

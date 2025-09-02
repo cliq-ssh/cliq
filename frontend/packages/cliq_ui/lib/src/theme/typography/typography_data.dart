@@ -33,7 +33,10 @@ final class CliqTypographyData {
       fontWeight: FontWeight.w400,
     );
 
-    final headlineStyle = baseStyle.copyWith(fontWeight: FontWeight.w900);
+    final headlineStyle = baseStyle.copyWith(
+      fontFamily: CliqFontFamily.secondary.fontFamily,
+      fontWeight: FontWeight.w700,
+    );
 
     final BreakpointMap<CliqTextStyle> h1 = {
       Breakpoint.xl: CliqTextStyle(

@@ -6,8 +6,9 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 final class CliqTypography extends HookWidget {
   final String data;
   final BreakpointMap<CliqTextStyle> size;
-  final bool secondaryFont;
   final bool noPadding;
+  final TextStyle Function(TextStyle style)? styleModifier;
+  final CliqFontFamily? fontFamily;
 
   final StrutStyle? strutStyle;
   final TextAlign? textAlign;
@@ -27,8 +28,9 @@ final class CliqTypography extends HookWidget {
     this.data, {
     super.key,
     required this.size,
-    this.secondaryFont = false,
     this.noPadding = false,
+    this.styleModifier,
+    this.fontFamily,
     this.strutStyle,
     this.textAlign,
     this.textDirection,
@@ -49,18 +51,15 @@ final class CliqTypography extends HookWidget {
     final breakpoint = useBreakpoint();
     final style = size[breakpoint]!;
 
+    final textStyle = (styleModifier == null
+        ? style.style
+        : styleModifier!.call(style.style));
     return Padding(
       padding: noPadding ? EdgeInsets.zero : style.padding ?? EdgeInsets.zero,
       child: Text(
         data,
         key: key,
-        style: style.style.copyWith(
-          fontFamily:
-              (secondaryFont
-                      ? CliqFontFamily.secondary
-                      : CliqFontFamily.primary)
-                  .fontFamily,
-        ),
+        style: textStyle.copyWith(fontFamily: fontFamily?.fontFamily),
         strutStyle: strutStyle,
         textAlign: textAlign,
         textDirection: textDirection,

@@ -2,8 +2,6 @@ import 'package:cliq_ui/cliq_ui.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
-part 'grid_scaffold.dart';
-
 class CliqScaffold extends StatelessWidget {
   final Widget body;
   final Widget? header;
@@ -18,19 +16,9 @@ class CliqScaffold extends StatelessWidget {
     this.header,
     this.footer,
     this.extendBehindAppBar = false,
-    this.safeAreaTop = false,
+    this.safeAreaTop = true,
     this.style,
   });
-
-  const factory CliqScaffold.grid({
-    Key? key,
-    required Widget body,
-    Widget? header,
-    Widget? footer,
-    bool extendBehindAppBar,
-    bool safeAreaTop,
-    CliqScaffoldStyle? style,
-  }) = _CliqGridScaffold;
 
   @override
   Widget build(BuildContext context) {
@@ -56,19 +44,22 @@ class CliqScaffold extends StatelessWidget {
       ];
     }
 
-    return SafeArea(
-      top: safeAreaTop,
-      bottom: false,
-      left: false,
-      right: false,
-      child: ColoredBox(
-        color: style.backgroundColor,
-        child: Column(
-          children: [
-            ...(extendBehindAppBar
-                ? buildExtendedLayout()
-                : buildDefaultLayout()),
-          ],
+    return ColoredBox(
+      color: style.backgroundColor,
+      child: SafeArea(
+        top: safeAreaTop,
+        bottom: false,
+        left: false,
+        right: false,
+        child: IconTheme(
+          data: style.iconStyle,
+          child: Column(
+            children: [
+              ...(extendBehindAppBar
+                  ? buildExtendedLayout()
+                  : buildDefaultLayout()),
+            ],
+          ),
         ),
       ),
     );
@@ -77,10 +68,17 @@ class CliqScaffold extends StatelessWidget {
 
 final class CliqScaffoldStyle {
   final Color backgroundColor;
+  final IconThemeData iconStyle;
 
-  const CliqScaffoldStyle({required this.backgroundColor});
+  const CliqScaffoldStyle({
+    required this.backgroundColor,
+    required this.iconStyle,
+  });
 
   factory CliqScaffoldStyle.inherit({required CliqColorScheme colorScheme}) {
-    return CliqScaffoldStyle(backgroundColor: colorScheme.background);
+    return CliqScaffoldStyle(
+      backgroundColor: colorScheme.background,
+      iconStyle: IconThemeData(color: colorScheme.onBackground),
+    );
   }
 }

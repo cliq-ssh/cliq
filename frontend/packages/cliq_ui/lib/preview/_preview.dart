@@ -4,6 +4,7 @@ import 'package:flutter/widget_previews.dart';
 import 'package:lucide_flutter/lucide_flutter.dart';
 
 part 'blur_container.preview.dart';
+part 'button.preview.dart';
 part 'card.preview.dart';
 part 'chip.preview.dart';
 part 'header.preview.dart';

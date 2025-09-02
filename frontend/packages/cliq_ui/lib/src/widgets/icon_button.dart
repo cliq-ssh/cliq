@@ -39,7 +39,7 @@ class CliqIconButton extends StatelessWidget {
                   CliqDefaultTypography(
                     size: textStyle.copyS,
                     color: style.iconTheme.color,
-                    secondaryFont: true,
+                    fontFamily: CliqFontFamily.secondary,
                     child: label!,
                   ),
               ];
