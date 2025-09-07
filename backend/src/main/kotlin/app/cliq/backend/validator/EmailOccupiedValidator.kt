@@ -1,7 +1,6 @@
 package app.cliq.backend.validator
 
-import EmailOccupiedConstraint
-import app.cliq.backend.api.user.UserRepository
+import app.cliq.backend.user.UserRepository
 import jakarta.validation.ConstraintValidator
 import jakarta.validation.ConstraintValidatorContext
 
