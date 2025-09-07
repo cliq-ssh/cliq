@@ -1,11 +1,11 @@
 package app.cliq.backend.auth
 
-import app.cliq.backend.api.error.ErrorResponse
-import app.cliq.backend.api.error.exception.ApiException
-import app.cliq.backend.api.error.exception.InvalidAuthTokenException
-import app.cliq.backend.api.session.SessionRepository
-import app.cliq.backend.api.session.event.SessionUsedEvent
-import app.cliq.backend.utils.HttpUtils
+import app.cliq.backend.error.ErrorResponse
+import app.cliq.backend.exception.ApiException
+import app.cliq.backend.exception.InvalidAuthTokenException
+import app.cliq.backend.session.SessionRepository
+import app.cliq.backend.session.event.SessionUsedEvent
+import app.cliq.backend.shared.HttpUtils
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
 import org.slf4j.LoggerFactory

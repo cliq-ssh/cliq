@@ -1,7 +1,7 @@
-package app.cliq.backend.api.session.listener
+package app.cliq.backend.session.listener
 
-import app.cliq.backend.api.session.SessionRepository
-import app.cliq.backend.api.session.event.SessionUsedEvent
+import app.cliq.backend.session.SessionRepository
+import app.cliq.backend.session.event.SessionUsedEvent
 import org.slf4j.LoggerFactory
 import org.springframework.context.event.EventListener
 import org.springframework.stereotype.Component

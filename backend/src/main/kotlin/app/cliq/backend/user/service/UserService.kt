@@ -19,7 +19,6 @@ class UserService(
     private val tokenGenerator: TokenGenerator,
     private val emailService: EmailService,
     private val messageSource: MessageSource,
-    private val passwordEncoder: PasswordEncoder,
 ) {
     private val logger = LoggerFactory.getLogger(this::class.java)
 
@@ -100,9 +99,4 @@ class UserService(
             throw e
         }
     }
-
-    fun isPasswordValid(
-        user: User,
-        password: String,
-    ): Boolean = passwordEncoder.matches(password, user.password)
 }

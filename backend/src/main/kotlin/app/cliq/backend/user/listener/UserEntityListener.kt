@@ -1,6 +1,6 @@
 package app.cliq.backend.user.listener
 
-import app.cliq.backend.api.user.User
+import app.cliq.backend.user.User
 import jakarta.persistence.PreUpdate
 import org.springframework.stereotype.Component
 import java.time.Clock

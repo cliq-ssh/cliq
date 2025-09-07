@@ -1,4 +1,4 @@
-package app.cliq.backend.api.session
+package app.cliq.backend.session
 
 import org.springframework.data.jpa.repository.JpaRepository
 

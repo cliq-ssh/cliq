@@ -1,6 +1,6 @@
-package app.cliq.backend.api.session
+package app.cliq.backend.session
 
-import app.cliq.backend.api.user.User
+import app.cliq.backend.user.User
 import jakarta.persistence.Column
 import jakarta.persistence.Entity
 import jakarta.persistence.FetchType

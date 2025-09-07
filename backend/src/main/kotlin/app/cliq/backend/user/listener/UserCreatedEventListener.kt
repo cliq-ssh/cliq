@@ -1,9 +1,9 @@
 package app.cliq.backend.user.listener
 
-import app.cliq.backend.api.user.UserRepository
-import app.cliq.backend.api.user.UserService
-import app.cliq.backend.api.user.event.UserCreatedEvent
-import app.cliq.backend.service.EmailService
+import app.cliq.backend.shared.EmailService
+import app.cliq.backend.user.UserRepository
+import app.cliq.backend.user.event.UserCreatedEvent
+import app.cliq.backend.user.service.UserService
 import org.slf4j.LoggerFactory
 import org.springframework.context.event.EventListener
 import org.springframework.stereotype.Component

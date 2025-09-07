@@ -1,5 +1,8 @@
 package app.cliq.backend.user.scheduler
 
+import app.cliq.backend.user.PASSWORD_RESET_TOKEN_INTERVAL_MINUTES
+import app.cliq.backend.user.UNVERIFIED_USER_INTERVAL_MINUTES
+import app.cliq.backend.user.UserRepository
 import org.slf4j.LoggerFactory
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Component

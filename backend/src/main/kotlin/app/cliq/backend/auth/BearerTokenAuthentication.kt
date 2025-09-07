@@ -1,6 +1,6 @@
 package app.cliq.backend.auth
 
-import app.cliq.backend.api.session.Session
+import app.cliq.backend.session.Session
 import org.springframework.security.core.Authentication
 import org.springframework.security.core.GrantedAuthority
 import org.springframework.security.core.authority.AuthorityUtils
