@@ -2,9 +2,9 @@ package app.cliq.backend.acceptance.instance
 
 import app.cliq.backend.acceptance.AcceptanceTest
 import app.cliq.backend.acceptance.AcceptanceTester
-import app.cliq.backend.api.instance.Instance
-import app.cliq.backend.api.instance.InstanceHandler
-import app.cliq.backend.api.instance.InstanceRepository
+import app.cliq.backend.instance.Instance
+import app.cliq.backend.instance.InstanceHandler
+import app.cliq.backend.instance.InstanceRepository
 import jakarta.persistence.EntityManager
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired

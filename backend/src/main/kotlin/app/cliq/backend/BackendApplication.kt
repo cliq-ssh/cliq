@@ -9,16 +9,7 @@ import org.springframework.scheduling.annotation.EnableScheduling
 @SpringBootApplication
 @EnableAsync
 @EnableScheduling
-@Modulithic(
-    sharedModules = [
-        "app.cliq.backend.config",
-        "app.cliq.backend.shared",
-        "app.cliq.backend.instance",
-        "app.cliq.backend.error",
-        "app.cliq.backend.exception",
-        "app.cliq.backend.docs",
-    ],
-)
+@Modulithic
 class BackendApplication
 
 fun main(args: Array<String>) {
