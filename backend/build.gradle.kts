@@ -69,8 +69,6 @@ buildscript {
     }
 }
 
-val greenmailVersion = "2.1.5"
-
 dependencies {
     // Web Framework
     implementation("org.springframework.boot:spring-boot-starter-web")
@@ -95,7 +93,10 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-validation")
 
     // OpenAPI
-    implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.12")
+    val springdocVersion = "2.8.13"
+    implementation("org.springdoc:springdoc-openapi-starter-webmvc-api:$springdocVersion")
+    implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:$springdocVersion")
+    implementation("org.springdoc:springdoc-openapi-starter-webmvc-scalar:$springdocVersion")
 
     // Annotations
     annotationProcessor("org.springframework.boot:spring-boot-configuration-processor")
@@ -115,6 +116,7 @@ dependencies {
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 
     // Greenmail
+    val greenmailVersion = "2.1.5"
     implementation("com.icegreen:greenmail-spring:$greenmailVersion")
     testImplementation("com.icegreen:greenmail:$greenmailVersion")
     testImplementation("com.icegreen:greenmail-junit5:$greenmailVersion")
