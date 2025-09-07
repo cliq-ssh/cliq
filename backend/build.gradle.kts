@@ -111,6 +111,8 @@ dependencies {
     // Modulith
     implementation("org.springframework.modulith:spring-modulith-starter-core")
     implementation("org.springframework.modulith:spring-modulith-starter-jpa")
+    runtimeOnly("org.springframework.modulith:spring-modulith-actuator")
+    runtimeOnly("org.springframework.modulith:spring-modulith-observability")
 
     // Testing //
 
@@ -122,8 +124,6 @@ dependencies {
 
     // Junit 5
     testImplementation("org.jetbrains.kotlin:kotlin-test-junit5")
-    runtimeOnly("org.springframework.modulith:spring-modulith-actuator")
-    runtimeOnly("org.springframework.modulith:spring-modulith-observability")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 
     // Greenmail
