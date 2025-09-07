@@ -1,8 +1,8 @@
 package app.cliq.backend.user.listener
 
-import app.cliq.backend.api.session.SessionRepository
-import app.cliq.backend.api.user.UserRepository
-import app.cliq.backend.api.user.event.PasswordResetEvent
+import app.cliq.backend.session.SessionRepository
+import app.cliq.backend.user.UserRepository
+import app.cliq.backend.user.event.PasswordResetEvent
 import jakarta.transaction.Transactional
 import org.slf4j.LoggerFactory
 import org.springframework.context.event.EventListener

@@ -1,13 +1,16 @@
-package app.cliq.backend.api.userconfig
+package app.cliq.backend.userconfig.factory
 
-import app.cliq.backend.api.user.User
-import app.cliq.backend.service.SnowflakeGenerator
+import app.cliq.backend.shared.SnowflakeGenerator
+import app.cliq.backend.user.User
+import app.cliq.backend.userconfig.UserConfiguration
+import app.cliq.backend.userconfig.params.ConfigurationParams
 import org.springframework.stereotype.Service
 import java.time.Clock
 import java.time.OffsetDateTime
 
 @Service
-class UserConfigurationFactory(
+class
+UserConfigurationFactory(
     private val snowflakeGenerator: SnowflakeGenerator,
     private val clock: Clock,
 ) {

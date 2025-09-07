@@ -1,6 +1,6 @@
-package app.cliq.backend.api.session.listener
+package app.cliq.backend.session.listener
 
-import app.cliq.backend.api.session.Session
+import app.cliq.backend.session.Session
 import jakarta.persistence.PreUpdate
 import org.springframework.stereotype.Component
 import java.time.Clock

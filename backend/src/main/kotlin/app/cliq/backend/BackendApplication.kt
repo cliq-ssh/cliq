@@ -16,7 +16,8 @@ import org.springframework.scheduling.annotation.EnableScheduling
         "app.cliq.backend.instance",
         "app.cliq.backend.error",
         "app.cliq.backend.exception",
-    ]
+        "app.cliq.backend.docs",
+    ],
 )
 class BackendApplication
 

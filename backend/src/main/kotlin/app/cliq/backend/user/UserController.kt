@@ -19,7 +19,7 @@ import org.springframework.web.bind.annotation.RequestBody
 
 @UserController
 class UserController(
-    private val userFactory: UserFactory
+    private val userFactory: UserFactory,
 ) {
     private val logger = LoggerFactory.getLogger(this::class.java)
 
