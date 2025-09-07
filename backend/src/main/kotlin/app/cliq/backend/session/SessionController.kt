@@ -1,14 +1,11 @@
-package app.cliq.backend.api.session
+package app.cliq.backend.session
 
-import app.cliq.backend.api.error.exception.EmailNotVerifiedException
-import app.cliq.backend.api.error.exception.InvalidEmailOrPasswordException
-import app.cliq.backend.api.session.view.SessionResponse
-import app.cliq.backend.api.user.EMAIL_EXAMPLE
-import app.cliq.backend.api.user.EXAMPLE_PASSWORD
-import app.cliq.backend.api.user.MAX_PASSWORD_LENGTH
-import app.cliq.backend.api.user.MIN_PASSWORD_LENGTH
-import app.cliq.backend.api.user.UserRepository
-import app.cliq.backend.api.user.UserService
+import app.cliq.backend.exception.EmailNotVerifiedException
+import app.cliq.backend.exception.InvalidEmailOrPasswordException
+import app.cliq.backend.session.factory.SessionFactory
+import app.cliq.backend.session.params.SessionCreationParams
+import app.cliq.backend.session.response.SessionResponse
+import app.cliq.backend.user.UserRepository
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.media.Content
 import io.swagger.v3.oas.annotations.media.Schema
@@ -16,12 +13,10 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.responses.ApiResponses
 import io.swagger.v3.oas.annotations.tags.Tag
 import jakarta.validation.Valid
-import jakarta.validation.constraints.Email
-import jakarta.validation.constraints.NotEmpty
-import jakarta.validation.constraints.Size
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
+import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
@@ -32,7 +27,7 @@ import org.springframework.web.bind.annotation.RestController
 @Tag(name = "Session", description = "Session management")
 class SessionController(
     private val userRepository: UserRepository,
-    private val userService: UserService,
+    private val passwordEncoder: PasswordEncoder,
     private val sessionFactory: SessionFactory,
 ) {
     @PostMapping
@@ -65,7 +60,13 @@ class SessionController(
 
         if (!user.isEmailVerified()) throw EmailNotVerifiedException()
 
-        if (!userService.isPasswordValid(user, sessionCreationParams.password)) throw InvalidEmailOrPasswordException()
+        if (!passwordEncoder.matches(
+                sessionCreationParams.password,
+                user.password,
+            )
+        ) {
+            throw InvalidEmailOrPasswordException()
+        }
 
         val session = sessionFactory.createFromCreationParams(sessionCreationParams, user)
         val response = SessionResponse.fromSession(session)
@@ -73,17 +74,3 @@ class SessionController(
         return ResponseEntity.status(HttpStatus.CREATED).body(response)
     }
 }
-
-@Schema
-data class SessionCreationParams(
-    @field:Schema(example = EMAIL_EXAMPLE)
-    @field:Email
-    @field:NotEmpty
-    val email: String,
-    @field:Schema(example = EXAMPLE_PASSWORD)
-    @field:NotEmpty
-    @field:Size(min = MIN_PASSWORD_LENGTH, max = MAX_PASSWORD_LENGTH)
-    val password: String,
-    val name: String? = null,
-    val userAgent: String? = null,
-)

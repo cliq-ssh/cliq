@@ -1,6 +1,6 @@
 package app.cliq.backend.shared
 
-import app.cliq.backend.api.instance.InstanceHandler
+import app.cliq.backend.instance.InstanceHandler
 import org.springframework.stereotype.Service
 import java.security.SecureRandom
 import java.util.Base64

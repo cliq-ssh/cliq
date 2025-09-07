@@ -1,10 +1,11 @@
-package app.cliq.backend.api.userconfig
+package app.cliq.backend.userconfig
 
-import app.cliq.backend.api.session.Session
-import app.cliq.backend.api.userconfig.view.ConfigurationView
 import app.cliq.backend.auth.Authenticated
+import app.cliq.backend.session.Session
+import app.cliq.backend.userconfig.factory.UserConfigurationFactory
+import app.cliq.backend.userconfig.params.ConfigurationParams
+import app.cliq.backend.userconfig.view.ConfigurationView
 import io.swagger.v3.oas.annotations.Operation
-import io.swagger.v3.oas.annotations.media.Schema
 import io.swagger.v3.oas.annotations.tags.Tag
 import org.springframework.http.ResponseEntity
 import org.springframework.security.core.annotation.AuthenticationPrincipal
@@ -77,9 +78,3 @@ class UserConfigurationController(
         return ResponseEntity.ok(updatedAt)
     }
 }
-
-@Schema
-data class ConfigurationParams(
-    @Schema(description = "The encrypted user configuration")
-    val configuration: String,
-)

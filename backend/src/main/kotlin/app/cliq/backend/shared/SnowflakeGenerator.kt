@@ -1,9 +1,8 @@
 package app.cliq.backend.shared
 
-import app.cliq.backend.api.instance.InstanceHandler
+import app.cliq.backend.instance.InstanceHandler
 import org.springframework.stereotype.Service
 import java.time.Clock
-import kotlin.compareTo
 import kotlin.concurrent.atomics.AtomicLong
 import kotlin.concurrent.atomics.ExperimentalAtomicApi
 
@@ -32,7 +31,7 @@ class SnowflakeGenerator(
             var currentTimestamp = getTimestamp()
             val lastTimestamp = lastTimestamp.load()
 
-            if (currentTimestamp.compareTo(lastTimestamp)) {
+            if (currentTimestamp < lastTimestamp) {
                 return Result.failure(
                     IllegalStateException(
                         "Clock moved backwards. Refusing to generate id for ${lastTimestamp - currentTimestamp} milliseconds",
@@ -40,7 +39,7 @@ class SnowflakeGenerator(
                 )
             }
 
-            var sequence = kotlin.sequences.sequence.load()
+            var sequence = sequence.load()
             if (currentTimestamp == lastTimestamp) {
                 sequence = (sequence + 1) and MAX_SEQUENCE
                 if (sequence == 0L) {
@@ -63,7 +62,7 @@ class SnowflakeGenerator(
 
     private fun waitForNextMillis(lastTimestamp: Long): Long {
         var currentTimestamp = getTimestamp()
-        while (currentTimestamp compareTo lastTimestamp) {
+        while (currentTimestamp <= lastTimestamp) {
             currentTimestamp = getTimestamp()
         }
 

@@ -1,6 +1,6 @@
-package app.cliq.backend.api.userconfig
+package app.cliq.backend.userconfig
 
-import app.cliq.backend.api.user.User
+import app.cliq.backend.user.User
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.data.jpa.repository.Query
 import java.time.OffsetDateTime

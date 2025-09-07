@@ -1,6 +1,6 @@
-package app.cliq.backend.api.session.view
+package app.cliq.backend.session.response
 
-import app.cliq.backend.api.session.Session
+import app.cliq.backend.session.Session
 import io.swagger.v3.oas.annotations.media.Schema
 import java.io.Serializable
 import java.time.OffsetDateTime

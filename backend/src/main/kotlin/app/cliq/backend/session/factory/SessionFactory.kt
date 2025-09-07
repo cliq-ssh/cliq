@@ -1,8 +1,11 @@
-package app.cliq.backend.api.session
+package app.cliq.backend.session.factory
 
-import app.cliq.backend.api.user.User
-import app.cliq.backend.service.SnowflakeGenerator
-import app.cliq.backend.service.TokenGenerator
+import app.cliq.backend.session.Session
+import app.cliq.backend.session.SessionRepository
+import app.cliq.backend.session.params.SessionCreationParams
+import app.cliq.backend.shared.SnowflakeGenerator
+import app.cliq.backend.shared.TokenGenerator
+import app.cliq.backend.user.User
 import org.springframework.stereotype.Service
 import java.time.Clock
 import java.time.OffsetDateTime
