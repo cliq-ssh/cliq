@@ -1,8 +1,8 @@
 package app.cliq.backend.integration.user
 
-import app.cliq.backend.api.user.User
-import app.cliq.backend.api.user.UserRepository
-import app.cliq.backend.service.SnowflakeGenerator
+import app.cliq.backend.shared.SnowflakeGenerator
+import app.cliq.backend.user.User
+import app.cliq.backend.user.UserRepository
 import jakarta.persistence.EntityManager
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach

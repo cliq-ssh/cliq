@@ -1,8 +1,8 @@
 package app.cliq.backend.unit.user
 
-import app.cliq.backend.api.user.PASSWORD_RESET_TOKEN_INTERVAL_MINUTES
-import app.cliq.backend.api.user.UNVERIFIED_USER_INTERVAL_MINUTES
-import app.cliq.backend.api.user.User
+import app.cliq.backend.user.PASSWORD_RESET_TOKEN_INTERVAL_MINUTES
+import app.cliq.backend.user.UNVERIFIED_USER_INTERVAL_MINUTES
+import app.cliq.backend.user.User
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import java.time.OffsetDateTime

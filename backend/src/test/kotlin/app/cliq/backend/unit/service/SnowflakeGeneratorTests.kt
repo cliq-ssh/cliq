@@ -1,12 +1,12 @@
 package app.cliq.backend.unit.service
 
-import app.cliq.backend.api.instance.InstanceHandler
-import app.cliq.backend.service.MAX_NODE_ID
-import app.cliq.backend.service.MAX_SEQUENCE
-import app.cliq.backend.service.NODE_ID_BITS
-import app.cliq.backend.service.SEQUENCE_BITS
-import app.cliq.backend.service.SNOWFLAKE_EPOCH
-import app.cliq.backend.service.SnowflakeGenerator
+import app.cliq.backend.instance.InstanceHandler
+import app.cliq.backend.shared.MAX_NODE_ID
+import app.cliq.backend.shared.MAX_SEQUENCE
+import app.cliq.backend.shared.NODE_ID_BITS
+import app.cliq.backend.shared.SEQUENCE_BITS
+import app.cliq.backend.shared.SNOWFLAKE_EPOCH
+import app.cliq.backend.shared.SnowflakeGenerator
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith

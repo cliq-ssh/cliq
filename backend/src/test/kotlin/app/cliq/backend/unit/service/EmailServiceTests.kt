@@ -1,7 +1,7 @@
 package app.cliq.backend.unit.service
 
 import app.cliq.backend.config.EmailProperties
-import app.cliq.backend.service.EmailService
+import app.cliq.backend.shared.EmailService
 import io.pebbletemplates.pebble.PebbleEngine
 import jakarta.mail.internet.MimeMessage
 import org.junit.jupiter.api.BeforeEach

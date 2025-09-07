@@ -1,9 +1,9 @@
 package app.cliq.backend.unit.instance
 
-import app.cliq.backend.api.instance.Instance
-import app.cliq.backend.api.instance.InstanceHandler
-import app.cliq.backend.api.instance.InstanceRepository
-import app.cliq.backend.service.MAX_NODE_ID
+import app.cliq.backend.instance.Instance
+import app.cliq.backend.instance.InstanceHandler
+import app.cliq.backend.instance.InstanceRepository
+import app.cliq.backend.shared.MAX_NODE_ID
 import jakarta.persistence.EntityManager
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
