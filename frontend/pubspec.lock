@@ -218,10 +218,10 @@ packages:
     dependency: "direct main"
     description:
       name: lucide_flutter
-      sha256: "962dd9740558304b1011696a5c85ea0716abf18ee7f0a8d7e948bd6dc7ff3d18"
+      sha256: ddeb9e33ebf6daaa5a472c171913674d5972b9cf9c55afbf875c4849ae7183cd
       url: "https://pub.dev"
     source: hosted
-    version: "0.542.0"
+    version: "0.544.0"
   matcher:
     dependency: transitive
     description:
