@@ -1,3 +1,4 @@
+import 'package:cliq/modules/add_host/view/add_host_page.dart';
 import 'package:cliq/modules/hosts/view/hosts_page.dart';
 import 'package:cliq/modules/settings/view/license_page.dart';
 import 'package:cliq/modules/settings/view/settings_page.dart';
@@ -43,6 +44,10 @@ class AppRouter {
 
   List<GoRoute> _noShellRoutes() {
     return [
+      GoRoute(
+        path: AddHostsPage.pagePath.path,
+        pageBuilder: _defaultPageBuilder(const AddHostsPage()),
+      ),
       GoRoute(
         path: SettingsPage.pagePath.path,
         pageBuilder: _defaultPageBuilder(const SettingsPage()),

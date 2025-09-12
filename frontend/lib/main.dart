@@ -1,3 +1,4 @@
+import 'package:cliq/data/sqlite/database.dart';
 import 'package:cliq/routing/router.provider.dart';
 import 'package:cliq/data/store.dart';
 import 'package:cliq_ui/cliq_ui.dart';
@@ -14,6 +15,7 @@ void main() async {
     _initLogger();
   }
 
+  CliqDatabase.init();
   await KeyValueStore.init();
 
   runApp(const ProviderScope(child: CliqApp()));

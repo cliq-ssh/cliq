@@ -29,16 +29,16 @@ class CliqChip extends StatelessWidget {
         child: Padding(
           padding: style.padding,
           child: Row(
-            spacing: 4,
+            spacing: 8,
             mainAxisSize: MainAxisSize.min,
             children: [
               if (leading != null)
                 IconTheme(data: style.iconStyle, child: leading!),
               if (title != null)
                 CliqDefaultTypography(
-                  size: context.theme.typography.copyXS,
+                  size: context.theme.typography.copyS,
                   color: context.theme.colorScheme.onSecondaryBackground,
-                  secondaryFont: true,
+                  fontFamily: CliqFontFamily.secondary,
                   child: title!,
                 ),
               if (trailing != null)

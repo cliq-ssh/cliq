@@ -8,6 +8,8 @@ class CliqGridContainer extends StatelessWidget {
   final bool fluid;
   final BoxDecoration? decoration;
   final EdgeInsetsGeometry? padding;
+  final Alignment alignment;
+  final Axis direction;
 
   const CliqGridContainer({
     super.key,
@@ -15,6 +17,8 @@ class CliqGridContainer extends StatelessWidget {
     this.fluid = false,
     this.decoration,
     this.padding,
+    this.alignment = Alignment.topCenter,
+    this.direction = Axis.horizontal,
   });
 
   @override
@@ -23,7 +27,7 @@ class CliqGridContainer extends StatelessWidget {
     return LayoutBuilder(
       builder: (BuildContext context, BoxConstraints constraints) {
         return Align(
-          alignment: Alignment.topCenter,
+          alignment: alignment,
           child: Padding(
             padding: padding ?? EdgeInsets.zero,
             child: Container(
@@ -33,7 +37,7 @@ class CliqGridContainer extends StatelessWidget {
               decoration: decoration,
               child: Wrap(
                 alignment: WrapAlignment.start,
-                direction: Axis.horizontal,
+                direction: direction,
                 children: children,
               ),
             ),

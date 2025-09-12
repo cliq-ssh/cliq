@@ -34,19 +34,18 @@ class CliqButton extends StatelessWidget {
           padding: style.padding,
           child: Row(
             spacing: 8,
-            mainAxisSize: MainAxisSize.max,
+            mainAxisSize: MainAxisSize.min,
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              if (icon != null)
-                IconTheme(data: style.iconTheme, child: icon!),
+              if (icon != null) IconTheme(data: style.iconTheme, child: icon!),
               CliqDefaultTypography(
                 size: textStyle.copyS,
                 color: style.iconTheme.color,
-                secondaryFont: true,
+                fontFamily: CliqFontFamily.secondary,
                 child: label,
               ),
             ],
-          )
+          ),
         ),
       ),
     );
@@ -70,11 +69,8 @@ final class CliqButtonStyle {
   }) {
     return CliqButtonStyle(
       backgroundColor: colorScheme.primary,
-      iconTheme: IconThemeData(
-        color: colorScheme.onPrimary,
-        size: 20,
-      ),
-      padding: const EdgeInsets.all(12),
+      iconTheme: IconThemeData(color: colorScheme.onPrimary, size: 20),
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
     );
   }
 }
