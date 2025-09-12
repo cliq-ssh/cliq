@@ -1,1 +1,1 @@
-export '../src/widgets/scaffold/scaffold.dart';
+export '../src/widgets/scaffold.dart';

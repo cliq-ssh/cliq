@@ -1,6 +1,9 @@
 import 'package:cliq_ui/cliq_ui.dart';
+import 'package:cliq_ui/src/widgets/progress_bar.dart';
 
 final class CliqThemeData {
+  final bool debug;
+
   final CliqBreakpoints breakpoints;
   final CliqGrid grid;
   final CliqColorScheme colorScheme;
@@ -8,6 +11,8 @@ final class CliqThemeData {
   final CliqStyle style;
 
   final CliqBottomNavigationBarStyle bottomNavigationBarStyle;
+  final CliqTextFieldStyle textFieldStyle;
+  final CliqGridColumnStyle gridColumnStyle;
   final CliqAppBarStyle appBarStyle;
   final CliqBlurContainerStyle blurContainerStyle;
   final CliqButtonStyle buttonStyle;
@@ -15,14 +20,18 @@ final class CliqThemeData {
   final CliqChipStyle chipStyle;
   final CliqIconButtonStyle iconButtonStyle;
   final CliqScaffoldStyle scaffoldStyle;
+  final CliqProgressBarStyle progressBarStyle;
 
   const CliqThemeData({
+    required this.debug,
     required this.breakpoints,
     required this.grid,
     required this.colorScheme,
     required this.typography,
     required this.style,
     required this.bottomNavigationBarStyle,
+    required this.textFieldStyle,
+    required this.gridColumnStyle,
     required this.appBarStyle,
     required this.blurContainerStyle,
     required this.buttonStyle,
@@ -30,6 +39,7 @@ final class CliqThemeData {
     required this.chipStyle,
     required this.iconButtonStyle,
     required this.scaffoldStyle,
+    required this.progressBarStyle,
   });
 
   factory CliqThemeData.inherit({
@@ -38,6 +48,7 @@ final class CliqThemeData {
     CliqGrid? grid,
     CliqTypographyData? typography,
     CliqStyle? style,
+    bool debug = false,
   }) {
     typography ??= CliqTypographyData.inherit(colorScheme: colorScheme);
     style ??= CliqStyle.inherit(
@@ -45,6 +56,7 @@ final class CliqThemeData {
       typography: typography,
     );
     return CliqThemeData(
+      debug: debug,
       breakpoints: breakpoints ?? CliqBreakpoints(),
       grid: grid ?? const CliqGrid(),
       colorScheme: colorScheme,
@@ -53,6 +65,11 @@ final class CliqThemeData {
       bottomNavigationBarStyle: CliqBottomNavigationBarStyle.inherit(
         colorScheme: colorScheme,
       ),
+      textFieldStyle: CliqTextFieldStyle.inherit(
+        style: style,
+        colorScheme: colorScheme,
+      ),
+      gridColumnStyle: CliqGridColumnStyle.inherit(debug: debug),
       appBarStyle: CliqAppBarStyle.inherit(
         style: style,
         colorScheme: colorScheme,
@@ -61,7 +78,10 @@ final class CliqThemeData {
         style: style,
         colorScheme: colorScheme,
       ),
-      buttonStyle: CliqButtonStyle.inherit(style: style, colorScheme: colorScheme),
+      buttonStyle: CliqButtonStyle.inherit(
+        style: style,
+        colorScheme: colorScheme,
+      ),
       cardStyle: CliqCardStyle.inherit(style: style, colorScheme: colorScheme),
       chipStyle: CliqChipStyle.inherit(style: style, colorScheme: colorScheme),
       iconButtonStyle: CliqIconButtonStyle.inherit(
@@ -69,6 +89,10 @@ final class CliqThemeData {
         colorScheme: colorScheme,
       ),
       scaffoldStyle: CliqScaffoldStyle.inherit(colorScheme: colorScheme),
+      progressBarStyle: CliqProgressBarStyle.inherit(
+        style: style,
+        colorScheme: colorScheme,
+      ),
     );
   }
 }

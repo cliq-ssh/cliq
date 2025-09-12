@@ -5,15 +5,15 @@ import 'package:cliq_ui/cliq_ui.dart';
 final class CliqDefaultTypography extends HookWidget {
   final BreakpointMap<CliqTextStyle> size;
   final Widget child;
-  final bool secondaryFont;
 
+  final CliqFontFamily? fontFamily;
   final Color? color;
 
   const CliqDefaultTypography({
     super.key,
     required this.size,
     required this.child,
-    this.secondaryFont = false,
+    this.fontFamily,
     this.color,
   });
 
@@ -24,9 +24,7 @@ final class CliqDefaultTypography extends HookWidget {
     return DefaultTextStyle(
       style: size[breakpoint]!.style.copyWith(
         color: color,
-        fontFamily:
-            (secondaryFont ? CliqFontFamily.secondary : CliqFontFamily.primary)
-                .fontFamily,
+        fontFamily: fontFamily?.fontFamily,
       ),
       child: child,
     );
