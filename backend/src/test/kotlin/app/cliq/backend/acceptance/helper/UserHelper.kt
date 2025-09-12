@@ -1,14 +1,14 @@
 package app.cliq.backend.acceptance.helper
 
-import app.cliq.backend.api.session.Session
-import app.cliq.backend.api.session.SessionCreationParams
-import app.cliq.backend.api.session.SessionFactory
-import app.cliq.backend.api.session.SessionRepository
-import app.cliq.backend.api.user.User
-import app.cliq.backend.api.user.UserFactory
-import app.cliq.backend.api.user.UserRegistrationParams
-import app.cliq.backend.api.user.UserRepository
-import app.cliq.backend.api.user.UserService
+import app.cliq.backend.session.Session
+import app.cliq.backend.session.SessionRepository
+import app.cliq.backend.session.factory.SessionFactory
+import app.cliq.backend.session.params.SessionCreationParams
+import app.cliq.backend.user.User
+import app.cliq.backend.user.UserRepository
+import app.cliq.backend.user.factory.UserFactory
+import app.cliq.backend.user.params.UserRegistrationParams
+import app.cliq.backend.user.service.UserService
 import org.awaitility.kotlin.await
 import org.springframework.boot.test.context.TestComponent
 import java.time.Duration

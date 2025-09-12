@@ -3,10 +3,10 @@ package app.cliq.backend.acceptance.user
 import app.cliq.backend.acceptance.AcceptanceTest
 import app.cliq.backend.acceptance.AcceptanceTester
 import app.cliq.backend.acceptance.helper.UserHelper
-import app.cliq.backend.api.session.SessionRepository
-import app.cliq.backend.api.user.PASSWORD_RESET_TOKEN_INTERVAL_MINUTES
-import app.cliq.backend.api.user.UNVERIFIED_USER_INTERVAL_MINUTES
-import app.cliq.backend.api.user.UserRepository
+import app.cliq.backend.session.SessionRepository
+import app.cliq.backend.user.PASSWORD_RESET_TOKEN_INTERVAL_MINUTES
+import app.cliq.backend.user.UNVERIFIED_USER_INTERVAL_MINUTES
+import app.cliq.backend.user.UserRepository
 import com.fasterxml.jackson.databind.ObjectMapper
 import org.apache.commons.mail2.jakarta.util.MimeMessageParser
 import org.awaitility.kotlin.await
