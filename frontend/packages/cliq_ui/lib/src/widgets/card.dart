@@ -25,6 +25,8 @@ class CliqCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final style = this.style ?? context.theme.cardStyle;
+    final typography = context.theme.typography;
+    final colorScheme = context.theme.colorScheme;
 
     return CliqInteractable(
       onTap: onTap,
@@ -38,24 +40,29 @@ class CliqCard extends StatelessWidget {
                 IconTheme(data: style.iconStyle, child: leading!),
               Expanded(
                 child: Column(
+                  spacing: 4,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     if (title != null)
                       CliqDefaultTypography(
-                        size: context.theme.typography.copyXL,
-                        color: context.theme.colorScheme.onSecondaryBackground,
-                        secondaryFont: true,
+                        size: typography.h5,
+                        color: colorScheme.onSecondaryBackground,
                         child: title!,
                       ),
-
                     if (subtitle != null)
                       CliqDefaultTypography(
-                        size: context.theme.typography.copyM,
-                        color: context.theme.colorScheme.onSecondaryBackground
-                            .withValues(alpha: .7),
+                        size: typography.copyS,
+                        color: colorScheme.onSecondaryBackground70,
                         child: subtitle!,
                       ),
-                    if (child != null) ...[const SizedBox(height: 16), child!],
+                    if (child != null) ...[
+                      const SizedBox(height: 8),
+                      CliqDefaultTypography(
+                        size: typography.copyM,
+                        color: colorScheme.onSecondaryBackground,
+                        child: child!,
+                      ),
+                    ],
                   ],
                 ),
               ),

@@ -1,6 +1,7 @@
 import 'package:flutter/cupertino.dart';
 
 import 'package:cliq_ui/cliq_ui.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 
 class CliqTheme extends HookWidget {
@@ -27,14 +28,17 @@ class CliqTheme extends HookWidget {
     final breakpoint = useBreakpoint();
     return _InheritedTheme(
       data: data,
-      child: Directionality(
-        textDirection:
-            textDirection ??
-            Directionality.maybeOf(context) ??
-            TextDirection.ltr,
-        child: DefaultTextStyle(
-          style: context.theme.typography.copyM[breakpoint]!.style,
-          child: child,
+      child: AnnotatedRegion(
+        value: data.colorScheme.systemUiOverlayStyle,
+        child: Directionality(
+          textDirection:
+              textDirection ??
+              Directionality.maybeOf(context) ??
+              TextDirection.ltr,
+          child: DefaultTextStyle(
+            style: context.theme.typography.copyM[breakpoint]!.style,
+            child: child,
+          ),
         ),
       ),
     );
