@@ -1,7 +1,11 @@
 import 'package:cliq/modules/add_host/view/add_host_page.dart';
 import 'package:cliq/modules/hosts/view/hosts_page.dart';
+import 'package:cliq/modules/settings/view/debug_settings_page.dart';
+import 'package:cliq/modules/settings/view/identities_settings_page.dart';
 import 'package:cliq/modules/settings/view/license_page.dart';
 import 'package:cliq/modules/settings/view/settings_page.dart';
+import 'package:cliq/modules/settings/view/sync_settings_page.dart';
+import 'package:cliq/modules/settings/view/theme_settings_page.dart';
 import 'package:cliq/routing/ui/navbar_shell.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:go_router/go_router.dart';
@@ -37,6 +41,37 @@ class AppRouter {
               ..._shellRoutes(),
             ],
           ),
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: SettingsPage.pagePath.path,
+                pageBuilder: _defaultPageBuilder(const SettingsPage()),
+                routes: [
+                  GoRoute(
+                    path: DebugSettingsPage.pagePath.path,
+                    pageBuilder: _defaultPageBuilder(const DebugSettingsPage()),
+                  ),
+                  GoRoute(
+                    path: IdentitiesSettingsPage.pagePath.path,
+                    pageBuilder: _defaultPageBuilder(const IdentitiesSettingsPage()),
+                  ),
+                  GoRoute(
+                    path: LicenseSettingsPage.pagePath.path,
+                    pageBuilder: _defaultPageBuilder(const LicenseSettingsPage()),
+                  ),
+                  GoRoute(
+                    path: SyncSettingsPage.pagePath.path,
+                    pageBuilder: _defaultPageBuilder(const SyncSettingsPage()),
+                  ),
+                  GoRoute(
+                    path: ThemeSettingsPage.pagePath.path,
+                    pageBuilder: _defaultPageBuilder(const ThemeSettingsPage()),
+                  ),
+                ],
+              ),
+              ..._shellRoutes()
+            ]
+          )
         ],
       ),
     ],
@@ -44,20 +79,7 @@ class AppRouter {
 
   List<GoRoute> _noShellRoutes() {
     return [
-      GoRoute(
-        path: AddHostsPage.pagePath.path,
-        pageBuilder: _defaultPageBuilder(const AddHostsPage()),
-      ),
-      GoRoute(
-        path: SettingsPage.pagePath.path,
-        pageBuilder: _defaultPageBuilder(const SettingsPage()),
-        routes: [
-          GoRoute(
-            path: LicensePage.pagePath.path,
-            pageBuilder: _defaultPageBuilder(const LicensePage()),
-          ),
-        ],
-      ),
+
     ];
   }
 

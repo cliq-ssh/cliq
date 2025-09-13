@@ -75,7 +75,7 @@ class _HostsPageState extends ConsumerState<HostsPage> {
       return CliqScaffold(body: buildNoHosts());
     }
 
-    return ListView.separated(
+    return CliqScaffold(body: ListView.separated(
       padding: EdgeInsets.symmetric(vertical: 80),
       itemCount: connections.value.length,
       separatorBuilder: (ctx, index) => const SizedBox(height: 16),
@@ -101,6 +101,6 @@ class _HostsPageState extends ConsumerState<HostsPage> {
           ],
         );
       },
-    );
+    ));
   }
 }
