@@ -1,4 +1,4 @@
-name: Publish Edge Docker Images
+name: Publish Prod Docker Images
 on:
   push:
     tags:
