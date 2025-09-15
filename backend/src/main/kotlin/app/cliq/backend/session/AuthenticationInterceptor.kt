@@ -1,9 +1,9 @@
-package app.cliq.backend.auth
+package app.cliq.backend.session
 
+import app.cliq.backend.error.ApiException
 import app.cliq.backend.error.ErrorResponse
-import app.cliq.backend.exception.ApiException
 import app.cliq.backend.exception.InvalidAuthTokenException
-import app.cliq.backend.session.SessionRepository
+import app.cliq.backend.session.auth.BearerTokenAuthentication
 import app.cliq.backend.session.event.SessionUsedEvent
 import app.cliq.backend.shared.HttpUtils
 import jakarta.servlet.http.HttpServletRequest
@@ -18,7 +18,7 @@ import org.springframework.web.servlet.HandlerInterceptor
 private const val AUTHORIZATION_HEADER = "Authorization"
 private const val BEARER_PREFIX = "Bearer "
 
-@Component
+@Component("authenticationInterceptor")
 class AuthenticationInterceptor(
     private val sessionRepository: SessionRepository,
     private val eventPublisher: ApplicationEventPublisher,

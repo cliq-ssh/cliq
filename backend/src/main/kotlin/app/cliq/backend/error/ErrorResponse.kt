@@ -1,6 +1,5 @@
 package app.cliq.backend.error
 
-import app.cliq.backend.exception.ApiException
 import com.fasterxml.jackson.annotation.JsonIgnore
 import io.swagger.v3.oas.annotations.media.Schema
 import org.springframework.http.HttpStatus

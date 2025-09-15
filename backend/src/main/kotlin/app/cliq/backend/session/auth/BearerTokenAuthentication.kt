@@ -1,4 +1,4 @@
-package app.cliq.backend.auth
+package app.cliq.backend.session.auth
 
 import app.cliq.backend.session.Session
 import org.springframework.security.core.Authentication

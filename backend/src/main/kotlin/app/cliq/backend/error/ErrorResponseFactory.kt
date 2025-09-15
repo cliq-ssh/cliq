@@ -1,6 +1,5 @@
 package app.cliq.backend.error
 
-import app.cliq.backend.exception.ApiException
 import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
