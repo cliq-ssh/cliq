@@ -31,7 +31,7 @@ class UserVerificationController(
 ) {
     private val logger = LoggerFactory.getLogger(this::class.java)
 
-    @PostMapping("/")
+    @PostMapping
     @Operation(summary = "Verify a users email address")
     @ApiResponses(
         value = [
