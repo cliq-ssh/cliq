@@ -5,7 +5,7 @@ import app.cliq.backend.docs.EXAMPLE_PASSWORD
 import app.cliq.backend.docs.MAX_PASSWORD_LENGTH
 import app.cliq.backend.docs.MIN_PASSWORD_LENGTH
 import app.cliq.backend.user.DEFAULT_LOCALE
-import app.cliq.backend.validator.EmailOccupiedConstraint
+import app.cliq.backend.user.validator.EmailOccupiedConstraint
 import io.swagger.v3.oas.annotations.media.Schema
 import jakarta.validation.constraints.Email
 import jakarta.validation.constraints.NotEmpty

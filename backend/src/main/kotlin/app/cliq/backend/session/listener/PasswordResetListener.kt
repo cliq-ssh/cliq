@@ -1,12 +1,11 @@
-package app.cliq.backend.user.listener
+package app.cliq.backend.session.listener
 
 import app.cliq.backend.session.SessionRepository
+import app.cliq.backend.user.PasswordResetEvent
 import app.cliq.backend.user.UserRepository
-import app.cliq.backend.user.event.PasswordResetEvent
-import jakarta.transaction.Transactional
 import org.slf4j.LoggerFactory
-import org.springframework.context.event.EventListener
 import org.springframework.stereotype.Component
+import org.springframework.transaction.event.TransactionalEventListener
 
 @Component
 class PasswordResetListener(
@@ -15,8 +14,7 @@ class PasswordResetListener(
 ) {
     private val logger = LoggerFactory.getLogger(this::class.java)
 
-    @EventListener
-    @Transactional
+    @TransactionalEventListener
     fun deleteAllSessions(event: PasswordResetEvent) {
         val user =
             userRepository.findById(event.userId).orElseThrow {

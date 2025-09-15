@@ -2,9 +2,9 @@ package app.cliq.backend.user.factory
 
 import app.cliq.backend.shared.SnowflakeGenerator
 import app.cliq.backend.user.DEFAULT_LOCALE
+import app.cliq.backend.user.PasswordResetEvent
 import app.cliq.backend.user.User
 import app.cliq.backend.user.UserRepository
-import app.cliq.backend.user.event.PasswordResetEvent
 import app.cliq.backend.user.event.UserCreatedEvent
 import app.cliq.backend.user.params.UserRegistrationParams
 import org.springframework.context.ApplicationEventPublisher

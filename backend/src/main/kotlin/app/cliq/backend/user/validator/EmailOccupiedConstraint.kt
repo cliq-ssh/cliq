@@ -1,4 +1,4 @@
-package app.cliq.backend.validator
+package app.cliq.backend.user.validator
 
 import jakarta.validation.Constraint
 import jakarta.validation.Payload

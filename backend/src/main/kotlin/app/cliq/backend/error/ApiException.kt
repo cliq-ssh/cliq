@@ -1,6 +1,5 @@
-package app.cliq.backend.exception
+package app.cliq.backend.error
 
-import app.cliq.backend.error.ErrorCode
 import org.springframework.http.HttpStatus
 import org.springframework.web.server.ResponseStatusException
 
