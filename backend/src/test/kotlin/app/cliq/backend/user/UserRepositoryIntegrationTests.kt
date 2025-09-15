@@ -1,8 +1,6 @@
-package app.cliq.backend.integration.user
+package app.cliq.backend.user
 
 import app.cliq.backend.shared.SnowflakeGenerator
-import app.cliq.backend.user.User
-import app.cliq.backend.user.UserRepository
 import jakarta.persistence.EntityManager
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
@@ -15,7 +13,7 @@ import java.util.Locale
 
 @SpringBootTest
 @Transactional
-class UserRepositoryTest(
+class UserRepositoryIntegrationTests(
     @Autowired
     private val entityManager: EntityManager,
     @Autowired
