@@ -10,7 +10,7 @@ plugins {
     id("io.spring.dependency-management") version "1.1.7"
 
     // Database Migrations
-    id("org.flywaydb.flyway") version "11.12.0"
+    id("org.flywaydb.flyway") version "11.13.0"
 
     // Linter and Formatter
     id("org.jlleitschuh.gradle.ktlint") version "13.1.0"
