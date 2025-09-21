@@ -11,6 +11,7 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.context.annotation.ComponentScan
 import org.springframework.test.annotation.DirtiesContext
+import org.springframework.test.context.ActiveProfiles
 
 const val EMAIL = "cliq@localhost"
 const val EMAIL_PWD = "cliq"
@@ -34,6 +35,7 @@ const val SMTP_PORT = 3025
 @AutoConfigureMockMvc
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
 @ComponentScan(basePackages = ["app.cliq.backend.acceptance.helper"])
+@ActiveProfiles("test")
 annotation class AcceptanceTest
 
 @AcceptanceTest
