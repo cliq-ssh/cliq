@@ -1,0 +1,29 @@
+#!/usr/bin/env bash
+
+# Set fast-fails
+set -euo pipefail
+
+# working dir preparation
+WORK_DIR="$(pwd)"
+cd "$(dirname "$0")"
+# cd out of bin directory
+cd ..
+
+cd_into_work_dir() {
+    cd "${WORK_DIR}"
+}
+
+trap cd_into_work_dir EXIT
+
+DEBIAN_IMAGE_TAG="ghcr.io/cliq-ssh/backend:dev-debian"
+ALPINE_IMAGE_TAG="ghcr.io/cliq-ssh/backend:dev-alpine"
+
+echo "Building debian based images..."
+docker build -t ${DEBIAN_IMAGE_TAG} -f docker/prod/debian.Dockerfile .
+
+echo "Building alpine based images..."
+docker build -t ${ALPINE_IMAGE_TAG} -f docker/prod/alpine.Dockerfile .
+
+echo "All images built successfully."
+echo "Debian image: ${DEBIAN_IMAGE_TAG}"
+echo "Alpine image: ${ALPINE_IMAGE_TAG}"

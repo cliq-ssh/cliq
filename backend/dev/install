@@ -15,4 +15,10 @@ cd_into_work_dir() {
 
 trap cd_into_work_dir EXIT
 
+echo "Installing environment file..."
 cp --update=none .env.dist .env
+
+echo "Starting docker containers..."
+docker compose up -d --pull always
+
+echo "Finished installation!"
