@@ -1,4 +1,4 @@
-package app.cliq.backend.acceptance.helper
+package app.cliq.backend.helper
 
 import app.cliq.backend.session.Session
 import app.cliq.backend.session.SessionRepository

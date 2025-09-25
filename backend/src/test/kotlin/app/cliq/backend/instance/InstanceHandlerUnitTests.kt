@@ -1,8 +1,5 @@
-package app.cliq.backend.unit.instance
+package app.cliq.backend.instance
 
-import app.cliq.backend.instance.Instance
-import app.cliq.backend.instance.InstanceHandler
-import app.cliq.backend.instance.InstanceRepository
 import app.cliq.backend.shared.MAX_NODE_ID
 import jakarta.persistence.EntityManager
 import org.junit.jupiter.api.BeforeEach
@@ -23,7 +20,7 @@ import kotlin.test.assertFailsWith
 import kotlin.test.assertTrue
 
 @ExtendWith(MockitoExtension::class)
-class InstanceHandlerTests {
+class InstanceHandlerUnitTests {
     @Mock
     private lateinit var instanceRepository: InstanceRepository
 

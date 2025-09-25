@@ -1,12 +1,6 @@
-package app.cliq.backend.unit.service
+package app.cliq.backend.shared
 
 import app.cliq.backend.instance.InstanceHandler
-import app.cliq.backend.shared.MAX_NODE_ID
-import app.cliq.backend.shared.MAX_SEQUENCE
-import app.cliq.backend.shared.NODE_ID_BITS
-import app.cliq.backend.shared.SEQUENCE_BITS
-import app.cliq.backend.shared.SNOWFLAKE_EPOCH
-import app.cliq.backend.shared.SnowflakeGenerator
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
@@ -25,7 +19,7 @@ import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
 @ExtendWith(MockitoExtension::class)
-class SnowflakeGeneratorTests {
+class SnowflakeGeneratorUnitTests {
     @Mock
     private lateinit var instanceHandler: InstanceHandler
 

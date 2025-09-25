@@ -1,7 +1,7 @@
 package app.cliq.backend.user
 
-import app.cliq.backend.acceptance.AcceptanceTest
-import app.cliq.backend.acceptance.AcceptanceTester
+import app.cliq.backend.AcceptanceTest
+import app.cliq.backend.AcceptanceTester
 import com.fasterxml.jackson.databind.ObjectMapper
 import org.apache.commons.mail2.jakarta.util.MimeMessageParser
 import org.junit.jupiter.api.Test

@@ -1,10 +1,7 @@
-package app.cliq.backend.acceptance.instance
+package app.cliq.backend.instance
 
-import app.cliq.backend.acceptance.AcceptanceTest
-import app.cliq.backend.acceptance.AcceptanceTester
-import app.cliq.backend.instance.Instance
-import app.cliq.backend.instance.InstanceHandler
-import app.cliq.backend.instance.InstanceRepository
+import app.cliq.backend.AcceptanceTest
+import app.cliq.backend.AcceptanceTester
 import jakarta.persistence.EntityManager
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
@@ -17,7 +14,7 @@ import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
 @AcceptanceTest
-class InstanceHandlerTests(
+class InstanceHandlerAcceptanaceTests(
     @Autowired
     private val instanceRepository: InstanceRepository,
     @Autowired

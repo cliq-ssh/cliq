@@ -1,18 +1,17 @@
-package app.cliq.backend.acceptance.email
+package app.cliq.backend.shared
 
-import app.cliq.backend.acceptance.AcceptanceTest
-import app.cliq.backend.acceptance.AcceptanceTester
-import app.cliq.backend.shared.EmailService
+import app.cliq.backend.AcceptanceTest
+import app.cliq.backend.AcceptanceTester
 import jakarta.mail.internet.MimeMessage
 import org.apache.commons.mail2.jakarta.util.MimeMessageParser
-import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import java.util.Locale
 import kotlin.test.assertTrue
 
 @AcceptanceTest
-class EmailServiceTests(
+class EmailServiceAcceptanceTests(
     @Autowired
     private val emailService: EmailService,
 ) : AcceptanceTester() {
@@ -52,9 +51,9 @@ class EmailServiceTests(
         val receivedMessages = greenMail.receivedMessages
 
         val message = receivedMessages[0]
-        assertEquals(subject, message.subject)
-        assertEquals(message.allRecipients.size, 1)
-        assertEquals(toEmail, message.allRecipients[0].toString())
+        Assertions.assertEquals(subject, message.subject)
+        Assertions.assertEquals(message.allRecipients.size, 1)
+        Assertions.assertEquals(toEmail, message.allRecipients[0].toString())
 
         // Verify content types exist (both HTML and text)
         assertTrue(message.contentType.contains("multipart/mixed"))

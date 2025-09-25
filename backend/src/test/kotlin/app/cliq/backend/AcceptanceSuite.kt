@@ -1,4 +1,4 @@
-package app.cliq.backend.acceptance
+package app.cliq.backend
 
 import com.icegreen.greenmail.configuration.GreenMailConfiguration
 import com.icegreen.greenmail.junit5.GreenMailExtension
@@ -34,7 +34,7 @@ const val SMTP_PORT = 3025
 )
 @AutoConfigureMockMvc
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
-@ComponentScan(basePackages = ["app.cliq.backend.acceptance.helper"])
+@ComponentScan(basePackages = ["app.cliq.backend.helper"])
 @ActiveProfiles("test")
 annotation class AcceptanceTest
 

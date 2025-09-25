@@ -1,8 +1,8 @@
-package app.cliq.backend.acceptance.userconfig
+package app.cliq.backend.userconfig
 
-import app.cliq.backend.acceptance.AcceptanceTest
-import app.cliq.backend.acceptance.AcceptanceTester
-import app.cliq.backend.acceptance.helper.UserHelper
+import app.cliq.backend.AcceptanceTest
+import app.cliq.backend.AcceptanceTester
+import app.cliq.backend.helper.UserHelper
 import com.fasterxml.jackson.databind.ObjectMapper
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
@@ -12,7 +12,7 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 
 @AcceptanceTest
-class UserConfigurationTests(
+class UserConfigurationAcceptanceTests(
     @Autowired
     private val mockMvc: MockMvc,
     @Autowired
