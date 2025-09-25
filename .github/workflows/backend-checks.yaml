@@ -34,7 +34,7 @@ jobs:
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v4
       - name: Install project
-        run: bash ./app/install
+        run: bash ./dev/install
       - name: Start Docker services
         run: docker compose up -d --wait
       - name: Run Gradle build
