@@ -2,7 +2,7 @@ package app.cliq.backend.userconfig
 
 import app.cliq.backend.AcceptanceTest
 import app.cliq.backend.AcceptanceTester
-import app.cliq.backend.helper.UserHelper
+import app.cliq.backend.support.UserHelper
 import com.fasterxml.jackson.databind.ObjectMapper
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
