@@ -127,7 +127,7 @@ dependencies {
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 
     // Greenmail
-    val greenmailVersion = "2.1.5"
+    val greenmailVersion = "2.1.6"
     implementation("com.icegreen:greenmail-spring:$greenmailVersion")
     testImplementation("com.icegreen:greenmail:$greenmailVersion")
     testImplementation("com.icegreen:greenmail-junit5:$greenmailVersion")
