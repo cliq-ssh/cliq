@@ -32,7 +32,7 @@ jobs:
           java-version: '24'
           distribution: 'temurin'
       - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@v4
+        uses: gradle/actions/setup-gradle@v5
       - name: Install project
         run: bash ./dev/install
       - name: Start Docker services
@@ -64,6 +64,6 @@ jobs:
           java-version: '24'
           distribution: 'temurin'
       - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@v4
+        uses: gradle/actions/setup-gradle@v5
       - name: Run ktlint
         run: ./gradlew ktlintCheck
