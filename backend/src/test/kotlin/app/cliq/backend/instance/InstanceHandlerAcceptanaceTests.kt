@@ -2,7 +2,9 @@ package app.cliq.backend.instance
 
 import app.cliq.backend.AcceptanceTest
 import app.cliq.backend.AcceptanceTester
+import app.cliq.backend.support.DatabaseCleanupService
 import jakarta.persistence.EntityManager
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.getBean
@@ -19,7 +21,16 @@ class InstanceHandlerAcceptanaceTests(
     private val instanceRepository: InstanceRepository,
     @Autowired
     private val applicationContext: ApplicationContext,
+    @Autowired
+    private val databaseCleanupService: DatabaseCleanupService,
+    @Autowired
+    private val clock: Clock
 ) : AcceptanceTester() {
+    @BeforeEach
+    fun clearInstances() {
+        databaseCleanupService.truncateInstances()
+    }
+
     @Test
     fun `initialize should register with smallest available ID when no instances exist`(
         @Autowired instanceHandler: InstanceHandler,
@@ -51,7 +62,7 @@ class InstanceHandlerAcceptanaceTests(
 
     @Test
     fun `initialize should reuse existing inactive instance`() {
-        val now = OffsetDateTime.now()
+        val now = OffsetDateTime.now(clock)
         val oldInstance =
             Instance(
                 nodeId = 1U,
@@ -72,7 +83,7 @@ class InstanceHandlerAcceptanaceTests(
     private fun createNewInstanceHandler(): InstanceHandler =
         InstanceHandler(
             instanceRepository,
-            Clock.systemDefaultZone(),
+            clock,
             applicationContext.getBean<PlatformTransactionManager>(),
             applicationContext.getBean<EntityManager>(),
         )
