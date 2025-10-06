@@ -51,7 +51,8 @@ class CliqInteractable extends StatefulWidget {
          WidgetState.disabled: SystemMouseCursors.forbidden,
          WidgetState.any: SystemMouseCursors.click,
        }).resolve(states),
-       disableAnimation = disableAnimation || states.contains(WidgetState.disabled);
+       disableAnimation =
+           disableAnimation || states.contains(WidgetState.disabled);
 
   @override
   State<StatefulWidget> createState() => _CliqInteractableState();

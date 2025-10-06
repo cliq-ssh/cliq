@@ -42,55 +42,53 @@ class _DashboardPageState extends ConsumerState<SettingsPage> {
                     child: Column(
                       spacing: 16,
                       children: [
-                        CliqTypography(
-                          'SSH',
-                          size: context.theme.typography.h2,
-                        ),
-                        CliqTile(
-                          leading: Icon(LucideIcons.refreshCcw),
-                          trailing: Icon(LucideIcons.chevronRight),
-                          title: Text('Sync'),
-                          subtitle: Text('Manage synchronization settings'),
-                          onPressed: () => context.pushPath(
-                            SyncSettingsPage.pagePath.build(),
-                          ),
-                        ),
-                        CliqTile(
-                          leading: Icon(LucideIcons.keyRound),
-                          trailing: Icon(LucideIcons.chevronRight),
-                          title: Text('Identities'),
-                          subtitle: Text('Manage your SSH identities'),
-                          onPressed: () => context.pushPath(
-                            IdentitiesSettingsPage.pagePath.build(),
-                          ),
-                        ),
-                        CliqTypography(
-                          'App',
-                          size: context.theme.typography.h2,
-                        ),
-                        CliqTile(
-                          leading: Icon(LucideIcons.palette),
-                          trailing: Icon(LucideIcons.chevronRight),
-                          title: Text('Theme'),
-                          subtitle: Text('Customize the application theme'),
-                          onPressed: () => context.pushPath(
-                            ThemeSettingsPage.pagePath.build(),
-                          ),
-                        ),
-                        if (kDebugMode)
-                          CliqTile(
-                            leading: Icon(LucideIcons.bug),
-                            trailing: Icon(LucideIcons.chevronRight),
-                            title: Text('Debug'),
-                            subtitle: Text('Debugging options and tools'),
-                            onPressed: () => context.pushPath(
-                              DebugSettingsPage.pagePath.build(),
+                        CliqTileGroup(
+                          label: Text('SSH Settings'),
+                          children: [
+                            CliqTile(
+                              leading: Icon(LucideIcons.refreshCcw),
+                              trailing: Icon(LucideIcons.chevronRight),
+                              title: Text('Sync'),
+                              onPressed: () => context.pushPath(
+                                SyncSettingsPage.pagePath.build(),
+                              ),
                             ),
-                          ),
+                            CliqTile(
+                              leading: Icon(LucideIcons.keyRound),
+                              trailing: Icon(LucideIcons.chevronRight),
+                              title: Text('Identities'),
+                              onPressed: () => context.pushPath(
+                                IdentitiesSettingsPage.pagePath.build(),
+                              ),
+                            ),
+                          ],
+                        ),
+                        CliqTileGroup(
+                          label: Text('App'),
+                          children: [
+                            CliqTile(
+                              leading: Icon(LucideIcons.palette),
+                              trailing: Icon(LucideIcons.chevronRight),
+                              title: Text('Theme'),
+                              onPressed: () => context.pushPath(
+                                ThemeSettingsPage.pagePath.build(),
+                              ),
+                            ),
+                            if (kDebugMode)
+                              CliqTile(
+                                leading: Icon(LucideIcons.bug),
+                                trailing: Icon(LucideIcons.chevronRight),
+                                title: Text('Debug'),
+                                onPressed: () => context.pushPath(
+                                  DebugSettingsPage.pagePath.build(),
+                                ),
+                              ),
+                          ],
+                        ),
 
                         // TODO: implement tile group
                         SizedBox.shrink(),
-                        Column(
+                        CliqTileGroup(
                           children: [
                             CliqTile(
                               leading: Icon(LucideIcons.scale),

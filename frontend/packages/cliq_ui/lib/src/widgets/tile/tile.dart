@@ -45,10 +45,11 @@ class CliqTile extends HookWidget {
         WidgetState.disabled: null,
         WidgetState.any: onPressed,
       }).resolve(states.value),
-      child: CliqBlurContainer.fromWidgetStateColor(
-        states.value,
-        style.backgroundColor,
+      child: CliqBlurContainer(
+        color: style.backgroundColor.resolve(states.value),
+        outlineColor: style.outlineColor ?? CliqColorScheme.calculateOutlineColor(style.backgroundColor.resolve(states.value)),
         padding: style.padding,
+        borderRadius: style.borderRadius,
         child: Row(
           spacing: 16,
           children: [
@@ -69,7 +70,7 @@ class CliqTile extends HookWidget {
                   if (subtitle != null)
                     CliqDefaultTypography(
                       size: context.theme.typography.copyS,
-                      color: context.theme.colorScheme.onBackground70,
+                      color: style.iconTheme.resolve(states.value).color,
                       child: subtitle!,
                     ),
                 ],
@@ -90,12 +91,16 @@ class CliqTile extends HookWidget {
 final class CliqTileStyle {
   final WidgetStateColor backgroundColor;
   final WidgetStateProperty<IconThemeData> iconTheme;
+  final BorderRadiusGeometry borderRadius;
   final EdgeInsetsGeometry padding;
+  final Color? outlineColor;
 
   const CliqTileStyle({
     required this.backgroundColor,
     required this.iconTheme,
+    required this.borderRadius,
     required this.padding,
+    this.outlineColor,
   });
 
   factory CliqTileStyle.inherit({
@@ -118,7 +123,24 @@ final class CliqTileStyle {
         ),
         WidgetState.any: iconTheme,
       }),
+      borderRadius: BorderRadius.circular(25),
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+    );
+  }
+
+  CliqTileStyle copyWith({
+    WidgetStateColor? backgroundColor,
+    WidgetStateProperty<IconThemeData>? iconTheme,
+    BorderRadiusGeometry? borderRadius,
+    EdgeInsetsGeometry? padding,
+    Color? outlineColor,
+  }) {
+    return CliqTileStyle(
+      backgroundColor: backgroundColor ?? this.backgroundColor,
+      iconTheme: iconTheme ?? this.iconTheme,
+      borderRadius: borderRadius ?? this.borderRadius,
+      padding: padding ?? this.padding,
+      outlineColor: outlineColor ?? this.outlineColor,
     );
   }
 }
