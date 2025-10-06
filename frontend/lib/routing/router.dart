@@ -41,48 +41,28 @@ class AppRouter {
               ..._shellRoutes(),
             ],
           ),
-          StatefulShellBranch(
-            routes: [
-              GoRoute(
-                path: SettingsPage.pagePath.path,
-                pageBuilder: _defaultPageBuilder(const SettingsPage()),
-                routes: [
-                  GoRoute(
-                    path: DebugSettingsPage.pagePath.path,
-                    pageBuilder: _defaultPageBuilder(const DebugSettingsPage()),
-                  ),
-                  GoRoute(
-                    path: IdentitiesSettingsPage.pagePath.path,
-                    pageBuilder: _defaultPageBuilder(
-                      const IdentitiesSettingsPage(),
-                    ),
-                  ),
-                  GoRoute(
-                    path: LicenseSettingsPage.pagePath.path,
-                    pageBuilder: _defaultPageBuilder(
-                      const LicenseSettingsPage(),
-                    ),
-                  ),
-                  GoRoute(
-                    path: SyncSettingsPage.pagePath.path,
-                    pageBuilder: _defaultPageBuilder(const SyncSettingsPage()),
-                  ),
-                  GoRoute(
-                    path: ThemeSettingsPage.pagePath.path,
-                    pageBuilder: _defaultPageBuilder(const ThemeSettingsPage()),
-                  ),
-                ],
-              ),
-              ..._shellRoutes(),
-            ],
-          ),
         ],
       ),
     ],
   );
 
   List<GoRoute> _noShellRoutes() {
-    return [];
+    return [
+      GoRoute(
+        path: AddHostsPage.pagePath.path,
+        pageBuilder: _defaultPageBuilder(const AddHostsPage()),
+      ),
+      GoRoute(
+        path: SettingsPage.pagePath.path,
+        pageBuilder: _defaultPageBuilder(const SettingsPage()),
+        routes: [
+          GoRoute(
+            path: LicenseSettingsPage.pagePath.path,
+            pageBuilder: _defaultPageBuilder(const LicenseSettingsPage()),
+          ),
+        ],
+      ),
+    ];
   }
 
   static List<GoRoute> _shellRoutes() {

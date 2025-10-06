@@ -19,27 +19,20 @@ class NavigationShell extends StatefulHookConsumerWidget {
 }
 
 class NavigationShellState extends ConsumerState<NavigationShell> {
-  static const List<CliqBottomNavigationBarItem> items = [
-    CliqBottomNavigationBarItem(
-      icon: Icon(LucideIcons.waypoints),
-      label: 'Connections',
-    ),
-    CliqBottomNavigationBarItem(
-      icon: Icon(LucideIcons.settings),
-      label: 'Settings',
-    ),
-  ];
-
   @override
   Widget build(BuildContext context) {
     return CliqScaffold(
+      header: CliqHeader(
+        right: [
+          CliqIconButton(icon: Icon(LucideIcons.search)),
+          CliqIconButton(
+            icon: Icon(LucideIcons.settings),
+            onPressed: () => context.pushPath(SettingsPage.pagePath.build()),
+          ),
+        ],
+      ),
       extendBehindAppBar: true,
       body: widget.shell,
-      footer: CliqBottomNavigationBar(
-        items: items,
-        currentIndex: widget.shell.currentIndex,
-        onItemSelected: (index) => goToBranch(index),
-      ),
     );
   }
 
