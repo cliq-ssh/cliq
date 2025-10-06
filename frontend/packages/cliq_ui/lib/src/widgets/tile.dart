@@ -24,10 +24,7 @@ class CliqTile extends StatelessWidget {
     return CliqInteractable(
       onTap: onTap,
       child: CliqBlurContainer(
-        padding: const EdgeInsets.symmetric(
-          horizontal: 16,
-          vertical: 8,
-        ),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         child: Row(
           spacing: 16,
           children: [
@@ -58,6 +55,4 @@ class CliqTile extends StatelessWidget {
   }
 }
 
-final class CliqTileStyle {
-
-}
+final class CliqTileStyle {}

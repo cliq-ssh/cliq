@@ -13,8 +13,6 @@ class Commons {
     onPressed: () => ctx.pop(),
   );
 
-  static Widget closeButton(BuildContext ctx) => CliqIconButton(
-    icon: Icon(LucideIcons.x),
-    onPressed: () => ctx.pop(),
-  );
+  static Widget closeButton(BuildContext ctx) =>
+      CliqIconButton(icon: Icon(LucideIcons.x), onPressed: () => ctx.pop());
 }

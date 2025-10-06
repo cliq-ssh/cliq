@@ -22,7 +22,7 @@ class _HostsPageState extends ConsumerState<HostsPage> {
   @override
   Widget build(BuildContext context) {
     final typography = context.theme.typography;
-    final connections = useState(<Connection>[]);
+    final connections = useState<List<Connection>>([]);
 
     // Fetch connections from database
     useEffect(() {
@@ -71,36 +71,41 @@ class _HostsPageState extends ConsumerState<HostsPage> {
       );
     }
 
-    if (connections.value.isEmpty) {
-      return CliqScaffold(body: buildNoHosts());
-    }
-
-    return CliqScaffold(body: ListView.separated(
-      padding: EdgeInsets.symmetric(vertical: 80),
-      itemCount: connections.value.length,
-      separatorBuilder: (ctx, index) => const SizedBox(height: 16),
-      itemBuilder: (ctx, index) {
-        final connection = connections.value[index];
-        return CliqGridContainer(
-          children: [
-            CliqGridRow(
-              children: [
-                CliqGridColumn(
-                  child: GestureDetector(
-                    onTap: () {
-                      // TODO:
-                    },
-                    child: CliqCard(
-                      title: Text(connection.label ?? connection.address),
-                      subtitle: Text('Last connected:'),
+    return CliqScaffold(
+      header: CliqHeader(
+        right: [CliqIconButton(icon: Icon(LucideIcons.search))],
+      ),
+      body: connections.value.isEmpty
+          ? buildNoHosts()
+          : ListView.separated(
+              padding: EdgeInsets.symmetric(vertical: 80),
+              itemCount: connections.value.length,
+              separatorBuilder: (ctx, index) => const SizedBox(height: 16),
+              itemBuilder: (ctx, index) {
+                final connection = connections.value[index];
+                return CliqGridContainer(
+                  children: [
+                    CliqGridRow(
+                      children: [
+                        CliqGridColumn(
+                          child: GestureDetector(
+                            onTap: () {
+                              // TODO:
+                            },
+                            child: CliqCard(
+                              title: Text(
+                                connection.label ?? connection.address,
+                              ),
+                              subtitle: Text('Last connected:'),
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
-                  ),
-                ),
-              ],
+                  ],
+                );
+              },
             ),
-          ],
-        );
-      },
-    ));
+    );
   }
 }

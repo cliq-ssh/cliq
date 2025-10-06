@@ -35,15 +35,10 @@ class NavigationShellState extends ConsumerState<NavigationShell> {
     return CliqScaffold(
       extendBehindAppBar: true,
       body: widget.shell,
-      header: CliqHeader(
-        right: [
-          CliqIconButton(icon: Icon(LucideIcons.search)),
-        ],
-      ),
       footer: CliqBottomNavigationBar(
-          items: items,
-          currentIndex: widget.shell.currentIndex,
-          onItemSelected: (index) => goToBranch(index),
+        items: items,
+        currentIndex: widget.shell.currentIndex,
+        onItemSelected: (index) => goToBranch(index),
       ),
     );
   }

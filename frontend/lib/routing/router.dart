@@ -53,11 +53,15 @@ class AppRouter {
                   ),
                   GoRoute(
                     path: IdentitiesSettingsPage.pagePath.path,
-                    pageBuilder: _defaultPageBuilder(const IdentitiesSettingsPage()),
+                    pageBuilder: _defaultPageBuilder(
+                      const IdentitiesSettingsPage(),
+                    ),
                   ),
                   GoRoute(
                     path: LicenseSettingsPage.pagePath.path,
-                    pageBuilder: _defaultPageBuilder(const LicenseSettingsPage()),
+                    pageBuilder: _defaultPageBuilder(
+                      const LicenseSettingsPage(),
+                    ),
                   ),
                   GoRoute(
                     path: SyncSettingsPage.pagePath.path,
@@ -69,18 +73,16 @@ class AppRouter {
                   ),
                 ],
               ),
-              ..._shellRoutes()
-            ]
-          )
+              ..._shellRoutes(),
+            ],
+          ),
         ],
       ),
     ],
   );
 
   List<GoRoute> _noShellRoutes() {
-    return [
-
-    ];
+    return [];
   }
 
   static List<GoRoute> _shellRoutes() {

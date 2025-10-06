@@ -56,6 +56,7 @@ class CliqIconButton extends HookWidget {
         WidgetState.disabled: SystemMouseCursors.forbidden,
         WidgetState.any: SystemMouseCursors.click,
       }).resolve(states.value),
+      disableAnimation: states.value.contains(WidgetState.disabled),
       child: CliqBlurContainer(
         color: colorStates.resolve(states.value),
         outlineColor: CliqColorScheme.calculateOutlineColor(

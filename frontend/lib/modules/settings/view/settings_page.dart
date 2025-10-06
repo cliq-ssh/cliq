@@ -30,7 +30,6 @@ class _DashboardPageState extends ConsumerState<SettingsPage> {
     return CliqScaffold(
       safeAreaTop: true,
       extendBehindAppBar: true,
-      header: CliqHeader(left: [Commons.backButton(context)]),
       body: CliqGridContainer(
         children: [
           CliqGridRow(
@@ -47,14 +46,17 @@ class _DashboardPageState extends ConsumerState<SettingsPage> {
                         trailing: Icon(LucideIcons.chevronRight),
                         title: Text('Sync'),
                         subtitle: Text('Manage synchronization settings'),
-                        onTap: () => context.pushPath(SyncSettingsPage.pagePath.build()),
+                        onTap: () =>
+                            context.pushPath(SyncSettingsPage.pagePath.build()),
                       ),
                       CliqTile(
                         leading: Icon(LucideIcons.keyRound),
                         trailing: Icon(LucideIcons.chevronRight),
                         title: Text('Identities'),
                         subtitle: Text('Manage your SSH identities'),
-                        onTap: () => context.pushPath(IdentitiesSettingsPage.pagePath.build()),
+                        onTap: () => context.pushPath(
+                          IdentitiesSettingsPage.pagePath.build(),
+                        ),
                       ),
                       CliqTypography('App', size: context.theme.typography.h2),
                       CliqTile(
@@ -62,7 +64,9 @@ class _DashboardPageState extends ConsumerState<SettingsPage> {
                         trailing: Icon(LucideIcons.chevronRight),
                         title: Text('Theme'),
                         subtitle: Text('Customize the application theme'),
-                        onTap: () => context.pushPath(ThemeSettingsPage.pagePath.build()),
+                        onTap: () => context.pushPath(
+                          ThemeSettingsPage.pagePath.build(),
+                        ),
                       ),
                       if (kDebugMode)
                         CliqTile(
@@ -70,25 +74,30 @@ class _DashboardPageState extends ConsumerState<SettingsPage> {
                           trailing: Icon(LucideIcons.chevronRight),
                           title: Text('Debug'),
                           subtitle: Text('Debugging options and tools'),
-                          onTap: () => context.pushPath(DebugSettingsPage.pagePath.build()),
+                          onTap: () => context.pushPath(
+                            DebugSettingsPage.pagePath.build(),
+                          ),
                         ),
 
                       // TODO: implement tile group
-
                       SizedBox.shrink(),
-                      Column(children: [
-                        CliqTile(
-                          leading: Icon(LucideIcons.scale),
-                          trailing: Icon(LucideIcons.chevronRight),
-                          title: Text('Licenses'),
-                          onTap: () => context.pushPath(LicenseSettingsPage.pagePath.build()),
-                        ),
-                        CliqTile(
-                          leading: Icon(LucideIcons.github),
-                          trailing: Icon(LucideIcons.externalLink),
-                          title: Text('GitHub'),
-                        ),
-                      ],),
+                      Column(
+                        children: [
+                          CliqTile(
+                            leading: Icon(LucideIcons.scale),
+                            trailing: Icon(LucideIcons.chevronRight),
+                            title: Text('Licenses'),
+                            onTap: () => context.pushPath(
+                              LicenseSettingsPage.pagePath.build(),
+                            ),
+                          ),
+                          CliqTile(
+                            leading: Icon(LucideIcons.github),
+                            trailing: Icon(LucideIcons.externalLink),
+                            title: Text('GitHub'),
+                          ),
+                        ],
+                      ),
                       CliqTypography('v0.0.0', size: typography.copyS),
                     ],
                   ),

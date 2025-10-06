@@ -18,7 +18,7 @@ class LicenseSettingsPage extends AbstractSettingsPage {
 
   @override
   Widget buildBody(BuildContext context) {
-    return  FutureWrapper(
+    return FutureWrapper(
       future: LicenseRegistry.licenses.toList(),
       onSuccess: (ctx, snap) {
         final List<LicenseEntry> licenses = snap.data ?? [];
@@ -66,23 +66,22 @@ class LicenseSettingsPage extends AbstractSettingsPage {
                               trailing: isExpanded
                                   ? null
                                   : CliqIconButton(
-                                onPressed: toggle,
-                                icon: Icon(LucideIcons.chevronDown),
-                              ),
+                                      onPressed: toggle,
+                                      icon: Icon(LucideIcons.chevronDown),
+                                    ),
                               child: isExpanded
                                   ? Column(
-                                children: [
-                                  for (final entry
-                                  in license.value) ...[
-                                    for (final paragraph
-                                    in entry.paragraphs) ...[
-                                      Text(paragraph.text),
-                                      const SizedBox(height: 10),
-                                    ],
-                                    const Divider(),
-                                  ],
-                                ],
-                              )
+                                      children: [
+                                        for (final entry in license.value) ...[
+                                          for (final paragraph
+                                              in entry.paragraphs) ...[
+                                            Text(paragraph.text),
+                                            const SizedBox(height: 10),
+                                          ],
+                                          const Divider(),
+                                        ],
+                                      ],
+                                    )
                                   : null,
                             ),
                           );
