@@ -115,7 +115,7 @@ final class CliqButtonStyle {
     final iconTheme = IconThemeData(color: colorScheme.onPrimary, size: 20);
     return CliqButtonStyle(
       backgroundColor: colorScheme.primary,
-      hoveredBackgroundColor: colorScheme.onPrimary20,
+      hoveredBackgroundColor: colorScheme.onPrimary30,
       disabledBackgroundColor: colorScheme.onBackground20,
       iconTheme: iconTheme,
       disabledIconTheme: iconTheme.copyWith(color: colorScheme.onBackground70),

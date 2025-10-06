@@ -48,6 +48,8 @@ class CliqIconButton extends HookWidget {
     }, [disabled, isHovered.value]);
 
     return CliqInteractable(
+      onEnter: (_) => isHovered.value = true,
+      onExit: (_) => isHovered.value = false,
       onTap: WidgetStateProperty.fromMap({
         WidgetState.disabled: null,
         WidgetState.any: onPressed,
@@ -121,7 +123,7 @@ final class CliqIconButtonStyle {
     );
     return CliqIconButtonStyle(
       backgroundColor: colorScheme.secondaryBackground50,
-      hoveredBackgroundColor: colorScheme.onSecondaryBackground20,
+      hoveredBackgroundColor: colorScheme.onSecondaryBackground10,
       disabledBackgroundColor: colorScheme.onBackground20,
       iconTheme: iconTheme,
       disabledIconTheme: iconTheme.copyWith(color: colorScheme.onBackground70),

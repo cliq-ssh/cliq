@@ -1,11 +1,16 @@
 part of '_preview.dart';
 
-@Preview(name: 'CliqChip', wrapper: previewWrapper)
-Widget chipPreview() {
-  return CliqChip(
-    leading: Icon(LucideIcons.plus),
+@Preview(name: 'CliqCard', wrapper: previewWrapper)
+Widget cardPreview() {
+  return CliqCard(
+    title: Text('Card Title'),
+    subtitle: Text('Card Subtitle'),
+    leading: Icon(LucideIcons.image),
     trailing: Icon(LucideIcons.chevronRight),
-    title: Text('Add Item'),
     onTap: () {},
+    child: Padding(
+      padding: const EdgeInsets.all(16.0),
+      child: Text('This is a card preview.'),
+    ),
   );
 }
