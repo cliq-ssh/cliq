@@ -861,8 +861,43 @@ class Connections extends Table with TableInfo<Connections, Connection> {
     requiredDuringInsert: true,
     $customConstraints: 'NOT NULL REFERENCES identities(id)',
   );
+  static const VerificationMeta _labelMeta = const VerificationMeta('label');
+  late final GeneratedColumn<String> label = GeneratedColumn<String>(
+    'label',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    $customConstraints: '',
+  );
+  static const VerificationMeta _iconMeta = const VerificationMeta('icon');
+  late final GeneratedColumn<String> icon = GeneratedColumn<String>(
+    'icon',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    $customConstraints: '',
+  );
+  static const VerificationMeta _colorMeta = const VerificationMeta('color');
+  late final GeneratedColumn<String> color = GeneratedColumn<String>(
+    'color',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    $customConstraints: '',
+  );
   @override
-  List<GeneratedColumn> get $columns => [id, address, port, identityId];
+  List<GeneratedColumn> get $columns => [
+    id,
+    address,
+    port,
+    identityId,
+    label,
+    icon,
+    color,
+  ];
   @override
   String get aliasedName => _alias ?? actualTableName;
   @override
@@ -900,11 +935,33 @@ class Connections extends Table with TableInfo<Connections, Connection> {
     } else if (isInserting) {
       context.missing(_identityIdMeta);
     }
+    if (data.containsKey('label')) {
+      context.handle(
+        _labelMeta,
+        label.isAcceptableOrUnknown(data['label']!, _labelMeta),
+      );
+    }
+    if (data.containsKey('icon')) {
+      context.handle(
+        _iconMeta,
+        icon.isAcceptableOrUnknown(data['icon']!, _iconMeta),
+      );
+    }
+    if (data.containsKey('color')) {
+      context.handle(
+        _colorMeta,
+        color.isAcceptableOrUnknown(data['color']!, _colorMeta),
+      );
+    }
     return context;
   }
 
   @override
   Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  List<Set<GeneratedColumn>> get uniqueKeys => [
+    {address, port, identityId},
+  ];
   @override
   Connection map(Map<String, dynamic> data, {String? tablePrefix}) {
     final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
@@ -925,6 +982,18 @@ class Connections extends Table with TableInfo<Connections, Connection> {
         DriftSqlType.int,
         data['${effectivePrefix}identity_id'],
       )!,
+      label: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}label'],
+      ),
+      icon: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}icon'],
+      ),
+      color: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}color'],
+      ),
     );
   }
 
@@ -934,6 +1003,10 @@ class Connections extends Table with TableInfo<Connections, Connection> {
   }
 
   @override
+  List<String> get customConstraints => const [
+    'UNIQUE(address, port, identity_id)',
+  ];
+  @override
   bool get dontWriteConstraints => true;
 }
 
@@ -942,11 +1015,17 @@ class Connection extends DataClass implements Insertable<Connection> {
   final String address;
   final int port;
   final int identityId;
+  final String? label;
+  final String? icon;
+  final String? color;
   const Connection({
     required this.id,
     required this.address,
     required this.port,
     required this.identityId,
+    this.label,
+    this.icon,
+    this.color,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -955,6 +1034,15 @@ class Connection extends DataClass implements Insertable<Connection> {
     map['address'] = Variable<String>(address);
     map['port'] = Variable<int>(port);
     map['identity_id'] = Variable<int>(identityId);
+    if (!nullToAbsent || label != null) {
+      map['label'] = Variable<String>(label);
+    }
+    if (!nullToAbsent || icon != null) {
+      map['icon'] = Variable<String>(icon);
+    }
+    if (!nullToAbsent || color != null) {
+      map['color'] = Variable<String>(color);
+    }
     return map;
   }
 
@@ -964,6 +1052,13 @@ class Connection extends DataClass implements Insertable<Connection> {
       address: Value(address),
       port: Value(port),
       identityId: Value(identityId),
+      label: label == null && nullToAbsent
+          ? const Value.absent()
+          : Value(label),
+      icon: icon == null && nullToAbsent ? const Value.absent() : Value(icon),
+      color: color == null && nullToAbsent
+          ? const Value.absent()
+          : Value(color),
     );
   }
 
@@ -977,6 +1072,9 @@ class Connection extends DataClass implements Insertable<Connection> {
       address: serializer.fromJson<String>(json['address']),
       port: serializer.fromJson<int>(json['port']),
       identityId: serializer.fromJson<int>(json['identity_id']),
+      label: serializer.fromJson<String?>(json['label']),
+      icon: serializer.fromJson<String?>(json['icon']),
+      color: serializer.fromJson<String?>(json['color']),
     );
   }
   @override
@@ -987,16 +1085,29 @@ class Connection extends DataClass implements Insertable<Connection> {
       'address': serializer.toJson<String>(address),
       'port': serializer.toJson<int>(port),
       'identity_id': serializer.toJson<int>(identityId),
+      'label': serializer.toJson<String?>(label),
+      'icon': serializer.toJson<String?>(icon),
+      'color': serializer.toJson<String?>(color),
     };
   }
 
-  Connection copyWith({int? id, String? address, int? port, int? identityId}) =>
-      Connection(
-        id: id ?? this.id,
-        address: address ?? this.address,
-        port: port ?? this.port,
-        identityId: identityId ?? this.identityId,
-      );
+  Connection copyWith({
+    int? id,
+    String? address,
+    int? port,
+    int? identityId,
+    Value<String?> label = const Value.absent(),
+    Value<String?> icon = const Value.absent(),
+    Value<String?> color = const Value.absent(),
+  }) => Connection(
+    id: id ?? this.id,
+    address: address ?? this.address,
+    port: port ?? this.port,
+    identityId: identityId ?? this.identityId,
+    label: label.present ? label.value : this.label,
+    icon: icon.present ? icon.value : this.icon,
+    color: color.present ? color.value : this.color,
+  );
   Connection copyWithCompanion(ConnectionsCompanion data) {
     return Connection(
       id: data.id.present ? data.id.value : this.id,
@@ -1005,6 +1116,9 @@ class Connection extends DataClass implements Insertable<Connection> {
       identityId: data.identityId.present
           ? data.identityId.value
           : this.identityId,
+      label: data.label.present ? data.label.value : this.label,
+      icon: data.icon.present ? data.icon.value : this.icon,
+      color: data.color.present ? data.color.value : this.color,
     );
   }
 
@@ -1014,13 +1128,17 @@ class Connection extends DataClass implements Insertable<Connection> {
           ..write('id: $id, ')
           ..write('address: $address, ')
           ..write('port: $port, ')
-          ..write('identityId: $identityId')
+          ..write('identityId: $identityId, ')
+          ..write('label: $label, ')
+          ..write('icon: $icon, ')
+          ..write('color: $color')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode => Object.hash(id, address, port, identityId);
+  int get hashCode =>
+      Object.hash(id, address, port, identityId, label, icon, color);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -1028,7 +1146,10 @@ class Connection extends DataClass implements Insertable<Connection> {
           other.id == this.id &&
           other.address == this.address &&
           other.port == this.port &&
-          other.identityId == this.identityId);
+          other.identityId == this.identityId &&
+          other.label == this.label &&
+          other.icon == this.icon &&
+          other.color == this.color);
 }
 
 class ConnectionsCompanion extends UpdateCompanion<Connection> {
@@ -1036,17 +1157,26 @@ class ConnectionsCompanion extends UpdateCompanion<Connection> {
   final Value<String> address;
   final Value<int> port;
   final Value<int> identityId;
+  final Value<String?> label;
+  final Value<String?> icon;
+  final Value<String?> color;
   const ConnectionsCompanion({
     this.id = const Value.absent(),
     this.address = const Value.absent(),
     this.port = const Value.absent(),
     this.identityId = const Value.absent(),
+    this.label = const Value.absent(),
+    this.icon = const Value.absent(),
+    this.color = const Value.absent(),
   });
   ConnectionsCompanion.insert({
     this.id = const Value.absent(),
     required String address,
     this.port = const Value.absent(),
     required int identityId,
+    this.label = const Value.absent(),
+    this.icon = const Value.absent(),
+    this.color = const Value.absent(),
   }) : address = Value(address),
        identityId = Value(identityId);
   static Insertable<Connection> custom({
@@ -1054,12 +1184,18 @@ class ConnectionsCompanion extends UpdateCompanion<Connection> {
     Expression<String>? address,
     Expression<int>? port,
     Expression<int>? identityId,
+    Expression<String>? label,
+    Expression<String>? icon,
+    Expression<String>? color,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
       if (address != null) 'address': address,
       if (port != null) 'port': port,
       if (identityId != null) 'identity_id': identityId,
+      if (label != null) 'label': label,
+      if (icon != null) 'icon': icon,
+      if (color != null) 'color': color,
     });
   }
 
@@ -1068,12 +1204,18 @@ class ConnectionsCompanion extends UpdateCompanion<Connection> {
     Value<String>? address,
     Value<int>? port,
     Value<int>? identityId,
+    Value<String?>? label,
+    Value<String?>? icon,
+    Value<String?>? color,
   }) {
     return ConnectionsCompanion(
       id: id ?? this.id,
       address: address ?? this.address,
       port: port ?? this.port,
       identityId: identityId ?? this.identityId,
+      label: label ?? this.label,
+      icon: icon ?? this.icon,
+      color: color ?? this.color,
     );
   }
 
@@ -1092,6 +1234,15 @@ class ConnectionsCompanion extends UpdateCompanion<Connection> {
     if (identityId.present) {
       map['identity_id'] = Variable<int>(identityId.value);
     }
+    if (label.present) {
+      map['label'] = Variable<String>(label.value);
+    }
+    if (icon.present) {
+      map['icon'] = Variable<String>(icon.value);
+    }
+    if (color.present) {
+      map['color'] = Variable<String>(color.value);
+    }
     return map;
   }
 
@@ -1101,7 +1252,10 @@ class ConnectionsCompanion extends UpdateCompanion<Connection> {
           ..write('id: $id, ')
           ..write('address: $address, ')
           ..write('port: $port, ')
-          ..write('identityId: $identityId')
+          ..write('identityId: $identityId, ')
+          ..write('label: $label, ')
+          ..write('icon: $icon, ')
+          ..write('color: $color')
           ..write(')'))
         .toString();
   }
@@ -2163,6 +2317,9 @@ typedef $ConnectionsCreateCompanionBuilder =
       required String address,
       Value<int> port,
       required int identityId,
+      Value<String?> label,
+      Value<String?> icon,
+      Value<String?> color,
     });
 typedef $ConnectionsUpdateCompanionBuilder =
     ConnectionsCompanion Function({
@@ -2170,6 +2327,9 @@ typedef $ConnectionsUpdateCompanionBuilder =
       Value<String> address,
       Value<int> port,
       Value<int> identityId,
+      Value<String?> label,
+      Value<String?> icon,
+      Value<String?> color,
     });
 
 final class $ConnectionsReferences
@@ -2216,6 +2376,21 @@ class $ConnectionsFilterComposer extends Composer<_$CliqDatabase, Connections> {
 
   ColumnFilters<int> get port => $composableBuilder(
     column: $table.port,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get label => $composableBuilder(
+    column: $table.label,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get icon => $composableBuilder(
+    column: $table.icon,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get color => $composableBuilder(
+    column: $table.color,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -2267,6 +2442,21 @@ class $ConnectionsOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get label => $composableBuilder(
+    column: $table.label,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get icon => $composableBuilder(
+    column: $table.icon,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get color => $composableBuilder(
+    column: $table.color,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   $IdentitiesOrderingComposer get identityId {
     final $IdentitiesOrderingComposer composer = $composerBuilder(
       composer: this,
@@ -2308,6 +2498,15 @@ class $ConnectionsAnnotationComposer
 
   GeneratedColumn<int> get port =>
       $composableBuilder(column: $table.port, builder: (column) => column);
+
+  GeneratedColumn<String> get label =>
+      $composableBuilder(column: $table.label, builder: (column) => column);
+
+  GeneratedColumn<String> get icon =>
+      $composableBuilder(column: $table.icon, builder: (column) => column);
+
+  GeneratedColumn<String> get color =>
+      $composableBuilder(column: $table.color, builder: (column) => column);
 
   $IdentitiesAnnotationComposer get identityId {
     final $IdentitiesAnnotationComposer composer = $composerBuilder(
@@ -2365,11 +2564,17 @@ class $ConnectionsTableManager
                 Value<String> address = const Value.absent(),
                 Value<int> port = const Value.absent(),
                 Value<int> identityId = const Value.absent(),
+                Value<String?> label = const Value.absent(),
+                Value<String?> icon = const Value.absent(),
+                Value<String?> color = const Value.absent(),
               }) => ConnectionsCompanion(
                 id: id,
                 address: address,
                 port: port,
                 identityId: identityId,
+                label: label,
+                icon: icon,
+                color: color,
               ),
           createCompanionCallback:
               ({
@@ -2377,11 +2582,17 @@ class $ConnectionsTableManager
                 required String address,
                 Value<int> port = const Value.absent(),
                 required int identityId,
+                Value<String?> label = const Value.absent(),
+                Value<String?> icon = const Value.absent(),
+                Value<String?> color = const Value.absent(),
               }) => ConnectionsCompanion.insert(
                 id: id,
                 address: address,
                 port: port,
                 identityId: identityId,
+                label: label,
+                icon: icon,
+                color: color,
               ),
           withReferenceMapper: (p0) => p0
               .map(
