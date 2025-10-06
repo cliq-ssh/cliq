@@ -5,4 +5,8 @@ CREATE TABLE connections (
     address TEXT NOT NULL,
     port INTEGER NOT NULL DEFAULT 22,
     identity_id INTEGER NOT NULL REFERENCES identities(id),
+    label TEXT,
+    icon TEXT,
+    color TEXT,
+    UNIQUE(address, port, identity_id)
 );
