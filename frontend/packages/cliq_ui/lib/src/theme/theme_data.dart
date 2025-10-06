@@ -18,8 +18,9 @@ final class CliqThemeData {
   final CliqButtonStyle buttonStyle;
   final CliqCardStyle cardStyle;
   final CliqIconButtonStyle iconButtonStyle;
-  final CliqScaffoldStyle scaffoldStyle;
   final CliqProgressBarStyle progressBarStyle;
+  final CliqScaffoldStyle scaffoldStyle;
+  final CliqTileStyle tileStyle;
 
   const CliqThemeData({
     required this.debug,
@@ -36,8 +37,9 @@ final class CliqThemeData {
     required this.buttonStyle,
     required this.cardStyle,
     required this.iconButtonStyle,
-    required this.scaffoldStyle,
     required this.progressBarStyle,
+    required this.scaffoldStyle,
+    required this.tileStyle,
   });
 
   factory CliqThemeData.inherit({
@@ -85,11 +87,12 @@ final class CliqThemeData {
         style: style,
         colorScheme: colorScheme,
       ),
-      scaffoldStyle: CliqScaffoldStyle.inherit(colorScheme: colorScheme),
       progressBarStyle: CliqProgressBarStyle.inherit(
         style: style,
         colorScheme: colorScheme,
       ),
+      scaffoldStyle: CliqScaffoldStyle.inherit(colorScheme: colorScheme),
+      tileStyle: CliqTileStyle.inherit(style: style, colorScheme: colorScheme),
     );
   }
 }

@@ -21,6 +21,19 @@ class CliqBlurContainer extends StatelessWidget {
     this.style,
   });
 
+  CliqBlurContainer.fromWidgetStateColor(
+    Set<WidgetState> states,
+    WidgetStateColor stateColor, {
+    super.key,
+    this.child,
+    this.borderRadius,
+    this.padding,
+    this.style,
+  }) : color = stateColor.resolve(states),
+       outlineColor = CliqColorScheme.calculateOutlineColor(
+         stateColor.resolve(states),
+       );
+
   @override
   Widget build(BuildContext context) {
     final style = this.style ?? context.theme.blurContainerStyle;

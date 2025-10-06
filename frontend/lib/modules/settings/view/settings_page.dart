@@ -42,31 +42,38 @@ class _DashboardPageState extends ConsumerState<SettingsPage> {
                     child: Column(
                       spacing: 16,
                       children: [
-                        CliqTypography('SSH', size: context.theme.typography.h2),
+                        CliqTypography(
+                          'SSH',
+                          size: context.theme.typography.h2,
+                        ),
                         CliqTile(
                           leading: Icon(LucideIcons.refreshCcw),
                           trailing: Icon(LucideIcons.chevronRight),
                           title: Text('Sync'),
                           subtitle: Text('Manage synchronization settings'),
-                          onTap: () =>
-                              context.pushPath(SyncSettingsPage.pagePath.build()),
+                          onPressed: () => context.pushPath(
+                            SyncSettingsPage.pagePath.build(),
+                          ),
                         ),
                         CliqTile(
                           leading: Icon(LucideIcons.keyRound),
                           trailing: Icon(LucideIcons.chevronRight),
                           title: Text('Identities'),
                           subtitle: Text('Manage your SSH identities'),
-                          onTap: () => context.pushPath(
+                          onPressed: () => context.pushPath(
                             IdentitiesSettingsPage.pagePath.build(),
                           ),
                         ),
-                        CliqTypography('App', size: context.theme.typography.h2),
+                        CliqTypography(
+                          'App',
+                          size: context.theme.typography.h2,
+                        ),
                         CliqTile(
                           leading: Icon(LucideIcons.palette),
                           trailing: Icon(LucideIcons.chevronRight),
                           title: Text('Theme'),
                           subtitle: Text('Customize the application theme'),
-                          onTap: () => context.pushPath(
+                          onPressed: () => context.pushPath(
                             ThemeSettingsPage.pagePath.build(),
                           ),
                         ),
@@ -76,7 +83,7 @@ class _DashboardPageState extends ConsumerState<SettingsPage> {
                             trailing: Icon(LucideIcons.chevronRight),
                             title: Text('Debug'),
                             subtitle: Text('Debugging options and tools'),
-                            onTap: () => context.pushPath(
+                            onPressed: () => context.pushPath(
                               DebugSettingsPage.pagePath.build(),
                             ),
                           ),
@@ -89,7 +96,7 @@ class _DashboardPageState extends ConsumerState<SettingsPage> {
                               leading: Icon(LucideIcons.scale),
                               trailing: Icon(LucideIcons.chevronRight),
                               title: Text('Licenses'),
-                              onTap: () => context.pushPath(
+                              onPressed: () => context.pushPath(
                                 LicenseSettingsPage.pagePath.build(),
                               ),
                             ),
