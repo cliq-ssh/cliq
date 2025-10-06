@@ -46,11 +46,12 @@ class CliqInteractable extends StatefulWidget {
     this.endDuration = const Duration(milliseconds: 120),
     this.beginCurve = Curves.decelerate,
     this.endCurve = Curves.fastOutSlowIn,
+    bool disableAnimation = false,
   }) : cursor = WidgetStateProperty.fromMap({
          WidgetState.disabled: SystemMouseCursors.forbidden,
          WidgetState.any: SystemMouseCursors.click,
        }).resolve(states),
-       disableAnimation = states.contains(WidgetState.disabled);
+       disableAnimation = disableAnimation || states.contains(WidgetState.disabled);
 
   @override
   State<StatefulWidget> createState() => _CliqInteractableState();

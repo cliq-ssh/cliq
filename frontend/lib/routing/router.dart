@@ -57,8 +57,24 @@ class AppRouter {
         pageBuilder: _defaultPageBuilder(const SettingsPage()),
         routes: [
           GoRoute(
+            path: DebugSettingsPage.pagePath.path,
+            pageBuilder: _defaultPageBuilder(const DebugSettingsPage()),
+          ),
+          GoRoute(
+            path: IdentitiesSettingsPage.pagePath.path,
+            pageBuilder: _defaultPageBuilder(const IdentitiesSettingsPage()),
+          ),
+          GoRoute(
             path: LicenseSettingsPage.pagePath.path,
             pageBuilder: _defaultPageBuilder(const LicenseSettingsPage()),
+          ),
+          GoRoute(
+            path: SyncSettingsPage.pagePath.path,
+            pageBuilder: _defaultPageBuilder(const SyncSettingsPage()),
+          ),
+          GoRoute(
+            path: ThemeSettingsPage.pagePath.path,
+            pageBuilder: _defaultPageBuilder(const ThemeSettingsPage()),
           ),
         ],
       ),

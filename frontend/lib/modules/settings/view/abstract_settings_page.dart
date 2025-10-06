@@ -13,19 +13,7 @@ abstract class AbstractSettingsPage extends StatelessWidget {
     return CliqScaffold(
       extendBehindAppBar: true,
       header: CliqHeader(left: [Commons.backButton(context)]),
-      body: CliqGridContainer(
-        children: [
-          CliqGridRow(
-            alignment: WrapAlignment.center,
-            children: [
-              CliqGridColumn(
-                sizes: {Breakpoint.lg: 8, Breakpoint.xl: 6},
-                child: buildBody(context),
-              ),
-            ],
-          ),
-        ],
-      ),
+      body: buildBody(context),
     );
   }
 }
