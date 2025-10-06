@@ -32,9 +32,9 @@ jobs:
           java-version: '24'
           distribution: 'temurin'
       - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@v4
+        uses: gradle/actions/setup-gradle@v5
       - name: Install project
-        run: bash ./app/install
+        run: bash ./dev/install
       - name: Start Docker services
         run: docker compose up -d --wait
       - name: Run Gradle build
@@ -53,6 +53,8 @@ jobs:
 
   lint:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     steps:
       - name: Checkout code
         uses: actions/checkout@v5
@@ -62,6 +64,6 @@ jobs:
           java-version: '24'
           distribution: 'temurin'
       - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@v4
+        uses: gradle/actions/setup-gradle@v5
       - name: Run ktlint
         run: ./gradlew ktlintCheck

@@ -1,0 +1,3 @@
+spring:
+  config:
+    import: optional:file:.env[.properties],optional:file:.env.local[.properties],optional:file:.env.test[.properties],optional:file:.env.test.local[.properties]

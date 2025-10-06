@@ -91,7 +91,7 @@ class _HostsPageState extends ConsumerState<HostsPage> {
                       // TODO:
                     },
                     child: CliqCard(
-                      title: Text(connection.address),
+                      title: Text(connection.label ?? connection.address),
                       subtitle: Text('Last connected:'),
                     ),
                   ),

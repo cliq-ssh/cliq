@@ -1,15 +1,13 @@
 import 'package:cliq_ui/cliq_ui.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:flutter_hooks/flutter_hooks.dart';
 
-// TODO: - hover state
-// TODO: - disabled state
-// TODO: - haptic feedback
-
-class CliqIconButton extends StatelessWidget {
+class CliqIconButton extends HookWidget {
   final Widget icon;
   final Widget? label;
   final Function()? onPressed;
-  final bool reverse;
+  final bool reverseOrder;
+  final bool disabled;
   final CliqIconButtonStyle? style;
 
   const CliqIconButton({
@@ -17,7 +15,8 @@ class CliqIconButton extends StatelessWidget {
     required this.icon,
     this.label,
     this.onPressed,
-    this.reverse = false,
+    this.reverseOrder = false,
+    this.disabled = false,
     this.style,
   });
 
@@ -25,20 +24,56 @@ class CliqIconButton extends StatelessWidget {
   Widget build(BuildContext context) {
     final style = this.style ?? context.theme.iconButtonStyle;
     final textStyle = context.theme.typography;
+    final isHovered = useState(false);
+    final states = useState<Set<WidgetState>>({});
+
+    final colorStates = WidgetStateColor.fromMap({
+      WidgetState.hovered: style.hoveredBackgroundColor,
+      WidgetState.disabled: style.disabledBackgroundColor,
+      WidgetState.any: style.backgroundColor,
+    });
+
+    final iconThemeStates = WidgetStateProperty.fromMap({
+      WidgetState.disabled: style.disabledIconTheme,
+      WidgetState.any: style.iconTheme,
+    });
+
+    useEffect(() {
+      Set<WidgetState> newStates = <WidgetState>{};
+      if (isHovered.value) newStates.add(WidgetState.hovered);
+      if (disabled || onPressed == null) newStates = {WidgetState.disabled};
+      states.value = newStates;
+
+      return null;
+    }, [disabled, isHovered.value]);
 
     return CliqInteractable(
-      onTap: onPressed,
+      onTap: WidgetStateProperty.fromMap({
+        WidgetState.disabled: null,
+        WidgetState.any: onPressed,
+      }).resolve(states.value),
+      cursor: WidgetStateProperty.fromMap({
+        WidgetState.disabled: SystemMouseCursors.forbidden,
+        WidgetState.any: SystemMouseCursors.click,
+      }).resolve(states.value),
       child: CliqBlurContainer(
+        color: colorStates.resolve(states.value),
+        outlineColor: CliqColorScheme.calculateOutlineColor(
+          colorStates.resolve(states.value),
+        ),
         child: Padding(
           padding: style.padding,
           child: StatefulBuilder(
             builder: (_, _) {
               final List<Widget> items = [
-                IconTheme(data: style.iconTheme, child: icon),
+                IconTheme(
+                  data: iconThemeStates.resolve(states.value),
+                  child: icon,
+                ),
                 if (label != null)
                   CliqDefaultTypography(
                     size: textStyle.copyS,
-                    color: style.iconTheme.color,
+                    color: iconThemeStates.resolve(states.value).color,
                     fontFamily: CliqFontFamily.secondary,
                     child: label!,
                   ),
@@ -48,7 +83,7 @@ class CliqIconButton extends StatelessWidget {
                 spacing: 8,
                 mainAxisSize: MainAxisSize.min,
                 mainAxisAlignment: MainAxisAlignment.center,
-                children: reverse ? items.reversed.toList() : items,
+                children: reverseOrder ? items.reversed.toList() : items,
               );
             },
           ),
@@ -59,20 +94,36 @@ class CliqIconButton extends StatelessWidget {
 }
 
 final class CliqIconButtonStyle {
+  final Color backgroundColor;
+  final Color hoveredBackgroundColor;
+  final Color disabledBackgroundColor;
   final IconThemeData iconTheme;
+  final IconThemeData disabledIconTheme;
   final EdgeInsetsGeometry padding;
 
-  const CliqIconButtonStyle({required this.iconTheme, required this.padding});
+  const CliqIconButtonStyle({
+    required this.backgroundColor,
+    required this.hoveredBackgroundColor,
+    required this.disabledBackgroundColor,
+    required this.iconTheme,
+    required this.disabledIconTheme,
+    required this.padding,
+  });
 
   factory CliqIconButtonStyle.inherit({
     required CliqStyle style,
     required CliqColorScheme colorScheme,
   }) {
+    final iconTheme = IconThemeData(
+      color: colorScheme.onSecondaryBackground,
+      size: 20,
+    );
     return CliqIconButtonStyle(
-      iconTheme: IconThemeData(
-        color: colorScheme.onSecondaryBackground,
-        size: 20,
-      ),
+      backgroundColor: colorScheme.secondaryBackground50,
+      hoveredBackgroundColor: colorScheme.onSecondaryBackground20,
+      disabledBackgroundColor: colorScheme.onBackground20,
+      iconTheme: iconTheme,
+      disabledIconTheme: iconTheme.copyWith(color: colorScheme.onBackground70),
       padding: const EdgeInsets.all(12),
     );
   }
