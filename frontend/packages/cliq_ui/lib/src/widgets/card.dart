@@ -30,6 +30,7 @@ class CliqCard extends StatelessWidget {
 
     return CliqInteractable(
       onTap: onTap,
+      disableAnimation: true,
       child: CliqBlurContainer(
         borderRadius: style.borderRadius,
         child: Padding(
