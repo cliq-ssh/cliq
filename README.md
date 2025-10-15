@@ -15,3 +15,10 @@
 # What is cliq?
 
 cliq is an open-source SSH and SFTP client with an optional syncing mechanism, allowing to use connections between devices!
+
+# Features
+
+- **SSH Client**: Connect to remote servers using SSH protocol.
+- **SFTP Client**: Transfer files securely using SFTP protocol.
+- **Cross-Platform**: Available on Windows, macOS, Linux, iOS, and Android.
+- **(optional) Syncing**: Sync your connections, identities, and settings between devices using end-to-end encryption.
