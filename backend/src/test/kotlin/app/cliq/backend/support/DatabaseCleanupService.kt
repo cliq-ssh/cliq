@@ -20,8 +20,9 @@ class DatabaseCleanupService(
 
     // Set table names to be truncated on init of bean
     override fun afterPropertiesSet() {
-        val tableNames = getManagedTableNames()
-            .filter { it != "instances" }
+        val tableNames =
+            getManagedTableNames()
+                .filter { it != "instances" }
 
         joinedTableNames = tableNames.joinToString(separator = ",")
     }
@@ -34,8 +35,7 @@ class DatabaseCleanupService(
                 val kotlinClass = it.javaType.kotlin
                 kotlinClass.findAnnotation<Table>() != null ||
                     kotlinClass.findAnnotation<Entity>() != null
-            }
-            .map {
+            }.map {
                 val annotationName = getAnnotationName(it)
                 getTableName(annotationName, it.javaType.simpleName)
             }
@@ -50,20 +50,22 @@ class DatabaseCleanupService(
     }
 
     // Either get the name defined in the annotation and otherwise convert the java type to the default naming strategy (snake case)
-    private fun getTableName(annotationName: String, javaTypeName: String): String {
-        return if (annotationName == "") {
+    private fun getTableName(
+        annotationName: String,
+        javaTypeName: String,
+    ): String =
+        if (annotationName == "") {
             camelToSnakeCase(javaTypeName)
         } else {
             annotationName
         }
-    }
 
     // Inspired from: https://stackoverflow.com/a/60010299
-    private fun camelToSnakeCase(camelString: String): String {
-        return toSnakeRegex.replace(camelString) {
-            "_${it.value}"
-        }.lowercase(Locale.getDefault())
-    }
+    private fun camelToSnakeCase(camelString: String): String =
+        toSnakeRegex
+            .replace(camelString) {
+                "_${it.value}"
+            }.lowercase(Locale.getDefault())
 
     @Transactional
     fun truncate() {
