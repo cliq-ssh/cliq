@@ -2,6 +2,8 @@ package app.cliq.backend.user
 
 import jakarta.persistence.Column
 import jakarta.persistence.Entity
+import jakarta.persistence.GeneratedValue
+import jakarta.persistence.GenerationType
 import jakarta.persistence.Id
 import jakarta.persistence.Table
 import jakarta.persistence.UniqueConstraint
@@ -20,7 +22,6 @@ const val PASSWORD_RESET_TOKEN_INTERVAL_MINUTES = 30L // 30 minutes
     ],
 )
 class User(
-    @Id var id: Long = 0,
     @Column(nullable = false, unique = true) var email: String,
     @Column(nullable = false) var name: String,
     @Column(nullable = false) var locale: String = DEFAULT_LOCALE,
@@ -32,6 +33,9 @@ class User(
     var emailVerifiedAt: OffsetDateTime? = null,
     @Column(nullable = false) var createdAt: OffsetDateTime,
     @Column(nullable = false) var updatedAt: OffsetDateTime,
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    var id: Long? = null,
 ) {
     fun isEmailVerified(): Boolean = null != emailVerifiedAt
 

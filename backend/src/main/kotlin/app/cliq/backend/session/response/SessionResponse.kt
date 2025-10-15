@@ -19,7 +19,7 @@ class SessionResponse(
     companion object {
         fun fromSession(session: Session): SessionResponse =
             SessionResponse(
-                session.id,
+                session.id!!,
                 session.apiKey,
                 session.name,
                 session.userAgent,

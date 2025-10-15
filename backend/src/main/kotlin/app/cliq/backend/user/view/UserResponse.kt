@@ -19,7 +19,7 @@ class UserResponse(
     companion object {
         fun fromUser(user: User): UserResponse =
             UserResponse(
-                id = user.id,
+                id = user.id!!,
                 email = user.email,
                 name = user.name,
                 createdAt = user.createdAt,

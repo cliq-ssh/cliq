@@ -1,25 +1,12 @@
 -- ############################################################
 -- #                                                          #
--- #                    System tables                         #
--- #                                                          #
--- ############################################################
-
-CREATE TABLE instances
-(
-    "node_id"    SMALLINT PRIMARY KEY,
-    "created_at" timestamp with time zone NOT NULL,
-    "updated_at" timestamp with time zone NOT NULL
-);
-
--- ############################################################
--- #                                                          #
 -- #                   User & Session                         #
 -- #                                                          #
 -- ############################################################
 
 CREATE TABLE users
 (
-    "id"                         BIGINT PRIMARY KEY,
+    "id"                         BIGINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
     "email"                      TEXT                     NOT NULL UNIQUE,
     "name"                       TEXT                     NOT NULL,
     "locale"                     TEXT                     NOT NULL,
@@ -37,7 +24,7 @@ CREATE TABLE users
 
 CREATE TABLE sessions
 (
-    "id"               BIGINT PRIMARY KEY,
+    "id"               BIGINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
     "user_id"          BIGINT REFERENCES "users" (id) ON DELETE CASCADE NOT NULL,
     "api_key"          TEXT                                             NOT NULL UNIQUE,
     "name"             TEXT,
@@ -56,10 +43,9 @@ CREATE INDEX idx_sessions_api_key ON sessions (api_key);
 -- #                                                          #
 -- ############################################################
 
-
 CREATE TABLE user_configurations
 (
-    "id"               BIGINT PRIMARY KEY,
+    "id"               BIGINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
     "user_id"          BIGINT REFERENCES "users" (id) ON DELETE CASCADE UNIQUE NOT NULL,
     "encrypted_config" TEXT                                                    NOT NULL,
     "created_at"       timestamp with time zone                                NOT NULL,

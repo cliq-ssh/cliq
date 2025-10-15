@@ -27,6 +27,6 @@ class PasswordResetListener(
                 IllegalArgumentException("User not found")
             }
 
-        sessionRepository.deleteAllByUserId(user.id)
+        sessionRepository.deleteAllByUserId(user.id!!)
     }
 }
