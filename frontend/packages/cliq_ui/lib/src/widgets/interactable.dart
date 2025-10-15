@@ -1,29 +1,35 @@
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/gestures.dart';
 
 class CliqInteractable extends StatefulWidget {
   final Widget child;
   final double begin, end;
-  final Duration beginDuration, endDuration, longTapRepeatDuration;
-  final Function()? onTap, onLongTap, onTapDown;
-
-  final bool enableLongTapRepeatEvent;
-
-  final Curve beginCurve, endCurve;
+  final Duration beginDuration;
+  final Duration endDuration;
+  final Function()? onTap;
+  final Function()? onTapDown;
+  final Function(PointerEnterEvent)? onEnter;
+  final Function(PointerExitEvent)? onExit;
+  final MouseCursor? cursor;
+  final Curve beginCurve;
+  final Curve endCurve;
+  final bool disableAnimation;
 
   const CliqInteractable({
     super.key,
     required this.child,
     this.onTap,
     this.onTapDown,
-    this.onLongTap,
+    this.onEnter,
+    this.onExit,
     this.begin = 1.0,
     this.end = 0.93,
     this.beginDuration = const Duration(milliseconds: 20),
     this.endDuration = const Duration(milliseconds: 120),
-    this.longTapRepeatDuration = const Duration(milliseconds: 100),
+    this.cursor,
     this.beginCurve = Curves.decelerate,
     this.endCurve = Curves.fastOutSlowIn,
-    this.enableLongTapRepeatEvent = false,
+    this.disableAnimation = false,
   });
 
   @override
@@ -34,8 +40,6 @@ class _CliqInteractableState extends State<CliqInteractable>
     with SingleTickerProviderStateMixin {
   AnimationController? _controller;
   late Animation<double> _animation;
-
-  bool _isOnTap = true;
 
   @override
   void initState() {
@@ -68,40 +72,19 @@ class _CliqInteractableState extends State<CliqInteractable>
 
   @override
   Widget build(BuildContext context) {
-    if (widget.onTap == null &&
-        widget.onLongTap == null &&
-        widget.onTapDown == null) {
-      return widget.child;
-    }
-
-    Future<void> onLongPress() async {
-      await _controller?.forward();
-      await widget.onLongTap?.call();
-    }
-
-    return GestureDetector(
-      onTap: widget.onTap,
-      onLongPress: widget.onLongTap != null && !widget.enableLongTapRepeatEvent
-          ? onLongPress
-          : null,
-      child: Listener(
-        onPointerDown: (c) async {
-          _isOnTap = true;
-          _controller?.reverse();
-          if (widget.enableLongTapRepeatEvent) {
-            await Future.delayed(widget.longTapRepeatDuration);
-            while (_isOnTap) {
-              await Future.delayed(widget.longTapRepeatDuration, () async {
-                await (widget.onLongTap ?? widget.onTap)?.call();
-              });
-            }
-          }
-        },
-        onPointerUp: (c) async {
-          _isOnTap = false;
-          await _controller?.forward();
-        },
-        child: ScaleTransition(scale: _animation, child: widget.child),
+    return MouseRegion(
+      cursor: widget.cursor ?? MouseCursor.defer,
+      onEnter: widget.onEnter,
+      onExit: widget.onExit,
+      child: GestureDetector(
+        onTap: widget.onTap,
+        child: Listener(
+          onPointerDown: (c) async => _controller?.reverse(),
+          onPointerUp: (c) async => await _controller?.forward(),
+          child: widget.disableAnimation
+              ? widget.child
+              : ScaleTransition(scale: _animation, child: widget.child),
+        ),
       ),
     );
   }

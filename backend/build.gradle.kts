@@ -6,11 +6,11 @@ plugins {
     kotlin("plugin.allopen") version "2.2.20"
 
     // Spring / Spring Boot
-    id("org.springframework.boot") version "3.5.5"
+    id("org.springframework.boot") version "3.5.6"
     id("io.spring.dependency-management") version "1.1.7"
 
     // Database Migrations
-    id("org.flywaydb.flyway") version "11.12.0"
+    id("org.flywaydb.flyway") version "11.14.1"
 
     // Linter and Formatter
     id("org.jlleitschuh.gradle.ktlint") version "13.1.0"
@@ -65,9 +65,11 @@ repositories {
 
 buildscript {
     dependencies {
-        classpath("org.flywaydb:flyway-database-postgresql:11.12.0")
+        classpath("org.flywaydb:flyway-database-postgresql:11.14.1")
     }
 }
+
+val springModulithVersion by extra("1.4.3")
 
 dependencies {
     // Web Framework
@@ -76,14 +78,14 @@ dependencies {
 
     // JPA/SQL
     implementation("org.springframework.boot:spring-boot-starter-data-jpa")
-    implementation("org.flywaydb:flyway-core:11.12.0")
-    implementation("org.flywaydb:flyway-database-postgresql:11.12.0")
+    implementation("org.flywaydb:flyway-core:11.14.1")
+    implementation("org.flywaydb:flyway-database-postgresql:11.14.1")
     runtimeOnly("org.postgresql:postgresql")
 
     // Security
     implementation("org.springframework.boot:spring-boot-starter-security")
     implementation("org.springframework.security:spring-security-crypto")
-    implementation("org.bouncycastle:bcprov-jdk18on:1.81")
+    implementation("org.bouncycastle:bcprov-jdk18on:1.82")
 
     // E-Mail
     implementation("org.springframework.boot:spring-boot-starter-mail")
@@ -106,17 +108,26 @@ dependencies {
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
     implementation("org.jetbrains.kotlin:kotlin-reflect")
 
+    // Modulith
+    implementation("org.springframework.modulith:spring-modulith-starter-core")
+    implementation("org.springframework.modulith:spring-modulith-starter-jpa")
+    runtimeOnly("org.springframework.modulith:spring-modulith-actuator")
+    runtimeOnly("org.springframework.modulith:spring-modulith-observability")
+
     // Testing //
 
     // Spring
     testImplementation("org.springframework.boot:spring-boot-starter-test")
+
+    // Modulith
+    testImplementation("org.springframework.modulith:spring-modulith-starter-test")
 
     // Junit 5
     testImplementation("org.jetbrains.kotlin:kotlin-test-junit5")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 
     // Greenmail
-    val greenmailVersion = "2.1.5"
+    val greenmailVersion = "2.1.7"
     implementation("com.icegreen:greenmail-spring:$greenmailVersion")
     testImplementation("com.icegreen:greenmail:$greenmailVersion")
     testImplementation("com.icegreen:greenmail-junit5:$greenmailVersion")
@@ -125,8 +136,14 @@ dependencies {
     testImplementation("org.apache.commons:commons-email2-jakarta:2.0.0-M1")
 
     // Kotlin specifics
-    testImplementation("org.mockito.kotlin:mockito-kotlin:6.0.0")
+    testImplementation("org.mockito.kotlin:mockito-kotlin:6.1.0")
     testImplementation("org.awaitility:awaitility-kotlin:4.3.0")
+}
+
+dependencyManagement {
+    imports {
+        mavenBom("org.springframework.modulith:spring-modulith-bom:$springModulithVersion")
+    }
 }
 
 kotlin {

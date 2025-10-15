@@ -4,6 +4,7 @@ import 'package:cliq/shared/validators.dart';
 import 'package:cliq_ui/cliq_ui.dart';
 import 'package:drift/drift.dart' hide Column;
 import 'package:flutter/material.dart';
+import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
@@ -41,6 +42,8 @@ class _AddHostsPageState extends ConsumerState<AddHostsPage> {
 
   @override
   Widget build(BuildContext context) {
+    final labelPlaceholder = useState('');
+
     return CliqScaffold(
       extendBehindAppBar: true,
       header: CliqHeader(
@@ -67,7 +70,7 @@ class _AddHostsPageState extends ConsumerState<AddHostsPage> {
                           children: [
                             CliqTextFormField(
                               label: Text('Label'),
-                              hint: Text('My Host'),
+                              hint: Text(labelPlaceholder.value),
                               controller: _labelController,
                             ),
                             CliqTextFormField(
@@ -77,11 +80,7 @@ class _AddHostsPageState extends ConsumerState<AddHostsPage> {
                               validator: Validators.address,
                               autovalidateMode:
                                   AutovalidateMode.onUserInteraction,
-                              onChanged: (val) {
-                                if (_labelController.text.isEmpty) {
-                                  _labelController.text = val;
-                                }
-                              },
+                              onChanged: (val) => labelPlaceholder.value = val,
                             ),
                             CliqTextFormField(
                               label: Text('Port'),
@@ -154,6 +153,11 @@ class _AddHostsPageState extends ConsumerState<AddHostsPage> {
                                   int.tryParse(_portController.text.trim()),
                                 ),
                                 identityId: identityId,
+                                label: Value.absentIfNull(
+                                  _labelController.text.trim().isNotEmpty
+                                      ? _labelController.text.trim()
+                                      : null,
+                                ),
                               ),
                             );
 

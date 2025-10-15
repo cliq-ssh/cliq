@@ -29,7 +29,8 @@ class CliqBlurContainer extends StatelessWidget {
       borderRadius: borderRadius ?? style.borderRadius,
       child: BackdropFilter(
         filter: ImageFilter.blur(sigmaX: style.blur, sigmaY: style.blur),
-        child: Container(
+        child: AnimatedContainer(
+          duration: style.animationDuration,
           decoration: BoxDecoration(
             color: color ?? style.color,
             borderRadius: borderRadius ?? style.borderRadius,
@@ -50,12 +51,14 @@ final class CliqBlurContainerStyle {
   final Color outlineColor;
   final double blur;
   final BorderRadiusGeometry borderRadius;
+  final Duration animationDuration;
 
   const CliqBlurContainerStyle({
     required this.color,
     required this.outlineColor,
     required this.blur,
     required this.borderRadius,
+    required this.animationDuration,
   });
 
   factory CliqBlurContainerStyle.inherit({
@@ -63,10 +66,11 @@ final class CliqBlurContainerStyle {
     required CliqColorScheme colorScheme,
   }) {
     return CliqBlurContainerStyle(
-      color: colorScheme.secondaryBackground.withValues(alpha: .5),
+      color: colorScheme.secondaryBackground50,
       outlineColor: colorScheme.secondaryBackground,
       blur: 7.0,
       borderRadius: BorderRadius.circular(25),
+      animationDuration: style.animationDuration,
     );
   }
 }
