@@ -1,6 +1,5 @@
 package app.cliq.backend.user
 
-import app.cliq.backend.shared.SnowflakeGenerator
 import jakarta.persistence.EntityManager
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
@@ -20,8 +19,6 @@ class UserRepositoryIntegrationTests(
     private val entityManager: EntityManager,
     @Autowired
     private val userRepository: UserRepository,
-    @Autowired
-    private val snowflakeGenerator: SnowflakeGenerator,
 ) {
     @BeforeEach
     fun setUp() {
@@ -39,7 +36,6 @@ class UserRepositoryIntegrationTests(
         updatedAt: OffsetDateTime = OffsetDateTime.now(),
     ): User =
         User(
-            id = snowflakeGenerator.nextId().getOrThrow(),
             email = email,
             name = name,
             locale = Locale.ENGLISH.toLanguageTag(),

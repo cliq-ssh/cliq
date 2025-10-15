@@ -1,6 +1,5 @@
 package app.cliq.backend.shared
 
-import app.cliq.backend.instance.InstanceHandler
 import org.springframework.stereotype.Service
 import java.security.SecureRandom
 import java.util.Base64
@@ -13,9 +12,7 @@ const val RESET_PASSWORD_TOKEN_LENGTH: UShort = 8U
 const val AUTH_VERIFICATION_TOKEN_LENGTH: UShort = 64U
 
 @Service
-class TokenGenerator(
-    private val instanceHandler: InstanceHandler,
-) {
+class TokenGenerator {
     private val secureRandom = SecureRandom()
     private val base64Encoder = Base64.getUrlEncoder().withoutPadding()
 
@@ -24,9 +21,8 @@ class TokenGenerator(
         secureRandom.nextBytes(randomBytes)
 
         val uuid = UUID.randomUUID()
-        val instanceId = instanceHandler.getCurrentNodeId().toString()
 
-        val combined = instanceId.toByteArray() + uuid.toString().toByteArray() + randomBytes
+        val combined = uuid.toString().toByteArray() + randomBytes
 
         val fullToken = base64Encoder.encodeToString(combined)
         return fullToken.take(length.toInt())

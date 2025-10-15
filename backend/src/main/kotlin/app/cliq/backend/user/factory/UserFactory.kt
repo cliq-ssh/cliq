@@ -1,6 +1,5 @@
 package app.cliq.backend.user.factory
 
-import app.cliq.backend.shared.SnowflakeGenerator
 import app.cliq.backend.user.DEFAULT_LOCALE
 import app.cliq.backend.user.PasswordResetEvent
 import app.cliq.backend.user.User
@@ -16,7 +15,6 @@ import java.time.OffsetDateTime
 @Service
 class UserFactory(
     private val passwordEncoder: PasswordEncoder,
-    private val snowflakeGenerator: SnowflakeGenerator,
     private val clock: Clock,
     private val eventPublisher: ApplicationEventPublisher,
     private val userRepository: UserRepository,
@@ -35,7 +33,8 @@ class UserFactory(
         val newUser = userRepository.save(user)
         userRepository.flush()
 
-        eventPublisher.publishEvent(PasswordResetEvent(newUser.id))
+        val id = newUser.id ?: throw IllegalStateException("User ID should not be null after save")
+        eventPublisher.publishEvent(PasswordResetEvent(id))
 
         return newUser
     }
@@ -51,10 +50,10 @@ class UserFactory(
                 locale = registrationParams.locale,
             )
 
-        user = userRepository.save(user)
-        userRepository.flush()
+        user = userRepository.saveAndFlush(user)
 
-        eventPublisher.publishEvent(UserCreatedEvent(user.id))
+        val id = user.id ?: throw IllegalStateException("User ID should not be null after save")
+        eventPublisher.publishEvent(UserCreatedEvent(id))
 
         return user
     }
@@ -64,11 +63,8 @@ class UserFactory(
         password: String,
         name: String,
         locale: String = DEFAULT_LOCALE,
-    ): User {
-        val id = snowflakeGenerator.nextId().getOrThrow()
-
-        return User(
-            id = id,
+    ): User =
+        User(
             email = email,
             password = password,
             name = name,
@@ -76,5 +72,4 @@ class UserFactory(
             createdAt = OffsetDateTime.now(clock),
             updatedAt = OffsetDateTime.now(clock),
         )
-    }
 }
