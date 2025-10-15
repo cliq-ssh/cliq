@@ -20,6 +20,7 @@ group = "app.cliq"
 version = "0.1.0"
 description = "Open source SSH & SFTP client with focus on security and portability"
 
+// TODO: change with kotlin 2.3.0
 val targetJvmVersion = 24
 
 java {
