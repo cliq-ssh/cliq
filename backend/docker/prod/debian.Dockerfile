@@ -72,7 +72,7 @@ RUN groupadd -r -g ${GUID} ${GROUP_NAME} && \
     useradd -r -u ${UID} -g ${GROUP_NAME} -m -d ${HOME_DIR} -s /bin/bash ${USER_NAME} && \
     apt-get update -y && \
     apt-get upgrade -y && \
-    apt-get install -y --no-install-recommends curl bash && \
+    apt-get install -y --no-install-recommends curl bash tzdata && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
