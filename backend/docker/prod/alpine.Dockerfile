@@ -71,7 +71,7 @@ ENV PATH="${JAVA_HOME}/bin:${PATH}"
 
 # Add curl, bash and update package repositories
 RUN apk update && \
-    apk add --no-cache curl bash
+    apk add --no-cache curl bash tzdata
 
 # Create a non-root user
 RUN addgroup -g ${UID} -S ${GROUP_NAME} && \
