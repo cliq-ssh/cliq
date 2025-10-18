@@ -16,6 +16,7 @@ part 'database.g.dart';
 @DriftDatabase(
   include: {
     'connections/connections.drift',
+    'connections/connection_credentials.drift',
     'credentials/credentials.drift',
     'identities/identities.drift',
     'identities/identity_credentials.drift',
