@@ -48,9 +48,9 @@ class CliqBlurContainer extends StatelessWidget {
             color: color ?? style.color,
             borderRadius: borderRadius ?? style.borderRadius,
             border: Border.all(
-              color: outlineColor ?? CliqColorScheme.calculateOutlineColor(
-                color ?? style.color,
-              ),
+              color:
+                  outlineColor ??
+                  CliqColorScheme.calculateOutlineColor(color ?? style.color),
               width: 1,
             ),
           ),

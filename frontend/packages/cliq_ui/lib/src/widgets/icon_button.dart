@@ -57,11 +57,13 @@ class CliqIconButton extends HookWidget {
                   child: icon,
                 ),
                 if (label != null)
-                  CliqDefaultTypography(
-                    size: textStyle.copyS,
-                    color: style.iconTheme.resolve(states.value).color,
-                    fontFamily: CliqFontFamily.secondary,
-                    child: label!,
+                  Flexible(
+                    child: CliqDefaultTypography(
+                      size: textStyle.copyS,
+                      color: style.iconTheme.resolve(states.value).color,
+                      fontFamily: CliqFontFamily.secondary,
+                      child: label!,
+                    ),
                   ),
               ];
 

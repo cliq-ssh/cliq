@@ -3,6 +3,7 @@ library;
 export 'theme.export.dart';
 
 export 'hooks/use_breakpoint.export.dart';
+export 'hooks/use_memoized_future.export.dart';
 
 export 'widgets/blur_container.export.dart';
 export 'widgets/bottom_navigation_bar.export.dart';

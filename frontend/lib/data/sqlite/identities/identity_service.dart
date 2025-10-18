@@ -16,6 +16,8 @@ final class IdentityService {
     this.credentialRepository,
   );
 
+  Future<bool> hasIdentities() async => await identityRepository.count() > 0;
+
   Future<int> createIdentity(
     IdentitiesCompanion identity,
     List<int> orderedCredentialIds,

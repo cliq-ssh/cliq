@@ -1,5 +1,4 @@
 import 'package:cliq_ui/cliq_ui.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
 class CliqTileGroup extends StatelessWidget {
@@ -61,7 +60,10 @@ final class CliqTileGroupStyle {
   final IconThemeData iconTheme;
   final BorderRadius borderRadius;
 
-  const CliqTileGroupStyle({required this.iconTheme, required this.borderRadius});
+  const CliqTileGroupStyle({
+    required this.iconTheme,
+    required this.borderRadius,
+  });
 
   factory CliqTileGroupStyle.inherit({
     required CliqStyle style,

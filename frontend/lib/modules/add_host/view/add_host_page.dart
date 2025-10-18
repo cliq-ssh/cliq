@@ -1,5 +1,7 @@
 import 'package:cliq/data/sqlite/credentials/credential_type.dart';
 import 'package:cliq/data/sqlite/database.dart';
+import 'package:cliq/shared/extensions/async_snapshot.extension.dart';
+import 'package:cliq/shared/ui/future_wrapper.dart';
 import 'package:cliq/shared/validators.dart';
 import 'package:cliq_ui/cliq_ui.dart';
 import 'package:drift/drift.dart' hide Column;
@@ -7,6 +9,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:lucide_flutter/lucide_flutter.dart';
 
 import '../../../routing/page_path.dart';
 import '../../../shared/ui/commons.dart';
@@ -26,8 +29,6 @@ class _AddHostsPageState extends ConsumerState<AddHostsPage> {
   final TextEditingController _addressController = TextEditingController();
   final TextEditingController _portController = TextEditingController();
   final TextEditingController _usernameController = TextEditingController();
-  final TextEditingController _pemController = TextEditingController();
-  final TextEditingController _pemPasswordController = TextEditingController();
 
   @override
   void dispose() {
@@ -35,14 +36,15 @@ class _AddHostsPageState extends ConsumerState<AddHostsPage> {
     _addressController.dispose();
     _portController.dispose();
     _usernameController.dispose();
-    _pemController.dispose();
-    _pemPasswordController.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     final labelPlaceholder = useState('');
+    final hasIdentities = useMemoizedFuture(() async {
+      return await CliqDatabase.identityService.hasIdentities();
+    }, []);
 
     return CliqScaffold(
       extendBehindAppBar: true,
@@ -95,23 +97,30 @@ class _AddHostsPageState extends ConsumerState<AddHostsPage> {
                               hint: Text('root'),
                               controller: _usernameController,
                               autovalidateMode:
-                                  AutovalidateMode.onUserInteraction,
+                              AutovalidateMode.onUserInteraction,
                             ),
-                            CliqTextFormField(
-                              label: Text('Private Key (PEM)'),
-                              hint: Text('-----BEGIN OPENSSH PRIVATE KEY-----'),
-                              controller: _pemController,
-                              validator: Validators.pem,
-                              minLines: 1,
-                              autovalidateMode:
-                                  AutovalidateMode.onUserInteraction,
-                            ),
-                            CliqTextFormField(
-                              label: Text('Private Key Password'),
-                              hint: Text('secret'),
-                              controller: _pemPasswordController,
-                              obscure: true,
-                              maxLines: 1,
+                            Wrap(
+                              spacing: 8,
+                              runSpacing: 8,
+                              alignment: WrapAlignment.center,
+                              children: [
+                                hasIdentities.on(
+                                  defaultValue: SizedBox.shrink(),
+                                  onData: (hasIdentities) {
+                                    if (!hasIdentities) {
+                                      return SizedBox.shrink();
+                                    }
+                                    return CliqIconButton(
+                                      icon: Icon(LucideIcons.keyRound),
+                                      label: Text('Use Identity'),
+                                    );
+                                  },
+                                ),
+                                CliqIconButton(
+                                  icon: Icon(LucideIcons.plus),
+                                  label: Text('Add Authentication Method'),
+                                )
+                              ],
                             ),
                           ],
                         ),
@@ -125,34 +134,18 @@ class _AddHostsPageState extends ConsumerState<AddHostsPage> {
                               return;
                             }
 
-                            // TODO: refactor to support multiple credentials, identity selector
+                            // TODO: handle credentials, maybe add helper method in service
+                            // TODO: connection may either has a identity or username + credential
 
-                            final credentialId = await CliqDatabase
-                                .credentialsRepository
-                                .insert(
-                                  CredentialsCompanion.insert(
-                                    type: CredentialType.key,
-                                    secret: Value(_pemController.text.trim()),
-                                    passphrase: Value(
-                                      _pemPasswordController.text.trim(),
-                                    ),
-                                  ),
-                                );
-                            final identityId = await CliqDatabase
-                                .identityService
-                                .createIdentity(
-                                  IdentitiesCompanion.insert(
-                                    username: _usernameController.text.trim(),
-                                  ),
-                                  [credentialId],
-                                );
+                            // TODO: maybe extend further to allow one connection to have multiple credentials OR one identity.
+
                             await CliqDatabase.connectionsRepository.insert(
                               ConnectionsCompanion.insert(
                                 address: _addressController.text.trim(),
                                 port: Value.absentIfNull(
                                   int.tryParse(_portController.text.trim()),
                                 ),
-                                identityId: identityId,
+                                identityId: Value.absent(), // TODO:
                                 label: Value.absentIfNull(
                                   _labelController.text.trim().isNotEmpty
                                       ? _labelController.text.trim()

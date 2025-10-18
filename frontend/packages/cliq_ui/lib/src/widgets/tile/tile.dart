@@ -47,7 +47,11 @@ class CliqTile extends HookWidget {
       }).resolve(states.value),
       child: CliqBlurContainer(
         color: style.backgroundColor.resolve(states.value),
-        outlineColor: style.outlineColor ?? CliqColorScheme.calculateOutlineColor(style.backgroundColor.resolve(states.value)),
+        outlineColor:
+            style.outlineColor ??
+            CliqColorScheme.calculateOutlineColor(
+              style.backgroundColor.resolve(states.value),
+            ),
         padding: style.padding,
         borderRadius: style.borderRadius,
         child: Row(

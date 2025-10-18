@@ -53,6 +53,11 @@ abstract class Repository<T extends Table, R> {
     return db.delete(table).go();
   }
 
+  Future<int> count({Expression<bool> Function(T)? where}) async {
+    _log.fine('Counting all rows');
+    return await table.count(where: where).getSingle();
+  }
+
   Expression<bool> _whereId(T row, int id) => _getIdColumn(row).equals(id);
   Expression<bool> _whereIds(T row, List<int> ids) =>
       _getIdColumn(row).isIn(ids);

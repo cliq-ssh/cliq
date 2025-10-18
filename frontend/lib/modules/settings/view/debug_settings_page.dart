@@ -2,7 +2,6 @@ import 'package:cliq/modules/settings/view/abstract_settings_page.dart';
 import 'package:cliq/modules/settings/view/settings_page.dart';
 import 'package:cliq_ui/cliq_ui.dart';
 import 'package:flutter/cupertino.dart';
-import 'package:flutter/src/widgets/framework.dart';
 
 import '../../../data/sqlite/database.dart';
 import '../../../routing/page_path.dart';

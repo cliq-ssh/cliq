@@ -1,6 +1,5 @@
 import 'package:cliq_ui/cliq_ui.dart';
 import 'package:cliq_ui/src/widgets/progress_bar.dart';
-import 'package:cliq_ui/src/widgets/tile/tile_group.dart';
 
 final class CliqThemeData {
   final bool debug;

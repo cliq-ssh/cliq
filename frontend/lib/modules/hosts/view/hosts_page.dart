@@ -22,12 +22,12 @@ class _HostsPageState extends ConsumerState<HostsPage> {
   @override
   Widget build(BuildContext context) {
     final typography = context.theme.typography;
-    final connections = useState<List<Connection>>([]);
+    final connections = useState<List<(Connection, Identity?)>>([]);
 
     // Fetch connections from database
     useEffect(() {
       Future.microtask(() async {
-        connections.value = await CliqDatabase.connectionsRepository.findAll();
+        connections.value = await CliqDatabase.connectionService.findAllWithIdentities();
       });
       return null;
     }, []);
@@ -94,9 +94,14 @@ class _HostsPageState extends ConsumerState<HostsPage> {
                             },
                             child: CliqCard(
                               title: Text(
-                                connection.label ?? connection.address,
+                                connection.$1.label ?? connection.$1.address,
                               ),
-                              subtitle: Text('Last connected:'),
+                              subtitle: Row(
+                                children: [
+                                  Icon(LucideIcons.user),
+                                  CliqTypography(connection.$2?.username ?? '<no user>', size: typography.copyXS),
+                                ],
+                              ),
                             ),
                           ),
                         ),
