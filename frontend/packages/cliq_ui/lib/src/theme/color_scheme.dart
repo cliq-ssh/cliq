@@ -11,12 +11,12 @@ final class CliqColorScheme {
   final Color secondaryBackground;
   final Color secondaryBackground50;
   final Color onSecondaryBackground;
-  final Color onSecondaryBackground20;
+  final Color onSecondaryBackground10;
   final Color onSecondaryBackground70;
   final Color primary;
   final Color primary30;
   final Color onPrimary;
-  final Color onPrimary20;
+  final Color onPrimary30;
   final Color onPrimary50;
   final Color error;
   final Color error50;
@@ -34,10 +34,10 @@ final class CliqColorScheme {
   }) : onBackground20 = blend(onBackground, background, .2),
        onBackground70 = blend(onBackground, background, .7),
        secondaryBackground50 = blend(secondaryBackground, background, .5),
-       onSecondaryBackground20 = blend(
+       onSecondaryBackground10 = blend(
          onSecondaryBackground,
          secondaryBackground,
-         .2,
+         .1,
        ),
        onSecondaryBackground70 = blend(
          onSecondaryBackground,
@@ -45,7 +45,7 @@ final class CliqColorScheme {
          .7,
        ),
        primary30 = blend(primary, background, .3),
-       onPrimary20 = blend(onPrimary, primary, .2),
+       onPrimary30 = blend(onPrimary, primary, .3),
        onPrimary50 = blend(onPrimary, primary, .5),
        error50 = blend(error, background, .5);
 
