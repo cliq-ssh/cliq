@@ -3,7 +3,7 @@ plugins {
     kotlin("jvm") version "2.2.20"
     kotlin("plugin.spring") version "2.2.20"
     kotlin("plugin.jpa") version "2.2.20"
-    kotlin("plugin.allopen") version "2.2.20"
+    kotlin("plugin.allopen") version "2.2.21"
 
     // Spring / Spring Boot
     id("org.springframework.boot") version "3.5.6"
