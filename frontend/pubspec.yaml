@@ -33,7 +33,7 @@ dev_dependencies:
   drift_dev: ^2.28.1
   build_runner: ^2.7.0
   flutter_launcher_icons: ^0.14.4
-  flutter_native_splash: ^2.4.6
+  flutter_native_splash: 2.4.7
 
 flutter:
   uses-material-design: true
