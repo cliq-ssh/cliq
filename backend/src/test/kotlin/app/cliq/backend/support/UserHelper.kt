@@ -1,4 +1,4 @@
-package app.cliq.backend.helper
+package app.cliq.backend.support
 
 import app.cliq.backend.session.Session
 import app.cliq.backend.session.SessionRepository
@@ -42,7 +42,7 @@ class UserHelper(
 
         // We need to wait for the `UserCreatedEvent` event to be finished processing to prevent data
         await.atMost(Duration.ofSeconds(5)).untilAsserted {
-            val refreshedUser = userRepository.findById(user.id).orElseThrow()
+            val refreshedUser = userRepository.findById(user.id!!).orElseThrow()
             assert(
                 refreshedUser.isEmailVerified() || refreshedUser.emailVerificationSentAt != null,
             ) {
@@ -50,7 +50,7 @@ class UserHelper(
             }
         }
 
-        user = userRepository.findById(user.id).get()
+        user = userRepository.findById(user.id!!).get()
         if (!user.isEmailVerified()) {
             user = userService.verifyUserEmail(user)
         }

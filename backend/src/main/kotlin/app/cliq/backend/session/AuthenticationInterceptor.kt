@@ -53,7 +53,7 @@ class AuthenticationInterceptor(
             val authentication = BearerTokenAuthentication(session, token, true)
             SecurityContextHolder.getContext().authentication = authentication
 
-            eventPublisher.publishEvent(SessionUsedEvent(session.id))
+            eventPublisher.publishEvent(SessionUsedEvent(session.id!!))
         } catch (e: ApiException) {
             val error = ErrorResponse.fromApiException(e)
             httpUtils.setErrorResponse(response, error)

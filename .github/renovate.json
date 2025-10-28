@@ -1,7 +1,7 @@
 {
     "$schema": "https://docs.renovatebot.com/renovate-schema.json",
     "extends": [
-        "config:recommended"
+        "github>DenuxPlays/renovate-config:all.json5"
     ],
     "ignorePaths": [
         "frontend/android/",

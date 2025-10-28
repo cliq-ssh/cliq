@@ -1,5 +1,5 @@
 ARG JDK_VERSION=24
-ARG JRE_VERSION=24
+ARG JRE_VERSION=25
 ARG TEMURIN_ALPINE_VERSION=3.22
 ARG ALPINE_VERSION=3.22
 
@@ -71,7 +71,7 @@ ENV PATH="${JAVA_HOME}/bin:${PATH}"
 
 # Add curl, bash and update package repositories
 RUN apk update && \
-    apk add --no-cache curl bash
+    apk add --no-cache curl bash tzdata
 
 # Create a non-root user
 RUN addgroup -g ${UID} -S ${GROUP_NAME} && \

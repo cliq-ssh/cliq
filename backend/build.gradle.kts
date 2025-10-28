@@ -1,16 +1,16 @@
 plugins {
     // Kotlin
-    kotlin("jvm") version "2.2.20"
-    kotlin("plugin.spring") version "2.2.20"
-    kotlin("plugin.jpa") version "2.2.20"
-    kotlin("plugin.allopen") version "2.2.20"
+    kotlin("jvm") version "2.2.21"
+    kotlin("plugin.spring") version "2.2.21"
+    kotlin("plugin.jpa") version "2.2.21"
+    kotlin("plugin.allopen") version "2.2.21"
 
     // Spring / Spring Boot
-    id("org.springframework.boot") version "3.5.6"
+    id("org.springframework.boot") version "3.5.7"
     id("io.spring.dependency-management") version "1.1.7"
 
     // Database Migrations
-    id("org.flywaydb.flyway") version "11.14.1"
+    id("org.flywaydb.flyway") version "11.15.0"
 
     // Linter and Formatter
     id("org.jlleitschuh.gradle.ktlint") version "13.1.0"
@@ -20,6 +20,7 @@ group = "app.cliq"
 version = "0.1.0"
 description = "Open source SSH & SFTP client with focus on security and portability"
 
+// TODO: change with kotlin 2.3.0
 val targetJvmVersion = 24
 
 java {
@@ -65,11 +66,11 @@ repositories {
 
 buildscript {
     dependencies {
-        classpath("org.flywaydb:flyway-database-postgresql:11.14.1")
+        classpath("org.flywaydb:flyway-database-postgresql:11.15.0")
     }
 }
 
-val springModulithVersion by extra("1.4.3")
+val springModulithVersion by extra("1.4.4")
 
 dependencies {
     // Web Framework
@@ -78,8 +79,8 @@ dependencies {
 
     // JPA/SQL
     implementation("org.springframework.boot:spring-boot-starter-data-jpa")
-    implementation("org.flywaydb:flyway-core:11.14.1")
-    implementation("org.flywaydb:flyway-database-postgresql:11.14.1")
+    implementation("org.flywaydb:flyway-core:11.15.0")
+    implementation("org.flywaydb:flyway-database-postgresql:11.15.0")
     runtimeOnly("org.postgresql:postgresql")
 
     // Security

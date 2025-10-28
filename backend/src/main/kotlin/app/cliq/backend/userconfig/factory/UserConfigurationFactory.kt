@@ -1,6 +1,5 @@
 package app.cliq.backend.userconfig.factory
 
-import app.cliq.backend.shared.SnowflakeGenerator
 import app.cliq.backend.user.User
 import app.cliq.backend.userconfig.UserConfiguration
 import app.cliq.backend.userconfig.params.ConfigurationParams
@@ -11,7 +10,6 @@ import java.time.OffsetDateTime
 @Service
 class
 UserConfigurationFactory(
-    private val snowflakeGenerator: SnowflakeGenerator,
     private val clock: Clock,
 ) {
     fun createFromParams(
@@ -25,11 +23,11 @@ UserConfigurationFactory(
         user: User,
     ): UserConfiguration =
         UserConfiguration(
-            existingConfig.id,
             user,
             configurationParams.configuration,
             existingConfig.createdAt,
             OffsetDateTime.now(clock),
+            id = existingConfig.id,
         )
 
     fun create(
@@ -37,10 +35,9 @@ UserConfigurationFactory(
         user: User,
     ): UserConfiguration =
         UserConfiguration(
-            snowflakeGenerator.nextId().getOrThrow(),
-            user,
-            encryptedConfig,
-            OffsetDateTime.now(clock),
-            OffsetDateTime.now(clock),
+            user = user,
+            encryptedConfig = encryptedConfig,
+            createdAt = OffsetDateTime.now(clock),
+            updatedAt = OffsetDateTime.now(clock),
         )
 }

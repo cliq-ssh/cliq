@@ -2,8 +2,8 @@ package app.cliq.backend.user
 
 import app.cliq.backend.AcceptanceTest
 import app.cliq.backend.AcceptanceTester
-import app.cliq.backend.helper.UserHelper
 import app.cliq.backend.session.SessionRepository
+import app.cliq.backend.support.UserHelper
 import com.fasterxml.jackson.databind.ObjectMapper
 import org.apache.commons.mail2.jakarta.util.MimeMessageParser
 import org.awaitility.kotlin.await
@@ -95,10 +95,10 @@ class UserPasswordResetAcceptanceTests(
     @Test
     fun `reset password deletes all sessions`() {
         var session = userHelper.createRandomAuthenticatedUser()
-        session = sessionRepository.findById(session.id).orElseThrow()
-        val user = userRepository.findById(session.user.id).orElseThrow()
+        session = sessionRepository.findById(session.id!!).orElseThrow()
+        val user = userRepository.findById(session.user.id!!).orElseThrow()
 
-        val sessions = sessionRepository.findByUserId(user.id)
+        val sessions = sessionRepository.findByUserId(user.id!!)
         assertEquals(1, sessions.size)
 
         val startResetProcessParams =
@@ -142,7 +142,7 @@ class UserPasswordResetAcceptanceTests(
             ).andExpect(status().isOk)
 
         await.atMost(Duration.ofSeconds(5)).untilAsserted {
-            val updatedSessions = sessionRepository.findByUserId(user.id)
+            val updatedSessions = sessionRepository.findByUserId(user.id!!)
             assertEquals(0, updatedSessions.size)
         }
     }

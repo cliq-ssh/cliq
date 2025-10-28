@@ -5,13 +5,13 @@ homepage:
 
 environment:
   sdk: ^3.9.0
-  flutter: ">=1.17.0"
+  flutter: ">=3.35.7"
 
 dependencies:
   flutter:
     sdk: flutter
-  flutter_hooks: ^0.21.2
-  lucide_flutter: ^0.545.0
+  flutter_hooks: 0.21.3+1
+  lucide_flutter: 0.548.0
 
 dev_dependencies:
   flutter_test:
