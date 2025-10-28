@@ -894,9 +894,8 @@ class Connections extends Table with TableInfo<Connections, Connection> {
     aliasedName,
     false,
     type: DriftSqlType.int,
-    requiredDuringInsert: false,
-    $customConstraints: 'NOT NULL DEFAULT 22',
-    defaultValue: const CustomExpression('22'),
+    requiredDuringInsert: true,
+    $customConstraints: 'NOT NULL',
   );
   static const VerificationMeta _identityIdMeta = const VerificationMeta(
     'identityId',
@@ -998,6 +997,8 @@ class Connections extends Table with TableInfo<Connections, Connection> {
         _portMeta,
         port.isAcceptableOrUnknown(data['port']!, _portMeta),
       );
+    } else if (isInserting) {
+      context.missing(_portMeta);
     }
     if (data.containsKey('identity_id')) {
       context.handle(
@@ -1310,14 +1311,15 @@ class ConnectionsCompanion extends UpdateCompanion<Connection> {
   ConnectionsCompanion.insert({
     this.id = const Value.absent(),
     required String address,
-    this.port = const Value.absent(),
+    required int port,
     this.identityId = const Value.absent(),
     this.username = const Value.absent(),
     this.credentialId = const Value.absent(),
     this.label = const Value.absent(),
     this.icon = const Value.absent(),
     this.color = const Value.absent(),
-  }) : address = Value(address);
+  }) : address = Value(address),
+       port = Value(port);
   static Insertable<Connection> custom({
     Expression<int>? id,
     Expression<String>? address,
@@ -2362,7 +2364,7 @@ typedef $ConnectionsCreateCompanionBuilder =
     ConnectionsCompanion Function({
       Value<int> id,
       required String address,
-      Value<int> port,
+      required int port,
       Value<int?> identityId,
       Value<String?> username,
       Value<int?> credentialId,
@@ -2736,7 +2738,7 @@ class $ConnectionsTableManager
               ({
                 Value<int> id = const Value.absent(),
                 required String address,
-                Value<int> port = const Value.absent(),
+                required int port,
                 Value<int?> identityId = const Value.absent(),
                 Value<String?> username = const Value.absent(),
                 Value<int?> credentialId = const Value.absent(),

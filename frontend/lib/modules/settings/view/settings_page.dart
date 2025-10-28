@@ -35,8 +35,10 @@ class _DashboardPageState extends ConsumerState<SettingsPage> {
         child: CliqGridContainer(
           children: [
             CliqGridRow(
+              alignment: WrapAlignment.center,
               children: [
                 CliqGridColumn(
+                  sizes: {Breakpoint.xl: 8},
                   child: Padding(
                     padding: EdgeInsets.only(top: 80, bottom: 40),
                     child: Column(

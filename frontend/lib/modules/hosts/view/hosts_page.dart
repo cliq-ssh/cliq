@@ -94,15 +94,27 @@ class _HostsPageState extends ConsumerState<HostsPage> {
                               // TODO:
                             },
                             child: CliqCard(
+                              leading: Padding(
+                                padding: const EdgeInsets.only(right: 16),
+                                child: Container(
+                                  width: 48,
+                                  height: 48,
+                                  decoration: BoxDecoration(
+                                    borderRadius: BorderRadius.circular(8),
+                                    color: Colors.green,
+                                  ),
+                                ),
+                              ),
                               title: Text(
                                 connection.$1.label ?? connection.$1.address,
                               ),
                               subtitle: Row(
+                                spacing: 8,
                                 children: [
                                   Icon(LucideIcons.user),
                                   CliqTypography(
-                                    connection.$2?.username ?? '<no user>',
-                                    size: typography.copyXS,
+                                    connection.$1.username ?? connection.$2?.username ?? '<no user>',
+                                    size: typography.copyS,
                                   ),
                                 ],
                               ),
