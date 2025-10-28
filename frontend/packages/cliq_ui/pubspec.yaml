@@ -10,8 +10,8 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  flutter_hooks: ^0.21.2
-  lucide_flutter: ^0.546.0
+  flutter_hooks: 0.21.3+1
+  lucide_flutter: 0.548.0
 
 dev_dependencies:
   flutter_test:
