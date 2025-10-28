@@ -39,7 +39,6 @@ class LicenseSettingsPage extends AbstractSettingsPage {
 
         LucideIcons.aArrowDown;
         return ListView.separated(
-          padding: EdgeInsets.symmetric(vertical: 80),
           itemCount: licensesMap.length,
           separatorBuilder: (ctx, index) => const SizedBox(height: 16),
           itemBuilder: (ctx, index) {
