@@ -1,7 +1,8 @@
 import 'package:cliq/modules/settings/view/abstract_settings_page.dart';
 import 'package:cliq/modules/settings/view/settings_page.dart';
-import 'package:cliq_ui/cliq_ui.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:forui/forui.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
 
 import '../../../data/sqlite/database.dart';
 import '../../../routing/page_path.dart';
@@ -15,12 +16,12 @@ class DebugSettingsPage extends AbstractSettingsPage {
   const DebugSettingsPage({super.key});
 
   @override
-  Widget buildBody(BuildContext context) {
+  Widget buildBody(BuildContext context, WidgetRef ref) {
     return Column(
       children: [
-        CliqButton(
-          label: Text('Reset SQLite database'),
-          onPressed: () async {
+        FButton(
+          child: Text('Reset SQLite database'),
+          onPress: () async {
             await CliqDatabase.connectionsRepository.deleteAll();
             await CliqDatabase.credentialsRepository.deleteAll();
             await CliqDatabase.identitiesRepository.deleteAll();

@@ -340,6 +340,11 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "6.0.0"
+  flutter_localizations:
+    dependency: transitive
+    description: flutter
+    source: sdk
+    version: "0.0.0"
   flutter_native_splash:
     dependency: "direct dev"
     description:
@@ -366,6 +371,30 @@ packages:
     description: flutter
     source: sdk
     version: "0.0.0"
+  forui:
+    dependency: "direct main"
+    description:
+      name: forui
+      sha256: "6cc43d4a07fefc8a6ff875483546babf614ec68ab091016399ab5526ac8124b9"
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.16.0"
+  forui_assets:
+    dependency: transitive
+    description:
+      name: forui_assets
+      sha256: "0f74f49250bca9076b5ee9ffb9c7f0476c436f9a8299aa68aa7f1cb3f1b429f4"
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.16.0"
+  forui_hooks:
+    dependency: "direct main"
+    description:
+      name: forui_hooks
+      sha256: "56c750666a5db5bdb30466d211782935d9b4434f54bd872f8e0d218c21927f28"
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.16.0"
   frontend_server_client:
     dependency: transitive
     description:
@@ -390,6 +419,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "16.3.0"
+  google_fonts:
+    dependency: transitive
+    description:
+      name: google_fonts
+      sha256: "517b20870220c48752eafa0ba1a797a092fb22df0d89535fd9991e86ee2cdd9c"
+      url: "https://pub.dev"
+    source: hosted
+    version: "6.3.2"
   graphs:
     dependency: transitive
     description:
@@ -414,6 +451,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "0.15.6"
+  http:
+    dependency: transitive
+    description:
+      name: http
+      sha256: bb2ce4590bc2667c96f318d68cac1b5a7987ec819351d32b1c987239a815e007
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.5.0"
   http_multi_server:
     dependency: transitive
     description:
@@ -438,6 +483,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "4.5.4"
+  intl:
+    dependency: transitive
+    description:
+      name: intl
+      sha256: "3df61194eb431efc39c4ceba583b95633a403f46c9fd341e550ce0bfa50e9aa5"
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.20.2"
   io:
     dependency: transitive
     description:
@@ -542,6 +595,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.0.0"
+  nitrogen_types:
+    dependency: transitive
+    description:
+      name: nitrogen_types
+      sha256: "5d4ec453aea14e34607bc6021ff1381192e8fcd8541bf103638baa4d013e668f"
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.4.0+1"
   node_preamble:
     dependency: transitive
     description:
@@ -891,6 +952,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.4.1"
+  sugar:
+    dependency: transitive
+    description:
+      name: sugar
+      sha256: a0a97f1d3552a3ef4cbec7c6e62c7b52c151cd5c11e984e8311700a918f73dc5
+      url: "https://pub.dev"
+    source: hosted
+    version: "4.0.0"
   term_glyph:
     dependency: transitive
     description:

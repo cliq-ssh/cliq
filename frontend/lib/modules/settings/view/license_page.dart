@@ -1,7 +1,9 @@
 import 'package:cliq/modules/settings/view/abstract_settings_page.dart';
 import 'package:cliq/modules/settings/view/settings_page.dart';
-import 'package:lucide_flutter/lucide_flutter.dart';
 import 'package:cliq_ui/cliq_ui.dart';
+import 'package:forui/forui.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:lucide_flutter/lucide_flutter.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
@@ -17,7 +19,7 @@ class LicenseSettingsPage extends AbstractSettingsPage {
   const LicenseSettingsPage({super.key});
 
   @override
-  Widget buildBody(BuildContext context) {
+  Widget buildBody(BuildContext context, WidgetRef ref) {
     return FutureWrapper(
       future: LicenseRegistry.licenses.toList(),
       onSuccess: (ctx, snap) {
@@ -37,7 +39,6 @@ class LicenseSettingsPage extends AbstractSettingsPage {
 
         LucideIcons.aArrowDown;
         return ListView.separated(
-          padding: EdgeInsets.symmetric(vertical: 80),
           itemCount: licensesMap.length,
           separatorBuilder: (ctx, index) => const SizedBox(height: 16),
           itemBuilder: (ctx, index) {
@@ -58,17 +59,11 @@ class LicenseSettingsPage extends AbstractSettingsPage {
                           });
                           return GestureDetector(
                             onTap: toggle,
-                            child: CliqCard(
+                            child: FCard(
                               title: Text(license.key),
                               subtitle: Text(
                                 '${license.value.length} license(s)',
                               ),
-                              trailing: isExpanded
-                                  ? null
-                                  : CliqIconButton(
-                                      onPressed: toggle,
-                                      icon: Icon(LucideIcons.chevronDown),
-                                    ),
                               child: isExpanded
                                   ? Column(
                                       children: [

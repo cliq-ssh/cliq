@@ -1,7 +1,7 @@
 import 'package:cliq/modules/settings/view/settings_page.dart';
 import 'package:cliq/routing/router.extension.dart';
+import 'package:forui/forui.dart';
 import 'package:lucide_flutter/lucide_flutter.dart';
-import 'package:cliq_ui/cliq_ui.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -21,18 +21,16 @@ class NavigationShell extends StatefulHookConsumerWidget {
 class NavigationShellState extends ConsumerState<NavigationShell> {
   @override
   Widget build(BuildContext context) {
-    return CliqScaffold(
-      header: CliqHeader(
-        right: [
-          CliqIconButton(icon: Icon(LucideIcons.search)),
-          CliqIconButton(
-            icon: Icon(LucideIcons.settings),
-            onPressed: () => context.pushPath(SettingsPage.pagePath.build()),
+    return FScaffold(
+      header: FHeader(
+        suffixes: [
+          FButton.icon(
+            child: Icon(LucideIcons.settings),
+            onPress: () => context.pushPath(SettingsPage.pagePath.build()),
           ),
         ],
       ),
-      extendBehindAppBar: true,
-      body: widget.shell,
+      child: widget.shell,
     );
   }
 

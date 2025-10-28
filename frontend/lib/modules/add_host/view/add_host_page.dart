@@ -6,12 +6,12 @@ import 'package:cliq_ui/cliq_ui.dart';
 import 'package:drift/drift.dart' hide Column;
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
+import 'package:forui/forui.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lucide_flutter/lucide_flutter.dart';
 
 import '../../../routing/page_path.dart';
-import '../../../shared/ui/commons.dart';
 
 class AddHostsPage extends StatefulHookConsumerWidget {
   static const PagePathBuilder pagePath = PagePathBuilder('/hosts');
@@ -23,25 +23,23 @@ class AddHostsPage extends StatefulHookConsumerWidget {
 }
 
 class _AddHostsPageState extends ConsumerState<AddHostsPage> {
-  final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
-  final TextEditingController _labelController = TextEditingController();
-  final TextEditingController _addressController = TextEditingController();
-  final TextEditingController _portController = TextEditingController();
-  final TextEditingController _usernameController = TextEditingController();
-  final TextEditingController _passwordController = TextEditingController();
-  final TextEditingController _pemController = TextEditingController();
+  static const List<(CredentialType, String, IconData)> allowedCredentialTypes =
+      [
+        (CredentialType.password, 'Password', LucideIcons.rectangleEllipsis),
+        (CredentialType.key, 'Key', LucideIcons.keyRound),
+      ];
 
-  @override
-  void dispose() {
-    _labelController.dispose();
-    _addressController.dispose();
-    _portController.dispose();
-    _usernameController.dispose();
-    super.dispose();
-  }
+  final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
 
   @override
   Widget build(BuildContext context) {
+    final labelController = useTextEditingController();
+    final addressController = useTextEditingController();
+    final portController = useTextEditingController();
+    final usernameController = useTextEditingController();
+    final passwordController = useTextEditingController();
+    final pemController = useTextEditingController();
+
     final labelPlaceholder = useState('');
     final hasIdentities = useMemoizedFuture(() async {
       return await CliqDatabase.identityService.hasIdentities();
@@ -49,13 +47,12 @@ class _AddHostsPageState extends ConsumerState<AddHostsPage> {
 
     final additionalCredentialType = useState<CredentialType?>(null);
 
-    return CliqScaffold(
-      extendBehindAppBar: true,
-      header: CliqHeader(
+    return FScaffold(
+      header: FHeader.nested(
         title: Text('Add Host'),
-        left: [Commons.backButton(context)],
+        prefixes: [FHeaderAction.back(onPress: () => context.pop())],
       ),
-      body: SingleChildScrollView(
+      child: SingleChildScrollView(
         padding: const EdgeInsets.only(top: 80),
         child: CliqGridContainer(
           children: [
@@ -63,7 +60,7 @@ class _AddHostsPageState extends ConsumerState<AddHostsPage> {
               alignment: WrapAlignment.center,
               children: [
                 CliqGridColumn(
-                  sizes: {Breakpoint.lg: 8, Breakpoint.xl: 6},
+                  sizes: {Breakpoint.xl: 6},
                   child: Column(
                     spacing: 24,
                     children: [
@@ -73,54 +70,51 @@ class _AddHostsPageState extends ConsumerState<AddHostsPage> {
                           spacing: 16,
                           crossAxisAlignment: CrossAxisAlignment.center,
                           children: [
-                            CliqTextFormField(
+                            FTextFormField(
                               label: Text('Label'),
-                              hint: Text(labelPlaceholder.value),
-                              controller: _labelController,
+                              hint: labelPlaceholder.value,
+                              controller: labelController,
                             ),
-                            CliqTextFormField(
+                            FTextFormField(
                               label: Text('Address'),
-                              hint: Text('127.0.0.1'),
-                              controller: _addressController,
+                              hint: '127.0.0.1',
+                              controller: addressController,
                               validator: Validators.address,
                               autovalidateMode:
                                   AutovalidateMode.onUserInteraction,
-                              onChanged: (val) => labelPlaceholder.value = val,
+                              onChange: (val) => labelPlaceholder.value = val,
                             ),
-                            CliqTextFormField(
+                            FTextFormField(
                               label: Text('Port'),
-                              hint: Text('22'),
-                              controller: _portController,
+                              hint: '22',
+                              controller: portController,
                               validator: Validators.port,
                               autovalidateMode:
                                   AutovalidateMode.onUserInteraction,
                             ),
-                            CliqTextFormField(
+                            FTextFormField(
                               label: Text('Username'),
-                              hint: Text('root'),
-                              controller: _usernameController,
+                              hint: 'root',
+                              controller: usernameController,
                               autovalidateMode:
                                   AutovalidateMode.onUserInteraction,
                             ),
                             if (additionalCredentialType.value ==
                                 CredentialType.password)
-                              CliqTextFormField(
+                              FTextFormField(
                                 label: Text('Password'),
-                                hint: Text('••••••••'),
-                                controller: _passwordController,
-                                obscure: true,
+                                controller: passwordController,
+                                obscureText: true,
                                 maxLines: 1,
                                 autovalidateMode:
                                     AutovalidateMode.onUserInteraction,
                               ),
                             if (additionalCredentialType.value ==
                                 CredentialType.key)
-                              CliqTextFormField(
+                              FTextFormField(
                                 label: Text('PEM Key'),
-                                hint: Text(
-                                  '-----BEGIN OPENSSH PRIVATE KEY-----',
-                                ),
-                                controller: _pemController,
+                                hint: '-----BEGIN OPENSSH PRIVATE KEY-----',
+                                controller: pemController,
                                 minLines: 5,
                                 maxLines: null,
                                 autovalidateMode:
@@ -137,45 +131,39 @@ class _AddHostsPageState extends ConsumerState<AddHostsPage> {
                                     if (!hasIdentities) {
                                       return SizedBox.shrink();
                                     }
-                                    return CliqIconButton(
-                                      icon: Icon(LucideIcons.keyRound),
-                                      label: Text('Use Identity'),
+                                    return FButton(
+                                      style: FButtonStyle.ghost(),
+                                      prefix: Icon(LucideIcons.keyRound),
+                                      onPress: null,
+                                      child: Text('Use Identity'),
                                     );
                                   },
                                 ),
-                                CliqLink(
-                                  icon: Icon(LucideIcons.keyRound),
-                                  label: TextSpan(text: 'Use Identity'),
+                                FPopoverMenu(
+                                  menu: [
+                                    FItemGroup(
+                                      children: [
+                                        for (final type
+                                            in allowedCredentialTypes)
+                                          FItem(
+                                            prefix: Icon(type.$3),
+                                            title: Text(type.$2),
+                                            onPress: () =>
+                                                additionalCredentialType.value =
+                                                    type.$1,
+                                          ),
+                                      ],
+                                    ),
+                                  ],
+                                  builder: (context, controller, child) {
+                                    return FButton(
+                                      style: FButtonStyle.ghost(),
+                                      prefix: Icon(LucideIcons.plus),
+                                      onPress: controller.toggle,
+                                      child: Text('Add Credential'),
+                                    );
+                                  },
                                 ),
-                                // TODO: implement context menu to select credential type
-                                if (additionalCredentialType.value !=
-                                    CredentialType.key)
-                                  CliqLink(
-                                    icon: Icon(LucideIcons.plus),
-                                    label: TextSpan(
-                                      text:
-                                          additionalCredentialType.value == null
-                                          ? 'Add Key'
-                                          : 'Use Key',
-                                    ),
-                                    onPressed: () =>
-                                        additionalCredentialType.value =
-                                            CredentialType.key,
-                                  ),
-                                if (additionalCredentialType.value !=
-                                    CredentialType.password)
-                                  CliqLink(
-                                    icon: Icon(LucideIcons.plus),
-                                    label: TextSpan(
-                                      text:
-                                          additionalCredentialType.value == null
-                                          ? 'Add Password'
-                                          : 'Use Password',
-                                    ),
-                                    onPressed: () =>
-                                        additionalCredentialType.value =
-                                            CredentialType.password,
-                                  ),
                               ],
                             ),
                           ],
@@ -183,9 +171,9 @@ class _AddHostsPageState extends ConsumerState<AddHostsPage> {
                       ),
                       SizedBox(
                         width: double.infinity,
-                        child: CliqButton(
-                          label: Text('Save Host'),
-                          onPressed: () async {
+                        child: FButton(
+                          child: Text('Save Host'),
+                          onPress: () async {
                             if (!_formKey.currentState!.validate()) {
                               return;
                             }
@@ -198,7 +186,7 @@ class _AddHostsPageState extends ConsumerState<AddHostsPage> {
                                   .insert(
                                     CredentialsCompanion.insert(
                                       type: CredentialType.password,
-                                      data: _passwordController.text,
+                                      data: passwordController.text,
                                     ),
                                   );
                             } else if (additionalCredentialType.value ==
@@ -208,7 +196,7 @@ class _AddHostsPageState extends ConsumerState<AddHostsPage> {
                                   .insert(
                                     CredentialsCompanion.insert(
                                       type: CredentialType.key,
-                                      data: _pemController.text,
+                                      data: pemController.text,
                                     ),
                                   );
                             }
@@ -216,17 +204,17 @@ class _AddHostsPageState extends ConsumerState<AddHostsPage> {
                             await CliqDatabase.connectionsRepository.insert(
                               ConnectionsCompanion.insert(
                                 label: Value.absentIfNull(
-                                  _labelController.text.trim().isNotEmpty
-                                      ? _labelController.text.trim()
+                                  labelController.text.trim().isNotEmpty
+                                      ? labelController.text.trim()
                                       : null,
                                 ),
-                                address: _addressController.text.trim(),
+                                address: addressController.text.trim(),
                                 port:
-                                    int.tryParse(_portController.text.trim()) ??
+                                    int.tryParse(portController.text.trim()) ??
                                     22,
                                 username: Value.absentIfNull(
-                                  _usernameController.text.trim().isNotEmpty
-                                      ? _usernameController.text.trim()
+                                  usernameController.text.trim().isNotEmpty
+                                      ? usernameController.text.trim()
                                       : null,
                                 ),
                                 credentialId: Value.absentIfNull(credentialId),

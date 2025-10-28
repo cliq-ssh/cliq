@@ -1,12 +1,14 @@
 import 'package:cliq/data/sqlite/database.dart';
 import 'package:cliq/routing/router.provider.dart';
 import 'package:cliq/data/store.dart';
-import 'package:cliq_ui/cliq_ui.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:forui/forui.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:logging/logging.dart';
+
+import 'modules/settings/provider/theme.provider.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -52,12 +54,20 @@ class _CliqAppState extends ConsumerState<CliqApp> {
   @override
   Widget build(BuildContext context) {
     final router = ref.watch(routerProvider);
+    final theme = ref.watch(themeProvider);
 
     return MaterialApp.router(
       routerConfig: router.goRouter,
       debugShowCheckedModeBanner: false,
-      builder: (context, child) =>
-          CliqTheme(data: CliqThemes.standard.dark, child: child!),
+      themeMode: theme.themeMode,
+      theme: ThemeData(brightness: Brightness.light),
+      darkTheme: ThemeData(brightness: Brightness.dark),
+      builder: (context, child) {
+        return FAnimatedTheme(
+          data: theme.activeTheme.getThemeWithMode(theme.themeMode),
+          child: child ?? Container(),
+        );
+      },
     );
   }
 }

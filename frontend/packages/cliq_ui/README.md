@@ -1,3 +1,5 @@
 # cliq_ui
 
-UI package for cliq. Project structure inspired by [forui](https://pub.dev/packages/forui).
+UI package for cliq. This package is not currently in use (but may be in the future!). See https://github.com/cliq-ssh/cliq/pull/116 for more information.
+
+NOTE: An exception to this are the bootstrap-inspired grid widgets (CliqGridContainer, CliqGridRow, CliqGridColumn).
