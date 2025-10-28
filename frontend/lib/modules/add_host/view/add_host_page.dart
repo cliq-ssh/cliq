@@ -1,5 +1,5 @@
-import 'package:cliq/data/sqlite/credentials/credential_type.dart';
-import 'package:cliq/data/sqlite/database.dart';
+import 'package:cliq/shared/data/sqlite/credentials/credential_type.dart';
+import 'package:cliq/shared/data/sqlite/database.dart';
 import 'package:cliq/shared/extensions/async_snapshot.extension.dart';
 import 'package:cliq/shared/validators.dart';
 import 'package:cliq_ui/cliq_ui.dart';

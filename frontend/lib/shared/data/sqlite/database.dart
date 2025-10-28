@@ -1,9 +1,9 @@
-import 'package:cliq/data/sqlite/connections/connections_repository.dart';
-import 'package:cliq/data/sqlite/connections/connection_service.dart';
-import 'package:cliq/data/sqlite/credentials/credential_service.dart';
-import 'package:cliq/data/sqlite/credentials/keys/key_service.dart';
-import 'package:cliq/data/sqlite/credentials/keys/keys_repository.dart';
-import 'package:cliq/data/sqlite/identities/identity_service.dart';
+import 'package:cliq/shared/data/sqlite/connections/connections_repository.dart';
+import 'package:cliq/shared/data/sqlite/connections/connection_service.dart';
+import 'package:cliq/shared/data/sqlite/credentials/credential_service.dart';
+import 'package:cliq/shared/data/sqlite/credentials/keys/key_service.dart';
+import 'package:cliq/shared/data/sqlite/credentials/keys/keys_repository.dart';
+import 'package:cliq/shared/data/sqlite/identities/identity_service.dart';
 import 'package:drift/drift.dart';
 import 'package:drift_flutter/drift_flutter.dart';
 import 'package:path_provider/path_provider.dart';

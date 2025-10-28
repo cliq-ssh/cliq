@@ -1,4 +1,4 @@
-import 'package:cliq/data/sqlite/database.dart';
+import 'package:cliq/shared/data/sqlite/database.dart';
 import 'package:cliq/routing/router.extension.dart';
 import 'package:cliq_ui/cliq_ui.dart'
     show CliqGridColumn, CliqGridContainer, CliqGridRow, Breakpoint;
