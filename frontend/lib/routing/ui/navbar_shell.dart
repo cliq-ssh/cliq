@@ -24,7 +24,6 @@ class NavigationShellState extends ConsumerState<NavigationShell> {
     return FScaffold(
       header: FHeader(
         suffixes: [
-          FButton.icon(child: Icon(LucideIcons.search), onPress: () {}),
           FButton.icon(
             child: Icon(LucideIcons.settings),
             onPress: () => context.pushPath(SettingsPage.pagePath.build()),
