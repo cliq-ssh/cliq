@@ -14,5 +14,6 @@ export 'widgets/grid.export.dart';
 export 'widgets/header.export.dart';
 export 'widgets/icon_button.export.dart';
 export 'widgets/interactable.export.dart';
+export 'widgets/link.export.dart';
 export 'widgets/scaffold.export.dart';
 export 'widgets/tile.export.dart';

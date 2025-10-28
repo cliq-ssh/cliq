@@ -18,6 +18,7 @@ final class CliqThemeData {
   final CliqButtonStyle buttonStyle;
   final CliqCardStyle cardStyle;
   final CliqIconButtonStyle iconButtonStyle;
+  final CliqLinkStyle linkStyle;
   final CliqProgressBarStyle progressBarStyle;
   final CliqScaffoldStyle scaffoldStyle;
   final CliqTileStyle tileStyle;
@@ -38,6 +39,7 @@ final class CliqThemeData {
     required this.buttonStyle,
     required this.cardStyle,
     required this.iconButtonStyle,
+    required this.linkStyle,
     required this.progressBarStyle,
     required this.scaffoldStyle,
     required this.tileStyle,
@@ -86,6 +88,10 @@ final class CliqThemeData {
       ),
       cardStyle: CliqCardStyle.inherit(style: style, colorScheme: colorScheme),
       iconButtonStyle: CliqIconButtonStyle.inherit(
+        style: style,
+        colorScheme: colorScheme,
+      ),
+      linkStyle: CliqLinkStyle.inherit(
         style: style,
         colorScheme: colorScheme,
       ),

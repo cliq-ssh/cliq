@@ -24,7 +24,6 @@ class DebugSettingsPage extends AbstractSettingsPage {
             await CliqDatabase.connectionsRepository.deleteAll();
             await CliqDatabase.credentialsRepository.deleteAll();
             await CliqDatabase.identitiesRepository.deleteAll();
-            await CliqDatabase.identityCredentialsRepository.deleteAll();
           },
         ),
       ],

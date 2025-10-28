@@ -27,7 +27,8 @@ class _HostsPageState extends ConsumerState<HostsPage> {
     // Fetch connections from database
     useEffect(() {
       Future.microtask(() async {
-        connections.value = await CliqDatabase.connectionService.findAllWithIdentities();
+        connections.value = await CliqDatabase.connectionService
+            .findAllWithIdentities();
       });
       return null;
     }, []);
@@ -99,7 +100,10 @@ class _HostsPageState extends ConsumerState<HostsPage> {
                               subtitle: Row(
                                 children: [
                                   Icon(LucideIcons.user),
-                                  CliqTypography(connection.$2?.username ?? '<no user>', size: typography.copyXS),
+                                  CliqTypography(
+                                    connection.$2?.username ?? '<no user>',
+                                    size: typography.copyXS,
+                                  ),
                                 ],
                               ),
                             ),

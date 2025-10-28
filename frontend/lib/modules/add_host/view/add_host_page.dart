@@ -97,10 +97,10 @@ class _AddHostsPageState extends ConsumerState<AddHostsPage> {
                               hint: Text('root'),
                               controller: _usernameController,
                               autovalidateMode:
-                              AutovalidateMode.onUserInteraction,
+                                  AutovalidateMode.onUserInteraction,
                             ),
                             Wrap(
-                              spacing: 8,
+                              spacing: 16,
                               runSpacing: 8,
                               alignment: WrapAlignment.center,
                               children: [
@@ -116,10 +116,20 @@ class _AddHostsPageState extends ConsumerState<AddHostsPage> {
                                     );
                                   },
                                 ),
-                                CliqIconButton(
+                                CliqLink(
+                                  icon: Icon(LucideIcons.keyRound),
+                                  label: TextSpan(text: 'Use Identity'),
+                                  onPressed: () {
+                                    // TODO: Overlay
+                                  },
+                                ),
+                                CliqLink(
                                   icon: Icon(LucideIcons.plus),
-                                  label: Text('Add Authentication Method'),
-                                )
+                                  label: TextSpan(text: 'Add Credentials'),
+                                  onPressed: () {
+                                    // TODO: Overlay
+                                  },
+                                ),
                               ],
                             ),
                           ],

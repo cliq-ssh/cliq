@@ -1,4 +1,7 @@
+import '../credentials/credentials.drift';
+
 CREATE TABLE identities (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
-    username TEXT NOT NULL
+    username TEXT NOT NULL,
+    credential_id INTEGER REFERENCES credentials(id) ON DELETE CASCADE NOT NULL
 );
