@@ -22,12 +22,13 @@ class _HostsPageState extends ConsumerState<HostsPage> {
   @override
   Widget build(BuildContext context) {
     final typography = context.theme.typography;
-    final connections = useState(<Connection>[]);
+    final connections = useState<List<(Connection, Identity?)>>([]);
 
     // Fetch connections from database
     useEffect(() {
       Future.microtask(() async {
-        connections.value = await CliqDatabase.connectionsRepository.findAll();
+        connections.value = await CliqDatabase.connectionService
+            .findAllWithIdentities();
       });
       return null;
     }, []);
@@ -71,36 +72,83 @@ class _HostsPageState extends ConsumerState<HostsPage> {
       );
     }
 
-    if (connections.value.isEmpty) {
-      return CliqScaffold(body: buildNoHosts());
-    }
-
-    return ListView.separated(
-      padding: EdgeInsets.symmetric(vertical: 80),
-      itemCount: connections.value.length,
-      separatorBuilder: (ctx, index) => const SizedBox(height: 16),
-      itemBuilder: (ctx, index) {
-        final connection = connections.value[index];
-        return CliqGridContainer(
-          children: [
-            CliqGridRow(
-              children: [
-                CliqGridColumn(
-                  child: GestureDetector(
-                    onTap: () {
-                      // TODO:
-                    },
-                    child: CliqCard(
-                      title: Text(connection.label ?? connection.address),
-                      subtitle: Text('Last connected:'),
-                    ),
+    return CliqScaffold(
+      header: CliqHeader(
+        right: [CliqIconButton(icon: Icon(LucideIcons.search))],
+      ),
+      body: connections.value.isEmpty
+          ? buildNoHosts()
+          : SingleChildScrollView(
+              padding: EdgeInsets.only(bottom: 80),
+              child: CliqGridContainer(
+                children: [
+                  CliqGridRow(
+                    children: [
+                      CliqGridColumn(
+                        child: Padding(
+                          padding: const EdgeInsets.only(bottom: 16),
+                          child: Row(
+                            children: [
+                              CliqLink(
+                                label: TextSpan(text: 'Add Host'),
+                                icon: Icon(LucideIcons.plus),
+                                onPressed: () {
+                                  context.pushPath(
+                                    AddHostsPage.pagePath.build(),
+                                  );
+                                },
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                      CliqGridColumn(
+                        child: GestureDetector(
+                          onTap: () {
+                            // TODO:
+                          },
+                          child: Wrap(
+                            runSpacing: 16,
+                            children: [
+                              for (final connection in connections.value)
+                                CliqCard(
+                                  leading: Padding(
+                                    padding: const EdgeInsets.only(right: 16),
+                                    child: Container(
+                                      width: 48,
+                                      height: 48,
+                                      decoration: BoxDecoration(
+                                        borderRadius: BorderRadius.circular(8),
+                                        color: Colors.green,
+                                      ),
+                                    ),
+                                  ),
+                                  title: Text(
+                                    connection.$1.label ??
+                                        connection.$1.address,
+                                  ),
+                                  subtitle: Row(
+                                    spacing: 8,
+                                    children: [
+                                      Icon(LucideIcons.user),
+                                      CliqTypography(
+                                        connection.$1.username ??
+                                            connection.$2?.username ??
+                                            '<no user>',
+                                        size: typography.copyS,
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
-          ],
-        );
-      },
     );
   }
 }

@@ -1,7 +1,8 @@
 import 'package:cliq/data/sqlite/connections/connections_repository.dart';
 import 'package:cliq/data/sqlite/connections/connection_service.dart';
 import 'package:cliq/data/sqlite/credentials/credential_service.dart';
-import 'package:cliq/data/sqlite/identities/identity_connection_repository.dart';
+import 'package:cliq/data/sqlite/credentials/keys/key_service.dart';
+import 'package:cliq/data/sqlite/credentials/keys/keys_repository.dart';
 import 'package:cliq/data/sqlite/identities/identity_service.dart';
 import 'package:drift/drift.dart';
 import 'package:drift_flutter/drift_flutter.dart';
@@ -17,8 +18,8 @@ part 'database.g.dart';
   include: {
     'connections/connections.drift',
     'credentials/credentials.drift',
+    'credentials/keys/keys.drift',
     'identities/identities.drift',
-    'identities/identity_credentials.drift',
   },
 )
 final class CliqDatabase extends _$CliqDatabase {
@@ -27,9 +28,10 @@ final class CliqDatabase extends _$CliqDatabase {
 
   static late CredentialsRepository credentialsRepository;
   static late CredentialService credentialService;
+  static late KeysRepository keysRepository;
+  static late KeyService keyService;
 
   static late IdentitiesRepository identitiesRepository;
-  static late IdentityCredentialsRepository identityCredentialsRepository;
   static late IdentityService identityService;
 
   CliqDatabase([QueryExecutor? executor])
@@ -45,12 +47,12 @@ final class CliqDatabase extends _$CliqDatabase {
 
     credentialsRepository = CredentialsRepository(db);
     credentialService = CredentialService(credentialsRepository);
+    keysRepository = KeysRepository(db);
+    keyService = KeyService(keysRepository);
 
     identitiesRepository = IdentitiesRepository(db);
-    identityCredentialsRepository = IdentityCredentialsRepository(db);
     identityService = IdentityService(
       identitiesRepository,
-      identityCredentialsRepository,
       credentialsRepository,
     );
   }

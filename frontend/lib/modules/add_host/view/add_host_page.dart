@@ -1,5 +1,6 @@
 import 'package:cliq/data/sqlite/credentials/credential_type.dart';
 import 'package:cliq/data/sqlite/database.dart';
+import 'package:cliq/shared/extensions/async_snapshot.extension.dart';
 import 'package:cliq/shared/validators.dart';
 import 'package:cliq_ui/cliq_ui.dart';
 import 'package:drift/drift.dart' hide Column;
@@ -7,6 +8,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:lucide_flutter/lucide_flutter.dart';
 
 import '../../../routing/page_path.dart';
 import '../../../shared/ui/commons.dart';
@@ -26,8 +28,8 @@ class _AddHostsPageState extends ConsumerState<AddHostsPage> {
   final TextEditingController _addressController = TextEditingController();
   final TextEditingController _portController = TextEditingController();
   final TextEditingController _usernameController = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
   final TextEditingController _pemController = TextEditingController();
-  final TextEditingController _pemPasswordController = TextEditingController();
 
   @override
   void dispose() {
@@ -35,14 +37,17 @@ class _AddHostsPageState extends ConsumerState<AddHostsPage> {
     _addressController.dispose();
     _portController.dispose();
     _usernameController.dispose();
-    _pemController.dispose();
-    _pemPasswordController.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     final labelPlaceholder = useState('');
+    final hasIdentities = useMemoizedFuture(() async {
+      return await CliqDatabase.identityService.hasIdentities();
+    }, []);
+
+    final additionalCredentialType = useState<CredentialType?>(null);
 
     return CliqScaffold(
       extendBehindAppBar: true,
@@ -97,21 +102,81 @@ class _AddHostsPageState extends ConsumerState<AddHostsPage> {
                               autovalidateMode:
                                   AutovalidateMode.onUserInteraction,
                             ),
-                            CliqTextFormField(
-                              label: Text('Private Key (PEM)'),
-                              hint: Text('-----BEGIN OPENSSH PRIVATE KEY-----'),
-                              controller: _pemController,
-                              validator: Validators.pem,
-                              minLines: 1,
-                              autovalidateMode:
-                                  AutovalidateMode.onUserInteraction,
-                            ),
-                            CliqTextFormField(
-                              label: Text('Private Key Password'),
-                              hint: Text('secret'),
-                              controller: _pemPasswordController,
-                              obscure: true,
-                              maxLines: 1,
+                            if (additionalCredentialType.value ==
+                                CredentialType.password)
+                              CliqTextFormField(
+                                label: Text('Password'),
+                                hint: Text('••••••••'),
+                                controller: _passwordController,
+                                obscure: true,
+                                maxLines: 1,
+                                autovalidateMode:
+                                    AutovalidateMode.onUserInteraction,
+                              ),
+                            if (additionalCredentialType.value ==
+                                CredentialType.key)
+                              CliqTextFormField(
+                                label: Text('PEM Key'),
+                                hint: Text(
+                                  '-----BEGIN OPENSSH PRIVATE KEY-----',
+                                ),
+                                controller: _pemController,
+                                minLines: 5,
+                                maxLines: null,
+                                autovalidateMode:
+                                    AutovalidateMode.onUserInteraction,
+                              ),
+                            Wrap(
+                              spacing: 16,
+                              runSpacing: 8,
+                              alignment: WrapAlignment.center,
+                              children: [
+                                hasIdentities.on(
+                                  defaultValue: SizedBox.shrink(),
+                                  onData: (hasIdentities) {
+                                    if (!hasIdentities) {
+                                      return SizedBox.shrink();
+                                    }
+                                    return CliqIconButton(
+                                      icon: Icon(LucideIcons.keyRound),
+                                      label: Text('Use Identity'),
+                                    );
+                                  },
+                                ),
+                                CliqLink(
+                                  icon: Icon(LucideIcons.keyRound),
+                                  label: TextSpan(text: 'Use Identity'),
+                                ),
+                                // TODO: implement context menu to select credential type
+                                if (additionalCredentialType.value !=
+                                    CredentialType.key)
+                                  CliqLink(
+                                    icon: Icon(LucideIcons.plus),
+                                    label: TextSpan(
+                                      text:
+                                          additionalCredentialType.value == null
+                                          ? 'Add Key'
+                                          : 'Use Key',
+                                    ),
+                                    onPressed: () =>
+                                        additionalCredentialType.value =
+                                            CredentialType.key,
+                                  ),
+                                if (additionalCredentialType.value !=
+                                    CredentialType.password)
+                                  CliqLink(
+                                    icon: Icon(LucideIcons.plus),
+                                    label: TextSpan(
+                                      text:
+                                          additionalCredentialType.value == null
+                                          ? 'Add Password'
+                                          : 'Use Password',
+                                    ),
+                                    onPressed: () =>
+                                        additionalCredentialType.value =
+                                            CredentialType.password,
+                                  ),
+                              ],
                             ),
                           ],
                         ),
@@ -125,39 +190,47 @@ class _AddHostsPageState extends ConsumerState<AddHostsPage> {
                               return;
                             }
 
-                            // TODO: refactor to support multiple credentials, identity selector
-
-                            final credentialId = await CliqDatabase
-                                .credentialsRepository
-                                .insert(
-                                  CredentialsCompanion.insert(
-                                    type: CredentialType.key,
-                                    secret: Value(_pemController.text.trim()),
-                                    passphrase: Value(
-                                      _pemPasswordController.text.trim(),
+                            int? credentialId;
+                            if (additionalCredentialType.value ==
+                                CredentialType.password) {
+                              credentialId = await CliqDatabase
+                                  .credentialsRepository
+                                  .insert(
+                                    CredentialsCompanion.insert(
+                                      type: CredentialType.password,
+                                      data: _passwordController.text,
                                     ),
-                                  ),
-                                );
-                            final identityId = await CliqDatabase
-                                .identityService
-                                .createIdentity(
-                                  IdentitiesCompanion.insert(
-                                    username: _usernameController.text.trim(),
-                                  ),
-                                  [credentialId],
-                                );
+                                  );
+                            } else if (additionalCredentialType.value ==
+                                CredentialType.key) {
+                              credentialId = await CliqDatabase
+                                  .credentialsRepository
+                                  .insert(
+                                    CredentialsCompanion.insert(
+                                      type: CredentialType.key,
+                                      data: _pemController.text,
+                                    ),
+                                  );
+                            }
+
                             await CliqDatabase.connectionsRepository.insert(
                               ConnectionsCompanion.insert(
-                                address: _addressController.text.trim(),
-                                port: Value.absentIfNull(
-                                  int.tryParse(_portController.text.trim()),
-                                ),
-                                identityId: identityId,
                                 label: Value.absentIfNull(
                                   _labelController.text.trim().isNotEmpty
                                       ? _labelController.text.trim()
                                       : null,
                                 ),
+                                address: _addressController.text.trim(),
+                                port:
+                                    int.tryParse(_portController.text.trim()) ??
+                                    22,
+                                username: Value.absentIfNull(
+                                  _usernameController.text.trim().isNotEmpty
+                                      ? _usernameController.text.trim()
+                                      : null,
+                                ),
+                                credentialId: Value.absentIfNull(credentialId),
+                                identityId: Value.absent(), // TODO:
                               ),
                             );
 

@@ -22,8 +22,6 @@ class NavigationShellState extends ConsumerState<NavigationShell> {
   @override
   Widget build(BuildContext context) {
     return CliqScaffold(
-      extendBehindAppBar: true,
-      body: widget.shell,
       header: CliqHeader(
         right: [
           CliqIconButton(icon: Icon(LucideIcons.search)),
@@ -33,6 +31,8 @@ class NavigationShellState extends ConsumerState<NavigationShell> {
           ),
         ],
       ),
+      extendBehindAppBar: true,
+      body: widget.shell,
     );
   }
 

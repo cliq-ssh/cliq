@@ -28,17 +28,6 @@ class CliqButton extends HookWidget {
     final isHovered = useState(false);
     final states = useState<Set<WidgetState>>({});
 
-    final colorStates = WidgetStateColor.fromMap({
-      WidgetState.hovered: style.hoveredBackgroundColor,
-      WidgetState.disabled: style.disabledBackgroundColor,
-      WidgetState.any: style.backgroundColor,
-    });
-
-    final iconThemeStates = WidgetStateProperty.fromMap({
-      WidgetState.disabled: style.disabledIconTheme,
-      WidgetState.any: style.iconTheme,
-    });
-
     useEffect(() {
       Set<WidgetState> newStates = <WidgetState>{};
       if (isHovered.value) newStates.add(WidgetState.hovered);
@@ -48,23 +37,17 @@ class CliqButton extends HookWidget {
       return null;
     }, [disabled, isHovered.value]);
 
-    return CliqInteractable(
+    return CliqInteractable.fromDefaultWidgetStates(
+      states.value,
       onEnter: (_) => isHovered.value = true,
       onExit: (_) => isHovered.value = false,
       onTap: WidgetStateProperty.fromMap({
         WidgetState.disabled: null,
         WidgetState.any: onPressed,
       }).resolve(states.value),
-      cursor: WidgetStateProperty.fromMap({
-        WidgetState.disabled: SystemMouseCursors.forbidden,
-        WidgetState.any: SystemMouseCursors.click,
-      }).resolve(states.value),
-      disableAnimation: states.value.contains(WidgetState.disabled),
-      child: CliqBlurContainer(
-        color: colorStates.resolve(states.value),
-        outlineColor: CliqColorScheme.calculateOutlineColor(
-          colorStates.resolve(states.value),
-        ),
+      child: CliqBlurContainer.fromWidgetStateColor(
+        states.value,
+        style.backgroundColor,
         child: Padding(
           padding: style.padding,
           child: Row(
@@ -74,14 +57,16 @@ class CliqButton extends HookWidget {
             children: [
               if (icon != null)
                 IconTheme(
-                  data: iconThemeStates.resolve(states.value),
+                  data: style.iconTheme.resolve(states.value),
                   child: icon!,
                 ),
-              CliqDefaultTypography(
-                size: textStyle.copyS,
-                color: iconThemeStates.resolve(states.value).color,
-                fontFamily: CliqFontFamily.secondary,
-                child: label,
+              Flexible(
+                child: CliqDefaultTypography(
+                  size: textStyle.copyS,
+                  color: style.iconTheme.resolve(states.value).color,
+                  fontFamily: CliqFontFamily.secondary,
+                  child: label,
+                ),
               ),
             ],
           ),
@@ -92,19 +77,13 @@ class CliqButton extends HookWidget {
 }
 
 final class CliqButtonStyle {
-  final Color backgroundColor;
-  final Color hoveredBackgroundColor;
-  final Color disabledBackgroundColor;
-  final IconThemeData iconTheme;
-  final IconThemeData disabledIconTheme;
+  final WidgetStateColor backgroundColor;
+  final WidgetStateProperty<IconThemeData> iconTheme;
   final EdgeInsetsGeometry padding;
 
   const CliqButtonStyle({
     required this.backgroundColor,
-    required this.hoveredBackgroundColor,
-    required this.disabledBackgroundColor,
     required this.iconTheme,
-    required this.disabledIconTheme,
     required this.padding,
   });
 
@@ -114,11 +93,17 @@ final class CliqButtonStyle {
   }) {
     final iconTheme = IconThemeData(color: colorScheme.onPrimary, size: 20);
     return CliqButtonStyle(
-      backgroundColor: colorScheme.primary,
-      hoveredBackgroundColor: colorScheme.onPrimary20,
-      disabledBackgroundColor: colorScheme.onBackground20,
-      iconTheme: iconTheme,
-      disabledIconTheme: iconTheme.copyWith(color: colorScheme.onBackground70),
+      backgroundColor: WidgetStateColor.fromMap({
+        WidgetState.hovered: colorScheme.onPrimary30,
+        WidgetState.disabled: colorScheme.onBackground20,
+        WidgetState.any: colorScheme.primary,
+      }),
+      iconTheme: WidgetStateProperty.fromMap({
+        WidgetState.disabled: iconTheme.copyWith(
+          color: colorScheme.onBackground70,
+        ),
+        WidgetState.any: iconTheme,
+      }),
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
     );
   }

@@ -1,5 +1,6 @@
-import 'package:cliq/modules/settings/model/settings_module.dart';
-import 'package:cliq/modules/settings/model/theme_module.dart';
+import 'package:cliq/modules/settings/view/identities_settings_page.dart';
+import 'package:cliq/modules/settings/view/sync_settings_page.dart';
+import 'package:cliq/modules/settings/view/theme_settings_page.dart';
 import 'package:cliq/routing/router.extension.dart';
 import 'package:flutter/foundation.dart';
 import 'package:lucide_flutter/lucide_flutter.dart';
@@ -8,8 +9,7 @@ import 'package:flutter/material.dart' hide LicensePage;
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
 import '../../../shared/ui/commons.dart';
-import '../model/debug_module.dart';
-import '../model/sync_module.dart';
+import 'debug_settings_page.dart';
 import 'license_page.dart';
 import '../../../routing/page_path.dart';
 
@@ -23,12 +23,6 @@ class SettingsPage extends StatefulHookConsumerWidget {
 }
 
 class _DashboardPageState extends ConsumerState<SettingsPage> {
-  final List<(GlobalKey, SettingsModule)> _modules = [
-    (GlobalKey(), SyncModule()),
-    (GlobalKey(), ThemeModule()),
-    if (kDebugMode) (GlobalKey(), DebugModule()),
-  ];
-
   @override
   Widget build(BuildContext context) {
     final typography = context.theme.typography;
@@ -37,67 +31,91 @@ class _DashboardPageState extends ConsumerState<SettingsPage> {
       safeAreaTop: true,
       extendBehindAppBar: true,
       header: CliqHeader(left: [Commons.backButton(context)]),
-      body: CliqGridContainer(
-        children: [
-          CliqGridRow(
-            children: [
-              CliqGridColumn(
-                child: Padding(
-                  padding: EdgeInsets.only(top: 80),
-                  child: Column(
-                    spacing: 16,
-                    children: [
-                      SingleChildScrollView(
-                        scrollDirection: Axis.horizontal,
-                        child: Row(
-                          mainAxisSize: MainAxisSize.max,
-                          spacing: 8,
+      body: SingleChildScrollView(
+        child: CliqGridContainer(
+          children: [
+            CliqGridRow(
+              alignment: WrapAlignment.center,
+              children: [
+                CliqGridColumn(
+                  sizes: {Breakpoint.xl: 8},
+                  child: Padding(
+                    padding: EdgeInsets.only(top: 80, bottom: 40),
+                    child: Column(
+                      spacing: 16,
+                      children: [
+                        CliqTileGroup(
+                          label: Text('SSH Settings'),
                           children: [
-                            for (var (key, module) in _modules)
-                              CliqChip(
-                                onTap: () => Scrollable.ensureVisible(
-                                  key.currentContext!,
-                                  duration: const Duration(milliseconds: 500),
+                            CliqTile(
+                              leading: Icon(LucideIcons.refreshCcw),
+                              trailing: Icon(LucideIcons.chevronRight),
+                              title: Text('Sync'),
+                              onPressed: () => context.pushPath(
+                                SyncSettingsPage.pagePath.build(),
+                              ),
+                            ),
+                            CliqTile(
+                              leading: Icon(LucideIcons.keyRound),
+                              trailing: Icon(LucideIcons.chevronRight),
+                              title: Text('Identities'),
+                              onPressed: () => context.pushPath(
+                                IdentitiesSettingsPage.pagePath.build(),
+                              ),
+                            ),
+                          ],
+                        ),
+                        CliqTileGroup(
+                          label: Text('App'),
+                          children: [
+                            CliqTile(
+                              leading: Icon(LucideIcons.palette),
+                              trailing: Icon(LucideIcons.chevronRight),
+                              title: Text('Theme'),
+                              onPressed: () => context.pushPath(
+                                ThemeSettingsPage.pagePath.build(),
+                              ),
+                            ),
+                            if (kDebugMode)
+                              CliqTile(
+                                leading: Icon(LucideIcons.bug),
+                                trailing: Icon(LucideIcons.chevronRight),
+                                title: Text('Debug'),
+                                onPressed: () => context.pushPath(
+                                  DebugSettingsPage.pagePath.build(),
                                 ),
-                                title: Text(module.title),
-                                leading: Icon(module.iconData),
                               ),
                           ],
                         ),
-                      ),
-                      for (var (key, module) in _modules)
-                        CliqCard(
-                          key: key,
-                          title: Text(module.title),
-                          subtitle: module.description != null
-                              ? Text(module.description!)
-                              : null,
-                          child: module.build(context),
+
+                        // TODO: implement tile group
+                        SizedBox.shrink(),
+                        CliqTileGroup(
+                          children: [
+                            CliqTile(
+                              leading: Icon(LucideIcons.scale),
+                              trailing: Icon(LucideIcons.chevronRight),
+                              title: Text('Licenses'),
+                              onPressed: () => context.pushPath(
+                                LicenseSettingsPage.pagePath.build(),
+                              ),
+                            ),
+                            CliqTile(
+                              leading: Icon(LucideIcons.github),
+                              trailing: Icon(LucideIcons.externalLink),
+                              title: Text('GitHub'),
+                            ),
+                          ],
                         ),
-                      SizedBox(
-                        width: double.infinity,
-                        child: CliqIconButton(
-                          icon: Icon(LucideIcons.scale),
-                          label: Text('Licenses'),
-                          onPressed: () =>
-                              context.pushPath(LicensePage.pagePath.build()),
-                        ),
-                      ),
-                      SizedBox(
-                        width: double.infinity,
-                        child: CliqIconButton(
-                          icon: Icon(LucideIcons.github),
-                          label: Text('GitHub'),
-                        ),
-                      ),
-                      CliqTypography('v0.0.0', size: typography.copyS),
-                    ],
+                        CliqTypography('v0.0.0', size: typography.copyS),
+                      ],
+                    ),
                   ),
                 ),
-              ),
-            ],
-          ),
-        ],
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }

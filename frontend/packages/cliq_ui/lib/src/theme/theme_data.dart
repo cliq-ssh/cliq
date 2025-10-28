@@ -17,10 +17,12 @@ final class CliqThemeData {
   final CliqBlurContainerStyle blurContainerStyle;
   final CliqButtonStyle buttonStyle;
   final CliqCardStyle cardStyle;
-  final CliqChipStyle chipStyle;
   final CliqIconButtonStyle iconButtonStyle;
-  final CliqScaffoldStyle scaffoldStyle;
+  final CliqLinkStyle linkStyle;
   final CliqProgressBarStyle progressBarStyle;
+  final CliqScaffoldStyle scaffoldStyle;
+  final CliqTileStyle tileStyle;
+  final CliqTileGroupStyle tileGroupStyle;
 
   const CliqThemeData({
     required this.debug,
@@ -36,10 +38,12 @@ final class CliqThemeData {
     required this.blurContainerStyle,
     required this.buttonStyle,
     required this.cardStyle,
-    required this.chipStyle,
     required this.iconButtonStyle,
-    required this.scaffoldStyle,
+    required this.linkStyle,
     required this.progressBarStyle,
+    required this.scaffoldStyle,
+    required this.tileStyle,
+    required this.tileGroupStyle,
   });
 
   factory CliqThemeData.inherit({
@@ -83,13 +87,18 @@ final class CliqThemeData {
         colorScheme: colorScheme,
       ),
       cardStyle: CliqCardStyle.inherit(style: style, colorScheme: colorScheme),
-      chipStyle: CliqChipStyle.inherit(style: style, colorScheme: colorScheme),
       iconButtonStyle: CliqIconButtonStyle.inherit(
         style: style,
         colorScheme: colorScheme,
       ),
-      scaffoldStyle: CliqScaffoldStyle.inherit(colorScheme: colorScheme),
+      linkStyle: CliqLinkStyle.inherit(style: style, colorScheme: colorScheme),
       progressBarStyle: CliqProgressBarStyle.inherit(
+        style: style,
+        colorScheme: colorScheme,
+      ),
+      scaffoldStyle: CliqScaffoldStyle.inherit(colorScheme: colorScheme),
+      tileStyle: CliqTileStyle.inherit(style: style, colorScheme: colorScheme),
+      tileGroupStyle: CliqTileGroupStyle.inherit(
         style: style,
         colorScheme: colorScheme,
       ),
