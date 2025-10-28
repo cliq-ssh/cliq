@@ -44,7 +44,7 @@ class CliqLink extends HookWidget {
       }).resolve(states.value),
       child: Text.rich(
         style: textStyle.copyS[breakpoint]!.style.copyWith(
-          color: style.iconTheme.resolve(states.value).color
+          color: style.iconTheme.resolve(states.value).color,
         ),
         TextSpan(
           children: [
@@ -57,8 +57,8 @@ class CliqLink extends HookWidget {
               ),
             if (icon != null) const WidgetSpan(child: SizedBox(width: 8)),
             label,
-          ]
-        )
+          ],
+        ),
       ),
     );
   }
@@ -67,9 +67,7 @@ class CliqLink extends HookWidget {
 final class CliqLinkStyle {
   final WidgetStateProperty<IconThemeData> iconTheme;
 
-  const CliqLinkStyle({
-    required this.iconTheme,
-  });
+  const CliqLinkStyle({required this.iconTheme});
 
   factory CliqLinkStyle.inherit({
     required CliqStyle style,

@@ -78,54 +78,75 @@ class _HostsPageState extends ConsumerState<HostsPage> {
       ),
       body: connections.value.isEmpty
           ? buildNoHosts()
-          : ListView.separated(
-              padding: EdgeInsets.symmetric(vertical: 80),
-              itemCount: connections.value.length,
-              separatorBuilder: (ctx, index) => const SizedBox(height: 16),
-              itemBuilder: (ctx, index) {
-                final connection = connections.value[index];
-                return CliqGridContainer(
-                  children: [
-                    CliqGridRow(
-                      children: [
-                        CliqGridColumn(
-                          child: GestureDetector(
-                            onTap: () {
-                              // TODO:
-                            },
-                            child: CliqCard(
-                              leading: Padding(
-                                padding: const EdgeInsets.only(right: 16),
-                                child: Container(
-                                  width: 48,
-                                  height: 48,
-                                  decoration: BoxDecoration(
-                                    borderRadius: BorderRadius.circular(8),
-                                    color: Colors.green,
-                                  ),
-                                ),
+          : SingleChildScrollView(
+              padding: EdgeInsets.only(bottom: 80),
+              child: CliqGridContainer(
+                children: [
+                  CliqGridRow(
+                    children: [
+                      CliqGridColumn(
+                        child: Padding(
+                          padding: const EdgeInsets.only(bottom: 16),
+                          child: Row(
+                            children: [
+                              CliqLink(
+                                label: TextSpan(text: 'Add Host'),
+                                icon: Icon(LucideIcons.plus),
+                                onPressed: () {
+                                  context.pushPath(
+                                    AddHostsPage.pagePath.build(),
+                                  );
+                                },
                               ),
-                              title: Text(
-                                connection.$1.label ?? connection.$1.address,
-                              ),
-                              subtitle: Row(
-                                spacing: 8,
-                                children: [
-                                  Icon(LucideIcons.user),
-                                  CliqTypography(
-                                    connection.$1.username ?? connection.$2?.username ?? '<no user>',
-                                    size: typography.copyS,
-                                  ),
-                                ],
-                              ),
-                            ),
+                            ],
                           ),
                         ),
-                      ],
-                    ),
-                  ],
-                );
-              },
+                      ),
+                      CliqGridColumn(
+                        child: GestureDetector(
+                          onTap: () {
+                            // TODO:
+                          },
+                          child: Wrap(
+                            runSpacing: 16,
+                            children: [
+                              for (final connection in connections.value)
+                                CliqCard(
+                                  leading: Padding(
+                                    padding: const EdgeInsets.only(right: 16),
+                                    child: Container(
+                                      width: 48,
+                                      height: 48,
+                                      decoration: BoxDecoration(
+                                        borderRadius: BorderRadius.circular(8),
+                                        color: Colors.green,
+                                      ),
+                                    ),
+                                  ),
+                                  title: Text(
+                                    connection.$1.label ?? connection.$1.address,
+                                  ),
+                                  subtitle: Row(
+                                    spacing: 8,
+                                    children: [
+                                      Icon(LucideIcons.user),
+                                      CliqTypography(
+                                        connection.$1.username ??
+                                            connection.$2?.username ??
+                                            '<no user>',
+                                        size: typography.copyS,
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
             ),
     );
   }

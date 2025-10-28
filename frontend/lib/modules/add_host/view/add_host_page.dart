@@ -103,7 +103,8 @@ class _AddHostsPageState extends ConsumerState<AddHostsPage> {
                               autovalidateMode:
                                   AutovalidateMode.onUserInteraction,
                             ),
-                            if (additionalCredentialType.value == CredentialType.password)
+                            if (additionalCredentialType.value ==
+                                CredentialType.password)
                               CliqTextFormField(
                                 label: Text('Password'),
                                 hint: Text('••••••••'),
@@ -113,10 +114,13 @@ class _AddHostsPageState extends ConsumerState<AddHostsPage> {
                                 autovalidateMode:
                                     AutovalidateMode.onUserInteraction,
                               ),
-                            if (additionalCredentialType.value == CredentialType.key)
+                            if (additionalCredentialType.value ==
+                                CredentialType.key)
                               CliqTextFormField(
                                 label: Text('PEM Key'),
-                                hint: Text('-----BEGIN OPENSSH PRIVATE KEY-----'),
+                                hint: Text(
+                                  '-----BEGIN OPENSSH PRIVATE KEY-----',
+                                ),
                                 controller: _pemController,
                                 minLines: 5,
                                 maxLines: null,
@@ -145,17 +149,33 @@ class _AddHostsPageState extends ConsumerState<AddHostsPage> {
                                   label: TextSpan(text: 'Use Identity'),
                                 ),
                                 // TODO: implement context menu to select credential type
-                                if (additionalCredentialType.value != CredentialType.key)
+                                if (additionalCredentialType.value !=
+                                    CredentialType.key)
                                   CliqLink(
                                     icon: Icon(LucideIcons.plus),
-                                    label: TextSpan(text: additionalCredentialType.value == null ? 'Add Key' : 'Use Key'),
-                                    onPressed: () => additionalCredentialType.value = CredentialType.key,
+                                    label: TextSpan(
+                                      text:
+                                          additionalCredentialType.value == null
+                                          ? 'Add Key'
+                                          : 'Use Key',
+                                    ),
+                                    onPressed: () =>
+                                        additionalCredentialType.value =
+                                            CredentialType.key,
                                   ),
-                                if (additionalCredentialType.value != CredentialType.password)
+                                if (additionalCredentialType.value !=
+                                    CredentialType.password)
                                   CliqLink(
                                     icon: Icon(LucideIcons.plus),
-                                    label: TextSpan(text: additionalCredentialType.value == null ? 'Add Password' : 'Use Password'),
-                                    onPressed: () => additionalCredentialType.value = CredentialType.password,
+                                    label: TextSpan(
+                                      text:
+                                          additionalCredentialType.value == null
+                                          ? 'Add Password'
+                                          : 'Use Password',
+                                    ),
+                                    onPressed: () =>
+                                        additionalCredentialType.value =
+                                            CredentialType.password,
                                   ),
                               ],
                             ),
@@ -172,20 +192,26 @@ class _AddHostsPageState extends ConsumerState<AddHostsPage> {
                             }
 
                             int? credentialId;
-                            if (additionalCredentialType.value == CredentialType.password) {
-                              credentialId = await CliqDatabase.credentialsRepository.insert(
-                                CredentialsCompanion.insert(
-                                  type: CredentialType.password,
-                                  data: _passwordController.text,
-                                ),
-                              );
-                            } else if (additionalCredentialType.value == CredentialType.key) {
-                              credentialId = await CliqDatabase.credentialsRepository.insert(
-                                CredentialsCompanion.insert(
-                                  type: CredentialType.key,
-                                  data: _pemController.text,
-                                ),
-                              );
+                            if (additionalCredentialType.value ==
+                                CredentialType.password) {
+                              credentialId = await CliqDatabase
+                                  .credentialsRepository
+                                  .insert(
+                                    CredentialsCompanion.insert(
+                                      type: CredentialType.password,
+                                      data: _passwordController.text,
+                                    ),
+                                  );
+                            } else if (additionalCredentialType.value ==
+                                CredentialType.key) {
+                              credentialId = await CliqDatabase
+                                  .credentialsRepository
+                                  .insert(
+                                    CredentialsCompanion.insert(
+                                      type: CredentialType.key,
+                                      data: _pemController.text,
+                                    ),
+                                  );
                             }
 
                             await CliqDatabase.connectionsRepository.insert(
@@ -196,7 +222,9 @@ class _AddHostsPageState extends ConsumerState<AddHostsPage> {
                                       : null,
                                 ),
                                 address: _addressController.text.trim(),
-                                port: int.tryParse(_portController.text.trim()) ?? 22,
+                                port:
+                                    int.tryParse(_portController.text.trim()) ??
+                                    22,
                                 username: Value.absentIfNull(
                                   _usernameController.text.trim().isNotEmpty
                                       ? _usernameController.text.trim()

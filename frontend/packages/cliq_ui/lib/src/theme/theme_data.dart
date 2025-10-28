@@ -91,10 +91,7 @@ final class CliqThemeData {
         style: style,
         colorScheme: colorScheme,
       ),
-      linkStyle: CliqLinkStyle.inherit(
-        style: style,
-        colorScheme: colorScheme,
-      ),
+      linkStyle: CliqLinkStyle.inherit(style: style, colorScheme: colorScheme),
       progressBarStyle: CliqProgressBarStyle.inherit(
         style: style,
         colorScheme: colorScheme,
