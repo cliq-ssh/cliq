@@ -1,7 +1,12 @@
 import 'package:cliq/shared/data/sqlite/database.dart';
 import 'package:cliq/routing/router.extension.dart';
 import 'package:cliq_ui/cliq_ui.dart'
-    show CliqGridColumn, CliqGridContainer, CliqGridRow, Breakpoint;
+    show
+        CliqGridColumn,
+        CliqGridContainer,
+        CliqGridRow,
+        Breakpoint,
+        useBreakpoint;
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:forui/forui.dart';
@@ -9,7 +14,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lucide_flutter/lucide_flutter.dart';
 
 import '../../../routing/page_path.dart';
-import '../../add_host/view/add_host_page.dart';
+import 'add_host_view.dart';
 
 class HostsPage extends StatefulHookConsumerWidget {
   static const PagePathBuilder pagePath = PagePathBuilder('/');
@@ -25,6 +30,7 @@ class _HostsPageState extends ConsumerState<HostsPage> {
   Widget build(BuildContext context) {
     final typography = context.theme.typography;
     final connections = useState<List<(Connection, Identity?)>>([]);
+    final breakpoint = useBreakpoint();
 
     // Fetch connections from database
     useEffect(() {
@@ -34,6 +40,16 @@ class _HostsPageState extends ConsumerState<HostsPage> {
       });
       return null;
     }, []);
+
+    openAddHostsView() {
+      // TODO: implement mobile
+
+      showFSheet(
+        context: context,
+        side: FLayout.rtl,
+        builder: (_) => AddHostsView(),
+      );
+    }
 
     buildNoHosts() {
       return CliqGridContainer(
@@ -60,9 +76,8 @@ class _HostsPageState extends ConsumerState<HostsPage> {
                     const SizedBox(height: 8),
                     FButton(
                       prefix: Icon(LucideIcons.plus),
+                      onPress: openAddHostsView,
                       child: Text('Add Host'),
-                      onPress: () =>
-                          context.pushPath(AddHostsPage.pagePath.build()),
                     ),
                   ],
                 ),
@@ -91,11 +106,7 @@ class _HostsPageState extends ConsumerState<HostsPage> {
                               FButton(
                                 style: FButtonStyle.ghost(),
                                 prefix: Icon(LucideIcons.plus),
-                                onPress: () {
-                                  context.pushPath(
-                                    AddHostsPage.pagePath.build(),
-                                  );
-                                },
+                                onPress: openAddHostsView,
                                 child: Text('Add Host'),
                               ),
                             ],
