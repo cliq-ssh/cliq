@@ -1,7 +1,6 @@
 import 'package:cliq/data/sqlite/credentials/credential_type.dart';
 import 'package:cliq/data/sqlite/database.dart';
 import 'package:cliq/shared/extensions/async_snapshot.extension.dart';
-import 'package:cliq/shared/ui/future_wrapper.dart';
 import 'package:cliq/shared/validators.dart';
 import 'package:cliq_ui/cliq_ui.dart';
 import 'package:drift/drift.dart' hide Column;

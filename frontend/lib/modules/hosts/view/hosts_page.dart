@@ -124,7 +124,8 @@ class _HostsPageState extends ConsumerState<HostsPage> {
                                     ),
                                   ),
                                   title: Text(
-                                    connection.$1.label ?? connection.$1.address,
+                                    connection.$1.label ??
+                                        connection.$1.address,
                                   ),
                                   subtitle: Row(
                                     spacing: 8,
