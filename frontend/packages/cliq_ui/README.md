@@ -1,3 +1,3 @@
 # cliq_ui
 
-UI package for cliq. Project structure inspired by [forui](https://pub.dev/packages/forui).
+UI package for cliq. This package is not currently in use (but may be in the future!). See <> for more information.

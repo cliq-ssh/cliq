@@ -24,6 +24,7 @@ dependencies:
   drift: ^2.29.0
   drift_flutter: 0.2.7
   path_provider: ^2.1.5
+  forui: ^0.16.0
 
 dev_dependencies:
   flutter_test:
