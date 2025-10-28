@@ -1,10 +1,27 @@
 import 'dart:async';
 
+import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../modules/settings/model/theme.model.dart';
+
 enum StoreKey<T> {
-  /// Whether or not the syncing mechanism is enabled.
-  hostUrl<bool>('sync_enabled', type: bool);
+  userName<String>('user_name', type: String),
+  hostUrl<String>('host_url', type: String),
+  theme<CliqTheme>(
+    'theme',
+    type: CliqTheme,
+    defaultValue: CliqTheme.zinc,
+    fromValue: _themeFromValue,
+    toValue: _enumToValue,
+  ),
+  themeMode<ThemeMode>(
+    'theme_mode',
+    type: ThemeMode,
+    defaultValue: ThemeMode.system,
+    fromValue: _themeModeFromValue,
+    toValue: _enumToValue,
+  );
 
   final String key;
   final Type type;
@@ -29,9 +46,22 @@ enum StoreKey<T> {
       KeyValueStore._instance.readAsStringAsync(this);
   void write(T value) => KeyValueStore._instance.write(this, value);
   Future<void> delete() => KeyValueStore._instance.delete(this);
+
+  // Enums
+  static T? _enumFromValue<T extends Enum>(String? value, List<T> values) =>
+      value == null
+      ? null
+      : values.firstWhere((element) => element.name == value);
+  static String? _enumToValue<T extends Enum>(dynamic value) =>
+      value is T? ? value?.name : null;
+
+  static CliqTheme? _themeFromValue(String? value) =>
+      _enumFromValue(value, CliqTheme.values);
+  static ThemeMode? _themeModeFromValue(String? value) =>
+      _enumFromValue(value, ThemeMode.values);
 }
 
-/// A simple key-value store that uses SharedPreferences to store data.
+/// A simple key-value store that uses SharedPreferences and FlutterSecureStorage to store data.
 /// This class is a singleton and should be initialized once before using it. (See [init])
 /// The store uses a local cache to allow synchronous reads, making it easier to use
 /// in the UI layer.

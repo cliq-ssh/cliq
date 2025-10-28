@@ -15,7 +15,7 @@ class CliqGridRow extends StatelessWidget {
     required this.children,
     this.decoration,
     this.height,
-    this.alignment = WrapAlignment.start,
+    this.alignment = WrapAlignment.center,
   });
 
   @override

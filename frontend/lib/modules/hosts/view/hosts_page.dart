@@ -1,8 +1,10 @@
 import 'package:cliq/data/sqlite/database.dart';
 import 'package:cliq/routing/router.extension.dart';
-import 'package:cliq_ui/cliq_ui.dart';
+import 'package:cliq_ui/cliq_ui.dart'
+    show CliqGridColumn, CliqGridContainer, CliqGridRow, Breakpoint;
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
+import 'package:forui/forui.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lucide_flutter/lucide_flutter.dart';
 
@@ -46,21 +48,20 @@ class _HostsPageState extends ConsumerState<HostsPage> {
                   spacing: 4,
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
-                    CliqTypography(
+                    Text(
                       'No Hosts',
                       textAlign: TextAlign.center,
-                      size: typography.h3,
+                      style: typography.xl2,
                     ),
-                    CliqTypography(
+                    Text(
                       'Add your first host by clicking the button below.',
                       textAlign: TextAlign.center,
-                      size: typography.copyM,
                     ),
                     const SizedBox(height: 8),
-                    CliqButton(
-                      icon: Icon(LucideIcons.plus),
-                      label: Text('Add Host'),
-                      onPressed: () =>
+                    FButton(
+                      prefix: Icon(LucideIcons.plus),
+                      child: Text('Add Host'),
+                      onPress: () =>
                           context.pushPath(AddHostsPage.pagePath.build()),
                     ),
                   ],
@@ -72,11 +73,8 @@ class _HostsPageState extends ConsumerState<HostsPage> {
       );
     }
 
-    return CliqScaffold(
-      header: CliqHeader(
-        right: [CliqIconButton(icon: Icon(LucideIcons.search))],
-      ),
-      body: connections.value.isEmpty
+    return FScaffold(
+      child: connections.value.isEmpty
           ? buildNoHosts()
           : SingleChildScrollView(
               padding: EdgeInsets.only(bottom: 80),
@@ -88,15 +86,17 @@ class _HostsPageState extends ConsumerState<HostsPage> {
                         child: Padding(
                           padding: const EdgeInsets.only(bottom: 16),
                           child: Row(
+                            mainAxisAlignment: MainAxisAlignment.end,
                             children: [
-                              CliqLink(
-                                label: TextSpan(text: 'Add Host'),
-                                icon: Icon(LucideIcons.plus),
-                                onPressed: () {
+                              FButton(
+                                style: FButtonStyle.ghost(),
+                                prefix: Icon(LucideIcons.plus),
+                                onPress: () {
                                   context.pushPath(
                                     AddHostsPage.pagePath.build(),
                                   );
                                 },
+                                child: Text('Add Host'),
                               ),
                             ],
                           ),
@@ -107,35 +107,21 @@ class _HostsPageState extends ConsumerState<HostsPage> {
                           onTap: () {
                             // TODO:
                           },
-                          child: Wrap(
-                            runSpacing: 16,
+                          child: Column(
+                            spacing: 16,
                             children: [
                               for (final connection in connections.value)
-                                CliqCard(
-                                  leading: Padding(
-                                    padding: const EdgeInsets.only(right: 16),
-                                    child: Container(
-                                      width: 48,
-                                      height: 48,
-                                      decoration: BoxDecoration(
-                                        borderRadius: BorderRadius.circular(8),
-                                        color: Colors.green,
-                                      ),
-                                    ),
-                                  ),
+                                FCard(
                                   title: Text(
                                     connection.$1.label ??
                                         connection.$1.address,
                                   ),
                                   subtitle: Row(
-                                    spacing: 8,
                                     children: [
-                                      Icon(LucideIcons.user),
-                                      CliqTypography(
+                                      Text(
                                         connection.$1.username ??
                                             connection.$2?.username ??
                                             '<no user>',
-                                        size: typography.copyS,
                                       ),
                                     ],
                                   ),

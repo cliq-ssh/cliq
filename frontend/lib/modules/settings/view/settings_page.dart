@@ -3,12 +3,13 @@ import 'package:cliq/modules/settings/view/sync_settings_page.dart';
 import 'package:cliq/modules/settings/view/theme_settings_page.dart';
 import 'package:cliq/routing/router.extension.dart';
 import 'package:flutter/foundation.dart';
+import 'package:forui/forui.dart';
+import 'package:go_router/go_router.dart';
 import 'package:lucide_flutter/lucide_flutter.dart';
 import 'package:cliq_ui/cliq_ui.dart';
 import 'package:flutter/material.dart' hide LicensePage;
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
-import '../../../shared/ui/commons.dart';
 import 'debug_settings_page.dart';
 import 'license_page.dart';
 import '../../../routing/page_path.dart';
@@ -25,63 +26,61 @@ class SettingsPage extends StatefulHookConsumerWidget {
 class _DashboardPageState extends ConsumerState<SettingsPage> {
   @override
   Widget build(BuildContext context) {
-    final typography = context.theme.typography;
-
-    return CliqScaffold(
-      safeAreaTop: true,
-      extendBehindAppBar: true,
-      header: CliqHeader(left: [Commons.backButton(context)]),
-      body: SingleChildScrollView(
+    return FScaffold(
+      header: FHeader.nested(
+        prefixes: [FHeaderAction.back(onPress: () => context.pop())],
+      ),
+      child: SingleChildScrollView(
         child: CliqGridContainer(
           children: [
             CliqGridRow(
               alignment: WrapAlignment.center,
               children: [
                 CliqGridColumn(
-                  sizes: {Breakpoint.xl: 8},
+                  sizes: {Breakpoint.xl: 6},
                   child: Padding(
                     padding: EdgeInsets.only(top: 80, bottom: 40),
                     child: Column(
                       spacing: 16,
                       children: [
-                        CliqTileGroup(
+                        FTileGroup(
                           label: Text('SSH Settings'),
                           children: [
-                            CliqTile(
-                              leading: Icon(LucideIcons.refreshCcw),
-                              trailing: Icon(LucideIcons.chevronRight),
+                            FTile(
+                              prefix: Icon(LucideIcons.refreshCcw),
+                              suffix: Icon(LucideIcons.chevronRight),
                               title: Text('Sync'),
-                              onPressed: () => context.pushPath(
+                              onPress: () => context.pushPath(
                                 SyncSettingsPage.pagePath.build(),
                               ),
                             ),
-                            CliqTile(
-                              leading: Icon(LucideIcons.keyRound),
-                              trailing: Icon(LucideIcons.chevronRight),
+                            FTile(
+                              prefix: Icon(LucideIcons.keyRound),
+                              suffix: Icon(LucideIcons.chevronRight),
                               title: Text('Identities'),
-                              onPressed: () => context.pushPath(
+                              onPress: () => context.pushPath(
                                 IdentitiesSettingsPage.pagePath.build(),
                               ),
                             ),
                           ],
                         ),
-                        CliqTileGroup(
+                        FTileGroup(
                           label: Text('App'),
                           children: [
-                            CliqTile(
-                              leading: Icon(LucideIcons.palette),
-                              trailing: Icon(LucideIcons.chevronRight),
+                            FTile(
+                              prefix: Icon(LucideIcons.palette),
+                              suffix: Icon(LucideIcons.chevronRight),
                               title: Text('Theme'),
-                              onPressed: () => context.pushPath(
+                              onPress: () => context.pushPath(
                                 ThemeSettingsPage.pagePath.build(),
                               ),
                             ),
                             if (kDebugMode)
-                              CliqTile(
-                                leading: Icon(LucideIcons.bug),
-                                trailing: Icon(LucideIcons.chevronRight),
+                              FTile(
+                                prefix: Icon(LucideIcons.bug),
+                                suffix: Icon(LucideIcons.chevronRight),
                                 title: Text('Debug'),
-                                onPressed: () => context.pushPath(
+                                onPress: () => context.pushPath(
                                   DebugSettingsPage.pagePath.build(),
                                 ),
                               ),
@@ -90,24 +89,23 @@ class _DashboardPageState extends ConsumerState<SettingsPage> {
 
                         // TODO: implement tile group
                         SizedBox.shrink(),
-                        CliqTileGroup(
+                        FTileGroup(
                           children: [
-                            CliqTile(
-                              leading: Icon(LucideIcons.scale),
-                              trailing: Icon(LucideIcons.chevronRight),
+                            FTile(
+                              prefix: Icon(LucideIcons.scale),
+                              suffix: Icon(LucideIcons.chevronRight),
                               title: Text('Licenses'),
-                              onPressed: () => context.pushPath(
+                              onPress: () => context.pushPath(
                                 LicenseSettingsPage.pagePath.build(),
                               ),
                             ),
-                            CliqTile(
-                              leading: Icon(LucideIcons.github),
-                              trailing: Icon(LucideIcons.externalLink),
+                            FTile(
+                              prefix: Icon(LucideIcons.github),
+                              suffix: Icon(LucideIcons.externalLink),
                               title: Text('GitHub'),
                             ),
                           ],
                         ),
-                        CliqTypography('v0.0.0', size: typography.copyS),
                       ],
                     ),
                   ),
