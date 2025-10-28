@@ -1,6 +1,7 @@
 import 'package:cliq/shared/data/sqlite/database.dart';
 import 'package:cliq/routing/router.provider.dart';
 import 'package:cliq/shared/data/store.dart';
+import 'package:cliq/shared/ui/tabs/view/tab_wrapper.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -65,7 +66,7 @@ class _CliqAppState extends ConsumerState<CliqApp> {
       builder: (context, child) {
         return FAnimatedTheme(
           data: theme.activeTheme.getThemeWithMode(theme.themeMode),
-          child: child ?? Container(),
+          child: TabWrapper(child: child ?? Container()),
         );
       },
     );
