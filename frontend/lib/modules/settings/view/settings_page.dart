@@ -12,7 +12,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 
 import 'debug_settings_page.dart';
 import 'license_page.dart';
-import '../../../routing/page_path.dart';
+import '../../../routing/model/page_path.model.dart';
 
 class SettingsPage extends StatefulHookConsumerWidget {
   static const PagePathBuilder pagePath = PagePathBuilder('/settings');

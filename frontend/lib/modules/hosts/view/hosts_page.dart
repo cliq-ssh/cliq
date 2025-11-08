@@ -7,7 +7,7 @@ import 'package:forui/forui.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lucide_flutter/lucide_flutter.dart';
 
-import '../../../routing/page_path.dart';
+import '../../../routing/model/page_path.model.dart';
 import 'add_host_view.dart';
 
 class HostsPage extends StatefulHookConsumerWidget {

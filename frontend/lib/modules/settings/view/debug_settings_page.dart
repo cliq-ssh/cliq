@@ -4,7 +4,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:forui/forui.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
-import '../../../routing/page_path.dart';
+import '../../../routing/model/page_path.model.dart';
 import '../../../shared/data/sqlite/database.dart';
 
 class DebugSettingsPage extends AbstractSettingsPage {

@@ -1,5 +1,5 @@
 import 'package:cliq/shared/data/sqlite/database.dart';
-import 'package:cliq/routing/router.provider.dart';
+import 'package:cliq/routing/provider/router.provider.dart';
 import 'package:cliq/shared/data/store.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';

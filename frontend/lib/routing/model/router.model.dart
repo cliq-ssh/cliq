@@ -5,15 +5,16 @@ import 'package:cliq/modules/settings/view/license_page.dart';
 import 'package:cliq/modules/settings/view/settings_page.dart';
 import 'package:cliq/modules/settings/view/sync_settings_page.dart';
 import 'package:cliq/modules/settings/view/theme_settings_page.dart';
-import 'package:cliq/routing/ui/navbar_shell.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
-class AppRouter {
+import '../view/navigation_shell.dart';
+
+class Router {
   final Ref ref;
 
-  AppRouter(this.ref);
+  Router(this.ref);
 
   static final GlobalKey<NavigatorState> rootNavigatorKey = GlobalKey(
     debugLabel: 'root',
