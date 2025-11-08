@@ -1,4 +1,5 @@
 import 'package:cliq/modules/hosts/view/hosts_page.dart';
+import 'package:cliq/modules/session/view/session_page_wrapper.dart';
 import 'package:cliq/modules/settings/view/debug_settings_page.dart';
 import 'package:cliq/modules/settings/view/identities_settings_page.dart';
 import 'package:cliq/modules/settings/view/license_page.dart';
@@ -36,7 +37,7 @@ class Router {
             routes: [
               GoRoute(
                 path: HostsPage.pagePath.path,
-                pageBuilder: _defaultBranchPageBuilder(const HostsPage()),
+                pageBuilder: _fade(const HostsPage()),
               ),
               ..._shellRoutes(),
             ],
@@ -50,27 +51,27 @@ class Router {
     return [
       GoRoute(
         path: SettingsPage.pagePath.path,
-        pageBuilder: _defaultPageBuilder(const SettingsPage()),
+        pageBuilder: _swipe(const SettingsPage()),
         routes: [
           GoRoute(
             path: DebugSettingsPage.pagePath.path,
-            pageBuilder: _defaultPageBuilder(const DebugSettingsPage()),
+            pageBuilder: _swipe(const DebugSettingsPage()),
           ),
           GoRoute(
             path: IdentitiesSettingsPage.pagePath.path,
-            pageBuilder: _defaultPageBuilder(const IdentitiesSettingsPage()),
+            pageBuilder: _swipe(const IdentitiesSettingsPage()),
           ),
           GoRoute(
             path: LicenseSettingsPage.pagePath.path,
-            pageBuilder: _defaultPageBuilder(const LicenseSettingsPage()),
+            pageBuilder: _swipe(const LicenseSettingsPage()),
           ),
           GoRoute(
             path: SyncSettingsPage.pagePath.path,
-            pageBuilder: _defaultPageBuilder(const SyncSettingsPage()),
+            pageBuilder: _swipe(const SyncSettingsPage()),
           ),
           GoRoute(
             path: ThemeSettingsPage.pagePath.path,
-            pageBuilder: _defaultPageBuilder(const ThemeSettingsPage()),
+            pageBuilder: _swipe(const ThemeSettingsPage()),
           ),
         ],
       ),
@@ -78,28 +79,22 @@ class Router {
   }
 
   static List<GoRoute> _shellRoutes() {
-    return [];
+    return [
+      GoRoute(
+        path: SessionPageWrapper.pagePath.path,
+        pageBuilder: _fade(const SessionPageWrapper()),
+      ),
+    ];
   }
 
-  static Page<T> _buildDefaultPageTransition<T>(
-    BuildContext context,
-    GoRouterState state,
-    Widget child,
-  ) {
-    return CupertinoPage(child: child);
+  static Page<T> Function(BuildContext, GoRouterState) _swipe<T>(Widget child) {
+    return (_, _) => CupertinoPage(child: child);
   }
 
-  static Page<T> Function(BuildContext, GoRouterState) _defaultPageBuilder<T>(
-    Widget child,
-  ) {
-    return (context, state) =>
-        _buildDefaultPageTransition(context, state, child);
-  }
-
-  static Page<T> Function(BuildContext, GoRouterState)
-  _defaultBranchPageBuilder<T>(Widget child) {
-    return (context, state) => CustomTransitionPage(
+  static Page<T> Function(BuildContext, GoRouterState) _fade<T>(Widget child) {
+    return (_, _) => CustomTransitionPage(
       child: child,
+      transitionDuration: const Duration(milliseconds: 150),
       transitionsBuilder: (context, animation, _, child) {
         return FadeTransition(
           opacity: CurveTween(curve: Curves.easeInOut).animate(animation),

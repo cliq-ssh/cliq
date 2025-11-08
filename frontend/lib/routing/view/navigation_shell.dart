@@ -1,10 +1,17 @@
+import 'package:cliq/modules/hosts/view/hosts_page.dart';
+import 'package:cliq/modules/session/view/session_page_wrapper.dart';
 import 'package:cliq/modules/settings/view/settings_page.dart';
 import 'package:cliq/routing/router.extension.dart';
+import 'package:cliq/shared/data/sqlite/database.dart';
+import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:forui/forui.dart';
+import 'package:forui_hooks/forui_hooks.dart';
 import 'package:lucide_flutter/lucide_flutter.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+
+import '../../modules/session/provider/session.provider.dart';
 
 class NavigationShell extends StatefulHookConsumerWidget {
   final StatefulNavigationShell shell;
@@ -18,17 +25,66 @@ class NavigationShell extends StatefulHookConsumerWidget {
   ConsumerState<NavigationShell> createState() => NavigationShellState();
 }
 
-class NavigationShellState extends ConsumerState<NavigationShell> {
+class NavigationShellState extends ConsumerState<NavigationShell> with TickerProviderStateMixin {
   @override
   Widget build(BuildContext context) {
+    final connections = useState<List<Connection>>([]);
+    final sessions = ref.watch(sessionProvider);
+    final popoverController = useFPopoverController(vsync: this);
+
+    useEffect(() {
+      CliqDatabase.connectionsRepository.findAll().then(
+        (data) => connections.value = data,
+      );
+      return null;
+    }, []);
+
     return FScaffold(
-      header: FHeader(
-        suffixes: [
-          FButton.icon(
-            child: Icon(LucideIcons.settings),
-            onPress: () => context.pushPath(SettingsPage.pagePath.build()),
-          ),
-        ],
+      header: Padding(
+        padding: const EdgeInsets.all(4),
+        child: Row(
+          spacing: 8,
+          children: [
+            FButton.icon(
+              onPress: () => ref
+                  .read(sessionProvider.notifier)
+                  .setSelectedSession(context, null),
+              child: Icon(LucideIcons.house),
+            ),
+            for (final session in sessions.activeSessions)
+              GestureDetector(
+                onTap: () => ref
+                    .read(sessionProvider.notifier)
+                    .setSelectedSession(context, session.id),
+                child: FBadge(
+                    style: sessions.selectedSessionId == session.id
+                        ? FBadgeStyle.primary()
+                        : FBadgeStyle.outline(),
+                    child: Text(session.effectiveName)),
+              ),
+            FPopoverMenu(
+              popoverController: popoverController,
+              menu: [
+                FItemGroup(
+                  children: [
+                    for (final connection in connections.value)
+                      FItem(
+                        title: Text(connection.address),
+                        onPress: () {
+                          ref.read(sessionProvider.notifier).createAndGo(context, connection);
+                          popoverController.hide();
+                        },
+                      ),
+                  ],
+                ),
+              ],
+              builder: (_, controller, _) => FButton.icon(
+                onPress: controller.toggle,
+                child: Icon(LucideIcons.plus),
+              ),
+            ),
+          ],
+        ),
       ),
       child: widget.shell,
     );

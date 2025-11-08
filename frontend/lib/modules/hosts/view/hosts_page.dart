@@ -1,3 +1,4 @@
+import 'package:cliq/modules/session/provider/session.provider.dart';
 import 'package:cliq/shared/data/sqlite/database.dart';
 import 'package:cliq_ui/cliq_ui.dart'
     show CliqGridColumn, CliqGridContainer, CliqGridRow, Breakpoint;
@@ -116,9 +117,54 @@ class _HostsPageState extends ConsumerState<HostsPage> {
                             children: [
                               for (final connection in connections.value)
                                 FCard(
-                                  title: Text(
-                                    connection.$1.label ??
-                                        connection.$1.address,
+                                  title: Row(
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      Text(
+                                        connection.$1.label ??
+                                            connection.$1.address,
+                                      ),
+                                      FPopoverMenu(
+                                        menu: [
+                                          FItemGroup(
+                                            children: [
+                                              FItem(
+                                                prefix: Icon(
+                                                  LucideIcons.plugZap,
+                                                ),
+                                                title: Text('Connect'),
+                                                onPress: () => ref
+                                                    .read(
+                                                      sessionProvider.notifier,
+                                                    )
+                                                    .createAndGo(
+                                                      context,
+                                                      connection.$1,
+                                                    ),
+                                              ),
+                                              FItem(
+                                                prefix: Icon(
+                                                  LucideIcons.pencil,
+                                                ),
+                                                title: Text('Edit'),
+                                                onPress: () {},
+                                              ),
+                                              FItem(
+                                                prefix: Icon(LucideIcons.trash),
+                                                title: Text('Delete'),
+                                                onPress: () {},
+                                              ),
+                                            ],
+                                          ),
+                                        ],
+                                        builder: (_, controller, _) =>
+                                            FButton.icon(
+                                              onPress: controller.toggle,
+                                              child: Icon(LucideIcons.ellipsis),
+                                            ),
+                                      ),
+                                    ],
                                   ),
                                   subtitle: Row(
                                     children: [
