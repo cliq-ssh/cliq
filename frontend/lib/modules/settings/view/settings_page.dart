@@ -20,10 +20,10 @@ class SettingsPage extends StatefulHookConsumerWidget {
   const SettingsPage({super.key});
 
   @override
-  ConsumerState<ConsumerStatefulWidget> createState() => _DashboardPageState();
+  ConsumerState<ConsumerStatefulWidget> createState() => _SettingsPageState();
 }
 
-class _DashboardPageState extends ConsumerState<SettingsPage> {
+class _SettingsPageState extends ConsumerState<SettingsPage> {
   @override
   Widget build(BuildContext context) {
     return FScaffold(
