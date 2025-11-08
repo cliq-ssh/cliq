@@ -2,7 +2,7 @@ import 'package:cliq/modules/settings/model/theme.model.dart';
 import 'package:flutter/material.dart';
 import 'package:forui/forui.dart';
 
-import '../../../data/store.dart';
+import '../../../shared/data/store.dart';
 
 class ThemeState {
   final CliqTheme activeTheme;

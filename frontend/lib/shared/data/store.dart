@@ -3,7 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import '../modules/settings/model/theme.model.dart';
+import '../../modules/settings/model/theme.model.dart';
 
 enum StoreKey<T> {
   userName<String>('user_name', type: String),

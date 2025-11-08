@@ -1,5 +1,5 @@
-import 'package:cliq/data/sqlite/database.dart';
-import 'package:cliq/data/sqlite/repository.dart';
+import 'package:cliq/shared/data/sqlite/database.dart';
+import 'package:cliq/shared/data/sqlite/repository.dart';
 import 'package:drift/drift.dart';
 
 final class CredentialsRepository extends Repository<Credentials, Credential> {
