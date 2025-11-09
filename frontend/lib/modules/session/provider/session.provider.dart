@@ -8,9 +8,9 @@ import '../../../shared/data/sqlite/database.dart';
 import '../model/session.model.dart';
 import '../view/session_page_wrapper.dart';
 
-final sessionProvider = NotifierProvider(SSHSessionNotifier.new);
+final sessionProvider = NotifierProvider(ShellSessionNotifier.new);
 
-class SSHSessionNotifier extends Notifier<SSHSessionState> {
+class ShellSessionNotifier extends Notifier<SSHSessionState> {
   int _nextSessionId = 0;
 
   @override
@@ -18,7 +18,11 @@ class SSHSessionNotifier extends Notifier<SSHSessionState> {
 
   void createAndGo(BuildContext context, Connection connection) {
     context.goPath(SessionPageWrapper.pagePath.build());
-    final newSession = SSHSession(id: _nextSessionId++, connection: connection);
+    final newSession = ShellSession(
+      id: _nextSessionId++,
+      connection: connection,
+      connectionState: ShellSessionConnectionState.connecting,
+    );
     state = state.copyWith(
       activeSessions: [...state.activeSessions, newSession],
       selectedSessionId: newSession.id,

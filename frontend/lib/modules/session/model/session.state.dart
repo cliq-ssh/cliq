@@ -1,7 +1,7 @@
 import 'package:cliq/modules/session/model/session.model.dart';
 
 class SSHSessionState {
-  final List<SSHSession> activeSessions;
+  final List<ShellSession> activeSessions;
   final int? selectedSessionId;
 
   SSHSessionState.initial() : activeSessions = [], selectedSessionId = null;
@@ -12,7 +12,7 @@ class SSHSessionState {
   });
 
   SSHSessionState copyWith({
-    List<SSHSession>? activeSessions,
+    List<ShellSession>? activeSessions,
     int? selectedSessionId,
   }) {
     return SSHSessionState(

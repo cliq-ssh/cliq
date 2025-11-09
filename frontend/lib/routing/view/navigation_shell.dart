@@ -1,7 +1,4 @@
-import 'package:cliq/modules/hosts/view/hosts_page.dart';
-import 'package:cliq/modules/session/view/session_page_wrapper.dart';
-import 'package:cliq/modules/settings/view/settings_page.dart';
-import 'package:cliq/routing/router.extension.dart';
+import 'package:cliq/modules/session/model/session.model.dart';
 import 'package:cliq/shared/data/sqlite/database.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:forui/forui.dart';
@@ -25,7 +22,8 @@ class NavigationShell extends StatefulHookConsumerWidget {
   ConsumerState<NavigationShell> createState() => NavigationShellState();
 }
 
-class NavigationShellState extends ConsumerState<NavigationShell> with TickerProviderStateMixin {
+class NavigationShellState extends ConsumerState<NavigationShell>
+    with TickerProviderStateMixin {
   @override
   Widget build(BuildContext context) {
     final connections = useState<List<Connection>>([]);
@@ -57,10 +55,28 @@ class NavigationShellState extends ConsumerState<NavigationShell> with TickerPro
                     .read(sessionProvider.notifier)
                     .setSelectedSession(context, session.id),
                 child: FBadge(
-                    style: sessions.selectedSessionId == session.id
-                        ? FBadgeStyle.primary()
-                        : FBadgeStyle.outline(),
-                    child: Text(session.effectiveName)),
+                  style: sessions.selectedSessionId == session.id
+                      ? FBadgeStyle.primary()
+                      : FBadgeStyle.outline(),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 6),
+                    child: Row(
+                      spacing: 8,
+                      children: [
+                        if (session.connectionState ==
+                            ShellSessionConnectionState.connecting)
+                          FCircularProgress(),
+                        if (session.connectionState ==
+                            ShellSessionConnectionState.connected)
+                          Icon(LucideIcons.circleSmall),
+                        if (session.connectionState ==
+                            ShellSessionConnectionState.disconnected)
+                          Icon(LucideIcons.unplug),
+                        Text(session.effectiveName),
+                      ],
+                    ),
+                  ),
+                ),
               ),
             FPopoverMenu(
               popoverController: popoverController,
@@ -71,7 +87,9 @@ class NavigationShellState extends ConsumerState<NavigationShell> with TickerPro
                       FItem(
                         title: Text(connection.address),
                         onPress: () {
-                          ref.read(sessionProvider.notifier).createAndGo(context, connection);
+                          ref
+                              .read(sessionProvider.notifier)
+                              .createAndGo(context, connection);
                           popoverController.hide();
                         },
                       ),

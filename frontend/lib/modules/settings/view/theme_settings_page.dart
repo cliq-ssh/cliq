@@ -63,7 +63,7 @@ class ThemeSettingsPage extends AbstractSettingsPage {
         CliqGridRow(
           children: [
             CliqGridColumn(
-              sizes: {Breakpoint.xl: 6},
+              sizes: {Breakpoint.sm: 8},
               child: Form(
                 onChanged: () {
                   if (themeModeController.value.firstOrNull != null) {

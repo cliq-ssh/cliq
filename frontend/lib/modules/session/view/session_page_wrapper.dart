@@ -33,7 +33,7 @@ class _SessionPageState extends ConsumerState<SessionPageWrapper> {
       controller: pageController,
       children: [
         for (final session in session.activeSessions)
-          SSHSessionPage(
+          ShellSessionPage(
             key: ValueKey('session-${session.effectiveName}--${session.id}'),
             session: session,
           ),

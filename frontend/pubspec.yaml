@@ -26,6 +26,7 @@ dependencies:
   path_provider: ^2.1.5
   forui: ^0.16.0
   forui_hooks: ^0.16.0
+  dartssh2: ^2.13.0
 
 dev_dependencies:
   flutter_test:

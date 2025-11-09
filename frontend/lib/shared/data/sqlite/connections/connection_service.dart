@@ -13,6 +13,21 @@ final class ConnectionService {
 
   // TODO: query connections with identities AND credentials
 
+  Future<List<Credential>> findCredentialsByConnectionId(
+    Connection connection,
+  ) {
+    final db = connectionRepository.db;
+    final credentialId = connection.credentialId;
+
+    if (credentialId == null) {
+      return Future.value([]);
+    }
+
+    final query = db.select(db.credentials)
+      ..where((c) => c.id.equals(credentialId));
+    return query.get();
+  }
+
   Future<List<(Connection, Identity?)>> findAllWithIdentities() async {
     final db = connectionRepository.db;
 

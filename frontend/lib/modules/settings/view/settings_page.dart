@@ -37,7 +37,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
               alignment: WrapAlignment.center,
               children: [
                 CliqGridColumn(
-                  sizes: {Breakpoint.xl: 6},
+                  sizes: {Breakpoint.sm: 8},
                   child: Padding(
                     padding: EdgeInsets.only(top: 80, bottom: 40),
                     child: Column(
