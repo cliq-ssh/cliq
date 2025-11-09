@@ -10,11 +10,7 @@ CREATE TABLE connections (
     credential_id INTEGER REFERENCES credentials(id) ON DELETE CASCADE,
     label TEXT,
     icon TEXT,
-    color TEXT,
-    CHECK (
-        identity_id IS NOT NULL
-        OR (username IS NOT NULL AND credential_id IS NOT NULL)
-    )
+    color TEXT
 );
 
 findFullConnectionById: SELECT

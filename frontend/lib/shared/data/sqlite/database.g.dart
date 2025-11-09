@@ -1149,10 +1149,6 @@ class Connections extends Table with TableInfo<Connections, Connection> {
   }
 
   @override
-  List<String> get customConstraints => const [
-    'CHECK(identity_id IS NOT NULL OR(username IS NOT NULL AND credential_id IS NOT NULL))',
-  ];
-  @override
   bool get dontWriteConstraints => true;
 }
 
