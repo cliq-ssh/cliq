@@ -1,12 +1,9 @@
-import 'package:cliq/modules/hosts/view/hosts_page.dart';
 import 'package:cliq/modules/session/model/session.state.dart';
-import 'package:cliq/routing/router.extension.dart';
-import 'package:flutter/cupertino.dart';
+import 'package:cliq/routing/view/navigation_shell.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
 import '../../../shared/data/sqlite/database.dart';
 import '../model/session.model.dart';
-import '../view/session_page_wrapper.dart';
 
 final sessionProvider = NotifierProvider(ShellSessionNotifier.new);
 
@@ -16,8 +13,8 @@ class ShellSessionNotifier extends Notifier<SSHSessionState> {
   @override
   SSHSessionState build() => SSHSessionState.initial();
 
-  void createAndGo(BuildContext context, Connection connection) {
-    context.goPath(SessionPageWrapper.pagePath.build());
+  void createAndGo(NavigationShellState shellState, Connection connection) {
+    shellState.goToBranch(1);
     final newSession = ShellSession(
       id: _nextSessionId++,
       connection: connection,
@@ -29,11 +26,22 @@ class ShellSessionNotifier extends Notifier<SSHSessionState> {
     );
   }
 
-  void setSelectedSession(BuildContext context, int? sessionId) {
-    context.goPath(
-      (sessionId == null ? HostsPage.pagePath : SessionPageWrapper.pagePath)
-          .build(),
+  void updateSessionConnectionState(
+    int sessionId,
+    ShellSessionConnectionState connectionState,
+  ) {
+    state = state.copyWith(
+      activeSessions: state.activeSessions.map((session) {
+        if (session.id == sessionId) {
+          return session.copyWith(connectionState: connectionState);
+        }
+        return session;
+      }).toList(),
     );
+  }
+
+  void setSelectedSession(NavigationShellState shellState, int? sessionId) {
+    shellState.goToBranch(sessionId == null ? 0 : 1);
     state = SSHSessionState(
       activeSessions: state.activeSessions,
       selectedSessionId: sessionId,

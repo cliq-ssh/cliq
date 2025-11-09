@@ -1,4 +1,5 @@
 import 'package:cliq/modules/session/provider/session.provider.dart';
+import 'package:cliq/routing/view/navigation_shell.dart';
 import 'package:cliq/shared/data/sqlite/database.dart';
 import 'package:cliq_ui/cliq_ui.dart'
     show CliqGridColumn, CliqGridContainer, CliqGridRow, Breakpoint;
@@ -131,7 +132,7 @@ class _HostsPageState extends ConsumerState<HostsPage> {
                                             children: [
                                               FItem(
                                                 prefix: Icon(
-                                                  LucideIcons.plugZap,
+                                                  LucideIcons.unplug,
                                                 ),
                                                 title: Text('Connect'),
                                                 onPress: () => ref
@@ -139,7 +140,9 @@ class _HostsPageState extends ConsumerState<HostsPage> {
                                                       sessionProvider.notifier,
                                                     )
                                                     .createAndGo(
-                                                      context,
+                                                      NavigationShell.of(
+                                                        context,
+                                                      ),
                                                       connection.$1,
                                                     ),
                                               ),

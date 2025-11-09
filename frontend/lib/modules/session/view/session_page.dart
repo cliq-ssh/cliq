@@ -10,6 +10,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lucide_flutter/lucide_flutter.dart';
 
 import '../../../shared/data/sqlite/credentials/credential_type.dart';
+import '../provider/session.provider.dart';
 
 class ShellSessionPage extends StatefulHookConsumerWidget {
   final ShellSession session;
@@ -112,12 +113,23 @@ class _ShellSessionPageState extends ConsumerState<ShellSessionPage>
           widget.session.copyWith(sshSession: shell);
 
           connectionState.value = ShellSessionConnectionState.connected;
-          widget.session.copyWith(state: ShellSessionConnectionState.connected);
+
+          // TODO: rework this
+
+          ref
+              .read(sessionProvider.notifier)
+              .updateSessionConnectionState(
+            widget.session.id,
+            connectionState.value,
+          );
         } catch (e, _) {
-          error.value = (e as SSHAuthFailError).message;
+          error.value = e.toString();
           connectionState.value = ShellSessionConnectionState.disconnected;
-          widget.session.copyWith(
-            state: ShellSessionConnectionState.disconnected,
+          ref
+              .read(sessionProvider.notifier)
+              .updateSessionConnectionState(
+            widget.session.id,
+            connectionState.value,
           );
 
           try {

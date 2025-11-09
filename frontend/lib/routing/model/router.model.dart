@@ -42,6 +42,14 @@ class Router {
               ..._shellRoutes(),
             ],
           ),
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: SessionPageWrapper.pagePath.path,
+                pageBuilder: _fade(const SessionPageWrapper()),
+              ),
+            ],
+          ),
         ],
       ),
     ],
@@ -79,12 +87,7 @@ class Router {
   }
 
   static List<GoRoute> _shellRoutes() {
-    return [
-      GoRoute(
-        path: SessionPageWrapper.pagePath.path,
-        pageBuilder: _fade(const SessionPageWrapper()),
-      ),
-    ];
+    return [];
   }
 
   static Page<T> Function(BuildContext, GoRouterState) _swipe<T>(Widget child) {

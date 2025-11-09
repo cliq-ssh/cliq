@@ -15,8 +15,8 @@ class NavigationShell extends StatefulHookConsumerWidget {
 
   const NavigationShell({super.key, required this.shell});
 
-  static NavigationShellState? maybeOf(BuildContext context) =>
-      context.findAncestorStateOfType<NavigationShellState>();
+  static NavigationShellState of(BuildContext context) =>
+      context.findAncestorStateOfType<NavigationShellState>()!;
 
   @override
   ConsumerState<NavigationShell> createState() => NavigationShellState();
@@ -26,6 +26,8 @@ class NavigationShellState extends ConsumerState<NavigationShell>
     with TickerProviderStateMixin {
   @override
   Widget build(BuildContext context) {
+    final colors = context.theme.colors;
+
     final connections = useState<List<Connection>>([]);
     final sessions = ref.watch(sessionProvider);
     final popoverController = useFPopoverController(vsync: this);
@@ -39,21 +41,24 @@ class NavigationShellState extends ConsumerState<NavigationShell>
 
     return FScaffold(
       header: Padding(
-        padding: const EdgeInsets.all(4),
+        padding: const EdgeInsets.all(8),
         child: Row(
           spacing: 8,
           children: [
             FButton.icon(
+              style: widget.shell.currentIndex == 0
+                  ? FButtonStyle.primary()
+                  : FButtonStyle.outline(),
               onPress: () => ref
                   .read(sessionProvider.notifier)
-                  .setSelectedSession(context, null),
+                  .setSelectedSession(this, null),
               child: Icon(LucideIcons.house),
             ),
             for (final session in sessions.activeSessions)
               GestureDetector(
                 onTap: () => ref
                     .read(sessionProvider.notifier)
-                    .setSelectedSession(context, session.id),
+                    .setSelectedSession(this, session.id),
                 child: FBadge(
                   style: sessions.selectedSessionId == session.id
                       ? FBadgeStyle.primary()
@@ -67,11 +72,8 @@ class NavigationShellState extends ConsumerState<NavigationShell>
                             ShellSessionConnectionState.connecting)
                           FCircularProgress(),
                         if (session.connectionState ==
-                            ShellSessionConnectionState.connected)
-                          Icon(LucideIcons.circleSmall),
-                        if (session.connectionState ==
                             ShellSessionConnectionState.disconnected)
-                          Icon(LucideIcons.unplug),
+                          Icon(LucideIcons.plugZap, color: colors.destructive),
                         Text(session.effectiveName),
                       ],
                     ),
@@ -89,7 +91,7 @@ class NavigationShellState extends ConsumerState<NavigationShell>
                         onPress: () {
                           ref
                               .read(sessionProvider.notifier)
-                              .createAndGo(context, connection);
+                              .createAndGo(this, connection);
                           popoverController.hide();
                         },
                       ),

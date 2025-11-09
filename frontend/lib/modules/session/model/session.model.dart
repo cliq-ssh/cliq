@@ -23,14 +23,14 @@ class ShellSession {
   String get effectiveName => connection.effectiveName;
 
   ShellSession copyWith({
-    ShellSessionConnectionState? state,
+    ShellSessionConnectionState? connectionState,
     Connection? connection,
     SSHClient? client,
     SSHSession? sshSession,
   }) {
     return ShellSession(
       id: id,
-      connectionState: state ?? this.connectionState,
+      connectionState: connectionState ?? this.connectionState,
       connection: connection ?? this.connection,
       client: client ?? this.client,
       sshSession: sshSession ?? this.sshSession,
