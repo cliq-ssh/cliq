@@ -1,4 +1,4 @@
-import 'package:cliq/modules/hosts/view/hosts_page.dart';
+import 'package:cliq/modules/connections/view/connections_page.dart';
 import 'package:cliq/modules/session/view/session_page_wrapper.dart';
 import 'package:cliq/modules/settings/view/debug_settings_page.dart';
 import 'package:cliq/modules/settings/view/identities_settings_page.dart';
@@ -36,8 +36,8 @@ class Router {
             navigatorKey: shellNavigatorKey,
             routes: [
               GoRoute(
-                path: HostsPage.pagePath.path,
-                pageBuilder: _fade(const HostsPage()),
+                path: ConnectionsPage.pagePath.path,
+                pageBuilder: _fade(const ConnectionsPage()),
               ),
               ..._shellRoutes(),
             ],

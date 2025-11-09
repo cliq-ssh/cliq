@@ -1,17 +1,21 @@
+import 'package:cliq/shared/data/sqlite/credentials/credential_service.dart';
 import 'package:drift/drift.dart';
 
-import '../database.dart';
+import '../../../shared/data/sqlite/database.dart';
+import '../../../shared/data/sqlite/identities/identity_service.dart';
 import 'connections_repository.dart';
 
 final class ConnectionService {
   final ConnectionsRepository connectionRepository;
 
-  const ConnectionService(this.connectionRepository);
+  final CredentialService credentialService;
+  final IdentityService identityService;
 
-  // TODO: insert with identity
-  // TODO: insert with credentials
-
-  // TODO: query connections with identities AND credentials
+  const ConnectionService(
+    this.connectionRepository,
+    this.credentialService,
+    this.identityService,
+  );
 
   Future<List<Credential>> findCredentialsByConnectionId(
     Connection connection,

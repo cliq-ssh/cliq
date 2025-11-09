@@ -42,68 +42,81 @@ class NavigationShellState extends ConsumerState<NavigationShell>
     return FScaffold(
       header: Padding(
         padding: const EdgeInsets.all(8),
-        child: Row(
-          spacing: 8,
-          children: [
-            FButton.icon(
-              style: widget.shell.currentIndex == 0
-                  ? FButtonStyle.primary()
-                  : FButtonStyle.outline(),
-              onPress: () => ref
-                  .read(sessionProvider.notifier)
-                  .setSelectedSession(this, null),
-              child: Icon(LucideIcons.house),
-            ),
-            for (final session in sessions.activeSessions)
-              GestureDetector(
-                onTap: () => ref
+        child: SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          child: Row(
+            spacing: 8,
+            children: [
+              FButton.icon(
+                style: widget.shell.currentIndex == 0
+                    ? FButtonStyle.primary()
+                    : FButtonStyle.outline(),
+                onPress: () => ref
                     .read(sessionProvider.notifier)
-                    .setSelectedSession(this, session.id),
-                child: FBadge(
-                  style: sessions.selectedSessionId == session.id
-                      ? FBadgeStyle.primary()
-                      : FBadgeStyle.outline(),
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 6),
-                    child: Row(
-                      spacing: 8,
-                      children: [
-                        if (session.connectionState ==
-                            ShellSessionConnectionState.connecting)
-                          FCircularProgress(),
-                        if (session.connectionState ==
-                            ShellSessionConnectionState.disconnected)
-                          Icon(LucideIcons.plugZap, color: colors.destructive),
-                        Text(session.effectiveName),
-                      ],
+                    .setSelectedSession(this, null),
+                child: Icon(LucideIcons.house),
+              ),
+              for (final session in sessions.activeSessions)
+                GestureDetector(
+                  onTap: () => ref
+                      .read(sessionProvider.notifier)
+                      .setSelectedSession(this, session.id),
+                  child: FBadge(
+                    style: sessions.selectedSessionId == session.id
+                        ? FBadgeStyle.primary()
+                        : FBadgeStyle.outline(),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 6),
+                      child: Builder(
+                        builder: (context) {
+                          final state = ref
+                              .read(sessionProvider)
+                              .connectionStates[session.id];
+                          return Row(
+                            spacing: 8,
+                            children: [
+                              if (state ==
+                                  ShellSessionConnectionState.connecting)
+                                FCircularProgress(),
+                              if (state ==
+                                  ShellSessionConnectionState.disconnected)
+                                Icon(
+                                  LucideIcons.plugZap,
+                                  color: colors.destructive,
+                                ),
+                              Text(session.effectiveName),
+                            ],
+                          );
+                        },
+                      ),
                     ),
                   ),
                 ),
-              ),
-            FPopoverMenu(
-              popoverController: popoverController,
-              menu: [
-                FItemGroup(
-                  children: [
-                    for (final connection in connections.value)
-                      FItem(
-                        title: Text(connection.address),
-                        onPress: () {
-                          ref
-                              .read(sessionProvider.notifier)
-                              .createAndGo(this, connection);
-                          popoverController.hide();
-                        },
-                      ),
-                  ],
+              FPopoverMenu(
+                popoverController: popoverController,
+                menu: [
+                  FItemGroup(
+                    children: [
+                      for (final connection in connections.value)
+                        FItem(
+                          title: Text(connection.address),
+                          onPress: () {
+                            ref
+                                .read(sessionProvider.notifier)
+                                .createAndGo(this, connection);
+                            popoverController.hide();
+                          },
+                        ),
+                    ],
+                  ),
+                ],
+                builder: (_, controller, _) => FButton.icon(
+                  onPress: controller.toggle,
+                  child: Icon(LucideIcons.plus),
                 ),
-              ],
-              builder: (_, controller, _) => FButton.icon(
-                onPress: controller.toggle,
-                child: Icon(LucideIcons.plus),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
       child: widget.shell,

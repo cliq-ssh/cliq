@@ -1,5 +1,7 @@
+import 'package:cliq/modules/connections/model/connection_full.model.dart';
 import 'package:cliq/modules/session/model/session.model.dart';
 import 'package:cliq/shared/data/sqlite/database.dart';
+import 'package:cliq/shared/model/identity_full.model.dart';
 import 'package:cliq_ui/cliq_ui.dart'
     show CliqGridColumn, CliqGridContainer, CliqGridRow, Breakpoint;
 import 'package:dartssh2/dartssh2.dart';
@@ -28,10 +30,16 @@ class _ShellSessionPageState extends ConsumerState<ShellSessionPage>
   Widget build(BuildContext context) {
     super.build(context);
 
-    final connectionState = useState(widget.session.connectionState);
+    final connectionState = ref
+        .watch(sessionProvider)
+        .connectionStates[widget.session.id];
     final typography = context.theme.typography;
 
     final error = useState<String?>(null);
+    final fullConnection = useState<ConnectionFull?>(null);
+
+    final client = useState<SSHClient?>(null);
+    final sshSession = useState<SSHSession?>(null);
 
     buildConnecting() {
       return [
@@ -78,26 +86,67 @@ class _ShellSessionPageState extends ConsumerState<ShellSessionPage>
       ];
     }
 
+    setConnectionState(ShellSessionConnectionState state) {
+      ref.read(sessionProvider).connectionStates[widget.session.id] = state;
+    }
+
+    closeSession() {
+      try {
+        sshSession.value?.close();
+      } catch (_) {}
+      try {
+        client.value?.close();
+      } catch (_) {}
+      sshSession.value = null;
+      client.value = null;
+    }
+
     useEffect(() {
       Future<void> openSsh() async {
         error.value = null;
-        connectionState.value = ShellSessionConnectionState.connecting;
+        setConnectionState(ShellSessionConnectionState.connecting);
 
-        final host = widget.session.connection.address;
-        final port = widget.session.connection.port;
-        final username = widget.session.connection.username;
+        final con = fullConnection.value!;
 
-        // TODO: implement identities, clean this up
+        final shouldUseIdentity = con.identity != null;
 
-        final credentials = await CliqDatabase.connectionService
-            .findCredentialsByConnectionId(widget.session.connection);
+        // determine effective username
+        final effectiveUsername = shouldUseIdentity
+            ? con.identity!.username
+            : con.username!;
+
+        // collect possible credentials
+        final credentials = <Credential>[
+          ?con.credential,
+          if (shouldUseIdentity) ?con.identity?.credential,
+        ];
+
+        List<SSHKeyPair> keys = [];
+        for (final cred in credentials) {
+          if (cred.type == CredentialType.key) {
+            try {
+              if (SSHKeyPair.isEncryptedPem(cred.data)) {
+                if (cred.passphrase == null) {
+                  throw Exception('Key is encrypted but no passphrase provided');
+                }
+                keys = [
+                  ...keys,
+                  ...SSHKeyPair.fromPem(cred.data, cred.passphrase!)
+                ];
+              } else {
+                keys = [...keys, ...SSHKeyPair.fromPem(cred.data)];
+              }
+            } catch (e, _) {}
+          }
+        }
 
         try {
-          final socket = await SSHSocket.connect(host, port);
+          final socket = await SSHSocket.connect(con.address, con.port);
 
           final client = SSHClient(
             socket,
-            username: username!,
+            username: effectiveUsername,
+            identities: keys,
             onPasswordRequest: () {
               for (final cred in credentials) {
                 if (cred.type == CredentialType.password) {
@@ -108,51 +157,61 @@ class _ShellSessionPageState extends ConsumerState<ShellSessionPage>
             },
           );
 
-          widget.session.copyWith(client: client);
           final shell = await client.shell();
-          widget.session.copyWith(sshSession: shell);
+          await client.authenticated;
+          setConnectionState(ShellSessionConnectionState.connected);
+          print(client.remoteVersion);
 
-          connectionState.value = ShellSessionConnectionState.connected;
-
-          // TODO: rework this
-
-          ref
-              .read(sessionProvider.notifier)
-              .updateSessionConnectionState(
-            widget.session.id,
-            connectionState.value,
-          );
+          // TODO: add listeners for terminal data, errors, etc.
         } catch (e, _) {
+          setConnectionState(ShellSessionConnectionState.disconnected);
           error.value = e.toString();
-          connectionState.value = ShellSessionConnectionState.disconnected;
-          ref
-              .read(sessionProvider.notifier)
-              .updateSessionConnectionState(
-            widget.session.id,
-            connectionState.value,
-          );
 
-          try {
-            widget.session.sshSession?.close();
-          } catch (_) {}
-          try {
-            widget.session.client?.close();
-          } catch (_) {}
-          widget.session.copyWith(sshSession: null);
-          widget.session.copyWith(client: null);
+          closeSession();
         }
       }
 
-      openSsh();
+      CliqDatabase.connectionsRepository.db
+          .findFullConnectionById(widget.session.connection.id)
+          .getSingleOrNull()
+          .then((value) {
+            // TODO: move mapping to service
+            return ConnectionFull(
+              id: value!.connectionId,
+              address: value.address,
+              port: value.port,
+              identity: value.identityId == null
+                  ? null
+                  : IdentityFull(
+                      id: value.identityId!,
+                      username: value.identityUsername!,
+                      credential: Credential(
+                        id: value.identityCredentialId!,
+                        type: value.identityCredentialType!,
+                        data: value.identityCredentialData!,
+                        passphrase: value.identityCredentialPassphrase
+                      ),
+                    ),
+              credential: value.connectionCredentialId == null
+                  ? null
+                  : Credential(
+                      id: value.connectionCredentialId!,
+                      type: value.connectionCredentialType!,
+                      data: value.connectionCredentialData!,
+                      passphrase: value.connectionCredentialPassphrase
+                    ),
+              username: value.connectionUsername,
+              label: value.label,
+              icon: value.icon,
+              color: value.color,
+            );
+          })
+          .then((value) {
+            fullConnection.value = value;
+            openSsh();
+          });
 
-      return () {
-        try {
-          widget.session.sshSession?.close();
-        } catch (_) {}
-        try {
-          widget.session.client?.close();
-        } catch (_) {}
-      };
+      return () => closeSession();
     }, []);
 
     return FScaffold(
@@ -166,11 +225,14 @@ class _ShellSessionPageState extends ConsumerState<ShellSessionPage>
                 child: Column(
                   spacing: 32,
                   children: [
-                    if (connectionState.value ==
-                        ShellSessionConnectionState.connecting)
+                    if (connectionState == ShellSessionConnectionState.connecting)
                       ...buildConnecting(),
-                    if (connectionState.value ==
-                        ShellSessionConnectionState.disconnected)
+                    if (connectionState == ShellSessionConnectionState.connected)
+                      Text(
+                        'Connected to ${widget.session.connection.address}, ${client.value?.remoteVersion ?? '<version>'}',
+                        style: typography.xl,
+                      ),
+                    if (connectionState == ShellSessionConnectionState.disconnected)
                       ...buildError(),
                   ],
                 ),

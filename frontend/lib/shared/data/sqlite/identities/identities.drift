@@ -5,3 +5,16 @@ CREATE TABLE identities (
     username TEXT NOT NULL,
     credential_id INTEGER REFERENCES credentials(id) ON DELETE CASCADE NOT NULL
 );
+
+findFullIdentityById: SELECT
+                        i.id             AS identity_id,
+                        i.username       AS identity_username,
+                        i.credential_id  AS identity_credential_id,
+                        c.id             AS credential_id,
+                        c.type           AS credential_type,
+                        c.data           AS credential_data,
+                        c.passphrase     AS credential_passphrase
+                      FROM identities AS i
+                      LEFT JOIN credentials AS c
+                        ON c.id = i.credential_id
+                      WHERE i.id = :id;

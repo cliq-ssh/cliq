@@ -10,18 +10,19 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lucide_flutter/lucide_flutter.dart';
 
 import '../../../routing/model/page_path.model.dart';
-import 'add_host_view.dart';
+import 'add_connection_view.dart';
 
-class HostsPage extends StatefulHookConsumerWidget {
+class ConnectionsPage extends StatefulHookConsumerWidget {
   static const PagePathBuilder pagePath = PagePathBuilder('/');
 
-  const HostsPage({super.key});
+  const ConnectionsPage({super.key});
 
   @override
-  ConsumerState<ConsumerStatefulWidget> createState() => _HostsPageState();
+  ConsumerState<ConsumerStatefulWidget> createState() =>
+      _ConnectionsPageState();
 }
 
-class _HostsPageState extends ConsumerState<HostsPage> {
+class _ConnectionsPageState extends ConsumerState<ConnectionsPage> {
   @override
   Widget build(BuildContext context) {
     final typography = context.theme.typography;
@@ -42,7 +43,7 @@ class _HostsPageState extends ConsumerState<HostsPage> {
       showFSheet(
         context: context,
         side: FLayout.rtl,
-        builder: (_) => AddHostsView(),
+        builder: (_) => AddConnectionView(),
       );
     }
 

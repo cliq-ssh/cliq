@@ -13,30 +13,18 @@ class ShellSessionNotifier extends Notifier<SSHSessionState> {
   @override
   SSHSessionState build() => SSHSessionState.initial();
 
+  /// Creates a new session and navigates to the session branch.
   void createAndGo(NavigationShellState shellState, Connection connection) {
     shellState.goToBranch(1);
     final newSession = ShellSession(
       id: _nextSessionId++,
       connection: connection,
-      connectionState: ShellSessionConnectionState.connecting,
     );
+    state.connectionStates[newSession.id] =
+        ShellSessionConnectionState.connecting;
     state = state.copyWith(
       activeSessions: [...state.activeSessions, newSession],
       selectedSessionId: newSession.id,
-    );
-  }
-
-  void updateSessionConnectionState(
-    int sessionId,
-    ShellSessionConnectionState connectionState,
-  ) {
-    state = state.copyWith(
-      activeSessions: state.activeSessions.map((session) {
-        if (session.id == sessionId) {
-          return session.copyWith(connectionState: connectionState);
-        }
-        return session;
-      }).toList(),
     );
   }
 
@@ -45,6 +33,9 @@ class ShellSessionNotifier extends Notifier<SSHSessionState> {
     state = SSHSessionState(
       activeSessions: state.activeSessions,
       selectedSessionId: sessionId,
+      connectionStates: state.connectionStates,
+      clients: state.clients,
+      sshSessions: state.sshSessions,
     );
   }
 }

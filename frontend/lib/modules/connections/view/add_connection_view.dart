@@ -11,14 +11,15 @@ import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lucide_flutter/lucide_flutter.dart';
 
-class AddHostsView extends StatefulHookConsumerWidget {
-  const AddHostsView({super.key});
+class AddConnectionView extends StatefulHookConsumerWidget {
+  const AddConnectionView({super.key});
 
   @override
-  ConsumerState<ConsumerStatefulWidget> createState() => _AddHostsPageState();
+  ConsumerState<ConsumerStatefulWidget> createState() =>
+      _AddConnectionPageState();
 }
 
-class _AddHostsPageState extends ConsumerState<AddHostsView> {
+class _AddConnectionPageState extends ConsumerState<AddConnectionView> {
   static const List<(CredentialType, String, IconData)> allowedCredentialTypes =
       [
         (CredentialType.password, 'Password', LucideIcons.rectangleEllipsis),
@@ -35,6 +36,7 @@ class _AddHostsPageState extends ConsumerState<AddHostsView> {
     final usernameController = useTextEditingController();
     final passwordController = useTextEditingController();
     final pemController = useTextEditingController();
+    final pemPassphraseController = useTextEditingController();
 
     final labelPlaceholder = useState('');
     final hasIdentities = useMemoizedFuture(() async {
@@ -86,7 +88,7 @@ class _AddHostsPageState extends ConsumerState<AddHostsView> {
                     maxLines: 1,
                     autovalidateMode: AutovalidateMode.onUserInteraction,
                   ),
-                if (additionalCredentialType.value == CredentialType.key)
+                if (additionalCredentialType.value == CredentialType.key) ...[
                   FTextFormField(
                     label: Text('PEM Key'),
                     hint: '-----BEGIN OPENSSH PRIVATE KEY-----',
@@ -95,6 +97,14 @@ class _AddHostsPageState extends ConsumerState<AddHostsView> {
                     maxLines: null,
                     autovalidateMode: AutovalidateMode.onUserInteraction,
                   ),
+                  FTextFormField(
+                    label: Text('PEM Passphrase'),
+                    controller: pemPassphraseController,
+                    obscureText: true,
+                    maxLines: 1,
+                    autovalidateMode: AutovalidateMode.onUserInteraction,
+                  ),
+                ],
                 Wrap(
                   spacing: 16,
                   runSpacing: 8,
@@ -160,13 +170,16 @@ class _AddHostsPageState extends ConsumerState<AddHostsView> {
                           data: passwordController.text,
                         ),
                       );
-                } else if (additionalCredentialType.value ==
-                    CredentialType.key) {
+                } else if (additionalCredentialType.value == CredentialType.key) {
+                  final passphrase = pemPassphraseController.text.trim();
                   credentialId = await CliqDatabase.credentialsRepository
                       .insert(
                         CredentialsCompanion.insert(
                           type: CredentialType.key,
                           data: pemController.text,
+                          passphrase: Value.absentIfNull(
+                            passphrase.isNotEmpty ? passphrase : null,
+                          ),
                         ),
                       );
                 }

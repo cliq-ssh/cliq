@@ -36,8 +36,19 @@ class Credentials extends Table with TableInfo<Credentials, Credential> {
     requiredDuringInsert: true,
     $customConstraints: 'NOT NULL',
   );
+  static const VerificationMeta _passphraseMeta = const VerificationMeta(
+    'passphrase',
+  );
+  late final GeneratedColumn<String> passphrase = GeneratedColumn<String>(
+    'passphrase',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    $customConstraints: '',
+  );
   @override
-  List<GeneratedColumn> get $columns => [id, type, data];
+  List<GeneratedColumn> get $columns => [id, type, data, passphrase];
   @override
   String get aliasedName => _alias ?? actualTableName;
   @override
@@ -60,6 +71,12 @@ class Credentials extends Table with TableInfo<Credentials, Credential> {
       );
     } else if (isInserting) {
       context.missing(_dataMeta);
+    }
+    if (data.containsKey('passphrase')) {
+      context.handle(
+        _passphraseMeta,
+        passphrase.isAcceptableOrUnknown(data['passphrase']!, _passphraseMeta),
+      );
     }
     return context;
   }
@@ -84,6 +101,10 @@ class Credentials extends Table with TableInfo<Credentials, Credential> {
         DriftSqlType.string,
         data['${effectivePrefix}data'],
       )!,
+      passphrase: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}passphrase'],
+      ),
     );
   }
 
@@ -102,7 +123,13 @@ class Credential extends DataClass implements Insertable<Credential> {
   final int id;
   final CredentialType type;
   final String data;
-  const Credential({required this.id, required this.type, required this.data});
+  final String? passphrase;
+  const Credential({
+    required this.id,
+    required this.type,
+    required this.data,
+    this.passphrase,
+  });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
@@ -111,6 +138,9 @@ class Credential extends DataClass implements Insertable<Credential> {
       map['type'] = Variable<int>(Credentials.$convertertype.toSql(type));
     }
     map['data'] = Variable<String>(data);
+    if (!nullToAbsent || passphrase != null) {
+      map['passphrase'] = Variable<String>(passphrase);
+    }
     return map;
   }
 
@@ -119,6 +149,9 @@ class Credential extends DataClass implements Insertable<Credential> {
       id: Value(id),
       type: Value(type),
       data: Value(data),
+      passphrase: passphrase == null && nullToAbsent
+          ? const Value.absent()
+          : Value(passphrase),
     );
   }
 
@@ -133,6 +166,7 @@ class Credential extends DataClass implements Insertable<Credential> {
         serializer.fromJson<int>(json['type']),
       ),
       data: serializer.fromJson<String>(json['data']),
+      passphrase: serializer.fromJson<String?>(json['passphrase']),
     );
   }
   @override
@@ -142,20 +176,29 @@ class Credential extends DataClass implements Insertable<Credential> {
       'id': serializer.toJson<int>(id),
       'type': serializer.toJson<int>(Credentials.$convertertype.toJson(type)),
       'data': serializer.toJson<String>(data),
+      'passphrase': serializer.toJson<String?>(passphrase),
     };
   }
 
-  Credential copyWith({int? id, CredentialType? type, String? data}) =>
-      Credential(
-        id: id ?? this.id,
-        type: type ?? this.type,
-        data: data ?? this.data,
-      );
+  Credential copyWith({
+    int? id,
+    CredentialType? type,
+    String? data,
+    Value<String?> passphrase = const Value.absent(),
+  }) => Credential(
+    id: id ?? this.id,
+    type: type ?? this.type,
+    data: data ?? this.data,
+    passphrase: passphrase.present ? passphrase.value : this.passphrase,
+  );
   Credential copyWithCompanion(CredentialsCompanion data) {
     return Credential(
       id: data.id.present ? data.id.value : this.id,
       type: data.type.present ? data.type.value : this.type,
       data: data.data.present ? data.data.value : this.data,
+      passphrase: data.passphrase.present
+          ? data.passphrase.value
+          : this.passphrase,
     );
   }
 
@@ -164,46 +207,53 @@ class Credential extends DataClass implements Insertable<Credential> {
     return (StringBuffer('Credential(')
           ..write('id: $id, ')
           ..write('type: $type, ')
-          ..write('data: $data')
+          ..write('data: $data, ')
+          ..write('passphrase: $passphrase')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode => Object.hash(id, type, data);
+  int get hashCode => Object.hash(id, type, data, passphrase);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
       (other is Credential &&
           other.id == this.id &&
           other.type == this.type &&
-          other.data == this.data);
+          other.data == this.data &&
+          other.passphrase == this.passphrase);
 }
 
 class CredentialsCompanion extends UpdateCompanion<Credential> {
   final Value<int> id;
   final Value<CredentialType> type;
   final Value<String> data;
+  final Value<String?> passphrase;
   const CredentialsCompanion({
     this.id = const Value.absent(),
     this.type = const Value.absent(),
     this.data = const Value.absent(),
+    this.passphrase = const Value.absent(),
   });
   CredentialsCompanion.insert({
     this.id = const Value.absent(),
     required CredentialType type,
     required String data,
+    this.passphrase = const Value.absent(),
   }) : type = Value(type),
        data = Value(data);
   static Insertable<Credential> custom({
     Expression<int>? id,
     Expression<int>? type,
     Expression<String>? data,
+    Expression<String>? passphrase,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
       if (type != null) 'type': type,
       if (data != null) 'data': data,
+      if (passphrase != null) 'passphrase': passphrase,
     });
   }
 
@@ -211,11 +261,13 @@ class CredentialsCompanion extends UpdateCompanion<Credential> {
     Value<int>? id,
     Value<CredentialType>? type,
     Value<String>? data,
+    Value<String?>? passphrase,
   }) {
     return CredentialsCompanion(
       id: id ?? this.id,
       type: type ?? this.type,
       data: data ?? this.data,
+      passphrase: passphrase ?? this.passphrase,
     );
   }
 
@@ -231,6 +283,9 @@ class CredentialsCompanion extends UpdateCompanion<Credential> {
     if (data.present) {
       map['data'] = Variable<String>(data.value);
     }
+    if (passphrase.present) {
+      map['passphrase'] = Variable<String>(passphrase.value);
+    }
     return map;
   }
 
@@ -239,7 +294,8 @@ class CredentialsCompanion extends UpdateCompanion<Credential> {
     return (StringBuffer('CredentialsCompanion(')
           ..write('id: $id, ')
           ..write('type: $type, ')
-          ..write('data: $data')
+          ..write('data: $data, ')
+          ..write('passphrase: $passphrase')
           ..write(')'))
         .toString();
   }
@@ -1425,6 +1481,86 @@ abstract class _$CliqDatabase extends GeneratedDatabase {
   late final Identities identities = Identities(this);
   late final Keys keys = Keys(this);
   late final Connections connections = Connections(this);
+  Selectable<FindFullIdentityByIdResult> findFullIdentityById(int id) {
+    return customSelect(
+      'SELECT i.id AS identity_id, i.username AS identity_username, i.credential_id AS identity_credential_id, c.id AS credential_id, c.type AS credential_type, c.data AS credential_data, c.passphrase AS credential_passphrase FROM identities AS i LEFT JOIN credentials AS c ON c.id = i.credential_id WHERE i.id = ?1',
+      variables: [Variable<int>(id)],
+      readsFrom: {identities, credentials},
+    ).map(
+      (QueryRow row) => FindFullIdentityByIdResult(
+        identityId: row.read<int>('identity_id'),
+        identityUsername: row.read<String>('identity_username'),
+        identityCredentialId: row.read<int>('identity_credential_id'),
+        credentialId: row.readNullable<int>('credential_id'),
+        credentialType: NullAwareTypeConverter.wrapFromSql(
+          Credentials.$convertertype,
+          row.readNullable<int>('credential_type'),
+        ),
+        credentialData: row.readNullable<String>('credential_data'),
+        credentialPassphrase: row.readNullable<String>('credential_passphrase'),
+      ),
+    );
+  }
+
+  Selectable<FindFullConnectionByIdResult> findFullConnectionById(int id) {
+    return customSelect(
+      'SELECT con.id AS connection_id, con.address, con.port, con.identity_id, con.username AS connection_username, con.credential_id AS connection_credential_id, con.label, con.icon, con.color, i.id AS identity_id, i.username AS identity_username, i.credential_id AS identity_credential_id, ci.id AS identity_credential_id_explicit, ci.type AS identity_credential_type, ci.data AS identity_credential_data, ci.passphrase AS identity_credential_passphrase, cc.id AS connection_credential_id_explicit, cc.type AS connection_credential_type, cc.data AS connection_credential_data, cc.passphrase AS connection_credential_passphrase, COALESCE(ci.id, cc.id) AS effective_credential_id, COALESCE(ci.type, cc.type) AS effective_credential_type, COALESCE(ci.data, cc.data) AS effective_credential_data FROM connections AS con LEFT JOIN identities AS i ON i.id = con.identity_id LEFT JOIN credentials AS ci ON ci.id = i.credential_id LEFT JOIN credentials AS cc ON cc.id = con.credential_id WHERE con.id = ?1',
+      variables: [Variable<int>(id)],
+      readsFrom: {connections, identities, credentials},
+    ).map(
+      (QueryRow row) => FindFullConnectionByIdResult(
+        connectionId: row.read<int>('connection_id'),
+        address: row.read<String>('address'),
+        port: row.read<int>('port'),
+        identityId: row.readNullable<int>('identity_id'),
+        connectionUsername: row.readNullable<String>('connection_username'),
+        connectionCredentialId: row.readNullable<int>(
+          'connection_credential_id',
+        ),
+        label: row.readNullable<String>('label'),
+        icon: row.readNullable<String>('icon'),
+        color: row.readNullable<String>('color'),
+        identityId1: row.readNullable<int>('identity_id'),
+        identityUsername: row.readNullable<String>('identity_username'),
+        identityCredentialId: row.readNullable<int>('identity_credential_id'),
+        identityCredentialIdExplicit: row.readNullable<int>(
+          'identity_credential_id_explicit',
+        ),
+        identityCredentialType: NullAwareTypeConverter.wrapFromSql(
+          Credentials.$convertertype,
+          row.readNullable<int>('identity_credential_type'),
+        ),
+        identityCredentialData: row.readNullable<String>(
+          'identity_credential_data',
+        ),
+        identityCredentialPassphrase: row.readNullable<String>(
+          'identity_credential_passphrase',
+        ),
+        connectionCredentialIdExplicit: row.readNullable<int>(
+          'connection_credential_id_explicit',
+        ),
+        connectionCredentialType: NullAwareTypeConverter.wrapFromSql(
+          Credentials.$convertertype,
+          row.readNullable<int>('connection_credential_type'),
+        ),
+        connectionCredentialData: row.readNullable<String>(
+          'connection_credential_data',
+        ),
+        connectionCredentialPassphrase: row.readNullable<String>(
+          'connection_credential_passphrase',
+        ),
+        effectiveCredentialId: row.readNullable<int>('effective_credential_id'),
+        effectiveCredentialType: NullAwareTypeConverter.wrapFromSql(
+          Credentials.$convertertype,
+          row.readNullable<int>('effective_credential_type'),
+        ),
+        effectiveCredentialData: row.readNullable<String>(
+          'effective_credential_data',
+        ),
+      ),
+    );
+  }
+
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
@@ -1459,12 +1595,14 @@ typedef $CredentialsCreateCompanionBuilder =
       Value<int> id,
       required CredentialType type,
       required String data,
+      Value<String?> passphrase,
     });
 typedef $CredentialsUpdateCompanionBuilder =
     CredentialsCompanion Function({
       Value<int> id,
       Value<CredentialType> type,
       Value<String> data,
+      Value<String?> passphrase,
     });
 
 final class $CredentialsReferences
@@ -1536,6 +1674,11 @@ class $CredentialsFilterComposer extends Composer<_$CliqDatabase, Credentials> {
 
   ColumnFilters<String> get data => $composableBuilder(
     column: $table.data,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get passphrase => $composableBuilder(
+    column: $table.passphrase,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -1613,6 +1756,11 @@ class $CredentialsOrderingComposer
     column: $table.data,
     builder: (column) => ColumnOrderings(column),
   );
+
+  ColumnOrderings<String> get passphrase => $composableBuilder(
+    column: $table.passphrase,
+    builder: (column) => ColumnOrderings(column),
+  );
 }
 
 class $CredentialsAnnotationComposer
@@ -1632,6 +1780,11 @@ class $CredentialsAnnotationComposer
 
   GeneratedColumn<String> get data =>
       $composableBuilder(column: $table.data, builder: (column) => column);
+
+  GeneratedColumn<String> get passphrase => $composableBuilder(
+    column: $table.passphrase,
+    builder: (column) => column,
+  );
 
   Expression<T> identitiesRefs<T extends Object>(
     Expression<T> Function($IdentitiesAnnotationComposer a) f,
@@ -1715,13 +1868,25 @@ class $CredentialsTableManager
                 Value<int> id = const Value.absent(),
                 Value<CredentialType> type = const Value.absent(),
                 Value<String> data = const Value.absent(),
-              }) => CredentialsCompanion(id: id, type: type, data: data),
+                Value<String?> passphrase = const Value.absent(),
+              }) => CredentialsCompanion(
+                id: id,
+                type: type,
+                data: data,
+                passphrase: passphrase,
+              ),
           createCompanionCallback:
               ({
                 Value<int> id = const Value.absent(),
                 required CredentialType type,
                 required String data,
-              }) => CredentialsCompanion.insert(id: id, type: type, data: data),
+                Value<String?> passphrase = const Value.absent(),
+              }) => CredentialsCompanion.insert(
+                id: id,
+                type: type,
+                data: data,
+                passphrase: passphrase,
+              ),
           withReferenceMapper: (p0) => p0
               .map(
                 (e) =>
@@ -2845,4 +3010,74 @@ class $CliqDatabaseManager {
   $KeysTableManager get keys => $KeysTableManager(_db, _db.keys);
   $ConnectionsTableManager get connections =>
       $ConnectionsTableManager(_db, _db.connections);
+}
+
+class FindFullIdentityByIdResult {
+  final int identityId;
+  final String identityUsername;
+  final int identityCredentialId;
+  final int? credentialId;
+  final CredentialType? credentialType;
+  final String? credentialData;
+  final String? credentialPassphrase;
+  FindFullIdentityByIdResult({
+    required this.identityId,
+    required this.identityUsername,
+    required this.identityCredentialId,
+    this.credentialId,
+    this.credentialType,
+    this.credentialData,
+    this.credentialPassphrase,
+  });
+}
+
+class FindFullConnectionByIdResult {
+  final int connectionId;
+  final String address;
+  final int port;
+  final int? identityId;
+  final String? connectionUsername;
+  final int? connectionCredentialId;
+  final String? label;
+  final String? icon;
+  final String? color;
+  final int? identityId1;
+  final String? identityUsername;
+  final int? identityCredentialId;
+  final int? identityCredentialIdExplicit;
+  final CredentialType? identityCredentialType;
+  final String? identityCredentialData;
+  final String? identityCredentialPassphrase;
+  final int? connectionCredentialIdExplicit;
+  final CredentialType? connectionCredentialType;
+  final String? connectionCredentialData;
+  final String? connectionCredentialPassphrase;
+  final int? effectiveCredentialId;
+  final CredentialType? effectiveCredentialType;
+  final String? effectiveCredentialData;
+  FindFullConnectionByIdResult({
+    required this.connectionId,
+    required this.address,
+    required this.port,
+    this.identityId,
+    this.connectionUsername,
+    this.connectionCredentialId,
+    this.label,
+    this.icon,
+    this.color,
+    this.identityId1,
+    this.identityUsername,
+    this.identityCredentialId,
+    this.identityCredentialIdExplicit,
+    this.identityCredentialType,
+    this.identityCredentialData,
+    this.identityCredentialPassphrase,
+    this.connectionCredentialIdExplicit,
+    this.connectionCredentialType,
+    this.connectionCredentialData,
+    this.connectionCredentialPassphrase,
+    this.effectiveCredentialId,
+    this.effectiveCredentialType,
+    this.effectiveCredentialData,
+  });
 }
