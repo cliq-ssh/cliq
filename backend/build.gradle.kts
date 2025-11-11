@@ -13,7 +13,7 @@ plugins {
     id("org.flywaydb.flyway") version "11.16.0"
 
     // Linter and Formatter
-    id("org.jlleitschuh.gradle.ktlint") version "13.1.0"
+    id("org.jlleitschuh.gradle.ktlint") version "14.0.1"
 }
 
 group = "app.cliq"
