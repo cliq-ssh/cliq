@@ -1,7 +1,7 @@
 name: CLIq Backend
 services:
   db:
-    image: postgres:18.0-alpine3.22
+    image: postgres:18.1-alpine3.22
     init: true
     environment:
       TZ: ${TZ}
