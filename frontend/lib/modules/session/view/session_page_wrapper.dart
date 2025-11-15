@@ -23,7 +23,7 @@ class _SessionPageState extends ConsumerState<SessionPageWrapper> {
 
     useEffect(() {
       if (pageController.hasClients && session.selectedSessionId != null) {
-        pageController.jumpToPage(session.selectedSessionId!);
+        pageController.jumpToPage(session.selectedSessionPageIndex!);
       }
       return null;
     }, [session.selectedSessionId]);

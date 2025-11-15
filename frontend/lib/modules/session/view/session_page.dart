@@ -25,17 +25,17 @@ class ShellSessionPage extends StatefulHookConsumerWidget {
 
 class _ShellSessionPageState extends ConsumerState<ShellSessionPage>
     with AutomaticKeepAliveClientMixin {
+
+  SSHClient? get sshClient => widget.session.sshClient;
+  SSHSession? get sshSession => widget.session.sshSession;
+
   @override
   Widget build(BuildContext context) {
     super.build(context);
 
     final typography = context.theme.typography;
-
     final error = useState<String?>(null);
     final fullConnection = useState<ConnectionFull?>(null);
-
-    final client = useState<SSHClient?>(null);
-    final sshSession = useState<SSHSession?>(null);
 
     buildConnecting() {
       return [
@@ -80,18 +80,6 @@ class _ShellSessionPageState extends ConsumerState<ShellSessionPage>
           ),
         FButton(onPress: () {}, child: Text('Retry')),
       ];
-    }
-
-    closeSession() async {
-      try {
-        sshSession.value?.kill(SSHSignal.KILL);
-        sshSession.value?.close();
-      } catch (_) {}
-      try {
-        client.value?.close();
-      } catch (_) {}
-      sshSession.value = null;
-      client.value = null;
     }
 
     useEffect(() {
@@ -160,8 +148,6 @@ class _ShellSessionPageState extends ConsumerState<ShellSessionPage>
             ..setSessionSSHClient(widget.session.id, sshClient)
             ..setSessionSSHSession(widget.session.id, sshShell)
             ..setSessionState(widget.session.id, .connected);
-          client.value = sshClient;
-          sshSession.value = sshShell;
 
           // TODO: add listeners for terminal data, errors, etc.
         } catch (e, _) {
@@ -170,7 +156,7 @@ class _ShellSessionPageState extends ConsumerState<ShellSessionPage>
               .setSessionState(widget.session.id, .disconnected);
           error.value = e.toString();
 
-          closeSession();
+          widget.session.dispose();
         }
       }
 
@@ -214,7 +200,7 @@ class _ShellSessionPageState extends ConsumerState<ShellSessionPage>
             openSsh();
           });
 
-      return () => closeSession();
+      return () => widget.session.dispose();
     }, []);
 
     return FScaffold(
@@ -232,7 +218,7 @@ class _ShellSessionPageState extends ConsumerState<ShellSessionPage>
                       ...buildConnecting(),
                     if (widget.session.state == .connected)
                       Text(
-                        'Connected to ${widget.session.connection.address}, ${client.value?.remoteVersion ?? '<version>'}',
+                        'Connected to ${widget.session.connection.address}, ${sshClient?.remoteVersion ?? '<version>'}',
                         style: typography.xl,
                       ),
                     if (widget.session.state == .disconnected) ...buildError(),

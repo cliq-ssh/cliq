@@ -6,7 +6,7 @@ import '../../../shared/data/sqlite/database.dart';
 enum ShellSessionConnectionState { disconnected, connecting, connected }
 
 class ShellSession {
-  final int id;
+  final String id;
   final Connection connection;
   final ShellSessionConnectionState state;
   final SSHClient? sshClient;
@@ -21,6 +21,12 @@ class ShellSession {
   });
 
   String get effectiveName => connection.effectiveName;
+
+  void dispose() {
+    sshSession?.kill(SSHSignal.KILL);
+    sshSession?.close();
+    sshClient?.close();
+  }
 
   ShellSession copyWith({
     ShellSessionConnectionState? state,

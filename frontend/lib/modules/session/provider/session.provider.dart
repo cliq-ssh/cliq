@@ -2,6 +2,7 @@ import 'package:cliq/modules/session/model/session.state.dart';
 import 'package:cliq/routing/view/navigation_shell.dart';
 import 'package:dartssh2/dartssh2.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:uuid/v4.dart';
 
 import '../../../shared/data/sqlite/database.dart';
 import '../model/session.model.dart';
@@ -9,47 +10,72 @@ import '../model/session.model.dart';
 final sessionProvider = NotifierProvider(ShellSessionNotifier.new);
 
 class ShellSessionNotifier extends Notifier<SSHSessionState> {
-  int _nextSessionId = 0;
+  final UuidV4 uuid = UuidV4();
 
   @override
   SSHSessionState build() => SSHSessionState.initial();
 
   /// Creates a new session and navigates to the session branch.
   void createAndGo(NavigationShellState shellState, Connection connection) {
+    final id = uuid.generate();
+
     shellState.goToBranch(1);
     final newSession = ShellSession(
-      id: _nextSessionId++,
+      id: id,
       connection: connection,
       state: .connecting,
     );
+
+    final updatedSessions = [...state.activeSessions, newSession];
+    final pageIndexes = _generatePageIndex(updatedSessions);
     state = state.copyWith(
-      activeSessions: [...state.activeSessions, newSession],
-      selectedSessionId: newSession.id,
+      activeSessions: updatedSessions,
+      selectedSessionId: id,
+      pageIndexes: pageIndexes,
     );
   }
 
   /// Sets the current session and navigates to the session branch if a session is selected,
   /// or to the default branch (dashboard) if no session is selected.
-  void setSelectedSession(NavigationShellState shellState, int? sessionId) {
+  void setSelectedSession(NavigationShellState shellState, String? sessionId) {
     shellState.goToBranch(sessionId == null ? 0 : 1);
-    state = SSHSessionState(
-      activeSessions: state.activeSessions,
-      selectedSessionId: sessionId,
+    state = state.copyWith(selectedSessionId: sessionId);
+  }
+
+  void closeSession(NavigationShellState shellState, String sessionId) {
+    final updatedSessions = state.activeSessions.where((s) => s.id != sessionId).toList();
+    final pageIndexes = _generatePageIndex(updatedSessions);
+    String? newSelectedSessionId = state.selectedSessionId;
+
+    // If the closed session was the selected one, update the selected session.
+    if (state.selectedSessionId == sessionId) {
+      if (updatedSessions.isNotEmpty) {
+        newSelectedSessionId = updatedSessions.last.id;
+      } else {
+        newSelectedSessionId = null;
+        shellState.goToBranch(0); // Go to default branch if no sessions left.
+      }
+    }
+
+    state = state.copyWith(
+      activeSessions: updatedSessions,
+      selectedSessionId: newSelectedSessionId,
+      pageIndexes: pageIndexes,
     );
   }
 
-  void setSessionState(int sessionId, ShellSessionConnectionState newState) {
+  void setSessionState(String sessionId, ShellSessionConnectionState newState) {
     _modifySession(sessionId, (session) => session.copyWith(state: newState));
   }
 
-  void setSessionSSHClient(int sessionId, SSHClient sshClient) {
+  void setSessionSSHClient(String sessionId, SSHClient sshClient) {
     _modifySession(
       sessionId,
       (session) => session.copyWith(sshClient: sshClient),
     );
   }
 
-  void setSessionSSHSession(int sessionId, SSHSession sshSession) {
+  void setSessionSSHSession(String sessionId, SSHSession sshSession) {
     _modifySession(
       sessionId,
       (session) => session.copyWith(sshSession: sshSession),
@@ -57,7 +83,7 @@ class ShellSessionNotifier extends Notifier<SSHSessionState> {
   }
 
   void _modifySession(
-    int sessionId,
+    String sessionId,
     ShellSession Function(ShellSession) modify,
   ) {
     final updatedSessions = state.activeSessions.map((session) {
@@ -68,5 +94,13 @@ class ShellSessionNotifier extends Notifier<SSHSessionState> {
     }).toList();
 
     state = state.copyWith(activeSessions: updatedSessions);
+  }
+
+  Map<String, int> _generatePageIndex(List<ShellSession> sessions) {
+    final Map<String, int> pageIndexes = {};
+    for (var i = 0; i < sessions.length; i++) {
+      pageIndexes[sessions[i].id] = i;
+    }
+    return pageIndexes;
   }
 }
