@@ -36,6 +36,7 @@ class ShellSession {
       sshSession = null;
 
   bool get isConnected => sshClient != null && sshSession != null;
+
   /// Whether the session is likely in the process of connecting, since it is not connected and has no error.
   bool get isLikelyLoading => !isConnected && connectionError == null;
   String get effectiveName => connection.effectiveName;

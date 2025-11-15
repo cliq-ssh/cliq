@@ -61,14 +61,9 @@ class NavigationShellState extends ConsumerState<NavigationShell>
                       child: Icon(LucideIcons.house),
                     ),
                     for (final session in sessions.activeSessions)
-                      GestureDetector(
-                        onTap: () => ref
-                            .read(sessionProvider.notifier)
-                            .setSelectedSession(this, session.id),
-                        child: SessionTab(
-                          session: session,
-                          isSelected: sessions.selectedSessionId == session.id,
-                        ),
+                      SessionTab(
+                        session: session,
+                        isSelected: sessions.selectedSessionId == session.id,
                       ),
                     FPopoverMenu(
                       popoverController: popoverController,
