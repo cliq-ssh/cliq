@@ -55,7 +55,7 @@ class _ConnectionsPageState extends ConsumerState<ConnectionsPage> {
             alignment: WrapAlignment.center,
             children: [
               CliqGridColumn(
-                sizes: {Breakpoint.sm: 8},
+                sizes: {.sm: 8},
                 child: Column(
                   spacing: 4,
                   crossAxisAlignment: CrossAxisAlignment.center,

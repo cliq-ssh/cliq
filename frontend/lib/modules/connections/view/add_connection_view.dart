@@ -162,7 +162,7 @@ class _AddConnectionPageState extends ConsumerState<AddConnectionView> {
                 }
 
                 int? credentialId;
-                if (additionalCredentialType.value == CredentialType.password) {
+                if (additionalCredentialType.value == .password) {
                   credentialId = await CliqDatabase.credentialsRepository
                       .insert(
                         CredentialsCompanion.insert(
@@ -170,7 +170,7 @@ class _AddConnectionPageState extends ConsumerState<AddConnectionView> {
                           data: passwordController.text,
                         ),
                       );
-                } else if (additionalCredentialType.value == CredentialType.key) {
+                } else if (additionalCredentialType.value == .key) {
                   final passphrase = pemPassphraseController.text.trim();
                   credentialId = await CliqDatabase.credentialsRepository
                       .insert(

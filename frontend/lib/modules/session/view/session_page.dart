@@ -3,7 +3,7 @@ import 'package:cliq/modules/session/model/session.model.dart';
 import 'package:cliq/shared/data/sqlite/database.dart';
 import 'package:cliq/shared/model/identity_full.model.dart';
 import 'package:cliq_ui/cliq_ui.dart'
-    show CliqGridColumn, CliqGridContainer, CliqGridRow, Breakpoint;
+    show CliqGridColumn, CliqGridContainer, CliqGridRow;
 import 'package:dartssh2/dartssh2.dart';
 import 'package:flutter/material.dart' hide LicensePage;
 import 'package:flutter_hooks/flutter_hooks.dart';
@@ -11,7 +11,6 @@ import 'package:forui/forui.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lucide_flutter/lucide_flutter.dart';
 
-import '../../../shared/data/sqlite/credentials/credential_type.dart';
 import '../provider/session.provider.dart';
 
 class ShellSessionPage extends StatefulHookConsumerWidget {
@@ -30,9 +29,6 @@ class _ShellSessionPageState extends ConsumerState<ShellSessionPage>
   Widget build(BuildContext context) {
     super.build(context);
 
-    final connectionState = ref
-        .watch(sessionProvider)
-        .connectionStates[widget.session.id];
     final typography = context.theme.typography;
 
     final error = useState<String?>(null);
@@ -50,7 +46,7 @@ class _ShellSessionPageState extends ConsumerState<ShellSessionPage>
               TextSpan(text: 'Connecting to '),
               TextSpan(
                 text: widget.session.connection.address,
-                style: typography.xl.copyWith(fontWeight: FontWeight.bold),
+                style: typography.xl.copyWith(fontWeight: .bold),
               ),
             ],
           ),
@@ -68,7 +64,7 @@ class _ShellSessionPageState extends ConsumerState<ShellSessionPage>
               TextSpan(text: 'Failed to connect to '),
               TextSpan(
                 text: '${widget.session.connection.address}:',
-                style: typography.xl.copyWith(fontWeight: FontWeight.bold),
+                style: typography.xl.copyWith(fontWeight: .bold),
               ),
             ],
           ),
@@ -86,12 +82,9 @@ class _ShellSessionPageState extends ConsumerState<ShellSessionPage>
       ];
     }
 
-    setConnectionState(ShellSessionConnectionState state) {
-      ref.read(sessionProvider).connectionStates[widget.session.id] = state;
-    }
-
-    closeSession() {
+    closeSession() async {
       try {
+        sshSession.value?.kill(SSHSignal.KILL);
         sshSession.value?.close();
       } catch (_) {}
       try {
@@ -104,7 +97,9 @@ class _ShellSessionPageState extends ConsumerState<ShellSessionPage>
     useEffect(() {
       Future<void> openSsh() async {
         error.value = null;
-        setConnectionState(ShellSessionConnectionState.connecting);
+        ref
+            .read(sessionProvider.notifier)
+            .setSessionState(widget.session.id, .connecting);
 
         final con = fullConnection.value!;
 
@@ -123,15 +118,17 @@ class _ShellSessionPageState extends ConsumerState<ShellSessionPage>
 
         List<SSHKeyPair> keys = [];
         for (final cred in credentials) {
-          if (cred.type == CredentialType.key) {
+          if (cred.type == .key) {
             try {
               if (SSHKeyPair.isEncryptedPem(cred.data)) {
                 if (cred.passphrase == null) {
-                  throw Exception('Key is encrypted but no passphrase provided');
+                  throw Exception(
+                    'Key is encrypted but no passphrase provided',
+                  );
                 }
                 keys = [
                   ...keys,
-                  ...SSHKeyPair.fromPem(cred.data, cred.passphrase!)
+                  ...SSHKeyPair.fromPem(cred.data, cred.passphrase!),
                 ];
               } else {
                 keys = [...keys, ...SSHKeyPair.fromPem(cred.data)];
@@ -143,13 +140,13 @@ class _ShellSessionPageState extends ConsumerState<ShellSessionPage>
         try {
           final socket = await SSHSocket.connect(con.address, con.port);
 
-          final client = SSHClient(
+          final sshClient = SSHClient(
             socket,
             username: effectiveUsername,
             identities: keys,
             onPasswordRequest: () {
               for (final cred in credentials) {
-                if (cred.type == CredentialType.password) {
+                if (cred.type == .password) {
                   return cred.data;
                 }
               }
@@ -157,14 +154,20 @@ class _ShellSessionPageState extends ConsumerState<ShellSessionPage>
             },
           );
 
-          final shell = await client.shell();
-          await client.authenticated;
-          setConnectionState(ShellSessionConnectionState.connected);
-          print(client.remoteVersion);
+          final sshShell = await sshClient.shell();
+          await sshClient.authenticated;
+          ref.read(sessionProvider.notifier)
+            ..setSessionSSHClient(widget.session.id, sshClient)
+            ..setSessionSSHSession(widget.session.id, sshShell)
+            ..setSessionState(widget.session.id, .connected);
+          client.value = sshClient;
+          sshSession.value = sshShell;
 
           // TODO: add listeners for terminal data, errors, etc.
         } catch (e, _) {
-          setConnectionState(ShellSessionConnectionState.disconnected);
+          ref
+              .read(sessionProvider.notifier)
+              .setSessionState(widget.session.id, .disconnected);
           error.value = e.toString();
 
           closeSession();
@@ -189,7 +192,7 @@ class _ShellSessionPageState extends ConsumerState<ShellSessionPage>
                         id: value.identityCredentialId!,
                         type: value.identityCredentialType!,
                         data: value.identityCredentialData!,
-                        passphrase: value.identityCredentialPassphrase
+                        passphrase: value.identityCredentialPassphrase,
                       ),
                     ),
               credential: value.connectionCredentialId == null
@@ -198,7 +201,7 @@ class _ShellSessionPageState extends ConsumerState<ShellSessionPage>
                       id: value.connectionCredentialId!,
                       type: value.connectionCredentialType!,
                       data: value.connectionCredentialData!,
-                      passphrase: value.connectionCredentialPassphrase
+                      passphrase: value.connectionCredentialPassphrase,
                     ),
               username: value.connectionUsername,
               label: value.label,
@@ -216,24 +219,23 @@ class _ShellSessionPageState extends ConsumerState<ShellSessionPage>
 
     return FScaffold(
       child: CliqGridContainer(
-        alignment: Alignment.center,
+        alignment: .center,
         children: [
           CliqGridRow(
             children: [
               CliqGridColumn(
-                sizes: {Breakpoint.sm: 8},
+                sizes: {.sm: 8},
                 child: Column(
                   spacing: 32,
                   children: [
-                    if (connectionState == ShellSessionConnectionState.connecting)
+                    if (widget.session.state == .connecting)
                       ...buildConnecting(),
-                    if (connectionState == ShellSessionConnectionState.connected)
+                    if (widget.session.state == .connected)
                       Text(
                         'Connected to ${widget.session.connection.address}, ${client.value?.remoteVersion ?? '<version>'}',
                         style: typography.xl,
                       ),
-                    if (connectionState == ShellSessionConnectionState.disconnected)
-                      ...buildError(),
+                    if (widget.session.state == .disconnected) ...buildError(),
                   ],
                 ),
               ),

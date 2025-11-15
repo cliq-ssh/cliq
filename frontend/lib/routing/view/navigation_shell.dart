@@ -69,17 +69,12 @@ class NavigationShellState extends ConsumerState<NavigationShell>
                       padding: const EdgeInsets.symmetric(vertical: 6),
                       child: Builder(
                         builder: (context) {
-                          final state = ref
-                              .read(sessionProvider)
-                              .connectionStates[session.id];
                           return Row(
                             spacing: 8,
                             children: [
-                              if (state ==
-                                  ShellSessionConnectionState.connecting)
+                              if (session.state == .connecting)
                                 FCircularProgress(),
-                              if (state ==
-                                  ShellSessionConnectionState.disconnected)
+                              if (session.state == .disconnected)
                                 Icon(
                                   LucideIcons.plugZap,
                                   color: colors.destructive,
