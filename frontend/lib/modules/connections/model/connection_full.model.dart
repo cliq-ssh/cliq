@@ -2,6 +2,7 @@ import 'package:cliq/shared/data/sqlite/database.dart';
 
 import '../../../shared/model/identity_full.model.dart';
 
+/// Model class that better wraps the [FindFullConnectionByIdResult] class.
 class ConnectionFull {
   final int id;
   final String address;
@@ -12,6 +13,9 @@ class ConnectionFull {
   final String? label;
   final String? icon;
   final String? color;
+
+  String get effectiveUsername => username ?? identity!.username;
+  Credential? get effectiveCredential => credential ?? identity?.credential;
 
   const ConnectionFull({
     required this.id,
@@ -24,18 +28,4 @@ class ConnectionFull {
     this.icon,
     this.color,
   });
-
-  Connection toBaseClass() {
-    return Connection(
-      id: id,
-      address: address,
-      port: port,
-      identityId: identity?.id,
-      username: username,
-      credentialId: credential?.id,
-      label: label,
-      icon: icon,
-      color: color,
-    );
-  }
 }

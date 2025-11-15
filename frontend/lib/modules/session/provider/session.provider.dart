@@ -1,3 +1,4 @@
+import 'package:cliq/modules/connections/model/connection_full.model.dart';
 import 'package:cliq/modules/session/model/session.state.dart';
 import 'package:cliq/routing/view/navigation_shell.dart';
 import 'package:dartssh2/dartssh2.dart';
@@ -20,12 +21,10 @@ class ShellSessionNotifier extends Notifier<SSHSessionState> {
     final id = uuid.generate();
 
     shellState.goToBranch(1);
-    final newSession = ShellSession(
+    final newSession = ShellSession.disconnected(
       id: id,
       connection: connection,
-      state: .connecting,
     );
-
     final updatedSessions = [...state.activeSessions, newSession];
     final pageIndexes = _generatePageIndex(updatedSessions);
     state = state.copyWith(
@@ -43,7 +42,9 @@ class ShellSessionNotifier extends Notifier<SSHSessionState> {
   }
 
   void closeSession(NavigationShellState shellState, String sessionId) {
-    final updatedSessions = state.activeSessions.where((s) => s.id != sessionId).toList();
+    final updatedSessions = state.activeSessions
+        .where((s) => s.id != sessionId)
+        .toList();
     final pageIndexes = _generatePageIndex(updatedSessions);
     String? newSelectedSessionId = state.selectedSessionId;
 
@@ -64,22 +65,63 @@ class ShellSessionNotifier extends Notifier<SSHSessionState> {
     );
   }
 
-  void setSessionState(String sessionId, ShellSessionConnectionState newState) {
-    _modifySession(sessionId, (session) => session.copyWith(state: newState));
+  Future<SSHClient> createSSHClient(ConnectionFull connection) async {
+    final Credential? cred = connection.effectiveCredential;
+
+    List<SSHKeyPair> keyPairs = [];
+    if (cred != null && cred.type == .key) {
+      if (SSHKeyPair.isEncryptedPem(cred.data)) {
+        if (cred.passphrase == null) {
+          throw Exception('Key is encrypted but no passphrase provided');
+        }
+        keyPairs = [
+          ...keyPairs,
+          ...SSHKeyPair.fromPem(cred.data, cred.passphrase!),
+        ];
+      } else {
+        keyPairs = [...keyPairs, ...SSHKeyPair.fromPem(cred.data)];
+      }
+    }
+
+    final socket = await SSHSocket.connect(connection.address, connection.port);
+    final sshClient = SSHClient(
+      socket,
+      username: connection.effectiveUsername,
+      identities: keyPairs,
+      onPasswordRequest: () {
+        if (cred != null && cred.type == .password) {
+          return cred.data;
+        }
+        return null;
+      },
+    );
+
+    return sshClient;
   }
 
-  void setSessionSSHClient(String sessionId, SSHClient sshClient) {
-    _modifySession(
-      sessionId,
-      (session) => session.copyWith(sshClient: sshClient),
-    );
-  }
-
-  void setSessionSSHSession(String sessionId, SSHSession sshSession) {
-    _modifySession(
-      sessionId,
-      (session) => session.copyWith(sshSession: sshSession),
-    );
+  Future<void> spawnShell(String sessionId, SSHClient sshClient) async {
+    try {
+      final sshSession = await sshClient.shell();
+      await sshClient.authenticated;
+      _modifySession(
+        sessionId,
+        (session) => session.copyWith(
+          connectedAt: DateTime.now(),
+          sshClient: sshClient,
+          sshSession: sshSession,
+        ),
+      );
+    } catch (e) {
+      sshClient.close();
+      _modifySession(
+        sessionId,
+        (session) => ShellSession(
+          id: session.id,
+          connection: session.connection,
+          connectionError: e.toString(),
+        ),
+      );
+    }
   }
 
   void _modifySession(

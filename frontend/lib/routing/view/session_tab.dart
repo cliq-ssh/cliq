@@ -12,7 +12,11 @@ class SessionTab extends StatefulHookConsumerWidget {
   final ShellSession session;
   final bool isSelected;
 
-  const SessionTab({super.key, required this.session, this.isSelected = false});
+  const SessionTab({
+    super.key,
+    required this.session,
+    this.isSelected = false,
+  });
 
   @override
   ConsumerState<SessionTab> createState() => _SessionTabState();
@@ -33,14 +37,14 @@ class _SessionTabState extends ConsumerState<SessionTab> {
           child: Icon(LucideIcons.x, color: colors.destructive),
         );
       }
-      if (widget.session.state == .connecting) {
+      if (widget.session.isLikelyLoading) {
         return FCircularProgress();
       }
-      if (widget.session.state == .connected) {
+      if (widget.session.isConnected) {
         // TODO: space for terminal icon
         return Icon(LucideIcons.terminal);
       }
-      if (widget.session.state == .disconnected) {
+      if (widget.session.connectionError != null) {
         return Icon(LucideIcons.plugZap, color: colors.destructive);
       }
       return null;

@@ -1,3 +1,4 @@
+import 'package:cliq/modules/connections/extension/connection.extension.dart';
 import 'package:cliq/modules/connections/model/connection_full.model.dart';
 import 'package:cliq/modules/session/model/session.model.dart';
 import 'package:cliq/shared/data/sqlite/database.dart';
@@ -25,17 +26,15 @@ class ShellSessionPage extends StatefulHookConsumerWidget {
 
 class _ShellSessionPageState extends ConsumerState<ShellSessionPage>
     with AutomaticKeepAliveClientMixin {
-
-  SSHClient? get sshClient => widget.session.sshClient;
-  SSHSession? get sshSession => widget.session.sshSession;
+  ShellSession get session => widget.session;
+  SSHClient? get sshClient => session.sshClient;
+  SSHSession? get sshSession => session.sshSession;
 
   @override
   Widget build(BuildContext context) {
     super.build(context);
 
     final typography = context.theme.typography;
-    final error = useState<String?>(null);
-    final fullConnection = useState<ConnectionFull?>(null);
 
     buildConnecting() {
       return [
@@ -70,10 +69,10 @@ class _ShellSessionPageState extends ConsumerState<ShellSessionPage>
           ),
           style: typography.xl,
         ),
-        if (error.value != null)
+        if (widget.session.connectionError != null)
           FCard(
             subtitle: Text(
-              error.value!,
+              widget.session.connectionError!,
               style: typography.base,
               textAlign: TextAlign.center,
             ),
@@ -83,123 +82,22 @@ class _ShellSessionPageState extends ConsumerState<ShellSessionPage>
     }
 
     useEffect(() {
-      Future<void> openSsh() async {
-        error.value = null;
-        ref
+      Future<void> openSsh(ConnectionFull connection) async {
+        final client = await ref
             .read(sessionProvider.notifier)
-            .setSessionState(widget.session.id, .connecting);
+            .createSSHClient(connection);
 
-        final con = fullConnection.value!;
-
-        final shouldUseIdentity = con.identity != null;
-
-        // determine effective username
-        final effectiveUsername = shouldUseIdentity
-            ? con.identity!.username
-            : con.username!;
-
-        // collect possible credentials
-        final credentials = <Credential>[
-          ?con.credential,
-          if (shouldUseIdentity) ?con.identity?.credential,
-        ];
-
-        List<SSHKeyPair> keys = [];
-        for (final cred in credentials) {
-          if (cred.type == .key) {
-            try {
-              if (SSHKeyPair.isEncryptedPem(cred.data)) {
-                if (cred.passphrase == null) {
-                  throw Exception(
-                    'Key is encrypted but no passphrase provided',
-                  );
-                }
-                keys = [
-                  ...keys,
-                  ...SSHKeyPair.fromPem(cred.data, cred.passphrase!),
-                ];
-              } else {
-                keys = [...keys, ...SSHKeyPair.fromPem(cred.data)];
-              }
-            } catch (e, _) {}
-          }
-        }
-
-        try {
-          final socket = await SSHSocket.connect(con.address, con.port);
-
-          final sshClient = SSHClient(
-            socket,
-            username: effectiveUsername,
-            identities: keys,
-            onPasswordRequest: () {
-              for (final cred in credentials) {
-                if (cred.type == .password) {
-                  return cred.data;
-                }
-              }
-              return null;
-            },
-          );
-
-          final sshShell = await sshClient.shell();
-          await sshClient.authenticated;
-          ref.read(sessionProvider.notifier)
-            ..setSessionSSHClient(widget.session.id, sshClient)
-            ..setSessionSSHSession(widget.session.id, sshShell)
-            ..setSessionState(widget.session.id, .connected);
-
-          // TODO: add listeners for terminal data, errors, etc.
-        } catch (e, _) {
-          ref
-              .read(sessionProvider.notifier)
-              .setSessionState(widget.session.id, .disconnected);
-          error.value = e.toString();
-
-          widget.session.dispose();
-        }
+        await ref
+            .read(sessionProvider.notifier)
+            .spawnShell(widget.session.id, client);
+        // TODO: add listeners for terminal data, errors, etc.
       }
 
-      CliqDatabase.connectionsRepository.db
-          .findFullConnectionById(widget.session.connection.id)
-          .getSingleOrNull()
-          .then((value) {
-            // TODO: move mapping to service
-            return ConnectionFull(
-              id: value!.connectionId,
-              address: value.address,
-              port: value.port,
-              identity: value.identityId == null
-                  ? null
-                  : IdentityFull(
-                      id: value.identityId!,
-                      username: value.identityUsername!,
-                      credential: Credential(
-                        id: value.identityCredentialId!,
-                        type: value.identityCredentialType!,
-                        data: value.identityCredentialData!,
-                        passphrase: value.identityCredentialPassphrase,
-                      ),
-                    ),
-              credential: value.connectionCredentialId == null
-                  ? null
-                  : Credential(
-                      id: value.connectionCredentialId!,
-                      type: value.connectionCredentialType!,
-                      data: value.connectionCredentialData!,
-                      passphrase: value.connectionCredentialPassphrase,
-                    ),
-              username: value.connectionUsername,
-              label: value.label,
-              icon: value.icon,
-              color: value.color,
-            );
-          })
-          .then((value) {
-            fullConnection.value = value;
-            openSsh();
+      CliqDatabase.connectionService
+          .findConnectionFullById(widget.session.connection.id)
+          .then((connection) {
+            if (connection != null) openSsh(connection);
           });
-
       return () => widget.session.dispose();
     }, []);
 
@@ -214,14 +112,13 @@ class _ShellSessionPageState extends ConsumerState<ShellSessionPage>
                 child: Column(
                   spacing: 32,
                   children: [
-                    if (widget.session.state == .connecting)
-                      ...buildConnecting(),
-                    if (widget.session.state == .connected)
+                    if (session.connectionError != null) ...buildError(),
+                    if (session.isLikelyLoading) ...buildConnecting(),
+                    if (widget.session.isConnected)
                       Text(
                         'Connected to ${widget.session.connection.address}, ${sshClient?.remoteVersion ?? '<version>'}',
                         style: typography.xl,
                       ),
-                    if (widget.session.state == .disconnected) ...buildError(),
                   ],
                 ),
               ),

@@ -1,8 +1,10 @@
+import 'package:cliq/modules/connections/model/connection_full.model.dart';
 import 'package:cliq/shared/data/sqlite/credentials/credential_service.dart';
 import 'package:drift/drift.dart';
 
 import '../../../shared/data/sqlite/database.dart';
 import '../../../shared/data/sqlite/identities/identity_service.dart';
+import '../extension/connection.extension.dart';
 import 'connections_repository.dart';
 
 final class ConnectionService {
@@ -17,19 +19,11 @@ final class ConnectionService {
     this.identityService,
   );
 
-  Future<List<Credential>> findCredentialsByConnectionId(
-    Connection connection,
-  ) {
-    final db = connectionRepository.db;
-    final credentialId = connection.credentialId;
-
-    if (credentialId == null) {
-      return Future.value([]);
-    }
-
-    final query = db.select(db.credentials)
-      ..where((c) => c.id.equals(credentialId));
-    return query.get();
+  Future<ConnectionFull?> findConnectionFullById(int id) async {
+    return await connectionRepository.db
+        .findFullConnectionById(id)
+        .getSingleOrNull()
+        .then((value) => value?.toConnectionFull());
   }
 
   Future<List<(Connection, Identity?)>> findAllWithIdentities() async {

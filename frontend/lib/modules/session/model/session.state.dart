@@ -5,7 +5,10 @@ class SSHSessionState {
   final String? selectedSessionId;
   final Map<String, int> pageIndexes;
 
-  SSHSessionState.initial() : activeSessions = [], selectedSessionId = null, pageIndexes = {};
+  SSHSessionState.initial()
+    : activeSessions = [],
+      selectedSessionId = null,
+      pageIndexes = {};
 
   const SSHSessionState({
     required this.activeSessions,
