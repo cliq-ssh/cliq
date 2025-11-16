@@ -1,10 +1,10 @@
 import 'package:cliq/modules/connections/model/connection_full.model.dart';
-import 'package:cliq/shared/data/sqlite/credentials/credential_service.dart';
 import 'package:drift/drift.dart';
 
-import '../../../shared/data/sqlite/database.dart';
-import '../../../shared/data/sqlite/identities/identity_service.dart';
-import '../extension/connection.extension.dart';
+import '../../modules/connections/extension/connection.extension.dart';
+import '../credentials/credential_service.dart';
+import '../database.dart';
+import '../identities/identity_service.dart';
 import 'connections_repository.dart';
 
 final class ConnectionService {

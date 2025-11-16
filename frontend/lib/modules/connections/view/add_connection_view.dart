@@ -1,5 +1,3 @@
-import 'package:cliq/shared/data/sqlite/credentials/credential_type.dart';
-import 'package:cliq/shared/data/sqlite/database.dart';
 import 'package:cliq/shared/extensions/async_snapshot.extension.dart';
 import 'package:cliq/shared/validators.dart';
 import 'package:cliq_ui/cliq_ui.dart';
@@ -10,6 +8,9 @@ import 'package:forui/forui.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lucide_flutter/lucide_flutter.dart';
+
+import '../../../data/credentials/credential_type.dart';
+import '../../../data/database.dart';
 
 class AddConnectionView extends StatefulHookConsumerWidget {
   const AddConnectionView({super.key});
@@ -22,8 +23,8 @@ class AddConnectionView extends StatefulHookConsumerWidget {
 class _AddConnectionPageState extends ConsumerState<AddConnectionView> {
   static const List<(CredentialType, String, IconData)> allowedCredentialTypes =
       [
-        (CredentialType.password, 'Password', LucideIcons.rectangleEllipsis),
-        (CredentialType.key, 'Key', LucideIcons.keyRound),
+        (.password, 'Password', LucideIcons.rectangleEllipsis),
+        (.key, 'Key', LucideIcons.keyRound),
       ];
 
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
@@ -80,7 +81,7 @@ class _AddConnectionPageState extends ConsumerState<AddConnectionView> {
                   controller: usernameController,
                   autovalidateMode: AutovalidateMode.onUserInteraction,
                 ),
-                if (additionalCredentialType.value == CredentialType.password)
+                if (additionalCredentialType.value == .password)
                   FTextFormField(
                     label: Text('Password'),
                     controller: passwordController,
@@ -88,7 +89,7 @@ class _AddConnectionPageState extends ConsumerState<AddConnectionView> {
                     maxLines: 1,
                     autovalidateMode: AutovalidateMode.onUserInteraction,
                   ),
-                if (additionalCredentialType.value == CredentialType.key) ...[
+                if (additionalCredentialType.value == .key) ...[
                   FTextFormField(
                     label: Text('PEM Key'),
                     hint: '-----BEGIN OPENSSH PRIVATE KEY-----',
@@ -166,7 +167,7 @@ class _AddConnectionPageState extends ConsumerState<AddConnectionView> {
                   credentialId = await CliqDatabase.credentialsRepository
                       .insert(
                         CredentialsCompanion.insert(
-                          type: CredentialType.password,
+                          type: .password,
                           data: passwordController.text,
                         ),
                       );
@@ -175,7 +176,7 @@ class _AddConnectionPageState extends ConsumerState<AddConnectionView> {
                   credentialId = await CliqDatabase.credentialsRepository
                       .insert(
                         CredentialsCompanion.insert(
-                          type: CredentialType.key,
+                          type: .key,
                           data: pemController.text,
                           passphrase: Value.absentIfNull(
                             passphrase.isNotEmpty ? passphrase : null,

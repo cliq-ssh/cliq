@@ -1,4 +1,4 @@
-import 'package:cliq/shared/data/sqlite/database.dart';
+import '../../data/database.dart';
 
 class IdentityFull {
   final int id;
@@ -10,8 +10,4 @@ class IdentityFull {
     required this.username,
     required this.credential,
   });
-
-  Identity toBaseClass() {
-    return Identity(id: id, username: username, credentialId: credential.id);
-  }
 }

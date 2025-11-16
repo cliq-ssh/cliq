@@ -1,6 +1,6 @@
 import 'package:cliq/modules/connections/model/connection_full.model.dart';
 
-import '../../../shared/data/sqlite/database.dart';
+import '../../../data/database.dart';
 import '../../../shared/model/identity_full.model.dart';
 
 extension ConnectionExtension on Connection {

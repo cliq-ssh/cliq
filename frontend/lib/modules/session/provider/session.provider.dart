@@ -5,7 +5,7 @@ import 'package:dartssh2/dartssh2.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:uuid/v4.dart';
 
-import '../../../shared/data/sqlite/database.dart';
+import '../../../data/database.dart';
 import '../model/session.model.dart';
 
 final sessionProvider = NotifierProvider(ShellSessionNotifier.new);

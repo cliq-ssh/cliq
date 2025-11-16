@@ -1,5 +1,4 @@
-import 'package:cliq/shared/data/sqlite/database.dart';
-
+import '../../../data/database.dart';
 import '../../../shared/model/identity_full.model.dart';
 
 /// Model class that better wraps the [FindFullConnectionByIdResult] class.

@@ -1,6 +1,7 @@
-import 'package:cliq/shared/data/sqlite/database.dart';
 import 'package:drift/drift.dart';
 import 'package:logging/logging.dart';
+
+import 'database.dart';
 
 abstract class Repository<T extends Table, R> {
   late final Logger _log = Logger('Repository[${table.actualTableName}]');

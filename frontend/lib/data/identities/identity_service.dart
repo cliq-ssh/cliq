@@ -1,6 +1,5 @@
-import 'package:cliq/shared/data/sqlite/credentials/credentials_repository.dart';
-import 'package:cliq/shared/data/sqlite/database.dart';
-
+import '../credentials/credentials_repository.dart';
+import '../database.dart';
 import 'identities_repository.dart';
 
 final class IdentityService {

@@ -1,5 +1,5 @@
-import '../../../shared/data/sqlite/identities/identities.drift';
-import '../../../shared/data/sqlite/credentials/credentials.drift';
+import '../identities/identities.drift';
+import '../credentials/credentials.drift';
 
 CREATE TABLE connections (
     id INTEGER PRIMARY KEY AUTOINCREMENT,

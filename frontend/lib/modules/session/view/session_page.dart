@@ -1,8 +1,5 @@
-import 'package:cliq/modules/connections/extension/connection.extension.dart';
 import 'package:cliq/modules/connections/model/connection_full.model.dart';
 import 'package:cliq/modules/session/model/session.model.dart';
-import 'package:cliq/shared/data/sqlite/database.dart';
-import 'package:cliq/shared/model/identity_full.model.dart';
 import 'package:cliq_ui/cliq_ui.dart'
     show CliqGridColumn, CliqGridContainer, CliqGridRow;
 import 'package:dartssh2/dartssh2.dart';
@@ -12,6 +9,7 @@ import 'package:forui/forui.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lucide_flutter/lucide_flutter.dart';
 
+import '../../../data/database.dart';
 import '../provider/session.provider.dart';
 
 class ShellSessionPage extends StatefulHookConsumerWidget {
