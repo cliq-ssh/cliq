@@ -1,13 +1,14 @@
-import 'package:cliq/data/sqlite/database.dart';
-import 'package:cliq/routing/router.provider.dart';
-import 'package:cliq/data/store.dart';
+import 'package:cliq/routing/provider/router.provider.dart';
+import 'package:cliq/shared/data/store.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:forui/forui.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:logging/logging.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
+import 'data/database.dart';
 import 'modules/settings/provider/theme.provider.dart';
 
 void main() async {
@@ -18,6 +19,7 @@ void main() async {
   }
 
   CliqDatabase.init();
+  SharedPreferences.setPrefix('cliq.');
   await KeyValueStore.init();
 
   runApp(const ProviderScope(child: CliqApp()));

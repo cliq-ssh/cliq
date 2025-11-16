@@ -3,7 +3,7 @@ import 'package:cliq/modules/settings/view/settings_page.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
-import '../../../routing/page_path.dart';
+import '../../../routing/model/page_path.model.dart';
 
 class SyncSettingsPage extends AbstractSettingsPage {
   static const PagePathBuilder pagePath = PagePathBuilder.child(

@@ -5,7 +5,7 @@ publish_to: 'none'
 version: 0.1.0+1
 
 environment:
-  sdk: ^3.9.0
+  sdk: ^3.10.0
 
 dependencies:
   flutter:
@@ -26,6 +26,8 @@ dependencies:
   path_provider: ^2.1.5
   forui: ^0.16.0
   forui_hooks: ^0.16.0
+  dartssh2: ^2.13.0
+  uuid: ^4.5.2
 
 dev_dependencies:
   flutter_test:

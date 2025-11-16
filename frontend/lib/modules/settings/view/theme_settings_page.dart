@@ -7,7 +7,7 @@ import 'package:forui/forui.dart';
 import 'package:forui_hooks/forui_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
-import '../../../routing/page_path.dart';
+import '../../../routing/model/page_path.model.dart';
 import '../model/theme.model.dart';
 
 class ThemeSettingsPage extends AbstractSettingsPage {
@@ -63,7 +63,7 @@ class ThemeSettingsPage extends AbstractSettingsPage {
         CliqGridRow(
           children: [
             CliqGridColumn(
-              sizes: {Breakpoint.xl: 6},
+              sizes: {.sm: 8},
               child: Form(
                 onChanged: () {
                   if (themeModeController.value.firstOrNull != null) {

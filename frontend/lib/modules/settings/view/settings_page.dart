@@ -12,7 +12,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 
 import 'debug_settings_page.dart';
 import 'license_page.dart';
-import '../../../routing/page_path.dart';
+import '../../../routing/model/page_path.model.dart';
 
 class SettingsPage extends StatefulHookConsumerWidget {
   static const PagePathBuilder pagePath = PagePathBuilder('/settings');
@@ -20,10 +20,10 @@ class SettingsPage extends StatefulHookConsumerWidget {
   const SettingsPage({super.key});
 
   @override
-  ConsumerState<ConsumerStatefulWidget> createState() => _DashboardPageState();
+  ConsumerState<ConsumerStatefulWidget> createState() => _SettingsPageState();
 }
 
-class _DashboardPageState extends ConsumerState<SettingsPage> {
+class _SettingsPageState extends ConsumerState<SettingsPage> {
   @override
   Widget build(BuildContext context) {
     return FScaffold(
@@ -37,7 +37,7 @@ class _DashboardPageState extends ConsumerState<SettingsPage> {
               alignment: WrapAlignment.center,
               children: [
                 CliqGridColumn(
-                  sizes: {Breakpoint.xl: 6},
+                  sizes: {.sm: 8},
                   child: Padding(
                     padding: EdgeInsets.only(top: 80, bottom: 40),
                     child: Column(
@@ -87,7 +87,6 @@ class _DashboardPageState extends ConsumerState<SettingsPage> {
                           ],
                         ),
 
-                        // TODO: implement tile group
                         SizedBox.shrink(),
                         FTileGroup(
                           children: [
