@@ -3,15 +3,15 @@ import 'dart:convert';
 import 'package:cliq_terminal/cliq_terminal.dart';
 import 'package:flutter/material.dart';
 
-class TerminalView extends StatefulWidget {
+class CliqTerminalView extends StatefulWidget {
   final CliqTerminal terminal;
-  const TerminalView({super.key, required this.terminal});
+  const CliqTerminalView({super.key, required this.terminal});
 
   @override
-  State<TerminalView> createState() => _TerminalViewState();
+  State<CliqTerminalView> createState() => _CliqTerminalViewState();
 }
 
-class _TerminalViewState extends State<TerminalView> {
+class _CliqTerminalViewState extends State<CliqTerminalView> {
   final ScrollController _scrollController = ScrollController();
   final StringBuffer _buffer = StringBuffer();
   final TextEditingController _textController = TextEditingController();
