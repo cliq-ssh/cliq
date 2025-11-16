@@ -46,6 +46,7 @@ class NavigationShellState extends ConsumerState<NavigationShell>
         child: Row(
           children: [
             Expanded(
+              // TODO: implement ReorderableListView for session tabs
               child: SingleChildScrollView(
                 scrollDirection: Axis.horizontal,
                 child: Row(
