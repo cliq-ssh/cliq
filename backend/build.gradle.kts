@@ -90,7 +90,7 @@ dependencies {
 
     // E-Mail
     implementation("org.springframework.boot:spring-boot-starter-mail")
-    implementation("io.pebbletemplates:pebble-spring-boot-starter:3.2.4")
+    implementation("io.pebbletemplates:pebble-spring-boot-starter:4.0.0")
 
     // Validation
     implementation("org.springframework.boot:spring-boot-starter-validation")
