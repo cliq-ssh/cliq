@@ -86,7 +86,7 @@ dependencies {
     // Security
     implementation("org.springframework.boot:spring-boot-starter-security")
     implementation("org.springframework.security:spring-security-crypto")
-    implementation("org.bouncycastle:bcprov-jdk18on:1.82")
+    implementation("org.bouncycastle:bcprov-jdk18on:1.83")
 
     // E-Mail
     implementation("org.springframework.boot:spring-boot-starter-mail")
