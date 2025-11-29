@@ -10,8 +10,8 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  cliq_terminal:
-    path: packages/cliq_terminal
+  cliq_term:
+    path: packages/cliq_term
   cliq_ui:
     path: packages/cliq_ui
   lucide_flutter: 0.553.0
