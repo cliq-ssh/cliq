@@ -1,8 +1,14 @@
 import 'package:cliq_term/src/model/formatting_options.dart';
 
 class Cell {
-  final String c;
-  final FormattingOptions? formatting;
+  String ch;
+  FormattingOptions fmt;
 
-  const Cell(this.c, {this.formatting});
+  Cell(this.ch, this.fmt);
+
+  Cell.empty() : ch = ' ', fmt = FormattingOptions();
+
+  Cell.clone(Cell other)
+    : ch = other.ch,
+      fmt = FormattingOptions.clone(other.fmt);
 }
