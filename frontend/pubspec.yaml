@@ -28,6 +28,7 @@ dependencies:
   forui_hooks: ^0.16.0
   dartssh2: ^2.13.0
   uuid: ^4.5.2
+  system_fonts: ^1.0.1
 
 dev_dependencies:
   flutter_test:
@@ -41,3 +42,11 @@ dev_dependencies:
 
 flutter:
   uses-material-design: true
+
+  fonts:
+    - family: SourceCodePro
+      fonts:
+        - asset: assets/fonts/SourceCodePro-VariableFont_wght.ttf
+        - asset: assets/fonts/SourceCodePro-Italic-VariableFont_wght.ttf
+          style: italic
+

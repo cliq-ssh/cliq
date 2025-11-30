@@ -27,7 +27,7 @@ class EscapeParser {
       final norm = args.isEmpty
           ? <String>['0']
           : args.map((s) => s.isEmpty ? '0' : s).toList(growable: false);
-      setFormattingFromArgs(norm, formatting);
+      setFormattingFromArgs(controller, norm, formatting);
       return after - initialOffset;
     }
 
@@ -80,6 +80,7 @@ class EscapeParser {
 
   /// Applies SGR (Select Graphic Rendition) parameters from [args] to [formatting].
   static void setFormattingFromArgs(
+    TerminalController controller,
     List<String> args,
     FormattingOptions formatting,
   ) {
@@ -127,7 +128,7 @@ class EscapeParser {
           formatting.concealed = false;
           break;
         case >= 30 && <= 37:
-          formatting.fgColor = ansi8ToColor(code - 30);
+          formatting.fgColor = ansi8ToColor(controller.colors, code - 30);
           break;
         case 38:
           // 38       Set foreground color                        Next arguments are 5;<n> or 2;<r>;<g>;<b>, see below
@@ -135,7 +136,7 @@ class EscapeParser {
           switch (codes[offset++]) {
             case 5:
               if (offset == codes.length) break;
-              formatting.fgColor = xterm256ToColor(codes[offset]);
+              formatting.fgColor = xterm256ToColor(controller.colors, codes[offset]);
               break;
             case 2:
               if ((offset + 2) == codes.length) break;
@@ -152,14 +153,14 @@ class EscapeParser {
           formatting.fgColor = null;
           break;
         case >= 40 && <= 47:
-          formatting.bgColor = ansi8ToColor(code - 40);
+          formatting.bgColor = ansi8ToColor(controller.colors, code - 40);
           break;
         case 48:
           if (offset == codes.length) break;
           switch (codes[offset]) {
             case 5:
               if ((offset + 1) == codes.length) break;
-              formatting.bgColor = xterm256ToColor(codes[offset + 1]);
+              formatting.bgColor = xterm256ToColor(controller.colors, codes[offset + 1]);
               break;
             case 2:
               if ((offset + 3) == codes.length) break;

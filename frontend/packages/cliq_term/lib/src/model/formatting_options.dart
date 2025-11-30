@@ -37,32 +37,6 @@ class FormattingOptions {
     concealed = false;
   }
 
-  TextStyle toTextStyle({
-    required Color defaultFg,
-    required Color defaultBg,
-    double? fontSize,
-  }) {
-    final effectiveFg = concealed
-        ? defaultFg.withAlpha(0)
-        : (fgColor ?? defaultFg);
-    final effectiveBg = bgColor ?? defaultBg;
-
-    return TextStyle(
-      color: effectiveFg,
-      backgroundColor: effectiveBg,
-      fontSize: fontSize,
-      fontFamily: 'monospace',
-      fontWeight: bold ? FontWeight.w700 : FontWeight.w400,
-      fontStyle: italic ? FontStyle.italic : FontStyle.normal,
-      decoration: underline == Underline.none
-          ? TextDecoration.none
-          : TextDecoration.underline,
-      decorationStyle: underline == Underline.double
-          ? TextDecorationStyle.double
-          : TextDecorationStyle.solid,
-    );
-  }
-
   @override
   bool operator ==(Object other) {
     if (identical(this, other)) return true;

@@ -1,25 +1,25 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 
 import '../../cliq_term.dart';
 
 class TerminalPainter extends CustomPainter {
   final TerminalController controller;
-  final double fontSize;
-  final Color defaultFg;
-  final Color defaultBg;
+  final TerminalTypography typography;
+  final TerminalColorTheme colors;
 
   TerminalPainter(
     this.controller,
-    this.fontSize,
-    this.defaultFg,
-    this.defaultBg,
+    this.typography,
+    this.colors,
   );
 
-  static (double width, double height) measureChar(double fontSize) {
+  static (double width, double height) measureChar(TerminalTypography typography) {
     final probe = TextPainter(
       text: TextSpan(
         text: 'MMMM',
-        style: TextStyle(fontFamily: 'monospace', fontSize: fontSize),
+        style: typography.toTextStyle(),
       ),
       textDirection: TextDirection.ltr,
     )..layout();
@@ -29,10 +29,10 @@ class TerminalPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     // set background
-    final bgPaint = Paint()..color = defaultBg;
+    final bgPaint = Paint()..color = colors.backgroundColor;
     canvas.drawRect(Offset.zero & size, bgPaint);
 
-    final (cellW, cellH) = measureChar(fontSize);
+    final (cellW, cellH) = measureChar(typography);
     final rows = controller.front.rows;
     final cols = (rows > 0) ? controller.front.cols : 0;
 
@@ -61,14 +61,12 @@ class TerminalPainter extends CustomPainter {
         if (sb.isEmpty) return;
         final fmt = lastFmt ?? FormattingOptions();
         final effectiveFg = fmt.concealed
-            ? defaultFg.withAlpha(0)
-            : (fmt.fgColor ?? defaultFg);
+            ? colors.foregroundColor.withAlpha(0)
+            : (fmt.fgColor ?? colors.foregroundColor);
 
-        final style = TextStyle(
+        final style = typography.toTextStyle().copyWith(
           color: effectiveFg,
-          fontSize: fontSize,
-          fontFamily: 'monospace',
-          fontWeight: fmt.bold ? FontWeight.w700 : FontWeight.w400,
+          fontWeight: fmt.bold ? FontWeight.w700 : null,
           fontStyle: fmt.italic ? FontStyle.italic : FontStyle.normal,
           decoration: fmt.underline == Underline.none
               ? TextDecoration.none
@@ -106,54 +104,71 @@ class TerminalPainter extends CustomPainter {
         ..paint(canvas, Offset(0, r * cellH));
     }
 
-    // TODO: differentiate cursor styles
-    // draw cursor
     final cr = controller.cursorRow;
     final cc = controller.cursorCol;
-    if (cr >= 0 && cr < rows && cc >= 0 && cc < cols) {
+    if (controller.cursorVisible &&
+        cr >= 0 &&
+        cr < rows &&
+        cc >= 0 &&
+        cc < cols) {
       final cell = controller.front.getCell(cr, cc);
       final cellFg = cell.fmt.fgColor;
       final cellBg = cell.fmt.bgColor;
 
-      Color cursorFill;
-      if (cellBg != null && cellFg != null) {
-        // invert using fg for fill to make text visible on cursor
-        cursorFill = cellFg;
-      } else if (cellBg != null) {
-        cursorFill = cellBg.withValues(alpha: 0.9);
-      } else {
-        cursorFill = defaultFg;
-      }
+      final Color fillColor = cellFg ?? colors.foregroundColor;
+      final Color charColor = cellBg ?? colors.backgroundColor;
 
       final cursorRect = Rect.fromLTWH(cc * cellW, cr * cellH, cellW, cellH);
-      final cursorPaint = Paint()..color = cursorFill;
-      canvas.drawRect(cursorRect, cursorPaint);
 
-      // re-draw the character on top of the cursor with inverted color (so char remains legible)
-      final displayedChar = cell.ch.isEmpty ? ' ' : cell.ch;
+      switch (controller.cursorStyle) {
+        case CursorStyle.block:
+          canvas.drawRect(cursorRect, Paint()..color = fillColor);
+          // re-draw the character with inverted color (charColor)
+          final displayedChar = cell.ch.isEmpty ? ' ' : cell.ch;
+          final charStyle = TextStyle(
+            color: charColor,
+            fontSize: typography.fontSize,
+            fontFamily: typography.fontFamily,
+            fontWeight: cell.fmt.bold ? FontWeight.w700 : FontWeight.w400,
+            fontStyle: cell.fmt.italic ? FontStyle.italic : FontStyle.normal,
+          );
+          TextPainter(
+              text: TextSpan(text: displayedChar, style: charStyle),
+              textDirection: TextDirection.ltr,
+            )
+            ..layout(minWidth: 0, maxWidth: cellW)
+            ..paint(canvas, Offset(cc * cellW, cr * cellH));
+          break;
 
-      final charStyle = cell.fmt
-          .toTextStyle(
-            defaultFg: (cell.fmt.fgColor ?? defaultFg).withValues(alpha: 1),
-            defaultBg: defaultBg,
-            fontSize: fontSize,
-          )
-          .copyWith(backgroundColor: null);
+        case CursorStyle.underline:
+          final underlineHeight = cellH * 0.18;
+          final underlineRect = Rect.fromLTWH(
+            cc * cellW,
+            (cr + 1) * cellH - underlineHeight,
+            cellW,
+            underlineHeight,
+          );
+          canvas.drawRect(underlineRect, Paint()..color = fillColor);
+          break;
 
-      TextPainter(
-          text: TextSpan(text: displayedChar, style: charStyle),
-          textDirection: TextDirection.ltr,
-        )
-        ..layout(minWidth: 0, maxWidth: cellW)
-        ..paint(canvas, Offset(cc * cellW, cr * cellH));
+        case CursorStyle.bar:
+          final barWidth = max(1.0, cellW * 0.12);
+          final barRect = Rect.fromLTWH(
+            cc * cellW,
+            cr * cellH,
+            barWidth,
+            cellH,
+          );
+          canvas.drawRect(barRect, Paint()..color = fillColor);
+          break;
+      }
     }
   }
 
   @override
   bool shouldRepaint(covariant TerminalPainter oldDelegate) {
     return oldDelegate.controller != controller ||
-        oldDelegate.fontSize != fontSize ||
-        oldDelegate.defaultFg != defaultFg ||
-        oldDelegate.defaultBg != defaultBg;
+        oldDelegate.typography != typography ||
+        oldDelegate.colors != colors;
   }
 }

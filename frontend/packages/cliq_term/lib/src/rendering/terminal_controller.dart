@@ -1,3 +1,6 @@
+import 'dart:async';
+
+import 'package:cliq_term/cliq_term.dart';
 import 'package:cliq_term/src/model/terminal_buffer.dart';
 import 'package:cliq_term/src/parser/escape_parser.dart';
 import 'package:flutter/material.dart';
@@ -6,6 +9,8 @@ import 'package:logging/logging.dart';
 
 import '../model/cell.dart';
 import '../model/formatting_options.dart';
+
+enum CursorStyle { block, underline, bar }
 
 class TerminalController extends ChangeNotifier {
   static final Logger _log = Logger('TerminalController');
@@ -19,6 +24,11 @@ class TerminalController extends ChangeNotifier {
 
   FormattingOptions curFmt = FormattingOptions();
 
+  CursorStyle cursorStyle = CursorStyle.block;
+  bool cursorVisible = true; // current visible state (blinks)
+  Timer? _cursorTimer;
+  Duration cursorBlinkInterval = const Duration(milliseconds: 600);
+
   late TerminalBuffer front;
   late TerminalBuffer back;
 
@@ -26,6 +36,8 @@ class TerminalController extends ChangeNotifier {
   final void Function(int, int)? onResize;
   final void Function(String)? onTitleChange;
   final void Function()? onBell;
+
+  late TerminalColorTheme colors;
 
   TerminalController({
     required this.rows,
@@ -108,6 +120,10 @@ class TerminalController extends ChangeNotifier {
       cursorCol = 0;
       cursorRow++;
     }
+
+    cursorVisible = true;
+    _cursorTimer?.cancel();
+    startCursorBlink();
 
     front.setCell(
       cursorRow,
@@ -250,5 +266,27 @@ class TerminalController extends ChangeNotifier {
 
     resetScrollback();
     notifyListeners();
+  }
+
+  void startCursorBlink() {
+    _cursorTimer?.cancel();
+    cursorVisible = true;
+    _cursorTimer = Timer.periodic(cursorBlinkInterval, (_) {
+      cursorVisible = !cursorVisible;
+      notifyListeners();
+    });
+  }
+
+  void stopCursorBlink() {
+    _cursorTimer?.cancel();
+    _cursorTimer = null;
+    cursorVisible = true;
+    notifyListeners();
+  }
+
+  @override
+  void dispose() {
+    _cursorTimer?.cancel();
+    super.dispose();
   }
 }

@@ -7,16 +7,14 @@ import 'package:flutter/services.dart';
 
 class TerminalView extends StatefulWidget {
   final TerminalController controller;
-  final double fontSize;
-  final Color defaultFg;
-  final Color defaultBg;
+  final TerminalTypography typography;
+  final TerminalColorTheme colors;
 
   const TerminalView({
     super.key,
     required this.controller,
-    this.fontSize = 14,
-    this.defaultFg = Colors.white,
-    this.defaultBg = Colors.black,
+    required this.typography,
+    required this.colors,
   });
 
   @override
@@ -24,20 +22,28 @@ class TerminalView extends StatefulWidget {
 }
 
 class _TerminalViewState extends State<TerminalView> {
-  // TODO: replace this
-  static const double temporaryFontSize = 16.0;
   final FocusNode _focusNode = FocusNode();
 
   @override
   void initState() {
     super.initState();
+    widget.controller.colors = widget.colors;
     widget.controller.addListener(_onUpdate);
+    _focusNode.addListener(() {
+      if (_focusNode.hasFocus) {
+        widget.controller.startCursorBlink();
+      } else {
+        widget.controller.stopCursorBlink();
+      }
+    });
   }
 
   @override
   void dispose() {
     widget.controller.removeListener(_onUpdate);
+    _focusNode.removeListener(() {});
     _focusNode.dispose();
+    widget.controller.stopCursorBlink();
     super.dispose();
   }
 
@@ -47,7 +53,7 @@ class _TerminalViewState extends State<TerminalView> {
   Widget build(BuildContext context) {
     return LayoutBuilder(
       builder: (context, constraints) {
-        final (cellW, cellH) = TerminalPainter.measureChar(temporaryFontSize);
+        final (cellW, cellH) = TerminalPainter.measureChar(widget.typography);
         final newCols = max(1, (constraints.maxWidth / cellW).floor());
         final newRows = max(1, (constraints.maxHeight / cellH).floor());
 
@@ -82,9 +88,8 @@ class _TerminalViewState extends State<TerminalView> {
               size: Size.infinite,
               painter: TerminalPainter(
                 widget.controller,
-                temporaryFontSize,
-                widget.defaultFg,
-                widget.defaultBg,
+                widget.typography,
+                widget.colors,
               ),
             ),
           ),

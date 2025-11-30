@@ -145,7 +145,14 @@ class _ShellSessionPageState extends ConsumerState<ShellSessionPage>
     if (widget.session.isConnected) {
       return FScaffold(
         child: SizedBox.expand(
-          child: TerminalView(controller: _terminalController),
+          child: TerminalView(
+              controller: _terminalController,
+              typography: TerminalTypography(
+                fontFamily: 'SourceCodePro',
+                fontSize: 16,
+              ),
+              colors: TerminalColorThemes.darcula,
+          ),
         ),
       );
     }
