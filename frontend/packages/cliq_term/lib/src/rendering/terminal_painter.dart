@@ -1,5 +1,3 @@
-import 'dart:math';
-
 import 'package:flutter/material.dart';
 
 import '../../cliq_term.dart';
@@ -25,7 +23,7 @@ class TerminalPainter extends CustomPainter {
       ),
       textDirection: TextDirection.ltr,
     )..layout();
-    return (probe.width / 4, probe.height / 4);
+    return (probe.width / 4, probe.height);
   }
 
   @override

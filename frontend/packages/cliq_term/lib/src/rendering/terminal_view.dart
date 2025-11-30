@@ -25,8 +25,6 @@ class TerminalView extends StatefulWidget {
 class _TerminalViewState extends State<TerminalView> {
   // TODO: replace this
   static const double temporaryFontSize = 16.0;
-  void _onUpdate() => setState(() {});
-
   final FocusNode _focusNode = FocusNode();
 
   @override
@@ -41,6 +39,8 @@ class _TerminalViewState extends State<TerminalView> {
     _focusNode.dispose();
     super.dispose();
   }
+
+  void _onUpdate() => setState(() {});
 
   @override
   Widget build(BuildContext context) {

@@ -51,22 +51,21 @@ class TerminalController extends ChangeNotifier {
   }
 
   void handleKey(KeyEvent ev) {
+    if (ev is! KeyDownEvent) return;
+
     final String? ch = ev.character;
     if (ch != null && ch.isNotEmpty) {
       onInput?.call(ch);
-      feed(ch);
       return;
     }
 
     final key = ev.logicalKey;
     if (key == LogicalKeyboardKey.enter) {
       onInput?.call('\n');
-      feed('\n');
     } else if (key == LogicalKeyboardKey.backspace) {
       onInput?.call('\x7f');
     } else if (key == LogicalKeyboardKey.tab) {
       onInput?.call('\t');
-      feed('\t');
     } else if (key == LogicalKeyboardKey.arrowUp) {
       onInput?.call('\x1b[A');
     } else if (key == LogicalKeyboardKey.arrowDown) {
@@ -90,13 +89,13 @@ class TerminalController extends ChangeNotifier {
 
   /// Swaps the front and back buffers, clearing the new back buffer.
   void commitToBackBuffer() {
-    final tmp = front;
-    front = back;
-    back = tmp..clear();
+    front.clear();
+    back.clear(); // keep back empty/consistent
+    resetScrollback();
     notifyListeners();
   }
 
-  void _writeCharToBack(String ch) {
+  void _writeChar(String ch) {
     if (rows == 0 || cols == 0) return;
 
     if (cursorRow < 0) cursorRow = 0;
@@ -107,17 +106,22 @@ class TerminalController extends ChangeNotifier {
       cursorRow++;
     }
 
-    back.setCell(
-      cursorRow,
-      cursorCol,
-      Cell(ch, FormattingOptions.clone(curFmt)),
-    );
+    front.setCell(cursorRow, cursorCol, Cell(ch, FormattingOptions.clone(curFmt)));
     cursorCol++;
+
     if (cursorCol >= cols) {
       cursorCol = 0;
-      cursorRow = (cursorRow + 1).clamp(0, rows - 1);
-      // TODO: scroll up?
+      cursorRow++;
+      if (cursorRow >= rows) {
+        // scroll front up one line
+        front.pushEmptyLine();
+        cursorRow = rows - 1;
+      }
     }
+  }
+
+  void resetScrollback() {
+    // TODO: implement
   }
 
   void feed(String input) {
@@ -188,14 +192,18 @@ class TerminalController extends ChangeNotifier {
       }
       // LF
       if (cu == 0x0A) {
-        cursorRow = (cursorRow + 1).clamp(0, rows - 1);
+        cursorRow = cursorRow + 1;
+        if (cursorRow >= rows) {
+          front.pushEmptyLine();
+          cursorRow = rows - 1;
+        }
         cursorCol = 0;
         i++;
         continue;
       }
       // TAB
       if (cu == 0x09) {
-        _writeCharToBack('\t');
+        _writeChar('\t');
         i++;
         continue;
       }
@@ -206,10 +214,11 @@ class TerminalController extends ChangeNotifier {
         continue;
       }
 
-      _writeCharToBack(ch);
+      _writeChar(ch);
       i++;
     }
 
-    commitToBackBuffer();
+    resetScrollback();
+    notifyListeners();
   }
 }
