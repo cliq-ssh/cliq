@@ -1,7 +1,81 @@
+import 'package:cliq_term/cliq_term.dart';
+import 'package:logging/logging.dart';
+
 import '../model/color.dart';
-import '../model/formatting_options.dart';
 
 class EscapeParser {
+  static final Logger _log = Logger('EscapeParser');
+
+  /// Parses an ANSI escape sequence from [input] starting at [initialOffset].
+  /// Applies formatting changes to [formatting] and terminal actions to [controller].
+  /// Returns the number of characters consumed from [input].
+  static int parse(
+    TerminalController controller,
+    String input,
+    int initialOffset,
+    FormattingOptions formatting,
+  ) {
+    if (initialOffset >= input.length) return 0;
+    int offset = initialOffset;
+    if (input[offset] != '[') return 0;
+    offset++;
+
+    List<String> args = [];
+
+    // SGR; set graphic rendition
+    int applySGRandReturn(int after) {
+      final norm = args.isEmpty
+          ? <String>['0']
+          : args.map((s) => s.isEmpty ? '0' : s).toList(growable: false);
+      setFormattingFromArgs(norm, formatting);
+      return after - initialOffset;
+    }
+
+    // J; erase screen
+    int applyJandReturn(int after) {
+      final first = args.isEmpty ? '' : args[0];
+      final mode = first.isEmpty ? 0 : int.tryParse(first) ?? 0;
+      if (mode == 2) controller.commitToBackBuffer();
+      return after - initialOffset;
+    }
+
+    while (offset < input.length) {
+      var (parsedOffset, parsedArg) = _parseInt(input, offset);
+
+      if (parsedOffset > 0) {
+        offset += parsedOffset;
+        args.add(parsedArg);
+        if (offset >= input.length) break;
+        final next = input[offset++];
+
+        if (next == ';') continue;
+        if (next == 'm') return applySGRandReturn(offset);
+        if (next == 'J') return applyJandReturn(offset);
+        return offset - initialOffset;
+      }
+
+      final cur = input[offset];
+      if (cur == ';') {
+        args.add('');
+        offset++;
+        continue;
+      }
+
+      final cu = cur.codeUnitAt(0);
+      if (cu >= 0x40 && cu <= 0x7E) {
+        offset++;
+        if (cur == 'm') return applySGRandReturn(offset);
+        if (cur == 'J') return applyJandReturn(offset);
+        return offset - initialOffset;
+      }
+
+      _log.warning('Unknown escape sequence at offset $offset: ${input.substring(initialOffset, offset + 1)}');
+      offset++;
+    }
+
+    return offset - initialOffset;
+  }
+
   /// Applies SGR (Select Graphic Rendition) parameters from [args] to [formatting].
   static void setFormattingFromArgs(
     List<String> args,
@@ -103,5 +177,21 @@ class EscapeParser {
           break;
       }
     }
+  }
+
+  static (int, String) _parseInt(String input, int offset) {
+    int start = offset;
+    while (offset < input.length && _isDigit(input[offset])) {
+      offset++;
+    }
+    if (offset > start) {
+      return (offset - start, input.substring(start, offset));
+    }
+    return (0, '');
+  }
+
+  static bool _isDigit(String ch) {
+    final cu = ch.codeUnitAt(0);
+    return cu >= 0x30 && cu <= 0x39;
   }
 }

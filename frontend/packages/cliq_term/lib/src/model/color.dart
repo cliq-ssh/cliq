@@ -1,6 +1,7 @@
 import 'package:flutter/cupertino.dart';
 
-Color rgbToColor(int r, int g, int b) => Color.fromARGB(0xFF, r & 0xFF, g & 0xFF, b & 0xFF);
+Color rgbToColor(int r, int g, int b) =>
+    Color.fromARGB(0xFF, r & 0xFF, g & 0xFF, b & 0xFF);
 
 Color ansi8ToColor(int code) {
   const base = [
