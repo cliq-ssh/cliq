@@ -4,7 +4,6 @@ import app.cliq.backend.AcceptanceTest
 import app.cliq.backend.AcceptanceTester
 import app.cliq.backend.session.SessionRepository
 import app.cliq.backend.support.UserHelper
-import tools.jackson.databind.ObjectMapper
 import org.apache.commons.mail2.jakarta.util.MimeMessageParser
 import org.awaitility.kotlin.await
 import org.junit.jupiter.api.Test
@@ -14,6 +13,7 @@ import org.springframework.http.MediaType
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
+import tools.jackson.databind.ObjectMapper
 import java.time.Duration
 import kotlin.test.assertEquals
 import kotlin.test.assertNotEquals

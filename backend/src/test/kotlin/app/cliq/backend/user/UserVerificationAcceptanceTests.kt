@@ -2,7 +2,6 @@ package app.cliq.backend.user
 
 import app.cliq.backend.AcceptanceTest
 import app.cliq.backend.AcceptanceTester
-import tools.jackson.databind.ObjectMapper
 import org.apache.commons.mail2.jakarta.util.MimeMessageParser
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertNotNull
@@ -11,6 +10,7 @@ import org.springframework.http.MediaType
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
+import tools.jackson.databind.ObjectMapper
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
