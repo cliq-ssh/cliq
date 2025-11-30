@@ -3,6 +3,7 @@ import 'dart:math';
 import 'package:cliq_term/cliq_term.dart';
 import 'package:cliq_term/src/rendering/terminal_painter.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 class TerminalView extends StatefulWidget {
   final TerminalController controller;
@@ -58,10 +59,21 @@ class _TerminalViewState extends State<TerminalView> {
           }
         });
 
-        return KeyboardListener(
+        return Focus(
           focusNode: _focusNode,
           autofocus: true,
-          onKeyEvent: (ev) => widget.controller.handleKey(ev),
+          onKeyEvent: (node, event) {
+            if (event is KeyDownEvent) {
+              // handle tab locally so focus doesn't move to other widgets
+              if (event.logicalKey == LogicalKeyboardKey.tab) {
+                widget.controller.handleKey(event);
+                return .handled;
+              }
+              widget.controller.handleKey(event);
+              return .handled;
+            }
+            return .ignored;
+          },
           child: GestureDetector(
             behavior: HitTestBehavior.opaque,
             // TODO: implement text selection

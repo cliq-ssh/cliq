@@ -9,11 +9,11 @@ class TerminalBuffer {
   int _start = 0;
 
   TerminalBuffer(this.rows, this.cols, {this.history = 200})
-      : _buffer = List.generate(
-    rows + history,
+    : _buffer = List.generate(
+        rows + history,
         (_) => List.generate(cols, (_) => Cell.empty()),
-    growable: false,
-  );
+        growable: false,
+      );
 
   int _idxForRow(int row) => (_start + row) % _buffer.length;
 
@@ -32,7 +32,8 @@ class TerminalBuffer {
   }
 
   Cell getCell(int row, int col) => _buffer[_idxForRow(row)][col];
-  void setCell(int row, int col, Cell cell) => _buffer[_idxForRow(row)][col] = cell;
+  void setCell(int row, int col, Cell cell) =>
+      _buffer[_idxForRow(row)][col] = cell;
 
   void pushEmptyLine() {
     _start = (_start + 1) % _buffer.length;

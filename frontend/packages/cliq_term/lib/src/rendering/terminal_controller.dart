@@ -15,6 +15,8 @@ class TerminalController extends ChangeNotifier {
   int cursorRow = 0;
   int cursorCol = 0;
 
+  int scrollbackRows = 0;
+
   FormattingOptions curFmt = FormattingOptions();
 
   late TerminalBuffer front;
@@ -90,7 +92,8 @@ class TerminalController extends ChangeNotifier {
   /// Swaps the front and back buffers, clearing the new back buffer.
   void commitToBackBuffer() {
     front.clear();
-    back.clear(); // keep back empty/consistent
+    cursorRow = 0;
+    cursorCol = 0;
     resetScrollback();
     notifyListeners();
   }
@@ -106,14 +109,17 @@ class TerminalController extends ChangeNotifier {
       cursorRow++;
     }
 
-    front.setCell(cursorRow, cursorCol, Cell(ch, FormattingOptions.clone(curFmt)));
+    front.setCell(
+      cursorRow,
+      cursorCol,
+      Cell(ch, FormattingOptions.clone(curFmt)),
+    );
     cursorCol++;
 
     if (cursorCol >= cols) {
       cursorCol = 0;
       cursorRow++;
       if (cursorRow >= rows) {
-        // scroll front up one line
         front.pushEmptyLine();
         cursorRow = rows - 1;
       }
@@ -121,7 +127,9 @@ class TerminalController extends ChangeNotifier {
   }
 
   void resetScrollback() {
-    // TODO: implement
+    if (scrollbackRows == 0) return;
+    scrollbackRows = 0;
+    notifyListeners();
   }
 
   void feed(String input) {
@@ -204,6 +212,28 @@ class TerminalController extends ChangeNotifier {
       // TAB
       if (cu == 0x09) {
         _writeChar('\t');
+        i++;
+        continue;
+      }
+
+      if (cu == 0x7F || cu == 0x08) {
+        if (cursorCol > 0) {
+          cursorCol--;
+          front.setCell(cursorRow, cursorCol, Cell.empty());
+        } else if (cursorRow > 0) {
+          cursorRow--;
+          int lastIdx = cols - 1;
+          while (lastIdx >= 0 && front.getCell(cursorRow, lastIdx).ch == ' ') {
+            lastIdx--;
+          }
+
+          if (lastIdx < 0) {
+            cursorCol = 0;
+          } else {
+            cursorCol = lastIdx;
+            front.setCell(cursorRow, cursorCol, Cell.empty());
+          }
+        }
         i++;
         continue;
       }

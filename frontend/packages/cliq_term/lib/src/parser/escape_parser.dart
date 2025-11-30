@@ -69,7 +69,9 @@ class EscapeParser {
         return offset - initialOffset;
       }
 
-      _log.warning('Unknown escape sequence at offset $offset: ${input.substring(initialOffset, offset + 1)}');
+      _log.warning(
+        'Unknown escape sequence at offset $offset: ${input.substring(initialOffset, offset + 1)}',
+      );
       offset++;
     }
 
