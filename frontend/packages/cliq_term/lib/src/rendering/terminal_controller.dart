@@ -196,7 +196,7 @@ class TerminalController extends ChangeNotifier {
           continue;
         }
 
-        _log.warning('Unknown ESC sequence: \\x1B$next');
+        _log.fine('Unimplemented escape sequence! Encountered ${input.substring(i, len)}');
         i++;
         continue;
       }
