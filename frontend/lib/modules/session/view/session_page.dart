@@ -119,17 +119,16 @@ class _ShellSessionPageState extends ConsumerState<ShellSessionPage>
             .spawnShell(widget.session.id, client);
 
         _terminalController.onInput = (s) {
-          if (sshSession != null)
+          if (sshSession != null) {
             sshSession!.stdin.add(Uint8List.fromList(s.codeUnits));
+          }
         };
 
         shell?.stdout.listen((data) {
-          print('SSH STDOUT: ${String.fromCharCodes(data)}');
           _terminalController.feed(String.fromCharCodes(data));
         });
 
         shell?.stderr.listen((data) {
-          print('SSH STDERR: ${String.fromCharCodes(data)}');
           _terminalController.feed(String.fromCharCodes(data));
         });
       }
@@ -143,15 +142,20 @@ class _ShellSessionPageState extends ConsumerState<ShellSessionPage>
     }, []);
 
     if (widget.session.isConnected) {
-      return FScaffold(
-        child: SizedBox.expand(
+      // TODO: load from config
+      final theme = TerminalColorThemes.darcula;
+
+      return SizedBox.expand(
+        child: Container(
+          color: theme.backgroundColor,
+          padding: const .all(8),
           child: TerminalView(
               controller: _terminalController,
               typography: TerminalTypography(
                 fontFamily: 'SourceCodePro',
                 fontSize: 16,
               ),
-              colors: TerminalColorThemes.darcula,
+              colors: theme,
           ),
         ),
       );

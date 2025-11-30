@@ -41,6 +41,7 @@ class NavigationShellState extends ConsumerState<NavigationShell>
     }, []);
 
     return FScaffold(
+      childPad: false,
       header: Padding(
         padding: const EdgeInsets.all(8),
         child: Row(
