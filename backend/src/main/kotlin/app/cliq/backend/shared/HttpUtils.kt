@@ -1,9 +1,9 @@
 package app.cliq.backend.shared
 
 import app.cliq.backend.error.ErrorResponse
-import com.fasterxml.jackson.databind.ObjectMapper
 import jakarta.servlet.http.HttpServletResponse
 import org.springframework.stereotype.Service
+import tools.jackson.databind.ObjectMapper
 
 const val CONTENT_TYPE_JSON = "application/json"
 const val UTF8_ENCODING = "UTF-8"

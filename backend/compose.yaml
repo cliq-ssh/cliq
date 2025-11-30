@@ -20,7 +20,7 @@ services:
       retries: 3
 
   mailpit:
-    image: axllent/mailpit
+    image: axllent/mailpit:latest
     init: true
     ports:
       - '127.0.0.1:1025:1025'

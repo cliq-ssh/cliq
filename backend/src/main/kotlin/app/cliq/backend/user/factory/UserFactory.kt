@@ -27,7 +27,7 @@ class UserFactory(
 
         user.resetToken = null
         user.resetSentAt = null
-        user.password = hashedPassword
+        user.password = hashedPassword!!
         user.updatedAt = OffsetDateTime.now(clock)
 
         val newUser = userRepository.save(user)
@@ -45,7 +45,7 @@ class UserFactory(
         var user =
             createUser(
                 email = registrationParams.email,
-                password = hashedPassword,
+                password = hashedPassword!!,
                 name = registrationParams.username,
                 locale = registrationParams.locale,
             )

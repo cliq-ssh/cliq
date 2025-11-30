@@ -4,7 +4,7 @@ import app.cliq.backend.AcceptanceTest
 import app.cliq.backend.AcceptanceTester
 import app.cliq.backend.session.SessionRepository
 import app.cliq.backend.support.UserHelper
-import com.fasterxml.jackson.databind.ObjectMapper
+import tools.jackson.databind.ObjectMapper
 import org.apache.commons.mail2.jakarta.util.MimeMessageParser
 import org.awaitility.kotlin.await
 import org.junit.jupiter.api.Test

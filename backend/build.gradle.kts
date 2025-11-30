@@ -6,7 +6,7 @@ plugins {
     kotlin("plugin.allopen") version "2.2.21"
 
     // Spring / Spring Boot
-    id("org.springframework.boot") version "3.5.8"
+    id("org.springframework.boot") version "4.0.0"
     id("io.spring.dependency-management") version "1.1.7"
 
     // Database Migrations
@@ -70,33 +70,39 @@ buildscript {
     }
 }
 
-val springModulithVersion by extra("1.4.5")
+val springModulithVersion by extra("2.0.0")
 
 dependencies {
     // Web Framework
-    implementation("org.springframework.boot:spring-boot-starter-web")
+    implementation("org.springframework.boot:spring-boot-starter-webmvc")
     implementation("org.springframework.boot:spring-boot-starter-actuator")
 
     // JPA/SQL
     implementation("org.springframework.boot:spring-boot-starter-data-jpa")
+    runtimeOnly("org.postgresql:postgresql")
+    // Flyway
+    implementation("org.springframework.boot:spring-boot-starter-flyway")
     implementation("org.flywaydb:flyway-core:11.18.0")
     implementation("org.flywaydb:flyway-database-postgresql:11.18.0")
-    runtimeOnly("org.postgresql:postgresql")
 
     // Security
     implementation("org.springframework.boot:spring-boot-starter-security")
     implementation("org.springframework.security:spring-security-crypto")
     implementation("org.bouncycastle:bcprov-jdk18on:1.83")
 
+    // Serialization
+    implementation("org.springframework.boot:spring-boot-starter-jackson")
+    implementation("tools.jackson.module:jackson-module-kotlin")
+
     // E-Mail
     implementation("org.springframework.boot:spring-boot-starter-mail")
-    implementation("io.pebbletemplates:pebble-spring-boot-starter:3.2.4")
+    implementation("io.pebbletemplates:pebble-spring-boot-starter:4.0.0")
 
     // Validation
     implementation("org.springframework.boot:spring-boot-starter-validation")
 
     // OpenAPI
-    val springdocVersion = "2.8.14"
+    val springdocVersion = "3.0.0"
     implementation("org.springdoc:springdoc-openapi-starter-webmvc-api:$springdocVersion")
     implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:$springdocVersion")
     implementation("org.springdoc:springdoc-openapi-starter-webmvc-scalar:$springdocVersion")
@@ -106,7 +112,6 @@ dependencies {
 
     // Kotlin specifics
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.10.2")
-    implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
     implementation("org.jetbrains.kotlin:kotlin-reflect")
 
     // Modulith
@@ -118,7 +123,7 @@ dependencies {
     // Testing //
 
     // Spring
-    testImplementation("org.springframework.boot:spring-boot-starter-test")
+    testImplementation("org.springframework.boot:spring-boot-webmvc-test")
 
     // Modulith
     testImplementation("org.springframework.modulith:spring-modulith-starter-test")
