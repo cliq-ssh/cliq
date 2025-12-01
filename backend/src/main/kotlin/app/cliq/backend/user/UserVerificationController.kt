@@ -24,7 +24,7 @@ import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 
 @UserController
-@RequestMapping("/api/v1/user/verification")
+@RequestMapping("/api/user/verification")
 class UserVerificationController(
     private val userRepository: UserRepository,
     private val userService: UserService,

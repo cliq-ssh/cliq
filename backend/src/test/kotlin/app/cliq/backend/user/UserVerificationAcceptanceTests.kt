@@ -33,14 +33,14 @@ class UserVerificationAcceptanceTests(
         mockMvc
             .perform(
                 MockMvcRequestBuilders
-                    .post("/api/v1/user/register")
+                    .post("/api/user/register")
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(objectMapper.writeValueAsString(userDetails)),
             ).andExpect(status().isCreated)
 
         mockMvc
             .perform(
-                MockMvcRequestBuilders.get("/api/v1/user/verification/{token}", "invalid-token"),
+                MockMvcRequestBuilders.get("/api/user/verification/{token}", "invalid-token"),
             ).andExpect(status().isNotFound)
 
         assertTrue(greenMail.waitForIncomingEmail(10_000, 1))
@@ -64,7 +64,7 @@ class UserVerificationAcceptanceTests(
         mockMvc
             .perform(
                 MockMvcRequestBuilders
-                    .post("/api/v1/user/register")
+                    .post("/api/user/register")
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(objectMapper.writeValueAsString(userDetails)),
             ).andExpect(status().isCreated)
@@ -83,7 +83,7 @@ class UserVerificationAcceptanceTests(
         mockMvc
             .perform(
                 MockMvcRequestBuilders
-                    .post("/api/v1/user/verification")
+                    .post("/api/user/verification")
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(objectMapper.writeValueAsString(verifyContent)),
             ).andExpect(status().isOk)
@@ -91,7 +91,7 @@ class UserVerificationAcceptanceTests(
         mockMvc
             .perform(
                 MockMvcRequestBuilders
-                    .post("/api/v1/user/verification")
+                    .post("/api/user/verification")
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(objectMapper.writeValueAsString(verifyContent)),
             ).andExpect(status().isBadRequest)
@@ -120,7 +120,7 @@ class UserVerificationAcceptanceTests(
         mockMvc
             .perform(
                 MockMvcRequestBuilders
-                    .post("/api/v1/user/register")
+                    .post("/api/user/register")
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(objectMapper.writeValueAsString(userDetails)),
             ).andExpect(status().isCreated)
@@ -143,7 +143,7 @@ class UserVerificationAcceptanceTests(
         mockMvc
             .perform(
                 MockMvcRequestBuilders
-                    .post("/api/v1/user/verification")
+                    .post("/api/user/verification")
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(objectMapper.writeValueAsString(verifyContent)),
             ).andExpect(status().isForbidden)
@@ -164,7 +164,7 @@ class UserVerificationAcceptanceTests(
         mockMvc
             .perform(
                 MockMvcRequestBuilders
-                    .post("/api/v1/user/register")
+                    .post("/api/user/register")
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(objectMapper.writeValueAsString(userDetails)),
             ).andExpect(status().isCreated)
@@ -175,7 +175,7 @@ class UserVerificationAcceptanceTests(
         mockMvc
             .perform(
                 MockMvcRequestBuilders
-                    .post("/api/v1/user/verification/resend-email")
+                    .post("/api/user/verification/resend-email")
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(objectMapper.writeValueAsString(mapOf("email" to email))),
             ).andExpect(status().isNoContent)

@@ -24,17 +24,17 @@ class UserConfigurationAcceptanceTests(
     fun `test endpoints cannot be accessed without authentication`() {
         mockMvc
             .perform(
-                MockMvcRequestBuilders.put("/api/v1/user/configuration"),
+                MockMvcRequestBuilders.put("/api/user/configuration"),
             ).andExpect(status().isUnauthorized)
 
         mockMvc
             .perform(
-                MockMvcRequestBuilders.get("/api/v1/user/configuration"),
+                MockMvcRequestBuilders.get("/api/user/configuration"),
             ).andExpect(status().isUnauthorized)
 
         mockMvc
             .perform(
-                MockMvcRequestBuilders.get("/api/v1/user/configuration/last-updated"),
+                MockMvcRequestBuilders.get("/api/user/configuration/last-updated"),
             ).andExpect(status().isUnauthorized)
     }
 
@@ -45,21 +45,21 @@ class UserConfigurationAcceptanceTests(
         mockMvc
             .perform(
                 MockMvcRequestBuilders
-                    .put("/api/v1/user/configuration")
+                    .put("/api/user/configuration")
                     .header("Authorization", "Bearer ${session.apiKey}"),
             ).andExpect(status().isBadRequest)
 
         mockMvc
             .perform(
                 MockMvcRequestBuilders
-                    .get("/api/v1/user/configuration")
+                    .get("/api/user/configuration")
                     .header("Authorization", "Bearer ${session.apiKey}"),
             ).andExpect(status().isNotFound)
 
         mockMvc
             .perform(
                 MockMvcRequestBuilders
-                    .get("/api/v1/user/configuration/last-updated")
+                    .get("/api/user/configuration/last-updated")
                     .header("Authorization", "Bearer ${session.apiKey}"),
             ).andExpect(status().isOk)
     }
@@ -77,7 +77,7 @@ class UserConfigurationAcceptanceTests(
         mockMvc
             .perform(
                 MockMvcRequestBuilders
-                    .put("/api/v1/user/configuration")
+                    .put("/api/user/configuration")
                     .header("Authorization", "Bearer ${session.apiKey}")
                     .contentType(MediaType.APPLICATION_JSON_VALUE)
                     .content(objectMapper.writeValueAsString(payload)),
@@ -87,7 +87,7 @@ class UserConfigurationAcceptanceTests(
         mockMvc
             .perform(
                 MockMvcRequestBuilders
-                    .get("/api/v1/user/configuration")
+                    .get("/api/user/configuration")
                     .header("Authorization", "Bearer ${session.apiKey}"),
             ).andExpect(status().isOk)
             .andExpect { result ->
@@ -109,7 +109,7 @@ class UserConfigurationAcceptanceTests(
         mockMvc
             .perform(
                 MockMvcRequestBuilders
-                    .put("/api/v1/user/configuration")
+                    .put("/api/user/configuration")
                     .header("Authorization", "Bearer ${session.apiKey}")
                     .contentType(MediaType.APPLICATION_JSON_VALUE)
                     .content(objectMapper.writeValueAsString(payload)),
@@ -120,7 +120,7 @@ class UserConfigurationAcceptanceTests(
             mockMvc
                 .perform(
                     MockMvcRequestBuilders
-                        .get("/api/v1/user/configuration")
+                        .get("/api/user/configuration")
                         .header("Authorization", "Bearer ${session.apiKey}"),
                 ).andExpect(status().isOk)
                 .andReturn()
@@ -134,7 +134,7 @@ class UserConfigurationAcceptanceTests(
         mockMvc
             .perform(
                 MockMvcRequestBuilders
-                    .get("/api/v1/user/configuration/last-updated")
+                    .get("/api/user/configuration/last-updated")
                     .header("Authorization", "Bearer ${session.apiKey}"),
             ).andExpect(status().isOk)
             .andExpect { it.toString() == configUpdatedAt }
@@ -153,7 +153,7 @@ class UserConfigurationAcceptanceTests(
         mockMvc
             .perform(
                 MockMvcRequestBuilders
-                    .put("/api/v1/user/configuration")
+                    .put("/api/user/configuration")
                     .header("Authorization", "Bearer ${session.apiKey}")
                     .contentType(MediaType.APPLICATION_JSON_VALUE)
                     .content(objectMapper.writeValueAsString(initialPayload)),
@@ -165,7 +165,7 @@ class UserConfigurationAcceptanceTests(
             mockMvc
                 .perform(
                     MockMvcRequestBuilders
-                        .get("/api/v1/user/configuration")
+                        .get("/api/user/configuration")
                         .header("Authorization", "Bearer ${session.apiKey}"),
                 ).andExpect(status().isOk)
                 .andExpect { result ->
@@ -182,7 +182,7 @@ class UserConfigurationAcceptanceTests(
         mockMvc
             .perform(
                 MockMvcRequestBuilders
-                    .get("/api/v1/user/configuration/last-updated")
+                    .get("/api/user/configuration/last-updated")
                     .header("Authorization", "Bearer ${session.apiKey}"),
             ).andExpect(status().isOk)
             .andExpect { it.toString() == initialConfigUpdatedAt }
@@ -196,7 +196,7 @@ class UserConfigurationAcceptanceTests(
         mockMvc
             .perform(
                 MockMvcRequestBuilders
-                    .put("/api/v1/user/configuration")
+                    .put("/api/user/configuration")
                     .header("Authorization", "Bearer ${session.apiKey}")
                     .contentType(MediaType.APPLICATION_JSON_VALUE)
                     .content(objectMapper.writeValueAsString(updatedPayload)),
@@ -207,7 +207,7 @@ class UserConfigurationAcceptanceTests(
             mockMvc
                 .perform(
                     MockMvcRequestBuilders
-                        .get("/api/v1/user/configuration")
+                        .get("/api/user/configuration")
                         .header("Authorization", "Bearer ${session.apiKey}"),
                 ).andExpect(status().isOk)
                 .andExpect { result ->
@@ -224,7 +224,7 @@ class UserConfigurationAcceptanceTests(
         mockMvc
             .perform(
                 MockMvcRequestBuilders
-                    .get("/api/v1/user/configuration/last-updated")
+                    .get("/api/user/configuration/last-updated")
                     .header("Authorization", "Bearer ${session.apiKey}"),
             ).andExpect(status().isOk)
             .andExpect { it.toString() == updatedConfigUpdatedAt }

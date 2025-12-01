@@ -21,7 +21,7 @@ import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 
 @UserController
-@RequestMapping("/api/v1/user/password-reset")
+@RequestMapping("/api/user/password-reset")
 class PasswordResetController(
     private val userRepository: UserRepository,
     private val userService: UserService,

@@ -34,7 +34,7 @@ class UserRegistrationAcceptanceTests(
         mockMvc
             .perform(
                 MockMvcRequestBuilders
-                    .post("/api/v1/user/register")
+                    .post("/api/user/register")
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(objectMapper.writeValueAsString(userDetails)),
             ).andExpect(status().isCreated)
@@ -66,7 +66,7 @@ class UserRegistrationAcceptanceTests(
         mockMvc
             .perform(
                 MockMvcRequestBuilders
-                    .post("/api/v1/user/verification")
+                    .post("/api/user/verification")
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(objectMapper.writeValueAsString(verifyContent)),
             ).andExpect(status().isOk)
@@ -93,7 +93,7 @@ class UserRegistrationAcceptanceTests(
         mockMvc
             .perform(
                 MockMvcRequestBuilders
-                    .post("/api/v1/user/register")
+                    .post("/api/user/register")
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(objectMapper.writeValueAsString(userDetails)),
             ).andExpect(status().isCreated)
@@ -101,7 +101,7 @@ class UserRegistrationAcceptanceTests(
         mockMvc
             .perform(
                 MockMvcRequestBuilders
-                    .post("/api/v1/user/register")
+                    .post("/api/user/register")
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(objectMapper.writeValueAsString(userDetails)),
             ).andExpect(status().isBadRequest)

@@ -17,7 +17,7 @@ import org.springframework.web.bind.annotation.RestController
 import java.time.OffsetDateTime
 
 @RestController
-@RequestMapping("/api/v1/user/configuration")
+@RequestMapping("/api/user/configuration")
 @Tag(name = "User Configuration", description = "User configuration management")
 class UserConfigurationController(
     private val userConfigurationFactory: UserConfigurationFactory,
