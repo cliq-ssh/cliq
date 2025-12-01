@@ -17,7 +17,7 @@ import org.springframework.web.bind.annotation.RestController
 import java.time.OffsetDateTime
 
 @RestController
-@RequestMapping("/api/v1/user/configuration")
+@RequestMapping("/api/user/configuration")
 @Tag(name = "User Configuration", description = "User configuration management")
 class UserConfigurationController(
     private val userConfigurationFactory: UserConfigurationFactory,
@@ -56,11 +56,7 @@ class UserConfigurationController(
     fun get(
         @AuthenticationPrincipal session: Session,
     ): ResponseEntity<ConfigurationView> {
-        val config = repository.getByUser(session.user)
-
-        if (null == config) {
-            return ResponseEntity.notFound().build()
-        }
+        val config = repository.getByUser(session.user) ?: return ResponseEntity.notFound().build()
 
         val view = ConfigurationView(config.encryptedConfig, config.updatedAt, config.updatedAt)
 
@@ -72,7 +68,7 @@ class UserConfigurationController(
     @Operation(summary = "Get's you when the config was last updated")
     fun getUpdatedAt(
         @AuthenticationPrincipal session: Session,
-    ): ResponseEntity<OffsetDateTime?> {
+    ): ResponseEntity<OffsetDateTime> {
         val updatedAt = repository.getUpdatedAtByUser(session.user)
 
         return ResponseEntity.ok(updatedAt)

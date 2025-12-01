@@ -40,9 +40,6 @@ spring:
   threads:
     virtual:
       enabled: true
-  thymeleaf:
-    prefix: classpath:/templates/
-    encoding: UTF-8
   messages:
     basename: messages/messages
     encoding: UTF-8

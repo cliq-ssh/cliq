@@ -3,13 +3,13 @@ package app.cliq.backend.userconfig
 import app.cliq.backend.AcceptanceTest
 import app.cliq.backend.AcceptanceTester
 import app.cliq.backend.support.UserHelper
-import com.fasterxml.jackson.databind.ObjectMapper
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.MediaType
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
+import tools.jackson.databind.ObjectMapper
 
 @AcceptanceTest
 class UserConfigurationAcceptanceTests(
@@ -24,17 +24,17 @@ class UserConfigurationAcceptanceTests(
     fun `test endpoints cannot be accessed without authentication`() {
         mockMvc
             .perform(
-                MockMvcRequestBuilders.put("/api/v1/user/configuration"),
+                MockMvcRequestBuilders.put("/api/user/configuration"),
             ).andExpect(status().isUnauthorized)
 
         mockMvc
             .perform(
-                MockMvcRequestBuilders.get("/api/v1/user/configuration"),
+                MockMvcRequestBuilders.get("/api/user/configuration"),
             ).andExpect(status().isUnauthorized)
 
         mockMvc
             .perform(
-                MockMvcRequestBuilders.get("/api/v1/user/configuration/last-updated"),
+                MockMvcRequestBuilders.get("/api/user/configuration/last-updated"),
             ).andExpect(status().isUnauthorized)
     }
 
@@ -45,21 +45,21 @@ class UserConfigurationAcceptanceTests(
         mockMvc
             .perform(
                 MockMvcRequestBuilders
-                    .put("/api/v1/user/configuration")
+                    .put("/api/user/configuration")
                     .header("Authorization", "Bearer ${session.apiKey}"),
             ).andExpect(status().isBadRequest)
 
         mockMvc
             .perform(
                 MockMvcRequestBuilders
-                    .get("/api/v1/user/configuration")
+                    .get("/api/user/configuration")
                     .header("Authorization", "Bearer ${session.apiKey}"),
             ).andExpect(status().isNotFound)
 
         mockMvc
             .perform(
                 MockMvcRequestBuilders
-                    .get("/api/v1/user/configuration/last-updated")
+                    .get("/api/user/configuration/last-updated")
                     .header("Authorization", "Bearer ${session.apiKey}"),
             ).andExpect(status().isOk)
     }
@@ -77,7 +77,7 @@ class UserConfigurationAcceptanceTests(
         mockMvc
             .perform(
                 MockMvcRequestBuilders
-                    .put("/api/v1/user/configuration")
+                    .put("/api/user/configuration")
                     .header("Authorization", "Bearer ${session.apiKey}")
                     .contentType(MediaType.APPLICATION_JSON_VALUE)
                     .content(objectMapper.writeValueAsString(payload)),
@@ -87,7 +87,7 @@ class UserConfigurationAcceptanceTests(
         mockMvc
             .perform(
                 MockMvcRequestBuilders
-                    .get("/api/v1/user/configuration")
+                    .get("/api/user/configuration")
                     .header("Authorization", "Bearer ${session.apiKey}"),
             ).andExpect(status().isOk)
             .andExpect { result ->
@@ -109,7 +109,7 @@ class UserConfigurationAcceptanceTests(
         mockMvc
             .perform(
                 MockMvcRequestBuilders
-                    .put("/api/v1/user/configuration")
+                    .put("/api/user/configuration")
                     .header("Authorization", "Bearer ${session.apiKey}")
                     .contentType(MediaType.APPLICATION_JSON_VALUE)
                     .content(objectMapper.writeValueAsString(payload)),
@@ -120,7 +120,7 @@ class UserConfigurationAcceptanceTests(
             mockMvc
                 .perform(
                     MockMvcRequestBuilders
-                        .get("/api/v1/user/configuration")
+                        .get("/api/user/configuration")
                         .header("Authorization", "Bearer ${session.apiKey}"),
                 ).andExpect(status().isOk)
                 .andReturn()
@@ -128,13 +128,13 @@ class UserConfigurationAcceptanceTests(
         val responseString = response.response.contentAsString
         assert(responseString.isNotEmpty())
         val configJson = objectMapper.readTree(responseString)
-        val configUpdatedAt = configJson.get("updatedAt").asText()
+        val configUpdatedAt = configJson.get("updatedAt").asString()
 
         // Check last updated time
         mockMvc
             .perform(
                 MockMvcRequestBuilders
-                    .get("/api/v1/user/configuration/last-updated")
+                    .get("/api/user/configuration/last-updated")
                     .header("Authorization", "Bearer ${session.apiKey}"),
             ).andExpect(status().isOk)
             .andExpect { it.toString() == configUpdatedAt }
@@ -153,7 +153,7 @@ class UserConfigurationAcceptanceTests(
         mockMvc
             .perform(
                 MockMvcRequestBuilders
-                    .put("/api/v1/user/configuration")
+                    .put("/api/user/configuration")
                     .header("Authorization", "Bearer ${session.apiKey}")
                     .contentType(MediaType.APPLICATION_JSON_VALUE)
                     .content(objectMapper.writeValueAsString(initialPayload)),
@@ -165,7 +165,7 @@ class UserConfigurationAcceptanceTests(
             mockMvc
                 .perform(
                     MockMvcRequestBuilders
-                        .get("/api/v1/user/configuration")
+                        .get("/api/user/configuration")
                         .header("Authorization", "Bearer ${session.apiKey}"),
                 ).andExpect(status().isOk)
                 .andExpect { result ->
@@ -176,13 +176,13 @@ class UserConfigurationAcceptanceTests(
         val responseString = secondResponse.response.contentAsString
         assert(responseString.isNotEmpty())
         val initialConfigJson = objectMapper.readTree(responseString)
-        val initialConfigUpdatedAt = initialConfigJson.get("updatedAt").asText()
+        val initialConfigUpdatedAt = initialConfigJson.get("updatedAt").asString()
 
         // Check last updated time
         mockMvc
             .perform(
                 MockMvcRequestBuilders
-                    .get("/api/v1/user/configuration/last-updated")
+                    .get("/api/user/configuration/last-updated")
                     .header("Authorization", "Bearer ${session.apiKey}"),
             ).andExpect(status().isOk)
             .andExpect { it.toString() == initialConfigUpdatedAt }
@@ -196,7 +196,7 @@ class UserConfigurationAcceptanceTests(
         mockMvc
             .perform(
                 MockMvcRequestBuilders
-                    .put("/api/v1/user/configuration")
+                    .put("/api/user/configuration")
                     .header("Authorization", "Bearer ${session.apiKey}")
                     .contentType(MediaType.APPLICATION_JSON_VALUE)
                     .content(objectMapper.writeValueAsString(updatedPayload)),
@@ -207,7 +207,7 @@ class UserConfigurationAcceptanceTests(
             mockMvc
                 .perform(
                     MockMvcRequestBuilders
-                        .get("/api/v1/user/configuration")
+                        .get("/api/user/configuration")
                         .header("Authorization", "Bearer ${session.apiKey}"),
                 ).andExpect(status().isOk)
                 .andExpect { result ->
@@ -218,13 +218,13 @@ class UserConfigurationAcceptanceTests(
         val updatedResponseString = response.response.contentAsString
         assert(updatedResponseString.isNotEmpty())
         val updatedConfigJson = objectMapper.readTree(updatedResponseString)
-        val updatedConfigUpdatedAt = updatedConfigJson.get("updatedAt").asText()
+        val updatedConfigUpdatedAt = updatedConfigJson.get("updatedAt").asString()
 
         // Check last updated time after update
         mockMvc
             .perform(
                 MockMvcRequestBuilders
-                    .get("/api/v1/user/configuration/last-updated")
+                    .get("/api/user/configuration/last-updated")
                     .header("Authorization", "Bearer ${session.apiKey}"),
             ).andExpect(status().isOk)
             .andExpect { it.toString() == updatedConfigUpdatedAt }

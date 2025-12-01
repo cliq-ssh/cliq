@@ -6,7 +6,6 @@ import app.cliq.backend.user.User
 import app.cliq.backend.user.UserRepository
 import org.slf4j.LoggerFactory
 import org.springframework.context.MessageSource
-import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.stereotype.Service
 import java.time.Clock
 import java.time.OffsetDateTime

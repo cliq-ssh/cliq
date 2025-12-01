@@ -10,7 +10,6 @@ import io.swagger.v3.oas.annotations.media.Schema
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.responses.ApiResponses
 import jakarta.validation.Valid
-import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
@@ -19,12 +18,10 @@ import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 
 @UserController
-@RequestMapping("/api/v1/user")
+@RequestMapping("/api/user")
 class UserController(
     private val userFactory: UserFactory,
 ) {
-    private val logger = LoggerFactory.getLogger(this::class.java)
-
     @PostMapping("/register")
     @Operation(summary = "Register a new user")
     @ApiResponses(

@@ -4,7 +4,6 @@ import app.cliq.backend.AcceptanceTest
 import app.cliq.backend.AcceptanceTester
 import app.cliq.backend.session.SessionRepository
 import app.cliq.backend.support.UserHelper
-import com.fasterxml.jackson.databind.ObjectMapper
 import org.apache.commons.mail2.jakarta.util.MimeMessageParser
 import org.awaitility.kotlin.await
 import org.junit.jupiter.api.Test
@@ -14,6 +13,7 @@ import org.springframework.http.MediaType
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
+import tools.jackson.databind.ObjectMapper
 import java.time.Duration
 import kotlin.test.assertEquals
 import kotlin.test.assertNotEquals
@@ -39,7 +39,7 @@ class UserPasswordResetAcceptanceTests(
         mockMvc
             .perform(
                 MockMvcRequestBuilders
-                    .post("/api/v1/user/password-reset/start")
+                    .post("/api/user/password-reset/start")
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(objectMapper.writeValueAsString(startResetProcessParams)),
             ).andExpect(status().isNoContent)
@@ -66,7 +66,7 @@ class UserPasswordResetAcceptanceTests(
         mockMvc
             .perform(
                 MockMvcRequestBuilders
-                    .post("/api/v1/user/password-reset/reset")
+                    .post("/api/user/password-reset/reset")
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(objectMapper.writeValueAsString(resetPasswordParams)),
             ).andExpect(status().isOk)
@@ -86,7 +86,7 @@ class UserPasswordResetAcceptanceTests(
         mockMvc
             .perform(
                 MockMvcRequestBuilders
-                    .post("/api/v1/session")
+                    .post("/api/session")
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(objectMapper.writeValueAsString(loginParams)),
             ).andExpect(status().isCreated)
@@ -109,7 +109,7 @@ class UserPasswordResetAcceptanceTests(
         mockMvc
             .perform(
                 MockMvcRequestBuilders
-                    .post("/api/v1/user/password-reset/start")
+                    .post("/api/user/password-reset/start")
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(objectMapper.writeValueAsString(startResetProcessParams)),
             ).andExpect(status().isNoContent)
@@ -136,7 +136,7 @@ class UserPasswordResetAcceptanceTests(
         mockMvc
             .perform(
                 MockMvcRequestBuilders
-                    .post("/api/v1/user/password-reset/reset")
+                    .post("/api/user/password-reset/reset")
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(objectMapper.writeValueAsString(resetPasswordParams)),
             ).andExpect(status().isOk)
@@ -160,7 +160,7 @@ class UserPasswordResetAcceptanceTests(
         mockMvc
             .perform(
                 MockMvcRequestBuilders
-                    .post("/api/v1/user/password-reset/start")
+                    .post("/api/user/password-reset/start")
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(objectMapper.writeValueAsString(startResetProcessParams)),
             ).andExpect(status().isNoContent)
@@ -187,7 +187,7 @@ class UserPasswordResetAcceptanceTests(
         mockMvc
             .perform(
                 MockMvcRequestBuilders
-                    .post("/api/v1/user/password-reset/reset")
+                    .post("/api/user/password-reset/reset")
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(objectMapper.writeValueAsString(resetPasswordParams)),
             ).andExpect(status().isBadRequest)
@@ -202,7 +202,7 @@ class UserPasswordResetAcceptanceTests(
         mockMvc
             .perform(
                 MockMvcRequestBuilders
-                    .post("/api/v1/session")
+                    .post("/api/session")
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(objectMapper.writeValueAsString(loginParams)),
             ).andExpect(status().isCreated)
@@ -221,7 +221,7 @@ class UserPasswordResetAcceptanceTests(
         mockMvc
             .perform(
                 MockMvcRequestBuilders
-                    .post("/api/v1/user/password-reset/start")
+                    .post("/api/user/password-reset/start")
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(objectMapper.writeValueAsString(startResetProcessParams)),
             ).andExpect(status().isNoContent)
@@ -251,7 +251,7 @@ class UserPasswordResetAcceptanceTests(
         mockMvc
             .perform(
                 MockMvcRequestBuilders
-                    .post("/api/v1/user/password-reset/reset")
+                    .post("/api/user/password-reset/reset")
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(objectMapper.writeValueAsString(resetPasswordParams)),
             ).andExpect(status().isBadRequest)
@@ -266,7 +266,7 @@ class UserPasswordResetAcceptanceTests(
         mockMvc
             .perform(
                 MockMvcRequestBuilders
-                    .post("/api/v1/session")
+                    .post("/api/session")
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(objectMapper.writeValueAsString(loginParams)),
             ).andExpect(status().isCreated)
@@ -280,7 +280,7 @@ class UserPasswordResetAcceptanceTests(
         mockMvc
             .perform(
                 MockMvcRequestBuilders
-                    .post("/api/v1/user/password-reset/start")
+                    .post("/api/user/password-reset/start")
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(objectMapper.writeValueAsString(params)),
             ).andExpect(status().isNoContent)
@@ -295,7 +295,7 @@ class UserPasswordResetAcceptanceTests(
         mockMvc
             .perform(
                 MockMvcRequestBuilders
-                    .post("/api/v1/user/password-reset/start")
+                    .post("/api/user/password-reset/start")
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(objectMapper.writeValueAsString(params)),
             ).andExpect(status().isNoContent)
@@ -320,7 +320,7 @@ class UserPasswordResetAcceptanceTests(
         mockMvc
             .perform(
                 MockMvcRequestBuilders
-                    .post("/api/v1/user/password-reset/reset")
+                    .post("/api/user/password-reset/reset")
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(objectMapper.writeValueAsString(resetPasswordParamsOldToken)),
             ).andExpect(status().isBadRequest)
@@ -336,7 +336,7 @@ class UserPasswordResetAcceptanceTests(
         mockMvc
             .perform(
                 MockMvcRequestBuilders
-                    .post("/api/v1/user/password-reset/reset")
+                    .post("/api/user/password-reset/reset")
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(objectMapper.writeValueAsString(resetPasswordParamsNewToken)),
             ).andExpect(status().isOk)
@@ -352,7 +352,7 @@ class UserPasswordResetAcceptanceTests(
         mockMvc
             .perform(
                 MockMvcRequestBuilders
-                    .post("/api/v1/session")
+                    .post("/api/session")
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(objectMapper.writeValueAsString(loginParams)),
             ).andExpect(status().isCreated)
@@ -365,7 +365,7 @@ class UserPasswordResetAcceptanceTests(
         mockMvc
             .perform(
                 MockMvcRequestBuilders
-                    .post("/api/v1/user/password-reset/start")
+                    .post("/api/user/password-reset/start")
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(objectMapper.writeValueAsString(params)),
             ).andExpect(status().isNoContent)

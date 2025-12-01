@@ -14,7 +14,6 @@ import io.swagger.v3.oas.annotations.media.Content
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.responses.ApiResponses
 import jakarta.validation.Valid
-import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.PostMapping
@@ -22,14 +21,12 @@ import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 
 @UserController
-@RequestMapping("/api/v1/user/password-reset")
+@RequestMapping("/api/user/password-reset")
 class PasswordResetController(
     private val userRepository: UserRepository,
     private val userService: UserService,
     private val userFactory: UserFactory,
 ) {
-    private val logger = LoggerFactory.getLogger(this::class.java)
-
     @PostMapping("/start")
     @Operation(summary = "Start the reset password process")
     @ApiResponses(

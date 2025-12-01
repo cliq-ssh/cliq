@@ -23,7 +23,7 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 
 @RestController
-@RequestMapping("/api/v1/session")
+@RequestMapping("/api/session")
 @Tag(name = "Session", description = "Session management")
 class SessionController(
     private val userRepository: UserRepository,
