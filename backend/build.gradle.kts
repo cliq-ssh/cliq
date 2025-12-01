@@ -6,11 +6,11 @@ plugins {
     kotlin("plugin.allopen") version "2.2.21"
 
     // Spring / Spring Boot
-    id("org.springframework.boot") version "3.5.7"
+    id("org.springframework.boot") version "3.5.8"
     id("io.spring.dependency-management") version "1.1.7"
 
     // Database Migrations
-    id("org.flywaydb.flyway") version "11.17.0"
+    id("org.flywaydb.flyway") version "11.18.0"
 
     // Linter and Formatter
     id("org.jlleitschuh.gradle.ktlint") version "14.0.1"
@@ -66,11 +66,11 @@ repositories {
 
 buildscript {
     dependencies {
-        classpath("org.flywaydb:flyway-database-postgresql:11.17.0")
+        classpath("org.flywaydb:flyway-database-postgresql:11.18.0")
     }
 }
 
-val springModulithVersion by extra("1.4.4")
+val springModulithVersion by extra("1.4.5")
 
 dependencies {
     // Web Framework
@@ -79,14 +79,14 @@ dependencies {
 
     // JPA/SQL
     implementation("org.springframework.boot:spring-boot-starter-data-jpa")
-    implementation("org.flywaydb:flyway-core:11.17.0")
-    implementation("org.flywaydb:flyway-database-postgresql:11.17.0")
+    implementation("org.flywaydb:flyway-core:11.18.0")
+    implementation("org.flywaydb:flyway-database-postgresql:11.18.0")
     runtimeOnly("org.postgresql:postgresql")
 
     // Security
     implementation("org.springframework.boot:spring-boot-starter-security")
     implementation("org.springframework.security:spring-security-crypto")
-    implementation("org.bouncycastle:bcprov-jdk18on:1.82")
+    implementation("org.bouncycastle:bcprov-jdk18on:1.83")
 
     // E-Mail
     implementation("org.springframework.boot:spring-boot-starter-mail")
