@@ -46,7 +46,7 @@ class _SessionTabState extends ConsumerState<SessionTab> {
       }
       if (widget.session.isConnected) {
         // TODO: space for terminal icon
-        return Icon(LucideIcons.terminal);
+        return Icon(LucideIcons.terminal, color: colors.primaryForeground);
       }
       if (widget.session.connectionError != null) {
         return Icon(LucideIcons.plugZap, color: colors.destructive);

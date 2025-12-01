@@ -99,7 +99,7 @@ class ShellSessionNotifier extends Notifier<SSHSessionState> {
     return sshClient;
   }
 
-  Future<void> spawnShell(String sessionId, SSHClient sshClient) async {
+  Future<SSHSession?> spawnShell(String sessionId, SSHClient sshClient) async {
     try {
       final sshSession = await sshClient.shell();
       await sshClient.authenticated;
@@ -111,6 +111,7 @@ class ShellSessionNotifier extends Notifier<SSHSessionState> {
           sshSession: sshSession,
         ),
       );
+      return sshSession;
     } catch (e) {
       sshClient.close();
       _modifySession(
@@ -121,6 +122,7 @@ class ShellSessionNotifier extends Notifier<SSHSessionState> {
           connectionError: e.toString(),
         ),
       );
+      return null;
     }
   }
 

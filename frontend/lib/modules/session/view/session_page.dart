@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 import 'package:cliq/modules/connections/model/connection_full.model.dart';
 import 'package:cliq/modules/session/model/session.model.dart';
 import 'package:cliq_ui/cliq_ui.dart'
@@ -8,6 +10,7 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:forui/forui.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lucide_flutter/lucide_flutter.dart';
+import 'package:cliq_term/cliq_term.dart';
 
 import '../../../data/database.dart';
 import '../provider/session.provider.dart';
@@ -24,9 +27,36 @@ class ShellSessionPage extends StatefulHookConsumerWidget {
 
 class _ShellSessionPageState extends ConsumerState<ShellSessionPage>
     with AutomaticKeepAliveClientMixin {
+  late final TerminalController _terminalController;
+
   ShellSession get session => widget.session;
   SSHClient? get sshClient => session.sshClient;
   SSHSession? get sshSession => session.sshSession;
+
+  @override
+  void initState() {
+    super.initState();
+    // TODO: listen for onTitleChange and update tab title
+    _terminalController = TerminalController(
+      rows: 20,
+      cols: 80,
+      onResize: (rows, cols) {
+        sshSession?.resizeTerminal(cols, rows);
+        showFToast(
+          context: context,
+          alignment: FToastAlignment.topCenter,
+          title: Text('$cols x $rows'),
+          duration: Duration(milliseconds: 500),
+        );
+      },
+    );
+  }
+
+  @override
+  void dispose() {
+    _terminalController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -85,10 +115,23 @@ class _ShellSessionPageState extends ConsumerState<ShellSessionPage>
             .read(sessionProvider.notifier)
             .createSSHClient(connection);
 
-        await ref
+        final shell = await ref
             .read(sessionProvider.notifier)
             .spawnShell(widget.session.id, client);
-        // TODO: add listeners for terminal data, errors, etc.
+
+        _terminalController.onInput = (s) {
+          if (sshSession != null) {
+            sshSession!.stdin.add(Uint8List.fromList(s.codeUnits));
+          }
+        };
+
+        shell?.stdout.listen((data) {
+          _terminalController.feed(String.fromCharCodes(data));
+        });
+
+        shell?.stderr.listen((data) {
+          _terminalController.feed(String.fromCharCodes(data));
+        });
       }
 
       CliqDatabase.connectionService
@@ -98,6 +141,26 @@ class _ShellSessionPageState extends ConsumerState<ShellSessionPage>
           });
       return () => widget.session.dispose();
     }, []);
+
+    if (widget.session.isConnected) {
+      // TODO: load from config
+      final theme = TerminalColorThemes.darcula;
+
+      return SizedBox.expand(
+        child: Container(
+          color: theme.backgroundColor,
+          padding: const .all(8),
+          child: TerminalView(
+              controller: _terminalController,
+              typography: TerminalTypography(
+                fontFamily: 'SourceCodePro',
+                fontSize: 16,
+              ),
+              colors: theme,
+          ),
+        ),
+      );
+    }
 
     return FScaffold(
       child: CliqGridContainer(
@@ -112,11 +175,6 @@ class _ShellSessionPageState extends ConsumerState<ShellSessionPage>
                   children: [
                     if (session.connectionError != null) ...buildError(),
                     if (session.isLikelyLoading) ...buildConnecting(),
-                    if (widget.session.isConnected)
-                      Text(
-                        'Connected to ${widget.session.connection.address}, ${sshClient?.remoteVersion ?? '<version>'}',
-                        style: typography.xl,
-                      ),
                   ],
                 ),
               ),

@@ -1,0 +1,20 @@
+import 'package:flutter/cupertino.dart';
+
+class TerminalTypography {
+  final String fontFamily;
+  final double fontSize;
+
+  const TerminalTypography({required this.fontFamily, required this.fontSize});
+
+  TextStyle toTextStyle() {
+    return TextStyle(
+      fontFamily: fontFamily,
+      fontSize: fontSize,
+      fontWeight: .w500,
+      fontVariations: [
+        // TODO: figure out a way to use the normal font weight
+        FontVariation('wght', 500),
+      ]
+    );
+  }
+}

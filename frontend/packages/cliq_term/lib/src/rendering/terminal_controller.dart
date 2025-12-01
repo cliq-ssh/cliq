@@ -1,0 +1,289 @@
+import 'dart:async';
+
+import 'package:cliq_term/cliq_term.dart';
+import 'package:cliq_term/src/model/terminal_buffer.dart';
+import 'package:cliq_term/src/parser/escape_parser.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:logging/logging.dart';
+
+enum CursorStyle { block, underline, bar }
+
+class TerminalController extends ChangeNotifier {
+  static final Logger _log = Logger('TerminalController');
+
+  int rows;
+  int cols;
+  int cursorRow = 0;
+  int cursorCol = 0;
+
+  int scrollbackRows = 0;
+
+  FormattingOptions curFmt = FormattingOptions();
+
+  CursorStyle cursorStyle = .bar;
+  bool cursorVisible = true; // current visible state (blinks)
+  Timer? _cursorTimer;
+  Duration cursorBlinkInterval = const Duration(milliseconds: 600);
+
+  late TerminalBuffer front;
+  late TerminalBuffer back;
+
+  void Function(String)? onInput;
+  final void Function(int, int)? onResize;
+  final void Function(String)? onTitleChange;
+  final void Function()? onBell;
+
+  late TerminalColorTheme colors;
+
+  TerminalController({
+    required this.rows,
+    required this.cols,
+    this.onResize,
+    this.onTitleChange,
+    this.onBell,
+  }) {
+    front = TerminalBuffer(rows, cols);
+    back = TerminalBuffer(rows, cols);
+  }
+
+  void resize(int newRows, int newCols) {
+    if (newRows == rows && newCols == cols) return;
+    onResize?.call(newRows, newCols);
+
+    rows = newRows;
+    cols = newCols;
+    front = front.resize(newRows, newCols);
+    back = back.resize(newRows, newCols);
+
+    cursorRow = cursorRow.clamp(0, rows - 1);
+    cursorCol = cursorCol.clamp(0, cols - 1);
+    notifyListeners();
+  }
+
+  void handleKey(KeyEvent ev) {
+    if (ev is! KeyDownEvent) return;
+
+    final String? ch = ev.character;
+    if (ch != null && ch.isNotEmpty) {
+      onInput?.call(ch);
+      return;
+    }
+
+    final key = ev.logicalKey;
+    if (key == LogicalKeyboardKey.enter) {
+      onInput?.call('\n');
+    } else if (key == LogicalKeyboardKey.backspace) {
+      onInput?.call('\x7f');
+    } else if (key == LogicalKeyboardKey.tab) {
+      onInput?.call('\t');
+    } else if (key == LogicalKeyboardKey.arrowUp) {
+      onInput?.call('\x1b[A');
+    } else if (key == LogicalKeyboardKey.arrowDown) {
+      onInput?.call('\x1b[B');
+    } else if (key == LogicalKeyboardKey.arrowRight) {
+      onInput?.call('\x1b[C');
+    } else if (key == LogicalKeyboardKey.arrowLeft) {
+      onInput?.call('\x1b[D');
+    }
+  }
+
+  /// Resets both front and back buffers, cursor position, and formatting.
+  void resetBuffers() {
+    front.clear();
+    back.clear();
+    cursorRow = 0;
+    cursorCol = 0;
+    curFmt.reset();
+    notifyListeners();
+  }
+
+  /// Swaps the front and back buffers, clearing the new back buffer.
+  void commitToBackBuffer() {
+    front.clear();
+    cursorRow = 0;
+    cursorCol = 0;
+    resetScrollback();
+    notifyListeners();
+  }
+
+  void _writeChar(String ch) {
+    if (rows == 0 || cols == 0) return;
+
+    if (cursorRow < 0) cursorRow = 0;
+    if (cursorCol < 0) cursorCol = 0;
+
+    if (cursorCol >= cols) {
+      cursorCol = 0;
+      cursorRow++;
+    }
+
+    cursorVisible = true;
+    _cursorTimer?.cancel();
+    startCursorBlink();
+
+    front.setCell(
+      cursorRow,
+      cursorCol,
+      Cell(ch, FormattingOptions.clone(curFmt)),
+    );
+    cursorCol++;
+
+    if (cursorCol >= cols) {
+      cursorCol = 0;
+      cursorRow++;
+      if (cursorRow >= rows) {
+        front.pushEmptyLine();
+        cursorRow = rows - 1;
+      }
+    }
+  }
+
+  void resetScrollback() {
+    if (scrollbackRows == 0) return;
+    scrollbackRows = 0;
+    notifyListeners();
+  }
+
+  void feed(String input) {
+    int i = 0;
+    final len = input.length;
+    while (i < len) {
+      final ch = input[i];
+
+      if (ch == '\x1B') {
+        if (i + 1 >= len) break;
+        final next = input[i + 1];
+
+        if (next == '[') {
+          final consumed = EscapeParser.parse(this, input, i + 1, curFmt);
+          if (consumed <= 0) break;
+          i += 1 + consumed;
+          continue;
+        }
+
+        if (next == ']') {
+          int j = i + 2;
+          int contentStart = j;
+          bool terminated = false;
+          while (j < len) {
+            final cu = input.codeUnitAt(j);
+            if (cu == 0x07) {
+              // BEL
+              terminated = true;
+              break;
+            }
+            if (cu == 0x1B && j + 1 < len && input.codeUnitAt(j + 1) == 0x5C) {
+              // ESC '\'
+              terminated = true;
+              break;
+            }
+            j++;
+          }
+          if (!terminated) break; // incomplete OSC
+          final contentEnd = j;
+          final payload = input.substring(contentStart, contentEnd);
+          final parts = payload.split(';');
+          final title = parts.length >= 2
+              ? parts.sublist(1).join(';')
+              : payload;
+          if (title.isNotEmpty) onTitleChange?.call(title);
+          // advance past terminator (BEL) or ESC '\'
+          i = input.codeUnitAt(j) == 0x07 ? j + 1 : j + 2;
+          continue;
+        }
+
+        _log.fine('Unimplemented escape sequence! Encountered ${input.substring(i, len)}');
+        i++;
+        continue;
+      }
+
+      final cu = ch.codeUnitAt(0);
+      // BEL
+      if (cu == 0x07) {
+        onBell?.call();
+        i++;
+        continue;
+      }
+      // CR
+      if (cu == 0x0D) {
+        cursorCol = 0;
+        i++;
+        continue;
+      }
+      // LF
+      if (cu == 0x0A) {
+        cursorRow = cursorRow + 1;
+        if (cursorRow >= rows) {
+          front.pushEmptyLine();
+          cursorRow = rows - 1;
+        }
+        cursorCol = 0;
+        i++;
+        continue;
+      }
+      // TAB
+      if (cu == 0x09) {
+        _writeChar('\t');
+        i++;
+        continue;
+      }
+
+      if (cu == 0x7F || cu == 0x08) {
+        if (cursorCol > 0) {
+          cursorCol--;
+          front.setCell(cursorRow, cursorCol, Cell.empty());
+        } else if (cursorRow > 0) {
+          cursorRow--;
+          int lastIdx = cols - 1;
+          while (lastIdx >= 0 && front.getCell(cursorRow, lastIdx).ch == ' ') {
+            lastIdx--;
+          }
+
+          if (lastIdx < 0) {
+            cursorCol = 0;
+          } else {
+            cursorCol = lastIdx;
+            front.setCell(cursorRow, cursorCol, Cell.empty());
+          }
+        }
+        i++;
+        continue;
+      }
+
+      if (cu < 0x20) {
+        _log.fine('Ignoring control character: 0x${cu.toRadixString(16)}');
+        i++;
+        continue;
+      }
+
+      _writeChar(ch);
+      i++;
+    }
+
+    resetScrollback();
+    notifyListeners();
+  }
+
+  void startCursorBlink() {
+    _cursorTimer?.cancel();
+    cursorVisible = true;
+    _cursorTimer = Timer.periodic(cursorBlinkInterval, (_) {
+      cursorVisible = !cursorVisible;
+      notifyListeners();
+    });
+  }
+
+  void stopCursorBlink() {
+    _cursorTimer?.cancel();
+    _cursorTimer = null;
+    cursorVisible = true;
+    notifyListeners();
+  }
+
+  @override
+  void dispose() {
+    _cursorTimer?.cancel();
+    super.dispose();
+  }
+}
