@@ -18,7 +18,13 @@ trap cd_into_work_dir EXIT
 echo "Installing environment file..."
 cp --update=none .env.dist .env
 
+echo "Shutting down any running docker containers..."
+docker compose down --volumes --remove-orphans || true
+
+echo "Pulling latest docker images..."
+docker compose pull || true # We ignore failure here to allow offline usage
+
 echo "Starting docker containers..."
-docker compose up -d --pull always
+docker compose up -d --wait
 
 echo "Finished installation!"

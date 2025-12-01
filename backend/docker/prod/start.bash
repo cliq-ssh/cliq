@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
-# Use ZGC and string deduplication
-# Use compact object headers
+# Use ZGC
+# Use string deduplication and compact object headers
 exec java \
     -XX:+UseZGC \
     -XX:+UseStringDeduplication \

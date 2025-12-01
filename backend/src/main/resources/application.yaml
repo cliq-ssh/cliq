@@ -4,9 +4,9 @@ app:
     version: ${version}
     description: ${description}
   email:
-    enabled: true
-    from-address: noreply@cliq.app
-    from-name: CLIq
+    enabled: \${MAIL_ENABLED}
+    from-address: \${MAIL_FROM}
+    from-name: \${MAIL_FROM_NAME}
 
 spring:
   config:

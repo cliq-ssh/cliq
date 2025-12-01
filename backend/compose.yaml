@@ -1,5 +1,36 @@
 name: CLIq Backend
 services:
+  keycloak:
+    command:
+      - start-dev
+      - --import-realm
+    image: 'quay.io/keycloak/keycloak:26.4.7'
+    init: true
+    environment:
+      TZ: ${TZ}
+      # User credentials
+      KEYCLOAK_ADMIN: ${ADMIN_USER}
+      KEYCLOAK_ADMIN_PASSWORD: ${ADMIN_PASSWORD}
+
+      # Database
+      KC_DB_URL_HOST: db
+      KC_DB: postgres
+      KC_DB_URL: jdbc:postgresql://db:5432/${KEYCLOAK_DB_NAME}
+      KC_DB_PASSWORD: ${POSTGRES_PASSWORD}
+      KC_DB_USERNAME: ${POSTGRES_USER}
+
+      # Features
+      KC_HEALTH_ENABLED: true
+      KC_METRICS_ENABLED: true
+      JGROUPS_DISCOVERY_PROTOCOL: JDBC_PING
+    ports:
+      - '127.0.0.1:8100:8080'
+    volumes:
+      - ./docker/keycloak/import:/opt/keycloak/data/import
+    depends_on:
+      db:
+        condition: service_healthy
+
   db:
     image: postgres:18.1-alpine3.22
     init: true
