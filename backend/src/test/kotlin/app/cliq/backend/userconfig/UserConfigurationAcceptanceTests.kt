@@ -128,7 +128,7 @@ class UserConfigurationAcceptanceTests(
         val responseString = response.response.contentAsString
         assert(responseString.isNotEmpty())
         val configJson = objectMapper.readTree(responseString)
-        val configUpdatedAt = configJson.get("updatedAt").asText()
+        val configUpdatedAt = configJson.get("updatedAt").asString()
 
         // Check last updated time
         mockMvc
@@ -176,7 +176,7 @@ class UserConfigurationAcceptanceTests(
         val responseString = secondResponse.response.contentAsString
         assert(responseString.isNotEmpty())
         val initialConfigJson = objectMapper.readTree(responseString)
-        val initialConfigUpdatedAt = initialConfigJson.get("updatedAt").asText()
+        val initialConfigUpdatedAt = initialConfigJson.get("updatedAt").asString()
 
         // Check last updated time
         mockMvc
@@ -218,7 +218,7 @@ class UserConfigurationAcceptanceTests(
         val updatedResponseString = response.response.contentAsString
         assert(updatedResponseString.isNotEmpty())
         val updatedConfigJson = objectMapper.readTree(updatedResponseString)
-        val updatedConfigUpdatedAt = updatedConfigJson.get("updatedAt").asText()
+        val updatedConfigUpdatedAt = updatedConfigJson.get("updatedAt").asString()
 
         // Check last updated time after update
         mockMvc

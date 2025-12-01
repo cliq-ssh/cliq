@@ -73,11 +73,4 @@ class DatabaseCleanupService(
             .createNativeQuery("TRUNCATE TABLE $joinedTableNames CASCADE;")
             .executeUpdate()
     }
-
-    @Transactional
-    fun truncateInstances() {
-        entityManager
-            .createNativeQuery("TRUNCATE TABLE instances CASCADE;")
-            .executeUpdate()
-    }
 }
