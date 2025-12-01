@@ -36,6 +36,7 @@ class _ShellSessionPageState extends ConsumerState<ShellSessionPage>
   @override
   void initState() {
     super.initState();
+    // TODO: listen for onTitleChange and update tab title
     _terminalController = TerminalController(
       rows: 20,
       cols: 80,

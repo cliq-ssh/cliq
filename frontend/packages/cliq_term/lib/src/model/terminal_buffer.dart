@@ -15,6 +15,7 @@ class TerminalBuffer {
         growable: false,
       );
 
+  int get length => _buffer.length;
   int _idxForRow(int row) => (_start + row) % _buffer.length;
 
   TerminalBuffer resize(int newRows, int newCols) {

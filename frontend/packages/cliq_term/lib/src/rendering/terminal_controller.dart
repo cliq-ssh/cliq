@@ -7,9 +7,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:logging/logging.dart';
 
-import '../model/cell.dart';
-import '../model/formatting_options.dart';
-
 enum CursorStyle { block, underline, bar }
 
 class TerminalController extends ChangeNotifier {
@@ -24,7 +21,7 @@ class TerminalController extends ChangeNotifier {
 
   FormattingOptions curFmt = FormattingOptions();
 
-  CursorStyle cursorStyle = CursorStyle.block;
+  CursorStyle cursorStyle = .bar;
   bool cursorVisible = true; // current visible state (blinks)
   Timer? _cursorTimer;
   Duration cursorBlinkInterval = const Duration(milliseconds: 600);

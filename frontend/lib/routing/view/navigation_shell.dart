@@ -1,5 +1,6 @@
 import 'package:cliq/modules/connections/extension/connection.extension.dart';
 import 'package:cliq/routing/view/session_tab.dart';
+import 'package:cliq_term/cliq_term.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:forui/forui.dart';
 import 'package:forui_hooks/forui_hooks.dart';
@@ -42,7 +43,11 @@ class NavigationShellState extends ConsumerState<NavigationShell>
 
     return FScaffold(
       childPad: false,
-      header: Padding(
+      header: Container(
+        color: sessions.activeSessions.isNotEmpty && widget.shell.currentIndex == 1
+            // TODO: get color from either config or session
+            ? TerminalColorThemes.darcula.backgroundColor
+            : null,
         padding: const EdgeInsets.all(8),
         child: Row(
           children: [
