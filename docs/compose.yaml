@@ -1,0 +1,11 @@
+services:
+  node:
+    image: node:25
+    user: "1000"
+    restart: unless-stopped
+    command: ["npm", "run", "start", "--", "--host", "0.0.0.0"]
+    working_dir: /app
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./:/app
