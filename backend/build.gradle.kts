@@ -96,7 +96,7 @@ dependencies {
 
     // E-Mail
     implementation("org.springframework.boot:spring-boot-starter-mail")
-    implementation("io.pebbletemplates:pebble-spring-boot-starter:4.0.0")
+    implementation("io.pebbletemplates:pebble-spring-boot-starter:4.1.0")
 
     // Validation
     implementation("org.springframework.boot:spring-boot-starter-validation")
@@ -133,7 +133,7 @@ dependencies {
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 
     // Greenmail
-    val greenmailVersion = "2.1.7"
+    val greenmailVersion = "2.1.8"
     implementation("com.icegreen:greenmail-spring:$greenmailVersion")
     testImplementation("com.icegreen:greenmail:$greenmailVersion")
     testImplementation("com.icegreen:greenmail-junit5:$greenmailVersion")
