@@ -35,8 +35,7 @@ enum StoreKey<T> {
     type: TerminalColorTheme,
     fromValue: _terminalColorsFromValue,
     toValue: _terminalColorsToValue,
-  ),
-  ;
+  );
 
   final String key;
   final Type type;
@@ -78,10 +77,7 @@ enum StoreKey<T> {
   // save smicolon-separated typography values
   static String? _typographyToValue(TerminalTypography? value) {
     if (value == null) return null;
-    return [
-      value.fontFamily,
-      value.fontSize.toString(),
-    ].join(';');
+    return [value.fontFamily, value.fontSize.toString()].join(';');
   }
 
   static String? _terminalColorsToValue(TerminalColorTheme? value) {
@@ -118,10 +114,7 @@ enum StoreKey<T> {
     final fontFamily = parts[0];
     final fontSize = double.tryParse(parts[1]);
     if (fontSize == null) return null;
-    return TerminalTypography(
-      fontFamily: fontFamily,
-      fontSize: fontSize,
-    );
+    return TerminalTypography(fontFamily: fontFamily, fontSize: fontSize);
   }
 
   static TerminalColorTheme? _terminalColorsFromValue(String? value) {
@@ -135,6 +128,7 @@ enum StoreKey<T> {
       }
       return Color(intValue);
     }
+
     return TerminalColorTheme(
       cursorColor: parseColor(parts[0]),
       selectionColor: parseColor(parts[1]),
