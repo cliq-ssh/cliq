@@ -32,7 +32,7 @@ services:
         condition: service_healthy
 
   db:
-    image: postgres:18.1-alpine3.22
+    image: postgres:18.1-alpine
     init: true
     environment:
       TZ: ${TZ}
