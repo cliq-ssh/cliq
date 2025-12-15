@@ -54,9 +54,7 @@ class SyncSettingsPage extends AbstractSettingsPage {
             label: const Text('Server URL'),
             hint: 'https://sync.example.com',
             initialText: StoreKey.syncHostUrl.readSync(),
-            error: serverUrl.value == null
-                ? Text('Invalid URL')
-                : null,
+            error: serverUrl.value == null ? Text('Invalid URL') : null,
             onChange: (url) async {
               final uri = Uri.tryParse(url);
               if (uri == null || !uri.hasScheme || !uri.hasAuthority) {
@@ -66,7 +64,9 @@ class SyncSettingsPage extends AbstractSettingsPage {
 
               try {
                 final routeOptions = RouteOptions()..hostUri = uri;
-                final status = await CliqClient.retrieveHealthStatus(routeOptions);
+                final status = await CliqClient.retrieveHealthStatus(
+                  routeOptions,
+                );
 
                 if (status != 'DOWN') {
                   serverUrl.value = routeOptions;
@@ -107,7 +107,8 @@ class SyncSettingsPage extends AbstractSettingsPage {
                             final email = loginEmailController.text;
                             final password = loginPasswordController.text;
 
-                            ref.read(syncProvider.notifier)
+                            ref
+                                .read(syncProvider.notifier)
                                 .login(serverUrl.value!, email, password);
                           },
                           child: const Text('Login'),
@@ -151,8 +152,14 @@ class SyncSettingsPage extends AbstractSettingsPage {
                           final email = registerEmailController.text;
                           final password = registerPasswordController.text;
 
-                          ref.read(syncProvider.notifier)
-                              .register(serverUrl.value!, username, email, password);
+                          ref
+                              .read(syncProvider.notifier)
+                              .register(
+                                serverUrl.value!,
+                                username,
+                                email,
+                                password,
+                              );
                         },
                         child: const Text('Register'),
                       ),
@@ -173,8 +180,8 @@ class SyncSettingsPage extends AbstractSettingsPage {
             CliqGridColumn(
               sizes: {.sm: 12, .md: 8},
               child: SingleChildScrollView(
-                child: sync.api != null ? buildLoggedIn() : buildNotLoggedIn(
-              ),)
+                child: sync.api != null ? buildLoggedIn() : buildNotLoggedIn(),
+              ),
             ),
           ],
         ),

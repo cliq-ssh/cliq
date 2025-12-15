@@ -8,9 +8,15 @@ final NotifierProvider<SyncNotifier, SyncState> syncProvider = NotifierProvider(
 );
 
 class SyncNotifier extends Notifier<SyncState> {
-  Future<void> register(RouteOptions routeOptions, String username, String email, String password) async {
-    final api = await CliqClientBuilder(routeOptions: routeOptions)
-        .register(username: username, email: email, password: password);
+  Future<void> register(
+    RouteOptions routeOptions,
+    String username,
+    String email,
+    String password,
+  ) async {
+    final api = await CliqClientBuilder(
+      routeOptions: routeOptions,
+    ).register(username: username, email: email, password: password);
     StoreKey.syncHostUrl.write(routeOptions.hostUri.toString());
     StoreKey.syncToken.write(api.session.token);
     StoreKey.syncEmail.write(email);
@@ -20,9 +26,14 @@ class SyncNotifier extends Notifier<SyncState> {
     fetchLastUpdated();
   }
 
-  Future<void> login(RouteOptions routeOptions, String email, String password) async {
-    final api = await CliqClientBuilder(routeOptions: routeOptions)
-        .login(email: email, password: password);
+  Future<void> login(
+    RouteOptions routeOptions,
+    String email,
+    String password,
+  ) async {
+    final api = await CliqClientBuilder(
+      routeOptions: routeOptions,
+    ).login(email: email, password: password);
     StoreKey.syncHostUrl.write(routeOptions.hostUri.toString());
     StoreKey.syncToken.write(api.session.token);
     StoreKey.syncEmail.write(email);
@@ -39,9 +50,9 @@ class SyncNotifier extends Notifier<SyncState> {
       return Future.value();
     }
     final routeOptions = RouteOptions()..hostUri = Uri.parse(hostUrl);
-    return CliqClientBuilder(routeOptions: routeOptions)
-        .loginFromToken(token)
-        .then((api) {
+    return CliqClientBuilder(
+      routeOptions: routeOptions,
+    ).loginFromToken(token).then((api) {
       state = state.copyWith(api: api);
       return fetchLastUpdated();
     });

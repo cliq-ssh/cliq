@@ -12,15 +12,9 @@ enum StoreKey<T> {
   syncToken<String>('sync_token', type: String),
 
   // TODO: temporary, remove this once backend implements proper token expiration handling
-  syncEmail<String>(
-    'sync_email',
-    type: String,
-  ),
+  syncEmail<String>('sync_email', type: String),
   // TODO: put this in secure storage
-  syncPassword<String>(
-    'sync_password',
-    type: String,
-  ),
+  syncPassword<String>('sync_password', type: String),
 
   theme<CliqTheme>(
     'theme',
@@ -48,8 +42,7 @@ enum StoreKey<T> {
     type: TerminalColorTheme,
     fromValue: _terminalColorsFromValue,
     toValue: _terminalColorsToValue,
-  )
-  ;
+  );
 
   final String key;
   final Type type;

@@ -28,7 +28,6 @@ class NavigationShell extends StatefulHookConsumerWidget {
 
 class NavigationShellState extends ConsumerState<NavigationShell>
     with TickerProviderStateMixin {
-
   @override
   Widget build(BuildContext context) {
     final connections = useState<List<Connection>>([]);
@@ -53,9 +52,9 @@ class NavigationShellState extends ConsumerState<NavigationShell>
       header: Container(
         color:
             selectedSession.value != null && selectedSession.value!.isConnected
-              // TODO: get color from session
-              ? TerminalColorThemes.darcula.backgroundColor
-              : null,
+            // TODO: get color from session
+            ? TerminalColorThemes.darcula.backgroundColor
+            : null,
         padding: const EdgeInsets.all(8),
         child: SafeArea(
           child: Row(

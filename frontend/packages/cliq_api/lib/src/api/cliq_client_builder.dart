@@ -15,13 +15,17 @@ class CliqClientBuilder {
 
   Future<CliqClient> loginFromToken(String token) async {
     return _handleAuthProcess((apiImpl) async {
-      return RestResponse(statusCode: 200, data: SessionImpl(
-          apiImpl, id: -1,
+      return RestResponse(
+        statusCode: 200,
+        data: SessionImpl(
+          apiImpl,
+          id: -1,
           token: token,
           name: 'name',
           userAgent: 'userAgent',
-          createdAt: DateTime.now()
-      ));
+          createdAt: DateTime.now(),
+        ),
+      );
     });
   }
 
