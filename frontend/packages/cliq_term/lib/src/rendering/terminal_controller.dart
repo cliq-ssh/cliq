@@ -193,7 +193,9 @@ class TerminalController extends ChangeNotifier {
           continue;
         }
 
-        _log.fine('Unimplemented escape sequence! Encountered ${input.substring(i, len)}');
+        _log.fine(
+          'Unimplemented escape sequence! Encountered ${input.substring(i, len)}',
+        );
         i++;
         continue;
       }

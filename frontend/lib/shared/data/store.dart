@@ -1,14 +1,26 @@
 import 'dart:async';
 
-import 'package:cliq_term/cliq_term.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../modules/settings/model/theme.model.dart';
 
 enum StoreKey<T> {
-  userName<String>('user_name', type: String),
-  hostUrl<String>('host_url', type: String),
+  syncHostUrl<String>('sync_host_url', type: String),
+  // TODO: put this in secure storage
+  syncToken<String>('sync_token', type: String),
+
+  // TODO: temporary, remove this once backend implements proper token expiration handling
+  syncEmail<String>(
+    'sync_email',
+    type: String,
+  ),
+  // TODO: put this in secure storage
+  syncPassword<String>(
+    'sync_password',
+    type: String,
+  ),
+
   theme<CliqTheme>(
     'theme',
     type: CliqTheme,
@@ -22,19 +34,6 @@ enum StoreKey<T> {
     defaultValue: ThemeMode.system,
     fromValue: _themeModeFromValue,
     toValue: _enumToValue,
-  ),
-
-  terminalTypography<TerminalTypography>(
-    'terminal_typography',
-    type: TerminalTypography,
-    fromValue: _typographyFromValue,
-    toValue: _typographyToValue,
-  ),
-  terminalTheme<TerminalColorTheme>(
-    'terminal_color_theme',
-    type: TerminalColorTheme,
-    fromValue: _terminalColorsFromValue,
-    toValue: _terminalColorsToValue,
   ),
   ;
 
@@ -74,90 +73,6 @@ enum StoreKey<T> {
       _enumFromValue(value, CliqTheme.values);
   static ThemeMode? _themeModeFromValue(String? value) =>
       _enumFromValue(value, ThemeMode.values);
-
-  // save smicolon-separated typography values
-  static String? _typographyToValue(TerminalTypography? value) {
-    if (value == null) return null;
-    return [
-      value.fontFamily,
-      value.fontSize.toString(),
-    ].join(';');
-  }
-
-  static String? _terminalColorsToValue(TerminalColorTheme? value) {
-    if (value == null) return null;
-    return [
-      value.cursorColor,
-      value.selectionColor,
-      value.backgroundColor,
-      value.foregroundColor,
-      value.selectionColor,
-      value.black,
-      value.red,
-      value.green,
-      value.yellow,
-      value.blue,
-      value.magenta,
-      value.cyan,
-      value.white,
-      value.brightBlack,
-      value.brightRed,
-      value.brightGreen,
-      value.brightYellow,
-      value.brightBlue,
-      value.brightMagenta,
-      value.brightCyan,
-      value.brightWhite,
-    ].join(';');
-  }
-
-  static TerminalTypography? _typographyFromValue(String? value) {
-    if (value == null) return null;
-    final parts = value.split(';');
-    if (parts.length != 2) return null;
-    final fontFamily = parts[0];
-    final fontSize = double.tryParse(parts[1]);
-    if (fontSize == null) return null;
-    return TerminalTypography(
-      fontFamily: fontFamily,
-      fontSize: fontSize,
-    );
-  }
-
-  static TerminalColorTheme? _terminalColorsFromValue(String? value) {
-    if (value == null) return null;
-    final parts = value.split(';');
-    if (parts.length != 18) return null;
-    Color parseColor(String str) {
-      final intValue = int.tryParse(str);
-      if (intValue == null) {
-        throw FormatException('Invalid color value: $str');
-      }
-      return Color(intValue);
-    }
-    return TerminalColorTheme(
-      cursorColor: parseColor(parts[0]),
-      selectionColor: parseColor(parts[1]),
-      backgroundColor: parseColor(parts[2]),
-      foregroundColor: parseColor(parts[3]),
-      black: parseColor(parts[5]),
-      red: parseColor(parts[6]),
-      green: parseColor(parts[7]),
-      yellow: parseColor(parts[8]),
-      blue: parseColor(parts[9]),
-      magenta: parseColor(parts[10]),
-      cyan: parseColor(parts[11]),
-      white: parseColor(parts[12]),
-      brightBlack: parseColor(parts[13]),
-      brightRed: parseColor(parts[14]),
-      brightGreen: parseColor(parts[15]),
-      brightYellow: parseColor(parts[16]),
-      brightBlue: parseColor(parts[17]),
-      brightMagenta: parseColor(parts[18]),
-      brightCyan: parseColor(parts[19]),
-      brightWhite: parseColor(parts[20]),
-    );
-  }
 }
 
 /// A simple key-value store that uses SharedPreferences and FlutterSecureStorage to store data.

@@ -151,12 +151,12 @@ class _ShellSessionPageState extends ConsumerState<ShellSessionPage>
           color: theme.backgroundColor,
           padding: const .all(8),
           child: TerminalView(
-              controller: _terminalController,
-              typography: TerminalTypography(
-                fontFamily: 'SourceCodePro',
-                fontSize: 16,
-              ),
-              colors: theme,
+            controller: _terminalController,
+            typography: TerminalTypography(
+              fontFamily: 'SourceCodePro',
+              fontSize: 16,
+            ),
+            colors: theme,
           ),
         ),
       );
@@ -169,7 +169,7 @@ class _ShellSessionPageState extends ConsumerState<ShellSessionPage>
           CliqGridRow(
             children: [
               CliqGridColumn(
-                sizes: {.sm: 8},
+                sizes: {.sm: 12, .md: 8},
                 child: Column(
                   spacing: 32,
                   children: [
