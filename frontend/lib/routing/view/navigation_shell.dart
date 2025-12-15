@@ -1,5 +1,3 @@
-import 'dart:io';
-
 import 'package:cliq/modules/connections/extension/connection.extension.dart';
 import 'package:cliq/routing/view/session_tab.dart';
 import 'package:cliq_term/cliq_term.dart';

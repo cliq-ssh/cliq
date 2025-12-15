@@ -29,7 +29,6 @@ class SyncSettingsPage extends AbstractSettingsPage {
     final registerEmailController = useTextEditingController();
     final registerPasswordController = useTextEditingController();
 
-    final loginUsernameController = useTextEditingController();
     final loginEmailController = useTextEditingController();
     final loginPasswordController = useTextEditingController();
 

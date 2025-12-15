@@ -3,6 +3,7 @@ import 'package:cliq/modules/settings/view/settings_page.dart';
 import 'package:cliq_term/cliq_term.dart';
 import 'package:cliq_ui/cliq_ui.dart' hide CliqTheme;
 import 'package:flutter/material.dart';
+import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:forui/forui.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:system_fonts/system_fonts.dart';
@@ -10,8 +11,6 @@ import 'package:system_fonts/system_fonts.dart';
 import '../../../routing/model/page_path.model.dart';
 
 class TerminalThemeSettingsPage extends AbstractSettingsPage {
-  static const List<String> fonts = ['SourceCodePro'];
-
   static const PagePathBuilder pagePath = PagePathBuilder.child(
     parent: SettingsPage.pagePath,
     path: 'terminal-theme',

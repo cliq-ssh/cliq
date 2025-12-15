@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:cliq_term/cliq_term.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
