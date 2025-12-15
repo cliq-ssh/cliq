@@ -1,7 +1,5 @@
 import 'dart:ui';
 
-import 'package:cliq_term/src/theme/typography.dart';
-
 class TerminalColorTheme {
   final Color cursorColor;
   final Color selectionColor;

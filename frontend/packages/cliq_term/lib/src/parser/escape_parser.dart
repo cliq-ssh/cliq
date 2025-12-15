@@ -136,7 +136,10 @@ class EscapeParser {
           switch (codes[offset++]) {
             case 5:
               if (offset == codes.length) break;
-              formatting.fgColor = xterm256ToColor(controller.colors, codes[offset]);
+              formatting.fgColor = xterm256ToColor(
+                controller.colors,
+                codes[offset],
+              );
               break;
             case 2:
               if ((offset + 2) == codes.length) break;
@@ -160,7 +163,10 @@ class EscapeParser {
           switch (codes[offset]) {
             case 5:
               if ((offset + 1) == codes.length) break;
-              formatting.bgColor = xterm256ToColor(controller.colors, codes[offset + 1]);
+              formatting.bgColor = xterm256ToColor(
+                controller.colors,
+                codes[offset + 1],
+              );
               break;
             case 2:
               if ((offset + 3) == codes.length) break;

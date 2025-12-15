@@ -151,12 +151,12 @@ class _ShellSessionPageState extends ConsumerState<ShellSessionPage>
           color: theme.backgroundColor,
           padding: const .all(8),
           child: TerminalView(
-              controller: _terminalController,
-              typography: TerminalTypography(
-                fontFamily: 'SourceCodePro',
-                fontSize: 16,
-              ),
-              colors: theme,
+            controller: _terminalController,
+            typography: TerminalTypography(
+              fontFamily: 'SourceCodePro',
+              fontSize: 16,
+            ),
+            colors: theme,
           ),
         ),
       );
