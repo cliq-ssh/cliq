@@ -14,7 +14,7 @@ class TerminalTypography {
       fontVariations: [
         // TODO: figure out a way to use the normal font weight
         FontVariation('wght', 500),
-      ]
+      ],
     );
   }
 }

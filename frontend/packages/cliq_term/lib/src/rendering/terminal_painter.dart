@@ -9,18 +9,13 @@ class TerminalPainter extends CustomPainter {
   final TerminalTypography typography;
   final TerminalColorTheme colors;
 
-  TerminalPainter(
-    this.controller,
-    this.typography,
-    this.colors,
-  );
+  TerminalPainter(this.controller, this.typography, this.colors);
 
-  static (double width, double height) measureChar(TerminalTypography typography) {
+  static (double width, double height) measureChar(
+    TerminalTypography typography,
+  ) {
     final probe = TextPainter(
-      text: TextSpan(
-        text: 'MMMM',
-        style: typography.toTextStyle(),
-      ),
+      text: TextSpan(text: 'MMMM', style: typography.toTextStyle()),
       textDirection: TextDirection.ltr,
     )..layout();
     return (probe.width / 4, probe.height);

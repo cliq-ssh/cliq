@@ -44,7 +44,8 @@ class NavigationShellState extends ConsumerState<NavigationShell>
     return FScaffold(
       childPad: false,
       header: Container(
-        color: sessions.activeSessions.isNotEmpty && widget.shell.currentIndex == 1
+        color:
+            sessions.activeSessions.isNotEmpty && widget.shell.currentIndex == 1
             // TODO: get color from either config or session
             ? TerminalColorThemes.darcula.backgroundColor
             : null,
