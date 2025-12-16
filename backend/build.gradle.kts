@@ -1,9 +1,9 @@
 plugins {
     // Kotlin
-    kotlin("jvm") version "2.2.21"
-    kotlin("plugin.spring") version "2.2.21"
-    kotlin("plugin.jpa") version "2.2.21"
-    kotlin("plugin.allopen") version "2.2.21"
+    kotlin("jvm") version "2.3.0"
+    kotlin("plugin.spring") version "2.3.0"
+    kotlin("plugin.jpa") version "2.3.0"
+    kotlin("plugin.allopen") version "2.3.0"
 
     // Spring / Spring Boot
     id("org.springframework.boot") version "4.0.0"
