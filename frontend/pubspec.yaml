@@ -1,11 +1,16 @@
 name: cliq
-description: "CLIq: Portable and secure SSH and SFTP client."
+description: "cliq: Portable and secure SSH and SFTP client."
 publish_to: 'none'
 
 version: 0.1.0+1
 
 environment:
   sdk: 3.10.4
+
+workspace:
+  - packages/cliq_api
+  - packages/cliq_term
+  - packages/cliq_ui
 
 dependencies:
   flutter:
