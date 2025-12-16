@@ -36,7 +36,7 @@ class UserConfigurationController(
             ApiResponse(
                 responseCode = "200",
                 description = "Successfully updated user configuration",
-            )
+            ),
         ],
     )
     fun put(
@@ -77,7 +77,7 @@ class UserConfigurationController(
                         schema = Schema(implementation = ConfigurationView::class),
                     ),
                 ],
-            )
+            ),
         ],
     )
     fun get(
@@ -104,7 +104,7 @@ class UserConfigurationController(
                         schema = Schema(implementation = OffsetDateTime::class),
                     ),
                 ],
-            )
+            ),
         ],
     )
     fun getUpdatedAt(
