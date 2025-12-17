@@ -46,7 +46,7 @@ flyway {
 }
 
 ktlint {
-    version.set("1.7.1")
+    version.set("1.8.0")
     android.set(false)
     ignoreFailures.set(false)
     reporters {
@@ -80,14 +80,24 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-data-jpa")
     runtimeOnly("org.postgresql:postgresql")
     // Flyway
+    val flywayVersion = "11.19.0"
     implementation("org.springframework.boot:spring-boot-starter-flyway")
-    implementation("org.flywaydb:flyway-core:11.19.0")
-    implementation("org.flywaydb:flyway-database-postgresql:11.19.0")
+    implementation("org.flywaydb:flyway-core:$flywayVersion")
+    implementation("org.flywaydb:flyway-database-postgresql:$flywayVersion")
 
     // Security
     implementation("org.springframework.boot:spring-boot-starter-security")
+    implementation("org.springframework.security:spring-security-oauth2-jose")
+    // OIDC
+    implementation("org.springframework.boot:spring-boot-starter-oauth2-resource-server")
+    // Local auth
     implementation("org.springframework.security:spring-security-crypto")
     implementation("org.bouncycastle:bcprov-jdk18on:1.83")
+    // JWT
+    val jjwtVersion = "0.13.0"
+    implementation("io.jsonwebtoken:jjwt-api:$jjwtVersion")
+    runtimeOnly("io.jsonwebtoken:jjwt-impl:$jjwtVersion")
+    runtimeOnly("io.jsonwebtoken:jjwt-jackson:$jjwtVersion")
 
     // Serialization
     implementation("org.springframework.boot:spring-boot-starter-jackson")

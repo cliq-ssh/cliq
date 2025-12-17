@@ -1,3 +1,4 @@
+debug: \${DEBUG:false}
 app:
   info:
     name: ${rootProject.name}
@@ -7,6 +8,11 @@ app:
     enabled: \${MAIL_ENABLED}
     from-address: \${MAIL_FROM}
     from-name: \${MAIL_FROM_NAME}
+  jwt:
+    secret: \${JWT_SECRET}
+    expiration-in-ms: \${JWT_EXPIRATION_MS:86400000}
+  oidc:
+    enabled: \${OIDC_ENABLED:false}
 
 spring:
   config:

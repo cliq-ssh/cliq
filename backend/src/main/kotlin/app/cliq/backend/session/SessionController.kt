@@ -2,6 +2,7 @@ package app.cliq.backend.session
 
 import app.cliq.backend.exception.EmailNotVerifiedException
 import app.cliq.backend.exception.InvalidEmailOrPasswordException
+import app.cliq.backend.session.auth.JwtService
 import app.cliq.backend.session.factory.SessionFactory
 import app.cliq.backend.session.params.SessionCreationParams
 import app.cliq.backend.session.response.SessionResponse
@@ -16,6 +17,8 @@ import jakarta.validation.Valid
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
+import org.springframework.security.authentication.AuthenticationManager
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
 import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
@@ -29,6 +32,8 @@ class SessionController(
     private val userRepository: UserRepository,
     private val passwordEncoder: PasswordEncoder,
     private val sessionFactory: SessionFactory,
+    private val authenticationManager: AuthenticationManager,
+    private val jwtService: JwtService,
 ) {
     @PostMapping
     @Operation(summary = "Login/Create a session")
@@ -69,7 +74,11 @@ class SessionController(
         }
 
         val session = sessionFactory.createFromCreationParams(sessionCreationParams, user)
-        val response = SessionResponse.fromSession(session)
+        val auth = authenticationManager.authenticate(
+            UsernamePasswordAuthenticationToken(sessionCreationParams.email, sessionCreationParams.password)
+        )
+        val token = jwtService.generate(auth)
+        val response = SessionResponse.fromSession(session, token)
 
         return ResponseEntity.status(HttpStatus.CREATED).body(response)
     }

@@ -7,6 +7,8 @@ import jakarta.persistence.GenerationType
 import jakarta.persistence.Id
 import jakarta.persistence.Table
 import jakarta.persistence.UniqueConstraint
+import org.springframework.security.core.GrantedAuthority
+import org.springframework.security.core.userdetails.UserDetails
 import java.time.OffsetDateTime
 
 const val DEFAULT_LOCALE = "en"
@@ -25,7 +27,6 @@ class User(
     @Column(nullable = false, unique = true) var email: String,
     @Column(nullable = false) var name: String,
     @Column(nullable = false) var locale: String = DEFAULT_LOCALE,
-    @Column(nullable = false) var password: String,
     var resetToken: String? = null,
     var resetSentAt: OffsetDateTime? = null,
     var emailVerificationToken: String? = null,
@@ -36,7 +37,14 @@ class User(
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     var id: Long? = null,
-) {
+) : UserDetails {
+    @Column(nullable = false)
+    private var password: String = ""
+
+    fun setPassword(newPassword: String) {
+        password = newPassword
+    }
+
     fun isEmailVerified(): Boolean = null != emailVerifiedAt
 
     fun isEmailVerificationTokenValid(): Boolean = emailVerificationToken != null && !isEmailVerificationTokenExpired()
@@ -47,9 +55,15 @@ class User(
                 emailVerificationSentAt!!.isAfter(
                     OffsetDateTime.now().minusMinutes(UNVERIFIED_USER_INTERVAL_MINUTES),
                 )
-        )
+            )
 
     fun isPasswordResetTokenExpired(): Boolean =
         resetToken != null && resetSentAt != null &&
             resetSentAt!!.isAfter(OffsetDateTime.now().minusMinutes(PASSWORD_RESET_TOKEN_INTERVAL_MINUTES))
+
+    override fun getAuthorities(): Collection<GrantedAuthority> = emptyList()
+
+    override fun getPassword(): String = password
+
+    override fun getUsername(): String = email
 }
