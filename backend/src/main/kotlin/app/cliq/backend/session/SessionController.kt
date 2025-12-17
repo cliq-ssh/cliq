@@ -17,8 +17,6 @@ import jakarta.validation.Valid
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
-import org.springframework.security.authentication.AuthenticationManager
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
 import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
@@ -32,7 +30,6 @@ class SessionController(
     private val userRepository: UserRepository,
     private val passwordEncoder: PasswordEncoder,
     private val sessionFactory: SessionFactory,
-    private val authenticationManager: AuthenticationManager,
     private val jwtService: JwtService,
 ) {
     @PostMapping
@@ -74,10 +71,7 @@ class SessionController(
         }
 
         val session = sessionFactory.createFromCreationParams(sessionCreationParams, user)
-        val auth = authenticationManager.authenticate(
-            UsernamePasswordAuthenticationToken(sessionCreationParams.email, sessionCreationParams.password)
-        )
-        val token = jwtService.generate(auth)
+        val token = jwtService.generate(session)
         val response = SessionResponse.fromSession(session, token)
 
         return ResponseEntity.status(HttpStatus.CREATED).body(response)

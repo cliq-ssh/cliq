@@ -17,6 +17,20 @@ This document describes the new authentication system for cliq.
 The goal is to add OIDC support and to abstract away the authentication details.  
 At the endpoint level, the user should only be available, and it should be irrelevant how the user got authenticated.
 
+## Endpoint usage
+
+The following code describes how the new authentication system would be used inside a controller.
+
+```kotlin
+@Authenticated
+@GetMapping
+fun get(
+    @AuthenticationPrincipal session: Session,
+): ResponseEntity<String> {
+    return ResponseEntity.ok("Hello, ${principal.name}!")
+}
+```
+
 # Description
 
 ## Requirements

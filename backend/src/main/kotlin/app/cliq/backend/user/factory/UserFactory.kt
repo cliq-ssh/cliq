@@ -68,11 +68,11 @@ class UserFactory(
             email = email,
             name = name,
             locale = locale,
+            password = password,
             createdAt = OffsetDateTime.now(clock),
             updatedAt = OffsetDateTime.now(clock),
         )
-        user.password = password
-        
+
         return user
     }
 }
