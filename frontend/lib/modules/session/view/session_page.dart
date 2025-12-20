@@ -169,7 +169,7 @@ class _ShellSessionPageState extends ConsumerState<ShellSessionPage>
           CliqGridRow(
             children: [
               CliqGridColumn(
-                sizes: {.sm: 8},
+                sizes: {.sm: 12, .md: 8},
                 child: Column(
                   spacing: 32,
                   children: [

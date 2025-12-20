@@ -32,7 +32,13 @@ class NavigationShellState extends ConsumerState<NavigationShell>
   Widget build(BuildContext context) {
     final connections = useState<List<Connection>>([]);
     final sessions = ref.watch(sessionProvider);
+    final selectedSession = useState(sessions.selectedSession);
     final popoverController = useFPopoverController(vsync: this);
+
+    useEffect(() {
+      selectedSession.value = sessions.selectedSession;
+      return null;
+    }, [sessions, sessions.selectedSessionId]);
 
     useEffect(() {
       CliqDatabase.connectionsRepository.findAll().then(
@@ -45,66 +51,68 @@ class NavigationShellState extends ConsumerState<NavigationShell>
       childPad: false,
       header: Container(
         color:
-            sessions.activeSessions.isNotEmpty && widget.shell.currentIndex == 1
-            // TODO: get color from either config or session
+            selectedSession.value != null && selectedSession.value!.isConnected
+            // TODO: get color from session
             ? TerminalColorThemes.darcula.backgroundColor
             : null,
         padding: const EdgeInsets.all(8),
-        child: Row(
-          children: [
-            Expanded(
-              // TODO: implement ReorderableListView for session tabs
-              child: SingleChildScrollView(
-                scrollDirection: Axis.horizontal,
-                child: Row(
-                  spacing: 8,
-                  children: [
-                    FButton.icon(
-                      style: widget.shell.currentIndex == 0
-                          ? FButtonStyle.primary()
-                          : FButtonStyle.outline(),
-                      onPress: () => ref
-                          .read(sessionProvider.notifier)
-                          .setSelectedSession(this, null),
-                      child: Icon(LucideIcons.house),
-                    ),
-                    for (final session in sessions.activeSessions)
-                      SessionTab(
-                        session: session,
-                        isSelected: sessions.selectedSessionId == session.id,
+        child: SafeArea(
+          child: Row(
+            children: [
+              Expanded(
+                // TODO: implement ReorderableListView for session tabs
+                child: SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: Row(
+                    spacing: 8,
+                    children: [
+                      FButton.icon(
+                        style: widget.shell.currentIndex == 0
+                            ? FButtonStyle.primary()
+                            : FButtonStyle.outline(),
+                        onPress: () => ref
+                            .read(sessionProvider.notifier)
+                            .setSelectedSession(this, null),
+                        child: Icon(LucideIcons.house),
                       ),
-                    FPopoverMenu(
-                      popoverController: popoverController,
-                      menu: [
-                        FItemGroup(
-                          children: [
-                            for (final connection in connections.value)
-                              FItem(
-                                title: Text(connection.effectiveName),
-                                onPress: () {
-                                  ref
-                                      .read(sessionProvider.notifier)
-                                      .createAndGo(this, connection);
-                                  popoverController.hide();
-                                },
-                              ),
-                          ],
+                      for (final session in sessions.activeSessions)
+                        SessionTab(
+                          session: session,
+                          isSelected: sessions.selectedSessionId == session.id,
                         ),
-                      ],
-                      builder: (_, controller, _) => FButton.icon(
-                        onPress: controller.toggle,
-                        child: Icon(LucideIcons.plus),
+                      FPopoverMenu(
+                        popoverController: popoverController,
+                        menu: [
+                          FItemGroup(
+                            children: [
+                              for (final connection in connections.value)
+                                FItem(
+                                  title: Text(connection.effectiveName),
+                                  onPress: () {
+                                    ref
+                                        .read(sessionProvider.notifier)
+                                        .createAndGo(this, connection);
+                                    popoverController.hide();
+                                  },
+                                ),
+                            ],
+                          ),
+                        ],
+                        builder: (_, controller, _) => FButton.icon(
+                          onPress: controller.toggle,
+                          child: Icon(LucideIcons.plus),
+                        ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
-            ),
-            FButton.icon(
-              child: Icon(LucideIcons.settings),
-              onPress: () => context.pushPath(SettingsPage.pagePath.build()),
-            ),
-          ],
+              FButton.icon(
+                child: Icon(LucideIcons.settings),
+                onPress: () => context.pushPath(SettingsPage.pagePath.build()),
+              ),
+            ],
+          ),
         ),
       ),
       child: widget.shell,

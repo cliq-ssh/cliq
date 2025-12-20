@@ -64,7 +64,7 @@ class ThemeSettingsPage extends AbstractSettingsPage {
         CliqGridRow(
           children: [
             CliqGridColumn(
-              sizes: {.sm: 8},
+              sizes: {.sm: 12, .md: 8},
               child: Form(
                 onChanged: () {
                   if (themeModeController.value.firstOrNull != null) {
