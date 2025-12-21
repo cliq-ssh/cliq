@@ -6,11 +6,11 @@ plugins {
     kotlin("plugin.allopen") version "2.3.0"
 
     // Spring / Spring Boot
-    id("org.springframework.boot") version "4.0.0"
+    id("org.springframework.boot") version "4.0.1"
     id("io.spring.dependency-management") version "1.1.7"
 
     // Database Migrations
-    id("org.flywaydb.flyway") version "11.19.0"
+    id("org.flywaydb.flyway") version "11.19.1"
 
     // Linter and Formatter
     id("org.jlleitschuh.gradle.ktlint") version "14.0.1"
@@ -65,11 +65,11 @@ repositories {
 
 buildscript {
     dependencies {
-        classpath("org.flywaydb:flyway-database-postgresql:11.19.0")
+        classpath("org.flywaydb:flyway-database-postgresql:11.19.1")
     }
 }
 
-val springModulithVersion by extra("2.0.0")
+val springModulithVersion by extra("2.0.1")
 
 dependencies {
     // Web Framework
