@@ -1,20 +1,27 @@
 name: cliq
-description: "CLIq: Portable and secure SSH and SFTP client."
+description: "cliq: Portable and secure SSH and SFTP client."
 publish_to: 'none'
 
 version: 0.1.0+1
 
 environment:
-  sdk: 3.10.4
+  sdk: ^3.10.0
+
+workspace:
+  - packages/cliq_api
+  - packages/cliq_term
+  - packages/cliq_ui
 
 dependencies:
   flutter:
     sdk: flutter
+  cliq_api:
+    path: packages/cliq_api
   cliq_term:
     path: packages/cliq_term
   cliq_ui:
     path: packages/cliq_ui
-  lucide_flutter: 0.561.0
+  lucide_flutter: 0.562.0
   go_router: 17.0.1
   flutter_hooks: 0.21.3+1
   shared_preferences: 2.5.4
@@ -24,7 +31,7 @@ dependencies:
   drift: 2.30.0
   drift_flutter: 0.2.8
   path_provider: ^2.1.5
-  forui: ^0.16.0
+  forui: 0.17.0
   forui_hooks: ^0.16.0
   dartssh2: ^2.13.0
   uuid: ^4.5.2
@@ -48,5 +55,11 @@ flutter:
       fonts:
         - asset: assets/fonts/SourceCodePro-VariableFont_wght.ttf
         - asset: assets/fonts/SourceCodePro-Italic-VariableFont_wght.ttf
+          style: italic
+
+    - family: JetBrainsMono
+      fonts:
+        - asset: assets/fonts/JetBrainsMono[wght].ttf
+        - asset: assets/fonts/JetBrainsMono-Italic[wght].ttf
           style: italic
 

@@ -7,8 +7,15 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../../modules/settings/model/theme.model.dart';
 
 enum StoreKey<T> {
-  userName<String>('user_name', type: String),
-  hostUrl<String>('host_url', type: String),
+  syncHostUrl<String>('sync_host_url', type: String),
+  // TODO: put this in secure storage
+  syncToken<String>('sync_token', type: String),
+
+  // TODO: temporary, remove this once backend implements proper token expiration handling
+  syncEmail<String>('sync_email', type: String),
+  // TODO: put this in secure storage
+  syncPassword<String>('sync_password', type: String),
+
   theme<CliqTheme>(
     'theme',
     type: CliqTheme,
