@@ -56,51 +56,53 @@ class _AddConnectionPageState extends ConsumerState<AddConnectionView> {
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 FTextFormField(
+                  control: .managed(controller: labelController),
                   label: Text('Label'),
                   hint: labelPlaceholder.value,
-                  controller: labelController,
                 ),
                 FTextFormField(
+                  control: .managed(
+                    controller: addressController,
+                    onChange: (val) => labelPlaceholder.value = val.text,
+                  ),
                   label: Text('Address'),
                   hint: '127.0.0.1',
-                  controller: addressController,
                   validator: Validators.address,
                   autovalidateMode: AutovalidateMode.onUserInteraction,
-                  onChange: (val) => labelPlaceholder.value = val,
                 ),
                 FTextFormField(
+                  control: .managed(controller: portController),
                   label: Text('Port'),
                   hint: '22',
-                  controller: portController,
                   validator: Validators.port,
                   autovalidateMode: AutovalidateMode.onUserInteraction,
                 ),
                 FTextFormField(
+                  control: .managed(controller: usernameController),
                   label: Text('Username'),
                   hint: 'root',
-                  controller: usernameController,
                   autovalidateMode: AutovalidateMode.onUserInteraction,
                 ),
                 if (additionalCredentialType.value == .password)
                   FTextFormField(
+                    control: .managed(controller: passwordController),
                     label: Text('Password'),
-                    controller: passwordController,
                     obscureText: true,
                     maxLines: 1,
                     autovalidateMode: AutovalidateMode.onUserInteraction,
                   ),
                 if (additionalCredentialType.value == .key) ...[
                   FTextFormField(
+                    control: .managed(controller: pemController),
                     label: Text('PEM Key'),
                     hint: '-----BEGIN OPENSSH PRIVATE KEY-----',
-                    controller: pemController,
                     minLines: 5,
                     maxLines: null,
                     autovalidateMode: AutovalidateMode.onUserInteraction,
                   ),
                   FTextFormField(
+                    control: .managed(controller: pemPassphraseController),
                     label: Text('PEM Passphrase'),
-                    controller: pemPassphraseController,
                     obscureText: true,
                     maxLines: 1,
                     autovalidateMode: AutovalidateMode.onUserInteraction,
