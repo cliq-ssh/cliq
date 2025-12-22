@@ -81,7 +81,7 @@ class NavigationShellState extends ConsumerState<NavigationShell>
                           isSelected: sessions.selectedSessionId == session.id,
                         ),
                       FPopoverMenu(
-                        popoverController: popoverController,
+                        control: .managed(controller: popoverController),
                         menu: [
                           FItemGroup(
                             children: [
