@@ -70,7 +70,7 @@ buildscript {
     }
 }
 
-val springModulithVersion by extra("2.0.0")
+val springModulithVersion by extra("2.0.1")
 
 dependencies {
     // Web Framework
