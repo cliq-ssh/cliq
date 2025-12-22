@@ -12,6 +12,8 @@ import org.springframework.stereotype.Service
 import java.time.Clock
 import java.time.OffsetDateTime
 
+const val OIDC_PASSWORD = "OIDC USER"
+
 @Service
 class UserFactory(
     private val passwordEncoder: PasswordEncoder,
@@ -19,6 +21,20 @@ class UserFactory(
     private val eventPublisher: ApplicationEventPublisher,
     private val userRepository: UserRepository,
 ) {
+    fun createOidcUser(
+        email: String,
+        sub: String,
+        name: String,
+    ): User {
+        val hashedPassword = passwordEncoder.encode(OIDC_PASSWORD)
+        return createUser(
+            sub = sub,
+            email = email,
+            password = hashedPassword!!,
+            name = name
+        )
+    }
+
     fun updateUserPassword(
         user: User,
         newPassword: String,
@@ -63,9 +79,11 @@ class UserFactory(
         password: String,
         name: String,
         locale: String = DEFAULT_LOCALE,
+        sub: String? = null,
     ): User {
         val user =
             User(
+                oidcSub = sub,
                 email = email,
                 name = name,
                 locale = locale,

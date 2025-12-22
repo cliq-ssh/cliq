@@ -10,8 +10,15 @@ app:
     from-name: \${MAIL_FROM_NAME}
   oidc:
     enabled: \${OIDC_ENABLED:false}
+    issuer-uri: \${OIDC_ISSUER_URI}
+    client-id: \${OIDC_CLIENT_ID}
 
 spring:
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: \${app.oidc.issuer-uri}
   config:
     import: optional:file:.env[.properties],optional:file:.env.local[.properties]
   jpa:

@@ -25,4 +25,6 @@ interface UserRepository : JpaRepository<User, Long> {
     @Modifying
     @Query("DELETE FROM User u WHERE u.resetSentAt < :cutoffTime")
     fun deleteExpiredPasswordResetTokensOlderThan(cutoffTime: OffsetDateTime): Int
+
+    fun findUserByOidcSub(oidcSub: String): User?
 }

@@ -50,6 +50,9 @@ This API-Token can then be used to authenticate the user for future requests.
 If OIDC support is enabled, the user can authenticate via OIDC.
 This will be done via the standard OIDC flow.
 
+The login gets handled by the frontend.
+The backend will only accept logged-in users.
+
 # Description
 
 ## Requirements
@@ -61,7 +64,7 @@ This will be done via the standard OIDC flow.
 - backend does not initialize authentication
     - for local auth, we only provide a REST POST endpoint
 - good integration in spring 7 and spring boot 4
-- support for single-logout with OIDC
+- support for single-logout with OIDC (Backchannel Logout)
 
 ## Backwards compatibility
 

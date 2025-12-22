@@ -7,6 +7,7 @@
 CREATE TABLE users
 (
     "id"                         BIGINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
+    "oidc_sub"                   TEXT UNIQUE,
     "email"                      TEXT                     NOT NULL UNIQUE,
     "name"                       TEXT                     NOT NULL,
     "locale"                     TEXT                     NOT NULL,

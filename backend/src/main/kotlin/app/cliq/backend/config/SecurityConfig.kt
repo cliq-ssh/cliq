@@ -1,16 +1,15 @@
 package app.cliq.backend.config
 
 import app.cliq.backend.config.security.apikey.ApiKeyAuthenticationConfigurer
+import app.cliq.backend.config.security.oidc.OidcJwtAuthenticationConverter
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
-import org.springframework.security.config.Customizer
+import org.springframework.context.annotation.Lazy
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity
 import org.springframework.security.config.annotation.web.builders.HttpSecurity
 import org.springframework.security.config.http.SessionCreationPolicy
 import org.springframework.security.crypto.argon2.Argon2PasswordEncoder
 import org.springframework.security.crypto.password.PasswordEncoder
-import org.springframework.security.oauth2.server.resource.web.BearerTokenAuthenticationEntryPoint
-import org.springframework.security.oauth2.server.resource.web.access.BearerTokenAccessDeniedHandler
 import org.springframework.security.web.SecurityFilterChain
 
 const val SALT_LENGTH = 16
@@ -22,6 +21,8 @@ const val ITERATIONS = 3
 @EnableMethodSecurity
 @Configuration
 class SecurityConfig(
+    @Lazy
+    private val oidcJwtAuthenticationConverter: OidcJwtAuthenticationConverter,
     private val apiKeyAuthenticationConfigurer: ApiKeyAuthenticationConfigurer,
     private val oidcProperties: OidcProperties,
 ) {
@@ -30,8 +31,8 @@ class SecurityConfig(
         Argon2PasswordEncoder(SALT_LENGTH, HASH_LENGTH, PARALLELISM, MEMORY, ITERATIONS)
 
     // TODO:
-    // - access denied handler
-    // - fix 401 error handler
+    //  - access denied handler
+    //  - fix 401 error handler
     @Bean
     fun securityFilterChain(http: HttpSecurity): SecurityFilterChain {
         http
@@ -39,14 +40,14 @@ class SecurityConfig(
             .formLogin { it.disable() }
             .httpBasic { it.disable() }
             .sessionManagement { it.sessionCreationPolicy(SessionCreationPolicy.STATELESS) }
-            .exceptionHandling { exceptions ->
-                exceptions
-                    .authenticationEntryPoint(BearerTokenAuthenticationEntryPoint())
-                    .accessDeniedHandler(BearerTokenAccessDeniedHandler())
-            }.with(apiKeyAuthenticationConfigurer)
+            .with(apiKeyAuthenticationConfigurer)
 
         if (oidcProperties.enabled) {
-            http.oauth2ResourceServer { it.jwt(Customizer.withDefaults()) }
+            http.oauth2ResourceServer { oauth2 ->
+                oauth2.jwt { jwt ->
+                    jwt.jwtAuthenticationConverter(oidcJwtAuthenticationConverter)
+                }
+            }
         }
 
         return http.build()

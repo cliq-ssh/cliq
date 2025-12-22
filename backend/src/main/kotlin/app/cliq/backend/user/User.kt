@@ -36,6 +36,8 @@ class User(
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     var id: Long? = null,
+    @Column(nullable = true, unique = true)
+    var oidcSub: String? = null,
 ) {
     fun isEmailVerified(): Boolean = null != emailVerifiedAt
 
@@ -47,7 +49,7 @@ class User(
                 emailVerificationSentAt!!.isAfter(
                     OffsetDateTime.now().minusMinutes(UNVERIFIED_USER_INTERVAL_MINUTES),
                 )
-        )
+            )
 
     fun isPasswordResetTokenExpired(): Boolean =
         resetToken != null && resetSentAt != null &&
