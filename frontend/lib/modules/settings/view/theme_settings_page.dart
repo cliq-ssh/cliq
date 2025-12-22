@@ -24,7 +24,7 @@ class ThemeSettingsPage extends AbstractSettingsPage {
     final theme = ref.watch(themeProvider);
     final currentTheme = theme.activeTheme;
 
-    final themeModeController = useFRadioSelectGroupController<ThemeMode>(
+    final themeModeController = useFRadioMultiValueNotifier<ThemeMode>(
       value: theme.themeMode,
     );
 
@@ -77,7 +77,7 @@ class ThemeSettingsPage extends AbstractSettingsPage {
                   spacing: 20,
                   children: [
                     FSelectMenuTile<ThemeMode>(
-                      selectController: themeModeController,
+                      selectControl: .managed(controller: themeModeController),
                       title: Text('Theme Mode'),
                       details: ListenableBuilder(
                         listenable: themeModeController,
