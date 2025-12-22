@@ -3,14 +3,114 @@ import 'package:logging/logging.dart';
 
 import '../model/color.dart';
 
+typedef CsiHandler = void Function(
+  List<int?> params,
+  String? leader,
+  String intermediates,
+  int finalByteCode,
+);
+
 class EscapeParser {
   static final Logger _log = Logger('EscapeParser');
+
+  final TerminalController controller;
+  final TerminalColorTheme colors;
+
+  late final Map<String, void Function()> _codes = {
+    'BEL': _ccBell,
+    // 'BS': _ccBackspace,
+    // 'HT': _ccHorizontalTab,
+    // 'LF': _ccLineFeed,
+    // 'VT': _ccVerticalTab,
+    // 'FF': _ccFormFeed,
+    // 'CR': _ccCarriageReturn,
+    // 'SO': _ccShiftOut,
+    // 'SI': _ccShiftIn,
+    // 'CAN': _ccCancelParsingCAN,
+    // 'SUB': _ccCancelParsingSUB,
+
+    // -- Escape Sequences --
+    // 'ESC 6': _escBackIndex,
+    // 'ESC 7': _escSaveCursor,
+    // 'ESC 8': _escRestoreCursor,
+    // 'ESC 9': _escForwardIndex,
+    // 'ESC D': _escIndex,
+    // 'ESC E': _escNextLine,
+    // 'ESC H': _escTabSet,
+    // 'ESC M': _escReverseIndex,
+    // 'ESC N': _escSingleShift2,
+    // 'ESC O': _escSingleShift3,
+    // 'ESC V': _escStartProtectedArea,
+    // 'ESC W': _escEndProtectedArea,
+    // 'ESC Z': _escReturnTerminalId,
+    // 'ESC c': _escFullReset,
+    // 'ESC l': _escHPMemoryLock,
+    // 'ESC m': _escHPMemoryUnlock,
+    // 'ESC n': _escLockingShift2,
+    // 'ESC o': _escLockingShift3,
+    // 'ESC >': _escResetApplicationKeypadMode,
+    // 'ESC =': _escSetApplicationKeypadMode,
+    // 'ESC |': _escLockingShift3R,
+    // 'ESC }': _escLockingShift2R,
+    // 'ESC ~': _escLockingShift1R,
+    // 'ESC #': ???
+    'ESC [': _escHandleCsi,
+  };
+
+  late final Map<String, void Function()> _csiCodes = {
+    // 'A': _csiCursorUp,
+    //
+  };
+
+  EscapeParser({
+    required this.controller,
+    required this.colors,
+  });
+
+  @Deprecated('Goal is to remove this method ;)')
+  void __unimplementedSeq(String seq) {
+    _log.fine('Unimplemented escape sequence: $seq');
+  }
+
+  // ---- Control Character Handlers ---
+
+  /// https://terminalguide.namepad.de/seq/a_c0-g/
+  void _ccBell() {
+    controller.onBell?.call();
+  }
+
+  // --- Escape Sequence Handlers ---
+
+  void _escHandleCsi() {
+    // csiBody is the characters following ESC[ up to and including the final byte
+    // Example: "31;1m" or "?25h"
+    final parsed = _parseCsi(csiBody);
+    final handler = _csiHandlers[parsed.finalByteCode];
+    if (handler != null) {
+      handler(
+        params: parsed.params,
+        leader: parsed.leader,
+        intermediates: parsed.intermediates,
+        finalByteCode: parsed.finalByteCode,
+      );
+    } else {
+      _log.fine('Unhandled CSI final=0x${parsed.finalByteCode.toRadixString(16)} body="$csiBody"');
+      // optional: a fallback handler or ignore
+      __unimplementedSeq('CSI $csiBody');
+    }
+  }
+
+
+
+
+
+
+
 
   /// Parses an ANSI escape sequence from [input] starting at [initialOffset].
   /// Applies formatting changes to [formatting] and terminal actions to [controller].
   /// Returns the number of characters consumed from [input].
-  static int parse(
-    TerminalController controller,
+  int parse(
     String input,
     int initialOffset,
     FormattingOptions formatting,
@@ -27,7 +127,7 @@ class EscapeParser {
       final norm = args.isEmpty
           ? <String>['0']
           : args.map((s) => s.isEmpty ? '0' : s).toList(growable: false);
-      setFormattingFromArgs(controller, norm, formatting);
+      setFormattingFromArgs(norm, formatting);
       return after - initialOffset;
     }
 
@@ -79,8 +179,7 @@ class EscapeParser {
   }
 
   /// Applies SGR (Select Graphic Rendition) parameters from [args] to [formatting].
-  static void setFormattingFromArgs(
-    TerminalController controller,
+  void setFormattingFromArgs(
     List<String> args,
     FormattingOptions formatting,
   ) {
@@ -203,4 +302,8 @@ class EscapeParser {
     final cu = ch.codeUnitAt(0);
     return cu >= 0x30 && cu <= 0x39;
   }
+}
+
+extension StringExtension on String {
+  int get c => codeUnitAt(0);
 }

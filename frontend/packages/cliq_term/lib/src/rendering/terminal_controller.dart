@@ -36,6 +36,11 @@ class TerminalController extends ChangeNotifier {
 
   late TerminalColorTheme colors;
 
+  late EscapeParser escapeParser = EscapeParser(
+    controller: this,
+    colors: colors,
+  );
+
   TerminalController({
     required this.rows,
     required this.cols,
@@ -156,7 +161,7 @@ class TerminalController extends ChangeNotifier {
         final next = input[i + 1];
 
         if (next == '[') {
-          final consumed = EscapeParser.parse(this, input, i + 1, curFmt);
+          final consumed = escapeParser.parse(input, i + 1, curFmt);
           if (consumed <= 0) break;
           i += 1 + consumed;
           continue;
