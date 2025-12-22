@@ -70,14 +70,16 @@ class TerminalThemeSettingsPage extends AbstractSettingsPage {
                       ),
                     ),
                   FSelect<String>.rich(
+                    control: .managed(
+                      onChange: (selected) {
+                        if (selected != null) {
+                          selectedFontFamily.value = selected;
+                        }
+                      },
+                    ),
                     hint: 'Font Family',
                     format: (s) => s,
                     contentDivider: .full,
-                    onChange: (selected) {
-                      if (selected != null) {
-                        selectedFontFamily.value = selected;
-                      }
-                    },
                     children: [
                       FSelectSection(
                         label: const Text('Bundled Fonts'),

@@ -51,30 +51,34 @@ class SyncSettingsPage extends AbstractSettingsPage {
         spacing: 20,
         children: [
           FTextField(
+            control: .managed(
+              onChange: (url) async {
+                final uri = Uri.tryParse(url.text);
+                if (uri == null || !uri.hasScheme || !uri.hasAuthority) {
+                  serverUrl.value = null;
+                  return;
+                }
+
+                try {
+                  final routeOptions = RouteOptions()..hostUri = uri;
+                  final status = await CliqClient.retrieveHealthStatus(
+                    routeOptions,
+                  );
+
+                  if (status != 'DOWN') {
+                    serverUrl.value = routeOptions;
+                  }
+                } catch (e) {
+                  serverUrl.value = null;
+                }
+              },
+              initial: TextEditingValue(
+                text: StoreKey.syncHostUrl.readSync() ?? '',
+              ),
+            ),
             label: const Text('Server URL'),
             hint: 'https://sync.example.com',
-            initialText: StoreKey.syncHostUrl.readSync(),
             error: serverUrl.value == null ? Text('Invalid URL') : null,
-            onChange: (url) async {
-              final uri = Uri.tryParse(url);
-              if (uri == null || !uri.hasScheme || !uri.hasAuthority) {
-                serverUrl.value = null;
-                return;
-              }
-
-              try {
-                final routeOptions = RouteOptions()..hostUri = uri;
-                final status = await CliqClient.retrieveHealthStatus(
-                  routeOptions,
-                );
-
-                if (status != 'DOWN') {
-                  serverUrl.value = routeOptions;
-                }
-              } catch (e) {
-                serverUrl.value = null;
-              }
-            },
           ),
           FTabs(
             children: [
@@ -90,12 +94,14 @@ class SyncSettingsPage extends AbstractSettingsPage {
                       spacing: 10,
                       children: [
                         FTextFormField.email(
-                          controller: loginEmailController,
+                          control: .managed(controller: loginEmailController),
                           label: Text('Email'),
                           hint: 'john@doe.com',
                         ),
                         FTextFormField.password(
-                          controller: loginPasswordController,
+                          control: .managed(
+                            controller: loginPasswordController,
+                          ),
                           label: Text('Password'),
                         ),
                         const SizedBox.shrink(),
@@ -129,17 +135,21 @@ class SyncSettingsPage extends AbstractSettingsPage {
                     spacing: 10,
                     children: [
                       FTextFormField(
-                        controller: registerUsernameController,
+                        control: .managed(
+                          controller: registerUsernameController,
+                        ),
                         label: Text('Name'),
                         hint: 'John Doe',
                       ),
                       FTextFormField.email(
-                        controller: registerEmailController,
+                        control: .managed(controller: registerEmailController),
                         label: Text('Email'),
                         hint: 'john@doe.com',
                       ),
                       FTextFormField.password(
-                        controller: registerPasswordController,
+                        control: .managed(
+                          controller: registerPasswordController,
+                        ),
                         label: Text('Password'),
                       ),
                       const SizedBox.shrink(),
