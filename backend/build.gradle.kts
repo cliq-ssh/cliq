@@ -14,6 +14,7 @@ plugins {
 
     // Linter and Formatter
     id("org.jlleitschuh.gradle.ktlint") version "14.0.1"
+    id("com.autonomousapps.dependency-analysis") version "3.5.1"
 }
 
 group = "app.cliq"
@@ -59,6 +60,16 @@ ktlint {
     }
 }
 
+dependencyAnalysis {
+    issues {
+        all {
+            onAny {
+                severity("fail")
+            }
+        }
+    }
+}
+
 repositories {
     mavenCentral()
 }
@@ -89,15 +100,11 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-security")
     implementation("org.springframework.security:spring-security-oauth2-jose")
     // OIDC
+    implementation("org.springframework.boot:spring-boot-starter-oauth2-client")
     implementation("org.springframework.boot:spring-boot-starter-oauth2-resource-server")
     // Local auth
     implementation("org.springframework.security:spring-security-crypto")
     implementation("org.bouncycastle:bcprov-jdk18on:1.83")
-    // JWT
-    val jjwtVersion = "0.13.0"
-    implementation("io.jsonwebtoken:jjwt-api:$jjwtVersion")
-    runtimeOnly("io.jsonwebtoken:jjwt-impl:$jjwtVersion")
-    runtimeOnly("io.jsonwebtoken:jjwt-jackson:$jjwtVersion")
 
     // Serialization
     implementation("org.springframework.boot:spring-boot-starter-jackson")
@@ -120,7 +127,6 @@ dependencies {
     annotationProcessor("org.springframework.boot:spring-boot-configuration-processor")
 
     // Kotlin specifics
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.10.2")
     implementation("org.jetbrains.kotlin:kotlin-reflect")
 
     // Modulith
@@ -143,7 +149,7 @@ dependencies {
 
     // Greenmail
     val greenmailVersion = "2.1.8"
-    implementation("com.icegreen:greenmail-spring:$greenmailVersion")
+    testImplementation("com.icegreen:greenmail-spring:$greenmailVersion")
     testImplementation("com.icegreen:greenmail:$greenmailVersion")
     testImplementation("com.icegreen:greenmail-junit5:$greenmailVersion")
 

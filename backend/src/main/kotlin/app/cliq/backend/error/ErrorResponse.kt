@@ -3,6 +3,7 @@ package app.cliq.backend.error
 import com.fasterxml.jackson.annotation.JsonIgnore
 import io.swagger.v3.oas.annotations.media.Schema
 import org.springframework.http.HttpStatus
+import org.springframework.security.core.AuthenticationException
 
 @Schema
 data class ErrorResponse(
@@ -20,6 +21,13 @@ data class ErrorResponse(
                 statusCode = apiException.statusCode,
                 errorCode = apiException.errorCode,
                 details = apiException.details,
+            )
+
+        fun fromAuthenticationException(authException: AuthenticationException): ErrorResponse =
+            ErrorResponse(
+                statusCode = HttpStatus.UNAUTHORIZED,
+                errorCode = ErrorCode.INVALID_AUTH_TOKEN,
+                details = authException.message,
             )
     }
 }

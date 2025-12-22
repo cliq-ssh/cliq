@@ -2,7 +2,6 @@ package app.cliq.backend.session
 
 import app.cliq.backend.exception.EmailNotVerifiedException
 import app.cliq.backend.exception.InvalidEmailOrPasswordException
-import app.cliq.backend.session.auth.JwtService
 import app.cliq.backend.session.factory.SessionFactory
 import app.cliq.backend.session.params.SessionCreationParams
 import app.cliq.backend.session.response.SessionResponse
@@ -30,7 +29,6 @@ class SessionController(
     private val userRepository: UserRepository,
     private val passwordEncoder: PasswordEncoder,
     private val sessionFactory: SessionFactory,
-    private val jwtService: JwtService,
 ) {
     @PostMapping
     @Operation(summary = "Login/Create a session")
@@ -71,8 +69,7 @@ class SessionController(
         }
 
         val session = sessionFactory.createFromCreationParams(sessionCreationParams, user)
-        val token = jwtService.generate(session)
-        val response = SessionResponse.fromSession(session, token)
+        val response = SessionResponse.fromSession(session)
 
         return ResponseEntity.status(HttpStatus.CREATED).body(response)
     }

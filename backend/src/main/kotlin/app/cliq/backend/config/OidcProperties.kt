@@ -6,5 +6,5 @@ import org.springframework.context.annotation.Configuration
 @Configuration
 @ConfigurationProperties(prefix = "app.oidc")
 class OidcProperties(
-    var enabled: Boolean = false
+    var enabled: Boolean = false,
 )

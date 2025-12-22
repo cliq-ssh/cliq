@@ -1,6 +1,6 @@
 package app.cliq.backend.userconfig
 
-import app.cliq.backend.session.Authenticated
+import app.cliq.backend.annotations.Authenticated
 import app.cliq.backend.session.Session
 import app.cliq.backend.userconfig.factory.UserConfigurationFactory
 import app.cliq.backend.userconfig.params.ConfigurationParams

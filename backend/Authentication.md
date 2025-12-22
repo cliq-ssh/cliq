@@ -1,6 +1,10 @@
 <!-- TOC -->
 * [Authentication](#authentication)
 * [Goal](#goal)
+  * [Endpoint usage](#endpoint-usage)
+* [Auth Types](#auth-types)
+  * [Local auth](#local-auth)
+  * [OIDC](#oidc)
 * [Description](#description)
   * [Requirements](#requirements)
   * [Backwards compatibility](#backwards-compatibility)
@@ -36,7 +40,8 @@ fun get(
 ## Local auth
 
 Local auth works by providing a REST endpoint where the user can send their username and password.
-This endpoint will then create a "session" Entity that contains an API-Token.
+This endpoint will then create a "session" Entity that contains an API-Token. In this case the session is not an HTTP
+session, but a persistent entity in the database containing metadata about the user and API Key.
 
 This API-Token can then be used to authenticate the user for future requests.
 

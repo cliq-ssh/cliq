@@ -64,14 +64,15 @@ class UserFactory(
         name: String,
         locale: String = DEFAULT_LOCALE,
     ): User {
-        val user = User(
-            email = email,
-            name = name,
-            locale = locale,
-            password = password,
-            createdAt = OffsetDateTime.now(clock),
-            updatedAt = OffsetDateTime.now(clock),
-        )
+        val user =
+            User(
+                email = email,
+                name = name,
+                locale = locale,
+                password = password,
+                createdAt = OffsetDateTime.now(clock),
+                updatedAt = OffsetDateTime.now(clock),
+            )
 
         return user
     }

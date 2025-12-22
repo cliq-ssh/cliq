@@ -1,4 +1,4 @@
-package app.cliq.backend.session
+package app.cliq.backend.annotations
 
 import app.cliq.backend.config.API_TOKEN_SECURITY_SCHEME_NAME
 import io.swagger.v3.oas.annotations.media.Content
