@@ -91,10 +91,10 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-data-jpa")
     runtimeOnly("org.postgresql:postgresql")
     // Flyway
-    val flywayVersion = "11.19.1"
+    val flywayVersion = "11.20.0"
     implementation("org.springframework.boot:spring-boot-starter-flyway")
-    implementation("org.flywaydb:flyway-core:11.19.1")
-    implementation("org.flywaydb:flyway-database-postgresql:11.19.1")
+    implementation("org.flywaydb:flyway-core:$flywayVersion")
+    implementation("org.flywaydb:flyway-database-postgresql:$flywayVersion")
 
     // Security
     implementation("org.springframework.boot:spring-boot-starter-security")
