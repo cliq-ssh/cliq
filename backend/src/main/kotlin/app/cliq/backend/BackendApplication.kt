@@ -16,8 +16,8 @@ import org.springframework.scheduling.annotation.EnableScheduling
     basePackageClasses = [
         InfoProperties::class,
         EmailProperties::class,
-        OidcProperties::class
-    ]
+        OidcProperties::class,
+    ],
 )
 @EnableAsync
 @EnableScheduling

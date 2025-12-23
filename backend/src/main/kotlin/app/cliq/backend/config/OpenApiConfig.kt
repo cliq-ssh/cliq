@@ -35,19 +35,21 @@ class OpenApiConfig(
 ) {
     @Bean
     fun apiDocConfig(): OpenAPI {
-        val openApi = OpenAPI()
-            .info(
-                Info()
-                    .title(infoProperties.name)
-                    .version(infoProperties.version)
-                    .description(infoProperties.description),
-            )
+        val openApi =
+            OpenAPI()
+                .info(
+                    Info()
+                        .title(infoProperties.name)
+                        .version(infoProperties.version)
+                        .description(infoProperties.description),
+                )
 
         if (oidcProperties.enabled) {
             val oidcUrlResolver = OidcUrlResolver(oidcProperties, objectMapper)
-            val oauthFlow = OAuthFlow()
-                .authorizationUrl(oidcUrlResolver.getAuthUrl())
-                .tokenUrl(oidcUrlResolver.getTokenUrl())
+            val oauthFlow =
+                OAuthFlow()
+                    .authorizationUrl(oidcUrlResolver.getAuthUrl())
+                    .tokenUrl(oidcUrlResolver.getTokenUrl())
             val flows = OAuthFlows().authorizationCode(oauthFlow)
             val oauthScheme =
                 SecuritySchemeModel()

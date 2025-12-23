@@ -7,9 +7,12 @@ import org.springframework.stereotype.Service
 @Service
 class UserOidcService(
     private val userRepository: UserRepository,
-    private val userFactory: UserFactory
+    private val userFactory: UserFactory,
 ) {
-    fun putUserFromJwt(jwt: Jwt, email: String): User {
+    fun putUserFromJwt(
+        jwt: Jwt,
+        email: String,
+    ): User {
         val sub = jwt.subject
         var user = userRepository.findUserByOidcSub(sub)
         user = user ?: linkOrCreateUser(jwt, email)
@@ -17,10 +20,16 @@ class UserOidcService(
         return userRepository.save(user)
     }
 
-    private fun linkOrCreateUser(jwt: Jwt, email: String): User {
+    private fun linkOrCreateUser(
+        jwt: Jwt,
+        email: String,
+    ): User {
         val user = userRepository.findUserByEmail(email)
         return when (user) {
-            null -> createOidcUser(jwt, email)
+            null -> {
+                createOidcUser(jwt, email)
+            }
+
             else -> {
                 linkUser(jwt, user)
                 user
@@ -28,16 +37,22 @@ class UserOidcService(
         }
     }
 
-    private fun linkUser(jwt: Jwt, user: User) {
+    private fun linkUser(
+        jwt: Jwt,
+        user: User,
+    ) {
         user.oidcSub = jwt.subject
     }
 
-    private fun createOidcUser(jwt: Jwt, email: String): User {
+    private fun createOidcUser(
+        jwt: Jwt,
+        email: String,
+    ): User {
         val name = jwt.getClaimAsString("name") ?: jwt.getClaimAsString("preferred_username")
         return userFactory.createOidcUser(
             email = email,
             sub = jwt.subject,
-            name = name
+            name = name,
         )
     }
 }

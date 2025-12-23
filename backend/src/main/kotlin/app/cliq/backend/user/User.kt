@@ -49,7 +49,7 @@ class User(
                 emailVerificationSentAt!!.isAfter(
                     OffsetDateTime.now().minusMinutes(UNVERIFIED_USER_INTERVAL_MINUTES),
                 )
-            )
+        )
 
     fun isPasswordResetTokenExpired(): Boolean =
         resetToken != null && resetSentAt != null &&

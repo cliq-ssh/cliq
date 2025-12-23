@@ -31,7 +31,7 @@ class UserFactory(
             sub = sub,
             email = email,
             password = hashedPassword!!,
-            name = name
+            name = name,
         )
     }
 
