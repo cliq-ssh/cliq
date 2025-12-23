@@ -1,5 +1,6 @@
 package app.cliq.backend.config
 
+import app.cliq.backend.config.oidc.OidcProperties
 import app.cliq.backend.config.security.apikey.ApiKeyAuthenticationConfigurer
 import app.cliq.backend.config.security.oidc.OidcJwtAuthenticationConverter
 import org.springframework.context.annotation.Bean

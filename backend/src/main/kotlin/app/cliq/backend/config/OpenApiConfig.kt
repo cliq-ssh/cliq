@@ -1,16 +1,23 @@
 package app.cliq.backend.config
 
+import app.cliq.backend.config.oidc.OidcProperties
+import app.cliq.backend.config.oidc.OidcUrlResolver
 import io.swagger.v3.oas.annotations.enums.SecuritySchemeIn
 import io.swagger.v3.oas.annotations.enums.SecuritySchemeType
 import io.swagger.v3.oas.annotations.security.SecurityScheme
+import io.swagger.v3.oas.models.Components
 import io.swagger.v3.oas.models.OpenAPI
 import io.swagger.v3.oas.models.info.Info
-import org.springframework.beans.factory.annotation.Value
+import io.swagger.v3.oas.models.security.OAuthFlow
+import io.swagger.v3.oas.models.security.OAuthFlows
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.http.HttpHeaders
+import tools.jackson.databind.ObjectMapper
+import io.swagger.v3.oas.models.security.SecurityScheme as SecuritySchemeModel
 
 const val API_TOKEN_SECURITY_SCHEME_NAME = "API Token"
+const val OIDC_SECURITY_SCHEME_NAME = "oidc"
 
 @Configuration
 @SecurityScheme(
@@ -22,17 +29,34 @@ const val API_TOKEN_SECURITY_SCHEME_NAME = "API Token"
     paramName = HttpHeaders.AUTHORIZATION,
 )
 class OpenApiConfig(
-    @Value($$"${app.info.name}") private val name: String,
-    @Value($$"${app.info.version}") private val version: String,
-    @Value($$"${app.info.description}") private val description: String,
+    private val infoProperties: InfoProperties,
+    private val oidcProperties: OidcProperties,
+    private val objectMapper: ObjectMapper,
 ) {
     @Bean
-    fun apiDocConfig(): OpenAPI =
-        OpenAPI()
+    fun apiDocConfig(): OpenAPI {
+        val openApi = OpenAPI()
             .info(
                 Info()
-                    .title(name)
-                    .version(version)
-                    .description(description),
+                    .title(infoProperties.name)
+                    .version(infoProperties.version)
+                    .description(infoProperties.description),
             )
+
+        if (oidcProperties.enabled) {
+            val oidcUrlResolver = OidcUrlResolver(oidcProperties, objectMapper)
+            val oauthFlow = OAuthFlow()
+                .authorizationUrl(oidcUrlResolver.getAuthUrl())
+                .tokenUrl(oidcUrlResolver.getTokenUrl())
+            val flows = OAuthFlows().authorizationCode(oauthFlow)
+            val oauthScheme =
+                SecuritySchemeModel()
+                    .type(SecuritySchemeModel.Type.OAUTH2)
+                    .flows(flows)
+            val components = Components().addSecuritySchemes(OIDC_SECURITY_SCHEME_NAME, oauthScheme)
+            openApi.components(components)
+        }
+
+        return openApi
+    }
 }

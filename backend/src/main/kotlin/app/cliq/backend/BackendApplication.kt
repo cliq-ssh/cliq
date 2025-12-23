@@ -1,15 +1,26 @@
 package app.cliq.backend
 
+import app.cliq.backend.config.EmailProperties
+import app.cliq.backend.config.InfoProperties
+import app.cliq.backend.config.oidc.OidcProperties
 import org.springframework.boot.autoconfigure.SpringBootApplication
+import org.springframework.boot.context.properties.ConfigurationPropertiesScan
 import org.springframework.boot.runApplication
 import org.springframework.modulith.Modulithic
 import org.springframework.scheduling.annotation.EnableAsync
 import org.springframework.scheduling.annotation.EnableScheduling
 
 @SpringBootApplication
+@Modulithic
+@ConfigurationPropertiesScan(
+    basePackageClasses = [
+        InfoProperties::class,
+        EmailProperties::class,
+        OidcProperties::class
+    ]
+)
 @EnableAsync
 @EnableScheduling
-@Modulithic
 class BackendApplication
 
 fun main(args: Array<String>) {

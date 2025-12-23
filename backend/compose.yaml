@@ -23,6 +23,7 @@ services:
       KC_HEALTH_ENABLED: true
       KC_METRICS_ENABLED: true
       JGROUPS_DISCOVERY_PROTOCOL: JDBC_PING
+      KC_CACHE: local
     ports:
       - '127.0.0.1:8100:8080'
     volumes:

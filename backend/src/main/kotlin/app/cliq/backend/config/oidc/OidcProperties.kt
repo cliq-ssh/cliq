@@ -1,9 +1,7 @@
-package app.cliq.backend.config
+package app.cliq.backend.config.oidc
 
 import org.springframework.boot.context.properties.ConfigurationProperties
-import org.springframework.context.annotation.Configuration
 
-@Configuration
 @ConfigurationProperties(prefix = "app.oidc")
 class OidcProperties(
     var enabled: Boolean = false,
