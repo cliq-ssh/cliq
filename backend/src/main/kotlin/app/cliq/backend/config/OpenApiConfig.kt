@@ -2,7 +2,6 @@ package app.cliq.backend.config
 
 import app.cliq.backend.config.oidc.OidcProperties
 import app.cliq.backend.config.oidc.OidcUrlResolver
-import io.swagger.v3.oas.annotations.enums.SecuritySchemeIn
 import io.swagger.v3.oas.annotations.enums.SecuritySchemeType
 import io.swagger.v3.oas.annotations.security.SecurityScheme
 import io.swagger.v3.oas.models.Components
@@ -12,7 +11,6 @@ import io.swagger.v3.oas.models.security.OAuthFlow
 import io.swagger.v3.oas.models.security.OAuthFlows
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
-import org.springframework.http.HttpHeaders
 import tools.jackson.databind.ObjectMapper
 import io.swagger.v3.oas.models.security.SecurityScheme as SecuritySchemeModel
 
@@ -22,11 +20,9 @@ const val OIDC_SECURITY_SCHEME_NAME = "oidc"
 @Configuration
 @SecurityScheme(
     name = API_TOKEN_SECURITY_SCHEME_NAME,
-    type = SecuritySchemeType.APIKEY,
-    bearerFormat = "API_KEY",
-    scheme = "bearer",
-    `in` = SecuritySchemeIn.HEADER,
-    paramName = HttpHeaders.AUTHORIZATION,
+    type = SecuritySchemeType.HTTP,
+    bearerFormat = "API Key",
+    scheme = "Bearer",
 )
 class OpenApiConfig(
     private val infoProperties: InfoProperties,

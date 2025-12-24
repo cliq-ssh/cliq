@@ -45,6 +45,8 @@ session, but a persistent entity in the database containing metadata about the u
 
 This API-Token can then be used to authenticate the user for future requests.
 
+The end goal is that the frontend app will call this endpoint, store the API-Token and use it for future requests.
+
 ## OIDC
 
 If OIDC support is enabled, the user can authenticate via OIDC.
@@ -52,6 +54,9 @@ This will be done via the standard OIDC flow.
 
 The login gets handled by the frontend.
 The backend will only accept logged-in users.
+
+The end goal is that the frontend app will handle the OIDC login and send the OIDC token to the backend for
+authentication.
 
 # Description
 

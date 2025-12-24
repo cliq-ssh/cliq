@@ -9,11 +9,14 @@ class ApiKeyAuthenticationFilter(
     authenticationManager: AuthenticationManager,
     apiKeyAuthenticationConverter: ApiKeyAuthenticationConverter,
     private val authenticationEntryPoint: AuthenticationEntryPoint,
+    apiKeyAuthenticationRequestMatcher: ApiKeyAuthenticationRequestMatcher,
 ) : AuthenticationFilter(
         authenticationManager,
         apiKeyAuthenticationConverter,
     ) {
     init {
+        requestMatcher = apiKeyAuthenticationRequestMatcher
+
         // We do this because the default success handler makes a redirect to '/'
         successHandler = { _, _, _ -> }
 

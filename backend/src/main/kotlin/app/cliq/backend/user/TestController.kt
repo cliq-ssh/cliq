@@ -12,7 +12,7 @@ class TestController {
     @Authenticated
     @GetMapping
     @Operation(summary = "Test authenticated endpoint")
-    fun testUnAuthenticated(
+    fun testAuthenticated(
         @AuthenticationPrincipal user: AuthUser,
     ): String = "Hello ${user.email}"
 

@@ -2,7 +2,7 @@ package app.cliq.backend.config
 
 import app.cliq.backend.config.oidc.OidcProperties
 import app.cliq.backend.config.security.apikey.ApiKeyAuthenticationConfigurer
-import app.cliq.backend.config.security.oidc.OidcJwtAuthenticationConverter
+import app.cliq.backend.config.security.oidc.OidcAuthenticationConverter
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.context.annotation.Lazy
@@ -23,7 +23,7 @@ const val ITERATIONS = 3
 @Configuration
 class SecurityConfig(
     @Lazy
-    private val oidcJwtAuthenticationConverter: OidcJwtAuthenticationConverter,
+    private val oidcJwtAuthenticationConverter: OidcAuthenticationConverter,
     private val apiKeyAuthenticationConfigurer: ApiKeyAuthenticationConfigurer,
     private val oidcProperties: OidcProperties,
 ) {

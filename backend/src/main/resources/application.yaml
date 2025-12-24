@@ -61,6 +61,8 @@ springdoc:
   swagger-ui:
     path: /api/swagger-ui
     disable-swagger-default-url: true
+    oauth:
+      use-pkce-with-authorization-code-grant: true
   default-consumes-media-type: application/json
   default-produces-media-type: application/json
 

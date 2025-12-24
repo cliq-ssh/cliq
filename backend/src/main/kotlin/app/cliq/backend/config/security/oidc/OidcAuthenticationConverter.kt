@@ -9,7 +9,7 @@ import org.springframework.security.oauth2.server.resource.authentication.JwtGra
 import org.springframework.stereotype.Service
 
 @Service
-class OidcJwtAuthenticationConverter(
+class OidcAuthenticationConverter(
     private val userOidcService: UserOidcService,
 ) : Converter<Jwt, AbstractAuthenticationToken> {
     private val authoritiesConverter = JwtGrantedAuthoritiesConverter()
