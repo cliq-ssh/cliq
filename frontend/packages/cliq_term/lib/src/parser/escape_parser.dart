@@ -322,6 +322,8 @@ class EscapeParser {
             default:
               break;
           }
+          // assume we consumed all the extra params
+          offset = codes.length;
         },
         39 => () => formatting.fgColor = null,
         >= 40 && <= 47 => () => formatting.bgColor = ansi8ToColor(
@@ -348,6 +350,8 @@ class EscapeParser {
             default:
               break;
           }
+          // assume we consumed all the extra params
+          offset = codes.length;
         },
         49 => () => formatting.bgColor = null,
         _ => throw ArgumentError('Unhandled formatting code: $code'),
