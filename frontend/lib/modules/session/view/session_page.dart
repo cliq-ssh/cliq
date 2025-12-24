@@ -33,6 +33,9 @@ class _ShellSessionPageState extends ConsumerState<ShellSessionPage>
   SSHClient? get sshClient => session.sshClient;
   SSHSession? get sshSession => session.sshSession;
 
+  // TODO: load from config
+  TerminalColorTheme theme = TerminalColorThemes.darcula;
+
   @override
   void initState() {
     super.initState();
@@ -40,6 +43,7 @@ class _ShellSessionPageState extends ConsumerState<ShellSessionPage>
     _terminalController = TerminalController(
       rows: 20,
       cols: 80,
+      colors: theme,
       onResize: (rows, cols) {
         sshSession?.resizeTerminal(cols, rows);
         showFToast(
@@ -143,9 +147,6 @@ class _ShellSessionPageState extends ConsumerState<ShellSessionPage>
     }, []);
 
     if (widget.session.isConnected) {
-      // TODO: load from config
-      final theme = TerminalColorThemes.darcula;
-
       return SizedBox.expand(
         child: Container(
           color: theme.backgroundColor,
@@ -156,7 +157,6 @@ class _ShellSessionPageState extends ConsumerState<ShellSessionPage>
               fontFamily: 'SourceCodePro',
               fontSize: 16,
             ),
-            colors: theme,
           ),
         ),
       );

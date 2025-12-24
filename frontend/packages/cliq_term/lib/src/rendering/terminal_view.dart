@@ -8,13 +8,11 @@ import 'package:flutter/services.dart';
 class TerminalView extends StatefulWidget {
   final TerminalController controller;
   final TerminalTypography typography;
-  final TerminalColorTheme colors;
 
   const TerminalView({
     super.key,
     required this.controller,
     required this.typography,
-    required this.colors,
   });
 
   @override
@@ -27,7 +25,6 @@ class _TerminalViewState extends State<TerminalView> {
   @override
   void initState() {
     super.initState();
-    widget.controller.colors = widget.colors;
     widget.controller.addListener(_onUpdate);
     _focusNode.addListener(() {
       if (_focusNode.hasFocus) {
@@ -88,11 +85,7 @@ class _TerminalViewState extends State<TerminalView> {
             onTap: () => _focusNode.requestFocus(),
             child: CustomPaint(
               size: Size.infinite,
-              painter: TerminalPainter(
-                widget.controller,
-                widget.typography,
-                widget.colors,
-              ),
+              painter: TerminalPainter(widget.controller, widget.typography),
             ),
           ),
         );

@@ -1,14 +1,42 @@
 import 'package:cliq_term/cliq_term.dart';
+import 'package:cliq_term/src/parser/csi_parser.dart';
 import 'package:logging/logging.dart';
 
 import '../model/color.dart';
 
-typedef CsiHandler = void Function(
-  List<int?> params,
-  String? leader,
-  String intermediates,
-  int finalByteCode,
-);
+typedef EscHandler =
+    void Function({
+      required String body,
+      required FormattingOptions formatting,
+    });
+
+typedef CsiHandler =
+    void Function({
+      required List<int?> params,
+      required String? leader,
+      required String intermediates,
+      required int finalByteCode,
+      required FormattingOptions formatting,
+    });
+
+/// Types of escape sequence termination
+enum _EscTermination {
+  /// Terminated by the next character
+  singleChar,
+
+  /// Terminated by the final byte of a CSI sequence (0x40 to 0x7E)
+  csi,
+
+  /// Terminated by BEL (0x07) or ESC backslash
+  osc,
+
+  /// Terminated by ESC backslash
+  escBackslash;
+
+  static const int escCode = 0x1B;
+  static const int belCode = 0x07;
+  static const int backslashCode = 0x5C;
+}
 
 class EscapeParser {
   static final Logger _log = Logger('EscapeParser');
@@ -16,7 +44,15 @@ class EscapeParser {
   final TerminalController controller;
   final TerminalColorTheme colors;
 
-  late final Map<String, void Function()> _codes = {
+  late final CsiParser _csiParser = CsiParser();
+
+  final Map<String, _EscTermination> _escTerminators = {
+    'ESC [': _EscTermination.csi,
+    'ESC ]': _EscTermination.osc,
+    'ESC P': _EscTermination.escBackslash,
+  };
+
+  late final Map<String, void Function()> _ccHandlers = {
     'BEL': _ccBell,
     // 'BS': _ccBackspace,
     // 'HT': _ccHorizontalTab,
@@ -28,8 +64,9 @@ class EscapeParser {
     // 'SI': _ccShiftIn,
     // 'CAN': _ccCancelParsingCAN,
     // 'SUB': _ccCancelParsingSUB,
+  };
 
-    // -- Escape Sequences --
+  late final Map<String, EscHandler> _escHandlers = {
     // 'ESC 6': _escBackIndex,
     // 'ESC 7': _escSaveCursor,
     // 'ESC 8': _escRestoreCursor,
@@ -57,19 +94,127 @@ class EscapeParser {
     'ESC [': _escHandleCsi,
   };
 
-  late final Map<String, void Function()> _csiCodes = {
-    // 'A': _csiCursorUp,
-    //
+  /// Map of CSI final byte codes to their handlers.
+  late final Map<int, CsiHandler> _csiHandlers = {
+    // 'A'.codeUnitAt(0): csiCursorUpOrScrollRight,
+    // 'B'.codeUnitAt(0): csiCursorDown,
+    // 'C'.codeUnitAt(0): csiCursorRight,
+    // 'D'.codeUnitAt(0): csiCursorLeft,
+    // 'E'.codeUnitAt(0): csiCursorNextLine,
+    // 'F'.codeUnitAt(0): csiCursorPrevLine,
+    // 'G'.codeUnitAt(0): csiCursorHorizontalPositionAbsolute,
+    // 'H'.codeUnitAt(0): csiSetCursorPosition,
+    // 'I.codeUnitAt(0): csiCursorHorizontalForwardTab,
+    'J'.codeUnitAt(0): csiEraseDisplay,
+    // 'K'.codeUnitAt(0): csiEraseLine,
+    // 'L'.codeUnitAt(0): csiInsertLine,
+    // 'M'.codeUnitAt(0): csiDeleteLine,
+    // 'P'.codeUnitAt(0): csiDeleteCharacter,
+    // 'S'.codeUnitAt(0): csiScrollUp,
+    // 'T'.codeUnitAt(0): csiScrollDown,
+    // 'X'.codeUnitAt(0): csiEraseCharacter,
+    // 'Z'.codeUnitAt(0): csiCursorHorizontalBackwardTab,
+    // 'a'.codeUnitAt(0): csiCursorHorizontalRelative,
+    // 'b'.codeUnitAt(0): csiRepeatPrevCharacter,
+    // 'c'.codeUnitAt(0): csiDeviceAttributes,
+    // 'd'.codeUnitAt(0): csiCursorVerticalPositionAbsolute,
+    // 'e'.codeUnitAt(0): csiVerticalPosRelative,
+    // 'f'.codeUnitAt(0): csiSetCursorPosition,
+    // 'g'.codeUnitAt(0): csiTabClear,
+    // 'h'.codeUnitAt(0): csiSetMode,
+    // 'i'.codeUnitAt(0): csiMediaControl,
+    // 'l'.codeUnitAt(0): csiResetMode,
+    'm'.codeUnitAt(0): csiSelectGraphicRendition,
+    // 'n'.codeUnitAt(0): csiRequestReport,
+    // 'p'.codeUnitAt(0): csiRequestMode,
+    // 'q'.codeUnitAt(0): csiSelectCursorStyle,
+    // 'r'.codeUnitAt(0): csiSetScrollingRegion,
+    // 's'.codeUnitAt(0): csiSaveCursor,
+    // 't'.codeUnitAt(0): csiWindowManipulation,
+    // 'u'.codeUnitAt(0): csiRestoreCursor,
   };
 
-  EscapeParser({
-    required this.controller,
-    required this.colors,
-  });
+  EscapeParser({required this.controller, required this.colors});
 
-  @Deprecated('Goal is to remove this method ;)')
-  void __unimplementedSeq(String seq) {
-    _log.fine('Unimplemented escape sequence: $seq');
+  /// Parses an escape sequence starting at [initialOffset] in [input].
+  /// Returns the number of characters consumed.
+  ///
+  /// [formatting] is the current formatting options to be modified by the escape sequence (e.g., SGR codes).
+  int parse(String input, int initialOffset, FormattingOptions formatting) {
+    if (initialOffset >= input.length) return 0;
+
+    int offset = initialOffset;
+    if (input.codeUnitAt(offset) == _EscTermination.escCode) {
+      offset++;
+      if (offset >= input.length) return 1;
+    }
+
+    final next = input[offset];
+    final key = 'ESC $next';
+
+    /// Invoke the handler for [escKey] with [body].
+    void _invoke(String escKey, String body) {
+      final h = _escHandlers[escKey];
+      if (h != null) {
+        try {
+          h(body: body, formatting: formatting);
+        } catch (e, st) {
+          _log.warning('Error handling $escKey body="$body": $e\n$st');
+        }
+      } else {
+        _log.fine('No handler for $escKey body="$body"');
+      }
+    }
+
+    final term = _escTerminators[key] ?? _EscTermination.singleChar;
+    switch (term) {
+      case .csi:
+        final start = offset;
+        int i = offset + 1;
+        while (i < input.length) {
+          final cu = input.codeUnitAt(i);
+          if (cu >= 0x40 && cu <= 0x7E) {
+            final body = input.substring(start, i + 1);
+            _invoke(key, body);
+            return (i + 1) - initialOffset;
+          }
+          i++;
+        }
+        // incomplete, invoke with rest
+        _invoke(key, input.substring(start));
+        return input.length - initialOffset;
+
+      case .escBackslash:
+      case .osc:
+        final start = offset;
+        int i = offset + 1;
+        while (i < input.length) {
+          final cu = input.codeUnitAt(i);
+
+          // only osc sequences support BEL termination
+          if (term == .osc && cu == _EscTermination.belCode) {
+            final body = input.substring(start, i + 1);
+            _invoke(key, body);
+            return (i + 1) - initialOffset;
+          }
+
+          // escBackslash termination
+          if (cu == _EscTermination.escCode &&
+              (i + 1) < input.length &&
+              input.codeUnitAt(i + 1) == _EscTermination.backslashCode) {
+            final body = input.substring(start, i + 2);
+            _invoke(key, body);
+            return (i + 2) - initialOffset;
+          }
+          i++;
+        }
+        _invoke(key, input.substring(start));
+        return input.length - initialOffset;
+
+      case .singleChar:
+        _invoke(key, next);
+        return (offset + 1) - initialOffset;
+    }
   }
 
   // ---- Control Character Handlers ---
@@ -81,10 +226,12 @@ class EscapeParser {
 
   // --- Escape Sequence Handlers ---
 
-  void _escHandleCsi() {
-    // csiBody is the characters following ESC[ up to and including the final byte
-    // Example: "31;1m" or "?25h"
-    final parsed = _parseCsi(csiBody);
+  void _escHandleCsi({
+    required String body,
+    required FormattingOptions formatting,
+  }) {
+    final parsed = _csiParser.parseCsi(body);
+
     final handler = _csiHandlers[parsed.finalByteCode];
     if (handler != null) {
       handler(
@@ -92,156 +239,81 @@ class EscapeParser {
         leader: parsed.leader,
         intermediates: parsed.intermediates,
         finalByteCode: parsed.finalByteCode,
+        formatting: formatting,
       );
     } else {
-      _log.fine('Unhandled CSI final=0x${parsed.finalByteCode.toRadixString(16)} body="$csiBody"');
-      // optional: a fallback handler or ignore
-      __unimplementedSeq('CSI $csiBody');
-    }
-  }
-
-
-
-
-
-
-
-
-  /// Parses an ANSI escape sequence from [input] starting at [initialOffset].
-  /// Applies formatting changes to [formatting] and terminal actions to [controller].
-  /// Returns the number of characters consumed from [input].
-  int parse(
-    String input,
-    int initialOffset,
-    FormattingOptions formatting,
-  ) {
-    if (initialOffset >= input.length) return 0;
-    int offset = initialOffset;
-    if (input[offset] != '[') return 0;
-    offset++;
-
-    List<String> args = [];
-
-    // SGR; set graphic rendition
-    int applySGRandReturn(int after) {
-      final norm = args.isEmpty
-          ? <String>['0']
-          : args.map((s) => s.isEmpty ? '0' : s).toList(growable: false);
-      setFormattingFromArgs(norm, formatting);
-      return after - initialOffset;
-    }
-
-    // J; erase screen
-    int applyJandReturn(int after) {
-      final first = args.isEmpty ? '' : args[0];
-      final mode = first.isEmpty ? 0 : int.tryParse(first) ?? 0;
-      if (mode == 2) controller.commitToBackBuffer();
-      return after - initialOffset;
-    }
-
-    while (offset < input.length) {
-      var (parsedOffset, parsedArg) = _parseInt(input, offset);
-
-      if (parsedOffset > 0) {
-        offset += parsedOffset;
-        args.add(parsedArg);
-        if (offset >= input.length) break;
-        final next = input[offset++];
-
-        if (next == ';') continue;
-        if (next == 'm') return applySGRandReturn(offset);
-        if (next == 'J') return applyJandReturn(offset);
-        return offset - initialOffset;
-      }
-
-      final cur = input[offset];
-      if (cur == ';') {
-        args.add('');
-        offset++;
-        continue;
-      }
-
-      final cu = cur.codeUnitAt(0);
-      if (cu >= 0x40 && cu <= 0x7E) {
-        offset++;
-        if (cur == 'm') return applySGRandReturn(offset);
-        if (cur == 'J') return applyJandReturn(offset);
-        return offset - initialOffset;
-      }
-
       _log.fine(
-        'Unimplemented escape sequence! Encountered ${input.substring(initialOffset, input.length)}',
+        'Unhandled CSI final=0x${parsed.finalByteCode.toRadixString(16)}/${String.fromCharCode(parsed.finalByteCode)} body="$body"',
       );
-      offset++;
     }
-
-    return offset - initialOffset;
   }
 
-  /// Applies SGR (Select Graphic Rendition) parameters from [args] to [formatting].
-  void setFormattingFromArgs(
-    List<String> args,
-    FormattingOptions formatting,
-  ) {
-    final codes = args
-        .map((s) => s.isEmpty ? 0 : int.tryParse(s) ?? 0)
-        .toList();
+  // --- CSI Handlers ---
+
+  void csiEraseDisplay({
+    required List<int?> params,
+    required String? leader,
+    required String intermediates,
+    required int finalByteCode,
+    required FormattingOptions formatting,
+  }) {
+    // TODO: fix mode
+    final mode = params.isNotEmpty ? (params[0] ?? 0) : 0;
+    switch (mode) {
+      case 2:
+        controller.commitToBackBuffer();
+      default:
+        _log.fine('Unhandled ED mode: $mode');
+    }
+  }
+
+  /// https://terminalguide.namepad.de/seq/csi_sm/
+  void csiSelectGraphicRendition({
+    required List<int?> params,
+    required String? leader,
+    required String intermediates,
+    required int finalByteCode,
+    required FormattingOptions formatting,
+  }) {
+    final List<int> codes = params.isEmpty
+        ? const <int>[0]
+        : params.map((p) => p ?? 0).toList(growable: false);
 
     int offset = 0;
     while (offset < codes.length) {
       int code = codes[offset++];
 
-      switch (code) {
-        case 0:
-          formatting.reset();
-          break;
-        case 1:
-          formatting.bold = true;
-          break;
-        case 2:
-          formatting.faint = true;
-          break;
-        case 3:
-          formatting.italic = true;
-          break;
-        case 4:
-          formatting.underline = Underline.single;
-          break;
-        case 8:
-          formatting.concealed = true;
-          break;
-        case 21:
-          formatting.underline = Underline.double;
-          break;
-        case 22:
+      (switch (code) {
+        0 => () => formatting.reset(),
+        1 => () => formatting.bold = true,
+        2 => () => formatting.faint = true,
+        3 => () => formatting.italic = true,
+        4 => () => formatting.underline = Underline.single,
+        8 => () => formatting.concealed = true,
+        21 => () => formatting.underline = Underline.double,
+        22 => () {
           formatting.bold = false;
           formatting.faint = false;
-          break;
-        case 23:
-          formatting.italic = false;
-          break;
-        case 24:
-          formatting.underline = Underline.none;
-          break;
-        case 28:
-          formatting.concealed = false;
-          break;
-        case >= 30 && <= 37:
-          formatting.fgColor = ansi8ToColor(controller.colors, code - 30);
-          break;
-        case 38:
-          // 38       Set foreground color                        Next arguments are 5;<n> or 2;<r>;<g>;<b>, see below
-          if (offset == codes.length) break;
+        },
+        23 => () => formatting.italic = false,
+        24 => () => formatting.underline = Underline.none,
+        28 => () => formatting.concealed = false,
+        >= 30 && <= 37 => () => formatting.fgColor = ansi8ToColor(
+          controller.colors,
+          code - 30,
+        ),
+        38 => () {
+          if (offset == codes.length) return;
           switch (codes[offset++]) {
             case 5:
-              if (offset == codes.length) break;
+              if (offset == codes.length) return;
               formatting.fgColor = xterm256ToColor(
                 controller.colors,
                 codes[offset],
               );
               break;
             case 2:
-              if ((offset + 2) == codes.length) break;
+              if ((offset + 2) == codes.length) return;
               formatting.fgColor = rgbToColor(
                 codes[offset - 3],
                 codes[offset - 2],
@@ -250,25 +322,24 @@ class EscapeParser {
             default:
               break;
           }
-          break;
-        case 39:
-          formatting.fgColor = null;
-          break;
-        case >= 40 && <= 47:
-          formatting.bgColor = ansi8ToColor(controller.colors, code - 40);
-          break;
-        case 48:
-          if (offset == codes.length) break;
+        },
+        39 => () => formatting.fgColor = null,
+        >= 40 && <= 47 => () => formatting.bgColor = ansi8ToColor(
+          controller.colors,
+          code - 40,
+        ),
+        48 => () {
+          if (offset == codes.length) return;
           switch (codes[offset]) {
             case 5:
-              if ((offset + 1) == codes.length) break;
+              if ((offset + 1) == codes.length) return;
               formatting.bgColor = xterm256ToColor(
                 controller.colors,
                 codes[offset + 1],
               );
               break;
             case 2:
-              if ((offset + 3) == codes.length) break;
+              if ((offset + 3) == codes.length) return;
               formatting.bgColor = rgbToColor(
                 codes[offset + 1],
                 codes[offset + 2],
@@ -277,33 +348,10 @@ class EscapeParser {
             default:
               break;
           }
-          break;
-        case 49:
-          formatting.bgColor = null;
-        default:
-          // NYI / ignored
-          break;
-      }
+        },
+        49 => () => formatting.bgColor = null,
+        _ => throw ArgumentError('Unhandled formatting code: $code'),
+      }).call();
     }
   }
-
-  static (int, String) _parseInt(String input, int offset) {
-    int start = offset;
-    while (offset < input.length && _isDigit(input[offset])) {
-      offset++;
-    }
-    if (offset > start) {
-      return (offset - start, input.substring(start, offset));
-    }
-    return (0, '');
-  }
-
-  static bool _isDigit(String ch) {
-    final cu = ch.codeUnitAt(0);
-    return cu >= 0x30 && cu <= 0x39;
-  }
-}
-
-extension StringExtension on String {
-  int get c => codeUnitAt(0);
 }

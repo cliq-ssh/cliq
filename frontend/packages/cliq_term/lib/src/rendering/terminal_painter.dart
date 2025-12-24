@@ -7,9 +7,8 @@ import '../../cliq_term.dart';
 class TerminalPainter extends CustomPainter {
   final TerminalController controller;
   final TerminalTypography typography;
-  final TerminalColorTheme colors;
 
-  TerminalPainter(this.controller, this.typography, this.colors);
+  TerminalPainter(this.controller, this.typography);
 
   static (double width, double height) measureChar(
     TerminalTypography typography,
@@ -24,7 +23,7 @@ class TerminalPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     // set background
-    final bgPaint = Paint()..color = colors.backgroundColor;
+    final bgPaint = Paint()..color = controller.colors.backgroundColor;
     canvas.drawRect(Offset.zero & size, bgPaint);
 
     final (cellW, cellH) = measureChar(typography);
@@ -56,8 +55,8 @@ class TerminalPainter extends CustomPainter {
         if (sb.isEmpty) return;
         final fmt = lastFmt ?? FormattingOptions();
         final effectiveFg = fmt.concealed
-            ? colors.foregroundColor.withAlpha(0)
-            : (fmt.fgColor ?? colors.foregroundColor);
+            ? controller.colors.foregroundColor.withAlpha(0)
+            : (fmt.fgColor ?? controller.colors.foregroundColor);
 
         final style = typography.toTextStyle().copyWith(
           color: effectiveFg,
@@ -110,8 +109,8 @@ class TerminalPainter extends CustomPainter {
       final cellFg = cell.fmt.fgColor;
       final cellBg = cell.fmt.bgColor;
 
-      final Color fillColor = cellFg ?? colors.foregroundColor;
-      final Color charColor = cellBg ?? colors.backgroundColor;
+      final Color fillColor = cellFg ?? controller.colors.foregroundColor;
+      final Color charColor = cellBg ?? controller.colors.backgroundColor;
 
       final cursorRect = Rect.fromLTWH(cc * cellW, cr * cellH, cellW, cellH);
 
@@ -164,6 +163,6 @@ class TerminalPainter extends CustomPainter {
   bool shouldRepaint(covariant TerminalPainter oldDelegate) {
     return oldDelegate.controller != controller ||
         oldDelegate.typography != typography ||
-        oldDelegate.colors != colors;
+        oldDelegate.controller.colors != controller.colors;
   }
 }

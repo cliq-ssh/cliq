@@ -22,7 +22,7 @@ class TerminalController extends ChangeNotifier {
   FormattingOptions curFmt = FormattingOptions();
 
   CursorStyle cursorStyle = .bar;
-  bool cursorVisible = true; // current visible state (blinks)
+  bool cursorVisible = true;
   Timer? _cursorTimer;
   Duration cursorBlinkInterval = const Duration(milliseconds: 600);
 
@@ -34,7 +34,7 @@ class TerminalController extends ChangeNotifier {
   final void Function(String)? onTitleChange;
   final void Function()? onBell;
 
-  late TerminalColorTheme colors;
+  final TerminalColorTheme colors;
 
   late EscapeParser escapeParser = EscapeParser(
     controller: this,
@@ -44,6 +44,7 @@ class TerminalController extends ChangeNotifier {
   TerminalController({
     required this.rows,
     required this.cols,
+    required this.colors,
     this.onResize,
     this.onTitleChange,
     this.onBell,
