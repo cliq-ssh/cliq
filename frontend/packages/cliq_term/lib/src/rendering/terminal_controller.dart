@@ -1,7 +1,9 @@
 import 'dart:async';
 
 import 'package:cliq_term/cliq_term.dart';
+import 'package:cliq_term/src/model/esc_terminator.dart';
 import 'package:cliq_term/src/model/terminal_buffer.dart';
+import 'package:cliq_term/src/parser/cc_parser.dart';
 import 'package:cliq_term/src/parser/escape_parser.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -36,10 +38,11 @@ class TerminalController extends ChangeNotifier {
 
   final TerminalColorTheme colors;
 
-  late EscapeParser escapeParser = EscapeParser(
+  late final EscapeParser escapeParser = EscapeParser(
     controller: this,
     colors: colors,
   );
+  late final ControlCharacterParser ccParser = ControlCharacterParser(controller: this);
 
   TerminalController({
     required this.rows,
@@ -113,7 +116,7 @@ class TerminalController extends ChangeNotifier {
     notifyListeners();
   }
 
-  void _writeChar(String ch) {
+  void writeChar(String ch) {
     if (rows == 0 || cols == 0) return;
 
     if (cursorRow < 0) cursorRow = 0;
@@ -153,119 +156,23 @@ class TerminalController extends ChangeNotifier {
 
   void feed(String input) {
     int i = 0;
-    final len = input.length;
-    while (i < len) {
-      final ch = input[i];
+    while (i < input.length) {
+      final cu = input.codeUnitAt(i);
 
-      if (ch == '\x1B') {
-        if (i + 1 >= len) break;
-        final next = input[i + 1];
+      if (cu == EscTerminator.escCode) {
+        final consumed = escapeParser.parse(input, i, curFmt);
+        if (consumed <= 0) break; // incomplete sequence
+        i += consumed;
+        continue;
+      }
 
-        if (next == '[') {
-          final consumed = escapeParser.parse(input, i + 1, curFmt);
-          if (consumed <= 0) break;
-          i += 1 + consumed;
-          continue;
-        }
-
-        if (next == ']') {
-          int j = i + 2;
-          int contentStart = j;
-          bool terminated = false;
-          while (j < len) {
-            final cu = input.codeUnitAt(j);
-            if (cu == 0x07) {
-              // BEL
-              terminated = true;
-              break;
-            }
-            if (cu == 0x1B && j + 1 < len && input.codeUnitAt(j + 1) == 0x5C) {
-              // ESC '\'
-              terminated = true;
-              break;
-            }
-            j++;
-          }
-          if (!terminated) break; // incomplete OSC
-          final contentEnd = j;
-          final payload = input.substring(contentStart, contentEnd);
-          final parts = payload.split(';');
-          final title = parts.length >= 2
-              ? parts.sublist(1).join(';')
-              : payload;
-          if (title.isNotEmpty) onTitleChange?.call(title);
-          // advance past terminator (BEL) or ESC '\'
-          i = input.codeUnitAt(j) == 0x07 ? j + 1 : j + 2;
-          continue;
-        }
-
-        _log.fine(
-          'Unimplemented escape sequence! Encountered ${input.substring(i, len)}',
-        );
+      // handle control characters
+      if (ccParser.parseCc(cu)) {
         i++;
         continue;
       }
 
-      final cu = ch.codeUnitAt(0);
-      // BEL
-      if (cu == 0x07) {
-        onBell?.call();
-        i++;
-        continue;
-      }
-      // CR
-      if (cu == 0x0D) {
-        cursorCol = 0;
-        i++;
-        continue;
-      }
-      // LF
-      if (cu == 0x0A) {
-        cursorRow = cursorRow + 1;
-        if (cursorRow >= rows) {
-          front.pushEmptyLine();
-          cursorRow = rows - 1;
-        }
-        cursorCol = 0;
-        i++;
-        continue;
-      }
-      // TAB
-      if (cu == 0x09) {
-        _writeChar('\t');
-        i++;
-        continue;
-      }
-
-      if (cu == 0x7F || cu == 0x08) {
-        if (cursorCol > 0) {
-          cursorCol--;
-          front.setCell(cursorRow, cursorCol, Cell.empty());
-        } else if (cursorRow > 0) {
-          cursorRow--;
-          int lastIdx = cols - 1;
-          while (lastIdx >= 0 && front.getCell(cursorRow, lastIdx).ch == ' ') {
-            lastIdx--;
-          }
-
-          if (lastIdx < 0) {
-            cursorCol = 0;
-          } else {
-            cursorCol = lastIdx;
-            front.setCell(cursorRow, cursorCol, Cell.empty());
-          }
-        }
-        i++;
-        continue;
-      }
-
-      if (cu < 0x20) {
-        _log.fine('Ignoring control character: 0x${cu.toRadixString(16)}');
-        i++;
-        continue;
-      }
-
-      _writeChar(ch);
+      writeChar(String.fromCharCode(cu));
       i++;
     }
 

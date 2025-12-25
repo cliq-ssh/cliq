@@ -3,6 +3,7 @@ import 'package:cliq_term/src/parser/csi_parser.dart';
 import 'package:logging/logging.dart';
 
 import '../model/color.dart';
+import '../model/esc_terminator.dart';
 
 typedef EscHandler =
     void Function({
@@ -19,25 +20,6 @@ typedef CsiHandler =
       required FormattingOptions formatting,
     });
 
-/// Types of escape sequence termination
-enum _EscTermination {
-  /// Terminated by the next character
-  singleChar,
-
-  /// Terminated by the final byte of a CSI sequence (0x40 to 0x7E)
-  csi,
-
-  /// Terminated by BEL (0x07) or ESC backslash
-  osc,
-
-  /// Terminated by ESC backslash
-  escBackslash;
-
-  static const int escCode = 0x1B;
-  static const int belCode = 0x07;
-  static const int backslashCode = 0x5C;
-}
-
 class EscapeParser {
   static final Logger _log = Logger('EscapeParser');
 
@@ -46,24 +28,10 @@ class EscapeParser {
 
   late final CsiParser _csiParser = CsiParser();
 
-  final Map<String, _EscTermination> _escTerminators = {
-    'ESC [': _EscTermination.csi,
-    'ESC ]': _EscTermination.osc,
-    'ESC P': _EscTermination.escBackslash,
-  };
-
-  late final Map<String, void Function()> _ccHandlers = {
-    'BEL': _ccBell,
-    // 'BS': _ccBackspace,
-    // 'HT': _ccHorizontalTab,
-    // 'LF': _ccLineFeed,
-    // 'VT': _ccVerticalTab,
-    // 'FF': _ccFormFeed,
-    // 'CR': _ccCarriageReturn,
-    // 'SO': _ccShiftOut,
-    // 'SI': _ccShiftIn,
-    // 'CAN': _ccCancelParsingCAN,
-    // 'SUB': _ccCancelParsingSUB,
+  final Map<String, EscTerminator> _escTerminators = {
+    'ESC [': .csi,
+    'ESC ]': .osc,
+    'ESC P': .escBackslash,
   };
 
   late final Map<String, EscHandler> _escHandlers = {
@@ -144,7 +112,7 @@ class EscapeParser {
     if (initialOffset >= input.length) return 0;
 
     int offset = initialOffset;
-    if (input.codeUnitAt(offset) == _EscTermination.escCode) {
+    if (input.codeUnitAt(offset) == EscTerminator.escCode) {
       offset++;
       if (offset >= input.length) return 1;
     }
@@ -152,8 +120,10 @@ class EscapeParser {
     final next = input[offset];
     final key = 'ESC $next';
 
+    final term = _escTerminators[key] ?? EscTerminator.singleChar;
+
     /// Invoke the handler for [escKey] with [body].
-    void _invoke(String escKey, String body) {
+    void invokeHandler(String escKey, String body) {
       final h = _escHandlers[escKey];
       if (h != null) {
         try {
@@ -162,11 +132,10 @@ class EscapeParser {
           _log.warning('Error handling $escKey body="$body": $e\n$st');
         }
       } else {
-        _log.fine('No handler for $escKey body="$body"');
+        _log.fine('No $term handler for $escKey body="$body"');
       }
     }
 
-    final term = _escTerminators[key] ?? _EscTermination.singleChar;
     switch (term) {
       case .csi:
         final start = offset;
@@ -175,13 +144,13 @@ class EscapeParser {
           final cu = input.codeUnitAt(i);
           if (cu >= 0x40 && cu <= 0x7E) {
             final body = input.substring(start, i + 1);
-            _invoke(key, body);
+            invokeHandler(key, body);
             return (i + 1) - initialOffset;
           }
           i++;
         }
         // incomplete, invoke with rest
-        _invoke(key, input.substring(start));
+        invokeHandler(key, input.substring(start));
         return input.length - initialOffset;
 
       case .escBackslash:
@@ -192,37 +161,32 @@ class EscapeParser {
           final cu = input.codeUnitAt(i);
 
           // only osc sequences support BEL termination
-          if (term == .osc && cu == _EscTermination.belCode) {
+          if (term == .osc && cu == EscTerminator.belCode) {
             final body = input.substring(start, i + 1);
-            _invoke(key, body);
+            invokeHandler(key, body);
             return (i + 1) - initialOffset;
           }
 
           // escBackslash termination
-          if (cu == _EscTermination.escCode &&
+          if (cu == EscTerminator.escCode &&
               (i + 1) < input.length &&
-              input.codeUnitAt(i + 1) == _EscTermination.backslashCode) {
+              input.codeUnitAt(i + 1) == EscTerminator.backslashCode) {
             final body = input.substring(start, i + 2);
-            _invoke(key, body);
+            invokeHandler(key, body);
             return (i + 2) - initialOffset;
           }
           i++;
         }
-        _invoke(key, input.substring(start));
+        invokeHandler(key, input.substring(start));
         return input.length - initialOffset;
 
       case .singleChar:
-        _invoke(key, next);
+        invokeHandler(key, next);
         return (offset + 1) - initialOffset;
     }
   }
 
-  // ---- Control Character Handlers ---
 
-  /// https://terminalguide.namepad.de/seq/a_c0-g/
-  void _ccBell() {
-    controller.onBell?.call();
-  }
 
   // --- Escape Sequence Handlers ---
 
