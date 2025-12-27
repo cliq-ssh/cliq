@@ -5,12 +5,11 @@ class TerminalBuffer {
   final int cols;
   final List<List<Cell>> _buffer;
 
-  final int history;
   int _start = 0;
 
-  TerminalBuffer(this.rows, this.cols, {this.history = 200})
+  TerminalBuffer({required this.rows, required this.cols})
     : _buffer = List.generate(
-        rows + history,
+        rows,
         (_) => List.generate(cols, (_) => Cell.empty()),
         growable: false,
       );
@@ -18,8 +17,8 @@ class TerminalBuffer {
   int get length => _buffer.length;
   int _idxForRow(int row) => (_start + row) % _buffer.length;
 
-  TerminalBuffer resize(int newRows, int newCols) {
-    final newBuffer = TerminalBuffer(newRows, newCols, history: history);
+  TerminalBuffer resize({required int newRows, required int newCols}) {
+    final newBuffer = TerminalBuffer(rows: newRows, cols: newCols);
     final minRows = rows < newRows ? rows : newRows;
     final minCols = cols < newCols ? cols : newCols;
 
@@ -28,7 +27,6 @@ class TerminalBuffer {
         newBuffer.setCell(r, c, getCell(r, c));
       }
     }
-
     return newBuffer;
   }
 

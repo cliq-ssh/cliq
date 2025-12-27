@@ -6,10 +6,10 @@ import '../../cliq_term.dart';
 
 class TerminalPainter extends CustomPainter {
   final TerminalController controller;
-  final TerminalTypography typography;
 
-  TerminalPainter(this.controller, this.typography);
+  const TerminalPainter(this.controller);
 
+  /// Calculates the width and height of a single character cell based on the provided typography.
   static (double width, double height) measureChar(
     TerminalTypography typography,
   ) {
@@ -26,7 +26,7 @@ class TerminalPainter extends CustomPainter {
     final bgPaint = Paint()..color = controller.colors.backgroundColor;
     canvas.drawRect(Offset.zero & size, bgPaint);
 
-    final (cellW, cellH) = measureChar(typography);
+    final (cellW, cellH) = measureChar(controller.typography);
     final rows = controller.front.rows;
     final cols = (rows > 0) ? controller.front.cols : 0;
 
@@ -58,7 +58,7 @@ class TerminalPainter extends CustomPainter {
             ? controller.colors.foregroundColor.withAlpha(0)
             : (fmt.fgColor ?? controller.colors.foregroundColor);
 
-        final style = typography.toTextStyle().copyWith(
+        final style = controller.typography.toTextStyle().copyWith(
           color: effectiveFg,
           fontWeight: fmt.bold ? FontWeight.w700 : null,
           fontStyle: fmt.italic ? FontStyle.italic : FontStyle.normal,
@@ -121,8 +121,8 @@ class TerminalPainter extends CustomPainter {
           final displayedChar = cell.ch.isEmpty ? ' ' : cell.ch;
           final charStyle = TextStyle(
             color: charColor,
-            fontSize: typography.fontSize,
-            fontFamily: typography.fontFamily,
+            fontSize: controller.typography.fontSize,
+            fontFamily: controller.typography.fontFamily,
             fontWeight: cell.fmt.bold ? FontWeight.w700 : FontWeight.w400,
             fontStyle: cell.fmt.italic ? FontStyle.italic : FontStyle.normal,
           );
@@ -161,8 +161,6 @@ class TerminalPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(covariant TerminalPainter oldDelegate) {
-    return oldDelegate.controller != controller ||
-        oldDelegate.typography != typography ||
-        oldDelegate.controller.colors != controller.colors;
+    return oldDelegate.controller != controller;
   }
 }

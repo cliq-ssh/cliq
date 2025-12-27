@@ -7,20 +7,16 @@ import 'package:flutter/services.dart';
 
 class TerminalView extends StatefulWidget {
   final TerminalController controller;
-  final TerminalTypography typography;
+  final FocusNode? focusNode;
 
-  const TerminalView({
-    super.key,
-    required this.controller,
-    required this.typography,
-  });
+  const TerminalView({super.key, required this.controller, this.focusNode});
 
   @override
   State<TerminalView> createState() => _TerminalViewState();
 }
 
 class _TerminalViewState extends State<TerminalView> {
-  final FocusNode _focusNode = FocusNode();
+  late final FocusNode _focusNode = widget.focusNode ?? FocusNode();
 
   @override
   void initState() {
@@ -50,7 +46,9 @@ class _TerminalViewState extends State<TerminalView> {
   Widget build(BuildContext context) {
     return LayoutBuilder(
       builder: (context, constraints) {
-        final (cellW, cellH) = TerminalPainter.measureChar(widget.typography);
+        final (cellW, cellH) = TerminalPainter.measureChar(
+          widget.controller.typography,
+        );
         final newCols = max(1, (constraints.maxWidth / cellW).floor());
         final newRows = max(1, (constraints.maxHeight / cellH).floor());
 
@@ -85,7 +83,7 @@ class _TerminalViewState extends State<TerminalView> {
             onTap: () => _focusNode.requestFocus(),
             child: CustomPaint(
               size: Size.infinite,
-              painter: TerminalPainter(widget.controller, widget.typography),
+              painter: TerminalPainter(widget.controller),
             ),
           ),
         );

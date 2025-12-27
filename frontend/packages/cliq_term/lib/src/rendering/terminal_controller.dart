@@ -10,30 +10,18 @@ import 'package:flutter/services.dart';
 
 enum CursorStyle { block, underline, bar }
 
+/// Controller for managing terminal state, including buffers, cursor, and input handling.
 class TerminalController extends ChangeNotifier {
-  int rows;
-  int cols;
-  int cursorRow = 0;
-  int cursorCol = 0;
-
-  int scrollbackRows = 0;
-
-  FormattingOptions curFmt = FormattingOptions();
-
-  CursorStyle cursorStyle = .bar;
-  bool cursorVisible = true;
-  Timer? _cursorTimer;
-  Duration cursorBlinkInterval = const Duration(milliseconds: 600);
-
-  late TerminalBuffer front;
-  late TerminalBuffer back;
-
-  void Function(String)? onInput;
+  final TerminalTypography typography;
+  final TerminalColorTheme colors;
+  final Duration cursorBlinkInterval;
   final void Function(int, int)? onResize;
   final void Function(String)? onTitleChange;
   final void Function()? onBell;
+  void Function(String)? onInput;
 
-  final TerminalColorTheme colors;
+  late TerminalBuffer front = TerminalBuffer(rows: rows, cols: cols);
+  late TerminalBuffer back = TerminalBuffer(rows: rows, cols: cols);
 
   late final EscapeParser escapeParser = EscapeParser(
     controller: this,
@@ -43,32 +31,44 @@ class TerminalController extends ChangeNotifier {
     controller: this,
   );
 
+  int rows;
+  int cols;
+  int cursorRow = 0;
+  int cursorCol = 0;
+  FormattingOptions curFmt = FormattingOptions();
+  CursorStyle cursorStyle = .bar;
+  bool cursorVisible = true;
+  Timer? _cursorTimer;
+
   TerminalController({
-    required this.rows,
-    required this.cols,
+    required this.typography,
     required this.colors,
+    this.cursorBlinkInterval = const Duration(milliseconds: 600),
+    this.onInput,
     this.onResize,
     this.onTitleChange,
     this.onBell,
-  }) {
-    front = TerminalBuffer(rows, cols);
-    back = TerminalBuffer(rows, cols);
-  }
+    this.rows = 0,
+    this.cols = 0,
+  });
 
+  /// Resizes the terminal to the specified number of rows and columns.
   void resize(int newRows, int newCols) {
     if (newRows == rows && newCols == cols) return;
     onResize?.call(newRows, newCols);
 
     rows = newRows;
     cols = newCols;
-    front = front.resize(newRows, newCols);
-    back = back.resize(newRows, newCols);
+    front = front.resize(newRows: newRows, newCols: newCols);
+    back = back.resize(newRows: newRows, newCols: newCols);
 
     cursorRow = cursorRow.clamp(0, rows - 1);
     cursorCol = cursorCol.clamp(0, cols - 1);
     notifyListeners();
   }
 
+  /// Handles keyboard input events and translates them into terminal input.
+  /// Supports character input and special keys like Enter, Backspace, Tab, and Arrow keys.
   void handleKey(KeyEvent ev) {
     if (ev is! KeyDownEvent) return;
 
@@ -111,7 +111,6 @@ class TerminalController extends ChangeNotifier {
     front.clear();
     cursorRow = 0;
     cursorCol = 0;
-    resetScrollback();
     notifyListeners();
   }
 
@@ -147,12 +146,7 @@ class TerminalController extends ChangeNotifier {
     }
   }
 
-  void resetScrollback() {
-    if (scrollbackRows == 0) return;
-    scrollbackRows = 0;
-    notifyListeners();
-  }
-
+  /// Feeds input string into the terminal, parsing escape sequences and control characters.
   void feed(String input) {
     int i = 0;
     while (i < input.length) {
@@ -175,10 +169,10 @@ class TerminalController extends ChangeNotifier {
       i++;
     }
 
-    resetScrollback();
     notifyListeners();
   }
 
+  /// Starts the cursor blinking timer.
   void startCursorBlink() {
     _cursorTimer?.cancel();
     cursorVisible = true;
@@ -188,6 +182,7 @@ class TerminalController extends ChangeNotifier {
     });
   }
 
+  /// Stops the cursor blinking timer.
   void stopCursorBlink() {
     _cursorTimer?.cancel();
     _cursorTimer = null;

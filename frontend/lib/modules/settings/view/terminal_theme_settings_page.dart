@@ -30,9 +30,11 @@ class TerminalThemeSettingsPage extends AbstractSettingsPage {
 
     useEffect(() {
       terminalController.value = TerminalController(
-        rows: 40,
-        cols: 80,
         colors: TerminalColorThemes.darcula,
+        typography: TerminalTypography(
+          fontFamily: selectedFontFamily.value,
+          fontSize: 16,
+        ),
       );
       // wait till initState of TerminalView is done
       WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -66,10 +68,6 @@ class TerminalThemeSettingsPage extends AbstractSettingsPage {
                       color: TerminalColorThemes.darcula.backgroundColor,
                       child: TerminalView(
                         controller: terminalController.value!,
-                        typography: TerminalTypography(
-                          fontFamily: selectedFontFamily.value,
-                          fontSize: 16,
-                        ),
                       ),
                     ),
                   FSelect<String>.rich(

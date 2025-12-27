@@ -41,17 +41,16 @@ class _ShellSessionPageState extends ConsumerState<ShellSessionPage>
     super.initState();
     // TODO: listen for onTitleChange and update tab title
     _terminalController = TerminalController(
-      rows: 20,
-      cols: 80,
       colors: theme,
+      typography: TerminalTypography(fontFamily: 'SourceCodePro', fontSize: 16),
       onResize: (rows, cols) {
         sshSession?.resizeTerminal(cols, rows);
-        showFToast(
-          context: context,
-          alignment: FToastAlignment.topCenter,
-          title: Text('$cols x $rows'),
-          duration: Duration(milliseconds: 500),
-        );
+        //        showFToast(
+        //          context: context,
+        //          alignment: FToastAlignment.topCenter,
+        //          title: Text('$cols x $rows'),
+        //          duration: Duration(milliseconds: 500),
+        //        );
       },
     );
   }
@@ -151,13 +150,7 @@ class _ShellSessionPageState extends ConsumerState<ShellSessionPage>
         child: Container(
           color: theme.backgroundColor,
           padding: const .all(8),
-          child: TerminalView(
-            controller: _terminalController,
-            typography: TerminalTypography(
-              fontFamily: 'SourceCodePro',
-              fontSize: 16,
-            ),
-          ),
+          child: TerminalView(controller: _terminalController),
         ),
       );
     }
