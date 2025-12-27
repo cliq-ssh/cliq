@@ -6,7 +6,7 @@ class ControlCharacterParser {
   ControlCharacterParser({required this.controller});
 
   late final Map<int, void Function()> _ccHandlers = {
-    0x07: _ccBell,  // Bell
+    0x07: _ccBell, // Bell
     0x08: _ccBackspace, // Backspace
     0x09: _ccHorizontalTab, // Horizontal Tab
     0x0A: _ccLineFeed, // Line Feed
@@ -37,11 +37,16 @@ class ControlCharacterParser {
   void _ccBackspace() {
     if (controller.cursorCol > 0) {
       controller.cursorCol--;
-      controller.front.setCell(controller.cursorRow, controller.cursorCol, Cell.empty());
+      controller.front.setCell(
+        controller.cursorRow,
+        controller.cursorCol,
+        Cell.empty(),
+      );
     } else if (controller.cursorRow > 0) {
       controller.cursorRow--;
       int lastIdx = controller.cols - 1;
-      while (lastIdx >= 0 && controller.front.getCell(controller.cursorRow, lastIdx).ch == ' ') {
+      while (lastIdx >= 0 &&
+          controller.front.getCell(controller.cursorRow, lastIdx).ch == ' ') {
         lastIdx--;
       }
 
@@ -49,7 +54,11 @@ class ControlCharacterParser {
         controller.cursorCol = 0;
       } else {
         controller.cursorCol = lastIdx;
-        controller.front.setCell(controller.cursorRow, controller.cursorCol, Cell.empty());
+        controller.front.setCell(
+          controller.cursorRow,
+          controller.cursorCol,
+          Cell.empty(),
+        );
       }
     }
   }

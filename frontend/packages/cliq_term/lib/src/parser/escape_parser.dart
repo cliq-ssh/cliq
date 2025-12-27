@@ -186,8 +186,6 @@ class EscapeParser {
     }
   }
 
-
-
   // --- Escape Sequence Handlers ---
 
   void _escHandleCsi({

@@ -12,8 +12,6 @@ import 'package:logging/logging.dart';
 enum CursorStyle { block, underline, bar }
 
 class TerminalController extends ChangeNotifier {
-  static final Logger _log = Logger('TerminalController');
-
   int rows;
   int cols;
   int cursorRow = 0;
@@ -42,7 +40,9 @@ class TerminalController extends ChangeNotifier {
     controller: this,
     colors: colors,
   );
-  late final ControlCharacterParser ccParser = ControlCharacterParser(controller: this);
+  late final ControlCharacterParser ccParser = ControlCharacterParser(
+    controller: this,
+  );
 
   TerminalController({
     required this.rows,
