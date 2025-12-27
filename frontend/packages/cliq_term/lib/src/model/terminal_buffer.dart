@@ -67,7 +67,6 @@ class TerminalBuffer {
     // Adjust cursor position
     newBuffer.cursorRow = min(cursorRow, newRows - 1);
     newBuffer.cursorCol = min(cursorCol, newCols - 1);
-
     return newBuffer;
   }
 
@@ -88,6 +87,30 @@ class TerminalBuffer {
       }
     } else {
       cursorDown(1);
+    }
+  }
+
+  /// Reverse Index (RI)
+  /// - https://terminalguide.namepad.de/seq/a_esc_cm/
+  void reverseIndex() {
+    if (isCursorInMargins()) {
+      if (cursorRow == _topMargin) {
+        scrollDown(1);
+      } else {
+        cursorUp(1);
+      }
+    } else if (cursorRow == 0) {
+      // At top of buffer
+      if (isBackBuffer) {
+        scrollDown(1);
+      } else {
+        // Insert empty line at top
+        _start = (_start - 1 + _buffer.length) % _buffer.length;
+        final rowIdx = _idxForRow(0);
+        _buffer[rowIdx].clear();
+      }
+    } else {
+      cursorUp(1);
     }
   }
 
@@ -193,6 +216,30 @@ class TerminalBuffer {
     }
   }
 
+  /// Erase Line Right
+  /// - https://terminalguide.namepad.de/seq/csi_ck-0/
+  void eraseLineRight() {
+    for (var c = cursorCol; c < cols; c++) {
+      setCell(cursorRow, c, Cell.empty());
+    }
+  }
+
+  /// Erase Line Left
+  /// - https://terminalguide.namepad.de/seq/csi_ck-1/
+  void eraseLineLeft() {
+    for (var c = 0; c <= cursorCol; c++) {
+      setCell(cursorRow, c, Cell.empty());
+    }
+  }
+
+  /// Erase Line Complete
+  /// - https://terminalguide.namepad.de/seq/csi_ck-2/
+  void eraseLineComplete() {
+    for (var c = 0; c < cols; c++) {
+      setCell(cursorRow, c, Cell.empty());
+    }
+  }
+
   /// Erase Display Below
   /// - https://terminalguide.namepad.de/seq/csi_cj-0/
   void eraseDisplayBelow() {
@@ -219,6 +266,25 @@ class TerminalBuffer {
   /// - https://terminalguide.namepad.de/seq/csi_cj-2/
   void eraseDisplayComplete() => clear();
 
+  /// Delete Character (DCH)
+  /// - https://terminalguide.namepad.de/seq/csi_cp/
+  void deleteCharacter(int amount) {
+    if (!isCursorInMargins()) return;
+    final start = cursorCol.clamp(0, cols);
+    amount = min(amount, cols - start);
+
+    // shift characters to the left
+    for (var c = start; c < cols - amount; c++) {
+      final cell = getCell(cursorRow, c + amount);
+      setCell(cursorRow, c, cell);
+    }
+
+    // fill the vacated space with empty cells
+    for (var c = cols - amount; c < cols; c++) {
+      setCell(cursorRow, c, Cell.empty());
+    }
+  }
+
   /// Sets the vertical scroll margins to the specified [top] and [bottom] rows.
   /// Both [top] and [bottom] must be within the range of the buffer's rows.
   void setVerticalScrollMargins(int top, int bottom) {
@@ -235,7 +301,7 @@ class TerminalBuffer {
 
   /// Save Cursor (DECSC)
   /// - https://terminalguide.namepad.de/seq/a_esc_a7/
-  void saveCursorPosition() {
+  void saveCursor() {
     savedCursorRow = cursorRow;
     savedCursorCol = cursorCol;
     savedFormat = currentFormat;
@@ -244,7 +310,7 @@ class TerminalBuffer {
 
   /// Restore Cursor (DECRC)
   /// - https://terminalguide.namepad.de/seq/a_esc_a8/
-  void restoreCursorPosition() {
+  void restoreCursor() {
     if (savedCursorRow != null) {
       cursorRow = savedCursorRow!;
     }

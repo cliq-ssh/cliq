@@ -36,13 +36,13 @@ class EscapeParser {
 
   late final Map<String, EscHandler> _escHandlers = {
     // 'ESC 6': _escBackIndex,
-    // 'ESC 7': _escSaveCursor,
-    // 'ESC 8': _escRestoreCursor,
+    'ESC 7': _escSaveCursor,
+    'ESC 8': _escRestoreCursor,
     // 'ESC 9': _escForwardIndex,
-    // 'ESC D': _escIndex,
+    'ESC D': _escIndex,
     // 'ESC E': _escNextLine,
     // 'ESC H': _escTabSet,
-    // 'ESC M': _escReverseIndex,
+    'ESC M': _escReverseIndex,
     // 'ESC N': _escSingleShift2,
     // 'ESC O': _escSingleShift3,
     // 'ESC V': _escStartProtectedArea,
@@ -64,42 +64,42 @@ class EscapeParser {
 
   /// Map of CSI final byte codes to their handlers.
   late final Map<int, CsiHandler> _csiHandlers = {
-    // 'A'.codeUnitAt(0): csiCursorUpOrScrollRight,
-    // 'B'.codeUnitAt(0): csiCursorDown,
-    // 'C'.codeUnitAt(0): csiCursorRight,
-    // 'D'.codeUnitAt(0): csiCursorLeft,
-    // 'E'.codeUnitAt(0): csiCursorNextLine,
-    // 'F'.codeUnitAt(0): csiCursorPrevLine,
-    // 'G'.codeUnitAt(0): csiCursorHorizontalPositionAbsolute,
-    // 'H'.codeUnitAt(0): csiSetCursorPosition,
-    // 'I.codeUnitAt(0): csiCursorHorizontalForwardTab,
-    'J'.codeUnitAt(0): csiEraseDisplay,
-    // 'K'.codeUnitAt(0): csiEraseLine,
-    // 'L'.codeUnitAt(0): csiInsertLine,
-    // 'M'.codeUnitAt(0): csiDeleteLine,
-    // 'P'.codeUnitAt(0): csiDeleteCharacter,
-    // 'S'.codeUnitAt(0): csiScrollUp,
-    // 'T'.codeUnitAt(0): csiScrollDown,
-    // 'X'.codeUnitAt(0): csiEraseCharacter,
-    // 'Z'.codeUnitAt(0): csiCursorHorizontalBackwardTab,
-    // 'a'.codeUnitAt(0): csiCursorHorizontalRelative,
-    // 'b'.codeUnitAt(0): csiRepeatPrevCharacter,
-    // 'c'.codeUnitAt(0): csiDeviceAttributes,
-    // 'd'.codeUnitAt(0): csiCursorVerticalPositionAbsolute,
-    // 'e'.codeUnitAt(0): csiVerticalPosRelative,
-    // 'f'.codeUnitAt(0): csiSetCursorPosition,
-    // 'g'.codeUnitAt(0): csiTabClear,
-    // 'h'.codeUnitAt(0): csiSetMode,
-    // 'i'.codeUnitAt(0): csiMediaControl,
-    // 'l'.codeUnitAt(0): csiResetMode,
-    'm'.codeUnitAt(0): csiSelectGraphicRendition,
-    // 'n'.codeUnitAt(0): csiRequestReport,
-    // 'p'.codeUnitAt(0): csiRequestMode,
-    // 'q'.codeUnitAt(0): csiSelectCursorStyle,
-    // 'r'.codeUnitAt(0): csiSetScrollingRegion,
-    // 's'.codeUnitAt(0): csiSaveCursor,
-    // 't'.codeUnitAt(0): csiWindowManipulation,
-    // 'u'.codeUnitAt(0): csiRestoreCursor,
+    'A'.codeUnitAt(0): _csiCursorUpOrScrollRight,
+    'B'.codeUnitAt(0): _csiCursorDown,
+    'C'.codeUnitAt(0): _csiCursorRight,
+    'D'.codeUnitAt(0): _csiCursorLeft,
+    // 'E'.codeUnitAt(0): _csiCursorNextLine,
+    // 'F'.codeUnitAt(0): _csiCursorPrevLine,
+    // 'G'.codeUnitAt(0): _csiCursorHorizontalPositionAbsolute,
+    // 'H'.codeUnitAt(0): _csiSetCursorPosition,
+    // 'I.codeUnitAt(0): _csiCursorHorizontalForwardTab,
+    'J'.codeUnitAt(0): _csiEraseDisplay,
+    'K'.codeUnitAt(0): _csiEraseLine,
+    // 'L'.codeUnitAt(0): _csiInsertLine,
+    // 'M'.codeUnitAt(0): _csiDeleteLine,
+    'P'.codeUnitAt(0): _csiDeleteCharacter,
+    // 'S'.codeUnitAt(0): _csiScrollUp,
+    // 'T'.codeUnitAt(0): _csiScrollDown,
+    // 'X'.codeUnitAt(0): _csiEraseCharacter,
+    // 'Z'.codeUnitAt(0): _csiCursorHorizontalBackwardTab,
+    // 'a'.codeUnitAt(0): _csiCursorHorizontalRelative,
+    // 'b'.codeUnitAt(0): _csiRepeatPrevCharacter,
+    // 'c'.codeUnitAt(0): _csiDeviceAttributes,
+    // 'd'.codeUnitAt(0): _csiCursorVerticalPositionAbsolute,
+    // 'e'.codeUnitAt(0): _csiVerticalPosRelative,
+    // 'f'.codeUnitAt(0): _csiSetCursorPosition,
+    // 'g'.codeUnitAt(0): _csiTabClear,
+    // 'h'.codeUnitAt(0): _csiSetMode,
+    // 'i'.codeUnitAt(0): _csiMediaControl,
+    // 'l'.codeUnitAt(0): _csiResetMode,
+    'm'.codeUnitAt(0): _csiSelectGraphicRendition,
+    // 'n'.codeUnitAt(0): _csiRequestReport,
+    // 'p'.codeUnitAt(0): _csiRequestMode,
+    // 'q'.codeUnitAt(0): _csiSelectCursorStyle,
+    // 'r'.codeUnitAt(0): _csiSetScrollingRegion,
+    // 's'.codeUnitAt(0): _csiSaveCursor,
+    // 't'.codeUnitAt(0): _csiWindowManipulation,
+    // 'u'.codeUnitAt(0): _csiRestoreCursor,
   };
 
   EscapeParser({required this.controller, required this.colors});
@@ -188,6 +188,34 @@ class EscapeParser {
 
   // --- Escape Sequence Handlers ---
 
+  void _escSaveCursor({
+    required String body,
+    required FormattingOptions formatting,
+  }) {
+    controller.activeBuffer.saveCursor();
+  }
+
+  void _escRestoreCursor({
+    required String body,
+    required FormattingOptions formatting,
+  }) {
+    controller.activeBuffer.restoreCursor();
+  }
+
+  void _escIndex({
+    required String body,
+    required FormattingOptions formatting,
+  }) {
+    controller.activeBuffer.index();
+  }
+
+  void _escReverseIndex({
+    required String body,
+    required FormattingOptions formatting,
+  }) {
+    controller.activeBuffer.reverseIndex();
+  }
+
   void _escHandleCsi({
     required String body,
     required FormattingOptions formatting,
@@ -212,25 +240,106 @@ class EscapeParser {
 
   // --- CSI Handlers ---
 
-  void csiEraseDisplay({
+  void _csiCursorUpOrScrollRight({
     required List<int?> params,
     required String? leader,
     required String intermediates,
     required int finalByteCode,
     required FormattingOptions formatting,
   }) {
-    // TODO: fix mode
+    final amount = params.isNotEmpty ? (params[0] ?? 1) : 1;
+    controller.activeBuffer.cursorUp(amount);
+  }
+
+  void _csiCursorDown({
+    required List<int?> params,
+    required String? leader,
+    required String intermediates,
+    required int finalByteCode,
+    required FormattingOptions formatting,
+  }) {
+    final amount = params.isNotEmpty ? (params[0] ?? 1) : 1;
+    controller.activeBuffer.cursorDown(amount);
+  }
+
+  void _csiCursorRight({
+    required List<int?> params,
+    required String? leader,
+    required String intermediates,
+    required int finalByteCode,
+    required FormattingOptions formatting,
+  }) {
+    final amount = params.isNotEmpty ? (params[0] ?? 1) : 1;
+    controller.activeBuffer.cursorRight(amount);
+  }
+
+  void _csiCursorLeft({
+    required List<int?> params,
+    required String? leader,
+    required String intermediates,
+    required int finalByteCode,
+    required FormattingOptions formatting,
+  }) {
+    final amount = params.isNotEmpty ? (params[0] ?? 1) : 1;
+    controller.activeBuffer.cursorLeft(amount);
+  }
+
+  void _csiEraseDisplay({
+    required List<int?> params,
+    required String? leader,
+    required String intermediates,
+    required int finalByteCode,
+    required FormattingOptions formatting,
+  }) {
     final mode = params.isNotEmpty ? (params[0] ?? 0) : 0;
     switch (mode) {
+      case 0:
+        controller.activeBuffer.eraseDisplayBelow();
+      case 1:
+        controller.activeBuffer.eraseDisplayAbove();
       case 2:
-        controller.commitToBackBuffer();
+        controller.activeBuffer.eraseDisplayComplete();
+      case 3:
+        // TODO: implement erase display scrollback
+        // controller.activeBuffer.eraseDisplayScrollback();
       default:
         _log.fine('Unhandled ED mode: $mode');
     }
   }
 
+  void _csiEraseLine({
+    required List<int?> params,
+    required String? leader,
+    required String intermediates,
+    required int finalByteCode,
+    required FormattingOptions formatting,
+  }) {
+    final mode = params.isNotEmpty ? (params[0] ?? 0) : 0;
+    switch (mode) {
+      case 0:
+        controller.activeBuffer.eraseLineRight();
+      case 1:
+        controller.activeBuffer.eraseLineLeft();
+      case 2:
+        controller.activeBuffer.eraseLineComplete();
+      default:
+        _log.fine('Unhandled EL mode: $mode');
+    }
+  }
+
+  void _csiDeleteCharacter({
+    required List<int?> params,
+    required String? leader,
+    required String intermediates,
+    required int finalByteCode,
+    required FormattingOptions formatting,
+  }) {
+    final amount = params.isNotEmpty ? (params[0] ?? 1) : 1;
+    controller.activeBuffer.deleteCharacter(amount);
+  }
+
   /// https://terminalguide.namepad.de/seq/csi_sm/
-  void csiSelectGraphicRendition({
+  void _csiSelectGraphicRendition({
     required List<int?> params,
     required String? leader,
     required String intermediates,
