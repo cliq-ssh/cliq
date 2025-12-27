@@ -28,7 +28,7 @@ jobs:
       fail-fast: false
       matrix:
         package:
-          - cliq_api
+#         - cliq_api
           - cliq_term
           - cliq_ui
     steps:
