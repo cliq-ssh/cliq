@@ -1,5 +1,3 @@
-import 'dart:math';
-
 import 'package:cliq_term/cliq_term.dart';
 import 'package:cliq_term/src/rendering/terminal_painter.dart';
 import 'package:flutter/material.dart';
@@ -46,19 +44,10 @@ class _TerminalViewState extends State<TerminalView> {
   Widget build(BuildContext context) {
     return LayoutBuilder(
       builder: (context, constraints) {
-        final (cellW, cellH) = TerminalPainter.measureChar(
-          widget.controller.typography,
-        );
-        final newCols = max(1, (constraints.maxWidth / cellW).floor());
-        final newRows = max(1, (constraints.maxHeight / cellH).floor());
-
         // inform controller if size changed
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          if (widget.controller.cols != newCols ||
-              widget.controller.rows != newRows) {
-            widget.controller.resize(newRows, newCols);
-          }
-        });
+        WidgetsBinding.instance.addPostFrameCallback(
+          (_) => widget.controller.fitResize(constraints.biggest),
+        );
 
         return Focus(
           focusNode: _focusNode,

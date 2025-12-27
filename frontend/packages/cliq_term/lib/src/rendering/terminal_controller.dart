@@ -1,10 +1,12 @@
 import 'dart:async';
+import 'dart:math';
 
 import 'package:cliq_term/cliq_term.dart';
 import 'package:cliq_term/src/model/esc_terminator.dart';
 import 'package:cliq_term/src/model/terminal_buffer.dart';
 import 'package:cliq_term/src/parser/cc_parser.dart';
 import 'package:cliq_term/src/parser/escape_parser.dart';
+import 'package:cliq_term/src/rendering/terminal_painter.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -33,9 +35,7 @@ class TerminalController extends ChangeNotifier {
 
   int rows;
   int cols;
-  int cursorRow = 0;
-  int cursorCol = 0;
-  FormattingOptions curFmt = FormattingOptions();
+  bool backBufferActive = false;
   CursorStyle cursorStyle = .bar;
   bool cursorVisible = true;
   Timer? _cursorTimer;
@@ -52,6 +52,17 @@ class TerminalController extends ChangeNotifier {
     this.cols = 0,
   });
 
+  TerminalBuffer get activeBuffer => backBufferActive ? back : front;
+
+  void fitResize(Size size) {
+    final (cellW, cellH) = TerminalPainter.measureChar(typography);
+    final newCols = max(1, (size.width / cellW).floor());
+    final newRows = max(1, (size.height / cellH).floor());
+
+    if (newRows == rows && newCols == cols) return;
+    resize(newRows, newCols);
+  }
+
   /// Resizes the terminal to the specified number of rows and columns.
   void resize(int newRows, int newCols) {
     if (newRows == rows && newCols == cols) return;
@@ -61,9 +72,6 @@ class TerminalController extends ChangeNotifier {
     cols = newCols;
     front = front.resize(newRows: newRows, newCols: newCols);
     back = back.resize(newRows: newRows, newCols: newCols);
-
-    cursorRow = cursorRow.clamp(0, rows - 1);
-    cursorCol = cursorCol.clamp(0, cols - 1);
     notifyListeners();
   }
 
@@ -100,50 +108,13 @@ class TerminalController extends ChangeNotifier {
   void resetBuffers() {
     front.clear();
     back.clear();
-    cursorRow = 0;
-    cursorCol = 0;
-    curFmt.reset();
     notifyListeners();
   }
 
   /// Swaps the front and back buffers, clearing the new back buffer.
   void commitToBackBuffer() {
     front.clear();
-    cursorRow = 0;
-    cursorCol = 0;
     notifyListeners();
-  }
-
-  void writeChar(String ch) {
-    if (rows == 0 || cols == 0) return;
-
-    if (cursorRow < 0) cursorRow = 0;
-    if (cursorCol < 0) cursorCol = 0;
-
-    if (cursorCol >= cols) {
-      cursorCol = 0;
-      cursorRow++;
-    }
-
-    cursorVisible = true;
-    _cursorTimer?.cancel();
-    startCursorBlink();
-
-    front.setCell(
-      cursorRow,
-      cursorCol,
-      Cell(ch, FormattingOptions.clone(curFmt)),
-    );
-    cursorCol++;
-
-    if (cursorCol >= cols) {
-      cursorCol = 0;
-      cursorRow++;
-      if (cursorRow >= rows) {
-        front.pushEmptyLine();
-        cursorRow = rows - 1;
-      }
-    }
   }
 
   /// Feeds input string into the terminal, parsing escape sequences and control characters.
@@ -153,7 +124,11 @@ class TerminalController extends ChangeNotifier {
       final cu = input.codeUnitAt(i);
 
       if (cu == EscTerminator.escCode) {
-        final consumed = escapeParser.parse(input, i, curFmt);
+        final consumed = escapeParser.parse(
+          input,
+          i,
+          activeBuffer.currentFormat,
+        );
         if (consumed <= 0) break; // incomplete sequence
         i += consumed;
         continue;
@@ -165,12 +140,24 @@ class TerminalController extends ChangeNotifier {
         continue;
       }
 
-      writeChar(String.fromCharCode(cu));
+      activeBuffer.write(cu);
       i++;
     }
 
     notifyListeners();
   }
+
+  /// Sets the cursor position to the specified [row] and [col].
+  void setCursorPosition(int row, int col) {
+    activeBuffer.cursorRow = row;
+    activeBuffer.cursorCol = col;
+    notifyListeners();
+  }
+
+  void setCursorPositionRow(int row) =>
+      setCursorPosition(row, activeBuffer.cursorCol);
+  void setCursorPositionCol(int col) =>
+      setCursorPosition(activeBuffer.cursorRow, col);
 
   /// Starts the cursor blinking timer.
   void startCursorBlink() {

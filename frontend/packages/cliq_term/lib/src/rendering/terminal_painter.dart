@@ -98,8 +98,8 @@ class TerminalPainter extends CustomPainter {
         ..paint(canvas, Offset(0, r * cellH));
     }
 
-    final cr = controller.cursorRow;
-    final cc = controller.cursorCol;
+    final cr = controller.activeBuffer.cursorRow;
+    final cc = controller.activeBuffer.cursorCol;
     if (controller.cursorVisible &&
         cr >= 0 &&
         cr < rows &&

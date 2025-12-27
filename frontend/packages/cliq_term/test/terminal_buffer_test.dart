@@ -46,6 +46,20 @@ void main() {
       ], buf);
     });
 
+    test('write lines', () {
+      final buf = TerminalBuffer(rows: 3, cols: 3);
+
+      for (final rune in 'ABCDEFGHI'.runes) {
+        buf.write(rune);
+      }
+
+      _expectBufferEquals([
+        ['A', 'B', 'C'],
+        ['D', 'E', 'F'],
+        ['G', 'H', 'I'],
+      ], buf);
+    });
+
     test('clear resets buffer', () {
       final buf = TerminalBuffer(rows: 2, cols: 2);
 
