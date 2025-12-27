@@ -71,7 +71,7 @@ class EscapeParser {
     // 'E'.codeUnitAt(0): _csiCursorNextLine,
     // 'F'.codeUnitAt(0): _csiCursorPrevLine,
     // 'G'.codeUnitAt(0): _csiCursorHorizontalPositionAbsolute,
-    // 'H'.codeUnitAt(0): _csiSetCursorPosition,
+    'H'.codeUnitAt(0): _csiSetCursorPosition,
     // 'I.codeUnitAt(0): _csiCursorHorizontalForwardTab,
     'J'.codeUnitAt(0): _csiEraseDisplay,
     'K'.codeUnitAt(0): _csiEraseLine,
@@ -96,7 +96,7 @@ class EscapeParser {
     // 'n'.codeUnitAt(0): _csiRequestReport,
     // 'p'.codeUnitAt(0): _csiRequestMode,
     // 'q'.codeUnitAt(0): _csiSelectCursorStyle,
-    // 'r'.codeUnitAt(0): _csiSetScrollingRegion,
+    'r'.codeUnitAt(0): _csiSetScrollingRegion,
     // 's'.codeUnitAt(0): _csiSaveCursor,
     // 't'.codeUnitAt(0): _csiWindowManipulation,
     // 'u'.codeUnitAt(0): _csiRestoreCursor,
@@ -284,6 +284,18 @@ class EscapeParser {
     controller.activeBuffer.cursorLeft(amount);
   }
 
+  void _csiSetCursorPosition({
+    required List<int?> params,
+    required String? leader,
+    required String intermediates,
+    required int finalByteCode,
+    required FormattingOptions formatting,
+  }) {
+    final row = (params.isNotEmpty ? (params[0] ?? 1) : 1) - 1;
+    final col = (params.length >= 2 ? (params[1] ?? 1) : 1) - 1;
+    controller.activeBuffer.setCursorPosition(row, col);
+  }
+
   void _csiEraseDisplay({
     required List<int?> params,
     required String? leader,
@@ -428,5 +440,17 @@ class EscapeParser {
         _ => throw ArgumentError('Unhandled formatting code: $code'),
       }).call();
     }
+  }
+
+  void _csiSetScrollingRegion({
+    required List<int?> params,
+    required String? leader,
+    required String intermediates,
+    required int finalByteCode,
+    required FormattingOptions formatting,
+  }) {
+    final top = (params.isNotEmpty ? (params[0] ?? 1) : 1) - 1;
+    final bottom = (params.length >= 2 ? (params[1] ?? controller.rows) : controller.rows) - 1;
+    controller.activeBuffer.setVerticalMargins(top, bottom);
   }
 }

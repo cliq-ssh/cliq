@@ -216,6 +216,13 @@ class TerminalBuffer {
     }
   }
 
+  /// Set Cursor Position (CUP)
+  /// - https://terminalguide.namepad.de/seq/csi_ch/
+  void setCursorPosition(int row, int col) {
+    cursorRow = row.clamp(0, rows - 1);
+    cursorCol = col.clamp(0, cols - 1);
+  }
+
   /// Erase Line Right
   /// - https://terminalguide.namepad.de/seq/csi_ck-0/
   void eraseLineRight() {
@@ -287,13 +294,13 @@ class TerminalBuffer {
 
   /// Sets the vertical scroll margins to the specified [top] and [bottom] rows.
   /// Both [top] and [bottom] must be within the range of the buffer's rows.
-  void setVerticalScrollMargins(int top, int bottom) {
+  void setVerticalMargins(int top, int bottom) {
     _topMargin = max(0, min(top, rows - 1));
     _bottomMargin = max(0, min(bottom, rows - 1));
   }
 
   /// Resets the vertical scroll margins to the full height of the buffer.
-  void resetVerticalMargins() => setVerticalScrollMargins(0, rows - 1);
+  void resetVerticalMargins() => setVerticalMargins(0, rows - 1);
 
   /// Whether the cursor is currently within the defined vertical margins.
   bool isCursorInMargins() =>
