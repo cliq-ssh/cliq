@@ -7,7 +7,6 @@ import 'package:cliq_term/src/parser/cc_parser.dart';
 import 'package:cliq_term/src/parser/escape_parser.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:logging/logging.dart';
 
 enum CursorStyle { block, underline, bar }
 
