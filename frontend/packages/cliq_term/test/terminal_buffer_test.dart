@@ -7,16 +7,11 @@ void main() {
     test('init: all cells empty', () {
       final buf = TerminalBuffer(rows: 3, cols: 5);
 
-      // check if all cells are empty
-      for (var r = 0; r < 3; r++) {
-        for (var c = 0; c < 5; c++) {
-          final cell = buf.getCell(r, c);
-          expect(cell, isNotNull);
-          expect(cell.ch, equals(' '));
-        }
-      }
-      // length should be equal to rows
-      expect(buf.length, equals(3));
+      _expectBufferEquals([
+        [' ', ' ', ' ', ' ', ' '],
+        [' ', ' ', ' ', ' ', ' '],
+        [' ', ' ', ' ', ' ', ' '],
+      ], buf);
     });
 
     test('set/get cell', () {
