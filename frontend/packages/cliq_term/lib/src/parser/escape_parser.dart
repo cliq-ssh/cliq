@@ -312,8 +312,8 @@ class EscapeParser {
       case 2:
         controller.activeBuffer.eraseDisplayComplete();
       case 3:
-        // TODO: implement erase display scrollback
-        // controller.activeBuffer.eraseDisplayScrollback();
+      // TODO: implement erase display scrollback
+      // controller.activeBuffer.eraseDisplayScrollback();
       default:
         _log.fine('Unhandled ED mode: $mode');
     }
@@ -450,7 +450,11 @@ class EscapeParser {
     required FormattingOptions formatting,
   }) {
     final top = (params.isNotEmpty ? (params[0] ?? 1) : 1) - 1;
-    final bottom = (params.length >= 2 ? (params[1] ?? controller.rows) : controller.rows) - 1;
+    final bottom =
+        (params.length >= 2
+            ? (params[1] ?? controller.rows)
+            : controller.rows) -
+        1;
     controller.activeBuffer.setVerticalMargins(top, bottom);
   }
 }

@@ -23,7 +23,11 @@ class TerminalController extends ChangeNotifier {
   void Function(String)? onInput;
 
   late TerminalBuffer front = TerminalBuffer(rows: rows, cols: cols);
-  late TerminalBuffer back = TerminalBuffer(rows: rows, cols: cols, isBackBuffer: true);
+  late TerminalBuffer back = TerminalBuffer(
+    rows: rows,
+    cols: cols,
+    isBackBuffer: true,
+  );
 
   late final EscapeParser escapeParser = EscapeParser(
     controller: this,

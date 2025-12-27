@@ -66,6 +66,7 @@ class _ShellSessionPageState extends ConsumerState<ShellSessionPage>
     super.build(context);
 
     final typography = context.theme.typography;
+    final size = MediaQuery.of(context).size;
 
     buildConnecting() {
       return [
@@ -122,7 +123,7 @@ class _ShellSessionPageState extends ConsumerState<ShellSessionPage>
             .read(sessionProvider.notifier)
             .spawnShell(widget.session.id, client);
 
-        _terminalController.fitResize(MediaQuery.of(context).size);
+        _terminalController.fitResize(size);
         _terminalController.onInput = (s) {
           if (sshSession != null) {
             sshSession!.stdin.add(Uint8List.fromList(s.codeUnits));
