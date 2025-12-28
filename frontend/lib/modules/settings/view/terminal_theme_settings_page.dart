@@ -29,7 +29,13 @@ class TerminalThemeSettingsPage extends AbstractSettingsPage {
     final selectedFontFamily = useState<String>('SourceCodePro');
 
     useEffect(() {
-      terminalController.value = TerminalController(rows: 40, cols: 80);
+      terminalController.value = TerminalController(
+        colors: TerminalColorThemes.darcula,
+        typography: TerminalTypography(
+          fontFamily: selectedFontFamily.value,
+          fontSize: 16,
+        ),
+      );
       // wait till initState of TerminalView is done
       WidgetsBinding.instance.addPostFrameCallback((_) {
         sampleText.split('\n').forEach((line) {
@@ -62,11 +68,6 @@ class TerminalThemeSettingsPage extends AbstractSettingsPage {
                       color: TerminalColorThemes.darcula.backgroundColor,
                       child: TerminalView(
                         controller: terminalController.value!,
-                        typography: TerminalTypography(
-                          fontFamily: selectedFontFamily.value,
-                          fontSize: 16,
-                        ),
-                        colors: TerminalColorThemes.darcula,
                       ),
                     ),
                   FSelect<String>.rich(

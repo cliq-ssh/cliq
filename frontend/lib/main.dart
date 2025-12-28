@@ -26,11 +26,28 @@ void main() async {
 }
 
 void _initLogger() {
+  String getColorFromLevel(Level level) {
+    if (level >= Level.SEVERE) return '\x1B[1;31m';
+    if (level >= Level.WARNING) return '\x1B[33m';
+    if (level >= Level.INFO) return '\x1B[32m';
+    if (level >= Level.CONFIG) return '\x1B[36m';
+    if (level == Level.FINE) return '\x1B[37m';
+    if (level == Level.FINER) return '\x1B[90m';
+    if (level == Level.FINEST) return '\x1B[2;90m';
+
+    return '\x1B[90m';
+  }
+
   Logger.root.level = Level.ALL;
   Logger.root.onRecord.listen((record) {
+    final color = getColorFromLevel(record.level);
+    const reset = '\x1B[0m';
+    final timeString = record.time.toIso8601String().substring(11, 23);
+
+    // always have room for long logger names and levels
     if (kDebugMode) {
       print(
-        '${record.loggerName} [${record.level.name}] [${record.time.toIso8601String()}]: ${record.message}',
+        '$color${record.level.name.padRight(7)}  ${record.loggerName.padRight(24)}  $timeString: ${record.message}$reset',
       );
     }
   });
@@ -67,7 +84,7 @@ class _CliqAppState extends ConsumerState<CliqApp> {
       builder: (context, child) {
         return FAnimatedTheme(
           data: theme.activeTheme.getThemeWithMode(theme.themeMode),
-          child: child ?? Container(),
+          child: FToaster(child: child ?? Container()),
         );
       },
     );
