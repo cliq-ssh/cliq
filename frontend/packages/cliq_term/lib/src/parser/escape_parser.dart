@@ -269,7 +269,7 @@ class EscapeParser {
       // TODO: implement erase display scrollback
       // controller.activeBuffer.eraseDisplayScrollback();
       default:
-        _log.fine('Unhandled ED mode: $mode');
+        _log.warning('\tUnhandled ED mode: $mode');
     }
   }
 
@@ -283,7 +283,7 @@ class EscapeParser {
       case 2:
         controller.activeBuffer.eraseLineComplete();
       default:
-        _log.fine('Unhandled EL mode: $mode');
+        _log.warning('\tUnhandled EL mode: $mode');
     }
   }
 

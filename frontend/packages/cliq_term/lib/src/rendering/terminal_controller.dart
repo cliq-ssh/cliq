@@ -24,10 +24,11 @@ class TerminalController extends ChangeNotifier {
   final void Function()? onBell;
   void Function(String)? onInput;
 
-  late TerminalBuffer front = TerminalBuffer(rows: rows, cols: cols);
+  late TerminalBuffer front = TerminalBuffer(rows: rows, cols: cols, maxScrollbackLines: maxScrollbackLines);
   late TerminalBuffer back = TerminalBuffer(
     rows: rows,
     cols: cols,
+    maxScrollbackLines: 0,
     isBackBuffer: true,
   );
 
@@ -119,19 +120,6 @@ class TerminalController extends ChangeNotifier {
     } else if (key == LogicalKeyboardKey.arrowLeft) {
       onInput?.call('\x1b[D');
     }
-  }
-
-  /// Resets both front and back buffers, cursor position, and formatting.
-  void resetBuffers() {
-    front.clear();
-    back.clear();
-    notifyListeners();
-  }
-
-  /// Swaps the front and back buffers, clearing the new back buffer.
-  void commitToBackBuffer() {
-    front.clear();
-    notifyListeners();
   }
 
   /// Feeds input string into the terminal, parsing escape sequences and control characters.
