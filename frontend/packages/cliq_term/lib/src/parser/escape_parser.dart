@@ -79,9 +79,9 @@ class EscapeParser {
     // 'e'.codeUnitAt(0): _csiVerticalPosRelative,
     // 'f'.codeUnitAt(0): _csiSetCursorPosition,
     // 'g'.codeUnitAt(0): _csiTabClear,
-    // 'h'.codeUnitAt(0): _csiSetMode,
+    'h'.codeUnitAt(0): _csiSetMode,
     // 'i'.codeUnitAt(0): _csiMediaControl,
-    // 'l'.codeUnitAt(0): _csiResetMode,
+    'l'.codeUnitAt(0): _csiResetMode,
     'm'.codeUnitAt(0): _csiSelectGraphicRendition,
     // 'n'.codeUnitAt(0): _csiRequestReport,
     // 'p'.codeUnitAt(0): _csiRequestMode,
@@ -293,6 +293,58 @@ class EscapeParser {
   ) {
     final amount = _parseSingleParam(parsed);
     controller.activeBuffer.deleteCharacter(amount);
+  }
+
+  /// Set Mode (SM)
+  /// - https://terminalguide.namepad.de/seq/csi_sh/
+  void _csiSetMode(CsiParseResult parsed, FormattingOptions formatting) {
+    // TODO: handle non-DEC private modes
+    if (parsed.leader != '?') return;
+
+    for (final p in parsed.params) {
+      final mode = p ?? 0;
+      switch (mode) {
+        case 1047:
+        case 47:
+          controller.useBackBuffer(saveMainAndClear: false);
+          break;
+        case 1049:
+          // enter alt screen and save main screen state
+          controller.useBackBuffer(saveMainAndClear: true);
+          break;
+        default:
+          if (controller.debugLogging) {
+            _log.warning('\tUnhandled private mode set: $mode');
+          }
+          break;
+      }
+    }
+  }
+
+  /// Reset Mode (RM)
+  /// - https://terminalguide.namepad.de/seq/csi_sl/
+  void _csiResetMode(CsiParseResult parsed, FormattingOptions formatting) {
+    // TODO: handle non-DEC private modes
+    if (parsed.leader != '?') return;
+
+    for (final p in parsed.params) {
+      final mode = p ?? 0;
+      switch (mode) {
+        case 1047:
+        case 47:
+          // leave alt screen without restoring saved state
+          controller.useMainBuffer(restoreMain: false);
+          break;
+        case 1049:
+          controller.useMainBuffer(restoreMain: true);
+          break;
+        default:
+          if (controller.debugLogging) {
+            _log.warning('\tUnhandled private mode reset: $mode');
+          }
+          break;
+      }
+    }
   }
 
   /// https://terminalguide.namepad.de/seq/csi_sm/

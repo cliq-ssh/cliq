@@ -122,6 +122,32 @@ class TerminalController extends ChangeNotifier {
     }
   }
 
+  /// Enter the alternate (back) screen.
+  /// If [saveMainAndClear] is true, save the front buffer's cursor/format (DECSC-like).
+  void useBackBuffer({bool saveMainAndClear = true}) {
+    if (saveMainAndClear) {
+      front.saveCursor();
+      back.clear();
+      back.resetVerticalMargins();
+    }
+
+
+    backBufferActive = true;
+    notifyListeners();
+  }
+
+  /// Leave the alternate (back) screen.
+  /// If [restoreMain] is true, restore the front buffer's saved cursor/format (DECRC-like).
+  void useMainBuffer({bool restoreMain = true}) {
+    backBufferActive = false;
+
+    if (restoreMain) {
+      front.restoreCursor();
+    }
+
+    notifyListeners();
+  }
+
   /// Feeds input string into the terminal, parsing escape sequences and control characters.
   void feed(String input) {
     int i = 0;

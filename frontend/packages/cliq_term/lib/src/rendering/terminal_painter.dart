@@ -28,16 +28,16 @@ class TerminalPainter extends CustomPainter {
 
     final (cellW, cellH) = measureChar(controller.typography);
 
-    // total rows available in the buffer (visible rows + scrollback)
-    final totalRows = controller.front.length;
-    final cols = controller.front.cols;
+    // total rows available in the buffer (visible rows + scrollback (if any))
+    final totalRows = controller.activeBuffer.length;
+    final cols = controller.activeBuffer.cols;
 
     if (totalRows == 0 || cols == 0) return;
 
     // draw cell backgrounds for every buffer row
     for (int r = 0; r < totalRows; r++) {
       for (int c = 0; c < cols; c++) {
-        final cell = controller.front.getAbsoluteCell(r, c);
+        final cell = controller.activeBuffer.getAbsoluteCell(r, c);
         final cellBg = cell.fmt.bgColor;
         if (cellBg != null) {
           final rect = Rect.fromLTWH(c * cellW, r * cellH, cellW, cellH);
@@ -76,7 +76,7 @@ class TerminalPainter extends CustomPainter {
       }
 
       for (int c = 0; c < cols; c++) {
-        final cell = controller.front.getAbsoluteCell(r, c);
+        final cell = controller.activeBuffer.getAbsoluteCell(r, c);
         final fmt = cell.fmt;
         if (lastFmt == null) {
           lastFmt = fmt;
@@ -100,19 +100,16 @@ class TerminalPainter extends CustomPainter {
         ..paint(canvas, Offset(0, r * cellH));
     }
 
-    // draw cursor at its buffer position (cursorRow is relative to the *visible window*).
-    // We need to map the visible-window cursor row to the absolute buffer index: that's
-    // `front.currentScrollback + cursorRow`.
     final visibleCursorRow = controller.activeBuffer.cursorRow;
     final visibleCursorCol = controller.activeBuffer.cursorCol;
-    final absCursorRow = controller.front.currentScrollback + visibleCursorRow;
+    final absCursorRow = controller.activeBuffer.currentScrollback + visibleCursorRow;
 
     if (controller.cursorVisible &&
         absCursorRow >= 0 &&
         absCursorRow < totalRows &&
         visibleCursorCol >= 0 &&
         visibleCursorCol < cols) {
-      final cell = controller.front.getAbsoluteCell(
+      final cell = controller.activeBuffer.getAbsoluteCell(
         absCursorRow,
         visibleCursorCol,
       );
@@ -130,9 +127,9 @@ class TerminalPainter extends CustomPainter {
       );
 
       switch (controller.cursorStyle) {
-        case CursorStyle.block:
+        case .block:
           canvas.drawRect(cursorRect, Paint()..color = fillColor);
-          // re-draw the character with inverted color (charColor)
+          // re-draw the character with inverted color
           final displayedChar = cell.ch.isEmpty ? ' ' : cell.ch;
           final charStyle = TextStyle(
             color: charColor,
@@ -152,7 +149,7 @@ class TerminalPainter extends CustomPainter {
             );
           break;
 
-        case CursorStyle.underline:
+        case .underline:
           final underlineHeight = cellH * 0.18;
           final underlineRect = Rect.fromLTWH(
             visibleCursorCol * cellW,
@@ -163,7 +160,7 @@ class TerminalPainter extends CustomPainter {
           canvas.drawRect(underlineRect, Paint()..color = fillColor);
           break;
 
-        case CursorStyle.bar:
+        case .bar:
           final barWidth = max(1.0, cellW * 0.12);
           final barRect = Rect.fromLTWH(
             visibleCursorCol * cellW,
