@@ -1,4 +1,4 @@
-import 'package:cliq_term/src/model/terminal_buffer.dart';
+import 'package:cliq_term/src/rendering/model/terminal_buffer.dart';
 import 'package:test/test.dart';
 import 'package:cliq_term/cliq_term.dart';
 

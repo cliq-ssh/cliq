@@ -1,6 +1,8 @@
 import 'dart:math';
 
-import '../../cliq_term.dart';
+import 'package:cliq_term/src/rendering/model/ring_buffer.dart';
+
+import '../../../cliq_term.dart';
 
 class Row {
   final List<Cell> cells;
@@ -18,9 +20,11 @@ class Row {
 class TerminalBuffer {
   final int rows;
   final int cols;
-  final List<Row> _buffer;
+  final int maxScrollbackLines;
   final bool isBackBuffer;
   final bool isLineFeedMode;
+
+  final RingBuffer<Row> _buffer;
 
   /// The current formatting options.
   FormattingOptions currentFormat = FormattingOptions();
@@ -30,9 +34,6 @@ class TerminalBuffer {
 
   /// The current cursor column position.
   int cursorCol = 0;
-
-  /// The start index of the circular buffer.
-  int _start = 0;
 
   int _topMargin;
   int _bottomMargin;
@@ -44,23 +45,48 @@ class TerminalBuffer {
   TerminalBuffer({
     required this.rows,
     required this.cols,
+    this.maxScrollbackLines = 1000,
     this.isBackBuffer = false,
     this.isLineFeedMode = false,
-  }) : _buffer = List.generate(rows, (_) => Row(cols), growable: false),
+  }) : _buffer = RingBuffer<Row>(rows + maxScrollbackLines),
        _topMargin = 0,
-       _bottomMargin = rows - 1;
+       _bottomMargin = rows - 1 {
+    for (var i = 0; i < rows; i++) {
+      _buffer.add(Row(cols));
+    }
+  }
 
   int get length => _buffer.length;
-  int _idxForRow(int row) => (_start + row) % _buffer.length;
+  int get currentScrollback => _buffer.length - rows;
 
   TerminalBuffer resize({required int newRows, required int newCols}) {
-    final newBuffer = TerminalBuffer(rows: newRows, cols: newCols);
-    final minRows = rows < newRows ? rows : newRows;
-    final minCols = cols < newCols ? cols : newCols;
+    final newBuffer = TerminalBuffer(
+      rows: newRows,
+      cols: newCols,
+      maxScrollbackLines: maxScrollbackLines,
+      isBackBuffer: isBackBuffer,
+      isLineFeedMode: isLineFeedMode,
+    );
+
+    // absolute index in old ring
+    final oldVisibleStart = currentScrollback;
+    // absolute index in new ring
+    final newVisibleStart = newBuffer.currentScrollback;
+
+    final minRows = min(rows, newRows);
+    final minCols = min(cols, newCols);
 
     for (var r = 0; r < minRows; r++) {
+      final srcRow = _buffer[oldVisibleStart + r];
+      final dstRow = newBuffer._buffer[newVisibleStart + r];
+
+      // copy cell contents up to minCols
       for (var c = 0; c < minCols; c++) {
-        newBuffer.setCell(r, c, getCell(r, c));
+        dstRow.cells[c] = srcRow.cells[c];
+      }
+      // clear remaining columns in dst row if any
+      for (var c = minCols; c < newCols; c++) {
+        dstRow.cells[c] = Cell.empty();
       }
     }
 
@@ -75,7 +101,11 @@ class TerminalBuffer {
   void index() {
     if (isCursorInMargins()) {
       if (cursorRow == _bottomMargin) {
-        scrollUp(1);
+        if (isBackBuffer) {
+          scrollUp(1);
+        } else {
+          pushEmptyLine();
+        }
       } else {
         cursorDown(1);
       }
@@ -105,9 +135,9 @@ class TerminalBuffer {
         scrollDown(1);
       } else {
         // Insert empty line at top
-        _start = (_start - 1 + _buffer.length) % _buffer.length;
-        final rowIdx = _idxForRow(0);
-        _buffer[rowIdx].clear();
+        _buffer.prepend(Row(cols));
+        final topVisibleIdx = currentScrollback;
+        _buffer[topVisibleIdx].clear();
       }
     } else {
       cursorUp(1);
@@ -143,14 +173,27 @@ class TerminalBuffer {
     cursorCol = min(nextTabStop, cols - 1);
   }
 
+  /// Returns a Cell by absolute index inside the ring buffer:
+  /// index 0 is the oldest row; index `length-1` is the newest
+  Cell getAbsoluteCell(int absRow, int col) {
+    if (absRow < 0 || absRow >= _buffer.length) {
+      return Cell.empty();
+    }
+    if (col < 0 || col >= cols) {
+      return Cell.empty();
+    }
+    return _buffer[absRow].cells[col];
+  }
+
   Cell getCell(int row, int col) {
-    final rowIdx = _idxForRow(row);
-    return _buffer[rowIdx].cells[col];
+    final abs = row + currentScrollback;
+    if (abs < 0 || abs >= _buffer.length) return Cell.empty();
+    if (col < 0 || col >= cols) return Cell.empty();
+    return _buffer[abs].cells[col];
   }
 
   void setCell(int row, int col, Cell cell) {
-    final rowIdx = _idxForRow(row);
-    _buffer[rowIdx].cells[col] = cell;
+    _buffer[row + currentScrollback].cells[col] = cell;
   }
 
   void setCellAtCursor(Cell cell) {
@@ -174,8 +217,9 @@ class TerminalBuffer {
   }
 
   void clear() {
-    for (final row in _buffer) {
-      row.clear();
+    _buffer.clear();
+    for (var i = 0; i < rows; i++) {
+      _buffer.add(Row(cols));
     }
     // reset cursor position
     cursorRow = 0;
@@ -183,9 +227,10 @@ class TerminalBuffer {
   }
 
   void pushEmptyLine() {
-    _start = (_start + 1) % _buffer.length;
-    final rowIdx = _idxForRow(rows - 1);
-    _buffer[rowIdx].clear();
+    _buffer.add(Row(cols));
+
+    cursorRow = rows - 1;
+    cursorCol = 0;
   }
 
   /// Scroll Up (SU)
@@ -193,11 +238,15 @@ class TerminalBuffer {
   void scrollUp(int amount) {
     if (amount == 0) amount = 1;
 
+    final visibleStart = currentScrollback;
     for (var i = _topMargin; i <= _bottomMargin; i++) {
-      if (i <= _bottomMargin - amount) {
-        _buffer[i] = _buffer[i + amount];
+      final destIdx = visibleStart + i;
+      final srcRow = i + amount;
+      if (srcRow <= _bottomMargin) {
+        final srcIdx = visibleStart + srcRow;
+        _buffer[destIdx] = _buffer[srcIdx];
       } else {
-        _buffer[i] = Row(cols);
+        _buffer[destIdx] = Row(cols);
       }
     }
   }
@@ -207,11 +256,16 @@ class TerminalBuffer {
   void scrollDown(int amount) {
     // first param is always != 0, otherwise it would be Track Mouse (https://terminalguide.namepad.de/seq/csi_ct_5param/)
     if (amount == 0) return;
+
+    final visibleStart = currentScrollback;
     for (var i = _bottomMargin; i >= _topMargin; i--) {
-      if (i >= _topMargin + amount) {
-        _buffer[i] = _buffer[i - amount];
+      final destIdx = visibleStart + i;
+      final srcRow = i - amount;
+      if (srcRow >= _topMargin) {
+        final srcIdx = visibleStart + srcRow;
+        _buffer[destIdx] = _buffer[srcIdx];
       } else {
-        _buffer[i] = Row(cols);
+        _buffer[destIdx] = Row(cols);
       }
     }
   }

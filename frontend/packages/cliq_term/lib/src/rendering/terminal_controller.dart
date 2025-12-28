@@ -2,8 +2,8 @@ import 'dart:async';
 import 'dart:math';
 
 import 'package:cliq_term/cliq_term.dart';
-import 'package:cliq_term/src/model/esc_terminator.dart';
-import 'package:cliq_term/src/model/terminal_buffer.dart';
+import 'package:cliq_term/src/rendering/model/esc_terminator.dart';
+import 'package:cliq_term/src/rendering/model/terminal_buffer.dart';
 import 'package:cliq_term/src/parser/cc_parser.dart';
 import 'package:cliq_term/src/parser/escape_parser.dart';
 import 'package:cliq_term/src/rendering/terminal_painter.dart';
@@ -17,6 +17,8 @@ class TerminalController extends ChangeNotifier {
   final TerminalTypography typography;
   final TerminalColorTheme colors;
   final Duration cursorBlinkInterval;
+  final int maxScrollbackLines;
+  final bool debugLogging;
   final void Function(int, int)? onResize;
   final void Function(String)? onTitleChange;
   final void Function()? onBell;
@@ -48,6 +50,8 @@ class TerminalController extends ChangeNotifier {
     required this.typography,
     required this.colors,
     this.cursorBlinkInterval = const Duration(milliseconds: 600),
+    this.maxScrollbackLines = 1000,
+    this.debugLogging = false,
     this.onInput,
     this.onResize,
     this.onTitleChange,
@@ -57,8 +61,13 @@ class TerminalController extends ChangeNotifier {
   });
 
   TerminalBuffer get activeBuffer => backBufferActive ? back : front;
+  int get totalRows => front.currentScrollback + rows;
 
   void fitResize(Size size) {
+    if (!size.width.isFinite || !size.height.isFinite) {
+      return;
+    }
+
     final (cellW, cellH) = TerminalPainter.measureChar(typography);
     final newCols = max(1, (size.width / cellW).floor());
     final newRows = max(1, (size.height / cellH).floor());

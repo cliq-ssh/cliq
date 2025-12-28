@@ -2,23 +2,13 @@ import 'package:cliq_term/cliq_term.dart';
 import 'package:cliq_term/src/parser/csi_parser.dart';
 import 'package:logging/logging.dart';
 
-import '../model/color.dart';
-import '../model/esc_terminator.dart';
+import '../rendering/model/color.dart';
+import '../rendering/model/esc_terminator.dart';
 
-typedef EscHandler =
-    void Function({
-      required String body,
-      required FormattingOptions formatting,
-    });
+typedef EscHandler = void Function(String body, FormattingOptions formatting);
 
 typedef CsiHandler =
-    void Function({
-      required List<int?> params,
-      required String? leader,
-      required String intermediates,
-      required int finalByteCode,
-      required FormattingOptions formatting,
-    });
+    void Function(CsiParseResult parsed, FormattingOptions formatting);
 
 class EscapeParser {
   static final Logger _log = Logger('EscapeParser');
@@ -124,15 +114,24 @@ class EscapeParser {
 
     /// Invoke the handler for [escKey] with [body].
     void invokeHandler(String escKey, String body) {
-      final h = _escHandlers[escKey];
-      if (h != null) {
+      final handler = _escHandlers[escKey];
+      if (handler != null) {
         try {
-          h(body: body, formatting: formatting);
+          if (controller.debugLogging) {
+            _log.finest(
+              '[${term.name.toUpperCase()}] Handling $escKey body="$body"',
+            );
+          }
+          handler(body, formatting);
         } catch (e, st) {
-          _log.warning('Error handling $escKey body="$body": $e\n$st');
+          _log.severe('Error handling $escKey body="$body": $e\n$st');
         }
       } else {
-        _log.fine('No $term handler for $escKey body="$body"');
+        if (controller.debugLogging) {
+          _log.warning(
+            '[${term.name.toUpperCase()}] Unimplemented $escKey body="$body"',
+          );
+        }
       }
     }
 
@@ -186,124 +185,79 @@ class EscapeParser {
     }
   }
 
+  int _parseSingleParam(CsiParseResult parsed) {
+    return parsed.params.isNotEmpty ? (parsed.params[0] ?? 0) : 0;
+  }
+
   // --- Escape Sequence Handlers ---
 
-  void _escSaveCursor({
-    required String body,
-    required FormattingOptions formatting,
-  }) {
+  void _escSaveCursor(String body, FormattingOptions formatting) {
     controller.activeBuffer.saveCursor();
   }
 
-  void _escRestoreCursor({
-    required String body,
-    required FormattingOptions formatting,
-  }) {
+  void _escRestoreCursor(String body, FormattingOptions formatting) {
     controller.activeBuffer.restoreCursor();
   }
 
-  void _escIndex({
-    required String body,
-    required FormattingOptions formatting,
-  }) {
+  void _escIndex(String body, FormattingOptions formatting) {
     controller.activeBuffer.index();
   }
 
-  void _escReverseIndex({
-    required String body,
-    required FormattingOptions formatting,
-  }) {
+  void _escReverseIndex(String body, FormattingOptions formatting) {
     controller.activeBuffer.reverseIndex();
   }
 
-  void _escHandleCsi({
-    required String body,
-    required FormattingOptions formatting,
-  }) {
+  void _escHandleCsi(String body, FormattingOptions formatting) {
     final parsed = _csiParser.parseCsi(body);
 
     final handler = _csiHandlers[parsed.finalByteCode];
     if (handler != null) {
-      handler(
-        params: parsed.params,
-        leader: parsed.leader,
-        intermediates: parsed.intermediates,
-        finalByteCode: parsed.finalByteCode,
-        formatting: formatting,
-      );
+      handler(parsed, formatting);
     } else {
-      _log.fine(
-        'Unhandled CSI final=0x${parsed.finalByteCode.toRadixString(16)}/${String.fromCharCode(parsed.finalByteCode)} body="$body"',
-      );
+      if (controller.debugLogging) {
+        _log.warning(
+          '\tUnimplemented CSI final=0x${parsed.finalByteCode.toRadixString(16)} (${String.fromCharCode(parsed.finalByteCode)}) body="$body"',
+        );
+      }
     }
   }
 
   // --- CSI Handlers ---
 
-  void _csiCursorUpOrScrollRight({
-    required List<int?> params,
-    required String? leader,
-    required String intermediates,
-    required int finalByteCode,
-    required FormattingOptions formatting,
-  }) {
-    final amount = params.isNotEmpty ? (params[0] ?? 1) : 1;
+  void _csiCursorUpOrScrollRight(
+    CsiParseResult parsed,
+    FormattingOptions formatting,
+  ) {
+    final amount = _parseSingleParam(parsed);
     controller.activeBuffer.cursorUp(amount);
   }
 
-  void _csiCursorDown({
-    required List<int?> params,
-    required String? leader,
-    required String intermediates,
-    required int finalByteCode,
-    required FormattingOptions formatting,
-  }) {
-    final amount = params.isNotEmpty ? (params[0] ?? 1) : 1;
+  void _csiCursorDown(CsiParseResult parsed, FormattingOptions formatting) {
+    final amount = _parseSingleParam(parsed);
     controller.activeBuffer.cursorDown(amount);
   }
 
-  void _csiCursorRight({
-    required List<int?> params,
-    required String? leader,
-    required String intermediates,
-    required int finalByteCode,
-    required FormattingOptions formatting,
-  }) {
-    final amount = params.isNotEmpty ? (params[0] ?? 1) : 1;
+  void _csiCursorRight(CsiParseResult parsed, FormattingOptions formatting) {
+    final amount = _parseSingleParam(parsed);
     controller.activeBuffer.cursorRight(amount);
   }
 
-  void _csiCursorLeft({
-    required List<int?> params,
-    required String? leader,
-    required String intermediates,
-    required int finalByteCode,
-    required FormattingOptions formatting,
-  }) {
-    final amount = params.isNotEmpty ? (params[0] ?? 1) : 1;
+  void _csiCursorLeft(CsiParseResult parsed, FormattingOptions formatting) {
+    final amount = _parseSingleParam(parsed);
     controller.activeBuffer.cursorLeft(amount);
   }
 
-  void _csiSetCursorPosition({
-    required List<int?> params,
-    required String? leader,
-    required String intermediates,
-    required int finalByteCode,
-    required FormattingOptions formatting,
-  }) {
-    final row = (params.isNotEmpty ? (params[0] ?? 1) : 1) - 1;
-    final col = (params.length >= 2 ? (params[1] ?? 1) : 1) - 1;
+  void _csiSetCursorPosition(
+    CsiParseResult parsed,
+    FormattingOptions formatting,
+  ) {
+    final row = (parsed.params.isNotEmpty ? (parsed.params[0] ?? 1) : 1) - 1;
+    final col = (parsed.params.length >= 2 ? (parsed.params[1] ?? 1) : 1) - 1;
     controller.activeBuffer.setCursorPosition(row, col);
   }
 
-  void _csiEraseDisplay({
-    required List<int?> params,
-    required String? leader,
-    required String intermediates,
-    required int finalByteCode,
-    required FormattingOptions formatting,
-  }) {
-    final mode = params.isNotEmpty ? (params[0] ?? 0) : 0;
+  void _csiEraseDisplay(CsiParseResult parsed, FormattingOptions formatting) {
+    final mode = _parseSingleParam(parsed);
     switch (mode) {
       case 0:
         controller.activeBuffer.eraseDisplayBelow();
@@ -319,14 +273,8 @@ class EscapeParser {
     }
   }
 
-  void _csiEraseLine({
-    required List<int?> params,
-    required String? leader,
-    required String intermediates,
-    required int finalByteCode,
-    required FormattingOptions formatting,
-  }) {
-    final mode = params.isNotEmpty ? (params[0] ?? 0) : 0;
+  void _csiEraseLine(CsiParseResult parsed, FormattingOptions formatting) {
+    final mode = _parseSingleParam(parsed);
     switch (mode) {
       case 0:
         controller.activeBuffer.eraseLineRight();
@@ -339,28 +287,22 @@ class EscapeParser {
     }
   }
 
-  void _csiDeleteCharacter({
-    required List<int?> params,
-    required String? leader,
-    required String intermediates,
-    required int finalByteCode,
-    required FormattingOptions formatting,
-  }) {
-    final amount = params.isNotEmpty ? (params[0] ?? 1) : 1;
+  void _csiDeleteCharacter(
+    CsiParseResult parsed,
+    FormattingOptions formatting,
+  ) {
+    final amount = _parseSingleParam(parsed);
     controller.activeBuffer.deleteCharacter(amount);
   }
 
   /// https://terminalguide.namepad.de/seq/csi_sm/
-  void _csiSelectGraphicRendition({
-    required List<int?> params,
-    required String? leader,
-    required String intermediates,
-    required int finalByteCode,
-    required FormattingOptions formatting,
-  }) {
-    final List<int> codes = params.isEmpty
+  void _csiSelectGraphicRendition(
+    CsiParseResult parsed,
+    FormattingOptions formatting,
+  ) {
+    final List<int> codes = parsed.params.isEmpty
         ? const <int>[0]
-        : params.map((p) => p ?? 0).toList(growable: false);
+        : parsed.params.map((p) => p ?? 0).toList(growable: false);
 
     int offset = 0;
     while (offset < codes.length) {
@@ -442,17 +384,14 @@ class EscapeParser {
     }
   }
 
-  void _csiSetScrollingRegion({
-    required List<int?> params,
-    required String? leader,
-    required String intermediates,
-    required int finalByteCode,
-    required FormattingOptions formatting,
-  }) {
-    final top = (params.isNotEmpty ? (params[0] ?? 1) : 1) - 1;
+  void _csiSetScrollingRegion(
+    CsiParseResult parsed,
+    FormattingOptions formatting,
+  ) {
+    final top = (parsed.params.isNotEmpty ? (parsed.params[0] ?? 1) : 1) - 1;
     final bottom =
-        (params.length >= 2
-            ? (params[1] ?? controller.rows)
+        (parsed.params.length >= 2
+            ? (parsed.params[1] ?? controller.rows)
             : controller.rows) -
         1;
     controller.activeBuffer.setVerticalMargins(top, bottom);

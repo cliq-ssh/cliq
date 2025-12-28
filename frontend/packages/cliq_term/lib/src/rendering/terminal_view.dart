@@ -14,31 +14,65 @@ class TerminalView extends StatefulWidget {
 }
 
 class _TerminalViewState extends State<TerminalView> {
-  late final FocusNode _focusNode = widget.focusNode ?? FocusNode();
+  late final FocusNode _focusNode;
+  late final bool _shouldDisposeFocusNode;
+  late final VoidCallback _focusListener;
+
+  final ScrollController _scrollController = ScrollController();
+  bool _userScrolledAwayFromBottom = false;
 
   @override
   void initState() {
     super.initState();
-    widget.controller.addListener(_onUpdate);
-    _focusNode.addListener(() {
+
+    _focusNode = widget.focusNode ?? FocusNode();
+    _shouldDisposeFocusNode = widget.focusNode == null;
+
+    _focusListener = () {
       if (_focusNode.hasFocus) {
         widget.controller.startCursorBlink();
       } else {
         widget.controller.stopCursorBlink();
       }
+    };
+    _focusNode.addListener(_focusListener);
+
+    widget.controller.addListener(_onUpdate);
+
+    _scrollController.addListener(() {
+      if (!_scrollController.hasClients) return;
+      final maxExt = _scrollController.position.maxScrollExtent;
+      final atBottom = _scrollController.offset >= (maxExt - 20);
+      _userScrolledAwayFromBottom = !atBottom;
     });
   }
 
   @override
   void dispose() {
     widget.controller.removeListener(_onUpdate);
-    _focusNode.removeListener(() {});
-    _focusNode.dispose();
+    _focusNode.removeListener(_focusListener);
+    if (_shouldDisposeFocusNode) {
+      _focusNode.dispose();
+    }
+    _scrollController.dispose();
     widget.controller.stopCursorBlink();
     super.dispose();
   }
 
-  void _onUpdate() => setState(() {});
+  void _onUpdate() {
+    setState(() {});
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!_scrollController.hasClients) return;
+      if (_userScrolledAwayFromBottom) {
+        return; // user is viewing history; don't yank them
+      }
+      // jump to bottom
+      final maxExt = _scrollController.position.maxScrollExtent;
+      if (maxExt > 0) {
+        _scrollController.jumpTo(maxExt);
+      }
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -48,6 +82,22 @@ class _TerminalViewState extends State<TerminalView> {
         WidgetsBinding.instance.addPostFrameCallback(
           (_) => widget.controller.fitResize(constraints.biggest),
         );
+
+        // compute char cell size to compute overall canvas size
+        final (cellW, cellH) = TerminalPainter.measureChar(
+          widget.controller.typography,
+        );
+
+        // total rows available in front buffer (visible + scrollback)
+        final totalRows = widget.controller.totalRows;
+        final totalCols = widget.controller.cols;
+
+        final canvasWidth = (totalCols > 0)
+            ? totalCols * cellW
+            : constraints.maxWidth;
+        final canvasHeight = (totalRows > 0)
+            ? totalRows * cellH
+            : constraints.maxHeight;
 
         return Focus(
           focusNode: _focusNode,
@@ -67,12 +117,20 @@ class _TerminalViewState extends State<TerminalView> {
 
           // TODO: focus when selecting tab
           child: GestureDetector(
-            behavior: HitTestBehavior.opaque,
+            behavior: HitTestBehavior.translucent,
             // TODO: implement text selection
             onTap: () => _focusNode.requestFocus(),
-            child: CustomPaint(
-              size: Size.infinite,
-              painter: TerminalPainter(widget.controller),
+            child: SingleChildScrollView(
+              controller: _scrollController,
+              scrollDirection: Axis.vertical,
+              physics: ClampingScrollPhysics(),
+              child: SizedBox(
+                width: canvasWidth,
+                height: canvasHeight < constraints.maxHeight
+                    ? constraints.maxHeight
+                    : canvasHeight,
+                child: CustomPaint(painter: TerminalPainter(widget.controller)),
+              ),
             ),
           ),
         );
