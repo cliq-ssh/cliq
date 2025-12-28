@@ -16,12 +16,10 @@ class FormattingOptions {
     reset();
   }
 
-  Color? get effectiveFgColor => inverted
-      ? (bgColor ?? Colors.transparent)
-      : (concealed ? null : fgColor);
-  Color? get effectiveBgColor => inverted
-      ? (fgColor ?? Colors.transparent)
-      : bgColor;
+  Color? get effectiveFgColor =>
+      inverted ? (bgColor ?? Colors.transparent) : (concealed ? null : fgColor);
+  Color? get effectiveBgColor =>
+      inverted ? (fgColor ?? Colors.transparent) : bgColor;
 
   static FormattingOptions clone(FormattingOptions other) {
     final fmt = FormattingOptions();
@@ -63,6 +61,14 @@ class FormattingOptions {
   }
 
   @override
-  int get hashCode =>
-      Object.hash(fgColor, bgColor, bold, faint, italic, underline, concealed, inverted);
+  int get hashCode => Object.hash(
+    fgColor,
+    bgColor,
+    bold,
+    faint,
+    italic,
+    underline,
+    concealed,
+    inverted,
+  );
 }
