@@ -102,7 +102,8 @@ class TerminalPainter extends CustomPainter {
 
     final visibleCursorRow = controller.activeBuffer.cursorRow;
     final visibleCursorCol = controller.activeBuffer.cursorCol;
-    final absCursorRow = controller.activeBuffer.currentScrollback + visibleCursorRow;
+    final absCursorRow =
+        controller.activeBuffer.currentScrollback + visibleCursorRow;
 
     if (controller.cursorVisible &&
         absCursorRow >= 0 &&

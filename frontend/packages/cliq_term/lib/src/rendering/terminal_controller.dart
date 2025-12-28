@@ -24,7 +24,11 @@ class TerminalController extends ChangeNotifier {
   final void Function()? onBell;
   void Function(String)? onInput;
 
-  late TerminalBuffer front = TerminalBuffer(rows: rows, cols: cols, maxScrollbackLines: maxScrollbackLines);
+  late TerminalBuffer front = TerminalBuffer(
+    rows: rows,
+    cols: cols,
+    maxScrollbackLines: maxScrollbackLines,
+  );
   late TerminalBuffer back = TerminalBuffer(
     rows: rows,
     cols: cols,
@@ -130,7 +134,6 @@ class TerminalController extends ChangeNotifier {
       back.clear();
       back.resetVerticalMargins();
     }
-
 
     backBufferActive = true;
     notifyListeners();
