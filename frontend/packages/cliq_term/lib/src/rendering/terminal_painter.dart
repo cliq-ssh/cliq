@@ -6,11 +6,10 @@ import '../../cliq_term.dart';
 
 class TerminalPainter extends CustomPainter {
   final TerminalController controller;
-  final TerminalTypography typography;
-  final TerminalColorTheme colors;
 
-  TerminalPainter(this.controller, this.typography, this.colors);
+  const TerminalPainter(this.controller) : super(repaint: controller);
 
+  /// Calculates the width and height of a single character cell based on the provided typography.
   static (double width, double height) measureChar(
     TerminalTypography typography,
   ) {
@@ -24,19 +23,22 @@ class TerminalPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     // set background
-    final bgPaint = Paint()..color = colors.backgroundColor;
+    final bgPaint = Paint()..color = controller.colors.backgroundColor;
     canvas.drawRect(Offset.zero & size, bgPaint);
 
-    final (cellW, cellH) = measureChar(typography);
-    final rows = controller.front.rows;
-    final cols = (rows > 0) ? controller.front.cols : 0;
+    final (cellW, cellH) = measureChar(controller.typography);
 
-    if (rows == 0 || cols == 0) return;
+    // total rows available in the buffer (visible rows + scrollback (if any))
+    final totalRows = controller.activeBuffer.length;
+    final cols = controller.activeBuffer.cols;
 
-    // draw cell backgrounds
-    for (int r = 0; r < rows; r++) {
+    if (totalRows == 0 || cols == 0) return;
+
+    // draw cell backgrounds for every buffer row
+    for (int r = 0; r < totalRows; r++) {
       for (int c = 0; c < cols; c++) {
-        final cellBg = controller.front.getCell(r, c).fmt.bgColor;
+        final cell = controller.activeBuffer.getAbsoluteCell(r, c);
+        final cellBg = cell.fmt.bgColor;
         if (cellBg != null) {
           final rect = Rect.fromLTWH(c * cellW, r * cellH, cellW, cellH);
           final p = Paint()..color = cellBg;
@@ -45,21 +47,20 @@ class TerminalPainter extends CustomPainter {
       }
     }
 
-    // paint text for each row
-    for (int r = 0; r < rows; r++) {
+    // paint text for each buffer row
+    for (int r = 0; r < totalRows; r++) {
       FormattingOptions? lastFmt;
       final List<InlineSpan> spans = [];
       final StringBuffer sb = StringBuffer();
 
-      // helper to flush current run
       void flushRun() {
         if (sb.isEmpty) return;
         final fmt = lastFmt ?? FormattingOptions();
         final effectiveFg = fmt.concealed
-            ? colors.foregroundColor.withAlpha(0)
-            : (fmt.fgColor ?? colors.foregroundColor);
+            ? controller.colors.foregroundColor.withAlpha(0)
+            : (fmt.fgColor ?? controller.colors.foregroundColor);
 
-        final style = typography.toTextStyle().copyWith(
+        final style = controller.typography.toTextStyle().copyWith(
           color: effectiveFg,
           fontWeight: fmt.bold ? FontWeight.w700 : null,
           fontStyle: fmt.italic ? FontStyle.italic : FontStyle.normal,
@@ -75,7 +76,7 @@ class TerminalPainter extends CustomPainter {
       }
 
       for (int c = 0; c < cols; c++) {
-        final cell = controller.front.getCell(r, c);
+        final cell = controller.activeBuffer.getAbsoluteCell(r, c);
         final fmt = cell.fmt;
         if (lastFmt == null) {
           lastFmt = fmt;
@@ -99,31 +100,42 @@ class TerminalPainter extends CustomPainter {
         ..paint(canvas, Offset(0, r * cellH));
     }
 
-    final cr = controller.cursorRow;
-    final cc = controller.cursorCol;
+    final visibleCursorRow = controller.activeBuffer.cursorRow;
+    final visibleCursorCol = controller.activeBuffer.cursorCol;
+    final absCursorRow =
+        controller.activeBuffer.currentScrollback + visibleCursorRow;
+
     if (controller.cursorVisible &&
-        cr >= 0 &&
-        cr < rows &&
-        cc >= 0 &&
-        cc < cols) {
-      final cell = controller.front.getCell(cr, cc);
+        absCursorRow >= 0 &&
+        absCursorRow < totalRows &&
+        visibleCursorCol >= 0 &&
+        visibleCursorCol < cols) {
+      final cell = controller.activeBuffer.getAbsoluteCell(
+        absCursorRow,
+        visibleCursorCol,
+      );
       final cellFg = cell.fmt.fgColor;
       final cellBg = cell.fmt.bgColor;
 
-      final Color fillColor = cellFg ?? colors.foregroundColor;
-      final Color charColor = cellBg ?? colors.backgroundColor;
+      final Color fillColor = cellFg ?? controller.colors.foregroundColor;
+      final Color charColor = cellBg ?? controller.colors.backgroundColor;
 
-      final cursorRect = Rect.fromLTWH(cc * cellW, cr * cellH, cellW, cellH);
+      final cursorRect = Rect.fromLTWH(
+        visibleCursorCol * cellW,
+        absCursorRow * cellH,
+        cellW,
+        cellH,
+      );
 
       switch (controller.cursorStyle) {
-        case CursorStyle.block:
+        case .block:
           canvas.drawRect(cursorRect, Paint()..color = fillColor);
-          // re-draw the character with inverted color (charColor)
+          // re-draw the character with inverted color
           final displayedChar = cell.ch.isEmpty ? ' ' : cell.ch;
           final charStyle = TextStyle(
             color: charColor,
-            fontSize: typography.fontSize,
-            fontFamily: typography.fontFamily,
+            fontSize: controller.typography.fontSize,
+            fontFamily: controller.typography.fontFamily,
             fontWeight: cell.fmt.bold ? FontWeight.w700 : FontWeight.w400,
             fontStyle: cell.fmt.italic ? FontStyle.italic : FontStyle.normal,
           );
@@ -132,25 +144,28 @@ class TerminalPainter extends CustomPainter {
               textDirection: TextDirection.ltr,
             )
             ..layout(minWidth: 0, maxWidth: cellW)
-            ..paint(canvas, Offset(cc * cellW, cr * cellH));
+            ..paint(
+              canvas,
+              Offset(visibleCursorCol * cellW, absCursorRow * cellH),
+            );
           break;
 
-        case CursorStyle.underline:
+        case .underline:
           final underlineHeight = cellH * 0.18;
           final underlineRect = Rect.fromLTWH(
-            cc * cellW,
-            (cr + 1) * cellH - underlineHeight,
+            visibleCursorCol * cellW,
+            (absCursorRow + 1) * cellH - underlineHeight,
             cellW,
             underlineHeight,
           );
           canvas.drawRect(underlineRect, Paint()..color = fillColor);
           break;
 
-        case CursorStyle.bar:
+        case .bar:
           final barWidth = max(1.0, cellW * 0.12);
           final barRect = Rect.fromLTWH(
-            cc * cellW,
-            cr * cellH,
+            visibleCursorCol * cellW,
+            absCursorRow * cellH,
             barWidth,
             cellH,
           );
@@ -161,9 +176,5 @@ class TerminalPainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(covariant TerminalPainter oldDelegate) {
-    return oldDelegate.controller != controller ||
-        oldDelegate.typography != typography ||
-        oldDelegate.colors != colors;
-  }
+  bool shouldRepaint(covariant TerminalPainter oldDelegate) => false;
 }
