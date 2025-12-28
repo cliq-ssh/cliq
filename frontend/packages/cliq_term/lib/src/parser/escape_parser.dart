@@ -81,7 +81,7 @@ class EscapeParser {
     // 'g'.codeUnitAt(0): _csiTabClear,
     'h'.codeUnitAt(0): _csiSetMode,
     // 'i'.codeUnitAt(0): _csiMediaControl,
-    'l'.codeUnitAt(0): _csiResetMode,
+    'l'.codeUnitAt(0): _csiSetMode,
     'm'.codeUnitAt(0): _csiSelectGraphicRendition,
     // 'n'.codeUnitAt(0): _csiRequestReport,
     // 'p'.codeUnitAt(0): _csiRequestMode,
@@ -297,20 +297,47 @@ class EscapeParser {
 
   /// Set Mode (SM)
   /// - https://terminalguide.namepad.de/seq/csi_sh/
+  /// - https://terminalguide.namepad.de/seq/csi_sh__p/
+  ///
+  /// Reset Mode (RM)
+  /// - https://terminalguide.namepad.de/seq/csi_sl/
+  /// - https://terminalguide.namepad.de/seq/csi_sl__p/
   void _csiSetMode(CsiParseResult parsed, FormattingOptions formatting) {
-    // TODO: handle non-DEC private modes
-    if (parsed.leader != '?') return;
+    final isSetMode = parsed.finalByteCode == 'h'.codeUnitAt(0);
+    final isPrivate = parsed.leader == '?';
 
-    for (final p in parsed.params) {
-      final mode = p ?? 0;
+    void handleMode(int mode) {
+      switch (mode) {
+        case 4:
+          controller.setInsertMode(isSetMode);
+          break;
+        case 20:
+          controller.setLineFeedMode(isSetMode);
+          break;
+        default:
+          if (controller.debugLogging) {
+            _log.warning('\tUnhandled mode set: $mode');
+          }
+          break;
+      }
+    }
+
+    void handlePrivateMode(int mode) {
       switch (mode) {
         case 1047:
         case 47:
-          controller.useBackBuffer(saveMainAndClear: false);
+          if (isSetMode) {
+            controller.useBackBuffer(saveMainAndClear: false);
+          } else {
+            controller.useMainBuffer(restoreMain: false);
+          }
           break;
         case 1049:
-          // enter alt screen and save main screen state
-          controller.useBackBuffer(saveMainAndClear: true);
+          if (isSetMode) {
+            controller.useBackBuffer(saveMainAndClear: true);
+          } else {
+            controller.useMainBuffer(restoreMain: true);
+          }
           break;
         default:
           if (controller.debugLogging) {
@@ -319,30 +346,13 @@ class EscapeParser {
           break;
       }
     }
-  }
-
-  /// Reset Mode (RM)
-  /// - https://terminalguide.namepad.de/seq/csi_sl/
-  void _csiResetMode(CsiParseResult parsed, FormattingOptions formatting) {
-    // TODO: handle non-DEC private modes
-    if (parsed.leader != '?') return;
 
     for (final p in parsed.params) {
       final mode = p ?? 0;
-      switch (mode) {
-        case 1047:
-        case 47:
-          // leave alt screen without restoring saved state
-          controller.useMainBuffer(restoreMain: false);
-          break;
-        case 1049:
-          controller.useMainBuffer(restoreMain: true);
-          break;
-        default:
-          if (controller.debugLogging) {
-            _log.warning('\tUnhandled private mode reset: $mode');
-          }
-          break;
+      if (isPrivate) {
+        handlePrivateMode(mode);
+      } else {
+        handleMode(mode);
       }
     }
   }
@@ -366,6 +376,7 @@ class EscapeParser {
         2 => () => formatting.faint = true,
         3 => () => formatting.italic = true,
         4 => () => formatting.underline = Underline.single,
+        7 => () => formatting.inverted = true,
         8 => () => formatting.concealed = true,
         21 => () => formatting.underline = Underline.double,
         22 => () {
@@ -374,6 +385,7 @@ class EscapeParser {
         },
         23 => () => formatting.italic = false,
         24 => () => formatting.underline = Underline.none,
+        27 => () => formatting.inverted = false,
         28 => () => formatting.concealed = false,
         >= 30 && <= 37 => () => formatting.fgColor = ansi8ToColor(
           controller.colors,

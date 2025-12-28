@@ -58,7 +58,7 @@ class TerminalPainter extends CustomPainter {
         final fmt = lastFmt ?? FormattingOptions();
         final effectiveFg = fmt.concealed
             ? controller.colors.foregroundColor.withAlpha(0)
-            : (fmt.fgColor ?? controller.colors.foregroundColor);
+            : (fmt.effectiveFgColor ?? controller.colors.foregroundColor);
 
         final style = controller.typography.toTextStyle().copyWith(
           color: effectiveFg,
@@ -114,8 +114,8 @@ class TerminalPainter extends CustomPainter {
         absCursorRow,
         visibleCursorCol,
       );
-      final cellFg = cell.fmt.fgColor;
-      final cellBg = cell.fmt.bgColor;
+      final cellFg = cell.fmt.effectiveFgColor;
+      final cellBg = cell.fmt.effectiveBgColor;
 
       final Color fillColor = cellFg ?? controller.colors.foregroundColor;
       final Color charColor = cellBg ?? controller.colors.backgroundColor;

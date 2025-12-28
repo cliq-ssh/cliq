@@ -10,10 +10,18 @@ class FormattingOptions {
   late bool italic;
   late Underline underline;
   late bool concealed;
+  late bool inverted;
 
   FormattingOptions() {
     reset();
   }
+
+  Color? get effectiveFgColor => inverted
+      ? (bgColor ?? Colors.transparent)
+      : (concealed ? null : fgColor);
+  Color? get effectiveBgColor => inverted
+      ? (fgColor ?? Colors.transparent)
+      : bgColor;
 
   static FormattingOptions clone(FormattingOptions other) {
     final fmt = FormattingOptions();
@@ -24,6 +32,7 @@ class FormattingOptions {
     fmt.italic = other.italic;
     fmt.underline = other.underline;
     fmt.concealed = other.concealed;
+    fmt.inverted = other.inverted;
     return fmt;
   }
 
@@ -35,6 +44,7 @@ class FormattingOptions {
     italic = false;
     underline = Underline.none;
     concealed = false;
+    inverted = false;
   }
 
   @override
@@ -48,10 +58,11 @@ class FormattingOptions {
         other.faint == faint &&
         other.italic == italic &&
         other.underline == underline &&
-        other.concealed == concealed;
+        other.concealed == concealed &&
+        other.inverted == inverted;
   }
 
   @override
   int get hashCode =>
-      Object.hash(fgColor, bgColor, bold, faint, italic, underline, concealed);
+      Object.hash(fgColor, bgColor, bold, faint, italic, underline, concealed, inverted);
 }

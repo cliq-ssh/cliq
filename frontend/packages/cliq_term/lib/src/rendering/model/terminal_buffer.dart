@@ -22,7 +22,6 @@ class TerminalBuffer {
   final int cols;
   final int maxScrollbackLines;
   final bool isBackBuffer;
-  final bool isLineFeedMode;
 
   final RingBuffer<Row> _buffer;
 
@@ -41,6 +40,9 @@ class TerminalBuffer {
   int? savedCursorRow;
   int? savedCursorCol;
   FormattingOptions? savedFormat;
+
+  bool isLineFeedMode = false;
+  bool isInsertMode = false;
 
   TerminalBuffer({
     required this.rows,

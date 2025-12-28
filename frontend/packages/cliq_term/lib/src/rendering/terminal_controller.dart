@@ -151,6 +151,16 @@ class TerminalController extends ChangeNotifier {
     notifyListeners();
   }
 
+  void setInsertMode(bool enabled) {
+    activeBuffer.isInsertMode = enabled;
+    notifyListeners();
+  }
+
+  void setLineFeedMode(bool enabled) {
+    activeBuffer.isLineFeedMode = enabled;
+    notifyListeners();
+  }
+
   /// Feeds input string into the terminal, parsing escape sequences and control characters.
   void feed(String input) {
     int i = 0;
