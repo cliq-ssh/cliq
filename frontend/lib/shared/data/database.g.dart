@@ -632,15 +632,16 @@ class Connections extends Table with TableInfo<Connections, Connection> {
     requiredDuringInsert: false,
     $customConstraints: '',
   );
-  static const VerificationMeta _iconMeta = const VerificationMeta('icon');
-  late final GeneratedColumn<String> icon = GeneratedColumn<String>(
-    'icon',
-    aliasedName,
-    true,
-    type: DriftSqlType.string,
-    requiredDuringInsert: false,
-    $customConstraints: '',
-  );
+  late final GeneratedColumnWithTypeConverter<ConnectionIcon, int> icon =
+      GeneratedColumn<int>(
+        'icon',
+        aliasedName,
+        false,
+        type: DriftSqlType.int,
+        requiredDuringInsert: false,
+        $customConstraints: 'NOT NULL DEFAULT \'unknown\'',
+        defaultValue: const CustomExpression('\'unknown\''),
+      ).withConverter<ConnectionIcon>(Connections.$convertericon);
   static const VerificationMeta _colorMeta = const VerificationMeta('color');
   late final GeneratedColumn<String> color = GeneratedColumn<String>(
     'color',
@@ -732,12 +733,6 @@ class Connections extends Table with TableInfo<Connections, Connection> {
         label.isAcceptableOrUnknown(data['label']!, _labelMeta),
       );
     }
-    if (data.containsKey('icon')) {
-      context.handle(
-        _iconMeta,
-        icon.isAcceptableOrUnknown(data['icon']!, _iconMeta),
-      );
-    }
     if (data.containsKey('color')) {
       context.handle(
         _colorMeta,
@@ -787,9 +782,11 @@ class Connections extends Table with TableInfo<Connections, Connection> {
         DriftSqlType.string,
         data['${effectivePrefix}label'],
       ),
-      icon: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}icon'],
+      icon: Connections.$convertericon.fromSql(
+        attachedDatabase.typeMapping.read(
+          DriftSqlType.int,
+          data['${effectivePrefix}icon'],
+        )!,
       ),
       color: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
@@ -807,6 +804,8 @@ class Connections extends Table with TableInfo<Connections, Connection> {
     return Connections(attachedDatabase, alias);
   }
 
+  static JsonTypeConverter2<ConnectionIcon, int, int> $convertericon =
+      const EnumIndexConverter<ConnectionIcon>(ConnectionIcon.values);
   @override
   bool get dontWriteConstraints => true;
 }
@@ -819,7 +818,7 @@ class Connection extends DataClass implements Insertable<Connection> {
   final String? username;
   final int? credentialId;
   final String? label;
-  final String? icon;
+  final ConnectionIcon icon;
   final String? color;
   final String? groupName;
   const Connection({
@@ -830,7 +829,7 @@ class Connection extends DataClass implements Insertable<Connection> {
     this.username,
     this.credentialId,
     this.label,
-    this.icon,
+    required this.icon,
     this.color,
     this.groupName,
   });
@@ -852,8 +851,8 @@ class Connection extends DataClass implements Insertable<Connection> {
     if (!nullToAbsent || label != null) {
       map['label'] = Variable<String>(label);
     }
-    if (!nullToAbsent || icon != null) {
-      map['icon'] = Variable<String>(icon);
+    {
+      map['icon'] = Variable<int>(Connections.$convertericon.toSql(icon));
     }
     if (!nullToAbsent || color != null) {
       map['color'] = Variable<String>(color);
@@ -881,7 +880,7 @@ class Connection extends DataClass implements Insertable<Connection> {
       label: label == null && nullToAbsent
           ? const Value.absent()
           : Value(label),
-      icon: icon == null && nullToAbsent ? const Value.absent() : Value(icon),
+      icon: Value(icon),
       color: color == null && nullToAbsent
           ? const Value.absent()
           : Value(color),
@@ -904,7 +903,9 @@ class Connection extends DataClass implements Insertable<Connection> {
       username: serializer.fromJson<String?>(json['username']),
       credentialId: serializer.fromJson<int?>(json['credential_id']),
       label: serializer.fromJson<String?>(json['label']),
-      icon: serializer.fromJson<String?>(json['icon']),
+      icon: Connections.$convertericon.fromJson(
+        serializer.fromJson<int>(json['icon']),
+      ),
       color: serializer.fromJson<String?>(json['color']),
       groupName: serializer.fromJson<String?>(json['group_name']),
     );
@@ -920,7 +921,7 @@ class Connection extends DataClass implements Insertable<Connection> {
       'username': serializer.toJson<String?>(username),
       'credential_id': serializer.toJson<int?>(credentialId),
       'label': serializer.toJson<String?>(label),
-      'icon': serializer.toJson<String?>(icon),
+      'icon': serializer.toJson<int>(Connections.$convertericon.toJson(icon)),
       'color': serializer.toJson<String?>(color),
       'group_name': serializer.toJson<String?>(groupName),
     };
@@ -934,7 +935,7 @@ class Connection extends DataClass implements Insertable<Connection> {
     Value<String?> username = const Value.absent(),
     Value<int?> credentialId = const Value.absent(),
     Value<String?> label = const Value.absent(),
-    Value<String?> icon = const Value.absent(),
+    ConnectionIcon? icon,
     Value<String?> color = const Value.absent(),
     Value<String?> groupName = const Value.absent(),
   }) => Connection(
@@ -945,7 +946,7 @@ class Connection extends DataClass implements Insertable<Connection> {
     username: username.present ? username.value : this.username,
     credentialId: credentialId.present ? credentialId.value : this.credentialId,
     label: label.present ? label.value : this.label,
-    icon: icon.present ? icon.value : this.icon,
+    icon: icon ?? this.icon,
     color: color.present ? color.value : this.color,
     groupName: groupName.present ? groupName.value : this.groupName,
   );
@@ -1022,7 +1023,7 @@ class ConnectionsCompanion extends UpdateCompanion<Connection> {
   final Value<String?> username;
   final Value<int?> credentialId;
   final Value<String?> label;
-  final Value<String?> icon;
+  final Value<ConnectionIcon> icon;
   final Value<String?> color;
   final Value<String?> groupName;
   const ConnectionsCompanion({
@@ -1058,7 +1059,7 @@ class ConnectionsCompanion extends UpdateCompanion<Connection> {
     Expression<String>? username,
     Expression<int>? credentialId,
     Expression<String>? label,
-    Expression<String>? icon,
+    Expression<int>? icon,
     Expression<String>? color,
     Expression<String>? groupName,
   }) {
@@ -1084,7 +1085,7 @@ class ConnectionsCompanion extends UpdateCompanion<Connection> {
     Value<String?>? username,
     Value<int?>? credentialId,
     Value<String?>? label,
-    Value<String?>? icon,
+    Value<ConnectionIcon>? icon,
     Value<String?>? color,
     Value<String?>? groupName,
   }) {
@@ -1127,7 +1128,7 @@ class ConnectionsCompanion extends UpdateCompanion<Connection> {
       map['label'] = Variable<String>(label.value);
     }
     if (icon.present) {
-      map['icon'] = Variable<String>(icon.value);
+      map['icon'] = Variable<int>(Connections.$convertericon.toSql(icon.value));
     }
     if (color.present) {
       map['color'] = Variable<String>(color.value);
@@ -1207,7 +1208,7 @@ abstract class _$CliqDatabase extends GeneratedDatabase {
           'connection_credential_id',
         ),
         label: row.readNullable<String>('label'),
-        icon: row.readNullable<String>('icon'),
+        icon: Connections.$convertericon.fromSql(row.read<int>('icon')),
         color: row.readNullable<String>('color'),
         groupName: row.readNullable<String>('group_name'),
         identityId1: row.readNullable<int>('identity_id'),
@@ -2032,7 +2033,7 @@ typedef $ConnectionsCreateCompanionBuilder =
       Value<String?> username,
       Value<int?> credentialId,
       Value<String?> label,
-      Value<String?> icon,
+      Value<ConnectionIcon> icon,
       Value<String?> color,
       Value<String?> groupName,
     });
@@ -2045,7 +2046,7 @@ typedef $ConnectionsUpdateCompanionBuilder =
       Value<String?> username,
       Value<int?> credentialId,
       Value<String?> label,
-      Value<String?> icon,
+      Value<ConnectionIcon> icon,
       Value<String?> color,
       Value<String?> groupName,
     });
@@ -2126,9 +2127,10 @@ class $ConnectionsFilterComposer extends Composer<_$CliqDatabase, Connections> {
     builder: (column) => ColumnFilters(column),
   );
 
-  ColumnFilters<String> get icon => $composableBuilder(
+  ColumnWithTypeConverterFilters<ConnectionIcon, ConnectionIcon, int>
+  get icon => $composableBuilder(
     column: $table.icon,
-    builder: (column) => ColumnFilters(column),
+    builder: (column) => ColumnWithTypeConverterFilters(column),
   );
 
   ColumnFilters<String> get color => $composableBuilder(
@@ -2222,7 +2224,7 @@ class $ConnectionsOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
-  ColumnOrderings<String> get icon => $composableBuilder(
+  ColumnOrderings<int> get icon => $composableBuilder(
     column: $table.icon,
     builder: (column) => ColumnOrderings(column),
   );
@@ -2308,7 +2310,7 @@ class $ConnectionsAnnotationComposer
   GeneratedColumn<String> get label =>
       $composableBuilder(column: $table.label, builder: (column) => column);
 
-  GeneratedColumn<String> get icon =>
+  GeneratedColumnWithTypeConverter<ConnectionIcon, int> get icon =>
       $composableBuilder(column: $table.icon, builder: (column) => column);
 
   GeneratedColumn<String> get color =>
@@ -2399,7 +2401,7 @@ class $ConnectionsTableManager
                 Value<String?> username = const Value.absent(),
                 Value<int?> credentialId = const Value.absent(),
                 Value<String?> label = const Value.absent(),
-                Value<String?> icon = const Value.absent(),
+                Value<ConnectionIcon> icon = const Value.absent(),
                 Value<String?> color = const Value.absent(),
                 Value<String?> groupName = const Value.absent(),
               }) => ConnectionsCompanion(
@@ -2423,7 +2425,7 @@ class $ConnectionsTableManager
                 Value<String?> username = const Value.absent(),
                 Value<int?> credentialId = const Value.absent(),
                 Value<String?> label = const Value.absent(),
-                Value<String?> icon = const Value.absent(),
+                Value<ConnectionIcon> icon = const Value.absent(),
                 Value<String?> color = const Value.absent(),
                 Value<String?> groupName = const Value.absent(),
               }) => ConnectionsCompanion.insert(
@@ -2555,7 +2557,7 @@ class FindFullConnectionByIdResult {
   final String? connectionUsername;
   final int? connectionCredentialId;
   final String? label;
-  final String? icon;
+  final ConnectionIcon icon;
   final String? color;
   final String? groupName;
   final int? identityId1;
@@ -2580,7 +2582,7 @@ class FindFullConnectionByIdResult {
     this.connectionUsername,
     this.connectionCredentialId,
     this.label,
-    this.icon,
+    required this.icon,
     this.color,
     this.groupName,
     this.identityId1,

@@ -11,7 +11,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
-import '../view/navigation_shell.dart';
+import '../ui/navigation_shell.dart';
 
 class Router {
   final Ref ref;

@@ -11,7 +11,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lucide_flutter/lucide_flutter.dart';
 import 'package:cliq_term/cliq_term.dart';
 
-import '../../../data/database.dart';
+import '../../../shared/data/database.dart';
 import '../provider/session.provider.dart';
 
 class ShellSessionPage extends StatefulHookConsumerWidget {
