@@ -650,6 +650,17 @@ class Connections extends Table with TableInfo<Connections, Connection> {
     requiredDuringInsert: false,
     $customConstraints: '',
   );
+  static const VerificationMeta _groupNameMeta = const VerificationMeta(
+    'groupName',
+  );
+  late final GeneratedColumn<String> groupName = GeneratedColumn<String>(
+    'group_name',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    $customConstraints: '',
+  );
   @override
   List<GeneratedColumn> get $columns => [
     id,
@@ -661,6 +672,7 @@ class Connections extends Table with TableInfo<Connections, Connection> {
     label,
     icon,
     color,
+    groupName,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -732,6 +744,12 @@ class Connections extends Table with TableInfo<Connections, Connection> {
         color.isAcceptableOrUnknown(data['color']!, _colorMeta),
       );
     }
+    if (data.containsKey('group_name')) {
+      context.handle(
+        _groupNameMeta,
+        groupName.isAcceptableOrUnknown(data['group_name']!, _groupNameMeta),
+      );
+    }
     return context;
   }
 
@@ -777,6 +795,10 @@ class Connections extends Table with TableInfo<Connections, Connection> {
         DriftSqlType.string,
         data['${effectivePrefix}color'],
       ),
+      groupName: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}group_name'],
+      ),
     );
   }
 
@@ -799,6 +821,7 @@ class Connection extends DataClass implements Insertable<Connection> {
   final String? label;
   final String? icon;
   final String? color;
+  final String? groupName;
   const Connection({
     required this.id,
     required this.address,
@@ -809,6 +832,7 @@ class Connection extends DataClass implements Insertable<Connection> {
     this.label,
     this.icon,
     this.color,
+    this.groupName,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -834,6 +858,9 @@ class Connection extends DataClass implements Insertable<Connection> {
     if (!nullToAbsent || color != null) {
       map['color'] = Variable<String>(color);
     }
+    if (!nullToAbsent || groupName != null) {
+      map['group_name'] = Variable<String>(groupName);
+    }
     return map;
   }
 
@@ -858,6 +885,9 @@ class Connection extends DataClass implements Insertable<Connection> {
       color: color == null && nullToAbsent
           ? const Value.absent()
           : Value(color),
+      groupName: groupName == null && nullToAbsent
+          ? const Value.absent()
+          : Value(groupName),
     );
   }
 
@@ -876,6 +906,7 @@ class Connection extends DataClass implements Insertable<Connection> {
       label: serializer.fromJson<String?>(json['label']),
       icon: serializer.fromJson<String?>(json['icon']),
       color: serializer.fromJson<String?>(json['color']),
+      groupName: serializer.fromJson<String?>(json['group_name']),
     );
   }
   @override
@@ -891,6 +922,7 @@ class Connection extends DataClass implements Insertable<Connection> {
       'label': serializer.toJson<String?>(label),
       'icon': serializer.toJson<String?>(icon),
       'color': serializer.toJson<String?>(color),
+      'group_name': serializer.toJson<String?>(groupName),
     };
   }
 
@@ -904,6 +936,7 @@ class Connection extends DataClass implements Insertable<Connection> {
     Value<String?> label = const Value.absent(),
     Value<String?> icon = const Value.absent(),
     Value<String?> color = const Value.absent(),
+    Value<String?> groupName = const Value.absent(),
   }) => Connection(
     id: id ?? this.id,
     address: address ?? this.address,
@@ -914,6 +947,7 @@ class Connection extends DataClass implements Insertable<Connection> {
     label: label.present ? label.value : this.label,
     icon: icon.present ? icon.value : this.icon,
     color: color.present ? color.value : this.color,
+    groupName: groupName.present ? groupName.value : this.groupName,
   );
   Connection copyWithCompanion(ConnectionsCompanion data) {
     return Connection(
@@ -930,6 +964,7 @@ class Connection extends DataClass implements Insertable<Connection> {
       label: data.label.present ? data.label.value : this.label,
       icon: data.icon.present ? data.icon.value : this.icon,
       color: data.color.present ? data.color.value : this.color,
+      groupName: data.groupName.present ? data.groupName.value : this.groupName,
     );
   }
 
@@ -944,7 +979,8 @@ class Connection extends DataClass implements Insertable<Connection> {
           ..write('credentialId: $credentialId, ')
           ..write('label: $label, ')
           ..write('icon: $icon, ')
-          ..write('color: $color')
+          ..write('color: $color, ')
+          ..write('groupName: $groupName')
           ..write(')'))
         .toString();
   }
@@ -960,6 +996,7 @@ class Connection extends DataClass implements Insertable<Connection> {
     label,
     icon,
     color,
+    groupName,
   );
   @override
   bool operator ==(Object other) =>
@@ -973,7 +1010,8 @@ class Connection extends DataClass implements Insertable<Connection> {
           other.credentialId == this.credentialId &&
           other.label == this.label &&
           other.icon == this.icon &&
-          other.color == this.color);
+          other.color == this.color &&
+          other.groupName == this.groupName);
 }
 
 class ConnectionsCompanion extends UpdateCompanion<Connection> {
@@ -986,6 +1024,7 @@ class ConnectionsCompanion extends UpdateCompanion<Connection> {
   final Value<String?> label;
   final Value<String?> icon;
   final Value<String?> color;
+  final Value<String?> groupName;
   const ConnectionsCompanion({
     this.id = const Value.absent(),
     this.address = const Value.absent(),
@@ -996,6 +1035,7 @@ class ConnectionsCompanion extends UpdateCompanion<Connection> {
     this.label = const Value.absent(),
     this.icon = const Value.absent(),
     this.color = const Value.absent(),
+    this.groupName = const Value.absent(),
   });
   ConnectionsCompanion.insert({
     this.id = const Value.absent(),
@@ -1007,6 +1047,7 @@ class ConnectionsCompanion extends UpdateCompanion<Connection> {
     this.label = const Value.absent(),
     this.icon = const Value.absent(),
     this.color = const Value.absent(),
+    this.groupName = const Value.absent(),
   }) : address = Value(address),
        port = Value(port);
   static Insertable<Connection> custom({
@@ -1019,6 +1060,7 @@ class ConnectionsCompanion extends UpdateCompanion<Connection> {
     Expression<String>? label,
     Expression<String>? icon,
     Expression<String>? color,
+    Expression<String>? groupName,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
@@ -1030,6 +1072,7 @@ class ConnectionsCompanion extends UpdateCompanion<Connection> {
       if (label != null) 'label': label,
       if (icon != null) 'icon': icon,
       if (color != null) 'color': color,
+      if (groupName != null) 'group_name': groupName,
     });
   }
 
@@ -1043,6 +1086,7 @@ class ConnectionsCompanion extends UpdateCompanion<Connection> {
     Value<String?>? label,
     Value<String?>? icon,
     Value<String?>? color,
+    Value<String?>? groupName,
   }) {
     return ConnectionsCompanion(
       id: id ?? this.id,
@@ -1054,6 +1098,7 @@ class ConnectionsCompanion extends UpdateCompanion<Connection> {
       label: label ?? this.label,
       icon: icon ?? this.icon,
       color: color ?? this.color,
+      groupName: groupName ?? this.groupName,
     );
   }
 
@@ -1087,6 +1132,9 @@ class ConnectionsCompanion extends UpdateCompanion<Connection> {
     if (color.present) {
       map['color'] = Variable<String>(color.value);
     }
+    if (groupName.present) {
+      map['group_name'] = Variable<String>(groupName.value);
+    }
     return map;
   }
 
@@ -1101,7 +1149,8 @@ class ConnectionsCompanion extends UpdateCompanion<Connection> {
           ..write('credentialId: $credentialId, ')
           ..write('label: $label, ')
           ..write('icon: $icon, ')
-          ..write('color: $color')
+          ..write('color: $color, ')
+          ..write('groupName: $groupName')
           ..write(')'))
         .toString();
   }
@@ -1134,9 +1183,17 @@ abstract class _$CliqDatabase extends GeneratedDatabase {
     );
   }
 
+  Selectable<String?> findAllGroupNamesDistinct() {
+    return customSelect(
+      'SELECT DISTINCT group_name FROM connections WHERE group_name IS NOT NULL AND group_name != \'\' ORDER BY group_name ASC',
+      variables: [],
+      readsFrom: {connections},
+    ).map((QueryRow row) => row.readNullable<String>('group_name'));
+  }
+
   Selectable<FindFullConnectionByIdResult> findFullConnectionById(int id) {
     return customSelect(
-      'SELECT con.id AS connection_id, con.address, con.port, con.identity_id, con.username AS connection_username, con.credential_id AS connection_credential_id, con.label, con.icon, con.color, i.id AS identity_id, i.username AS identity_username, i.credential_id AS identity_credential_id, ci.id AS identity_credential_id_explicit, ci.type AS identity_credential_type, ci.data AS identity_credential_data, ci.passphrase AS identity_credential_passphrase, cc.id AS connection_credential_id_explicit, cc.type AS connection_credential_type, cc.data AS connection_credential_data, cc.passphrase AS connection_credential_passphrase, COALESCE(ci.id, cc.id) AS effective_credential_id, COALESCE(ci.type, cc.type) AS effective_credential_type, COALESCE(ci.data, cc.data) AS effective_credential_data FROM connections AS con LEFT JOIN identities AS i ON i.id = con.identity_id LEFT JOIN credentials AS ci ON ci.id = i.credential_id LEFT JOIN credentials AS cc ON cc.id = con.credential_id WHERE con.id = ?1',
+      'SELECT con.id AS connection_id, con.address, con.port, con.identity_id, con.username AS connection_username, con.credential_id AS connection_credential_id, con.label, con.icon, con.color, con.group_name, i.id AS identity_id, i.username AS identity_username, i.credential_id AS identity_credential_id, ci.id AS identity_credential_id_explicit, ci.type AS identity_credential_type, ci.data AS identity_credential_data, ci.passphrase AS identity_credential_passphrase, cc.id AS connection_credential_id_explicit, cc.type AS connection_credential_type, cc.data AS connection_credential_data, cc.passphrase AS connection_credential_passphrase, COALESCE(ci.id, cc.id) AS effective_credential_id, COALESCE(ci.type, cc.type) AS effective_credential_type, COALESCE(ci.data, cc.data) AS effective_credential_data FROM connections AS con LEFT JOIN identities AS i ON i.id = con.identity_id LEFT JOIN credentials AS ci ON ci.id = i.credential_id LEFT JOIN credentials AS cc ON cc.id = con.credential_id WHERE con.id = ?1',
       variables: [Variable<int>(id)],
       readsFrom: {connections, identities, credentials},
     ).map(
@@ -1152,6 +1209,7 @@ abstract class _$CliqDatabase extends GeneratedDatabase {
         label: row.readNullable<String>('label'),
         icon: row.readNullable<String>('icon'),
         color: row.readNullable<String>('color'),
+        groupName: row.readNullable<String>('group_name'),
         identityId1: row.readNullable<int>('identity_id'),
         identityUsername: row.readNullable<String>('identity_username'),
         identityCredentialId: row.readNullable<int>('identity_credential_id'),
@@ -1976,6 +2034,7 @@ typedef $ConnectionsCreateCompanionBuilder =
       Value<String?> label,
       Value<String?> icon,
       Value<String?> color,
+      Value<String?> groupName,
     });
 typedef $ConnectionsUpdateCompanionBuilder =
     ConnectionsCompanion Function({
@@ -1988,6 +2047,7 @@ typedef $ConnectionsUpdateCompanionBuilder =
       Value<String?> label,
       Value<String?> icon,
       Value<String?> color,
+      Value<String?> groupName,
     });
 
 final class $ConnectionsReferences
@@ -2073,6 +2133,11 @@ class $ConnectionsFilterComposer extends Composer<_$CliqDatabase, Connections> {
 
   ColumnFilters<String> get color => $composableBuilder(
     column: $table.color,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get groupName => $composableBuilder(
+    column: $table.groupName,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -2167,6 +2232,11 @@ class $ConnectionsOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get groupName => $composableBuilder(
+    column: $table.groupName,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   $IdentitiesOrderingComposer get identityId {
     final $IdentitiesOrderingComposer composer = $composerBuilder(
       composer: this,
@@ -2243,6 +2313,9 @@ class $ConnectionsAnnotationComposer
 
   GeneratedColumn<String> get color =>
       $composableBuilder(column: $table.color, builder: (column) => column);
+
+  GeneratedColumn<String> get groupName =>
+      $composableBuilder(column: $table.groupName, builder: (column) => column);
 
   $IdentitiesAnnotationComposer get identityId {
     final $IdentitiesAnnotationComposer composer = $composerBuilder(
@@ -2328,6 +2401,7 @@ class $ConnectionsTableManager
                 Value<String?> label = const Value.absent(),
                 Value<String?> icon = const Value.absent(),
                 Value<String?> color = const Value.absent(),
+                Value<String?> groupName = const Value.absent(),
               }) => ConnectionsCompanion(
                 id: id,
                 address: address,
@@ -2338,6 +2412,7 @@ class $ConnectionsTableManager
                 label: label,
                 icon: icon,
                 color: color,
+                groupName: groupName,
               ),
           createCompanionCallback:
               ({
@@ -2350,6 +2425,7 @@ class $ConnectionsTableManager
                 Value<String?> label = const Value.absent(),
                 Value<String?> icon = const Value.absent(),
                 Value<String?> color = const Value.absent(),
+                Value<String?> groupName = const Value.absent(),
               }) => ConnectionsCompanion.insert(
                 id: id,
                 address: address,
@@ -2360,6 +2436,7 @@ class $ConnectionsTableManager
                 label: label,
                 icon: icon,
                 color: color,
+                groupName: groupName,
               ),
           withReferenceMapper: (p0) => p0
               .map(
@@ -2480,6 +2557,7 @@ class FindFullConnectionByIdResult {
   final String? label;
   final String? icon;
   final String? color;
+  final String? groupName;
   final int? identityId1;
   final String? identityUsername;
   final int? identityCredentialId;
@@ -2504,6 +2582,7 @@ class FindFullConnectionByIdResult {
     this.label,
     this.icon,
     this.color,
+    this.groupName,
     this.identityId1,
     this.identityUsername,
     this.identityCredentialId,
