@@ -1,4 +1,4 @@
-import '../../data/database.dart';
+import '../../../shared/data/database.dart';
 
 class IdentityFull {
   final int id;

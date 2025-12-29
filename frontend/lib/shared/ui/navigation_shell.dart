@@ -1,5 +1,5 @@
 import 'package:cliq/modules/connections/extension/connection.extension.dart';
-import 'package:cliq/routing/view/session_tab.dart';
+import 'package:cliq/shared/ui/session_tab.dart';
 import 'package:cliq_term/cliq_term.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:forui/forui.dart';
@@ -9,10 +9,10 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
-import '../../data/database.dart';
+import '../data/database.dart';
 import '../../modules/session/provider/session.provider.dart';
 import '../../modules/settings/view/settings_page.dart';
-import '../router.extension.dart';
+import '../extensions/router.extension.dart';
 
 class NavigationShell extends StatefulHookConsumerWidget {
   final StatefulNavigationShell shell;

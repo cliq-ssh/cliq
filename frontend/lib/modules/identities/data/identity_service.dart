@@ -1,5 +1,5 @@
-import '../credentials/credentials_repository.dart';
-import '../database.dart';
+import '../../credentials/data/credentials_repository.dart';
+import '../../../shared/data/database.dart';
 import 'identities_repository.dart';
 
 final class IdentityService {

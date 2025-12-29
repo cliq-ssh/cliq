@@ -4,7 +4,7 @@ import 'package:flutter/material.dart' hide LicensePage;
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
-import '../../../routing/model/page_path.model.dart';
+import '../../../shared/model/page_path.model.dart';
 
 class SessionPageWrapper extends StatefulHookConsumerWidget {
   static const PagePathBuilder pagePath = PagePathBuilder('/@session');

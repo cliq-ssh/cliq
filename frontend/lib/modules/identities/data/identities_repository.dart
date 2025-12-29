@@ -1,7 +1,7 @@
 import 'package:drift/drift.dart';
 
-import '../database.dart';
-import '../repository.dart';
+import '../../../shared/data/database.dart';
+import '../../../shared/data/repository.dart';
 
 final class IdentitiesRepository extends Repository<Identities, Identity> {
   IdentitiesRepository(super.db);

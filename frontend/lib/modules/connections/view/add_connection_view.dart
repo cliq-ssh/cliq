@@ -1,7 +1,7 @@
 import 'package:cliq/modules/connections/model/connection_icon.dart';
 import 'package:cliq/shared/extensions/async_snapshot.extension.dart';
 import 'package:cliq/shared/extensions/color.extension.dart';
-import 'package:cliq/shared/validators.dart';
+import 'package:cliq/shared/utils/validators.dart';
 import 'package:cliq_ui/cliq_ui.dart';
 import 'package:drift/drift.dart' hide Column;
 import 'package:flutter/material.dart';
@@ -12,8 +12,8 @@ import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lucide_flutter/lucide_flutter.dart';
 
-import '../../../data/credentials/credential_type.dart';
-import '../../../data/database.dart';
+import '../../../shared/data/database.dart';
+import '../../credentials/model/credential_type.dart';
 import '../model/connection_color.dart';
 
 class AddConnectionView extends StatefulHookConsumerWidget {

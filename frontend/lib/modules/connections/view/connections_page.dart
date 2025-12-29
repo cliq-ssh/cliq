@@ -12,8 +12,8 @@ import 'package:forui/forui.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lucide_flutter/lucide_flutter.dart';
 
-import '../../../data/database.dart';
-import '../../../routing/model/page_path.model.dart';
+import '../../../shared/data/database.dart';
+import '../../../shared/model/page_path.model.dart';
 import 'add_connection_view.dart';
 
 class ConnectionsPage extends StatefulHookConsumerWidget {

@@ -1,4 +1,4 @@
-import '../credentials/credentials.drift';
+import '../../credentials/data/credentials.drift';
 
 CREATE TABLE identities (
     id INTEGER PRIMARY KEY AUTOINCREMENT,

@@ -8,7 +8,7 @@ import 'package:forui/forui.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:system_fonts/system_fonts.dart';
 
-import '../../../routing/model/page_path.model.dart';
+import '../../../shared/model/page_path.model.dart';
 
 class TerminalThemeSettingsPage extends AbstractSettingsPage {
   static const PagePathBuilder pagePath = PagePathBuilder.child(

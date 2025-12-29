@@ -1,23 +1,24 @@
-import 'package:cliq/data/connections/connection_service.dart';
+import 'package:cliq/modules/connections/data/connection_service.dart';
 import 'package:drift/drift.dart';
 import 'package:drift_flutter/drift_flutter.dart';
 import 'package:path_provider/path_provider.dart';
 
-import '../modules/connections/model/connection_icon.dart';
-import 'connections/connections_repository.dart';
-import 'credentials/credential_service.dart' show CredentialService;
-import 'credentials/credentials_repository.dart';
-import 'credentials/credential_type.dart';
-import 'identities/identities_repository.dart';
-import 'identities/identity_service.dart';
+import '../../modules/connections/data/connections_repository.dart';
+import '../../modules/connections/model/connection_icon.dart';
+import '../../modules/credentials/data/credential_service.dart'
+    show CredentialService;
+import '../../modules/credentials/data/credentials_repository.dart';
+import '../../modules/credentials/model/credential_type.dart';
+import '../../modules/identities/data/identities_repository.dart';
+import '../../modules/identities/data/identity_service.dart';
 
 part 'database.g.dart';
 
 @DriftDatabase(
   include: {
-    'connections/connections.drift',
-    'credentials/credentials.drift',
-    'identities/identities.drift',
+    '../../modules/connections/data/connections.drift',
+    '../../modules/credentials/data/credentials.drift',
+    '../../modules/identities/data/identities.drift',
   },
 )
 final class CliqDatabase extends _$CliqDatabase {
