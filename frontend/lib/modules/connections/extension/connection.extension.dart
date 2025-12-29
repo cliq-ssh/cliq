@@ -1,7 +1,7 @@
 import 'package:cliq/modules/connections/model/connection_full.model.dart';
 
-import '../../../data/database.dart';
-import '../../../shared/model/identity_full.model.dart';
+import '../../../shared/data/database.dart';
+import '../../identities/model/identity_full.model.dart';
 
 extension ConnectionExtension on Connection {
   String get effectiveName => label ?? address;

@@ -3,8 +3,8 @@ import 'package:forui/forui.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lucide_flutter/lucide_flutter.dart';
 
-import '../../../data/database.dart';
-import '../../../routing/view/navigation_shell.dart';
+import '../../../shared/data/database.dart';
+import '../../../shared/ui/navigation_shell.dart';
 import '../../../shared/extensions/color.extension.dart';
 import '../../session/provider/session.provider.dart';
 

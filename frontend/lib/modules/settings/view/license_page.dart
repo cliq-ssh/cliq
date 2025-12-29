@@ -7,7 +7,7 @@ import 'package:lucide_flutter/lucide_flutter.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
-import '../../../routing/model/page_path.model.dart';
+import '../../../shared/model/page_path.model.dart';
 import '../../../shared/ui/future_wrapper.dart';
 
 class LicenseSettingsPage extends AbstractSettingsPage {

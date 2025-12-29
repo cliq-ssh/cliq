@@ -8,7 +8,7 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:forui/forui.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
-import '../../../routing/model/page_path.model.dart';
+import '../../../shared/model/page_path.model.dart';
 import '../provider/sync.provider.dart';
 
 class SyncSettingsPage extends AbstractSettingsPage {

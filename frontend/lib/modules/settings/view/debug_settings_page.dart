@@ -4,8 +4,8 @@ import 'package:flutter/cupertino.dart';
 import 'package:forui/forui.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
-import '../../../data/database.dart';
-import '../../../routing/model/page_path.model.dart';
+import '../../../shared/data/database.dart';
+import '../../../shared/model/page_path.model.dart';
 
 class DebugSettingsPage extends AbstractSettingsPage {
   static const PagePathBuilder pagePath = PagePathBuilder.child(

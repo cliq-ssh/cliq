@@ -1,7 +1,7 @@
 import 'package:cliq/modules/connections/model/connection_icon.dart';
 
-import '../../../data/database.dart';
-import '../../../shared/model/identity_full.model.dart';
+import '../../../shared/data/database.dart';
+import '../../identities/model/identity_full.model.dart';
 
 /// Model class that better wraps the [FindFullConnectionByIdResult] class.
 class ConnectionFull {

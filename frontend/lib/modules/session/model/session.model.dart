@@ -1,7 +1,7 @@
 import 'package:cliq/modules/connections/extension/connection.extension.dart';
 import 'package:dartssh2/dartssh2.dart';
 
-import '../../../data/database.dart';
+import '../../../shared/data/database.dart';
 
 class ShellSession {
   final String id;

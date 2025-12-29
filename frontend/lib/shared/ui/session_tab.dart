@@ -1,5 +1,5 @@
 import 'package:cliq/modules/session/model/session.model.dart';
-import 'package:cliq/routing/view/navigation_shell.dart';
+import 'package:cliq/shared/ui/navigation_shell.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:forui/forui.dart';
