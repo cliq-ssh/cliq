@@ -1,5 +1,6 @@
 import 'package:cliq/modules/connections/model/connection_icon.dart';
 import 'package:cliq/shared/extensions/async_snapshot.extension.dart';
+import 'package:cliq/shared/extensions/color.extension.dart';
 import 'package:cliq/shared/validators.dart';
 import 'package:cliq_ui/cliq_ui.dart';
 import 'package:drift/drift.dart' hide Column;
@@ -13,6 +14,7 @@ import 'package:lucide_flutter/lucide_flutter.dart';
 
 import '../../../data/credentials/credential_type.dart';
 import '../../../data/database.dart';
+import '../model/connection_color.dart';
 
 class AddConnectionView extends StatefulHookConsumerWidget {
   const AddConnectionView({super.key});
@@ -42,7 +44,8 @@ class _AddConnectionPageState extends ConsumerState<AddConnectionView> {
     final pemController = useTextEditingController();
     final pemPassphraseController = useTextEditingController();
 
-    final selectedIcon = useState<ConnectionIcon>(.unknown);
+    final selectedIcon = useState<ConnectionIcon>(.linux);
+    final selectedColor = useState<Color>(ConnectionColor.red.color);
     final labelPlaceholder = useState('');
     final groups = useMemoizedFuture(() async {
       return await CliqDatabase.connectionService.findAllGroupNamesDistinct();
@@ -66,6 +69,15 @@ class _AddConnectionPageState extends ConsumerState<AddConnectionView> {
                 child: Text('Close'),
               ),
             ],
+          ),
+          Container(
+            width: 64,
+            height: 64,
+            decoration: BoxDecoration(
+              color: selectedColor.value,
+              borderRadius: .circular(16),
+            ),
+            child: Icon(selectedIcon.value.iconData, size: 36),
           ),
           Form(
             key: _formKey,
@@ -96,6 +108,40 @@ class _AddConnectionPageState extends ConsumerState<AddConnectionView> {
                     onData: (value) => value,
                     onLoading: () => [],
                   ),
+                ),
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: [
+                    if (selectedIcon.value.brandColor != null)
+                      GestureDetector(
+                        onTap: () => selectedColor.value =
+                            selectedIcon.value.brandColor!,
+                        child: SizedBox.square(
+                          dimension: 36,
+                          child: Container(
+                            decoration: BoxDecoration(
+                              color: selectedIcon.value.brandColor,
+                              borderRadius: .circular(8),
+                            ),
+                            child: Icon(selectedIcon.value.iconData),
+                          ),
+                        ),
+                      ),
+                    for (final c in ConnectionColor.values)
+                      GestureDetector(
+                        onTap: () => selectedColor.value = c.color,
+                        child: SizedBox.square(
+                          dimension: 36,
+                          child: Container(
+                            decoration: BoxDecoration(
+                              color: c.color,
+                              borderRadius: .circular(8),
+                            ),
+                          ),
+                        ),
+                      ),
+                  ],
                 ),
                 Wrap(
                   spacing: 8,
@@ -249,6 +295,7 @@ class _AddConnectionPageState extends ConsumerState<AddConnectionView> {
                           : null,
                     ),
                     icon: Value(selectedIcon.value),
+                    color: Value(selectedColor.value.toHex()),
                     groupName: Value.absentIfNull(
                       groupController.text.trim().isNotEmpty
                           ? groupController.text.trim()

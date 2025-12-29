@@ -12,7 +12,7 @@ CREATE TABLE connections (
     credential_id INTEGER REFERENCES credentials(id) ON DELETE CASCADE,
     label TEXT,
     icon ENUM(ConnectionIcon) NOT NULL DEFAULT 'unknown',
-    color ENUM(ConnectionColor) NOT NULL DEFAULT 'red',
+    color TEXT,
     group_name TEXT
 );
 

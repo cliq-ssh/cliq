@@ -3,7 +3,6 @@ import 'package:drift/drift.dart';
 import 'package:drift_flutter/drift_flutter.dart';
 import 'package:path_provider/path_provider.dart';
 
-import '../modules/connections/model/connection_color.dart';
 import '../modules/connections/model/connection_icon.dart';
 import 'connections/connections_repository.dart';
 import 'credentials/credential_service.dart' show CredentialService;
