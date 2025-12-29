@@ -16,9 +16,9 @@ part 'database.g.dart';
 
 @DriftDatabase(
   include: {
-    'connections/connections.drift',
-    'credentials/credentials.drift',
-    'identities/identities.drift',
+    '../../modules/connections/data/connections.drift',
+    '../../modules/credentials/data/credentials.drift',
+    '../../modules/identities/data/identities.drift',
   },
 )
 final class CliqDatabase extends _$CliqDatabase {

@@ -1,7 +1,7 @@
-import '../identities/identities.drift';
-import '../credentials/credentials.drift';
-import '../../modules/connections/model/connection_icon.dart';
-import '../../modules/connections/model/connection_color.dart';
+import '../../identities/data/identities.drift';
+import '../../credentials/data/credentials.drift';
+import '../../connections/model/connection_icon.dart';
+import '../../connections/model/connection_color.dart';
 
 CREATE TABLE connections (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
