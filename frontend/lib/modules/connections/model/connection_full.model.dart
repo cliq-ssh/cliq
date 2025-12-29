@@ -1,3 +1,4 @@
+import 'package:cliq/modules/connections/model/connection_color.dart';
 import 'package:cliq/modules/connections/model/connection_icon.dart';
 
 import '../../../data/database.dart';
@@ -13,7 +14,7 @@ class ConnectionFull {
   final Credential? credential;
   final String? label;
   final ConnectionIcon icon;
-  final String? color;
+  final ConnectionColor color;
   final String? group;
 
   String get effectiveUsername => username ?? identity!.username;
@@ -24,11 +25,11 @@ class ConnectionFull {
     required this.address,
     required this.port,
     required this.icon,
+    required this.color,
     this.identity,
     this.username,
     this.credential,
     this.label,
-    this.color,
     this.group,
   });
 }
