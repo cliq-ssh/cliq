@@ -1,3 +1,4 @@
+import 'package:cliq/modules/connections/model/connection_icon.dart';
 import 'package:cliq/shared/extensions/async_snapshot.extension.dart';
 import 'package:cliq/shared/validators.dart';
 import 'package:cliq_ui/cliq_ui.dart';
@@ -41,6 +42,7 @@ class _AddConnectionPageState extends ConsumerState<AddConnectionView> {
     final pemController = useTextEditingController();
     final pemPassphraseController = useTextEditingController();
 
+    final selectedIcon = useState<ConnectionIcon>(.unknown);
     final labelPlaceholder = useState('');
     final groups = useMemoizedFuture(() async {
       return await CliqDatabase.connectionService.findAllGroupNamesDistinct();
@@ -94,6 +96,23 @@ class _AddConnectionPageState extends ConsumerState<AddConnectionView> {
                     onData: (value) => value,
                     onLoading: () => [],
                   ),
+                ),
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: [
+                    for (final icon in ConnectionIcon.values)
+                      FTooltip(
+                        tipBuilder: (_, _) => Text(icon.name),
+                        child: FButton.icon(
+                          style: icon == selectedIcon.value
+                              ? FButtonStyle.primary()
+                              : FButtonStyle.ghost(),
+                          onPress: () => selectedIcon.value = icon,
+                          child: Icon(icon.iconData),
+                        ),
+                      ),
+                  ],
                 ),
                 FTextFormField(
                   control: .managed(
@@ -229,6 +248,7 @@ class _AddConnectionPageState extends ConsumerState<AddConnectionView> {
                           ? labelController.text.trim()
                           : null,
                     ),
+                    icon: Value(selectedIcon.value),
                     groupName: Value.absentIfNull(
                       groupController.text.trim().isNotEmpty
                           ? groupController.text.trim()

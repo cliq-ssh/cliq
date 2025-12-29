@@ -38,6 +38,7 @@ extension FindFullConnectionByIdResultExtension
       label: label,
       icon: icon,
       color: color,
+      group: groupName,
     );
   }
 }
