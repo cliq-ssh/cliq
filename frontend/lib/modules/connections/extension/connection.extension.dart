@@ -37,7 +37,8 @@ extension FindFullConnectionByIdResultExtension
       username: connectionUsername,
       label: label,
       icon: icon,
-      color: color,
+      colorHex: color,
+      group: groupName,
     );
   }
 }

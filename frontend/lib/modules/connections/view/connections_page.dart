@@ -1,5 +1,4 @@
-import 'package:cliq/modules/session/provider/session.provider.dart';
-import 'package:cliq/routing/view/navigation_shell.dart';
+import 'package:cliq/modules/connections/ui/connection_card.dart';
 import 'package:cliq_ui/cliq_ui.dart'
     show
         CliqGridColumn,
@@ -133,98 +132,25 @@ class _ConnectionsPageState extends ConsumerState<ConnectionsPage> {
                         ),
                       ),
                       CliqGridColumn(
-                        child: GestureDetector(
-                          onTap: () {
-                            // TODO:
-                          },
-                          child: Column(
-                            spacing: 16,
-                            children: [
-                              for (final group in connections.value.entries)
-                                Column(
-                                  spacing: 8,
-                                  crossAxisAlignment: .start,
-                                  children: [
-                                    Text(
-                                      group.key,
-                                      style: typography.lg.copyWith(
-                                        fontWeight: FontWeight.bold,
-                                      ),
+                        child: Column(
+                          spacing: 16,
+                          children: [
+                            for (final group in connections.value.entries)
+                              Column(
+                                spacing: 8,
+                                crossAxisAlignment: .start,
+                                children: [
+                                  Text(
+                                    group.key,
+                                    style: typography.lg.copyWith(
+                                      fontWeight: FontWeight.bold,
                                     ),
-                                    for (final connection in group.value)
-                                      FCard(
-                                        title: Row(
-                                          mainAxisAlignment:
-                                              MainAxisAlignment.spaceBetween,
-                                          children: [
-                                            Flexible(
-                                              child: Text(
-                                                connection.$1.label ??
-                                                    connection.$1.address,
-                                              ),
-                                            ),
-                                            FPopoverMenu(
-                                              menu: [
-                                                FItemGroup(
-                                                  children: [
-                                                    FItem(
-                                                      prefix: Icon(
-                                                        LucideIcons.unplug,
-                                                      ),
-                                                      title: Text('Connect'),
-                                                      onPress: () => ref
-                                                          .read(
-                                                            sessionProvider
-                                                                .notifier,
-                                                          )
-                                                          .createAndGo(
-                                                            NavigationShell.of(
-                                                              context,
-                                                            ),
-                                                            connection.$1,
-                                                          ),
-                                                    ),
-                                                    FItem(
-                                                      prefix: Icon(
-                                                        LucideIcons.pencil,
-                                                      ),
-                                                      title: Text('Edit'),
-                                                      onPress: () {},
-                                                    ),
-                                                    FItem(
-                                                      prefix: Icon(
-                                                        LucideIcons.trash,
-                                                      ),
-                                                      title: Text('Delete'),
-                                                      onPress: () {},
-                                                    ),
-                                                  ],
-                                                ),
-                                              ],
-                                              builder: (_, controller, _) =>
-                                                  FButton.icon(
-                                                    onPress: controller.toggle,
-                                                    child: Icon(
-                                                      LucideIcons.ellipsis,
-                                                    ),
-                                                  ),
-                                            ),
-                                          ],
-                                        ),
-                                        subtitle: Row(
-                                          children: [
-                                            Text(
-                                              connection.$1.username ??
-                                                  connection.$2?.username ??
-                                                  '<no user>',
-                                            ),
-                                          ],
-                                        ),
-                                      ),
-                                  ],
-                                ),
-                            ],
-                          ),
+                                  ),
+                                  for (final (c, i) in group.value)
+                                    ConnectionCard(connection: c, identity: i),
+                                ],
+                              ),
+                          ],
                         ),
                       ),
                     ],

@@ -1,5 +1,7 @@
 import '../identities/identities.drift';
 import '../credentials/credentials.drift';
+import '../../modules/connections/model/connection_icon.dart';
+import '../../modules/connections/model/connection_color.dart';
 
 CREATE TABLE connections (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -9,7 +11,7 @@ CREATE TABLE connections (
     username TEXT,
     credential_id INTEGER REFERENCES credentials(id) ON DELETE CASCADE,
     label TEXT,
-    icon TEXT,
+    icon ENUM(ConnectionIcon) NOT NULL DEFAULT 'unknown',
     color TEXT,
     group_name TEXT
 );
