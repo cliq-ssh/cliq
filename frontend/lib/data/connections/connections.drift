@@ -10,8 +10,11 @@ CREATE TABLE connections (
     credential_id INTEGER REFERENCES credentials(id) ON DELETE CASCADE,
     label TEXT,
     icon TEXT,
-    color TEXT
+    color TEXT,
+    group_name TEXT
 );
+
+findAllGroupNamesDistinct: SELECT DISTINCT group_name FROM connections WHERE group_name IS NOT NULL AND group_name != '' ORDER BY group_name ASC;
 
 findFullConnectionById: SELECT
                           con.id                     AS connection_id,
@@ -23,6 +26,7 @@ findFullConnectionById: SELECT
                           con.label,
                           con.icon,
                           con.color,
+                          con.group_name,
                           i.id                       AS identity_id,
                           i.username                 AS identity_username,
                           i.credential_id            AS identity_credential_id,

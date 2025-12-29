@@ -31,14 +31,23 @@ class _ConnectionsPageState extends ConsumerState<ConnectionsPage> {
   @override
   Widget build(BuildContext context) {
     final typography = context.theme.typography;
-    final connections = useState<List<(Connection, Identity?)>>([]);
+    final connections = useState<Map<String, List<(Connection, Identity?)>>>(
+      {},
+    );
     final breakpoint = useBreakpoint();
 
     // Fetch connections from database
     useEffect(() {
       Future.microtask(() async {
-        connections.value = await CliqDatabase.connectionService
+        final result = await CliqDatabase.connectionService
             .findAllWithIdentities();
+        final groupedConnections = <String, List<(Connection, Identity?)>>{};
+        for (final c in result) {
+          final groupName = c.$1.groupName ?? 'Ungrouped';
+          groupedConnections.putIfAbsent(groupName, () => []);
+          groupedConnections[groupName]!.add(c);
+        }
+        connections.value = groupedConnections;
       });
       return null;
     }, []);
@@ -131,70 +140,88 @@ class _ConnectionsPageState extends ConsumerState<ConnectionsPage> {
                           child: Column(
                             spacing: 16,
                             children: [
-                              for (final connection in connections.value)
-                                FCard(
-                                  title: Row(
-                                    mainAxisAlignment:
-                                        MainAxisAlignment.spaceBetween,
-                                    children: [
-                                      Flexible(
-                                        child: Text(
-                                          connection.$1.label ??
-                                              connection.$1.address,
+                              for (final group in connections.value.entries)
+                                Column(
+                                  spacing: 8,
+                                  crossAxisAlignment: .start,
+                                  children: [
+                                    Text(
+                                      group.key,
+                                      style: typography.lg.copyWith(
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                    for (final connection in group.value)
+                                      FCard(
+                                        title: Row(
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.spaceBetween,
+                                          children: [
+                                            Flexible(
+                                              child: Text(
+                                                connection.$1.label ??
+                                                    connection.$1.address,
+                                              ),
+                                            ),
+                                            FPopoverMenu(
+                                              menu: [
+                                                FItemGroup(
+                                                  children: [
+                                                    FItem(
+                                                      prefix: Icon(
+                                                        LucideIcons.unplug,
+                                                      ),
+                                                      title: Text('Connect'),
+                                                      onPress: () => ref
+                                                          .read(
+                                                            sessionProvider
+                                                                .notifier,
+                                                          )
+                                                          .createAndGo(
+                                                            NavigationShell.of(
+                                                              context,
+                                                            ),
+                                                            connection.$1,
+                                                          ),
+                                                    ),
+                                                    FItem(
+                                                      prefix: Icon(
+                                                        LucideIcons.pencil,
+                                                      ),
+                                                      title: Text('Edit'),
+                                                      onPress: () {},
+                                                    ),
+                                                    FItem(
+                                                      prefix: Icon(
+                                                        LucideIcons.trash,
+                                                      ),
+                                                      title: Text('Delete'),
+                                                      onPress: () {},
+                                                    ),
+                                                  ],
+                                                ),
+                                              ],
+                                              builder: (_, controller, _) =>
+                                                  FButton.icon(
+                                                    onPress: controller.toggle,
+                                                    child: Icon(
+                                                      LucideIcons.ellipsis,
+                                                    ),
+                                                  ),
+                                            ),
+                                          ],
+                                        ),
+                                        subtitle: Row(
+                                          children: [
+                                            Text(
+                                              connection.$1.username ??
+                                                  connection.$2?.username ??
+                                                  '<no user>',
+                                            ),
+                                          ],
                                         ),
                                       ),
-                                      FPopoverMenu(
-                                        menu: [
-                                          FItemGroup(
-                                            children: [
-                                              FItem(
-                                                prefix: Icon(
-                                                  LucideIcons.unplug,
-                                                ),
-                                                title: Text('Connect'),
-                                                onPress: () => ref
-                                                    .read(
-                                                      sessionProvider.notifier,
-                                                    )
-                                                    .createAndGo(
-                                                      NavigationShell.of(
-                                                        context,
-                                                      ),
-                                                      connection.$1,
-                                                    ),
-                                              ),
-                                              FItem(
-                                                prefix: Icon(
-                                                  LucideIcons.pencil,
-                                                ),
-                                                title: Text('Edit'),
-                                                onPress: () {},
-                                              ),
-                                              FItem(
-                                                prefix: Icon(LucideIcons.trash),
-                                                title: Text('Delete'),
-                                                onPress: () {},
-                                              ),
-                                            ],
-                                          ),
-                                        ],
-                                        builder: (_, controller, _) =>
-                                            FButton.icon(
-                                              onPress: controller.toggle,
-                                              child: Icon(LucideIcons.ellipsis),
-                                            ),
-                                      ),
-                                    ],
-                                  ),
-                                  subtitle: Row(
-                                    children: [
-                                      Text(
-                                        connection.$1.username ??
-                                            connection.$2?.username ??
-                                            '<no user>',
-                                      ),
-                                    ],
-                                  ),
+                                  ],
                                 ),
                             ],
                           ),
