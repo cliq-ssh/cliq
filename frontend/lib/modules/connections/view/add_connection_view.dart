@@ -5,6 +5,7 @@ import 'package:drift/drift.dart' hide Column;
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:forui/forui.dart';
+import 'package:forui_hooks/forui_hooks.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lucide_flutter/lucide_flutter.dart';
@@ -32,6 +33,7 @@ class _AddConnectionPageState extends ConsumerState<AddConnectionView> {
   @override
   Widget build(BuildContext context) {
     final labelController = useTextEditingController();
+    final groupController = useFAutocompleteController();
     final addressController = useTextEditingController();
     final portController = useTextEditingController();
     final usernameController = useTextEditingController();
@@ -40,6 +42,9 @@ class _AddConnectionPageState extends ConsumerState<AddConnectionView> {
     final pemPassphraseController = useTextEditingController();
 
     final labelPlaceholder = useState('');
+    final groups = useMemoizedFuture(() async {
+      return await CliqDatabase.connectionService.findAllGroupNamesDistinct();
+    }, []);
     final hasIdentities = useMemoizedFuture(() async {
       return await CliqDatabase.identityService.hasIdentities();
     }, []);
@@ -49,6 +54,17 @@ class _AddConnectionPageState extends ConsumerState<AddConnectionView> {
     buildForm() {
       return Column(
         children: [
+          Row(
+            mainAxisAlignment: .end,
+            children: [
+              FButton(
+                style: FButtonStyle.ghost(),
+                prefix: Icon(LucideIcons.x),
+                onPress: () => context.pop(),
+                child: Text('Close'),
+              ),
+            ],
+          ),
           Form(
             key: _formKey,
             child: Column(
@@ -59,6 +75,25 @@ class _AddConnectionPageState extends ConsumerState<AddConnectionView> {
                   control: .managed(controller: labelController),
                   label: Text('Label'),
                   hint: labelPlaceholder.value,
+                ),
+                FAutocomplete(
+                  control: .managed(controller: groupController),
+                  label: Text('Group'),
+                  clearable: (value) => value.text.isNotEmpty,
+                  contentEmptyBuilder: (_, _) => Padding(
+                    padding: const .symmetric(vertical: 12),
+                    child: groupController.text.isEmpty
+                        ? Text('No groups')
+                        : Text('Create group "${groupController.text}"'),
+                  ),
+                  contentErrorBuilder: (_, _, _) => Padding(
+                    padding: const .symmetric(vertical: 12),
+                    child: Text('Create group "${groupController.text}"'),
+                  ),
+                  items: groups.on(
+                    onData: (value) => value,
+                    onLoading: () => [],
+                  ),
                 ),
                 FTextFormField(
                   control: .managed(
@@ -192,6 +227,11 @@ class _AddConnectionPageState extends ConsumerState<AddConnectionView> {
                     label: Value.absentIfNull(
                       labelController.text.trim().isNotEmpty
                           ? labelController.text.trim()
+                          : null,
+                    ),
+                    groupName: Value.absentIfNull(
+                      groupController.text.trim().isNotEmpty
+                          ? groupController.text.trim()
                           : null,
                     ),
                     address: addressController.text.trim(),

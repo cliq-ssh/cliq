@@ -19,6 +19,12 @@ final class ConnectionService {
     this.identityService,
   );
 
+  Future<List<String>> findAllGroupNamesDistinct() async {
+    return await connectionRepository.db.findAllGroupNamesDistinct().get().then(
+      (groups) => groups.whereType<String>().toList(),
+    );
+  }
+
   Future<ConnectionFull?> findConnectionFullById(int id) async {
     return await connectionRepository.db
         .findFullConnectionById(id)
