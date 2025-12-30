@@ -5,6 +5,9 @@
 * [Auth Types](#auth-types)
   * [Local auth](#local-auth)
   * [OIDC](#oidc)
+    * [Roles](#roles)
+    * [Goal](#goal-1)
+    * [Overview](#overview)
 * [Description](#description)
   * [Requirements](#requirements)
   * [Backwards compatibility](#backwards-compatibility)
@@ -49,14 +52,44 @@ The end goal is that the frontend app will call this endpoint, store the API-Tok
 
 ## OIDC
 
+### Roles
+
+- **OIDC Provider (IdP)**
+    - Examples: Keycloak, Authentik, Google, etc.
+- **Backend (API)**
+    - OIDC Client
+    - Handles client secrets
+    - Handles SLO (Single-Logout)
+    - Exchanges authorization code for access token
+    - Issues session tokens
+- **Frontend (App)**
+    - Never sees OIDC Client secrets
+    - Never talks directly to the IdP
+    - Uses tokens issued by the backend
+
+### Goal
+
+The end goal is that a user can authenticate via OIDC and get a session token.
+If the user gets logged out by the IdP, the session token should be invalidated using SLO (Single-Logout).
+
+**Flow:**
+
+User -> App -> Backend -> IdP -> App
+
+### Overview
+
+If OIDC support is enabled, the user can authenticate using the configured OIDC provider.
+
 If OIDC support is enabled, the user can authenticate via OIDC.
 This will be done via the standard OIDC flow.
 
 The login gets handled by the frontend.
 The backend will only accept logged-in users.
 
-The end goal is that the frontend app will handle the OIDC login and send the OIDC token to the backend for
-authentication.
+The backend will initiate the OIDC flow and do everything necessary to authenticate the user.
+After that the IdP should redirect back to the app/frontend.
+
+We will have one endpoint that gives the app the information which IdP URL to use. (`/api/oauth/authorize`)
 
 # Description
 
