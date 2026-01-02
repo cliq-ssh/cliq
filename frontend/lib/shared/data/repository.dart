@@ -12,23 +12,6 @@ abstract class Repository<T extends Table, R> {
 
   TableInfo<T, R> get table;
 
-  Future<List<R>> findAll() {
-    _log.fine('Querying all rows');
-    return db.select<T, R>(table).get();
-  }
-
-  Future<R?> findById(int id) {
-    _log.fine('Querying row with id $id');
-    return (db.select(
-      table,
-    )..where((row) => _whereId(row, id))).getSingleOrNull();
-  }
-
-  Future<List<R>> findAllByIds(List<int> ids) {
-    _log.fine('Querying rows with ids $ids');
-    return (db.select(table)..where((row) => _whereIds(row, ids))).get();
-  }
-
   Future<int> insert(UpdateCompanion<R> row) {
     _log.fine('Inserting row: $row');
     return db.into(table).insert(row);
@@ -60,9 +43,6 @@ abstract class Repository<T extends Table, R> {
   }
 
   Expression<bool> _whereId(T row, int id) => _getIdColumn(row).equals(id);
-  Expression<bool> _whereIds(T row, List<int> ids) =>
-      _getIdColumn(row).isIn(ids);
-
   GeneratedColumn<Object> _getIdColumn(T row) {
     final idColumn = table.columnsByName['id'];
 
