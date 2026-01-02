@@ -139,7 +139,8 @@ class _ShellSessionPageState extends ConsumerState<ShellSessionPage>
         });
       }
 
-      final connectionFull = ref.read(connectionProvider.notifier)
+      final connectionFull = ref
+          .read(connectionProvider.notifier)
           .findById(widget.session.connection.id);
       if (connectionFull != null) openSsh(connectionFull);
       return () => widget.session.dispose();

@@ -17,17 +17,18 @@ final class ConnectionService {
   );
 
   Future<List<String>> findAllGroupNamesDistinct() async {
-    return await connectionRepository.db.findAllConnectionGroupNames().get().then(
-          (groups) => groups.whereType<String>().toList(),
-    );
+    return await connectionRepository.db
+        .findAllConnectionGroupNames()
+        .get()
+        .then((groups) => groups.whereType<String>().toList());
   }
 
   Stream<List<ConnectionFull>> watchConnectionFullAll() {
-    return connectionRepository.db
-        .findAllConnectionFull()
-        .watch()
-        .map((c) => c.map(ConnectionFull.fromResult).toList());
+    return connectionRepository.db.findAllConnectionFull().watch().map(
+      (c) => c.map(ConnectionFull.fromResult).toList(),
+    );
   }
 
-  Future<void> deleteConnectionById(int id) => connectionRepository.deleteById(id);
+  Future<void> deleteConnectionById(int id) =>
+      connectionRepository.deleteById(id);
 }

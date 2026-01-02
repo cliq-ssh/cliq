@@ -6,8 +6,6 @@ class AbstractEntityState<E> {
   const AbstractEntityState({required this.entities});
 
   AbstractEntityState<E> copyWith({List<E>? entities}) {
-    return AbstractEntityState<E>(
-      entities: entities ?? this.entities,
-    );
+    return AbstractEntityState<E>(entities: entities ?? this.entities);
   }
 }

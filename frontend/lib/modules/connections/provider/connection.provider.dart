@@ -11,11 +11,13 @@ final connectionProvider = NotifierProvider(ConnectionNotifier.new);
 
 typedef ConnectionEntityState = AbstractEntityState<ConnectionFull>;
 
-class ConnectionNotifier extends AbstractEntityNotifier<ConnectionFull, ConnectionEntityState> {
+class ConnectionNotifier
+    extends AbstractEntityNotifier<ConnectionFull, ConnectionEntityState> {
   @override
   ConnectionEntityState buildInitialState() => .initial();
   @override
-  Stream<List<ConnectionFull>> get entityStream => CliqDatabase.connectionService.watchConnectionFullAll();
+  Stream<List<ConnectionFull>> get entityStream =>
+      CliqDatabase.connectionService.watchConnectionFullAll();
 
   ConnectionFull? findById(int id) {
     for (final connection in state.entities) {

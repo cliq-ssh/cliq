@@ -5,7 +5,8 @@ import 'package:logging/logging.dart';
 
 import 'abstract_entity.state.dart';
 
-abstract class AbstractEntityNotifier<E, S> extends Notifier<AbstractEntityState<E>> {
+abstract class AbstractEntityNotifier<E, S>
+    extends Notifier<AbstractEntityState<E>> {
   Logger get _log => Logger('Notifier[$E]');
   StreamSubscription<List<E>>? _sub;
 

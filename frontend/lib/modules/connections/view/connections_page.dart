@@ -131,7 +131,8 @@ class _ConnectionsPageState extends ConsumerState<ConnectionsPage> {
                         child: Column(
                           spacing: 16,
                           children: [
-                            for (final group in groupedConnections.value.entries)
+                            for (final group
+                                in groupedConnections.value.entries)
                               Column(
                                 spacing: 8,
                                 crossAxisAlignment: .start,

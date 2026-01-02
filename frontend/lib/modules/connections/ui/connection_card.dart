@@ -12,10 +12,7 @@ import '../../session/provider/session.provider.dart';
 class ConnectionCard extends HookConsumerWidget {
   final ConnectionFull connection;
 
-  const ConnectionCard({
-    super.key,
-    required this.connection,
-  });
+  const ConnectionCard({super.key, required this.connection});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -95,7 +92,8 @@ class ConnectionCard extends HookConsumerWidget {
                             style: FButtonStyle.destructive(),
                             child: const Text('Delete'),
                             onPress: () {
-                              CliqDatabase.connectionService.deleteConnectionById(connection.id);
+                              CliqDatabase.connectionService
+                                  .deleteConnectionById(connection.id);
                               Navigator.of(context).pop();
                             },
                           ),
