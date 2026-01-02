@@ -1,5 +1,7 @@
 import 'package:cliq/modules/connections/model/connection_full.model.dart';
 import 'package:cliq/shared/data/database.dart';
+import 'package:cliq/shared/utils/commons.dart';
+import 'package:cliq_ui/cliq_ui.dart' show useBreakpoint;
 import 'package:flutter/material.dart';
 import 'package:forui/forui.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -8,6 +10,7 @@ import 'package:lucide_flutter/lucide_flutter.dart';
 import '../../../shared/ui/navigation_shell.dart';
 import '../../../shared/extensions/color.extension.dart';
 import '../../session/provider/session.provider.dart';
+import '../view/create_or_edit_connection_view.dart';
 
 class ConnectionCard extends HookConsumerWidget {
   final ConnectionFull connection;
@@ -16,6 +19,8 @@ class ConnectionCard extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final breakpoint = useBreakpoint();
+
     return FCard(
       title: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -65,9 +70,11 @@ class ConnectionCard extends HookConsumerWidget {
                   FItem(
                     prefix: Icon(LucideIcons.pencil),
                     title: Text('Edit'),
-                    onPress: () {
-                      // TODO: implement edit
-                    },
+                    onPress: () => Commons.showResponsiveDialog(
+                      context,
+                      breakpoint,
+                      (_) => CreateOrEditConnectionView.edit(connection),
+                    ),
                   ),
                   FItem(
                     prefix: Icon(LucideIcons.trash),

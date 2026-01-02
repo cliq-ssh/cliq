@@ -2,12 +2,7 @@ import 'package:cliq/modules/connections/model/connection_full.model.dart';
 import 'package:cliq/modules/connections/provider/connection.provider.dart';
 import 'package:cliq/modules/connections/ui/connection_card.dart';
 import 'package:cliq_ui/cliq_ui.dart'
-    show
-        CliqGridColumn,
-        CliqGridContainer,
-        CliqGridRow,
-        useBreakpoint,
-        Breakpoint;
+    show CliqGridColumn, CliqGridContainer, CliqGridRow, useBreakpoint;
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:forui/forui.dart';
@@ -15,7 +10,8 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lucide_flutter/lucide_flutter.dart';
 
 import '../../../shared/model/page_path.model.dart';
-import 'add_connection_view.dart';
+import '../../../shared/utils/commons.dart';
+import 'create_or_edit_connection_view.dart';
 
 class ConnectionsPage extends StatefulHookConsumerWidget {
   static const PagePathBuilder pagePath = PagePathBuilder('/');
@@ -47,23 +43,11 @@ class _ConnectionsPageState extends ConsumerState<ConnectionsPage> {
       return null;
     }, [connections]);
 
-    openAddHostsView() {
-      if (breakpoint.index >= Breakpoint.md.index) {
-        showFSheet(
-          context: context,
-          side: FLayout.rtl,
-          builder: (_) => AddConnectionView(),
-        );
-        return;
-      }
-
-      Navigator.of(context).push(
-        MaterialPageRoute(
-          builder: (_) => AddConnectionView(),
-          fullscreenDialog: true,
-        ),
-      );
-    }
+    openAddHostsView() => Commons.showResponsiveDialog(
+      context,
+      breakpoint,
+      (_) => CreateOrEditConnectionView.create(),
+    );
 
     buildNoHosts() {
       return CliqGridContainer(

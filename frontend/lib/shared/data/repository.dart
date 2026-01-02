@@ -4,7 +4,7 @@ import 'package:logging/logging.dart';
 import 'database.dart';
 
 abstract class Repository<T extends Table, R> {
-  late final Logger _log = Logger('Repository[${table.actualTableName}]');
+  late final Logger _log = Logger('Repository[$R]');
 
   final CliqDatabase db;
 
@@ -13,32 +13,36 @@ abstract class Repository<T extends Table, R> {
   TableInfo<T, R> get table;
 
   Future<int> insert(UpdateCompanion<R> row) {
-    _log.fine('Inserting row: $row');
-    return db.into(table).insert(row);
+    return db.into(table).insert(row).then((id) {
+      _log.finest('Inserted row with id $id');
+      return id;
+    });
   }
 
   Future<void> insertAll(List<UpdateCompanion<R>> rows) {
-    _log.fine('Inserting ${rows.length} rows: ${rows.join(', ')}');
+    _log.finest('Inserting ${rows.length} rows');
     return db.batch((batch) => batch.insertAll(table, rows));
   }
 
   Future<int> update(UpdateCompanion<R> row) {
-    _log.fine('Updating row: $row');
-    return db.update(table).write(row);
+    return db.update(table).write(row).then((count) {
+      _log.finest('Updated $count rows');
+      return count;
+    });
   }
 
   Future<void> deleteById(int id) {
-    _log.fine('Deleting row with id $id');
+    _log.finest('Deleting row with id $id');
     return (db.delete(table)..where((row) => _whereId(row, id))).go();
   }
 
   Future<void> deleteAll() {
-    _log.fine('Deleting all rows');
+    _log.finest('Deleting all rows');
     return db.delete(table).go();
   }
 
   Future<int> count({Expression<bool> Function(T)? where}) async {
-    _log.fine('Counting all rows');
+    _log.finest('Counting all rows');
     return await table.count(where: where).getSingle();
   }
 
