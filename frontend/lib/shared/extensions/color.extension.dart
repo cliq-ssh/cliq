@@ -5,7 +5,8 @@ extension ColorExtension on Color {
     return '#${[a, r, g, b].map((c) => (c * 255).round().toRadixString(16).padLeft(2, '0')).join()}';
   }
 
-  static Color? fromHex(String hex) {
+  static Color? fromHex(String? hex) {
+    if (hex == null) return null;
     hex = hex.replaceFirst('#', '');
     if (hex.length == 6) {
       hex = 'FF$hex'; // add alpha if not provided

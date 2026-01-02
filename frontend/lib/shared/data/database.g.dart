@@ -1184,7 +1184,7 @@ abstract class _$CliqDatabase extends GeneratedDatabase {
     );
   }
 
-  Selectable<String?> findAllGroupNamesDistinct() {
+  Selectable<String?> findAllConnectionGroupNames() {
     return customSelect(
       'SELECT DISTINCT group_name FROM connections WHERE group_name IS NOT NULL AND group_name != \'\' ORDER BY group_name ASC',
       variables: [],
@@ -1192,20 +1192,20 @@ abstract class _$CliqDatabase extends GeneratedDatabase {
     ).map((QueryRow row) => row.readNullable<String>('group_name'));
   }
 
-  Selectable<FindFullConnectionByIdResult> findFullConnectionById(int id) {
+  Selectable<FindAllConnectionFullResult> findAllConnectionFull() {
     return customSelect(
-      'SELECT con.id AS connection_id, con.address, con.port, con.identity_id, con.username AS connection_username, con.credential_id AS connection_credential_id, con.label, con.icon, con.color, con.group_name, i.id AS identity_id, i.username AS identity_username, i.credential_id AS identity_credential_id, ci.id AS identity_credential_id_explicit, ci.type AS identity_credential_type, ci.data AS identity_credential_data, ci.passphrase AS identity_credential_passphrase, cc.id AS connection_credential_id_explicit, cc.type AS connection_credential_type, cc.data AS connection_credential_data, cc.passphrase AS connection_credential_passphrase, COALESCE(ci.id, cc.id) AS effective_credential_id, COALESCE(ci.type, cc.type) AS effective_credential_type, COALESCE(ci.data, cc.data) AS effective_credential_data FROM connections AS con LEFT JOIN identities AS i ON i.id = con.identity_id LEFT JOIN credentials AS ci ON ci.id = i.credential_id LEFT JOIN credentials AS cc ON cc.id = con.credential_id WHERE con.id = ?1',
-      variables: [Variable<int>(id)],
+      'SELECT con.id AS connection_id, con.address, con.port, con.identity_id, con.username AS connection_username, con.credential_id AS connection_credential_ref_id, con.label, con.icon, con.color, con.group_name, i.id AS identity_id, i.username AS identity_username, i.credential_id AS identity_credential_ref_id, ci.id AS identity_credential_id_explicit, ci.type AS identity_credential_type, ci.data AS identity_credential_data, ci.passphrase AS identity_credential_passphrase, cc.id AS connection_credential_id_explicit, cc.type AS connection_credential_type, cc.data AS connection_credential_data, cc.passphrase AS connection_credential_passphrase, COALESCE(ci.id, cc.id) AS effective_credential_id, COALESCE(ci.type, cc.type) AS effective_credential_type, COALESCE(ci.data, cc.data) AS effective_credential_data, COALESCE(ci.passphrase, cc.passphrase) AS effective_credential_passphrase FROM connections AS con LEFT JOIN identities AS i ON i.id = con.identity_id LEFT JOIN credentials AS ci ON ci.id = i.credential_id LEFT JOIN credentials AS cc ON cc.id = con.credential_id ORDER BY con.id',
+      variables: [],
       readsFrom: {connections, identities, credentials},
     ).map(
-      (QueryRow row) => FindFullConnectionByIdResult(
+      (QueryRow row) => FindAllConnectionFullResult(
         connectionId: row.read<int>('connection_id'),
         address: row.read<String>('address'),
         port: row.read<int>('port'),
         identityId: row.readNullable<int>('identity_id'),
         connectionUsername: row.readNullable<String>('connection_username'),
-        connectionCredentialId: row.readNullable<int>(
-          'connection_credential_id',
+        connectionCredentialRefId: row.readNullable<int>(
+          'connection_credential_ref_id',
         ),
         label: row.readNullable<String>('label'),
         icon: Connections.$convertericon.fromSql(row.read<int>('icon')),
@@ -1213,7 +1213,9 @@ abstract class _$CliqDatabase extends GeneratedDatabase {
         groupName: row.readNullable<String>('group_name'),
         identityId1: row.readNullable<int>('identity_id'),
         identityUsername: row.readNullable<String>('identity_username'),
-        identityCredentialId: row.readNullable<int>('identity_credential_id'),
+        identityCredentialRefId: row.readNullable<int>(
+          'identity_credential_ref_id',
+        ),
         identityCredentialIdExplicit: row.readNullable<int>(
           'identity_credential_id_explicit',
         ),
@@ -1248,7 +1250,19 @@ abstract class _$CliqDatabase extends GeneratedDatabase {
         effectiveCredentialData: row.readNullable<String>(
           'effective_credential_data',
         ),
+        effectiveCredentialPassphrase: row.readNullable<String>(
+          'effective_credential_passphrase',
+        ),
       ),
+    );
+  }
+
+  Future<int> deleteConnectionById(int id) {
+    return customUpdate(
+      'DELETE FROM connections WHERE id = ?1',
+      variables: [Variable<int>(id)],
+      updates: {connections},
+      updateKind: UpdateKind.delete,
     );
   }
 
@@ -2549,20 +2563,20 @@ class FindFullIdentityByIdResult {
   });
 }
 
-class FindFullConnectionByIdResult {
+class FindAllConnectionFullResult {
   final int connectionId;
   final String address;
   final int port;
   final int? identityId;
   final String? connectionUsername;
-  final int? connectionCredentialId;
+  final int? connectionCredentialRefId;
   final String? label;
   final ConnectionIcon icon;
   final String? color;
   final String? groupName;
   final int? identityId1;
   final String? identityUsername;
-  final int? identityCredentialId;
+  final int? identityCredentialRefId;
   final int? identityCredentialIdExplicit;
   final CredentialType? identityCredentialType;
   final String? identityCredentialData;
@@ -2574,20 +2588,21 @@ class FindFullConnectionByIdResult {
   final int? effectiveCredentialId;
   final CredentialType? effectiveCredentialType;
   final String? effectiveCredentialData;
-  FindFullConnectionByIdResult({
+  final String? effectiveCredentialPassphrase;
+  FindAllConnectionFullResult({
     required this.connectionId,
     required this.address,
     required this.port,
     this.identityId,
     this.connectionUsername,
-    this.connectionCredentialId,
+    this.connectionCredentialRefId,
     this.label,
     required this.icon,
     this.color,
     this.groupName,
     this.identityId1,
     this.identityUsername,
-    this.identityCredentialId,
+    this.identityCredentialRefId,
     this.identityCredentialIdExplicit,
     this.identityCredentialType,
     this.identityCredentialData,
@@ -2599,5 +2614,6 @@ class FindFullConnectionByIdResult {
     this.effectiveCredentialId,
     this.effectiveCredentialType,
     this.effectiveCredentialData,
+    this.effectiveCredentialPassphrase,
   });
 }

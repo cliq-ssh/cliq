@@ -1,26 +1,25 @@
+import 'package:cliq/modules/connections/model/connection_full.model.dart';
+import 'package:cliq/shared/data/database.dart';
+import 'package:cliq/shared/utils/commons.dart';
+import 'package:cliq_ui/cliq_ui.dart' show useBreakpoint;
 import 'package:flutter/material.dart';
 import 'package:forui/forui.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lucide_flutter/lucide_flutter.dart';
 
-import '../../../shared/data/database.dart';
 import '../../../shared/ui/navigation_shell.dart';
 import '../../../shared/extensions/color.extension.dart';
 import '../../session/provider/session.provider.dart';
+import '../view/create_or_edit_connection_view.dart';
 
 class ConnectionCard extends HookConsumerWidget {
-  final Connection connection;
-  final Identity? identity;
+  final ConnectionFull connection;
 
-  const ConnectionCard({
-    super.key,
-    required this.connection,
-    required this.identity,
-  });
+  const ConnectionCard({super.key, required this.connection});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final username = connection.username ?? identity?.username;
+    final breakpoint = useBreakpoint();
 
     return FCard(
       title: Row(
@@ -45,14 +44,13 @@ class ConnectionCard extends HookConsumerWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(connection.label ?? connection.address),
-                    if (username != null)
-                      Text(
-                        username,
-                        style: context.theme.typography.xs.copyWith(
-                          color: context.theme.colors.mutedForeground,
-                          fontWeight: .normal,
-                        ),
+                    Text(
+                      connection.effectiveUsername,
+                      style: context.theme.typography.xs.copyWith(
+                        color: context.theme.colors.mutedForeground,
+                        fontWeight: .normal,
                       ),
+                    ),
                   ],
                 ),
               ],
@@ -72,12 +70,43 @@ class ConnectionCard extends HookConsumerWidget {
                   FItem(
                     prefix: Icon(LucideIcons.pencil),
                     title: Text('Edit'),
-                    onPress: () {},
+                    onPress: () => Commons.showResponsiveDialog(
+                      context,
+                      breakpoint,
+                      (_) => CreateOrEditConnectionView.edit(connection),
+                    ),
                   ),
                   FItem(
                     prefix: Icon(LucideIcons.trash),
                     title: Text('Delete'),
-                    onPress: () {},
+                    onPress: () => showFDialog(
+                      context: context,
+                      builder: (context, style, animation) => FDialog(
+                        style: style.call,
+                        animation: animation,
+                        direction: Axis.horizontal,
+                        title: const Text('Are you sure?'),
+                        body: Text(
+                          'Are you sure you want to delete ${connection.label}? This action cannot be undone.',
+                        ),
+                        actions: [
+                          FButton(
+                            style: FButtonStyle.outline(),
+                            child: const Text('Cancel'),
+                            onPress: () => Navigator.of(context).pop(),
+                          ),
+                          FButton(
+                            style: FButtonStyle.destructive(),
+                            child: const Text('Delete'),
+                            onPress: () {
+                              CliqDatabase.connectionService
+                                  .deleteConnectionById(connection.id);
+                              Navigator.of(context).pop();
+                            },
+                          ),
+                        ],
+                      ),
+                    ),
                   ),
                 ],
               ),
