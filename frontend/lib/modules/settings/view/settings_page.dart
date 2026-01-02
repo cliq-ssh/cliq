@@ -4,6 +4,7 @@ import 'package:cliq/modules/settings/view/sync_settings_page.dart';
 import 'package:cliq/modules/settings/view/terminal_theme_settings_page.dart';
 import 'package:cliq/modules/settings/view/theme_settings_page.dart';
 import 'package:cliq/shared/extensions/router.extension.dart';
+import 'package:cliq/shared/utils/commons.dart';
 import 'package:flutter/foundation.dart';
 import 'package:forui/forui.dart';
 import 'package:go_router/go_router.dart';
@@ -119,6 +120,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                               prefix: Icon(LucideIcons.github),
                               suffix: Icon(LucideIcons.externalLink),
                               title: Text('GitHub'),
+                              onPress: () => Commons.launchGitHubUrl(),
                             ),
                           ],
                         ),
