@@ -1,13 +1,12 @@
 import '../../../shared/data/database.dart';
 
-class IdentityFull {
-  final int id;
-  final String username;
-  final Credential credential;
+class IdentityFull extends Identity {
+  final Credential? credential;
 
   const IdentityFull({
-    required this.id,
-    required this.username,
-    required this.credential,
+    required super.id,
+    required super.username,
+    required super.credentialId,
+    this.credential,
   });
 }

@@ -1,3 +1,5 @@
+import 'package:cliq/modules/connections/model/connection_full.model.dart';
+import 'package:cliq/modules/connections/provider/connection.provider.dart';
 import 'package:cliq/modules/connections/ui/connection_card.dart';
 import 'package:cliq_ui/cliq_ui.dart'
     show
@@ -12,7 +14,6 @@ import 'package:forui/forui.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lucide_flutter/lucide_flutter.dart';
 
-import '../../../shared/data/database.dart';
 import '../../../shared/model/page_path.model.dart';
 import 'add_connection_view.dart';
 
@@ -30,26 +31,21 @@ class _ConnectionsPageState extends ConsumerState<ConnectionsPage> {
   @override
   Widget build(BuildContext context) {
     final typography = context.theme.typography;
-    final connections = useState<Map<String, List<(Connection, Identity?)>>>(
-      {},
-    );
+    final connections = ref.watch(connectionProvider);
+    final groupedConnections = useState<Map<String, List<ConnectionFull>>>({});
     final breakpoint = useBreakpoint();
 
-    // Fetch connections from database
     useEffect(() {
-      Future.microtask(() async {
-        final result = await CliqDatabase.connectionService
-            .findAllWithIdentities();
-        final groupedConnections = <String, List<(Connection, Identity?)>>{};
-        for (final c in result) {
-          final groupName = c.$1.groupName ?? 'Ungrouped';
-          groupedConnections.putIfAbsent(groupName, () => []);
-          groupedConnections[groupName]!.add(c);
-        }
-        connections.value = groupedConnections;
-      });
+      final Map<String, List<ConnectionFull>> grouped = {};
+      for (final connection in connections.entities) {
+        final group = connection.groupName ?? 'Ungrouped';
+        grouped.putIfAbsent(group, () => []);
+        grouped[group]!.add(connection);
+      }
+      groupedConnections.value = grouped;
+
       return null;
-    }, []);
+    }, [connections]);
 
     openAddHostsView() {
       if (breakpoint.index >= Breakpoint.md.index) {
@@ -107,7 +103,7 @@ class _ConnectionsPageState extends ConsumerState<ConnectionsPage> {
     }
 
     return FScaffold(
-      child: connections.value.isEmpty
+      child: connections.entities.isEmpty
           ? buildNoHosts()
           : SingleChildScrollView(
               padding: EdgeInsets.only(bottom: 80),
@@ -135,7 +131,7 @@ class _ConnectionsPageState extends ConsumerState<ConnectionsPage> {
                         child: Column(
                           spacing: 16,
                           children: [
-                            for (final group in connections.value.entries)
+                            for (final group in groupedConnections.value.entries)
                               Column(
                                 spacing: 8,
                                 crossAxisAlignment: .start,
@@ -146,8 +142,8 @@ class _ConnectionsPageState extends ConsumerState<ConnectionsPage> {
                                       fontWeight: FontWeight.bold,
                                     ),
                                   ),
-                                  for (final (c, i) in group.value)
-                                    ConnectionCard(connection: c, identity: i),
+                                  for (final cf in group.value)
+                                    ConnectionCard(connection: cf),
                                 ],
                               ),
                           ],

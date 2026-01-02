@@ -1,4 +1,5 @@
 import 'package:cliq/modules/connections/extension/connection.extension.dart';
+import 'package:cliq/modules/connections/provider/connection.provider.dart';
 import 'package:cliq/shared/ui/session_tab.dart';
 import 'package:cliq_term/cliq_term.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
@@ -9,7 +10,6 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
-import '../data/database.dart';
 import '../../modules/session/provider/session.provider.dart';
 import '../../modules/settings/view/settings_page.dart';
 import '../extensions/router.extension.dart';
@@ -30,7 +30,7 @@ class NavigationShellState extends ConsumerState<NavigationShell>
     with TickerProviderStateMixin {
   @override
   Widget build(BuildContext context) {
-    final connections = useState<List<Connection>>([]);
+    final connections = ref.watch(connectionProvider);
     final sessions = ref.watch(sessionProvider);
     final selectedSession = useState(sessions.selectedSession);
     final popoverController = useFPopoverController(vsync: this);
@@ -39,13 +39,6 @@ class NavigationShellState extends ConsumerState<NavigationShell>
       selectedSession.value = sessions.selectedSession;
       return null;
     }, [sessions, sessions.selectedSessionId]);
-
-    useEffect(() {
-      CliqDatabase.connectionsRepository.findAll().then(
-        (data) => connections.value = data,
-      );
-      return null;
-    }, []);
 
     return FScaffold(
       childPad: false,
@@ -85,7 +78,7 @@ class NavigationShellState extends ConsumerState<NavigationShell>
                         menu: [
                           FItemGroup(
                             children: [
-                              for (final connection in connections.value)
+                              for (final connection in connections.entities)
                                 FItem(
                                   title: Text(connection.effectiveName),
                                   onPress: () {
