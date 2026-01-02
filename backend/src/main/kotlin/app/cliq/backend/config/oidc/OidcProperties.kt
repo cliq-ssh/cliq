@@ -7,4 +7,6 @@ class OidcProperties(
     var enabled: Boolean = false,
     var issuerUri: String? = null,
     var clientId: String? = null,
+    var clientSecret: String? = null,
+    var scopes: List<String> = listOf("openid", "profile", "email"),
 )

@@ -1,7 +1,7 @@
 package app.cliq.backend.user
 
 import app.cliq.backend.user.factory.UserFactory
-import org.springframework.security.oauth2.jwt.Jwt
+import org.springframework.security.oauth2.core.oidc.user.OidcUser
 import org.springframework.stereotype.Service
 
 @Service
@@ -9,49 +9,36 @@ class UserOidcService(
     private val userRepository: UserRepository,
     private val userFactory: UserFactory,
 ) {
-    fun putUserFromJwt(
-        jwt: Jwt,
-        email: String,
-    ): User {
-        val sub = jwt.subject
+    fun putUserFromJwt(oidcUser: OidcUser): User {
+        val sub = oidcUser.subject
         var user = userRepository.findUserByOidcSub(sub)
-        user = user ?: linkOrCreateUser(jwt, email)
+        user = user ?: linkOrCreateUser(oidcUser)
 
         return userRepository.save(user)
     }
 
-    private fun linkOrCreateUser(
-        jwt: Jwt,
-        email: String,
-    ): User {
-        val user = userRepository.findUserByEmail(email)
-        return when (user) {
+    private fun linkOrCreateUser(oidcUser: OidcUser): User {
+        return when (val user = userRepository.findUserByEmail(oidcUser.email)) {
             null -> {
-                createOidcUser(jwt, email)
+                createOidcUser(oidcUser)
             }
 
             else -> {
-                linkUser(jwt, user)
+                linkUser(oidcUser, user)
                 user
             }
         }
     }
 
-    private fun linkUser(
-        jwt: Jwt,
-        user: User,
-    ) {
-        user.oidcSub = jwt.subject
+    private fun linkUser(oidcUser: OidcUser, user: User) {
+        user.oidcSub = oidcUser.subject
     }
 
-    private fun createOidcUser(
-        jwt: Jwt,
-        email: String,
-    ): User {
-        val name = jwt.getClaimAsString("name") ?: jwt.getClaimAsString("preferred_username")
+    private fun createOidcUser(oidcUser: OidcUser): User {
+        val name = oidcUser.preferredUsername
         return userFactory.createOidcUser(
-            email = email,
-            sub = jwt.subject,
+            email = oidcUser.email,
+            sub = oidcUser.subject,
             name = name,
         )
     }

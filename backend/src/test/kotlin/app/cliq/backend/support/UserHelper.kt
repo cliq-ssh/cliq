@@ -2,7 +2,7 @@ package app.cliq.backend.support
 
 import app.cliq.backend.session.Session
 import app.cliq.backend.session.SessionRepository
-import app.cliq.backend.session.factory.SessionFactory
+import app.cliq.backend.session.SessionFactory
 import app.cliq.backend.session.params.SessionCreationParams
 import app.cliq.backend.user.User
 import app.cliq.backend.user.UserRepository

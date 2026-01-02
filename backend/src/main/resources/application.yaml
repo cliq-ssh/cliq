@@ -4,6 +4,7 @@ app:
     name: ${rootProject.name}
     version: ${version}
     description: ${description}
+    environment: \${ENVIRONMENT:production}
   email:
     enabled: \${MAIL_ENABLED}
     from-address: \${MAIL_FROM}
@@ -12,13 +13,21 @@ app:
     enabled: \${OIDC_ENABLED:false}
     issuer-uri: \${OIDC_ISSUER_URI}
     client-id: \${OIDC_CLIENT_ID}
+    client-secret: \${OIDC_CLIENT_SECRET}
+    scopes: \${OIDC_SCOPES:openid,profile,email}
 
 spring:
   security:
     oauth2:
-      resourceserver:
-        jwt:
-          issuer-uri: \${app.oidc.issuer-uri}
+      client:
+        registration:
+          oidc:
+            client-id: \${app.oidc.client-id}
+            client-secret: \${app.oidc.client-secret}
+            scope: \${app.oidc.scopes}
+        provider:
+          oidc:
+            issuer-uri: \${app.oidc.issuer-uri}
   config:
     import: optional:file:.env[.properties],optional:file:.env.local[.properties]
   jpa:
@@ -63,8 +72,10 @@ springdoc:
     disable-swagger-default-url: true
     oauth:
       use-pkce-with-authorization-code-grant: true
+    oauth2-redirect-url: /api/swagger-ui/oauth2-redirect.html
   default-consumes-media-type: application/json
   default-produces-media-type: application/json
+  show-actuator: true
 
 management:
   health:

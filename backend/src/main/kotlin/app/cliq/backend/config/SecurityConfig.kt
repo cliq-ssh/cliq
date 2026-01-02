@@ -2,7 +2,7 @@ package app.cliq.backend.config
 
 import app.cliq.backend.config.oidc.OidcProperties
 import app.cliq.backend.config.security.apikey.ApiKeyAuthenticationConfigurer
-import app.cliq.backend.config.security.oidc.OidcAuthenticationConverter
+import app.cliq.backend.config.security.oidc.OidcLoginSuccessHandler
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.context.annotation.Lazy
@@ -22,14 +22,28 @@ const val ITERATIONS = 3
 @EnableMethodSecurity
 @Configuration
 class SecurityConfig(
-    @Lazy
-    private val oidcJwtAuthenticationConverter: OidcAuthenticationConverter,
     private val apiKeyAuthenticationConfigurer: ApiKeyAuthenticationConfigurer,
     private val oidcProperties: OidcProperties,
+    @Lazy
+    private val oidcLoginSuccessHandler: OidcLoginSuccessHandler
 ) {
     @Bean
     fun passwordEncoder(): PasswordEncoder =
         Argon2PasswordEncoder(SALT_LENGTH, HASH_LENGTH, PARALLELISM, MEMORY, ITERATIONS)
+
+    @Bean
+    fun oidcFilterChain(http: HttpSecurity): SecurityFilterChain? {
+        if (!oidcProperties.enabled) {
+            return null
+        }
+
+        return http
+            .securityMatcher("/oauth2/**", "/login/oauth2/**")
+            .oauth2Login {
+                it.successHandler(oidcLoginSuccessHandler)
+            }
+            .build()
+    }
 
     // TODO:
     //  - access denied handler
@@ -37,19 +51,12 @@ class SecurityConfig(
     @Bean
     fun securityFilterChain(http: HttpSecurity): SecurityFilterChain {
         http
+            .securityMatcher("/api/**")
             .csrf { it.disable() }
             .formLogin { it.disable() }
             .httpBasic { it.disable() }
             .sessionManagement { it.sessionCreationPolicy(SessionCreationPolicy.STATELESS) }
             .with(apiKeyAuthenticationConfigurer)
-
-        if (oidcProperties.enabled) {
-            http.oauth2ResourceServer { oauth2 ->
-                oauth2.jwt { jwt ->
-                    jwt.jwtAuthenticationConverter(oidcJwtAuthenticationConverter)
-                }
-            }
-        }
 
         return http.build()
     }

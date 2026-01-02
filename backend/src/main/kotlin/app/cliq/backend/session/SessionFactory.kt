@@ -1,7 +1,5 @@
-package app.cliq.backend.session.factory
+package app.cliq.backend.session
 
-import app.cliq.backend.session.Session
-import app.cliq.backend.session.SessionRepository
 import app.cliq.backend.session.params.SessionCreationParams
 import app.cliq.backend.shared.TokenGenerator
 import app.cliq.backend.user.User
@@ -21,6 +19,13 @@ class SessionFactory(
     ): Session {
         val session = createSession(user, params.name, params.userAgent)
 
+        sessionRepository.saveAndFlush(session)
+
+        return session
+    }
+
+    fun createFromOidcUser(user: User): Session {
+        val session = createSession(user)
         sessionRepository.saveAndFlush(session)
 
         return session
