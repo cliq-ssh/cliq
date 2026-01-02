@@ -216,7 +216,7 @@ class CreateOrEditConnectionView extends HookConsumerWidget {
 
     return FScaffold(
       child: SingleChildScrollView(
-        padding: const EdgeInsets.symmetric(horizontal: 32),
+        padding: const .symmetric(horizontal: 32),
         child: Column(
           children: [
             Row(
@@ -270,45 +270,50 @@ class CreateOrEditConnectionView extends HookConsumerWidget {
                     items: groups.on(onData: (v) => v, onLoading: () => []),
                   ),
 
-                  if (selectedIcon.value.brandColor != null)
-                    Wrap(
-                      spacing: 8,
-                      runSpacing: 8,
-                      children: [
-                        buildColorSwatch(
-                          selectedIcon.value.brandColor!,
-                          child: Icon(
-                            selectedIcon.value.iconData,
-                            color: context.theme.colors.foreground,
-                          ),
-                        ),
-                      ],
-                    ),
-
-                  Wrap(
+                  Column(
                     spacing: 8,
-                    runSpacing: 8,
                     children: [
-                      for (final c in ConnectionColor.values)
-                        buildColorSwatch(c.color),
-                    ],
-                  ),
-
-                  Wrap(
-                    spacing: 8,
-                    runSpacing: 8,
-                    children: [
-                      for (final icon in ConnectionIcon.values)
-                        FTooltip(
-                          tipBuilder: (_, _) => Text(icon.name),
-                          child: FButton.icon(
-                            style: icon == selectedIcon.value
-                                ? FButtonStyle.primary()
-                                : FButtonStyle.ghost(),
-                            onPress: () => selectedIcon.value = icon,
-                            child: Icon(icon.iconData),
-                          ),
+                      if (selectedIcon.value.brandColor != null)
+                        Wrap(
+                          spacing: 8,
+                          runSpacing: 8,
+                          children: [
+                            buildColorSwatch(
+                              selectedIcon.value.brandColor!,
+                              child: Icon(
+                                selectedIcon.value.iconData,
+                                color: context.theme.colors.foreground,
+                              ),
+                            ),
+                          ],
                         ),
+
+                      Wrap(
+                        spacing: 8,
+                        runSpacing: 8,
+                        children: [
+                          for (final c in ConnectionColor.values)
+                            buildColorSwatch(c.color),
+                        ],
+                      ),
+
+                      Wrap(
+                        spacing: 8,
+                        runSpacing: 8,
+                        children: [
+                          for (final icon in ConnectionIcon.values)
+                            FTooltip(
+                              tipBuilder: (_, _) => Text(icon.name),
+                              child: FButton.icon(
+                                style: icon == selectedIcon.value
+                                    ? FButtonStyle.primary()
+                                    : FButtonStyle.ghost(),
+                                onPress: () => selectedIcon.value = icon,
+                                child: Icon(icon.iconData),
+                              ),
+                            ),
+                        ],
+                      ),
                     ],
                   ),
 
