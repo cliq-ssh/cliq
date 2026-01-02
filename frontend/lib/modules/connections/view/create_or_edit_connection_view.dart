@@ -86,8 +86,6 @@ class CreateOrEditConnectionView extends HookConsumerWidget {
       text: currentPemPassphrase,
     );
 
-    // TODO: save icon color
-
     final selectedIcon = useState<ConnectionIcon>(
       currentIcon ?? ConnectionIcon.linux,
     );
@@ -282,13 +280,6 @@ class CreateOrEditConnectionView extends HookConsumerWidget {
                           child: Icon(
                             selectedIcon.value.iconData,
                             color: context.theme.colors.foreground,
-                          ),
-                        ),
-                        buildColorSwatch(
-                          context.theme.colors.foreground,
-                          child: Icon(
-                            selectedIcon.value.iconData,
-                            color: selectedIcon.value.brandColor!,
                           ),
                         ),
                       ],
