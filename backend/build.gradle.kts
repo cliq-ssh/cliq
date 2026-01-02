@@ -99,7 +99,6 @@ dependencies {
     // Security
     implementation("org.springframework.boot:spring-boot-starter-security")
     // OIDC
-    implementation("org.springframework.boot:spring-boot-starter-oauth2-resource-server")
     implementation("org.springframework.boot:spring-boot-starter-oauth2-client")
 
     // Local auth

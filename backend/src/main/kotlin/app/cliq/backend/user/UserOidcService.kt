@@ -17,8 +17,8 @@ class UserOidcService(
         return userRepository.save(user)
     }
 
-    private fun linkOrCreateUser(oidcUser: OidcUser): User {
-        return when (val user = userRepository.findUserByEmail(oidcUser.email)) {
+    private fun linkOrCreateUser(oidcUser: OidcUser): User =
+        when (val user = userRepository.findUserByEmail(oidcUser.email)) {
             null -> {
                 createOidcUser(oidcUser)
             }
@@ -28,9 +28,11 @@ class UserOidcService(
                 user
             }
         }
-    }
 
-    private fun linkUser(oidcUser: OidcUser, user: User) {
+    private fun linkUser(
+        oidcUser: OidcUser,
+        user: User,
+    ) {
         user.oidcSub = oidcUser.subject
     }
 

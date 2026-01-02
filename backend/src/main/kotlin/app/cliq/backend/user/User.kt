@@ -54,4 +54,6 @@ class User(
     fun isPasswordResetTokenExpired(): Boolean =
         resetToken != null && resetSentAt != null &&
             resetSentAt!!.isAfter(OffsetDateTime.now().minusMinutes(PASSWORD_RESET_TOKEN_INTERVAL_MINUTES))
+
+    override fun toString(): String = "User(id=$id)"
 }

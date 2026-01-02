@@ -22,7 +22,7 @@ import java.time.OffsetDateTime
     ],
 )
 class Session(
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(nullable = false)
     var user: User,
     @Column(nullable = false, unique = true)

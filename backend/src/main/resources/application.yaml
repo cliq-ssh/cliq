@@ -4,7 +4,6 @@ app:
     name: ${rootProject.name}
     version: ${version}
     description: ${description}
-    environment: \${ENVIRONMENT:production}
   email:
     enabled: \${MAIL_ENABLED}
     from-address: \${MAIL_FROM}
@@ -25,6 +24,8 @@ spring:
             client-id: \${app.oidc.client-id}
             client-secret: \${app.oidc.client-secret}
             scope: \${app.oidc.scopes}
+            authorization-grant-type: authorization_code
+            redirect-uri: "{baseUrl}/login/oauth2/code/{registrationId}"
         provider:
           oidc:
             issuer-uri: \${app.oidc.issuer-uri}

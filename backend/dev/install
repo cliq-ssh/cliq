@@ -16,7 +16,7 @@ cd_into_work_dir() {
 trap cd_into_work_dir EXIT
 
 echo "Installing environment file..."
-cp --update=none .env.dist .env
+cp --update=none .env.local.dist .env.local
 
 echo "Shutting down any running docker containers..."
 docker compose down --volumes --remove-orphans || true

@@ -1,5 +1,4 @@
 ### App ###
-.env
 .env.local
 /cliq-backend.log
 

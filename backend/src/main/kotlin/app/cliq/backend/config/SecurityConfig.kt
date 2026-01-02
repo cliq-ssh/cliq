@@ -25,7 +25,7 @@ class SecurityConfig(
     private val apiKeyAuthenticationConfigurer: ApiKeyAuthenticationConfigurer,
     private val oidcProperties: OidcProperties,
     @Lazy
-    private val oidcLoginSuccessHandler: OidcLoginSuccessHandler
+    private val oidcLoginSuccessHandler: OidcLoginSuccessHandler,
 ) {
     @Bean
     fun passwordEncoder(): PasswordEncoder =
@@ -41,8 +41,7 @@ class SecurityConfig(
             .securityMatcher("/oauth2/**", "/login/oauth2/**")
             .oauth2Login {
                 it.successHandler(oidcLoginSuccessHandler)
-            }
-            .build()
+            }.build()
     }
 
     // TODO:

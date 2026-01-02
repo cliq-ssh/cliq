@@ -7,5 +7,4 @@ class InfoProperties(
     val name: String,
     val version: String,
     val description: String,
-    val environment: String = "production",
 )

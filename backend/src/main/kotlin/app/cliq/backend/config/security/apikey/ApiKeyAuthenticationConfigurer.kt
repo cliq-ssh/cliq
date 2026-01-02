@@ -6,7 +6,6 @@ import app.cliq.backend.config.security.apikey.service.ApiKeyAuthenticationReque
 import org.springframework.security.authentication.AuthenticationManager
 import org.springframework.security.config.annotation.web.builders.HttpSecurity
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer
-import org.springframework.security.oauth2.server.resource.web.authentication.BearerTokenAuthenticationFilter
 import org.springframework.security.web.AuthenticationEntryPoint
 import org.springframework.stereotype.Component
 
@@ -33,14 +32,13 @@ class ApiKeyAuthenticationConfigurer(
         val authenticationManager: AuthenticationManager =
             builder.getSharedObject<AuthenticationManager>(AuthenticationManager::class.java)
 
-        builder.addFilterBefore(
+        builder.addFilter(
             ApiKeyAuthenticationFilter(
                 authenticationManager,
                 apiKeyAuthenticationConverter,
                 authenticationEntryPoint,
                 apiKeyAuthenticationRequestMatcher,
             ),
-            BearerTokenAuthenticationFilter::class.java,
         )
     }
 }

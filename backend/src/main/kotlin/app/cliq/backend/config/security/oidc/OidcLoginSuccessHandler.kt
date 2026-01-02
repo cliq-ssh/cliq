@@ -17,7 +17,7 @@ class OidcLoginSuccessHandler(
     override fun onAuthenticationSuccess(
         request: HttpServletRequest,
         response: HttpServletResponse,
-        authentication: Authentication
+        authentication: Authentication,
     ) {
         val oidcUSer = authentication.principal as OidcUser
         val user = userOidcService.putUserFromJwt(oidcUSer)
