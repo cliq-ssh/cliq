@@ -1,4 +1,5 @@
 import 'package:cliq/modules/connections/model/connection_full.model.dart';
+import 'package:cliq/modules/connections/provider/connection.provider.dart';
 import 'package:cliq/modules/session/model/session.model.dart';
 import 'package:cliq_ui/cliq_ui.dart'
     show CliqGridColumn, CliqGridContainer, CliqGridRow;
@@ -11,7 +12,6 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lucide_flutter/lucide_flutter.dart';
 import 'package:cliq_term/cliq_term.dart';
 
-import '../../../shared/data/database.dart';
 import '../provider/session.provider.dart';
 
 class ShellSessionPage extends StatefulHookConsumerWidget {
@@ -139,11 +139,10 @@ class _ShellSessionPageState extends ConsumerState<ShellSessionPage>
         });
       }
 
-      CliqDatabase.connectionService
-          .findConnectionFullById(widget.session.connection.id)
-          .then((connection) {
-            if (connection != null) openSsh(connection);
-          });
+      final connectionFull = ref
+          .read(connectionProvider.notifier)
+          .findById(widget.session.connection.id);
+      if (connectionFull != null) openSsh(connectionFull);
       return () => widget.session.dispose();
     }, []);
 
