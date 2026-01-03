@@ -4,7 +4,6 @@ import 'package:cliq/shared/ui/session_tab.dart';
 import 'package:cliq_term/cliq_term.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:forui/forui.dart';
-import 'package:forui_hooks/forui_hooks.dart';
 import 'package:lucide_flutter/lucide_flutter.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
@@ -28,12 +27,19 @@ class NavigationShell extends StatefulHookConsumerWidget {
 
 class NavigationShellState extends ConsumerState<NavigationShell>
     with TickerProviderStateMixin {
+  late final FPopoverController _popoverController = .new(vsync: this);
+
+  @override
+  void dispose() {
+    _popoverController.dispose();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     final connections = ref.watch(connectionProvider);
     final sessions = ref.watch(sessionProvider);
     final selectedSession = useState(sessions.selectedSession);
-    final popoverController = useFPopoverController(vsync: this);
 
     useEffect(() {
       selectedSession.value = sessions.selectedSession;
@@ -69,12 +75,9 @@ class NavigationShellState extends ConsumerState<NavigationShell>
                         child: Icon(LucideIcons.house),
                       ),
                       for (final session in sessions.activeSessions)
-                        SessionTab(
-                          session: session,
-                          isSelected: sessions.selectedSessionId == session.id,
-                        ),
+                        SessionTab(session: session),
                       FPopoverMenu(
-                        control: .managed(controller: popoverController),
+                        control: .managed(controller: _popoverController),
                         menu: [
                           FItemGroup(
                             children: [
@@ -85,7 +88,7 @@ class NavigationShellState extends ConsumerState<NavigationShell>
                                     ref
                                         .read(sessionProvider.notifier)
                                         .createAndGo(this, connection);
-                                    popoverController.hide();
+                                    _popoverController.hide();
                                   },
                                 ),
                             ],
