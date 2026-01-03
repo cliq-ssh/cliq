@@ -26,6 +26,7 @@ CREATE TABLE users
 CREATE TABLE sessions
 (
     "id"               BIGINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
+    "oidc_session_id"  TEXT UNIQUE,
     "user_id"          BIGINT REFERENCES "users" (id) ON DELETE CASCADE NOT NULL,
     "api_key"          TEXT                                             NOT NULL UNIQUE,
     "name"             TEXT,

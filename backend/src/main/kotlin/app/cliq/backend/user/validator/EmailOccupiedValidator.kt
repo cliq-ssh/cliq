@@ -15,6 +15,6 @@ class EmailOccupiedValidator(
             return true
         }
 
-        return !userRepository.existsUserByEmail(value)
+        return !userRepository.existsByEmail(value)
     }
 }

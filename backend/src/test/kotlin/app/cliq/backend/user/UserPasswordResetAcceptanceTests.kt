@@ -51,7 +51,7 @@ class UserPasswordResetAcceptanceTests(
         assertTrue(parser.hasHtmlContent())
         assertTrue(parser.hasPlainContent())
 
-        var updatedUser = userRepository.findUserByEmail(user.email)
+        var updatedUser = userRepository.findByEmail(user.email)
         assertNotNull(updatedUser)
         assertNotNull(updatedUser.resetToken)
 
@@ -71,7 +71,7 @@ class UserPasswordResetAcceptanceTests(
                     .content(objectMapper.writeValueAsString(resetPasswordParams)),
             ).andExpect(status().isOk)
 
-        updatedUser = userRepository.findUserByEmail(user.email)
+        updatedUser = userRepository.findByEmail(user.email)
 
         assertNotNull(updatedUser)
         assertEquals(updatedUser.resetToken, null)
@@ -121,7 +121,7 @@ class UserPasswordResetAcceptanceTests(
         assertTrue(parser.hasHtmlContent())
         assertTrue(parser.hasPlainContent())
 
-        val updatedUser = userRepository.findUserByEmail(user.email)
+        val updatedUser = userRepository.findByEmail(user.email)
         assertNotNull(updatedUser)
         assertNotNull(updatedUser.resetToken)
 
@@ -172,7 +172,7 @@ class UserPasswordResetAcceptanceTests(
         assertTrue(parser.hasHtmlContent())
         assertTrue(parser.hasPlainContent())
 
-        val updatedUser = userRepository.findUserByEmail(user.email)
+        val updatedUser = userRepository.findByEmail(user.email)
         assertNotNull(updatedUser)
         assertNotNull(updatedUser.resetToken)
 
@@ -233,7 +233,7 @@ class UserPasswordResetAcceptanceTests(
         assertTrue(parser.hasHtmlContent())
         assertTrue(parser.hasPlainContent())
 
-        val updatedUser = userRepository.findUserByEmail(user.email)
+        val updatedUser = userRepository.findByEmail(user.email)
         assertNotNull(updatedUser)
         assertNotNull(updatedUser.resetToken)
 
@@ -286,7 +286,7 @@ class UserPasswordResetAcceptanceTests(
             ).andExpect(status().isNoContent)
 
         assertTrue(greenMail.waitForIncomingEmail(1))
-        var updatedUser = userRepository.findUserByEmail(user.email)
+        var updatedUser = userRepository.findByEmail(user.email)
         assertNotNull(updatedUser)
         assertNotNull(updatedUser.resetToken)
         val oldResetToken = updatedUser.resetToken
@@ -301,7 +301,7 @@ class UserPasswordResetAcceptanceTests(
             ).andExpect(status().isNoContent)
 
         assertTrue(greenMail.waitForIncomingEmail(1))
-        updatedUser = userRepository.findUserByEmail(user.email)
+        updatedUser = userRepository.findByEmail(user.email)
         assertNotNull(updatedUser)
         assertNotNull(updatedUser.resetToken)
         val newResetToken = updatedUser.resetToken

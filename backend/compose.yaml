@@ -6,6 +6,8 @@ services:
       - --import-realm
     image: 'quay.io/keycloak/keycloak:26.4.7'
     init: true
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     environment:
       TZ: ${TZ}
       # User credentials

@@ -45,7 +45,7 @@ class UserVerificationAcceptanceTests(
 
         assertTrue(greenMail.waitForIncomingEmail(10_000, 1))
 
-        val user = userRepository.findUserByEmail(email)
+        val user = userRepository.findByEmail(email)
         assertTrue(user != null)
 
         assertTrue(user.isEmailVerified().not())
@@ -71,7 +71,7 @@ class UserVerificationAcceptanceTests(
 
         assertTrue(greenMail.waitForIncomingEmail(1))
 
-        var user = userRepository.findUserByEmail(email)
+        var user = userRepository.findByEmail(email)
         assertTrue(user != null)
 
         val verifyContent =
@@ -96,7 +96,7 @@ class UserVerificationAcceptanceTests(
                     .content(objectMapper.writeValueAsString(verifyContent)),
             ).andExpect(status().isBadRequest)
 
-        user = userRepository.findUserByEmail(email)
+        user = userRepository.findByEmail(email)
         assertTrue(user != null)
 
         assertTrue(user.isEmailVerified())
@@ -126,7 +126,7 @@ class UserVerificationAcceptanceTests(
             ).andExpect(status().isCreated)
 
         assertTrue(greenMail.waitForIncomingEmail(1))
-        val user = userRepository.findUserByEmail(email)
+        val user = userRepository.findByEmail(email)
         assertNotNull(user)
 
         // Change the verification token to an expired one

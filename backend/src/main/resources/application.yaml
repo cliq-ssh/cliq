@@ -15,6 +15,10 @@ app:
     client-secret: \${OIDC_CLIENT_SECRET}
     scopes: \${OIDC_SCOPES:openid,profile,email}
 
+logging:
+  level:
+    root: \${LOG_LEVEL_ROOT:info}
+
 spring:
   security:
     oauth2:

@@ -2,7 +2,6 @@ package app.cliq.backend.session
 
 import app.cliq.backend.exception.EmailNotVerifiedException
 import app.cliq.backend.exception.InvalidEmailOrPasswordException
-import app.cliq.backend.session.SessionFactory
 import app.cliq.backend.session.params.SessionCreationParams
 import app.cliq.backend.session.response.SessionResponse
 import app.cliq.backend.user.UserRepository
@@ -55,7 +54,7 @@ class SessionController(
         @Valid @RequestBody sessionCreationParams: SessionCreationParams,
     ): ResponseEntity<SessionResponse> {
         val user =
-            userRepository.findUserByEmail(sessionCreationParams.email)
+            userRepository.findByEmail(sessionCreationParams.email)
                 ?: throw InvalidEmailOrPasswordException()
 
         if (!user.isEmailVerified()) throw EmailNotVerifiedException()

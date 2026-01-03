@@ -24,8 +24,11 @@ class SessionFactory(
         return session
     }
 
-    fun createFromOidcUser(user: User): Session {
-        val session = createSession(user)
+    fun createFromOidcUser(
+        user: User,
+        oidcSessionId: String?,
+    ): Session {
+        val session = createSession(user, oidcSessionId = oidcSessionId)
         sessionRepository.saveAndFlush(session)
 
         return session
@@ -35,6 +38,7 @@ class SessionFactory(
         user: User,
         name: String? = null,
         userAgent: String? = null,
+        oidcSessionId: String? = null,
     ): Session =
         Session(
             user,
@@ -44,5 +48,6 @@ class SessionFactory(
             OffsetDateTime.now(clock),
             OffsetDateTime.now(clock),
             OffsetDateTime.now(clock),
+            oidcSessionId = oidcSessionId,
         )
 }

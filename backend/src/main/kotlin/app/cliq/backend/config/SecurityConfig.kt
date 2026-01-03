@@ -1,11 +1,11 @@
 package app.cliq.backend.config
 
-import app.cliq.backend.config.oidc.OidcProperties
 import app.cliq.backend.config.security.apikey.ApiKeyAuthenticationConfigurer
 import app.cliq.backend.config.security.oidc.OidcLoginSuccessHandler
+import app.cliq.backend.config.security.oidc.OidcLogoutHandler
+import org.springframework.boot.autoconfigure.condition.ConditionalOnBooleanProperty
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
-import org.springframework.context.annotation.Lazy
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity
 import org.springframework.security.config.annotation.web.builders.HttpSecurity
 import org.springframework.security.config.http.SessionCreationPolicy
@@ -23,26 +23,27 @@ const val ITERATIONS = 3
 @Configuration
 class SecurityConfig(
     private val apiKeyAuthenticationConfigurer: ApiKeyAuthenticationConfigurer,
-    private val oidcProperties: OidcProperties,
-    @Lazy
-    private val oidcLoginSuccessHandler: OidcLoginSuccessHandler,
 ) {
     @Bean
     fun passwordEncoder(): PasswordEncoder =
         Argon2PasswordEncoder(SALT_LENGTH, HASH_LENGTH, PARALLELISM, MEMORY, ITERATIONS)
 
     @Bean
-    fun oidcFilterChain(http: HttpSecurity): SecurityFilterChain? {
-        if (!oidcProperties.enabled) {
-            return null
-        }
-
-        return http
-            .securityMatcher("/oauth2/**", "/login/oauth2/**")
+    @ConditionalOnBooleanProperty("app.oidc.enabled")
+    fun oidcFilterChain(
+        http: HttpSecurity,
+        oidcLoginSuccessHandler: OidcLoginSuccessHandler,
+        oidcLogoutHandler: OidcLogoutHandler,
+    ): SecurityFilterChain =
+        http
+            .securityMatcher("/oauth2/**", "/login/oauth2/**", "/logout/connect/back-channel/**")
             .oauth2Login {
                 it.successHandler(oidcLoginSuccessHandler)
+            }.oidcLogout { it ->
+                it.backChannel {
+                    it.logoutHandler(oidcLogoutHandler)
+                }
             }.build()
-    }
 
     // TODO:
     //  - access denied handler

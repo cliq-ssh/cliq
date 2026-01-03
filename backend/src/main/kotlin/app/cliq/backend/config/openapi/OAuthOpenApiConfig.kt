@@ -12,7 +12,7 @@ import org.springframework.context.annotation.Configuration
 @Configuration
 class OAuthOpenApiConfig {
     @Bean
-    fun oauthAuthorizationPathCustomizer(): OpenApiCustomizer =
+    fun oauthAuthorizationEndpoint(): OpenApiCustomizer =
         OpenApiCustomizer { openApi: OpenAPI ->
             val operation =
                 Operation()
@@ -36,5 +36,36 @@ class OAuthOpenApiConfig {
                     .get(operation)
 
             openApi.paths.addPathItem("/oauth2/authorization/oidc", pathItem)
+        }
+
+    @Bean
+    fun oauthBackChannelLogoutEndpoint(): OpenApiCustomizer =
+        OpenApiCustomizer { openApi: OpenAPI ->
+            val operation =
+                Operation()
+                    .summary("OIDC Back-Channel Logout Endpoint")
+                    .description("Handles back-channel logout requests from the OIDC provider.")
+                    .responses(
+                        ApiResponses()
+                            .addApiResponse(
+                                "200",
+                                ApiResponse()
+                                    .description("Logout successful"),
+                            ).addApiResponse(
+                                "400",
+                                ApiResponse()
+                                    .description("Invalid logout request"),
+                            ).addApiResponse(
+                                "404",
+                                ApiResponse()
+                                    .description("OIDC has been disabled"),
+                            ),
+                    ).addTagsItem("Authentication")
+
+            val pathItem =
+                PathItem()
+                    .post(operation)
+
+            openApi.paths.addPathItem("/logout/connect/back-channel/oidc", pathItem)
         }
 }

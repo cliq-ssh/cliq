@@ -47,7 +47,7 @@ class UserRegistrationAcceptanceTests(
         assertTrue(parser.hasHtmlContent())
         assertTrue(parser.hasPlainContent())
 
-        var user = userRepository.findUserByEmail(email)
+        var user = userRepository.findByEmail(email)
         assertTrue(user != null)
 
         assertTrue(user.emailVerificationToken != null)
@@ -71,7 +71,7 @@ class UserRegistrationAcceptanceTests(
                     .content(objectMapper.writeValueAsString(verifyContent)),
             ).andExpect(status().isOk)
 
-        user = userRepository.findUserByEmail(email)
+        user = userRepository.findByEmail(email)
         assertTrue(user != null)
 
         assertTrue(user.isEmailVerified())

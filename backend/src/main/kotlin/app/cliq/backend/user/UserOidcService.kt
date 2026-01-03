@@ -11,14 +11,14 @@ class UserOidcService(
 ) {
     fun putUserFromJwt(oidcUser: OidcUser): User {
         val sub = oidcUser.subject
-        var user = userRepository.findUserByOidcSub(sub)
+        var user = userRepository.findByOidcSub(sub)
         user = user ?: linkOrCreateUser(oidcUser)
 
         return userRepository.save(user)
     }
 
     private fun linkOrCreateUser(oidcUser: OidcUser): User =
-        when (val user = userRepository.findUserByEmail(oidcUser.email)) {
+        when (val user = userRepository.findByEmail(oidcUser.email)) {
             null -> {
                 createOidcUser(oidcUser)
             }

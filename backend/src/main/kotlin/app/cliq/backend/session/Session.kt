@@ -40,4 +40,6 @@ class Session(
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     var id: Long? = null,
+    @Column(nullable = true)
+    var oidcSessionId: String? = null,
 )
