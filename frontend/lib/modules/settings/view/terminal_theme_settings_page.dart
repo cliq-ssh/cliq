@@ -8,7 +8,7 @@ import 'package:forui/forui.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:system_fonts/system_fonts.dart';
 
-import '../../../routing/model/page_path.model.dart';
+import '../../../shared/model/page_path.model.dart';
 
 class TerminalThemeSettingsPage extends AbstractSettingsPage {
   static const PagePathBuilder pagePath = PagePathBuilder.child(
@@ -29,7 +29,13 @@ class TerminalThemeSettingsPage extends AbstractSettingsPage {
     final selectedFontFamily = useState<String>('SourceCodePro');
 
     useEffect(() {
-      terminalController.value = TerminalController(rows: 40, cols: 80);
+      terminalController.value = TerminalController(
+        colors: TerminalColorThemes.darcula,
+        typography: TerminalTypography(
+          fontFamily: selectedFontFamily.value,
+          fontSize: 16,
+        ),
+      );
       // wait till initState of TerminalView is done
       WidgetsBinding.instance.addPostFrameCallback((_) {
         sampleText.split('\n').forEach((line) {
@@ -62,11 +68,6 @@ class TerminalThemeSettingsPage extends AbstractSettingsPage {
                       color: TerminalColorThemes.darcula.backgroundColor,
                       child: TerminalView(
                         controller: terminalController.value!,
-                        typography: TerminalTypography(
-                          fontFamily: selectedFontFamily.value,
-                          fontSize: 16,
-                        ),
-                        colors: TerminalColorThemes.darcula,
                       ),
                     ),
                   FSelect<String>.rich(

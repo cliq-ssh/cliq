@@ -3,7 +3,8 @@ import 'package:cliq/modules/settings/view/identities_settings_page.dart';
 import 'package:cliq/modules/settings/view/sync_settings_page.dart';
 import 'package:cliq/modules/settings/view/terminal_theme_settings_page.dart';
 import 'package:cliq/modules/settings/view/theme_settings_page.dart';
-import 'package:cliq/routing/router.extension.dart';
+import 'package:cliq/shared/extensions/router.extension.dart';
+import 'package:cliq/shared/utils/commons.dart';
 import 'package:flutter/foundation.dart';
 import 'package:forui/forui.dart';
 import 'package:go_router/go_router.dart';
@@ -14,7 +15,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 
 import 'debug_settings_page.dart';
 import 'license_page.dart';
-import '../../../routing/model/page_path.model.dart';
+import '../../../shared/model/page_path.model.dart';
 
 class SettingsPage extends StatefulHookConsumerWidget {
   static const PagePathBuilder pagePath = PagePathBuilder('/settings');
@@ -119,6 +120,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                               prefix: Icon(LucideIcons.github),
                               suffix: Icon(LucideIcons.externalLink),
                               title: Text('GitHub'),
+                              onPress: () => Commons.launchGitHubUrl(),
                             ),
                           ],
                         ),

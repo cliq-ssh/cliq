@@ -1,10 +1,10 @@
-import 'dart:typed_data';
-
 import 'package:cliq/modules/connections/model/connection_full.model.dart';
+import 'package:cliq/modules/connections/provider/connection.provider.dart';
 import 'package:cliq/modules/session/model/session.model.dart';
 import 'package:cliq_ui/cliq_ui.dart'
     show CliqGridColumn, CliqGridContainer, CliqGridRow;
 import 'package:dartssh2/dartssh2.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart' hide LicensePage;
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:forui/forui.dart';
@@ -12,7 +12,6 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lucide_flutter/lucide_flutter.dart';
 import 'package:cliq_term/cliq_term.dart';
 
-import '../../../data/database.dart';
 import '../provider/session.provider.dart';
 
 class ShellSessionPage extends StatefulHookConsumerWidget {
@@ -33,21 +32,25 @@ class _ShellSessionPageState extends ConsumerState<ShellSessionPage>
   SSHClient? get sshClient => session.sshClient;
   SSHSession? get sshSession => session.sshSession;
 
+  // TODO: load from config
+  TerminalColorTheme theme = TerminalColorThemes.darcula;
+
   @override
   void initState() {
     super.initState();
     // TODO: listen for onTitleChange and update tab title
     _terminalController = TerminalController(
-      rows: 20,
-      cols: 80,
+      colors: theme,
+      typography: TerminalTypography(fontFamily: 'SourceCodePro', fontSize: 16),
+      debugLogging: kDebugMode,
       onResize: (rows, cols) {
         sshSession?.resizeTerminal(cols, rows);
-        showFToast(
-          context: context,
-          alignment: FToastAlignment.topCenter,
-          title: Text('$cols x $rows'),
-          duration: Duration(milliseconds: 500),
-        );
+        //        showFToast(
+        //          context: context,
+        //          alignment: FToastAlignment.topCenter,
+        //          title: Text('$cols x $rows'),
+        //          duration: Duration(milliseconds: 500),
+        //        );
       },
     );
   }
@@ -63,6 +66,7 @@ class _ShellSessionPageState extends ConsumerState<ShellSessionPage>
     super.build(context);
 
     final typography = context.theme.typography;
+    final size = MediaQuery.of(context).size;
 
     buildConnecting() {
       return [
@@ -119,6 +123,7 @@ class _ShellSessionPageState extends ConsumerState<ShellSessionPage>
             .read(sessionProvider.notifier)
             .spawnShell(widget.session.id, client);
 
+        _terminalController.fitResize(size);
         _terminalController.onInput = (s) {
           if (sshSession != null) {
             sshSession!.stdin.add(Uint8List.fromList(s.codeUnits));
@@ -134,30 +139,19 @@ class _ShellSessionPageState extends ConsumerState<ShellSessionPage>
         });
       }
 
-      CliqDatabase.connectionService
-          .findConnectionFullById(widget.session.connection.id)
-          .then((connection) {
-            if (connection != null) openSsh(connection);
-          });
+      final connectionFull = ref
+          .read(connectionProvider.notifier)
+          .findById(widget.session.connection.id);
+      if (connectionFull != null) openSsh(connectionFull);
       return () => widget.session.dispose();
     }, []);
 
     if (widget.session.isConnected) {
-      // TODO: load from config
-      final theme = TerminalColorThemes.darcula;
-
       return SizedBox.expand(
         child: Container(
           color: theme.backgroundColor,
           padding: const .all(8),
-          child: TerminalView(
-            controller: _terminalController,
-            typography: TerminalTypography(
-              fontFamily: 'SourceCodePro',
-              fontSize: 16,
-            ),
-            colors: theme,
-          ),
+          child: TerminalView(controller: _terminalController),
         ),
       );
     }

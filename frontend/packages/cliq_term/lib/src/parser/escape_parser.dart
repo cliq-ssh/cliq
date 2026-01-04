@@ -1,148 +1,408 @@
 import 'package:cliq_term/cliq_term.dart';
+import 'package:cliq_term/src/parser/csi_parser.dart';
 import 'package:logging/logging.dart';
 
-import '../model/color.dart';
+import '../rendering/model/color.dart';
+import '../rendering/model/esc_terminator.dart';
+
+typedef EscHandler = void Function(String body, FormattingOptions formatting);
+
+typedef CsiHandler =
+    void Function(CsiParseResult parsed, FormattingOptions formatting);
 
 class EscapeParser {
   static final Logger _log = Logger('EscapeParser');
 
-  /// Parses an ANSI escape sequence from [input] starting at [initialOffset].
-  /// Applies formatting changes to [formatting] and terminal actions to [controller].
-  /// Returns the number of characters consumed from [input].
-  static int parse(
-    TerminalController controller,
-    String input,
-    int initialOffset,
-    FormattingOptions formatting,
-  ) {
+  final TerminalController controller;
+  final TerminalColorTheme colors;
+
+  late final CsiParser _csiParser = CsiParser();
+
+  final Map<String, EscTerminator> _escTerminators = {
+    'ESC [': .csi,
+    'ESC ]': .osc,
+    'ESC P': .escBackslash,
+  };
+
+  late final Map<String, EscHandler> _escHandlers = {
+    // 'ESC 6': _escBackIndex,
+    'ESC 7': _escSaveCursor,
+    'ESC 8': _escRestoreCursor,
+    // 'ESC 9': _escForwardIndex,
+    'ESC D': _escIndex,
+    // 'ESC E': _escNextLine,
+    // 'ESC H': _escTabSet,
+    'ESC M': _escReverseIndex,
+    // 'ESC N': _escSingleShift2,
+    // 'ESC O': _escSingleShift3,
+    // 'ESC V': _escStartProtectedArea,
+    // 'ESC W': _escEndProtectedArea,
+    // 'ESC Z': _escReturnTerminalId,
+    // 'ESC c': _escFullReset,
+    // 'ESC l': _escHPMemoryLock,
+    // 'ESC m': _escHPMemoryUnlock,
+    // 'ESC n': _escLockingShift2,
+    // 'ESC o': _escLockingShift3,
+    // 'ESC >': _escResetApplicationKeypadMode,
+    // 'ESC =': _escSetApplicationKeypadMode,
+    // 'ESC |': _escLockingShift3R,
+    // 'ESC }': _escLockingShift2R,
+    // 'ESC ~': _escLockingShift1R,
+    // 'ESC #': ???
+    'ESC [': _escHandleCsi,
+  };
+
+  /// Map of CSI final byte codes to their handlers.
+  late final Map<int, CsiHandler> _csiHandlers = {
+    'A'.codeUnitAt(0): _csiCursorUpOrScrollRight,
+    'B'.codeUnitAt(0): _csiCursorDown,
+    'C'.codeUnitAt(0): _csiCursorRight,
+    'D'.codeUnitAt(0): _csiCursorLeft,
+    // 'E'.codeUnitAt(0): _csiCursorNextLine,
+    // 'F'.codeUnitAt(0): _csiCursorPrevLine,
+    // 'G'.codeUnitAt(0): _csiCursorHorizontalPositionAbsolute,
+    'H'.codeUnitAt(0): _csiSetCursorPosition,
+    // 'I.codeUnitAt(0): _csiCursorHorizontalForwardTab,
+    'J'.codeUnitAt(0): _csiEraseDisplay,
+    'K'.codeUnitAt(0): _csiEraseLine,
+    // 'L'.codeUnitAt(0): _csiInsertLine,
+    // 'M'.codeUnitAt(0): _csiDeleteLine,
+    'P'.codeUnitAt(0): _csiDeleteCharacter,
+    // 'S'.codeUnitAt(0): _csiScrollUp,
+    // 'T'.codeUnitAt(0): _csiScrollDown,
+    // 'X'.codeUnitAt(0): _csiEraseCharacter,
+    // 'Z'.codeUnitAt(0): _csiCursorHorizontalBackwardTab,
+    // 'a'.codeUnitAt(0): _csiCursorHorizontalRelative,
+    // 'b'.codeUnitAt(0): _csiRepeatPrevCharacter,
+    // 'c'.codeUnitAt(0): _csiDeviceAttributes,
+    // 'd'.codeUnitAt(0): _csiCursorVerticalPositionAbsolute,
+    // 'e'.codeUnitAt(0): _csiVerticalPosRelative,
+    // 'f'.codeUnitAt(0): _csiSetCursorPosition,
+    // 'g'.codeUnitAt(0): _csiTabClear,
+    'h'.codeUnitAt(0): _csiSetMode,
+    // 'i'.codeUnitAt(0): _csiMediaControl,
+    'l'.codeUnitAt(0): _csiSetMode,
+    'm'.codeUnitAt(0): _csiSelectGraphicRendition,
+    // 'n'.codeUnitAt(0): _csiRequestReport,
+    // 'p'.codeUnitAt(0): _csiRequestMode,
+    // 'q'.codeUnitAt(0): _csiSelectCursorStyle,
+    'r'.codeUnitAt(0): _csiSetScrollingRegion,
+    // 's'.codeUnitAt(0): _csiSaveCursor,
+    // 't'.codeUnitAt(0): _csiWindowManipulation,
+    // 'u'.codeUnitAt(0): _csiRestoreCursor,
+  };
+
+  EscapeParser({required this.controller, required this.colors});
+
+  /// Parses an escape sequence starting at [initialOffset] in [input].
+  /// Returns the number of characters consumed.
+  ///
+  /// [formatting] is the current formatting options to be modified by the escape sequence (e.g., SGR codes).
+  int parse(String input, int initialOffset, FormattingOptions formatting) {
     if (initialOffset >= input.length) return 0;
+
     int offset = initialOffset;
-    if (input[offset] != '[') return 0;
-    offset++;
-
-    List<String> args = [];
-
-    // SGR; set graphic rendition
-    int applySGRandReturn(int after) {
-      final norm = args.isEmpty
-          ? <String>['0']
-          : args.map((s) => s.isEmpty ? '0' : s).toList(growable: false);
-      setFormattingFromArgs(controller, norm, formatting);
-      return after - initialOffset;
-    }
-
-    // J; erase screen
-    int applyJandReturn(int after) {
-      final first = args.isEmpty ? '' : args[0];
-      final mode = first.isEmpty ? 0 : int.tryParse(first) ?? 0;
-      if (mode == 2) controller.commitToBackBuffer();
-      return after - initialOffset;
-    }
-
-    while (offset < input.length) {
-      var (parsedOffset, parsedArg) = _parseInt(input, offset);
-
-      if (parsedOffset > 0) {
-        offset += parsedOffset;
-        args.add(parsedArg);
-        if (offset >= input.length) break;
-        final next = input[offset++];
-
-        if (next == ';') continue;
-        if (next == 'm') return applySGRandReturn(offset);
-        if (next == 'J') return applyJandReturn(offset);
-        return offset - initialOffset;
-      }
-
-      final cur = input[offset];
-      if (cur == ';') {
-        args.add('');
-        offset++;
-        continue;
-      }
-
-      final cu = cur.codeUnitAt(0);
-      if (cu >= 0x40 && cu <= 0x7E) {
-        offset++;
-        if (cur == 'm') return applySGRandReturn(offset);
-        if (cur == 'J') return applyJandReturn(offset);
-        return offset - initialOffset;
-      }
-
-      _log.fine(
-        'Unimplemented escape sequence! Encountered ${input.substring(initialOffset, input.length)}',
-      );
+    if (input.codeUnitAt(offset) == EscTerminator.escCode) {
       offset++;
+      if (offset >= input.length) return 1;
     }
 
-    return offset - initialOffset;
+    final next = input[offset];
+    final key = 'ESC $next';
+
+    final term = _escTerminators[key] ?? EscTerminator.singleChar;
+
+    /// Invoke the handler for [escKey] with [body].
+    void invokeHandler(String escKey, String body) {
+      final handler = _escHandlers[escKey];
+      if (handler != null) {
+        try {
+          if (controller.debugLogging) {
+            _log.finest(
+              '[${term.name.toUpperCase()}] Handling $escKey body="$body"',
+            );
+          }
+          handler(body, formatting);
+        } catch (e, st) {
+          _log.severe('Error handling $escKey body="$body": $e\n$st');
+        }
+      } else {
+        if (controller.debugLogging) {
+          _log.warning(
+            '[${term.name.toUpperCase()}] Unimplemented $escKey body="$body"',
+          );
+        }
+      }
+    }
+
+    switch (term) {
+      case .csi:
+        final start = offset;
+        int i = offset + 1;
+        while (i < input.length) {
+          final cu = input.codeUnitAt(i);
+          if (cu >= 0x40 && cu <= 0x7E) {
+            final body = input.substring(start, i + 1);
+            invokeHandler(key, body);
+            return (i + 1) - initialOffset;
+          }
+          i++;
+        }
+        // incomplete, invoke with rest
+        invokeHandler(key, input.substring(start));
+        return input.length - initialOffset;
+
+      case .escBackslash:
+      case .osc:
+        final start = offset;
+        int i = offset + 1;
+        while (i < input.length) {
+          final cu = input.codeUnitAt(i);
+
+          // only osc sequences support BEL termination
+          if (term == .osc && cu == EscTerminator.belCode) {
+            final body = input.substring(start, i + 1);
+            invokeHandler(key, body);
+            return (i + 1) - initialOffset;
+          }
+
+          // escBackslash termination
+          if (cu == EscTerminator.escCode &&
+              (i + 1) < input.length &&
+              input.codeUnitAt(i + 1) == EscTerminator.backslashCode) {
+            final body = input.substring(start, i + 2);
+            invokeHandler(key, body);
+            return (i + 2) - initialOffset;
+          }
+          i++;
+        }
+        invokeHandler(key, input.substring(start));
+        return input.length - initialOffset;
+
+      case .singleChar:
+        invokeHandler(key, next);
+        return (offset + 1) - initialOffset;
+    }
   }
 
-  /// Applies SGR (Select Graphic Rendition) parameters from [args] to [formatting].
-  static void setFormattingFromArgs(
-    TerminalController controller,
-    List<String> args,
+  int _parseSingleParam(CsiParseResult parsed) {
+    return parsed.params.isNotEmpty ? (parsed.params[0] ?? 0) : 0;
+  }
+
+  // --- Escape Sequence Handlers ---
+
+  void _escSaveCursor(String body, FormattingOptions formatting) {
+    controller.activeBuffer.saveCursor();
+  }
+
+  void _escRestoreCursor(String body, FormattingOptions formatting) {
+    controller.activeBuffer.restoreCursor();
+  }
+
+  void _escIndex(String body, FormattingOptions formatting) {
+    controller.activeBuffer.index();
+  }
+
+  void _escReverseIndex(String body, FormattingOptions formatting) {
+    controller.activeBuffer.reverseIndex();
+  }
+
+  void _escHandleCsi(String body, FormattingOptions formatting) {
+    final parsed = _csiParser.parseCsi(body);
+
+    final handler = _csiHandlers[parsed.finalByteCode];
+    if (handler != null) {
+      handler(parsed, formatting);
+    } else {
+      if (controller.debugLogging) {
+        _log.warning(
+          '\tUnimplemented CSI final=0x${parsed.finalByteCode.toRadixString(16)} (${String.fromCharCode(parsed.finalByteCode)}) body="$body"',
+        );
+      }
+    }
+  }
+
+  // --- CSI Handlers ---
+
+  void _csiCursorUpOrScrollRight(
+    CsiParseResult parsed,
     FormattingOptions formatting,
   ) {
-    final codes = args
-        .map((s) => s.isEmpty ? 0 : int.tryParse(s) ?? 0)
-        .toList();
+    final amount = _parseSingleParam(parsed);
+    controller.activeBuffer.cursorUp(amount);
+  }
+
+  void _csiCursorDown(CsiParseResult parsed, FormattingOptions formatting) {
+    final amount = _parseSingleParam(parsed);
+    controller.activeBuffer.cursorDown(amount);
+  }
+
+  void _csiCursorRight(CsiParseResult parsed, FormattingOptions formatting) {
+    final amount = _parseSingleParam(parsed);
+    controller.activeBuffer.cursorRight(amount);
+  }
+
+  void _csiCursorLeft(CsiParseResult parsed, FormattingOptions formatting) {
+    final amount = _parseSingleParam(parsed);
+    controller.activeBuffer.cursorLeft(amount);
+  }
+
+  void _csiSetCursorPosition(
+    CsiParseResult parsed,
+    FormattingOptions formatting,
+  ) {
+    final row = (parsed.params.isNotEmpty ? (parsed.params[0] ?? 1) : 1) - 1;
+    final col = (parsed.params.length >= 2 ? (parsed.params[1] ?? 1) : 1) - 1;
+    controller.activeBuffer.setCursorPosition(row, col);
+  }
+
+  void _csiEraseDisplay(CsiParseResult parsed, FormattingOptions formatting) {
+    final mode = _parseSingleParam(parsed);
+    switch (mode) {
+      case 0:
+        controller.activeBuffer.eraseDisplayBelow();
+      case 1:
+        controller.activeBuffer.eraseDisplayAbove();
+      case 2:
+        controller.activeBuffer.eraseDisplayComplete();
+      case 3:
+      // TODO: implement erase display scrollback
+      // controller.activeBuffer.eraseDisplayScrollback();
+      default:
+        _log.warning('\tUnhandled ED mode: $mode');
+    }
+  }
+
+  void _csiEraseLine(CsiParseResult parsed, FormattingOptions formatting) {
+    final mode = _parseSingleParam(parsed);
+    switch (mode) {
+      case 0:
+        controller.activeBuffer.eraseLineRight();
+      case 1:
+        controller.activeBuffer.eraseLineLeft();
+      case 2:
+        controller.activeBuffer.eraseLineComplete();
+      default:
+        _log.warning('\tUnhandled EL mode: $mode');
+    }
+  }
+
+  void _csiDeleteCharacter(
+    CsiParseResult parsed,
+    FormattingOptions formatting,
+  ) {
+    final amount = _parseSingleParam(parsed);
+    controller.activeBuffer.deleteCharacter(amount);
+  }
+
+  /// Set Mode (SM)
+  /// - https://terminalguide.namepad.de/seq/csi_sh/
+  /// - https://terminalguide.namepad.de/seq/csi_sh__p/
+  ///
+  /// Reset Mode (RM)
+  /// - https://terminalguide.namepad.de/seq/csi_sl/
+  /// - https://terminalguide.namepad.de/seq/csi_sl__p/
+  void _csiSetMode(CsiParseResult parsed, FormattingOptions formatting) {
+    final isSetMode = parsed.finalByteCode == 'h'.codeUnitAt(0);
+    final isPrivate = parsed.leader == '?';
+
+    void handleMode(int mode) {
+      switch (mode) {
+        case 4:
+          controller.setInsertMode(isSetMode);
+          break;
+        case 20:
+          controller.setLineFeedMode(isSetMode);
+          break;
+        default:
+          if (controller.debugLogging) {
+            _log.warning('\tUnhandled mode set: $mode');
+          }
+          break;
+      }
+    }
+
+    void handlePrivateMode(int mode) {
+      switch (mode) {
+        case 1047:
+        case 47:
+          if (isSetMode) {
+            controller.useBackBuffer(saveMainAndClear: false);
+          } else {
+            controller.useMainBuffer(restoreMain: false);
+          }
+          break;
+        case 1049:
+          if (isSetMode) {
+            controller.useBackBuffer(saveMainAndClear: true);
+          } else {
+            controller.useMainBuffer(restoreMain: true);
+          }
+          break;
+        default:
+          if (controller.debugLogging) {
+            _log.warning('\tUnhandled private mode set: $mode');
+          }
+          break;
+      }
+    }
+
+    for (final p in parsed.params) {
+      final mode = p ?? 0;
+      if (isPrivate) {
+        handlePrivateMode(mode);
+      } else {
+        handleMode(mode);
+      }
+    }
+  }
+
+  /// https://terminalguide.namepad.de/seq/csi_sm/
+  void _csiSelectGraphicRendition(
+    CsiParseResult parsed,
+    FormattingOptions formatting,
+  ) {
+    final List<int> codes = parsed.params.isEmpty
+        ? const <int>[0]
+        : parsed.params.map((p) => p ?? 0).toList(growable: false);
 
     int offset = 0;
     while (offset < codes.length) {
       int code = codes[offset++];
 
-      switch (code) {
-        case 0:
-          formatting.reset();
-          break;
-        case 1:
-          formatting.bold = true;
-          break;
-        case 2:
-          formatting.faint = true;
-          break;
-        case 3:
-          formatting.italic = true;
-          break;
-        case 4:
-          formatting.underline = Underline.single;
-          break;
-        case 8:
-          formatting.concealed = true;
-          break;
-        case 21:
-          formatting.underline = Underline.double;
-          break;
-        case 22:
+      (switch (code) {
+        0 => () => formatting.reset(),
+        1 => () => formatting.bold = true,
+        2 => () => formatting.faint = true,
+        3 => () => formatting.italic = true,
+        4 => () => formatting.underline = Underline.single,
+        7 => () => formatting.inverted = true,
+        8 => () => formatting.concealed = true,
+        21 => () => formatting.underline = Underline.double,
+        22 => () {
           formatting.bold = false;
           formatting.faint = false;
-          break;
-        case 23:
-          formatting.italic = false;
-          break;
-        case 24:
-          formatting.underline = Underline.none;
-          break;
-        case 28:
-          formatting.concealed = false;
-          break;
-        case >= 30 && <= 37:
-          formatting.fgColor = ansi8ToColor(controller.colors, code - 30);
-          break;
-        case 38:
-          // 38       Set foreground color                        Next arguments are 5;<n> or 2;<r>;<g>;<b>, see below
-          if (offset == codes.length) break;
+        },
+        23 => () => formatting.italic = false,
+        24 => () => formatting.underline = Underline.none,
+        27 => () => formatting.inverted = false,
+        28 => () => formatting.concealed = false,
+        >= 30 && <= 37 => () => formatting.fgColor = ansi8ToColor(
+          controller.colors,
+          code - 30,
+        ),
+        38 => () {
+          if (offset == codes.length) return;
           switch (codes[offset++]) {
             case 5:
-              if (offset == codes.length) break;
+              if (offset == codes.length) return;
               formatting.fgColor = xterm256ToColor(
                 controller.colors,
                 codes[offset],
               );
               break;
             case 2:
-              if ((offset + 2) == codes.length) break;
+              if ((offset + 2) == codes.length) return;
               formatting.fgColor = rgbToColor(
                 codes[offset - 3],
                 codes[offset - 2],
@@ -151,25 +411,26 @@ class EscapeParser {
             default:
               break;
           }
-          break;
-        case 39:
-          formatting.fgColor = null;
-          break;
-        case >= 40 && <= 47:
-          formatting.bgColor = ansi8ToColor(controller.colors, code - 40);
-          break;
-        case 48:
-          if (offset == codes.length) break;
+          // assume we consumed all the extra params
+          offset = codes.length;
+        },
+        39 => () => formatting.fgColor = null,
+        >= 40 && <= 47 => () => formatting.bgColor = ansi8ToColor(
+          controller.colors,
+          code - 40,
+        ),
+        48 => () {
+          if (offset == codes.length) return;
           switch (codes[offset]) {
             case 5:
-              if ((offset + 1) == codes.length) break;
+              if ((offset + 1) == codes.length) return;
               formatting.bgColor = xterm256ToColor(
                 controller.colors,
                 codes[offset + 1],
               );
               break;
             case 2:
-              if ((offset + 3) == codes.length) break;
+              if ((offset + 3) == codes.length) return;
               formatting.bgColor = rgbToColor(
                 codes[offset + 1],
                 codes[offset + 2],
@@ -178,29 +439,25 @@ class EscapeParser {
             default:
               break;
           }
-          break;
-        case 49:
-          formatting.bgColor = null;
-        default:
-          // NYI / ignored
-          break;
-      }
+          // assume we consumed all the extra params
+          offset = codes.length;
+        },
+        49 => () => formatting.bgColor = null,
+        _ => throw ArgumentError('Unhandled formatting code: $code'),
+      }).call();
     }
   }
 
-  static (int, String) _parseInt(String input, int offset) {
-    int start = offset;
-    while (offset < input.length && _isDigit(input[offset])) {
-      offset++;
-    }
-    if (offset > start) {
-      return (offset - start, input.substring(start, offset));
-    }
-    return (0, '');
-  }
-
-  static bool _isDigit(String ch) {
-    final cu = ch.codeUnitAt(0);
-    return cu >= 0x30 && cu <= 0x39;
+  void _csiSetScrollingRegion(
+    CsiParseResult parsed,
+    FormattingOptions formatting,
+  ) {
+    final top = (parsed.params.isNotEmpty ? (parsed.params[0] ?? 1) : 1) - 1;
+    final bottom =
+        (parsed.params.length >= 2
+            ? (parsed.params[1] ?? controller.rows)
+            : controller.rows) -
+        1;
+    controller.activeBuffer.setVerticalMargins(top, bottom);
   }
 }
