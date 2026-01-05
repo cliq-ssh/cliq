@@ -6,6 +6,10 @@ backend:
   - changed-files:
       - any-glob-to-any-file: backend/**
 
+docs:
+  - changed-files:
+      - any-glob-to-any-file: docs/**
+
 repo:
   - changed-files:
       - any-glob-to-any-file: .github/**
