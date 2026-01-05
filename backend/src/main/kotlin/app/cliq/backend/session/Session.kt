@@ -18,28 +18,34 @@ import java.time.OffsetDateTime
     name = "sessions",
     indexes = [
         Index(name = "idx_sessions_user_id", columnList = "user_id"),
-        Index(name = "idx_sessions_api_key", columnList = "api_key"),
+        Index(name = "idx_sessions_oidc_session_id", columnList = "oidc_session_id"),
+        Index(name = "idx_sessions_refresh_token", columnList = "refresh_token"),
     ],
 )
 class Session(
-    @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(nullable = false)
-    var user: User,
-    @Column(nullable = false, unique = true)
-    var apiKey: String,
-    @Column
-    var name: String? = null,
-    @Column
-    var userAgent: String? = null,
-    @Column
-    var lastAccessedAt: OffsetDateTime? = null,
-    @Column(nullable = false)
-    var createdAt: OffsetDateTime,
-    @Column(nullable = false)
-    var updatedAt: OffsetDateTime,
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     var id: Long? = null,
-    @Column(nullable = true)
+
+    @Column(nullable = true, unique = true)
     var oidcSessionId: String? = null,
+
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(nullable = false)
+    var user: User,
+
+    @Column(nullable = false, unique = true)
+    var refreshToken: String,
+
+    @Column
+    var name: String? = null,
+
+    @Column
+    var lastUsedAt: OffsetDateTime? = null,
+
+    @Column
+    var expiresAt: OffsetDateTime,
+
+    @Column(nullable = false)
+    var createdAt: OffsetDateTime,
 )

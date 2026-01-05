@@ -67,7 +67,7 @@ class SessionController(
             throw InvalidEmailOrPasswordException()
         }
 
-        val session = sessionFactory.createFromCreationParams(sessionCreationParams, user)
+        val session = sessionFactory.createFromLoginParams(sessionCreationParams, user)
         val response = SessionResponse.fromSession(session)
 
         return ResponseEntity.status(HttpStatus.CREATED).body(response)

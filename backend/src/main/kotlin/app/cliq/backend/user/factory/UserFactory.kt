@@ -1,5 +1,6 @@
 package app.cliq.backend.user.factory
 
+import app.cliq.backend.auth.params.RegistrationParams
 import app.cliq.backend.user.DEFAULT_LOCALE
 import app.cliq.backend.user.PasswordResetEvent
 import app.cliq.backend.user.User
@@ -27,6 +28,7 @@ class UserFactory(
         name: String,
     ): User {
         val hashedPassword = passwordEncoder.encode(OIDC_PASSWORD)
+
         return createUser(
             sub = sub,
             email = email,
@@ -46,8 +48,7 @@ class UserFactory(
         user.password = hashedPassword!!
         user.updatedAt = OffsetDateTime.now(clock)
 
-        val newUser = userRepository.save(user)
-        userRepository.flush()
+        val newUser = userRepository.saveAndFlush(user)
 
         val id = newUser.id ?: throw IllegalStateException("User ID should not be null after save")
         eventPublisher.publishEvent(PasswordResetEvent(id))
@@ -58,20 +59,23 @@ class UserFactory(
     fun createFromRegistrationParams(registrationParams: UserRegistrationParams): User {
         val hashedPassword = passwordEncoder.encode(registrationParams.password)
 
-        var user =
-            createUser(
-                email = registrationParams.email,
-                password = hashedPassword!!,
-                name = registrationParams.username,
-                locale = registrationParams.locale,
-            )
+        return createUser(
+            email = registrationParams.email,
+            password = hashedPassword!!,
+            name = registrationParams.username,
+            locale = registrationParams.locale,
+        )
+    }
 
-        user = userRepository.saveAndFlush(user)
+    fun createFromRegistrationParams(registrationParams: RegistrationParams): User {
+        val hashedPassword = passwordEncoder.encode(registrationParams.password)
 
-        val id = user.id ?: throw IllegalStateException("User ID should not be null after save")
-        eventPublisher.publishEvent(UserCreatedEvent(id))
-
-        return user
+        return createUser(
+            email = registrationParams.email,
+            password = hashedPassword!!, //Password is not null as the inputted password is not null
+            name = registrationParams.username,
+            locale = registrationParams.locale,
+        )
     }
 
     private fun createUser(
@@ -81,7 +85,7 @@ class UserFactory(
         locale: String = DEFAULT_LOCALE,
         sub: String? = null,
     ): User {
-        val user =
+        var user =
             User(
                 oidcSub = sub,
                 email = email,
@@ -91,6 +95,10 @@ class UserFactory(
                 createdAt = OffsetDateTime.now(clock),
                 updatedAt = OffsetDateTime.now(clock),
             )
+
+        user = userRepository.save(user)
+        val id = user.id ?: throw IllegalStateException("User ID should not be null after save")
+        eventPublisher.publishEvent(UserCreatedEvent(id))
 
         return user
     }

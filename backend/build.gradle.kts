@@ -80,8 +80,6 @@ buildscript {
     }
 }
 
-val springModulithVersion by extra("2.0.1")
-
 dependencies {
     // Web Framework
     implementation("org.springframework.boot:spring-boot-starter-webmvc")
@@ -128,19 +126,10 @@ dependencies {
     // Kotlin specifics
     implementation("org.jetbrains.kotlin:kotlin-reflect")
 
-    // Modulith
-    implementation("org.springframework.modulith:spring-modulith-starter-core")
-    implementation("org.springframework.modulith:spring-modulith-starter-jpa")
-    runtimeOnly("org.springframework.modulith:spring-modulith-actuator")
-    runtimeOnly("org.springframework.modulith:spring-modulith-observability")
-
     // Testing //
 
     // Spring
     testImplementation("org.springframework.boot:spring-boot-webmvc-test")
-
-    // Modulith
-    testImplementation("org.springframework.modulith:spring-modulith-starter-test")
 
     // Junit 5
     testImplementation("org.jetbrains.kotlin:kotlin-test-junit5")
@@ -158,12 +147,6 @@ dependencies {
     // Kotlin specifics
     testImplementation("org.mockito.kotlin:mockito-kotlin:6.1.0")
     testImplementation("org.awaitility:awaitility-kotlin:4.3.0")
-}
-
-dependencyManagement {
-    imports {
-        mavenBom("org.springframework.modulith:spring-modulith-bom:$springModulithVersion")
-    }
 }
 
 kotlin {

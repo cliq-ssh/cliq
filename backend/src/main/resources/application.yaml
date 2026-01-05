@@ -14,6 +14,10 @@ app:
     client-id: \${OIDC_CLIENT_ID}
     client-secret: \${OIDC_CLIENT_SECRET}
     scopes: \${OIDC_SCOPES:openid,profile,email}
+  jwt:
+    secret: \${JWT_SECRET}
+    access-token-expires-minutes: \${JWT_ACCESS_TOKEN_EXPIRES_MINUTES:10}
+    refresh-token-expires-days: \${JWT_REFRESH_TOKEN_EXPIRES_DAYS:30}
 
 logging:
   level:

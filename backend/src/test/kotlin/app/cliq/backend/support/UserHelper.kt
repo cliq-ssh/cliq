@@ -66,7 +66,7 @@ class UserHelper(
         val user = createRandomVerifiedUser(email, password, username)
 
         val params = SessionCreationParams(email, password)
-        val session = sessionFactory.createFromCreationParams(params, user)
+        val session = sessionFactory.createFromLoginParams(params, user)
         val updatedSession = sessionRepository.saveAndFlush(session)
 
         return updatedSession

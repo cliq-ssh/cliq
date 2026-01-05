@@ -1,5 +1,6 @@
 package app.cliq.backend.config
 
+import app.cliq.backend.config.properties.InfoProperties
 import io.swagger.v3.oas.annotations.enums.SecuritySchemeType
 import io.swagger.v3.oas.annotations.security.SecurityScheme
 import io.swagger.v3.oas.models.OpenAPI
