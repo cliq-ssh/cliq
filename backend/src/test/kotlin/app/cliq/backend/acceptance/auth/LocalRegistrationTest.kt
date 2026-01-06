@@ -35,20 +35,22 @@ class LocalRegistrationTest(
         val password = EXAMPLE_PASSWORD
         val username = EXAMPLE_USERNAME
 
-        val registrationParams = RegistrationParams(
-            email = email,
-            password = password,
-            username = username,
-        )
+        val registrationParams =
+            RegistrationParams(
+                email = email,
+                password = password,
+                username = username,
+            )
 
-        val result = mockMvc.perform(
-            MockMvcRequestBuilders
-                .post("/api/auth/register")
-                .contentType(MediaType.APPLICATION_JSON_VALUE)
-                .content(objectMapper.writeValueAsString(registrationParams)),
-        )
-            .andExpect(status().isCreated)
-            .andReturn()
+        val result =
+            mockMvc
+                .perform(
+                    MockMvcRequestBuilders
+                        .post("/api/auth/register")
+                        .contentType(MediaType.APPLICATION_JSON_VALUE)
+                        .content(objectMapper.writeValueAsString(registrationParams)),
+                ).andExpect(status().isCreated)
+                .andReturn()
 
         // Response assertions
         assertEquals(MediaType.APPLICATION_JSON_VALUE, result.response.contentType)
@@ -69,5 +71,39 @@ class LocalRegistrationTest(
         assertNotNull(user.emailVerifiedAt)
 
         assertTrue(user.isEmailVerified())
+    }
+
+    @Test
+    fun `test registration with existing email`() {
+        val email = EXAMPLE_EMAIL
+        val password = EXAMPLE_PASSWORD
+        val username = EXAMPLE_USERNAME
+
+        val registrationParams =
+            RegistrationParams(
+                email = email,
+                password = password,
+                username = username,
+            )
+
+        // First registration should succeed
+        mockMvc
+            .perform(
+                MockMvcRequestBuilders
+                    .post("/api/auth/register")
+                    .contentType(MediaType.APPLICATION_JSON_VALUE)
+                    .content(objectMapper.writeValueAsString(registrationParams)),
+            ).andExpect(status().isCreated)
+            .andReturn()
+
+        // Second registration with the same email should fail
+        mockMvc
+            .perform(
+                MockMvcRequestBuilders
+                    .post("/api/auth/register")
+                    .contentType(MediaType.APPLICATION_JSON_VALUE)
+                    .content(objectMapper.writeValueAsString(registrationParams)),
+            ).andExpect(status().isBadRequest)
+            .andReturn()
     }
 }

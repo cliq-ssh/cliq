@@ -1,9 +1,9 @@
 package app.cliq.backend
 
 import app.cliq.backend.config.EmailProperties
+import app.cliq.backend.config.oidc.OidcProperties
 import app.cliq.backend.config.properties.InfoProperties
 import app.cliq.backend.config.properties.JwtProperties
-import app.cliq.backend.config.oidc.OidcProperties
 import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.context.properties.ConfigurationPropertiesScan
 import org.springframework.boot.runApplication
@@ -16,7 +16,7 @@ import org.springframework.scheduling.annotation.EnableScheduling
         InfoProperties::class,
         EmailProperties::class,
         OidcProperties::class,
-        JwtProperties::class
+        JwtProperties::class,
     ],
 )
 @EnableAsync

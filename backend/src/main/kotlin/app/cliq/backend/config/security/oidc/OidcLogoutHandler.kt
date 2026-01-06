@@ -28,15 +28,16 @@ class OidcLogoutHandler(
         }
 
         val token = authentication.principal as OidcLogoutToken
-        val deletedSessions = when (val sessionId = token.sessionId) {
-            null -> {
-                deleteWithOidcUser(token.subject)
-            }
+        val deletedSessions =
+            when (val sessionId = token.sessionId) {
+                null -> {
+                    deleteWithOidcUser(token.subject)
+                }
 
-            else -> {
-                deleteWithOidcSessionId(sessionId)
+                else -> {
+                    deleteWithOidcSessionId(sessionId)
+                }
             }
-        }
 
         logger.debug("Deleted $deletedSessions sessions during logout")
     }

@@ -26,26 +26,19 @@ class Session(
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     var id: Long? = null,
-
     @Column(nullable = true, unique = true)
     var oidcSessionId: String? = null,
-
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(nullable = false)
     var user: User,
-
     @Column(nullable = false, unique = true)
     var refreshToken: String,
-
     @Column
     var name: String? = null,
-
     @Column
     var lastUsedAt: OffsetDateTime? = null,
-
     @Column
     var expiresAt: OffsetDateTime,
-
     @Column(nullable = false)
     var createdAt: OffsetDateTime,
 )

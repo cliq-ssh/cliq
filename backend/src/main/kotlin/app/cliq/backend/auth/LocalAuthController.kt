@@ -22,8 +22,10 @@ import org.springframework.http.ResponseEntity
 import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
+import org.springframework.web.bind.annotation.RequestMapping
 
 @AuthController
+@RequestMapping("/api/auth")
 class LocalAuthController(
     private val userRepository: UserRepository,
     private val userFactory: UserFactory,
@@ -53,7 +55,7 @@ class LocalAuthController(
         ],
     )
     private fun register(
-        @Valid @RequestBody registrationParams: RegistrationParams
+        @Valid @RequestBody registrationParams: RegistrationParams,
     ): ResponseEntity<UserResponse> {
         val user = userFactory.createFromRegistrationParams(registrationParams)
 
@@ -83,7 +85,7 @@ class LocalAuthController(
         ],
     )
     private fun login(
-        @Valid @RequestBody loginParams: LoginParams
+        @Valid @RequestBody loginParams: LoginParams,
     ): ResponseEntity<LoginResponse> {
         val user = userRepository.findByEmail(loginParams.email) ?: throw InvalidEmailOrPasswordException()
 

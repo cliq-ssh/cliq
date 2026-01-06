@@ -19,20 +19,25 @@ class JwtFactory(
     private val jwtEncoder: JwtEncoder,
     private val tokenGenerator: TokenGenerator,
 ) {
-    fun generateJwtAccessToken(session: Session, now: OffsetDateTime): Jwt {
+    fun generateJwtAccessToken(
+        session: Session,
+        now: OffsetDateTime,
+    ): Jwt {
         val user = session.user
         if (session.id == null) throw IllegalArgumentException("Session must have an ID")
         if (user.id == null) throw IllegalArgumentException("User must have an ID")
 
         val accessTokenExpiresAt = now.plus(jwtProperties.accessTokenExpiresMinutes, ChronoUnit.MINUTES)
 
-        val claims = JwtClaimsSet.builder()
-            .issuer(jwtProperties.issuer)
-            .issuedAt(now.toInstant())
-            .expiresAt(accessTokenExpiresAt.toInstant())
-            .subject(user.id.toString())
-            .claim("sid", session.id)
-            .build()
+        val claims =
+            JwtClaimsSet
+                .builder()
+                .issuer(jwtProperties.issuer)
+                .issuedAt(now.toInstant())
+                .expiresAt(accessTokenExpiresAt.toInstant())
+                .subject(user.id.toString())
+                .claim("sid", session.id)
+                .build()
 
         return jwtEncoder.encode(JwtEncoderParameters.from(claims))
     }

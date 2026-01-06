@@ -13,7 +13,7 @@ const val AUTH_VERIFICATION_TOKEN_LENGTH: UShort = 64U
 
 const val API_KEY_PREFIX = "cliq-api_"
 
-@Service
+@Service("tokenGeneratorOld")
 class TokenGenerator {
     private val secureRandom = SecureRandom()
     private val base64Encoder = Base64.getUrlEncoder().withoutPadding()

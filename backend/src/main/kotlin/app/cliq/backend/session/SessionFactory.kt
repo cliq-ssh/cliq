@@ -16,17 +16,13 @@ class SessionFactory(
         loginParams: LoginParams,
         user: User,
         refreshToken: RefreshToken,
-    ): Session {
-        return createSession(user, refreshToken, loginParams.name)
-    }
+    ): Session = createSession(user, refreshToken, loginParams.name)
 
     fun createFromOidcUser(
         user: User,
         refreshToken: RefreshToken,
         oidcSessionId: String?,
-    ): Session {
-        return createSession(user, refreshToken, oidcSessionId = oidcSessionId)
-    }
+    ): Session = createSession(user, refreshToken, oidcSessionId = oidcSessionId)
 
     private fun createSession(
         user: User,
@@ -34,16 +30,17 @@ class SessionFactory(
         name: String? = null,
         oidcSessionId: String? = null,
     ): Session {
-        val session = Session(
-            id = null,
-            oidcSessionId = oidcSessionId,
-            user = user,
-            refreshToken = refreshToken.tokenValue,
-            name = name,
-            lastUsedAt = null,
-            expiresAt = refreshToken.expiresAt,
-            createdAt = OffsetDateTime.now(clock),
-        )
+        val session =
+            Session(
+                id = null,
+                oidcSessionId = oidcSessionId,
+                user = user,
+                refreshToken = refreshToken.tokenValue,
+                name = name,
+                lastUsedAt = null,
+                expiresAt = refreshToken.expiresAt,
+                createdAt = OffsetDateTime.now(clock),
+            )
 
         return sessionRepository.saveAndFlush(session)
     }

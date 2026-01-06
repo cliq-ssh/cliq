@@ -21,11 +21,12 @@ class ApiKeyAuthenticationProvider(
         val apiKeyAuthentication = authentication as ApiKeyAuthentication
 
         val apiKey = apiKeyAuthentication.credentials ?: throw BadCredentialsException("API key is missing")
-        val session = sessionRepository.findByApiKey(apiKey) ?: throw BadCredentialsException("Invalid API key")
-        val user = session.user
-        eventPublisher.publishEvent(SessionUsedEvent(session.id!!))
-
-        return apiKeyAuthenticationFactory.createAuthenticated(user)
+        TODO("Update to JWT Bearer token")
+//        val session = sessionRepository.findByApiKey(apiKey) ?: throw BadCredentialsException("Invalid API key")
+//        val user = session.user
+//        eventPublisher.publishEvent(SessionUsedEvent(session.id!!))
+//
+//        return apiKeyAuthenticationFactory.createAuthenticated(user)
     }
 
     override fun supports(authentication: Class<*>): Boolean = authentication == ApiKeyAuthentication::class.java

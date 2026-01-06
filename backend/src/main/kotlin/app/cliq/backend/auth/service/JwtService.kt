@@ -15,12 +15,18 @@ class JwtService(
     private val sessionFactory: SessionFactory,
     private val clock: Clock,
 ) {
-    fun generateJwtTokenPair(loginParams: LoginParams, user: User): TokenPair {
+    fun generateJwtTokenPair(
+        loginParams: LoginParams,
+        user: User,
+    ): TokenPair {
         val now = OffsetDateTime.now(clock)
         val refreshToken = jwtFactory.generateJwtRefreshToken(now)
-        val session = sessionFactory.createFromLoginParams(
-            loginParams, user, refreshToken
-        )
+        val session =
+            sessionFactory.createFromLoginParams(
+                loginParams,
+                user,
+                refreshToken,
+            )
 
         val jwt = jwtFactory.generateJwtAccessToken(session, now)
 

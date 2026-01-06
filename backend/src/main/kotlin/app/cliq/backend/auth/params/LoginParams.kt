@@ -16,12 +16,10 @@ data class LoginParams(
     @field:Email
     @field:NotEmpty
     val email: String,
-
     @field:Schema(example = EXAMPLE_PASSWORD)
     @field:NotEmpty
     @field:Size(min = MIN_PASSWORD_LENGTH, max = MAX_PASSWORD_LENGTH)
     val password: String,
-
     @field:Schema(example = EXAMPLE_SESSION_NAME)
     val name: String? = null,
 )

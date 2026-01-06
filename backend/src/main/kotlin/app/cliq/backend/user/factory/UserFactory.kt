@@ -72,7 +72,7 @@ class UserFactory(
 
         return createUser(
             email = registrationParams.email,
-            password = hashedPassword!!, //Password is not null as the inputted password is not null
+            password = hashedPassword!!, // Password is not null as the inputted password is not null
             name = registrationParams.username,
             locale = registrationParams.locale,
         )

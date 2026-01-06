@@ -10,16 +10,12 @@ import java.time.OffsetDateTime
 open class SessionResponse(
     @field:Schema(example = EXAMPLE_SESSION_ID)
     val id: Long,
-
     @field:Schema(example = EXAMPLE_SESSION_NAME)
     val name: String? = null,
-
     @field:Schema(example = EXAMPLE_DATETIME)
     val lastUsedAt: OffsetDateTime? = null,
-
     @field:Schema(example = EXAMPLE_DATETIME)
     val expiresAt: OffsetDateTime,
-
     @field:Schema(example = EXAMPLE_DATETIME)
     val createdAt: OffsetDateTime,
 )

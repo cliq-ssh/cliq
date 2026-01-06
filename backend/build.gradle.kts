@@ -144,8 +144,15 @@ dependencies {
     // Mail commons
     testImplementation("org.apache.commons:commons-email2-jakarta:2.0.0-M1")
 
-    // Kotlin specifics
+    // Mockito
+    testImplementation("org.mockito:mockito-core:5.21.0")
+    testImplementation("org.mockito:mockito-junit-jupiter:5.21.0")
     testImplementation("org.mockito.kotlin:mockito-kotlin:6.1.0")
+
+    // AssertJ
+    testImplementation("org.assertj:assertj-core:3.27.6")
+
+    // Kotlin specifics
     testImplementation("org.awaitility:awaitility-kotlin:4.3.0")
 }
 

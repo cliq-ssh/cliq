@@ -10,10 +10,8 @@ import org.springframework.validation.annotation.Validated
 @ConfigurationProperties(prefix = "app.jwt")
 class JwtProperties(
     var secret: String,
-
     @field:Min(MIN_JWT_EXPIRES_MINUTES)
     var accessTokenExpiresMinutes: Long,
-
     @field:Min(MIN_JWT_REFRESH_TOKEN_EXPIRES_DAYS)
     var refreshTokenExpiresDays: Long,
     var issuer: String = "cliq-api",

@@ -23,6 +23,11 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 import tools.jackson.databind.ObjectMapper
 import kotlin.test.assertEquals
 
+/*
+TODO:
+    - Test invalid credentials
+    - Test unverified email login
+ */
 @AcceptanceTest
 class LocalLoginTest(
     @Autowired
@@ -36,33 +41,35 @@ class LocalLoginTest(
     @Autowired
     private val jwtDecoder: JwtDecoder,
     @Autowired
-    private val jwtProperties: JwtProperties
+    private val jwtProperties: JwtProperties,
 ) : AcceptanceTester() {
-
     @Test
     fun `test login flow`() {
-        val registrationParams = RegistrationParams(
-            email = EXAMPLE_EMAIL,
-            password = EXAMPLE_PASSWORD,
-            username = EXAMPLE_USERNAME
-        )
+        val registrationParams =
+            RegistrationParams(
+                email = EXAMPLE_EMAIL,
+                password = EXAMPLE_PASSWORD,
+                username = EXAMPLE_USERNAME,
+            )
         val user = userFactory.createFromRegistrationParams(registrationParams)
 
         val sessionName = "Test session"
-        val loginParams = LoginParams(
-            email = EXAMPLE_EMAIL,
-            password = EXAMPLE_PASSWORD,
-            name = sessionName,
-        )
+        val loginParams =
+            LoginParams(
+                email = EXAMPLE_EMAIL,
+                password = EXAMPLE_PASSWORD,
+                name = sessionName,
+            )
 
-        val result = mockMvc.perform(
-            MockMvcRequestBuilders
-                .post("/api/auth/login")
-                .contentType(MediaType.APPLICATION_JSON_VALUE)
-                .content(objectMapper.writeValueAsString(loginParams))
-        )
-            .andExpect(status().isOk)
-            .andReturn()
+        val result =
+            mockMvc
+                .perform(
+                    MockMvcRequestBuilders
+                        .post("/api/auth/login")
+                        .contentType(MediaType.APPLICATION_JSON_VALUE)
+                        .content(objectMapper.writeValueAsString(loginParams)),
+                ).andExpect(status().isOk)
+                .andReturn()
 
         // Response assertions
         assertEquals(MediaType.APPLICATION_JSON_VALUE, result.response.contentType)

@@ -27,22 +27,26 @@ class OidcLoginSuccessHandler(
         val user = userOidcService.putUserFromJwt(oidcUSer)
         val session = getSessionForOidcUser(user, oidcUSer)
 
-        response.sendRedirect("cliq://oauth/callback?apiKey=${session.apiKey}")
+        TODO("Generate a proper todo value to send to the client")
+//        response.sendRedirect("cliq://oauth/callback?apiKey=${todo}")
     }
 
-    private fun getSessionForOidcUser(user: User, oidcUser: OidcUser): Session {
+    private fun getSessionForOidcUser(
+        user: User,
+        oidcUser: OidcUser,
+    ): Session {
         val oidcSessionId = extractSessionId(oidcUser)
-        val existingSession = oidcSessionId?.let {
-            sessionRepository.findByOidcSessionId(it)
-        }
+        val existingSession =
+            oidcSessionId?.let {
+                sessionRepository.findByOidcSessionId(it)
+            }
         if (existingSession != null) {
             return existingSession
         }
 
-        return sessionFactory.createFromOidcUser(user, oidcSessionId)
+        TODO("Update to new JWT workflow")
+//        return sessionFactory.createFromOidcUser(user, oidcSessionId)
     }
 
-    private fun extractSessionId(oidcUser: OidcUser): String? {
-        return oidcUser.idToken.getClaim("sid") as String?
-    }
+    private fun extractSessionId(oidcUser: OidcUser): String? = oidcUser.idToken.getClaim("sid") as String?
 }
