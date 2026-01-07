@@ -2,7 +2,8 @@ import 'package:cliq/modules/settings/view/abstract_settings_page.dart';
 import 'package:cliq/modules/settings/view/settings_page.dart';
 import 'package:cliq/shared/data/store.dart';
 import 'package:cliq_term/cliq_term.dart';
-import 'package:cliq_ui/cliq_ui.dart' show CliqGridColumn, CliqGridContainer, CliqGridRow;
+import 'package:cliq_ui/cliq_ui.dart'
+    show CliqGridColumn, CliqGridContainer, CliqGridRow;
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:forui/forui.dart';
@@ -27,9 +28,7 @@ class TerminalThemeSettingsPage extends AbstractSettingsPage {
       "\x1b[36mconsectetur\x1b[0m "
       "\x1b[37madipiscing\x1b[0m "
       "\x1b[30melit\x1b[0m\n"
-
       "\x1b7"
-
       "\r"
       "\x1b[1B"
       "\x1b[41m   \x1b[0m"
@@ -39,10 +38,8 @@ class TerminalThemeSettingsPage extends AbstractSettingsPage {
       "\x1b[45m   \x1b[0m"
       "\x1b[46m   \x1b[0m"
       "\x1b[47m   \x1b[0m"
-
       "\x1b8"
       "\x1b[2B"
-
       "\r"
       "\x1b[101m   \x1b[0m"
       "\x1b[102m   \x1b[0m"
@@ -57,16 +54,18 @@ class TerminalThemeSettingsPage extends AbstractSettingsPage {
   @override
   Widget buildBody(BuildContext context, WidgetRef ref) {
     final terminalController = useState<TerminalController?>(null);
-    final selectedFontFamily = useState<String>(StoreKey.terminalTypography.readSync()?.fontFamily ?? fonts.first);
-    final selectedFontSize = useState<double>(StoreKey.terminalTypography.readSync()?.fontSize ?? 16);
+    final selectedFontFamily = useState<String>(
+      StoreKey.terminalTypography.readSync()?.fontFamily ?? fonts.first,
+    );
+    final selectedFontSize = useState<double>(
+      StoreKey.terminalTypography.readSync()?.fontSize ?? 16,
+    );
     final selectedColors = useState<TerminalColorThemes>(
-      StoreKey.terminalTheme.readSync() ?? TerminalColorThemes.darcula
+      StoreKey.terminalTheme.readSync() ?? TerminalColorThemes.darcula,
     );
 
     // init controller
     useEffect(() {
-
-
       terminalController.value = TerminalController(
         colors: selectedColors.value.colors,
         typography: TerminalTypography(
@@ -100,11 +99,7 @@ class TerminalThemeSettingsPage extends AbstractSettingsPage {
 
     buildTerminalThemeCard(TerminalColorThemes theme) {
       buildColor(Color color) {
-        return Container(
-          width: 8,
-          height: 16,
-          color: color,
-        );
+        return Container(width: 8, height: 16, color: color);
       }
 
       return GestureDetector(
@@ -145,10 +140,13 @@ class TerminalThemeSettingsPage extends AbstractSettingsPage {
                 crossAxisAlignment: .start,
                 children: [
                   Text(theme.name),
-                  Text('built-in', style: context.theme.typography.xs.copyWith(
-                    color: context.theme.colors.mutedForeground,
-                    fontWeight: .normal
-                  ))
+                  Text(
+                    'built-in',
+                    style: context.theme.typography.xs.copyWith(
+                      color: context.theme.colors.mutedForeground,
+                      fontWeight: .normal,
+                    ),
+                  ),
                 ],
               ),
               const Spacer(),
@@ -197,7 +195,7 @@ class TerminalThemeSettingsPage extends AbstractSettingsPage {
                         initial: FSliderValue(
                           min: 0,
                           max: (selectedFontSize.value - 4) / 48,
-                        )
+                        ),
                       ),
                       label: Text('Font Size'),
                       tooltipBuilder: (_, value) {

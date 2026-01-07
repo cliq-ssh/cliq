@@ -51,8 +51,7 @@ enum TerminalColorThemes {
       brightCyan: Color(0xFF8EC07C),
       brightWhite: Color(0xFFF2E5BC),
     ),
-  )
-  ;
+  );
 
   final String name;
   final TerminalColorTheme colors;
