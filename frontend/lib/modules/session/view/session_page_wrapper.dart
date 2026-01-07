@@ -29,12 +29,11 @@ class _SessionPageState extends ConsumerState<SessionPageWrapper> {
     }, [session.selectedSessionId]);
 
     return PageView(
-      key: PageStorageKey('session_page_wrapper'),
       controller: pageController,
       children: [
         for (final session in session.activeSessions)
           ShellSessionPage(
-            key: ValueKey('session-${session.effectiveName}--${session.id}'),
+            key: PageStorageKey('session-${session.effectiveName}--${session.id}'),
             session: session,
           ),
       ],

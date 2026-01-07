@@ -36,6 +36,9 @@ class _ShellSessionPageState extends ConsumerState<ShellSessionPage>
   TerminalColorTheme theme = TerminalColorThemes.darcula;
 
   @override
+  bool get wantKeepAlive => true;
+
+  @override
   void initState() {
     super.initState();
     // TODO: listen for onTitleChange and update tab title
@@ -178,7 +181,4 @@ class _ShellSessionPageState extends ConsumerState<ShellSessionPage>
       ),
     );
   }
-
-  @override
-  bool get wantKeepAlive => true;
 }
