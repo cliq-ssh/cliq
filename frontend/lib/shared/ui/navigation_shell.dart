@@ -72,7 +72,7 @@ class NavigationShellState extends ConsumerState<NavigationShell>
                       FPopoverMenu(
                         control: .lifted(
                           shown: showTabs.value,
-                          onChange: (show) => showTabs.value = show
+                          onChange: (show) => showTabs.value = show,
                         ),
                         menu: [
                           FItemGroup(
