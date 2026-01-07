@@ -45,7 +45,7 @@ class NavigationShellState extends ConsumerState<NavigationShell>
         color:
             selectedSession.value != null && selectedSession.value!.isConnected
             // TODO: get color from session
-            ? TerminalColorThemes.darcula.backgroundColor
+            ? TerminalColorThemes.darcula.colors.backgroundColor
             : null,
         padding: const EdgeInsets.all(8),
         child: SafeArea(

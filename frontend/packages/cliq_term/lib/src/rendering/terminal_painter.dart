@@ -6,8 +6,10 @@ import '../../cliq_term.dart';
 
 class TerminalPainter extends CustomPainter {
   final TerminalController controller;
+  final bool readOnly;
 
-  const TerminalPainter(this.controller) : super(repaint: controller);
+  const TerminalPainter(this.controller, {this.readOnly = false})
+    : super(repaint: controller);
 
   /// Calculates the width and height of a single character cell based on the provided typography.
   static (double width, double height) measureChar(
@@ -98,6 +100,11 @@ class TerminalPainter extends CustomPainter {
         )
         ..layout(minWidth: 0, maxWidth: cols * cellW)
         ..paint(canvas, Offset(0, r * cellH));
+    }
+
+    // don't draw cursor in read-only mode
+    if (readOnly) {
+      return;
     }
 
     final visibleCursorRow = controller.activeBuffer.cursorRow;

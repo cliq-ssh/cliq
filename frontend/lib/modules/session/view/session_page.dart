@@ -33,7 +33,7 @@ class _ShellSessionPageState extends ConsumerState<ShellSessionPage>
   SSHSession? get sshSession => session.sshSession;
 
   // TODO: load from config
-  TerminalColorTheme theme = TerminalColorThemes.darcula;
+  TerminalColorTheme theme = TerminalColorThemes.darcula.colors;
 
   @override
   bool get wantKeepAlive => true;

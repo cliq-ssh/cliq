@@ -14,8 +14,6 @@ enum CursorStyle { block, underline, bar }
 
 /// Controller for managing terminal state, including buffers, cursor, and input handling.
 class TerminalController extends ChangeNotifier {
-  final TerminalTypography typography;
-  final TerminalColorTheme colors;
   final Duration cursorBlinkInterval;
   final int maxScrollbackLines;
   final bool debugLogging;
@@ -23,6 +21,8 @@ class TerminalController extends ChangeNotifier {
   final void Function(String)? onTitleChange;
   final void Function()? onBell;
   void Function(String)? onInput;
+  TerminalTypography typography;
+  TerminalColorTheme colors;
 
   late TerminalBuffer front = TerminalBuffer(
     rows: rows,

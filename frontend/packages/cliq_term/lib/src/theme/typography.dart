@@ -13,6 +13,7 @@ class TerminalTypography {
       fontWeight: .w500,
       fontVariations: [
         // TODO: figure out a way to use the normal font weight
+        // TODO: see https://docs.flutter.dev/release/breaking-changes/font-weight-variation
         FontVariation('wght', 500),
       ],
     );

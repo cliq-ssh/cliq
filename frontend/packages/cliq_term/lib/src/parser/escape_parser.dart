@@ -390,7 +390,7 @@ class EscapeParser {
         24 => () => formatting.underline = Underline.none,
         27 => () => formatting.inverted = false,
         28 => () => formatting.concealed = false,
-        >= 30 && <= 37 => () => formatting.fgColor = ansi8ToColor(
+        >= 30 && <= 37 => () => formatting.fgColor = ansi16ToColor(
           controller.colors,
           code - 30,
         ),
@@ -418,7 +418,7 @@ class EscapeParser {
           offset = codes.length;
         },
         39 => () => formatting.fgColor = null,
-        >= 40 && <= 47 => () => formatting.bgColor = ansi8ToColor(
+        >= 40 && <= 47 => () => formatting.bgColor = ansi16ToColor(
           controller.colors,
           code - 40,
         ),
@@ -446,6 +446,14 @@ class EscapeParser {
           offset = codes.length;
         },
         49 => () => formatting.bgColor = null,
+        >= 90 && <= 97 => () => formatting.fgColor = ansi16ToColor(
+          controller.colors,
+          (code - 90) + 8,
+        ),
+        >= 100 && <= 107 => () => formatting.bgColor = ansi16ToColor(
+          controller.colors,
+          (code - 100) + 8,
+        ),
         _ => throw ArgumentError('Unhandled formatting code: $code'),
       }).call();
     }

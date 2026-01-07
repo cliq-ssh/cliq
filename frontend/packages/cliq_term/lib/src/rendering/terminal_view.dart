@@ -6,8 +6,14 @@ import 'package:flutter/services.dart';
 class TerminalView extends StatefulWidget {
   final TerminalController controller;
   final FocusNode? focusNode;
+  final bool readOnly;
 
-  const TerminalView({super.key, required this.controller, this.focusNode});
+  const TerminalView({
+    super.key,
+    required this.controller,
+    this.focusNode,
+    this.readOnly = false,
+  });
 
   @override
   State<TerminalView> createState() => _TerminalViewState();
@@ -103,6 +109,10 @@ class _TerminalViewState extends State<TerminalView> {
           focusNode: _focusNode,
           autofocus: true,
           onKeyEvent: (node, event) {
+            if (widget.readOnly) {
+              return KeyEventResult.ignored;
+            }
+
             if (event is KeyDownEvent) {
               // handle tab locally so focus doesn't move to other widgets
               if (event.logicalKey == LogicalKeyboardKey.tab) {
@@ -129,7 +139,12 @@ class _TerminalViewState extends State<TerminalView> {
                 height: canvasHeight < constraints.maxHeight
                     ? constraints.maxHeight
                     : canvasHeight,
-                child: CustomPaint(painter: TerminalPainter(widget.controller)),
+                child: CustomPaint(
+                  painter: TerminalPainter(
+                    widget.controller,
+                    readOnly: widget.readOnly,
+                  ),
+                ),
               ),
             ),
           ),

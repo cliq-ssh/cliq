@@ -6,7 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:forui/forui.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:system_fonts/system_fonts.dart';
+import 'package:lucide_flutter/lucide_flutter.dart';
 
 import '../../../shared/model/page_path.model.dart';
 
@@ -17,89 +17,239 @@ class TerminalThemeSettingsPage extends AbstractSettingsPage {
   );
 
   static const List<String> fonts = ['JetBrainsMono', 'SourceCodePro'];
-  static const String sampleText = "Lorem ipsum sit dolor amet";
+  static const String sampleText =
+      "\x1b[31mLorem\x1b[0m "
+      "\x1b[32mipsum\x1b[0m "
+      "\x1b[33mdolor\x1b[0m "
+      "\x1b[34msit\x1b[0m "
+      "\x1b[35mamet\x1b[0m "
+      "\x1b[36mconsectetur\x1b[0m "
+      "\x1b[37madipiscing\x1b[0m "
+      "\x1b[30melit\x1b[0m\n"
+
+      "\x1b7"
+
+      "\r"
+      "\x1b[1B"
+      "\x1b[41m   \x1b[0m"
+      "\x1b[42m   \x1b[0m"
+      "\x1b[43m   \x1b[0m"
+      "\x1b[44m   \x1b[0m"
+      "\x1b[45m   \x1b[0m"
+      "\x1b[46m   \x1b[0m"
+      "\x1b[47m   \x1b[0m"
+
+      "\x1b8"
+      "\x1b[2B"
+
+      "\r"
+      "\x1b[101m   \x1b[0m"
+      "\x1b[102m   \x1b[0m"
+      "\x1b[103m   \x1b[0m"
+      "\x1b[104m   \x1b[0m"
+      "\x1b[105m   \x1b[0m"
+      "\x1b[106m   \x1b[0m"
+      "\x1b[107m   \x1b[0m\n";
 
   const TerminalThemeSettingsPage({super.key});
 
   @override
   Widget buildBody(BuildContext context, WidgetRef ref) {
     final terminalController = useState<TerminalController?>(null);
-
-    final systemFonts = useState<List<String>>([]);
     final selectedFontFamily = useState<String>('SourceCodePro');
+    final selectedFontSize = useState<double>(16);
+    final selectedColors = useState<TerminalColorThemes>(
+      TerminalColorThemes.darcula,
+    );
 
+    // init controller
     useEffect(() {
       terminalController.value = TerminalController(
-        colors: TerminalColorThemes.darcula,
+        colors: selectedColors.value.colors,
         typography: TerminalTypography(
           fontFamily: selectedFontFamily.value,
-          fontSize: 16,
+          fontSize: selectedFontSize.value,
         ),
       );
-      // wait till initState of TerminalView is done
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        sampleText.split('\n').forEach((line) {
-          terminalController.value?.feed(line);
-        });
-      });
+      terminalController.value?.setAutoWrapMode(true);
       return () => terminalController.value?.dispose();
     }, []);
 
+    // update typography on font family change
     useEffect(() {
-      SystemFonts().loadAllFonts().then((f) => systemFonts.value = f);
+      if (terminalController.value == null) return null;
+      terminalController.value!.typography = TerminalTypography(
+        fontFamily: selectedFontFamily.value,
+        fontSize: selectedFontSize.value,
+      );
       return null;
-    }, []);
+    }, [selectedFontFamily.value, selectedFontSize.value]);
 
-    return CliqGridContainer(
-      children: [
-        CliqGridRow(
-          children: [
-            CliqGridColumn(
-              sizes: {.sm: 12, .md: 8},
-              child: Column(
-                spacing: 20,
+    // update colors on theme change
+    useEffect(() {
+      if (terminalController.value == null) return null;
+      terminalController.value!.colors = selectedColors.value.colors;
+      return null;
+    }, [selectedColors.value]);
+
+    buildTerminalThemeCard(TerminalColorThemes theme) {
+      buildColor(Color color) {
+        return Container(
+          width: 8,
+          height: 16,
+          color: color,
+        );
+      }
+
+      return GestureDetector(
+        onTap: () => selectedColors.value = theme,
+        child: FCard(
+          title: Row(
+            spacing: 16,
+            mainAxisAlignment: .spaceBetween,
+            children: [
+              Column(
+                crossAxisAlignment: .start,
                 children: [
-                  if (terminalController.value != null)
-                    // draw container with full width and height 200
-                    Container(
-                      width: double.infinity,
-                      height: 200,
-                      padding: const .all(8),
-                      color: TerminalColorThemes.darcula.backgroundColor,
-                      child: TerminalView(
-                        controller: terminalController.value!,
-                      ),
-                    ),
-                  FSelect<String>.rich(
-                    control: .managed(
-                      onChange: (selected) {
-                        if (selected != null) {
-                          selectedFontFamily.value = selected;
-                        }
-                      },
-                    ),
-                    hint: 'Font Family',
-                    format: (s) => s,
-                    contentDivider: .full,
+                  Row(
                     children: [
-                      FSelectSection(
-                        label: const Text('Bundled Fonts'),
-                        items: {for (final item in fonts) item: item},
-                      ),
-                      FSelectSection(
-                        label: const Text('System Fonts'),
-                        items: {
-                          for (final item in systemFonts.value) item: item,
-                        },
-                      ),
-                    ],
+                      theme.colors.red,
+                      theme.colors.green,
+                      theme.colors.yellow,
+                      theme.colors.blue,
+                      theme.colors.magenta,
+                      theme.colors.cyan,
+                      theme.colors.white,
+                    ].map(buildColor).toList(),
+                  ),
+                  Row(
+                    children: [
+                      theme.colors.brightRed,
+                      theme.colors.brightGreen,
+                      theme.colors.brightYellow,
+                      theme.colors.brightBlue,
+                      theme.colors.brightMagenta,
+                      theme.colors.brightCyan,
+                      theme.colors.brightWhite,
+                    ].map(buildColor).toList(),
                   ),
                 ],
               ),
-            ),
-          ],
+              Text(theme.name),
+              const Spacer(),
+              if (selectedColors.value == theme) Icon(LucideIcons.check),
+            ],
+          ),
         ),
-      ],
+      );
+    }
+
+    return SingleChildScrollView(
+      child: CliqGridContainer(
+        children: [
+          CliqGridRow(
+            children: [
+              CliqGridColumn(
+                sizes: {.sm: 12, .md: 8},
+                child: Column(
+                  spacing: 20,
+                  children: [
+                    if (terminalController.value != null)
+                      // draw container with full width and height 200
+                      Container(
+                        width: double.infinity,
+                        height: 200,
+                        padding: const .all(8),
+                        color: selectedColors.value.colors.backgroundColor,
+                        child: LayoutBuilder(
+                          builder: (_, constraints) {
+                            WidgetsBinding.instance.addPostFrameCallback((_) {
+                              terminalController.value!.fitResize(
+                                constraints.biggest,
+                              );
+                              terminalController.value!.activeBuffer.clear();
+                              terminalController.value!.feed(sampleText);
+                            });
+                            return TerminalView(
+                              controller: terminalController.value!,
+                              readOnly: true,
+                            );
+                          },
+                        ),
+                      ),
+                    FSlider(
+                      control: .managedContinuous(),
+                      label: Text('Font Size'),
+                      tooltipBuilder: (_, value) {
+                        final fontSize = (value * 48).round() + 4;
+                        return Text('$fontSize');
+                      },
+                      onEnd: (value) {
+                        final fontSize = (value.max * 48).round() + 4;
+                        selectedFontSize.value = fontSize.toDouble();
+                      },
+                      marks: [
+                        for (var i = 0; i <= 12; i++)
+                          FSliderMark(
+                            value: i / 12,
+                            label: ((i * 4) + 4) % 8 != 0
+                                ? Text('${(i * 4) + 4}')
+                                : null,
+                            tick: ((i * 4) + 4) % 8 == 0,
+                          ),
+                      ],
+                    ),
+                    FSelect<String>.rich(
+                      control: .managed(
+                        onChange: (selected) {
+                          if (selected != null) {
+                            selectedFontFamily.value = selected;
+                          }
+                        },
+                      ),
+                      label: Text('Font Family'),
+                      hint: selectedFontFamily.value,
+                      format: (s) => s,
+                      children: [
+                        for (final font in fonts)
+                          FSelectItem(
+                            title: Text(
+                              font,
+                              style: TextStyle(
+                                fontFamily: font,
+                                fontWeight: .normal,
+                              ),
+                            ),
+                            value: font,
+                          ),
+                      ],
+                    ),
+                    Row(
+                      mainAxisAlignment: .spaceBetween,
+                      children: [
+                        Text('Theme'),
+                        FButton(
+                          style: FButtonStyle.ghost(),
+                          prefix: Icon(LucideIcons.folderOpen),
+                          onPress: null,
+                          child: Text('Import'),
+                        ),
+                      ],
+                    ),
+                    Column(
+                      spacing: 12,
+                      children: [
+                        for (final theme in TerminalColorThemes.values)
+                          buildTerminalThemeCard(theme),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
     );
   }
 }
