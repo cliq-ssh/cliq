@@ -27,19 +27,12 @@ class NavigationShell extends StatefulHookConsumerWidget {
 
 class NavigationShellState extends ConsumerState<NavigationShell>
     with TickerProviderStateMixin {
-  late final FPopoverController _popoverController = .new(vsync: this);
-
-  @override
-  void dispose() {
-    _popoverController.dispose();
-    super.dispose();
-  }
-
   @override
   Widget build(BuildContext context) {
     final connections = ref.watch(connectionProvider);
     final sessions = ref.watch(sessionProvider);
     final selectedSession = useState(sessions.selectedSession);
+    final showTabs = useState(false);
 
     useEffect(() {
       selectedSession.value = sessions.selectedSession;
@@ -77,7 +70,10 @@ class NavigationShellState extends ConsumerState<NavigationShell>
                       for (final session in sessions.activeSessions)
                         SessionTab(session: session),
                       FPopoverMenu(
-                        control: .managed(controller: _popoverController),
+                        control: .lifted(
+                          shown: showTabs.value,
+                          onChange: (show) => showTabs.value = show
+                        ),
                         menu: [
                           FItemGroup(
                             children: [
@@ -88,14 +84,14 @@ class NavigationShellState extends ConsumerState<NavigationShell>
                                     ref
                                         .read(sessionProvider.notifier)
                                         .createAndGo(this, connection);
-                                    _popoverController.hide();
+                                    showTabs.value = false;
                                   },
                                 ),
                             ],
                           ),
                         ],
-                        builder: (_, controller, _) => FButton.icon(
-                          onPress: controller.toggle,
+                        child: FButton.icon(
+                          onPress: () => showTabs.value = !showTabs.value,
                           child: Icon(LucideIcons.plus),
                         ),
                       ),
