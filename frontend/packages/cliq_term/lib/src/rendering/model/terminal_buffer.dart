@@ -210,9 +210,15 @@ class TerminalBuffer {
     setCell(cursorRow, cursorCol, cell);
   }
 
+  void printString(String str) {
+    for (final cu in str.runes) {
+      printChar(cu);
+    }
+  }
+
   /// Prints a single character at the current cursor position.
   /// - https://terminalguide.namepad.de/printing/
-  void print(int cu) {
+  void printChar(int cu) {
     if (pendingWrap) {
       if (isAutoWrapMode) {
         index();
