@@ -1,6 +1,7 @@
 import 'package:cliq/modules/connections/model/connection_full.model.dart';
 import 'package:cliq/modules/connections/provider/connection.provider.dart';
 import 'package:cliq/modules/session/model/session.model.dart';
+import 'package:cliq/shared/data/store.dart';
 import 'package:cliq_ui/cliq_ui.dart'
     show CliqGridColumn, CliqGridContainer, CliqGridRow;
 import 'package:dartssh2/dartssh2.dart';
@@ -32,8 +33,8 @@ class _ShellSessionPageState extends ConsumerState<ShellSessionPage>
   SSHClient? get sshClient => session.sshClient;
   SSHSession? get sshSession => session.sshSession;
 
-  // TODO: load from config
-  TerminalColorTheme theme = TerminalColorThemes.darcula.colors;
+  late TerminalTypography terminalTypography;
+  late TerminalColorTheme terminalColors;
 
   @override
   bool get wantKeepAlive => true;
@@ -41,9 +42,15 @@ class _ShellSessionPageState extends ConsumerState<ShellSessionPage>
   @override
   void initState() {
     super.initState();
+    // TODO: move to provider based pattern
+    terminalTypography = StoreKey.terminalTypography.readSync()!;
+    terminalColors =
+        (StoreKey.terminalTheme.readSync() ?? TerminalColorThemes.darcula)
+            .colors;
+
     // TODO: listen for onTitleChange and update tab title
     _terminalController = TerminalController(
-      colors: theme,
+      colors: terminalColors,
       typography: TerminalTypography(fontFamily: 'SourceCodePro', fontSize: 16),
       debugLogging: kDebugMode,
       onResize: (rows, cols) {
@@ -152,7 +159,7 @@ class _ShellSessionPageState extends ConsumerState<ShellSessionPage>
     if (widget.session.isConnected) {
       return SizedBox.expand(
         child: Container(
-          color: theme.backgroundColor,
+          color: terminalColors.backgroundColor,
           padding: const .all(8),
           child: TerminalView(controller: _terminalController),
         ),

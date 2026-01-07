@@ -34,6 +34,7 @@ enum StoreKey<T> {
   terminalTypography<TerminalTypography>(
     'terminal_typography',
     type: TerminalTypography,
+    defaultValue: TerminalTypography(fontFamily: 'SourceCodePro', fontSize: 16),
     fromValue: _typographyFromValue,
     toValue: _typographyToValue,
   ),

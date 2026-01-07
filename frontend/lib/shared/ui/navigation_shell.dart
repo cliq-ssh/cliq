@@ -11,6 +11,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 
 import '../../modules/session/provider/session.provider.dart';
 import '../../modules/settings/view/settings_page.dart';
+import '../data/store.dart';
 import '../extensions/router.extension.dart';
 
 class NavigationShell extends StatefulHookConsumerWidget {
@@ -27,6 +28,17 @@ class NavigationShell extends StatefulHookConsumerWidget {
 
 class NavigationShellState extends ConsumerState<NavigationShell>
     with TickerProviderStateMixin {
+  late TerminalColorTheme terminalColors;
+
+  @override
+  void initState() {
+    super.initState();
+    // TODO: move to provider based pattern
+    terminalColors =
+        (StoreKey.terminalTheme.readSync() ?? TerminalColorThemes.darcula)
+            .colors;
+  }
+
   @override
   Widget build(BuildContext context) {
     final connections = ref.watch(connectionProvider);
@@ -44,8 +56,7 @@ class NavigationShellState extends ConsumerState<NavigationShell>
       header: Container(
         color:
             selectedSession.value != null && selectedSession.value!.isConnected
-            // TODO: get color from session
-            ? TerminalColorThemes.darcula.colors.backgroundColor
+            ? terminalColors.backgroundColor
             : null,
         padding: const EdgeInsets.all(8),
         child: SafeArea(
