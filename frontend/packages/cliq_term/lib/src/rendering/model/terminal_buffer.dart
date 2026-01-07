@@ -44,6 +44,11 @@ class TerminalBuffer {
   bool isLineFeedMode = false;
   bool isInsertMode = false;
 
+  bool isAutoWrapMode = false;
+  /// Indicates whether the next character to be written should wrap to the next line
+  /// and trigger an index operation
+  bool pendingWrap = false;
+
   TerminalBuffer({
     required this.rows,
     required this.cols,
@@ -69,6 +74,8 @@ class TerminalBuffer {
       isBackBuffer: isBackBuffer,
       isLineFeedMode: isLineFeedMode,
     );
+
+    newBuffer.isAutoWrapMode = isAutoWrapMode;
 
     // absolute index in old ring
     final oldVisibleStart = currentScrollback;

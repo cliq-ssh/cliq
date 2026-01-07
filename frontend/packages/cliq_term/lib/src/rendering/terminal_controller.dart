@@ -161,6 +161,11 @@ class TerminalController extends ChangeNotifier {
     notifyListeners();
   }
 
+  void setAutoWrapMode(bool enabled) {
+    activeBuffer.isAutoWrapMode = enabled;
+    notifyListeners();
+  }
+
   /// Feeds input string into the terminal, parsing escape sequences and control characters.
   void feed(String input) {
     int i = 0;
