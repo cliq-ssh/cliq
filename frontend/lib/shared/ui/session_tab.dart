@@ -7,12 +7,12 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lucide_flutter/lucide_flutter.dart';
 
 import '../../modules/session/provider/session.provider.dart';
+import '../extensions/color.extension.dart';
 
 class SessionTab extends StatefulHookConsumerWidget {
   final ShellSession session;
-  final bool isSelected;
 
-  const SessionTab({super.key, required this.session, this.isSelected = false});
+  const SessionTab({super.key, required this.session});
 
   @override
   ConsumerState<SessionTab> createState() => _SessionTabState();
@@ -24,6 +24,13 @@ class _SessionTabState extends ConsumerState<SessionTab> {
     final typography = context.theme.typography;
     final colors = context.theme.colors;
     final isHovered = useState(false);
+    final sessions = ref.watch(sessionProvider);
+    final isSelected = useState(false);
+
+    useEffect(() {
+      isSelected.value = sessions.selectedSessionId == widget.session.id;
+      return null;
+    }, [sessions, sessions.selectedSessionId]);
 
     closeSession() {
       ref
@@ -37,7 +44,7 @@ class _SessionTabState extends ConsumerState<SessionTab> {
           tipBuilder: (_, _) => Text('Close'),
           child: GestureDetector(
             onTap: closeSession,
-            child: Icon(LucideIcons.x, color: colors.destructive),
+            child: Icon(LucideIcons.x, color: colors.destructive, size: 24),
           ),
         );
       }
@@ -46,7 +53,20 @@ class _SessionTabState extends ConsumerState<SessionTab> {
       }
       if (widget.session.isConnected) {
         // TODO: space for terminal icon
-        return Icon(LucideIcons.terminal, color: colors.primaryForeground);
+        return Container(
+          padding: const .all(6),
+          decoration: BoxDecoration(
+            color: widget.session.connection.color != null
+                ? ColorExtension.fromHex(widget.session.connection.color!)
+                : null,
+            shape: .circle,
+          ),
+          child: Icon(
+            widget.session.connection.icon.iconData,
+            color: colors.foreground,
+            size: 12,
+          ),
+        );
       }
       if (widget.session.connectionError != null) {
         return Icon(LucideIcons.plugZap, color: colors.destructive);
@@ -81,6 +101,11 @@ class _SessionTabState extends ConsumerState<SessionTab> {
                 widget.session.effectiveName,
                 style: typography.lg.copyWith(fontWeight: .bold),
               ),
+              if (widget.session.connection.groupName != null)
+                Text(
+                  widget.session.connection.groupName!,
+                  style: typography.sm.copyWith(color: colors.mutedForeground),
+                ),
               if (widget.session.isConnected) ...[
                 Text(
                   '${formatDuration(DateTime.now().difference(widget.session.connectedAt!))} elapsed',
@@ -95,11 +120,11 @@ class _SessionTabState extends ConsumerState<SessionTab> {
           onExit: (_) => isHovered.value = false,
           cursor: SystemMouseCursors.click,
           child: FBadge(
-            style: widget.isSelected
+            style: isSelected.value
                 ? FBadgeStyle.primary()
                 : FBadgeStyle.outline(),
             child: Padding(
-              padding: const EdgeInsets.symmetric(vertical: 6),
+              padding: const EdgeInsets.symmetric(vertical: 2),
               child: Row(
                 spacing: 8,
                 children: [?buildIcon(), Text(widget.session.effectiveName)],
