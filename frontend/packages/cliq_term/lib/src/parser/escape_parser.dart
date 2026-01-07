@@ -303,16 +303,16 @@ class EscapeParser {
   /// - https://terminalguide.namepad.de/seq/csi_sl/
   /// - https://terminalguide.namepad.de/seq/csi_sl__p/
   void _csiSetMode(CsiParseResult parsed, FormattingOptions formatting) {
-    final isSetMode = parsed.finalByteCode == 'h'.codeUnitAt(0);
+    final enabled = parsed.finalByteCode == 'h'.codeUnitAt(0);
     final isPrivate = parsed.leader == '?';
 
     void handleMode(int mode) {
       switch (mode) {
         case 4:
-          controller.setInsertMode(isSetMode);
+          controller.setInsertMode(enabled);
           break;
         case 20:
-          controller.setLineFeedMode(isSetMode);
+          controller.setLineFeedMode(enabled);
           break;
         default:
           if (controller.debugLogging) {
@@ -324,16 +324,19 @@ class EscapeParser {
 
     void handlePrivateMode(int mode) {
       switch (mode) {
+        case 7:
+          controller.setAutoWrapMode(enabled);
+          break;
         case 1047:
         case 47:
-          if (isSetMode) {
+          if (enabled) {
             controller.useBackBuffer(saveMainAndClear: false);
           } else {
             controller.useMainBuffer(restoreMain: false);
           }
           break;
         case 1049:
-          if (isSetMode) {
+          if (enabled) {
             controller.useBackBuffer(saveMainAndClear: true);
           } else {
             controller.useMainBuffer(restoreMain: true);
