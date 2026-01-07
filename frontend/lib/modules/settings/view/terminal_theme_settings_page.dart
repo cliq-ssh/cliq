@@ -1,7 +1,8 @@
 import 'package:cliq/modules/settings/view/abstract_settings_page.dart';
 import 'package:cliq/modules/settings/view/settings_page.dart';
+import 'package:cliq/shared/data/store.dart';
 import 'package:cliq_term/cliq_term.dart';
-import 'package:cliq_ui/cliq_ui.dart' hide CliqTheme;
+import 'package:cliq_ui/cliq_ui.dart' show CliqGridColumn, CliqGridContainer, CliqGridRow;
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:forui/forui.dart';
@@ -56,14 +57,16 @@ class TerminalThemeSettingsPage extends AbstractSettingsPage {
   @override
   Widget buildBody(BuildContext context, WidgetRef ref) {
     final terminalController = useState<TerminalController?>(null);
-    final selectedFontFamily = useState<String>('SourceCodePro');
-    final selectedFontSize = useState<double>(16);
+    final selectedFontFamily = useState<String>(StoreKey.terminalTypography.readSync()?.fontFamily ?? fonts.first);
+    final selectedFontSize = useState<double>(StoreKey.terminalTypography.readSync()?.fontSize ?? 16);
     final selectedColors = useState<TerminalColorThemes>(
-      TerminalColorThemes.darcula,
+      StoreKey.terminalTheme.readSync() ?? TerminalColorThemes.darcula
     );
 
     // init controller
     useEffect(() {
+
+
       terminalController.value = TerminalController(
         colors: selectedColors.value.colors,
         typography: TerminalTypography(
@@ -78,10 +81,12 @@ class TerminalThemeSettingsPage extends AbstractSettingsPage {
     // update typography on font family change
     useEffect(() {
       if (terminalController.value == null) return null;
-      terminalController.value!.typography = TerminalTypography(
+      final typography = TerminalTypography(
         fontFamily: selectedFontFamily.value,
         fontSize: selectedFontSize.value,
       );
+      terminalController.value!.typography = typography;
+      StoreKey.terminalTypography.write(typography);
       return null;
     }, [selectedFontFamily.value, selectedFontSize.value]);
 
@@ -89,6 +94,7 @@ class TerminalThemeSettingsPage extends AbstractSettingsPage {
     useEffect(() {
       if (terminalController.value == null) return null;
       terminalController.value!.colors = selectedColors.value.colors;
+      StoreKey.terminalTheme.write(selectedColors.value);
       return null;
     }, [selectedColors.value]);
 
@@ -135,7 +141,16 @@ class TerminalThemeSettingsPage extends AbstractSettingsPage {
                   ),
                 ],
               ),
-              Text(theme.name),
+              Column(
+                crossAxisAlignment: .start,
+                children: [
+                  Text(theme.name),
+                  Text('built-in', style: context.theme.typography.xs.copyWith(
+                    color: context.theme.colors.mutedForeground,
+                    fontWeight: .normal
+                  ))
+                ],
+              ),
               const Spacer(),
               if (selectedColors.value == theme) Icon(LucideIcons.check),
             ],
@@ -178,7 +193,12 @@ class TerminalThemeSettingsPage extends AbstractSettingsPage {
                         ),
                       ),
                     FSlider(
-                      control: .managedContinuous(),
+                      control: .managedContinuous(
+                        initial: FSliderValue(
+                          min: 0,
+                          max: (selectedFontSize.value - 4) / 48,
+                        )
+                      ),
                       label: Text('Font Size'),
                       tooltipBuilder: (_, value) {
                         final fontSize = (value * 48).round() + 4;
@@ -201,6 +221,7 @@ class TerminalThemeSettingsPage extends AbstractSettingsPage {
                     ),
                     FSelect<String>.rich(
                       control: .managed(
+                        initial: selectedFontFamily.value,
                         onChange: (selected) {
                           if (selected != null) {
                             selectedFontFamily.value = selected;
