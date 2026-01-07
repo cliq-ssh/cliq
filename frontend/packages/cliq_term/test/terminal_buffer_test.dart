@@ -50,7 +50,7 @@ void main() {
       final buf = TerminalBuffer(rows: 3, cols: 3);
 
       for (final rune in 'ABCDEFGHI'.runes) {
-        buf.write(rune);
+        buf.print(rune);
       }
 
       _expectBufferEquals([

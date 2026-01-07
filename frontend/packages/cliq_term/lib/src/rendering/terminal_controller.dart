@@ -189,7 +189,7 @@ class TerminalController extends ChangeNotifier {
         continue;
       }
 
-      activeBuffer.write(cu);
+      activeBuffer.print(cu);
       i++;
     }
 
