@@ -4,7 +4,7 @@ import app.cliq.backend.auth.annotation.AuthController
 import app.cliq.backend.auth.params.LoginParams
 import app.cliq.backend.auth.params.RegistrationParams
 import app.cliq.backend.auth.service.JwtService
-import app.cliq.backend.auth.view.LoginResponse
+import app.cliq.backend.auth.view.TokenResponse
 import app.cliq.backend.auth.view.UserResponse
 import app.cliq.backend.exception.EmailNotVerifiedException
 import app.cliq.backend.exception.InvalidEmailOrPasswordException
@@ -72,7 +72,7 @@ class LocalAuthController(
                 content = [
                     Content(
                         mediaType = MediaType.APPLICATION_JSON_VALUE,
-                        schema = Schema(implementation = LoginResponse::class),
+                        schema = Schema(implementation = TokenResponse::class),
                     ),
                 ],
             ),
@@ -86,7 +86,7 @@ class LocalAuthController(
     )
     private fun login(
         @Valid @RequestBody loginParams: LoginParams,
-    ): ResponseEntity<LoginResponse> {
+    ): ResponseEntity<TokenResponse> {
         val user = userRepository.findByEmail(loginParams.email) ?: throw InvalidEmailOrPasswordException()
 
         if (!user.isEmailVerified()) throw EmailNotVerifiedException()
@@ -100,7 +100,7 @@ class LocalAuthController(
         }
 
         val tokenPair = jwtService.generateJwtTokenPair(loginParams, user)
-        val response = LoginResponse.fromTokenPair(tokenPair)
+        val response = TokenResponse.fromTokenPair(tokenPair)
 
         return ResponseEntity.status(HttpStatus.CREATED).body(response)
     }

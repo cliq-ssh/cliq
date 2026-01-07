@@ -4,7 +4,7 @@ import app.cliq.backend.acceptance.AcceptanceTest
 import app.cliq.backend.acceptance.AcceptanceTester
 import app.cliq.backend.auth.params.LoginParams
 import app.cliq.backend.auth.params.RegistrationParams
-import app.cliq.backend.auth.view.LoginResponse
+import app.cliq.backend.auth.view.TokenResponse
 import app.cliq.backend.config.properties.JwtProperties
 import app.cliq.backend.docs.EXAMPLE_EMAIL
 import app.cliq.backend.docs.EXAMPLE_PASSWORD
@@ -74,7 +74,7 @@ class LocalLoginTest(
         // Response assertions
         assertEquals(MediaType.APPLICATION_JSON_VALUE, result.response.contentType)
         val content = result.response.contentAsString
-        val response = objectMapper.readValue(content, LoginResponse::class.java)
+        val response = objectMapper.readValue(content, TokenResponse::class.java)
         assertEquals(sessionName, response.name)
 
         // Session assertions

@@ -32,7 +32,7 @@ class Session(
     @JoinColumn(nullable = false)
     var user: User,
     @Column(nullable = false, unique = true)
-    var refreshToken: String,
+    var refreshToken: String, // TODO: hash
     @Column
     var name: String? = null,
     @Column

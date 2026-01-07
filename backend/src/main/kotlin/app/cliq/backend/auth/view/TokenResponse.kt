@@ -5,7 +5,7 @@ import io.swagger.v3.oas.annotations.media.Schema
 import java.time.OffsetDateTime
 
 @Schema
-class LoginResponse(
+class TokenResponse(
     @field:Schema(description = "JWT Access token")
     val accessToken: String,
     @field:Schema(description = "JWT Refresh token")
@@ -17,12 +17,12 @@ class LoginResponse(
     createdAt: OffsetDateTime,
 ) : SessionResponse(id, name, lastUsedAt, expiresAt, createdAt) {
     companion object {
-        fun fromTokenPair(tokenPair: TokenPair): LoginResponse {
+        fun fromTokenPair(tokenPair: TokenPair): TokenResponse {
             val jwt = tokenPair.jwt
             val refreshToken = tokenPair.refreshToken
             val session = tokenPair.session
 
-            return LoginResponse(
+            return TokenResponse(
                 accessToken = jwt.tokenValue,
                 refreshToken = refreshToken.tokenValue,
                 id = session.id!!,

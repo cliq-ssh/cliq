@@ -5,6 +5,8 @@ import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.data.jpa.repository.Modifying
 
 interface SessionRepository : JpaRepository<Session, Long> {
+    fun findByRefreshToken(refreshToken: String): Session?
+
     fun findByOidcSessionId(oidcSessionId: String): Session?
 
     fun findByUserId(userId: Long): MutableList<Session>
