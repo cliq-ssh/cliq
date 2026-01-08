@@ -3,6 +3,7 @@ package app.cliq.backend.session
 import jakarta.transaction.Transactional
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.data.jpa.repository.Modifying
+import java.time.OffsetDateTime
 
 interface SessionRepository : JpaRepository<Session, Long> {
     fun findByRefreshToken(refreshToken: String): Session?
@@ -18,4 +19,8 @@ interface SessionRepository : JpaRepository<Session, Long> {
     @Modifying
     @Transactional
     fun deleteByOidcSessionId(oidcSessionId: String): Int
+
+    @Modifying
+    @Transactional
+    fun deleteAllByExpiresAtBefore(expiresAtBefore: OffsetDateTime)
 }

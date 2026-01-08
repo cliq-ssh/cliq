@@ -41,4 +41,7 @@ class Session(
     var expiresAt: OffsetDateTime,
     @Column(nullable = false)
     var createdAt: OffsetDateTime,
-)
+) {
+    // TODO: unit test
+    fun isExpired(now: OffsetDateTime): Boolean = now.isAfter(expiresAt)
+}

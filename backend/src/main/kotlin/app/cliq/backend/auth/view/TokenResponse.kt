@@ -19,12 +19,11 @@ class TokenResponse(
     companion object {
         fun fromTokenPair(tokenPair: TokenPair): TokenResponse {
             val jwt = tokenPair.jwt
-            val refreshToken = tokenPair.refreshToken
             val session = tokenPair.session
 
             return TokenResponse(
                 accessToken = jwt.tokenValue,
-                refreshToken = refreshToken.tokenValue,
+                refreshToken = tokenPair.refreshToken,
                 id = session.id!!,
                 name = session.name,
                 lastUsedAt = session.lastUsedAt,

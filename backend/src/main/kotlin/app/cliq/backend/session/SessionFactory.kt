@@ -18,6 +18,17 @@ class SessionFactory(
         refreshToken: RefreshToken,
     ): Session = createSession(user, refreshToken, loginParams.name)
 
+    fun createWithSessionName(
+        sessionName: String?,
+        user: User,
+        refreshToken: RefreshToken,
+    ): Session =
+        createSession(
+            user = user,
+            refreshToken = refreshToken,
+            name = sessionName,
+        )
+
     fun createFromOidcUser(
         user: User,
         refreshToken: RefreshToken,

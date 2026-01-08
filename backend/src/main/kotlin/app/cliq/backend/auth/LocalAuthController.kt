@@ -67,7 +67,7 @@ class LocalAuthController(
     @ApiResponses(
         value = [
             ApiResponse(
-                responseCode = "201",
+                responseCode = "200",
                 description = "Successfully logged in.",
                 content = [
                     Content(
@@ -102,6 +102,6 @@ class LocalAuthController(
         val tokenPair = jwtService.generateJwtTokenPair(loginParams, user)
         val response = TokenResponse.fromTokenPair(tokenPair)
 
-        return ResponseEntity.status(HttpStatus.CREATED).body(response)
+        return ResponseEntity.ok(response)
     }
 }

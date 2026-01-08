@@ -18,12 +18,27 @@ app:
     secret: \${JWT_SECRET}
     access-token-expires-minutes: \${JWT_ACCESS_TOKEN_EXPIRES_MINUTES:10}
     refresh-token-expires-days: \${JWT_REFRESH_TOKEN_EXPIRES_DAYS:30}
+    issuer: \${EXTERNAL_URL}
+  rate-limits:
+    - name: login
+      url: /api/auth/login
+      target: IP
+      requests-per-minute: 5
+    - name: refresh
+      url: /api/auth/refresh
+      target: IP
+      requests-per-minute: 10
 
 logging:
   level:
     root: \${LOG_LEVEL_ROOT:info}
 
 spring:
+  cache:
+    cache-names:
+      - rate-limit-buckets
+    caffeine:
+      spec: expireAfterAccess=3600s
   security:
     oauth2:
       client:

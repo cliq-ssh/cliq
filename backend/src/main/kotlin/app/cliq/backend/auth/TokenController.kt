@@ -1,13 +1,13 @@
 package app.cliq.backend.auth
 
 import app.cliq.backend.auth.annotation.AuthController
-import app.cliq.backend.auth.jwt.RefreshToken
 import app.cliq.backend.auth.jwt.TokenPair
 import app.cliq.backend.auth.params.RefreshParams
 import app.cliq.backend.auth.service.JwtService
 import app.cliq.backend.auth.service.RefreshTokenService
 import app.cliq.backend.auth.view.TokenResponse
 import app.cliq.backend.exception.InvalidRefreshTokenException
+import app.cliq.backend.exception.RefreshTokenExpiredException
 import app.cliq.backend.session.SessionRepository
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.media.Content
@@ -20,13 +20,23 @@ import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
+import java.time.Clock
+import java.time.OffsetDateTime
 
+/*
+TODO:
+    - add tests:
+        - normal flow
+        - try to refresh with old token
+        - try to refresh with expired token
+*/
 @AuthController
 @RequestMapping("/api/auth/token")
 class TokenController(
     private val sessionRepository: SessionRepository,
     private val jwtService: JwtService,
     private val refreshTokenService: RefreshTokenService,
+    private val clock: Clock,
 ) {
     @PostMapping("/refresh")
     @Operation(summary = "Refreshes JWT Access token.")
@@ -52,29 +62,14 @@ class TokenController(
     private fun refreshToken(
         @RequestBody @Valid refreshParams: RefreshParams,
     ): ResponseEntity<TokenResponse> {
-        /*
-        TODO:
-            - tests if token isn't expired
-            - create new session on refresh
-                - this would also automatically invalidate sessions if a user hasn't logged in, in a long time
-            - add tests:
-                - normal flow
-                - try to refresh with old token
-                - try to refresh with expired token
-            - add rate limits to login and refresh
-         */
-        var session =
+        val session =
             sessionRepository.findByRefreshToken(refreshParams.refreshToken) ?: throw InvalidRefreshTokenException()
+        if (session.isExpired(OffsetDateTime.now(clock))) throw RefreshTokenExpiredException()
 
-        val accessToken = jwtService.generateNewAccessToken(session)
-        session = refreshTokenService.rotate(session)
+        val issuedRefreshToken = refreshTokenService.issue(session.name, session.user)
+        val accessToken = jwtService.generateNewAccessToken(issuedRefreshToken.session)
 
-        val tokenPair =
-            TokenPair(
-                accessToken,
-                RefreshToken(session.refreshToken, session.expiresAt),
-                session,
-            )
+        val tokenPair = TokenPair.fromIssuedRefreshToken(accessToken, issuedRefreshToken)
 
         return ResponseEntity.ok(TokenResponse.fromTokenPair(tokenPair))
     }

@@ -2,6 +2,7 @@ package app.cliq.backend.acceptance.auth
 
 import app.cliq.backend.acceptance.AcceptanceTest
 import app.cliq.backend.acceptance.AcceptanceTester
+import app.cliq.backend.auth.params.LoginParams
 import app.cliq.backend.auth.params.RegistrationParams
 import app.cliq.backend.auth.view.UserResponse
 import app.cliq.backend.docs.EXAMPLE_EMAIL
@@ -71,6 +72,46 @@ class LocalRegistrationTest(
         assertNotNull(user.emailVerifiedAt)
 
         assertTrue(user.isEmailVerified())
+    }
+
+    @Test
+    fun `test user can login after registration`() {
+        val email = EXAMPLE_EMAIL
+        val password = EXAMPLE_PASSWORD
+        val username = EXAMPLE_USERNAME
+
+        val registrationParams =
+            RegistrationParams(
+                email = email,
+                password = password,
+                username = username,
+            )
+
+        mockMvc
+            .perform(
+                MockMvcRequestBuilders
+                    .post("/api/auth/register")
+                    .contentType(MediaType.APPLICATION_JSON_VALUE)
+                    .content(objectMapper.writeValueAsString(registrationParams)),
+            ).andExpect(status().isCreated)
+
+        // Login
+
+        val sessionName = "Test Session"
+        val loginParams =
+            LoginParams(
+                email = EXAMPLE_EMAIL,
+                password = EXAMPLE_PASSWORD,
+                name = sessionName,
+            )
+
+        mockMvc
+            .perform(
+                MockMvcRequestBuilders
+                    .post("/api/auth/login")
+                    .contentType(MediaType.APPLICATION_JSON_VALUE)
+                    .content(objectMapper.writeValueAsString(loginParams)),
+            ).andExpect(status().isOk)
     }
 
     @Test
