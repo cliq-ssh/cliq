@@ -1,13 +1,24 @@
-import 'package:cliq/modules/settings/model/terminal_colors.state.dart';
+import 'package:cliq/shared/data/database.dart';
 import 'package:riverpod/riverpod.dart';
 
-final NotifierProvider<TerminalColorsNotifier, TerminalColorsState>
-terminalColorsProvider = NotifierProvider(TerminalColorsNotifier.new);
+import '../../../shared/provider/abstract_entity.notifier.dart';
+import '../../../shared/provider/abstract_entity.state.dart';
 
-class TerminalColorsNotifier extends Notifier<TerminalColorsState> {
-  // TODO: load themes from files
+final terminalThemeProvider = NotifierProvider(CustomTerminalThemeNotifier.new);
 
+typedef CustomTerminalThemeEntityState =
+    AbstractEntityState<CustomTerminalTheme>;
+
+class CustomTerminalThemeNotifier
+    extends
+        AbstractEntityNotifier<
+          CustomTerminalTheme,
+          CustomTerminalThemeEntityState
+        > {
   // TODO: import
   @override
-  TerminalColorsState build() => TerminalColorsState.initial();
+  CustomTerminalThemeEntityState buildInitialState() => .initial();
+  @override
+  Stream<List<CustomTerminalTheme>> get entityStream =>
+      CliqDatabase.customTerminalThemeService.watchAll();
 }
