@@ -10,7 +10,7 @@ plugins {
     id("io.spring.dependency-management") version "1.1.7"
 
     // Database Migrations
-    id("org.flywaydb.flyway") version "11.20.0"
+    id("org.flywaydb.flyway") version "11.20.1"
 
     // Linter and Formatter
     id("org.jlleitschuh.gradle.ktlint") version "14.0.1"
@@ -76,7 +76,7 @@ repositories {
 
 buildscript {
     dependencies {
-        classpath("org.flywaydb:flyway-database-postgresql:11.20.0")
+        classpath("org.flywaydb:flyway-database-postgresql:11.20.1")
     }
 }
 

@@ -44,6 +44,12 @@ class TerminalBuffer {
   bool isLineFeedMode = false;
   bool isInsertMode = false;
 
+  bool isAutoWrapMode = false;
+
+  /// Indicates whether the next character to be written should wrap to the next line
+  /// and trigger an index operation
+  bool pendingWrap = false;
+
   TerminalBuffer({
     required this.rows,
     required this.cols,
@@ -69,6 +75,8 @@ class TerminalBuffer {
       isBackBuffer: isBackBuffer,
       isLineFeedMode: isLineFeedMode,
     );
+
+    newBuffer.isAutoWrapMode = isAutoWrapMode;
 
     // absolute index in old ring
     final oldVisibleStart = currentScrollback;
@@ -202,19 +210,56 @@ class TerminalBuffer {
     setCell(cursorRow, cursorCol, cell);
   }
 
-  /// Writes a single character at the current cursor position.
-  void write(int cu) {
-    if (cursorCol >= cols) {
-      index();
-      cursorCol = 0;
+  void printString(String str) {
+    for (final cu in str.runes) {
+      printChar(cu);
+    }
+  }
+
+  /// Prints a single character at the current cursor position.
+  /// - https://terminalguide.namepad.de/printing/
+  void printChar(int cu) {
+    if (pendingWrap) {
+      if (isAutoWrapMode) {
+        index();
+        cursorCol = 0;
+      }
+      pendingWrap = false;
+    }
+
+    if (isAutoWrapMode) {
+      if (cursorCol >= cols) {
+        index();
+        cursorCol = 0;
+      }
+    } else {
+      if (cursorCol >= cols) {
+        cursorCol = max(0, cols);
+      }
+    }
+
+    if (isInsertMode) {
+      for (var c = cols - 1; c >= cursorCol + 1; c--) {
+        final src = getCell(cursorRow, c - 1);
+        setCell(cursorRow, c, src);
+      }
+      for (var c = cursorCol; c < min(cols, cursorCol + 1); c++) {
+        setCell(cursorRow, c, Cell.empty());
+      }
     }
 
     setCellAtCursor(
       Cell(String.fromCharCode(cu), FormattingOptions.clone(currentFormat)),
     );
 
-    if (cursorCol < cols) {
-      cursorCol++;
+    // whether the cursor is at the last column before printing
+    final endsAtLastColumn = (cursorCol + 1 - 1) == (cols - 1);
+
+    if (isAutoWrapMode && endsAtLastColumn) {
+      cursorCol = cols - 1;
+      pendingWrap = true;
+    } else {
+      cursorCol = min(cols - 1, cursorCol + 1);
     }
   }
 

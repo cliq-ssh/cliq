@@ -46,17 +46,29 @@ void main() {
       ], buf);
     });
 
-    test('write lines', () {
+    test('write lines (autowrap)', () {
       final buf = TerminalBuffer(rows: 3, cols: 3);
+      buf.isAutoWrapMode = true;
 
-      for (final rune in 'ABCDEFGHI'.runes) {
-        buf.write(rune);
-      }
+      buf.printString('ABCDEFGHI');
 
       _expectBufferEquals([
         ['A', 'B', 'C'],
         ['D', 'E', 'F'],
         ['G', 'H', 'I'],
+      ], buf);
+    });
+
+    test('write lines (no autowrap)', () {
+      final buf = TerminalBuffer(rows: 3, cols: 3);
+      buf.isAutoWrapMode = false;
+
+      buf.printString('ABCDEFGHI');
+
+      _expectBufferEquals([
+        ['A', 'B', 'I'],
+        [' ', ' ', ' '],
+        [' ', ' ', ' '],
       ], buf);
     });
 

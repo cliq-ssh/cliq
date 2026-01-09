@@ -4,7 +4,6 @@ import 'package:cliq/shared/ui/session_tab.dart';
 import 'package:cliq_term/cliq_term.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:forui/forui.dart';
-import 'package:forui_hooks/forui_hooks.dart';
 import 'package:lucide_flutter/lucide_flutter.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
@@ -33,7 +32,7 @@ class NavigationShellState extends ConsumerState<NavigationShell>
     final connections = ref.watch(connectionProvider);
     final sessions = ref.watch(sessionProvider);
     final selectedSession = useState(sessions.selectedSession);
-    final popoverController = useFPopoverController(vsync: this);
+    final showTabs = useState(false);
 
     useEffect(() {
       selectedSession.value = sessions.selectedSession;
@@ -69,12 +68,12 @@ class NavigationShellState extends ConsumerState<NavigationShell>
                         child: Icon(LucideIcons.house),
                       ),
                       for (final session in sessions.activeSessions)
-                        SessionTab(
-                          session: session,
-                          isSelected: sessions.selectedSessionId == session.id,
-                        ),
+                        SessionTab(session: session),
                       FPopoverMenu(
-                        control: .managed(controller: popoverController),
+                        control: .lifted(
+                          shown: showTabs.value,
+                          onChange: (show) => showTabs.value = show,
+                        ),
                         menu: [
                           FItemGroup(
                             children: [
@@ -85,14 +84,14 @@ class NavigationShellState extends ConsumerState<NavigationShell>
                                     ref
                                         .read(sessionProvider.notifier)
                                         .createAndGo(this, connection);
-                                    popoverController.hide();
+                                    showTabs.value = false;
                                   },
                                 ),
                             ],
                           ),
                         ],
-                        builder: (_, controller, _) => FButton.icon(
-                          onPress: controller.toggle,
+                        child: FButton.icon(
+                          onPress: () => showTabs.value = !showTabs.value,
                           child: Icon(LucideIcons.plus),
                         ),
                       ),
