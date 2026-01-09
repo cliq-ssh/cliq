@@ -1,12 +1,12 @@
 package app.cliq.backend.config.security.apikey
 
-import app.cliq.backend.user.User
+import app.cliq.backend.session.Session
 import org.springframework.security.authentication.AbstractAuthenticationToken
 import org.springframework.security.core.GrantedAuthority
 
 class ApiKeyAuthentication(
     authorities: Collection<GrantedAuthority>,
-    val user: User?,
+    val session: Session?,
     authenticated: Boolean,
     val apiKey: String?,
 ) : AbstractAuthenticationToken(authorities) {
@@ -16,5 +16,5 @@ class ApiKeyAuthentication(
 
     override fun getCredentials(): String? = apiKey
 
-    override fun getPrincipal(): User? = user
+    override fun getPrincipal(): Session? = session
 }

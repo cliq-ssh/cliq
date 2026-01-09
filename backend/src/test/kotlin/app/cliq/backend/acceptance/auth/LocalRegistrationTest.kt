@@ -135,7 +135,6 @@ class LocalRegistrationTest(
                     .contentType(MediaType.APPLICATION_JSON_VALUE)
                     .content(objectMapper.writeValueAsString(registrationParams)),
             ).andExpect(status().isCreated)
-            .andReturn()
 
         // Second registration with the same email should fail
         mockMvc
@@ -145,6 +144,5 @@ class LocalRegistrationTest(
                     .contentType(MediaType.APPLICATION_JSON_VALUE)
                     .content(objectMapper.writeValueAsString(registrationParams)),
             ).andExpect(status().isBadRequest)
-            .andReturn()
     }
 }

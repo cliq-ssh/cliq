@@ -31,7 +31,7 @@ TODO:
         - try to refresh with expired token
 */
 @AuthController
-@RequestMapping("/api/auth/token")
+@RequestMapping("/api/auth")
 class TokenController(
     private val sessionRepository: SessionRepository,
     private val jwtService: JwtService,
@@ -62,8 +62,9 @@ class TokenController(
     private fun refreshToken(
         @RequestBody @Valid refreshParams: RefreshParams,
     ): ResponseEntity<TokenResponse> {
+        val hashedRefreshToken = refreshTokenService.hashRefreshToken(refreshParams.refreshToken)
         val session =
-            sessionRepository.findByRefreshToken(refreshParams.refreshToken) ?: throw InvalidRefreshTokenException()
+            sessionRepository.findByRefreshToken(hashedRefreshToken) ?: throw InvalidRefreshTokenException()
         if (session.isExpired(OffsetDateTime.now(clock))) throw RefreshTokenExpiredException()
 
         val issuedRefreshToken = refreshTokenService.issue(session.name, session.user)

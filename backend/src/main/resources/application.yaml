@@ -18,7 +18,6 @@ app:
     secret: \${JWT_SECRET}
     access-token-expires-minutes: \${JWT_ACCESS_TOKEN_EXPIRES_MINUTES:10}
     refresh-token-expires-days: \${JWT_REFRESH_TOKEN_EXPIRES_DAYS:30}
-    issuer: \${EXTERNAL_URL}
   rate-limits:
     - name: login
       url: /api/auth/login

@@ -85,7 +85,7 @@ class LocalLoginTest(
         val jwt = jwtDecoder.decode(response.accessToken)
         val sub = jwt.subject
         val sid = jwt.getClaim<Long>("sid")
-        val issuer = jwt.issuer
+        val issuer = jwt.getClaim<String>("iss")
         assertEquals(user.id.toString(), sub)
         assertEquals(response.id, sid)
         assertEquals(jwtProperties.issuer, issuer.toString())

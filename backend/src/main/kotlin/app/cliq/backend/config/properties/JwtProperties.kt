@@ -14,6 +14,6 @@ class JwtProperties(
     var accessTokenExpiresMinutes: Long,
     @field:Min(MIN_JWT_REFRESH_TOKEN_EXPIRES_DAYS)
     var refreshTokenExpiresDays: Long,
-    var issuer: String,
+    var issuer: String = "self",
     var algorithm: String = "HmacSHA256",
 )

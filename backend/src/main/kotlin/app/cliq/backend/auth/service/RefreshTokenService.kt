@@ -29,7 +29,7 @@ class RefreshTokenService(
     ): IssuedRefreshToken {
         val now = OffsetDateTime.now(clock)
         val refreshToken = refreshTokenFactory.generateJwtRefreshToken(now)
-        val refreshTokenHash = sha512Hex(refreshToken.tokenValue)
+        val refreshTokenHash = hashRefreshToken(refreshToken.tokenValue)
         val session =
             sessionFactory.createWithSessionName(
                 sessionName,
@@ -48,7 +48,7 @@ class RefreshTokenService(
         return issuedRefreshToken
     }
 
-    private fun sha512Hex(token: String): String {
+    fun hashRefreshToken(token: String): String {
         val md = MessageDigest.getInstance(TOKEN_HASH_ALGORITHM)
         val digest = md.digest(token.toByteArray())
         val hashedToken = HexFormat.of().formatHex(digest)
