@@ -1,8 +1,7 @@
-package app.cliq.backend.config.security.apikey
+package app.cliq.backend.config.security.jwt
 
-import app.cliq.backend.config.security.apikey.service.ApiKeyAuthenticationFactory
-import app.cliq.backend.config.security.apikey.service.ApiKeyAuthenticationFilter
-import app.cliq.backend.config.security.apikey.service.ApiKeyAuthenticationRequestMatcher
+import app.cliq.backend.config.security.jwt.service.JwtAuthenticationFactory
+import app.cliq.backend.config.security.jwt.service.JwtAuthenticationFilter
 import org.springframework.security.authentication.AuthenticationManager
 import org.springframework.security.config.annotation.web.builders.HttpSecurity
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer
@@ -15,13 +14,12 @@ import org.springframework.stereotype.Component
  * Filter -> Converter -> Authentication -> Provider ->
  */
 @Component
-class ApiKeyAuthenticationConfigurer(
-    private val authenticationProvider: ApiKeyAuthenticationProvider,
+class JwtAuthenticationConfigurer(
+    private val authenticationProvider: JwtAuthenticationProvider,
     private val authenticationEntryPoint: AuthenticationEntryPoint,
-    private val apiKeyAuthenticationRequestMatcher: ApiKeyAuthenticationRequestMatcher,
-    apiKeyAuthenticationFactory: ApiKeyAuthenticationFactory,
-) : AbstractHttpConfigurer<ApiKeyAuthenticationConfigurer, HttpSecurity>() {
-    private val apiKeyAuthenticationConverter = ApiKeyAuthenticationConverter(apiKeyAuthenticationFactory)
+    jwtAuthenticationFactory: JwtAuthenticationFactory,
+) : AbstractHttpConfigurer<JwtAuthenticationConfigurer, HttpSecurity>() {
+    private val jwtAuthenticationConverter = JwtAuthenticationConverter(jwtAuthenticationFactory)
 
     override fun init(builder: HttpSecurity) {
         super.init(builder)
@@ -33,11 +31,10 @@ class ApiKeyAuthenticationConfigurer(
             builder.getSharedObject<AuthenticationManager>(AuthenticationManager::class.java)
 
         builder.addFilter(
-            ApiKeyAuthenticationFilter(
+            JwtAuthenticationFilter(
                 authenticationManager,
-                apiKeyAuthenticationConverter,
+                jwtAuthenticationConverter,
                 authenticationEntryPoint,
-                apiKeyAuthenticationRequestMatcher,
             ),
         )
     }

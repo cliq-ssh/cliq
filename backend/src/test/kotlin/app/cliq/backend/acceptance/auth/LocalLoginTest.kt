@@ -2,6 +2,7 @@ package app.cliq.backend.acceptance.auth
 
 import app.cliq.backend.acceptance.AcceptanceTest
 import app.cliq.backend.acceptance.AcceptanceTester
+import app.cliq.backend.auth.jwt.JwtClaims
 import app.cliq.backend.auth.params.LoginParams
 import app.cliq.backend.auth.params.RegistrationParams
 import app.cliq.backend.auth.view.TokenResponse
@@ -84,8 +85,8 @@ class LocalLoginTest(
         // Decode jwt
         val jwt = jwtDecoder.decode(response.accessToken)
         val sub = jwt.subject
-        val sid = jwt.getClaim<Long>("sid")
-        val issuer = jwt.getClaim<String>("iss")
+        val sid = jwt.getClaim<Long>(JwtClaims.SID)
+        val issuer = jwt.getClaim<String>(JwtClaims.ISS)
         assertEquals(user.id.toString(), sub)
         assertEquals(response.id, sid)
         assertEquals(jwtProperties.issuer, issuer.toString())

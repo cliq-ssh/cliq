@@ -32,7 +32,7 @@ class Session(
     @JoinColumn(nullable = false)
     var user: User,
     @Column(nullable = false, unique = true)
-    var refreshToken: String, // TODO: hash
+    var refreshToken: String,
     @Column
     var name: String? = null,
     @Column
@@ -42,6 +42,5 @@ class Session(
     @Column(nullable = false)
     var createdAt: OffsetDateTime,
 ) {
-    // TODO: unit test
     fun isExpired(now: OffsetDateTime): Boolean = now.isAfter(expiresAt)
 }

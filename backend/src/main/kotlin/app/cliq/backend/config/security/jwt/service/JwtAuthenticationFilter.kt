@@ -1,22 +1,19 @@
-package app.cliq.backend.config.security.apikey.service
+package app.cliq.backend.config.security.jwt.service
 
-import app.cliq.backend.config.security.apikey.ApiKeyAuthenticationConverter
+import app.cliq.backend.config.security.jwt.JwtAuthenticationConverter
 import org.springframework.security.authentication.AuthenticationManager
 import org.springframework.security.web.AuthenticationEntryPoint
 import org.springframework.security.web.authentication.AuthenticationFilter
 
-class ApiKeyAuthenticationFilter(
+class JwtAuthenticationFilter(
     authenticationManager: AuthenticationManager,
-    apiKeyAuthenticationConverter: ApiKeyAuthenticationConverter,
+    jwtAuthenticationConverter: JwtAuthenticationConverter,
     private val authenticationEntryPoint: AuthenticationEntryPoint,
-    apiKeyAuthenticationRequestMatcher: ApiKeyAuthenticationRequestMatcher,
 ) : AuthenticationFilter(
         authenticationManager,
-        apiKeyAuthenticationConverter,
+        jwtAuthenticationConverter,
     ) {
     init {
-        requestMatcher = apiKeyAuthenticationRequestMatcher
-
         // We do this because the default success handler makes a redirect to '/'
         successHandler = { _, _, _ -> }
 

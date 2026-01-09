@@ -1,5 +1,6 @@
 package app.cliq.backend.auth.factory
 
+import app.cliq.backend.auth.jwt.JwtClaims
 import app.cliq.backend.config.properties.JwtProperties
 import app.cliq.backend.session.Session
 import org.springframework.security.oauth2.jwt.Jwt
@@ -32,7 +33,7 @@ class JwtFactory(
                 .issuedAt(now.toInstant())
                 .expiresAt(accessTokenExpiresAt.toInstant())
                 .subject(user.id.toString())
-                .claim("sid", session.id)
+                .claim(JwtClaims.SID, session.id)
                 .build()
 
         return jwtEncoder.encode(JwtEncoderParameters.from(claims))

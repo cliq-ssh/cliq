@@ -1,6 +1,6 @@
 package app.cliq.backend.config
 
-import app.cliq.backend.config.security.apikey.ApiKeyAuthenticationConfigurer
+import app.cliq.backend.config.security.jwt.JwtAuthenticationConfigurer
 import app.cliq.backend.config.security.oidc.OidcLoginSuccessHandler
 import app.cliq.backend.config.security.oidc.OidcLogoutHandler
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBooleanProperty
@@ -22,7 +22,7 @@ const val ITERATIONS = 3
 @EnableMethodSecurity
 @Configuration
 class SecurityConfig(
-    private val apiKeyAuthenticationConfigurer: ApiKeyAuthenticationConfigurer,
+    private val jwtAuthenticationConfigurer: JwtAuthenticationConfigurer,
 ) {
     @Bean
     fun passwordEncoder(): PasswordEncoder =
@@ -56,7 +56,7 @@ class SecurityConfig(
             .formLogin { it.disable() }
             .httpBasic { it.disable() }
             .sessionManagement { it.sessionCreationPolicy(SessionCreationPolicy.STATELESS) }
-            .with(apiKeyAuthenticationConfigurer)
+            .with(jwtAuthenticationConfigurer)
 
         return http.build()
     }
