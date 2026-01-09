@@ -1,0 +1,27 @@
+#!/usr/bin/env bash
+
+# Set fast-fails
+set -euo pipefail
+
+# working dir preparation
+WORK_DIR="$(pwd)"
+cd "$(dirname "$0")"
+# cd out of bin directory
+cd ..
+
+cd_into_work_dir() {
+    cd "${WORK_DIR}"
+}
+
+echo "Shutting down any running containers..."
+docker compose down -v
+
+echo "Installing dependencies..."
+docker compose run --rm node yarn install
+
+echo "Starting server..."
+docker compose up -d
+
+echo "Server listening on http://localhost:3000"
+
+echo "Finished install"
