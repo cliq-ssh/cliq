@@ -31,7 +31,7 @@ class NavigationShellState extends ConsumerState<NavigationShell>
   Widget build(BuildContext context) {
     final connections = ref.watch(connectionProvider);
     final sessions = ref.watch(sessionProvider);
-    final terminalThemes = ref.watch(terminalThemeProvider);
+    final terminalTheme = ref.watch(terminalThemeProvider);
     final selectedSession = useState(sessions.selectedSession);
     final showTabs = useState(false);
 
@@ -45,7 +45,8 @@ class NavigationShellState extends ConsumerState<NavigationShell>
       header: Container(
         color:
             selectedSession.value != null && selectedSession.value!.isConnected
-            ? terminalThemes.activeDefaultTheme!.backgroundColor
+            ? (selectedSession.value?.connection.terminalThemeOverride ??
+                terminalTheme.effectiveActiveDefaultTheme).backgroundColor
             : null,
         padding: const EdgeInsets.all(8),
         child: SafeArea(

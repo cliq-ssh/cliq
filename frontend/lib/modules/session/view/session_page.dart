@@ -30,20 +30,12 @@ class ShellSessionPage extends StatefulHookConsumerWidget {
 
 class _ShellSessionPageState extends ConsumerState<ShellSessionPage>
     with AutomaticKeepAliveClientMixin {
-  late final TerminalController _terminalController;
-
   ShellSession get session => widget.session;
   SSHClient? get sshClient => session.sshClient;
   SSHSession? get sshSession => session.sshSession;
 
   @override
   bool get wantKeepAlive => true;
-
-  @override
-  void dispose() {
-    _terminalController.dispose();
-    super.dispose();
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -132,6 +124,8 @@ class _ShellSessionPageState extends ConsumerState<ShellSessionPage>
     }
 
     useEffect(() {
+      if (terminalController.value == null) return null;
+
       Future<void> openSsh(ConnectionFull connection) async {
         final client = await ref
             .read(sessionProvider.notifier)
@@ -141,19 +135,19 @@ class _ShellSessionPageState extends ConsumerState<ShellSessionPage>
             .read(sessionProvider.notifier)
             .spawnShell(widget.session.id, client);
 
-        _terminalController.fitResize(size);
-        _terminalController.onInput = (s) {
+        terminalController.value!.fitResize(size);
+        terminalController.value!.onInput = (s) {
           if (sshSession != null) {
             sshSession!.stdin.add(Uint8List.fromList(s.codeUnits));
           }
         };
 
         shell?.stdout.listen((data) {
-          _terminalController.feed(String.fromCharCodes(data));
+          terminalController.value!.feed(String.fromCharCodes(data));
         });
 
         shell?.stderr.listen((data) {
-          _terminalController.feed(String.fromCharCodes(data));
+          terminalController.value!.feed(String.fromCharCodes(data));
         });
       }
 
@@ -164,12 +158,12 @@ class _ShellSessionPageState extends ConsumerState<ShellSessionPage>
       return () => widget.session.dispose();
     }, []);
 
-    if (widget.session.isConnected) {
+    if (widget.session.isConnected && terminalController.value != null) {
       return SizedBox.expand(
         child: Container(
           color: getEffectiveTerminalTheme().backgroundColor,
           padding: const .all(8),
-          child: TerminalView(controller: _terminalController),
+          child: TerminalView(controller: terminalController.value!),
         ),
       );
     }
