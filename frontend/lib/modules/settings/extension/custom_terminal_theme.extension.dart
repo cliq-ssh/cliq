@@ -3,8 +3,8 @@ import 'package:cliq_term/cliq_term.dart';
 import '../../../shared/data/database.dart';
 
 extension CustomTerminalThemeExtension on CustomTerminalTheme {
-  TerminalColorTheme toTerminalColorTheme() {
-    return TerminalColorTheme(
+  TerminalTheme toTerminalTheme() {
+    return TerminalTheme(
       cursorColor: cursorColor,
       selectionColor: selectionBackgroundColor,
       foregroundColor: foregroundColor,

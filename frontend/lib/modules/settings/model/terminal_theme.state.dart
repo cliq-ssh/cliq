@@ -1,7 +1,6 @@
-import 'package:cliq/modules/settings/provider/terminal_colors.provider.dart';
-
 import '../../../shared/data/database.dart';
 import '../../../shared/provider/abstract_entity.state.dart';
+import '../provider/terminal_theme.provider.dart';
 
 class CustomTerminalThemeState
     extends AbstractEntityState<CustomTerminalTheme, CustomTerminalThemeState> {

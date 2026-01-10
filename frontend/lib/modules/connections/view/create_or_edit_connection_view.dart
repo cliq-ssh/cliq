@@ -3,7 +3,6 @@ import 'dart:async';
 import 'package:cliq/modules/connections/model/connection_full.model.dart';
 import 'package:cliq/modules/connections/model/connection_icon.dart';
 import 'package:cliq/shared/extensions/async_snapshot.extension.dart';
-import 'package:cliq/shared/extensions/color.extension.dart';
 import 'package:cliq/shared/extensions/value.extension.dart';
 import 'package:cliq/shared/utils/validators.dart';
 import 'package:cliq_ui/cliq_ui.dart' show useMemoizedFuture;
@@ -30,7 +29,8 @@ class CreateOrEditConnectionView extends HookConsumerWidget {
   final String? currentPem;
   final String? currentPemPassphrase;
   final ConnectionIcon? currentIcon;
-  final String? currentColor;
+  final Color? currentIconColor;
+  final Color? currentIconBackgroundColor;
   final bool isUpdate;
 
   const CreateOrEditConnectionView.create({super.key})
@@ -43,7 +43,8 @@ class CreateOrEditConnectionView extends HookConsumerWidget {
       currentPem = null,
       currentPemPassphrase = null,
       currentIcon = null,
-      currentColor = null,
+      currentIconColor = null,
+      currentIconBackgroundColor = null,
       isUpdate = false;
 
   CreateOrEditConnectionView.edit(ConnectionFull connection, {super.key})
@@ -62,7 +63,8 @@ class CreateOrEditConnectionView extends HookConsumerWidget {
           ? connection.credential?.passphrase
           : null,
       currentIcon = connection.icon,
-      currentColor = connection.color,
+      currentIconColor = connection.iconColor,
+      currentIconBackgroundColor = connection.iconBackgroundColor,
       isUpdate = true;
 
   static const List<(CredentialType, String, IconData)> allowedCredentialTypes =
@@ -89,9 +91,13 @@ class CreateOrEditConnectionView extends HookConsumerWidget {
     final selectedIcon = useState<ConnectionIcon>(
       currentIcon ?? ConnectionIcon.linux,
     );
-    final selectedColor = useState<Color>(
-      ColorExtension.fromHex(currentColor) ?? ConnectionColor.red.color,
+    final selectedIconColor = useState<Color>(
+      currentIconColor ?? ConnectionColor.red.color,
     );
+    final selectedIconBackgroundColor = useState<Color>(
+      currentIconBackgroundColor ?? Colors.white,
+    );
+
     final labelPlaceholder = useState<String>('');
     final additionalCredentialType = useState<CredentialType?>(null);
 
@@ -102,15 +108,24 @@ class CreateOrEditConnectionView extends HookConsumerWidget {
       return await CliqDatabase.identityService.hasIdentities();
     }, []);
 
-    buildColorSwatch(Color color, {Widget? child}) {
-      final isSelected = color == selectedColor.value;
+    buildColorSwatch({
+      required Color foreground,
+      required Color background,
+      Widget? child,
+    }) {
+      final isSelected =
+          selectedIconColor.value == foreground &&
+          selectedIconBackgroundColor.value == background;
       return GestureDetector(
-        onTap: () => selectedColor.value = color,
+        onTap: () {
+          selectedIconColor.value = foreground;
+          selectedIconBackgroundColor.value = background;
+        },
         child: SizedBox.square(
           dimension: 36,
           child: Container(
             decoration: BoxDecoration(
-              color: color,
+              color: background,
               borderRadius: BorderRadius.circular(8),
               border: isSelected
                   ? Border.all(color: context.theme.colors.foreground, width: 2)
@@ -172,9 +187,13 @@ class CreateOrEditConnectionView extends HookConsumerWidget {
         final comp = ConnectionsCompanion(
           label: ValueExtension.absentIfSame(labelCtrl.text, currentLabel),
           icon: ValueExtension.absentIfSame(selectedIcon.value, currentIcon),
-          color: ValueExtension.absentIfSame(
-            selectedColor.value.toHex(),
-            currentColor,
+          iconColor: ValueExtension.absentIfSame(
+            selectedIconColor.value,
+            currentIconColor,
+          ),
+          iconBackgroundColor: ValueExtension.absentIfSame(
+            selectedIconBackgroundColor.value,
+            currentIconBackgroundColor,
           ),
           groupName: ValueExtension.absentIfSame(groupCtrl.text, currentGroup),
           address: ValueExtension.absentIfSame(
@@ -199,7 +218,8 @@ class CreateOrEditConnectionView extends HookConsumerWidget {
           ConnectionsCompanion.insert(
             label: ValueExtension.absentIfNullOrEmpty(labelCtrl.text),
             icon: Value(selectedIcon.value),
-            color: Value(selectedColor.value.toHex()),
+            iconColor: Value(selectedIconColor.value),
+            iconBackgroundColor: Value(selectedIconBackgroundColor.value),
             groupName: ValueExtension.absentIfNullOrEmpty(groupCtrl.text),
             address: addressCtrl.text.trim(),
             port: int.tryParse(portCtrl.text.trim()) ?? 22,
@@ -235,10 +255,14 @@ class CreateOrEditConnectionView extends HookConsumerWidget {
               width: 64,
               height: 64,
               decoration: BoxDecoration(
-                color: selectedColor.value,
+                color: selectedIconBackgroundColor.value,
                 borderRadius: BorderRadius.circular(16),
               ),
-              child: Icon(selectedIcon.value.iconData, size: 36),
+              child: Icon(
+                selectedIcon.value.iconData,
+                color: selectedIconColor.value,
+                size: 36,
+              ),
             ),
             const SizedBox(height: 12),
             Form(
@@ -279,10 +303,19 @@ class CreateOrEditConnectionView extends HookConsumerWidget {
                           runSpacing: 8,
                           children: [
                             buildColorSwatch(
-                              selectedIcon.value.brandColor!,
+                              foreground: Colors.white,
+                              background: selectedIcon.value.brandColor!,
                               child: Icon(
                                 selectedIcon.value.iconData,
-                                color: context.theme.colors.foreground,
+                                color: Colors.white,
+                              ),
+                            ),
+                            buildColorSwatch(
+                              foreground: selectedIcon.value.brandColor!,
+                              background: Colors.white,
+                              child: Icon(
+                                selectedIcon.value.iconData,
+                                color: selectedIcon.value.brandColor!,
                               ),
                             ),
                           ],
@@ -293,7 +326,10 @@ class CreateOrEditConnectionView extends HookConsumerWidget {
                         runSpacing: 8,
                         children: [
                           for (final c in ConnectionColor.values)
-                            buildColorSwatch(c.color),
+                            buildColorSwatch(
+                              foreground: Colors.white,
+                              background: c.color,
+                            ),
                         ],
                       ),
 

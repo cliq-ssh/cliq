@@ -22,7 +22,7 @@ class TerminalController extends ChangeNotifier {
   final void Function()? onBell;
   void Function(String)? onInput;
   TerminalTypography typography;
-  TerminalColorTheme colors;
+  TerminalTheme theme;
 
   late TerminalBuffer front = TerminalBuffer(
     rows: rows,
@@ -38,7 +38,7 @@ class TerminalController extends ChangeNotifier {
 
   late final EscapeParser escapeParser = EscapeParser(
     controller: this,
-    colors: colors,
+    colors: theme,
   );
   late final ControlCharacterParser ccParser = ControlCharacterParser(
     controller: this,
@@ -53,7 +53,7 @@ class TerminalController extends ChangeNotifier {
 
   TerminalController({
     required this.typography,
-    required this.colors,
+    required this.theme,
     this.cursorBlinkInterval = const Duration(milliseconds: 600),
     this.maxScrollbackLines = 1000,
     this.debugLogging = false,

@@ -7,7 +7,6 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lucide_flutter/lucide_flutter.dart';
 
 import '../../modules/session/provider/session.provider.dart';
-import '../extensions/color.extension.dart';
 
 class SessionTab extends StatefulHookConsumerWidget {
   final ShellSession session;
@@ -56,14 +55,12 @@ class _SessionTabState extends ConsumerState<SessionTab> {
         return Container(
           padding: const .all(6),
           decoration: BoxDecoration(
-            color: widget.session.connection.color != null
-                ? ColorExtension.fromHex(widget.session.connection.color!)
-                : null,
+            color: widget.session.connection.iconBackgroundColor,
             shape: .circle,
           ),
           child: Icon(
             widget.session.connection.icon.iconData,
-            color: colors.foreground,
+            color: widget.session.connection.iconColor,
             size: 12,
           ),
         );

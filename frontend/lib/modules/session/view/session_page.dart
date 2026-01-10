@@ -1,6 +1,10 @@
 import 'package:cliq/modules/connections/model/connection_full.model.dart';
 import 'package:cliq/modules/connections/provider/connection.provider.dart';
 import 'package:cliq/modules/session/model/session.model.dart';
+import 'package:cliq/modules/settings/extension/custom_terminal_theme.extension.dart';
+import 'package:cliq/modules/settings/provider/terminal_theme.provider.dart';
+import 'package:cliq/shared/data/store.dart';
+import 'package:cliq/shared/provider/store.provider.dart';
 import 'package:cliq_ui/cliq_ui.dart'
     show CliqGridColumn, CliqGridContainer, CliqGridRow;
 import 'package:dartssh2/dartssh2.dart';
@@ -32,9 +36,6 @@ class _ShellSessionPageState extends ConsumerState<ShellSessionPage>
   SSHClient? get sshClient => session.sshClient;
   SSHSession? get sshSession => session.sshSession;
 
-  late TerminalTypography terminalTypography;
-  late TerminalColorTheme terminalColors;
-
   @override
   bool get wantKeepAlive => true;
 
@@ -48,30 +49,42 @@ class _ShellSessionPageState extends ConsumerState<ShellSessionPage>
   Widget build(BuildContext context) {
     super.build(context);
 
+    final terminalController = useState<TerminalController?>(null);
     final typography = context.theme.typography;
     final size = MediaQuery.of(context).size;
 
+    final terminalTypography = useStore(StoreKey.terminalTypography);
+    final terminalTheme = ref.watch(terminalThemeProvider);
+
+    getEffectiveTerminalTypography() =>
+        widget.session.connection.terminalTypographyOverride ??
+        terminalTypography.value!;
+
+    getEffectiveTerminalTheme() =>
+        widget.session.connection.terminalThemeOverride ??
+        terminalTheme.effectiveActiveDefaultTheme;
+
     useEffect(() {
       // TODO: listen for onTitleChange and update tab title
-      _terminalController = TerminalController(
-        colors: terminalColors,
-        typography: TerminalTypography(
-          fontFamily: 'SourceCodePro',
-          fontSize: 16,
-        ),
+      terminalController.value = TerminalController(
+        theme: getEffectiveTerminalTheme().toTerminalTheme(),
+        typography: getEffectiveTerminalTypography(),
         debugLogging: kDebugMode,
         onResize: (rows, cols) {
           sshSession?.resizeTerminal(cols, rows);
-          //        showFToast(
-          //          context: context,
-          //          alignment: FToastAlignment.topCenter,
-          //          title: Text('$cols x $rows'),
-          //          duration: Duration(milliseconds: 500),
-          //        );
+          // TODO: resize overlay
         },
       );
-      return null;
+      return () => terminalController.value?.dispose();
     }, []);
+
+    useEffect(() {
+      if (terminalController.value == null) return null;
+      terminalController.value!.typography = getEffectiveTerminalTypography();
+      terminalController.value!.theme = getEffectiveTerminalTheme()
+          .toTerminalTheme();
+      return null;
+    }, [terminalTypography.value, terminalTheme]);
 
     buildConnecting() {
       return [
@@ -154,7 +167,7 @@ class _ShellSessionPageState extends ConsumerState<ShellSessionPage>
     if (widget.session.isConnected) {
       return SizedBox.expand(
         child: Container(
-          color: terminalColors.backgroundColor,
+          color: getEffectiveTerminalTheme().backgroundColor,
           padding: const .all(8),
           child: TerminalView(controller: _terminalController),
         ),

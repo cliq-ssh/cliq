@@ -1,6 +1,5 @@
 import 'package:cliq/modules/connections/extension/connection.extension.dart';
 import 'package:cliq/modules/connections/provider/connection.provider.dart';
-import 'package:cliq/modules/settings/provider/terminal_colors.provider.dart';
 import 'package:cliq/shared/ui/session_tab.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:forui/forui.dart';
@@ -10,6 +9,7 @@ import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
 import '../../modules/session/provider/session.provider.dart';
+import '../../modules/settings/provider/terminal_theme.provider.dart';
 import '../../modules/settings/view/settings_page.dart';
 import '../extensions/router.extension.dart';
 

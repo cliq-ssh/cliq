@@ -8,7 +8,6 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lucide_flutter/lucide_flutter.dart';
 
 import '../../../shared/ui/navigation_shell.dart';
-import '../../../shared/extensions/color.extension.dart';
 import '../../session/provider/session.provider.dart';
 import '../view/create_or_edit_connection_view.dart';
 
@@ -33,12 +32,14 @@ class ConnectionCard extends HookConsumerWidget {
                   width: 48,
                   height: 48,
                   decoration: BoxDecoration(
-                    color: connection.color == null
-                        ? Colors.transparent
-                        : ColorExtension.fromHex(connection.color!),
+                    color: connection.iconBackgroundColor,
                     borderRadius: .circular(16),
                   ),
-                  child: Icon(connection.icon.iconData, size: 28),
+                  child: Icon(
+                    connection.icon.iconData,
+                    color: connection.iconColor,
+                    size: 28,
+                  ),
                 ),
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,

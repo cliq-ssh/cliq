@@ -9,6 +9,16 @@ class CustomTerminalThemes extends Table
   final GeneratedDatabase attachedDatabase;
   final String? _alias;
   CustomTerminalThemes(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  late final GeneratedColumn<int> id = GeneratedColumn<int>(
+    'id',
+    aliasedName,
+    false,
+    hasAutoIncrement: true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    $customConstraints: 'PRIMARY KEY AUTOINCREMENT',
+  );
   static const VerificationMeta _nameMeta = const VerificationMeta('name');
   late final GeneratedColumn<String> name = GeneratedColumn<String>(
     'name',
@@ -16,7 +26,7 @@ class CustomTerminalThemes extends Table
     false,
     type: DriftSqlType.string,
     requiredDuringInsert: true,
-    $customConstraints: 'PRIMARY KEY NOT NULL',
+    $customConstraints: 'NOT NULL',
   );
   static const VerificationMeta _authorMeta = const VerificationMeta('author');
   late final GeneratedColumn<String> author = GeneratedColumn<String>(
@@ -233,6 +243,7 @@ class CustomTerminalThemes extends Table
       ).withConverter<Color?>(CustomTerminalThemes.$convertercursorTextColorn);
   @override
   List<GeneratedColumn> get $columns => [
+    id,
     name,
     author,
     blackColor,
@@ -270,6 +281,9 @@ class CustomTerminalThemes extends Table
   }) {
     final context = VerificationContext();
     final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
     if (data.containsKey('name')) {
       context.handle(
         _nameMeta,
@@ -288,11 +302,19 @@ class CustomTerminalThemes extends Table
   }
 
   @override
-  Set<GeneratedColumn> get $primaryKey => {name};
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  List<Set<GeneratedColumn>> get uniqueKeys => [
+    {name},
+  ];
   @override
   CustomTerminalTheme map(Map<String, dynamic> data, {String? tablePrefix}) {
     final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
     return CustomTerminalTheme(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}id'],
+      )!,
       name: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}name'],
@@ -493,11 +515,14 @@ class CustomTerminalThemes extends Table
   static TypeConverter<Color?, int?> $convertercursorTextColorn =
       NullAwareTypeConverter.wrap($convertercursorTextColor);
   @override
+  List<String> get customConstraints => const ['UNIQUE(name)'];
+  @override
   bool get dontWriteConstraints => true;
 }
 
 class CustomTerminalTheme extends DataClass
     implements Insertable<CustomTerminalTheme> {
+  final int id;
   final String name;
   final String? author;
   final Color blackColor;
@@ -523,6 +548,7 @@ class CustomTerminalTheme extends DataClass
   final Color? selectionForegroundColor;
   final Color? cursorTextColor;
   const CustomTerminalTheme({
+    required this.id,
     required this.name,
     this.author,
     required this.blackColor,
@@ -551,6 +577,7 @@ class CustomTerminalTheme extends DataClass
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
+    map['id'] = Variable<int>(id);
     map['name'] = Variable<String>(name);
     if (!nullToAbsent || author != null) {
       map['author'] = Variable<String>(author);
@@ -678,6 +705,7 @@ class CustomTerminalTheme extends DataClass
 
   CustomTerminalThemesCompanion toCompanion(bool nullToAbsent) {
     return CustomTerminalThemesCompanion(
+      id: Value(id),
       name: Value(name),
       author: author == null && nullToAbsent
           ? const Value.absent()
@@ -717,6 +745,7 @@ class CustomTerminalTheme extends DataClass
   }) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return CustomTerminalTheme(
+      id: serializer.fromJson<int>(json['id']),
       name: serializer.fromJson<String>(json['name']),
       author: serializer.fromJson<String?>(json['author']),
       blackColor: serializer.fromJson<Color>(json['black_color']),
@@ -755,6 +784,7 @@ class CustomTerminalTheme extends DataClass
   Map<String, dynamic> toJson({ValueSerializer? serializer}) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return <String, dynamic>{
+      'id': serializer.toJson<int>(id),
       'name': serializer.toJson<String>(name),
       'author': serializer.toJson<String?>(author),
       'black_color': serializer.toJson<Color>(blackColor),
@@ -787,6 +817,7 @@ class CustomTerminalTheme extends DataClass
   }
 
   CustomTerminalTheme copyWith({
+    int? id,
     String? name,
     Value<String?> author = const Value.absent(),
     Color? blackColor,
@@ -812,6 +843,7 @@ class CustomTerminalTheme extends DataClass
     Value<Color?> selectionForegroundColor = const Value.absent(),
     Value<Color?> cursorTextColor = const Value.absent(),
   }) => CustomTerminalTheme(
+    id: id ?? this.id,
     name: name ?? this.name,
     author: author.present ? author.value : this.author,
     blackColor: blackColor ?? this.blackColor,
@@ -844,6 +876,7 @@ class CustomTerminalTheme extends DataClass
   );
   CustomTerminalTheme copyWithCompanion(CustomTerminalThemesCompanion data) {
     return CustomTerminalTheme(
+      id: data.id.present ? data.id.value : this.id,
       name: data.name.present ? data.name.value : this.name,
       author: data.author.present ? data.author.value : this.author,
       blackColor: data.blackColor.present
@@ -912,6 +945,7 @@ class CustomTerminalTheme extends DataClass
   @override
   String toString() {
     return (StringBuffer('CustomTerminalTheme(')
+          ..write('id: $id, ')
           ..write('name: $name, ')
           ..write('author: $author, ')
           ..write('blackColor: $blackColor, ')
@@ -942,6 +976,7 @@ class CustomTerminalTheme extends DataClass
 
   @override
   int get hashCode => Object.hashAll([
+    id,
     name,
     author,
     blackColor,
@@ -971,6 +1006,7 @@ class CustomTerminalTheme extends DataClass
   bool operator ==(Object other) =>
       identical(this, other) ||
       (other is CustomTerminalTheme &&
+          other.id == this.id &&
           other.name == this.name &&
           other.author == this.author &&
           other.blackColor == this.blackColor &&
@@ -999,6 +1035,7 @@ class CustomTerminalTheme extends DataClass
 
 class CustomTerminalThemesCompanion
     extends UpdateCompanion<CustomTerminalTheme> {
+  final Value<int> id;
   final Value<String> name;
   final Value<String?> author;
   final Value<Color> blackColor;
@@ -1023,8 +1060,8 @@ class CustomTerminalThemesCompanion
   final Value<Color> selectionBackgroundColor;
   final Value<Color?> selectionForegroundColor;
   final Value<Color?> cursorTextColor;
-  final Value<int> rowid;
   const CustomTerminalThemesCompanion({
+    this.id = const Value.absent(),
     this.name = const Value.absent(),
     this.author = const Value.absent(),
     this.blackColor = const Value.absent(),
@@ -1049,9 +1086,9 @@ class CustomTerminalThemesCompanion
     this.selectionBackgroundColor = const Value.absent(),
     this.selectionForegroundColor = const Value.absent(),
     this.cursorTextColor = const Value.absent(),
-    this.rowid = const Value.absent(),
   });
   CustomTerminalThemesCompanion.insert({
+    this.id = const Value.absent(),
     required String name,
     this.author = const Value.absent(),
     required Color blackColor,
@@ -1076,7 +1113,6 @@ class CustomTerminalThemesCompanion
     required Color selectionBackgroundColor,
     this.selectionForegroundColor = const Value.absent(),
     this.cursorTextColor = const Value.absent(),
-    this.rowid = const Value.absent(),
   }) : name = Value(name),
        blackColor = Value(blackColor),
        redColor = Value(redColor),
@@ -1099,6 +1135,7 @@ class CustomTerminalThemesCompanion
        cursorColor = Value(cursorColor),
        selectionBackgroundColor = Value(selectionBackgroundColor);
   static Insertable<CustomTerminalTheme> custom({
+    Expression<int>? id,
     Expression<String>? name,
     Expression<String>? author,
     Expression<int>? blackColor,
@@ -1123,9 +1160,9 @@ class CustomTerminalThemesCompanion
     Expression<int>? selectionBackgroundColor,
     Expression<int>? selectionForegroundColor,
     Expression<int>? cursorTextColor,
-    Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
+      if (id != null) 'id': id,
       if (name != null) 'name': name,
       if (author != null) 'author': author,
       if (blackColor != null) 'black_color': blackColor,
@@ -1152,11 +1189,11 @@ class CustomTerminalThemesCompanion
       if (selectionForegroundColor != null)
         'selection_foreground_color': selectionForegroundColor,
       if (cursorTextColor != null) 'cursor_text_color': cursorTextColor,
-      if (rowid != null) 'rowid': rowid,
     });
   }
 
   CustomTerminalThemesCompanion copyWith({
+    Value<int>? id,
     Value<String>? name,
     Value<String?>? author,
     Value<Color>? blackColor,
@@ -1181,9 +1218,9 @@ class CustomTerminalThemesCompanion
     Value<Color>? selectionBackgroundColor,
     Value<Color?>? selectionForegroundColor,
     Value<Color?>? cursorTextColor,
-    Value<int>? rowid,
   }) {
     return CustomTerminalThemesCompanion(
+      id: id ?? this.id,
       name: name ?? this.name,
       author: author ?? this.author,
       blackColor: blackColor ?? this.blackColor,
@@ -1210,13 +1247,15 @@ class CustomTerminalThemesCompanion
       selectionForegroundColor:
           selectionForegroundColor ?? this.selectionForegroundColor,
       cursorTextColor: cursorTextColor ?? this.cursorTextColor,
-      rowid: rowid ?? this.rowid,
     );
   }
 
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<int>(id.value);
+    }
     if (name.present) {
       map['name'] = Variable<String>(name.value);
     }
@@ -1359,15 +1398,13 @@ class CustomTerminalThemesCompanion
         ),
       );
     }
-    if (rowid.present) {
-      map['rowid'] = Variable<int>(rowid.value);
-    }
     return map;
   }
 
   @override
   String toString() {
     return (StringBuffer('CustomTerminalThemesCompanion(')
+          ..write('id: $id, ')
           ..write('name: $name, ')
           ..write('author: $author, ')
           ..write('blackColor: $blackColor, ')
@@ -1391,8 +1428,7 @@ class CustomTerminalThemesCompanion
           ..write('cursorColor: $cursorColor, ')
           ..write('selectionBackgroundColor: $selectionBackgroundColor, ')
           ..write('selectionForegroundColor: $selectionForegroundColor, ')
-          ..write('cursorTextColor: $cursorTextColor, ')
-          ..write('rowid: $rowid')
+          ..write('cursorTextColor: $cursorTextColor')
           ..write(')'))
         .toString();
   }
@@ -2037,15 +2073,24 @@ class Connections extends Table with TableInfo<Connections, Connection> {
         $customConstraints: 'NOT NULL DEFAULT \'unknown\'',
         defaultValue: const CustomExpression('\'unknown\''),
       ).withConverter<ConnectionIcon>(Connections.$convertericon);
-  static const VerificationMeta _colorMeta = const VerificationMeta('color');
-  late final GeneratedColumn<String> color = GeneratedColumn<String>(
-    'color',
-    aliasedName,
-    true,
-    type: DriftSqlType.string,
-    requiredDuringInsert: false,
-    $customConstraints: '',
-  );
+  late final GeneratedColumnWithTypeConverter<Color?, int> iconColor =
+      GeneratedColumn<int>(
+        'icon_color',
+        aliasedName,
+        true,
+        type: DriftSqlType.int,
+        requiredDuringInsert: false,
+        $customConstraints: '',
+      ).withConverter<Color?>(Connections.$convertericonColorn);
+  late final GeneratedColumnWithTypeConverter<Color?, int> iconBackgroundColor =
+      GeneratedColumn<int>(
+        'icon_background_color',
+        aliasedName,
+        true,
+        type: DriftSqlType.int,
+        requiredDuringInsert: false,
+        $customConstraints: '',
+      ).withConverter<Color?>(Connections.$convertericonBackgroundColorn);
   static const VerificationMeta _groupNameMeta = const VerificationMeta(
     'groupName',
   );
@@ -2057,39 +2102,29 @@ class Connections extends Table with TableInfo<Connections, Connection> {
     requiredDuringInsert: false,
     $customConstraints: '',
   );
-  static const VerificationMeta _terminalFontSizeOverrideMeta =
-      const VerificationMeta('terminalFontSizeOverride');
-  late final GeneratedColumn<int> terminalFontSizeOverride =
+  late final GeneratedColumnWithTypeConverter<TerminalTypography?, String>
+  terminalTypographyOverride =
+      GeneratedColumn<String>(
+        'terminal_typography_override',
+        aliasedName,
+        true,
+        type: DriftSqlType.string,
+        requiredDuringInsert: false,
+        $customConstraints: '',
+      ).withConverter<TerminalTypography?>(
+        Connections.$converterterminalTypographyOverriden,
+      );
+  static const VerificationMeta _terminalThemeOverrideIdMeta =
+      const VerificationMeta('terminalThemeOverrideId');
+  late final GeneratedColumn<int> terminalThemeOverrideId =
       GeneratedColumn<int>(
-        'terminal_font_size_override',
+        'terminal_theme_override_id',
         aliasedName,
         true,
         type: DriftSqlType.int,
         requiredDuringInsert: false,
-        $customConstraints: '',
-      );
-  static const VerificationMeta _terminalFontFamilyOverrideMeta =
-      const VerificationMeta('terminalFontFamilyOverride');
-  late final GeneratedColumn<String> terminalFontFamilyOverride =
-      GeneratedColumn<String>(
-        'terminal_font_family_override',
-        aliasedName,
-        true,
-        type: DriftSqlType.string,
-        requiredDuringInsert: false,
-        $customConstraints: '',
-      );
-  static const VerificationMeta _terminalThemeOverrideNameMeta =
-      const VerificationMeta('terminalThemeOverrideName');
-  late final GeneratedColumn<String> terminalThemeOverrideName =
-      GeneratedColumn<String>(
-        'terminal_theme_override_name',
-        aliasedName,
-        true,
-        type: DriftSqlType.string,
-        requiredDuringInsert: false,
         $customConstraints:
-            'REFERENCES custom_terminal_themes(name)ON DELETE SET NULL',
+            'REFERENCES custom_terminal_themes(id)ON DELETE SET NULL',
       );
   @override
   List<GeneratedColumn> get $columns => [
@@ -2101,11 +2136,11 @@ class Connections extends Table with TableInfo<Connections, Connection> {
     credentialId,
     label,
     icon,
-    color,
+    iconColor,
+    iconBackgroundColor,
     groupName,
-    terminalFontSizeOverride,
-    terminalFontFamilyOverride,
-    terminalThemeOverrideName,
+    terminalTypographyOverride,
+    terminalThemeOverrideId,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -2165,42 +2200,18 @@ class Connections extends Table with TableInfo<Connections, Connection> {
         label.isAcceptableOrUnknown(data['label']!, _labelMeta),
       );
     }
-    if (data.containsKey('color')) {
-      context.handle(
-        _colorMeta,
-        color.isAcceptableOrUnknown(data['color']!, _colorMeta),
-      );
-    }
     if (data.containsKey('group_name')) {
       context.handle(
         _groupNameMeta,
         groupName.isAcceptableOrUnknown(data['group_name']!, _groupNameMeta),
       );
     }
-    if (data.containsKey('terminal_font_size_override')) {
+    if (data.containsKey('terminal_theme_override_id')) {
       context.handle(
-        _terminalFontSizeOverrideMeta,
-        terminalFontSizeOverride.isAcceptableOrUnknown(
-          data['terminal_font_size_override']!,
-          _terminalFontSizeOverrideMeta,
-        ),
-      );
-    }
-    if (data.containsKey('terminal_font_family_override')) {
-      context.handle(
-        _terminalFontFamilyOverrideMeta,
-        terminalFontFamilyOverride.isAcceptableOrUnknown(
-          data['terminal_font_family_override']!,
-          _terminalFontFamilyOverrideMeta,
-        ),
-      );
-    }
-    if (data.containsKey('terminal_theme_override_name')) {
-      context.handle(
-        _terminalThemeOverrideNameMeta,
-        terminalThemeOverrideName.isAcceptableOrUnknown(
-          data['terminal_theme_override_name']!,
-          _terminalThemeOverrideNameMeta,
+        _terminalThemeOverrideIdMeta,
+        terminalThemeOverrideId.isAcceptableOrUnknown(
+          data['terminal_theme_override_id']!,
+          _terminalThemeOverrideIdMeta,
         ),
       );
     }
@@ -2247,25 +2258,33 @@ class Connections extends Table with TableInfo<Connections, Connection> {
           data['${effectivePrefix}icon'],
         )!,
       ),
-      color: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}color'],
+      iconColor: Connections.$convertericonColorn.fromSql(
+        attachedDatabase.typeMapping.read(
+          DriftSqlType.int,
+          data['${effectivePrefix}icon_color'],
+        ),
+      ),
+      iconBackgroundColor: Connections.$convertericonBackgroundColorn.fromSql(
+        attachedDatabase.typeMapping.read(
+          DriftSqlType.int,
+          data['${effectivePrefix}icon_background_color'],
+        ),
       ),
       groupName: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}group_name'],
       ),
-      terminalFontSizeOverride: attachedDatabase.typeMapping.read(
+      terminalTypographyOverride: Connections
+          .$converterterminalTypographyOverriden
+          .fromSql(
+            attachedDatabase.typeMapping.read(
+              DriftSqlType.string,
+              data['${effectivePrefix}terminal_typography_override'],
+            ),
+          ),
+      terminalThemeOverrideId: attachedDatabase.typeMapping.read(
         DriftSqlType.int,
-        data['${effectivePrefix}terminal_font_size_override'],
-      ),
-      terminalFontFamilyOverride: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}terminal_font_family_override'],
-      ),
-      terminalThemeOverrideName: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}terminal_theme_override_name'],
+        data['${effectivePrefix}terminal_theme_override_id'],
       ),
     );
   }
@@ -2277,6 +2296,19 @@ class Connections extends Table with TableInfo<Connections, Connection> {
 
   static JsonTypeConverter2<ConnectionIcon, int, int> $convertericon =
       const EnumIndexConverter<ConnectionIcon>(ConnectionIcon.values);
+  static TypeConverter<Color, int> $convertericonColor = const ColorConverter();
+  static TypeConverter<Color?, int?> $convertericonColorn =
+      NullAwareTypeConverter.wrap($convertericonColor);
+  static TypeConverter<Color, int> $convertericonBackgroundColor =
+      const ColorConverter();
+  static TypeConverter<Color?, int?> $convertericonBackgroundColorn =
+      NullAwareTypeConverter.wrap($convertericonBackgroundColor);
+  static TypeConverter<TerminalTypography, String>
+  $converterterminalTypographyOverride = const TerminalTypographyConverter();
+  static TypeConverter<TerminalTypography?, String?>
+  $converterterminalTypographyOverriden = NullAwareTypeConverter.wrap(
+    $converterterminalTypographyOverride,
+  );
   @override
   bool get dontWriteConstraints => true;
 }
@@ -2290,11 +2322,11 @@ class Connection extends DataClass implements Insertable<Connection> {
   final int? credentialId;
   final String? label;
   final ConnectionIcon icon;
-  final String? color;
+  final Color? iconColor;
+  final Color? iconBackgroundColor;
   final String? groupName;
-  final int? terminalFontSizeOverride;
-  final String? terminalFontFamilyOverride;
-  final String? terminalThemeOverrideName;
+  final TerminalTypography? terminalTypographyOverride;
+  final int? terminalThemeOverrideId;
   const Connection({
     required this.id,
     required this.address,
@@ -2304,11 +2336,11 @@ class Connection extends DataClass implements Insertable<Connection> {
     this.credentialId,
     this.label,
     required this.icon,
-    this.color,
+    this.iconColor,
+    this.iconBackgroundColor,
     this.groupName,
-    this.terminalFontSizeOverride,
-    this.terminalFontFamilyOverride,
-    this.terminalThemeOverrideName,
+    this.terminalTypographyOverride,
+    this.terminalThemeOverrideId,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -2331,25 +2363,29 @@ class Connection extends DataClass implements Insertable<Connection> {
     {
       map['icon'] = Variable<int>(Connections.$convertericon.toSql(icon));
     }
-    if (!nullToAbsent || color != null) {
-      map['color'] = Variable<String>(color);
+    if (!nullToAbsent || iconColor != null) {
+      map['icon_color'] = Variable<int>(
+        Connections.$convertericonColorn.toSql(iconColor),
+      );
+    }
+    if (!nullToAbsent || iconBackgroundColor != null) {
+      map['icon_background_color'] = Variable<int>(
+        Connections.$convertericonBackgroundColorn.toSql(iconBackgroundColor),
+      );
     }
     if (!nullToAbsent || groupName != null) {
       map['group_name'] = Variable<String>(groupName);
     }
-    if (!nullToAbsent || terminalFontSizeOverride != null) {
-      map['terminal_font_size_override'] = Variable<int>(
-        terminalFontSizeOverride,
+    if (!nullToAbsent || terminalTypographyOverride != null) {
+      map['terminal_typography_override'] = Variable<String>(
+        Connections.$converterterminalTypographyOverriden.toSql(
+          terminalTypographyOverride,
+        ),
       );
     }
-    if (!nullToAbsent || terminalFontFamilyOverride != null) {
-      map['terminal_font_family_override'] = Variable<String>(
-        terminalFontFamilyOverride,
-      );
-    }
-    if (!nullToAbsent || terminalThemeOverrideName != null) {
-      map['terminal_theme_override_name'] = Variable<String>(
-        terminalThemeOverrideName,
+    if (!nullToAbsent || terminalThemeOverrideId != null) {
+      map['terminal_theme_override_id'] = Variable<int>(
+        terminalThemeOverrideId,
       );
     }
     return map;
@@ -2373,23 +2409,22 @@ class Connection extends DataClass implements Insertable<Connection> {
           ? const Value.absent()
           : Value(label),
       icon: Value(icon),
-      color: color == null && nullToAbsent
+      iconColor: iconColor == null && nullToAbsent
           ? const Value.absent()
-          : Value(color),
+          : Value(iconColor),
+      iconBackgroundColor: iconBackgroundColor == null && nullToAbsent
+          ? const Value.absent()
+          : Value(iconBackgroundColor),
       groupName: groupName == null && nullToAbsent
           ? const Value.absent()
           : Value(groupName),
-      terminalFontSizeOverride: terminalFontSizeOverride == null && nullToAbsent
+      terminalTypographyOverride:
+          terminalTypographyOverride == null && nullToAbsent
           ? const Value.absent()
-          : Value(terminalFontSizeOverride),
-      terminalFontFamilyOverride:
-          terminalFontFamilyOverride == null && nullToAbsent
+          : Value(terminalTypographyOverride),
+      terminalThemeOverrideId: terminalThemeOverrideId == null && nullToAbsent
           ? const Value.absent()
-          : Value(terminalFontFamilyOverride),
-      terminalThemeOverrideName:
-          terminalThemeOverrideName == null && nullToAbsent
-          ? const Value.absent()
-          : Value(terminalThemeOverrideName),
+          : Value(terminalThemeOverrideId),
     );
   }
 
@@ -2409,16 +2444,16 @@ class Connection extends DataClass implements Insertable<Connection> {
       icon: Connections.$convertericon.fromJson(
         serializer.fromJson<int>(json['icon']),
       ),
-      color: serializer.fromJson<String?>(json['color']),
+      iconColor: serializer.fromJson<Color?>(json['icon_color']),
+      iconBackgroundColor: serializer.fromJson<Color?>(
+        json['icon_background_color'],
+      ),
       groupName: serializer.fromJson<String?>(json['group_name']),
-      terminalFontSizeOverride: serializer.fromJson<int?>(
-        json['terminal_font_size_override'],
+      terminalTypographyOverride: serializer.fromJson<TerminalTypography?>(
+        json['terminal_typography_override'],
       ),
-      terminalFontFamilyOverride: serializer.fromJson<String?>(
-        json['terminal_font_family_override'],
-      ),
-      terminalThemeOverrideName: serializer.fromJson<String?>(
-        json['terminal_theme_override_name'],
+      terminalThemeOverrideId: serializer.fromJson<int?>(
+        json['terminal_theme_override_id'],
       ),
     );
   }
@@ -2434,16 +2469,14 @@ class Connection extends DataClass implements Insertable<Connection> {
       'credential_id': serializer.toJson<int?>(credentialId),
       'label': serializer.toJson<String?>(label),
       'icon': serializer.toJson<int>(Connections.$convertericon.toJson(icon)),
-      'color': serializer.toJson<String?>(color),
+      'icon_color': serializer.toJson<Color?>(iconColor),
+      'icon_background_color': serializer.toJson<Color?>(iconBackgroundColor),
       'group_name': serializer.toJson<String?>(groupName),
-      'terminal_font_size_override': serializer.toJson<int?>(
-        terminalFontSizeOverride,
+      'terminal_typography_override': serializer.toJson<TerminalTypography?>(
+        terminalTypographyOverride,
       ),
-      'terminal_font_family_override': serializer.toJson<String?>(
-        terminalFontFamilyOverride,
-      ),
-      'terminal_theme_override_name': serializer.toJson<String?>(
-        terminalThemeOverrideName,
+      'terminal_theme_override_id': serializer.toJson<int?>(
+        terminalThemeOverrideId,
       ),
     };
   }
@@ -2457,11 +2490,12 @@ class Connection extends DataClass implements Insertable<Connection> {
     Value<int?> credentialId = const Value.absent(),
     Value<String?> label = const Value.absent(),
     ConnectionIcon? icon,
-    Value<String?> color = const Value.absent(),
+    Value<Color?> iconColor = const Value.absent(),
+    Value<Color?> iconBackgroundColor = const Value.absent(),
     Value<String?> groupName = const Value.absent(),
-    Value<int?> terminalFontSizeOverride = const Value.absent(),
-    Value<String?> terminalFontFamilyOverride = const Value.absent(),
-    Value<String?> terminalThemeOverrideName = const Value.absent(),
+    Value<TerminalTypography?> terminalTypographyOverride =
+        const Value.absent(),
+    Value<int?> terminalThemeOverrideId = const Value.absent(),
   }) => Connection(
     id: id ?? this.id,
     address: address ?? this.address,
@@ -2471,17 +2505,17 @@ class Connection extends DataClass implements Insertable<Connection> {
     credentialId: credentialId.present ? credentialId.value : this.credentialId,
     label: label.present ? label.value : this.label,
     icon: icon ?? this.icon,
-    color: color.present ? color.value : this.color,
+    iconColor: iconColor.present ? iconColor.value : this.iconColor,
+    iconBackgroundColor: iconBackgroundColor.present
+        ? iconBackgroundColor.value
+        : this.iconBackgroundColor,
     groupName: groupName.present ? groupName.value : this.groupName,
-    terminalFontSizeOverride: terminalFontSizeOverride.present
-        ? terminalFontSizeOverride.value
-        : this.terminalFontSizeOverride,
-    terminalFontFamilyOverride: terminalFontFamilyOverride.present
-        ? terminalFontFamilyOverride.value
-        : this.terminalFontFamilyOverride,
-    terminalThemeOverrideName: terminalThemeOverrideName.present
-        ? terminalThemeOverrideName.value
-        : this.terminalThemeOverrideName,
+    terminalTypographyOverride: terminalTypographyOverride.present
+        ? terminalTypographyOverride.value
+        : this.terminalTypographyOverride,
+    terminalThemeOverrideId: terminalThemeOverrideId.present
+        ? terminalThemeOverrideId.value
+        : this.terminalThemeOverrideId,
   );
   Connection copyWithCompanion(ConnectionsCompanion data) {
     return Connection(
@@ -2497,17 +2531,17 @@ class Connection extends DataClass implements Insertable<Connection> {
           : this.credentialId,
       label: data.label.present ? data.label.value : this.label,
       icon: data.icon.present ? data.icon.value : this.icon,
-      color: data.color.present ? data.color.value : this.color,
+      iconColor: data.iconColor.present ? data.iconColor.value : this.iconColor,
+      iconBackgroundColor: data.iconBackgroundColor.present
+          ? data.iconBackgroundColor.value
+          : this.iconBackgroundColor,
       groupName: data.groupName.present ? data.groupName.value : this.groupName,
-      terminalFontSizeOverride: data.terminalFontSizeOverride.present
-          ? data.terminalFontSizeOverride.value
-          : this.terminalFontSizeOverride,
-      terminalFontFamilyOverride: data.terminalFontFamilyOverride.present
-          ? data.terminalFontFamilyOverride.value
-          : this.terminalFontFamilyOverride,
-      terminalThemeOverrideName: data.terminalThemeOverrideName.present
-          ? data.terminalThemeOverrideName.value
-          : this.terminalThemeOverrideName,
+      terminalTypographyOverride: data.terminalTypographyOverride.present
+          ? data.terminalTypographyOverride.value
+          : this.terminalTypographyOverride,
+      terminalThemeOverrideId: data.terminalThemeOverrideId.present
+          ? data.terminalThemeOverrideId.value
+          : this.terminalThemeOverrideId,
     );
   }
 
@@ -2522,11 +2556,11 @@ class Connection extends DataClass implements Insertable<Connection> {
           ..write('credentialId: $credentialId, ')
           ..write('label: $label, ')
           ..write('icon: $icon, ')
-          ..write('color: $color, ')
+          ..write('iconColor: $iconColor, ')
+          ..write('iconBackgroundColor: $iconBackgroundColor, ')
           ..write('groupName: $groupName, ')
-          ..write('terminalFontSizeOverride: $terminalFontSizeOverride, ')
-          ..write('terminalFontFamilyOverride: $terminalFontFamilyOverride, ')
-          ..write('terminalThemeOverrideName: $terminalThemeOverrideName')
+          ..write('terminalTypographyOverride: $terminalTypographyOverride, ')
+          ..write('terminalThemeOverrideId: $terminalThemeOverrideId')
           ..write(')'))
         .toString();
   }
@@ -2541,11 +2575,11 @@ class Connection extends DataClass implements Insertable<Connection> {
     credentialId,
     label,
     icon,
-    color,
+    iconColor,
+    iconBackgroundColor,
     groupName,
-    terminalFontSizeOverride,
-    terminalFontFamilyOverride,
-    terminalThemeOverrideName,
+    terminalTypographyOverride,
+    terminalThemeOverrideId,
   );
   @override
   bool operator ==(Object other) =>
@@ -2559,11 +2593,11 @@ class Connection extends DataClass implements Insertable<Connection> {
           other.credentialId == this.credentialId &&
           other.label == this.label &&
           other.icon == this.icon &&
-          other.color == this.color &&
+          other.iconColor == this.iconColor &&
+          other.iconBackgroundColor == this.iconBackgroundColor &&
           other.groupName == this.groupName &&
-          other.terminalFontSizeOverride == this.terminalFontSizeOverride &&
-          other.terminalFontFamilyOverride == this.terminalFontFamilyOverride &&
-          other.terminalThemeOverrideName == this.terminalThemeOverrideName);
+          other.terminalTypographyOverride == this.terminalTypographyOverride &&
+          other.terminalThemeOverrideId == this.terminalThemeOverrideId);
 }
 
 class ConnectionsCompanion extends UpdateCompanion<Connection> {
@@ -2575,11 +2609,11 @@ class ConnectionsCompanion extends UpdateCompanion<Connection> {
   final Value<int?> credentialId;
   final Value<String?> label;
   final Value<ConnectionIcon> icon;
-  final Value<String?> color;
+  final Value<Color?> iconColor;
+  final Value<Color?> iconBackgroundColor;
   final Value<String?> groupName;
-  final Value<int?> terminalFontSizeOverride;
-  final Value<String?> terminalFontFamilyOverride;
-  final Value<String?> terminalThemeOverrideName;
+  final Value<TerminalTypography?> terminalTypographyOverride;
+  final Value<int?> terminalThemeOverrideId;
   const ConnectionsCompanion({
     this.id = const Value.absent(),
     this.address = const Value.absent(),
@@ -2589,11 +2623,11 @@ class ConnectionsCompanion extends UpdateCompanion<Connection> {
     this.credentialId = const Value.absent(),
     this.label = const Value.absent(),
     this.icon = const Value.absent(),
-    this.color = const Value.absent(),
+    this.iconColor = const Value.absent(),
+    this.iconBackgroundColor = const Value.absent(),
     this.groupName = const Value.absent(),
-    this.terminalFontSizeOverride = const Value.absent(),
-    this.terminalFontFamilyOverride = const Value.absent(),
-    this.terminalThemeOverrideName = const Value.absent(),
+    this.terminalTypographyOverride = const Value.absent(),
+    this.terminalThemeOverrideId = const Value.absent(),
   });
   ConnectionsCompanion.insert({
     this.id = const Value.absent(),
@@ -2604,11 +2638,11 @@ class ConnectionsCompanion extends UpdateCompanion<Connection> {
     this.credentialId = const Value.absent(),
     this.label = const Value.absent(),
     this.icon = const Value.absent(),
-    this.color = const Value.absent(),
+    this.iconColor = const Value.absent(),
+    this.iconBackgroundColor = const Value.absent(),
     this.groupName = const Value.absent(),
-    this.terminalFontSizeOverride = const Value.absent(),
-    this.terminalFontFamilyOverride = const Value.absent(),
-    this.terminalThemeOverrideName = const Value.absent(),
+    this.terminalTypographyOverride = const Value.absent(),
+    this.terminalThemeOverrideId = const Value.absent(),
   }) : address = Value(address),
        port = Value(port);
   static Insertable<Connection> custom({
@@ -2620,11 +2654,11 @@ class ConnectionsCompanion extends UpdateCompanion<Connection> {
     Expression<int>? credentialId,
     Expression<String>? label,
     Expression<int>? icon,
-    Expression<String>? color,
+    Expression<int>? iconColor,
+    Expression<int>? iconBackgroundColor,
     Expression<String>? groupName,
-    Expression<int>? terminalFontSizeOverride,
-    Expression<String>? terminalFontFamilyOverride,
-    Expression<String>? terminalThemeOverrideName,
+    Expression<String>? terminalTypographyOverride,
+    Expression<int>? terminalThemeOverrideId,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
@@ -2635,14 +2669,14 @@ class ConnectionsCompanion extends UpdateCompanion<Connection> {
       if (credentialId != null) 'credential_id': credentialId,
       if (label != null) 'label': label,
       if (icon != null) 'icon': icon,
-      if (color != null) 'color': color,
+      if (iconColor != null) 'icon_color': iconColor,
+      if (iconBackgroundColor != null)
+        'icon_background_color': iconBackgroundColor,
       if (groupName != null) 'group_name': groupName,
-      if (terminalFontSizeOverride != null)
-        'terminal_font_size_override': terminalFontSizeOverride,
-      if (terminalFontFamilyOverride != null)
-        'terminal_font_family_override': terminalFontFamilyOverride,
-      if (terminalThemeOverrideName != null)
-        'terminal_theme_override_name': terminalThemeOverrideName,
+      if (terminalTypographyOverride != null)
+        'terminal_typography_override': terminalTypographyOverride,
+      if (terminalThemeOverrideId != null)
+        'terminal_theme_override_id': terminalThemeOverrideId,
     });
   }
 
@@ -2655,11 +2689,11 @@ class ConnectionsCompanion extends UpdateCompanion<Connection> {
     Value<int?>? credentialId,
     Value<String?>? label,
     Value<ConnectionIcon>? icon,
-    Value<String?>? color,
+    Value<Color?>? iconColor,
+    Value<Color?>? iconBackgroundColor,
     Value<String?>? groupName,
-    Value<int?>? terminalFontSizeOverride,
-    Value<String?>? terminalFontFamilyOverride,
-    Value<String?>? terminalThemeOverrideName,
+    Value<TerminalTypography?>? terminalTypographyOverride,
+    Value<int?>? terminalThemeOverrideId,
   }) {
     return ConnectionsCompanion(
       id: id ?? this.id,
@@ -2670,14 +2704,13 @@ class ConnectionsCompanion extends UpdateCompanion<Connection> {
       credentialId: credentialId ?? this.credentialId,
       label: label ?? this.label,
       icon: icon ?? this.icon,
-      color: color ?? this.color,
+      iconColor: iconColor ?? this.iconColor,
+      iconBackgroundColor: iconBackgroundColor ?? this.iconBackgroundColor,
       groupName: groupName ?? this.groupName,
-      terminalFontSizeOverride:
-          terminalFontSizeOverride ?? this.terminalFontSizeOverride,
-      terminalFontFamilyOverride:
-          terminalFontFamilyOverride ?? this.terminalFontFamilyOverride,
-      terminalThemeOverrideName:
-          terminalThemeOverrideName ?? this.terminalThemeOverrideName,
+      terminalTypographyOverride:
+          terminalTypographyOverride ?? this.terminalTypographyOverride,
+      terminalThemeOverrideId:
+          terminalThemeOverrideId ?? this.terminalThemeOverrideId,
     );
   }
 
@@ -2708,25 +2741,31 @@ class ConnectionsCompanion extends UpdateCompanion<Connection> {
     if (icon.present) {
       map['icon'] = Variable<int>(Connections.$convertericon.toSql(icon.value));
     }
-    if (color.present) {
-      map['color'] = Variable<String>(color.value);
+    if (iconColor.present) {
+      map['icon_color'] = Variable<int>(
+        Connections.$convertericonColorn.toSql(iconColor.value),
+      );
+    }
+    if (iconBackgroundColor.present) {
+      map['icon_background_color'] = Variable<int>(
+        Connections.$convertericonBackgroundColorn.toSql(
+          iconBackgroundColor.value,
+        ),
+      );
     }
     if (groupName.present) {
       map['group_name'] = Variable<String>(groupName.value);
     }
-    if (terminalFontSizeOverride.present) {
-      map['terminal_font_size_override'] = Variable<int>(
-        terminalFontSizeOverride.value,
+    if (terminalTypographyOverride.present) {
+      map['terminal_typography_override'] = Variable<String>(
+        Connections.$converterterminalTypographyOverriden.toSql(
+          terminalTypographyOverride.value,
+        ),
       );
     }
-    if (terminalFontFamilyOverride.present) {
-      map['terminal_font_family_override'] = Variable<String>(
-        terminalFontFamilyOverride.value,
-      );
-    }
-    if (terminalThemeOverrideName.present) {
-      map['terminal_theme_override_name'] = Variable<String>(
-        terminalThemeOverrideName.value,
+    if (terminalThemeOverrideId.present) {
+      map['terminal_theme_override_id'] = Variable<int>(
+        terminalThemeOverrideId.value,
       );
     }
     return map;
@@ -2743,11 +2782,11 @@ class ConnectionsCompanion extends UpdateCompanion<Connection> {
           ..write('credentialId: $credentialId, ')
           ..write('label: $label, ')
           ..write('icon: $icon, ')
-          ..write('color: $color, ')
+          ..write('iconColor: $iconColor, ')
+          ..write('iconBackgroundColor: $iconBackgroundColor, ')
           ..write('groupName: $groupName, ')
-          ..write('terminalFontSizeOverride: $terminalFontSizeOverride, ')
-          ..write('terminalFontFamilyOverride: $terminalFontFamilyOverride, ')
-          ..write('terminalThemeOverrideName: $terminalThemeOverrideName')
+          ..write('terminalTypographyOverride: $terminalTypographyOverride, ')
+          ..write('terminalThemeOverrideId: $terminalThemeOverrideId')
           ..write(')'))
         .toString();
   }
@@ -2764,7 +2803,7 @@ abstract class _$CliqDatabase extends GeneratedDatabase {
   late final Connections connections = Connections(this);
   Selectable<FindAllConnectionFullResult> findAllConnectionFull() {
     return customSelect(
-      'SELECT"c"."id" AS "nested_0.id", "c"."address" AS "nested_0.address", "c"."port" AS "nested_0.port", "c"."identity_id" AS "nested_0.identity_id", "c"."username" AS "nested_0.username", "c"."credential_id" AS "nested_0.credential_id", "c"."label" AS "nested_0.label", "c"."icon" AS "nested_0.icon", "c"."color" AS "nested_0.color", "c"."group_name" AS "nested_0.group_name", "c"."terminal_font_size_override" AS "nested_0.terminal_font_size_override", "c"."terminal_font_family_override" AS "nested_0.terminal_font_family_override", "c"."terminal_theme_override_name" AS "nested_0.terminal_theme_override_name","i"."id" AS "nested_1.id", "i"."username" AS "nested_1.username", "i"."credential_id" AS "nested_1.credential_id","cc"."id" AS "nested_2.id", "cc"."type" AS "nested_2.type", "cc"."data" AS "nested_2.data", "cc"."passphrase" AS "nested_2.passphrase","ci"."id" AS "nested_3.id", "ci"."type" AS "nested_3.type", "ci"."data" AS "nested_3.data", "ci"."passphrase" AS "nested_3.passphrase","t"."name" AS "nested_4.name", "t"."author" AS "nested_4.author", "t"."black_color" AS "nested_4.black_color", "t"."red_color" AS "nested_4.red_color", "t"."green_color" AS "nested_4.green_color", "t"."yellow_color" AS "nested_4.yellow_color", "t"."blue_color" AS "nested_4.blue_color", "t"."purple_color" AS "nested_4.purple_color", "t"."cyan_color" AS "nested_4.cyan_color", "t"."white_color" AS "nested_4.white_color", "t"."bright_black_color" AS "nested_4.bright_black_color", "t"."bright_red_color" AS "nested_4.bright_red_color", "t"."bright_green_color" AS "nested_4.bright_green_color", "t"."bright_yellow_color" AS "nested_4.bright_yellow_color", "t"."bright_blue_color" AS "nested_4.bright_blue_color", "t"."bright_purple_color" AS "nested_4.bright_purple_color", "t"."bright_cyan_color" AS "nested_4.bright_cyan_color", "t"."bright_white_color" AS "nested_4.bright_white_color", "t"."background_color" AS "nested_4.background_color", "t"."foreground_color" AS "nested_4.foreground_color", "t"."cursor_color" AS "nested_4.cursor_color", "t"."selection_background_color" AS "nested_4.selection_background_color", "t"."selection_foreground_color" AS "nested_4.selection_foreground_color", "t"."cursor_text_color" AS "nested_4.cursor_text_color" FROM connections AS c LEFT JOIN identities AS i ON c.identity_id = i.id LEFT JOIN credentials AS cc ON c.credential_id = cc.id LEFT JOIN credentials AS ci ON i.credential_id = ci.id LEFT JOIN custom_terminal_themes AS t ON c.terminal_theme_override_name = t.name',
+      'SELECT"c"."id" AS "nested_0.id", "c"."address" AS "nested_0.address", "c"."port" AS "nested_0.port", "c"."identity_id" AS "nested_0.identity_id", "c"."username" AS "nested_0.username", "c"."credential_id" AS "nested_0.credential_id", "c"."label" AS "nested_0.label", "c"."icon" AS "nested_0.icon", "c"."icon_color" AS "nested_0.icon_color", "c"."icon_background_color" AS "nested_0.icon_background_color", "c"."group_name" AS "nested_0.group_name", "c"."terminal_typography_override" AS "nested_0.terminal_typography_override", "c"."terminal_theme_override_id" AS "nested_0.terminal_theme_override_id","i"."id" AS "nested_1.id", "i"."username" AS "nested_1.username", "i"."credential_id" AS "nested_1.credential_id","cc"."id" AS "nested_2.id", "cc"."type" AS "nested_2.type", "cc"."data" AS "nested_2.data", "cc"."passphrase" AS "nested_2.passphrase","ci"."id" AS "nested_3.id", "ci"."type" AS "nested_3.type", "ci"."data" AS "nested_3.data", "ci"."passphrase" AS "nested_3.passphrase","t"."id" AS "nested_4.id", "t"."name" AS "nested_4.name", "t"."author" AS "nested_4.author", "t"."black_color" AS "nested_4.black_color", "t"."red_color" AS "nested_4.red_color", "t"."green_color" AS "nested_4.green_color", "t"."yellow_color" AS "nested_4.yellow_color", "t"."blue_color" AS "nested_4.blue_color", "t"."purple_color" AS "nested_4.purple_color", "t"."cyan_color" AS "nested_4.cyan_color", "t"."white_color" AS "nested_4.white_color", "t"."bright_black_color" AS "nested_4.bright_black_color", "t"."bright_red_color" AS "nested_4.bright_red_color", "t"."bright_green_color" AS "nested_4.bright_green_color", "t"."bright_yellow_color" AS "nested_4.bright_yellow_color", "t"."bright_blue_color" AS "nested_4.bright_blue_color", "t"."bright_purple_color" AS "nested_4.bright_purple_color", "t"."bright_cyan_color" AS "nested_4.bright_cyan_color", "t"."bright_white_color" AS "nested_4.bright_white_color", "t"."background_color" AS "nested_4.background_color", "t"."foreground_color" AS "nested_4.foreground_color", "t"."cursor_color" AS "nested_4.cursor_color", "t"."selection_background_color" AS "nested_4.selection_background_color", "t"."selection_foreground_color" AS "nested_4.selection_foreground_color", "t"."cursor_text_color" AS "nested_4.cursor_text_color" FROM connections AS c LEFT JOIN identities AS i ON c.identity_id = i.id LEFT JOIN credentials AS cc ON c.credential_id = cc.id LEFT JOIN credentials AS ci ON i.credential_id = ci.id LEFT JOIN custom_terminal_themes AS t ON c.terminal_theme_override_id = t.id',
       variables: [],
       readsFrom: {connections, identities, credentials, customTerminalThemes},
     ).asyncMap(
@@ -2836,6 +2875,7 @@ abstract class _$CliqDatabase extends GeneratedDatabase {
 
 typedef $CustomTerminalThemesCreateCompanionBuilder =
     CustomTerminalThemesCompanion Function({
+      Value<int> id,
       required String name,
       Value<String?> author,
       required Color blackColor,
@@ -2860,10 +2900,10 @@ typedef $CustomTerminalThemesCreateCompanionBuilder =
       required Color selectionBackgroundColor,
       Value<Color?> selectionForegroundColor,
       Value<Color?> cursorTextColor,
-      Value<int> rowid,
     });
 typedef $CustomTerminalThemesUpdateCompanionBuilder =
     CustomTerminalThemesCompanion Function({
+      Value<int> id,
       Value<String> name,
       Value<String?> author,
       Value<Color> blackColor,
@@ -2888,7 +2928,6 @@ typedef $CustomTerminalThemesUpdateCompanionBuilder =
       Value<Color> selectionBackgroundColor,
       Value<Color?> selectionForegroundColor,
       Value<Color?> cursorTextColor,
-      Value<int> rowid,
     });
 
 final class $CustomTerminalThemesReferences
@@ -2908,16 +2947,14 @@ final class $CustomTerminalThemesReferences
   _connectionsRefsTable(_$CliqDatabase db) => MultiTypedResultKey.fromTable(
     db.connections,
     aliasName: $_aliasNameGenerator(
-      db.customTerminalThemes.name,
-      db.connections.terminalThemeOverrideName,
+      db.customTerminalThemes.id,
+      db.connections.terminalThemeOverrideId,
     ),
   );
 
   $ConnectionsProcessedTableManager get connectionsRefs {
     final manager = $ConnectionsTableManager($_db, $_db.connections).filter(
-      (f) => f.terminalThemeOverrideName.name.sqlEquals(
-        $_itemColumn<String>('name')!,
-      ),
+      (f) => f.terminalThemeOverrideId.id.sqlEquals($_itemColumn<int>('id')!),
     );
 
     final cache = $_typedResult.readTableOrNull(_connectionsRefsTable($_db));
@@ -2936,6 +2973,11 @@ class $CustomTerminalThemesFilterComposer
     super.$addJoinBuilderToRootComposer,
     super.$removeJoinBuilderFromRootComposer,
   });
+  ColumnFilters<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
   ColumnFilters<String> get name => $composableBuilder(
     column: $table.name,
     builder: (column) => ColumnFilters(column),
@@ -3083,9 +3125,9 @@ class $CustomTerminalThemesFilterComposer
   ) {
     final $ConnectionsFilterComposer composer = $composerBuilder(
       composer: this,
-      getCurrentColumn: (t) => t.name,
+      getCurrentColumn: (t) => t.id,
       referencedTable: $db.connections,
-      getReferencedColumn: (t) => t.terminalThemeOverrideName,
+      getReferencedColumn: (t) => t.terminalThemeOverrideId,
       builder:
           (
             joinBuilder, {
@@ -3113,6 +3155,11 @@ class $CustomTerminalThemesOrderingComposer
     super.$addJoinBuilderToRootComposer,
     super.$removeJoinBuilderFromRootComposer,
   });
+  ColumnOrderings<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<String> get name => $composableBuilder(
     column: $table.name,
     builder: (column) => ColumnOrderings(column),
@@ -3243,6 +3290,9 @@ class $CustomTerminalThemesAnnotationComposer
     super.$addJoinBuilderToRootComposer,
     super.$removeJoinBuilderFromRootComposer,
   });
+  GeneratedColumn<int> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
   GeneratedColumn<String> get name =>
       $composableBuilder(column: $table.name, builder: (column) => column);
 
@@ -3377,9 +3427,9 @@ class $CustomTerminalThemesAnnotationComposer
   ) {
     final $ConnectionsAnnotationComposer composer = $composerBuilder(
       composer: this,
-      getCurrentColumn: (t) => t.name,
+      getCurrentColumn: (t) => t.id,
       referencedTable: $db.connections,
-      getReferencedColumn: (t) => t.terminalThemeOverrideName,
+      getReferencedColumn: (t) => t.terminalThemeOverrideId,
       builder:
           (
             joinBuilder, {
@@ -3428,6 +3478,7 @@ class $CustomTerminalThemesTableManager
               $CustomTerminalThemesAnnotationComposer($db: db, $table: table),
           updateCompanionCallback:
               ({
+                Value<int> id = const Value.absent(),
                 Value<String> name = const Value.absent(),
                 Value<String?> author = const Value.absent(),
                 Value<Color> blackColor = const Value.absent(),
@@ -3452,8 +3503,8 @@ class $CustomTerminalThemesTableManager
                 Value<Color> selectionBackgroundColor = const Value.absent(),
                 Value<Color?> selectionForegroundColor = const Value.absent(),
                 Value<Color?> cursorTextColor = const Value.absent(),
-                Value<int> rowid = const Value.absent(),
               }) => CustomTerminalThemesCompanion(
+                id: id,
                 name: name,
                 author: author,
                 blackColor: blackColor,
@@ -3478,10 +3529,10 @@ class $CustomTerminalThemesTableManager
                 selectionBackgroundColor: selectionBackgroundColor,
                 selectionForegroundColor: selectionForegroundColor,
                 cursorTextColor: cursorTextColor,
-                rowid: rowid,
               ),
           createCompanionCallback:
               ({
+                Value<int> id = const Value.absent(),
                 required String name,
                 Value<String?> author = const Value.absent(),
                 required Color blackColor,
@@ -3506,8 +3557,8 @@ class $CustomTerminalThemesTableManager
                 required Color selectionBackgroundColor,
                 Value<Color?> selectionForegroundColor = const Value.absent(),
                 Value<Color?> cursorTextColor = const Value.absent(),
-                Value<int> rowid = const Value.absent(),
               }) => CustomTerminalThemesCompanion.insert(
+                id: id,
                 name: name,
                 author: author,
                 blackColor: blackColor,
@@ -3532,7 +3583,6 @@ class $CustomTerminalThemesTableManager
                 selectionBackgroundColor: selectionBackgroundColor,
                 selectionForegroundColor: selectionForegroundColor,
                 cursorTextColor: cursorTextColor,
-                rowid: rowid,
               ),
           withReferenceMapper: (p0) => p0
               .map(
@@ -3566,7 +3616,7 @@ class $CustomTerminalThemesTableManager
                           ).connectionsRefs,
                       referencedItemsForCurrentItem: (item, referencedItems) =>
                           referencedItems.where(
-                            (e) => e.terminalThemeOverrideName == item.name,
+                            (e) => e.terminalThemeOverrideId == item.id,
                           ),
                       typedResults: items,
                     ),
@@ -4346,11 +4396,11 @@ typedef $ConnectionsCreateCompanionBuilder =
       Value<int?> credentialId,
       Value<String?> label,
       Value<ConnectionIcon> icon,
-      Value<String?> color,
+      Value<Color?> iconColor,
+      Value<Color?> iconBackgroundColor,
       Value<String?> groupName,
-      Value<int?> terminalFontSizeOverride,
-      Value<String?> terminalFontFamilyOverride,
-      Value<String?> terminalThemeOverrideName,
+      Value<TerminalTypography?> terminalTypographyOverride,
+      Value<int?> terminalThemeOverrideId,
     });
 typedef $ConnectionsUpdateCompanionBuilder =
     ConnectionsCompanion Function({
@@ -4362,11 +4412,11 @@ typedef $ConnectionsUpdateCompanionBuilder =
       Value<int?> credentialId,
       Value<String?> label,
       Value<ConnectionIcon> icon,
-      Value<String?> color,
+      Value<Color?> iconColor,
+      Value<Color?> iconBackgroundColor,
       Value<String?> groupName,
-      Value<int?> terminalFontSizeOverride,
-      Value<String?> terminalFontFamilyOverride,
-      Value<String?> terminalThemeOverrideName,
+      Value<TerminalTypography?> terminalTypographyOverride,
+      Value<int?> terminalThemeOverrideId,
     });
 
 final class $ConnectionsReferences
@@ -4411,24 +4461,24 @@ final class $ConnectionsReferences
     );
   }
 
-  static CustomTerminalThemes _terminalThemeOverrideNameTable(
+  static CustomTerminalThemes _terminalThemeOverrideIdTable(
     _$CliqDatabase db,
   ) => db.customTerminalThemes.createAlias(
     $_aliasNameGenerator(
-      db.connections.terminalThemeOverrideName,
-      db.customTerminalThemes.name,
+      db.connections.terminalThemeOverrideId,
+      db.customTerminalThemes.id,
     ),
   );
 
-  $CustomTerminalThemesProcessedTableManager? get terminalThemeOverrideName {
-    final $_column = $_itemColumn<String>('terminal_theme_override_name');
+  $CustomTerminalThemesProcessedTableManager? get terminalThemeOverrideId {
+    final $_column = $_itemColumn<int>('terminal_theme_override_id');
     if ($_column == null) return null;
     final manager = $CustomTerminalThemesTableManager(
       $_db,
       $_db.customTerminalThemes,
-    ).filter((f) => f.name.sqlEquals($_column));
+    ).filter((f) => f.id.sqlEquals($_column));
     final item = $_typedResult.readTableOrNull(
-      _terminalThemeOverrideNameTable($_db),
+      _terminalThemeOverrideIdTable($_db),
     );
     if (item == null) return manager;
     return ProcessedTableManager(
@@ -4476,24 +4526,31 @@ class $ConnectionsFilterComposer extends Composer<_$CliqDatabase, Connections> {
     builder: (column) => ColumnWithTypeConverterFilters(column),
   );
 
-  ColumnFilters<String> get color => $composableBuilder(
-    column: $table.color,
-    builder: (column) => ColumnFilters(column),
-  );
+  ColumnWithTypeConverterFilters<Color?, Color, int> get iconColor =>
+      $composableBuilder(
+        column: $table.iconColor,
+        builder: (column) => ColumnWithTypeConverterFilters(column),
+      );
+
+  ColumnWithTypeConverterFilters<Color?, Color, int> get iconBackgroundColor =>
+      $composableBuilder(
+        column: $table.iconBackgroundColor,
+        builder: (column) => ColumnWithTypeConverterFilters(column),
+      );
 
   ColumnFilters<String> get groupName => $composableBuilder(
     column: $table.groupName,
     builder: (column) => ColumnFilters(column),
   );
 
-  ColumnFilters<int> get terminalFontSizeOverride => $composableBuilder(
-    column: $table.terminalFontSizeOverride,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  ColumnFilters<String> get terminalFontFamilyOverride => $composableBuilder(
-    column: $table.terminalFontFamilyOverride,
-    builder: (column) => ColumnFilters(column),
+  ColumnWithTypeConverterFilters<
+    TerminalTypography?,
+    TerminalTypography,
+    String
+  >
+  get terminalTypographyOverride => $composableBuilder(
+    column: $table.terminalTypographyOverride,
+    builder: (column) => ColumnWithTypeConverterFilters(column),
   );
 
   $IdentitiesFilterComposer get identityId {
@@ -4542,12 +4599,12 @@ class $ConnectionsFilterComposer extends Composer<_$CliqDatabase, Connections> {
     return composer;
   }
 
-  $CustomTerminalThemesFilterComposer get terminalThemeOverrideName {
+  $CustomTerminalThemesFilterComposer get terminalThemeOverrideId {
     final $CustomTerminalThemesFilterComposer composer = $composerBuilder(
       composer: this,
-      getCurrentColumn: (t) => t.terminalThemeOverrideName,
+      getCurrentColumn: (t) => t.terminalThemeOverrideId,
       referencedTable: $db.customTerminalThemes,
-      getReferencedColumn: (t) => t.name,
+      getReferencedColumn: (t) => t.id,
       builder:
           (
             joinBuilder, {
@@ -4605,8 +4662,13 @@ class $ConnectionsOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
-  ColumnOrderings<String> get color => $composableBuilder(
-    column: $table.color,
+  ColumnOrderings<int> get iconColor => $composableBuilder(
+    column: $table.iconColor,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get iconBackgroundColor => $composableBuilder(
+    column: $table.iconBackgroundColor,
     builder: (column) => ColumnOrderings(column),
   );
 
@@ -4615,13 +4677,8 @@ class $ConnectionsOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
-  ColumnOrderings<int> get terminalFontSizeOverride => $composableBuilder(
-    column: $table.terminalFontSizeOverride,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  ColumnOrderings<String> get terminalFontFamilyOverride => $composableBuilder(
-    column: $table.terminalFontFamilyOverride,
+  ColumnOrderings<String> get terminalTypographyOverride => $composableBuilder(
+    column: $table.terminalTypographyOverride,
     builder: (column) => ColumnOrderings(column),
   );
 
@@ -4671,12 +4728,12 @@ class $ConnectionsOrderingComposer
     return composer;
   }
 
-  $CustomTerminalThemesOrderingComposer get terminalThemeOverrideName {
+  $CustomTerminalThemesOrderingComposer get terminalThemeOverrideId {
     final $CustomTerminalThemesOrderingComposer composer = $composerBuilder(
       composer: this,
-      getCurrentColumn: (t) => t.terminalThemeOverrideName,
+      getCurrentColumn: (t) => t.terminalThemeOverrideId,
       referencedTable: $db.customTerminalThemes,
-      getReferencedColumn: (t) => t.name,
+      getReferencedColumn: (t) => t.id,
       builder:
           (
             joinBuilder, {
@@ -4722,19 +4779,21 @@ class $ConnectionsAnnotationComposer
   GeneratedColumnWithTypeConverter<ConnectionIcon, int> get icon =>
       $composableBuilder(column: $table.icon, builder: (column) => column);
 
-  GeneratedColumn<String> get color =>
-      $composableBuilder(column: $table.color, builder: (column) => column);
+  GeneratedColumnWithTypeConverter<Color?, int> get iconColor =>
+      $composableBuilder(column: $table.iconColor, builder: (column) => column);
+
+  GeneratedColumnWithTypeConverter<Color?, int> get iconBackgroundColor =>
+      $composableBuilder(
+        column: $table.iconBackgroundColor,
+        builder: (column) => column,
+      );
 
   GeneratedColumn<String> get groupName =>
       $composableBuilder(column: $table.groupName, builder: (column) => column);
 
-  GeneratedColumn<int> get terminalFontSizeOverride => $composableBuilder(
-    column: $table.terminalFontSizeOverride,
-    builder: (column) => column,
-  );
-
-  GeneratedColumn<String> get terminalFontFamilyOverride => $composableBuilder(
-    column: $table.terminalFontFamilyOverride,
+  GeneratedColumnWithTypeConverter<TerminalTypography?, String>
+  get terminalTypographyOverride => $composableBuilder(
+    column: $table.terminalTypographyOverride,
     builder: (column) => column,
   );
 
@@ -4784,12 +4843,12 @@ class $ConnectionsAnnotationComposer
     return composer;
   }
 
-  $CustomTerminalThemesAnnotationComposer get terminalThemeOverrideName {
+  $CustomTerminalThemesAnnotationComposer get terminalThemeOverrideId {
     final $CustomTerminalThemesAnnotationComposer composer = $composerBuilder(
       composer: this,
-      getCurrentColumn: (t) => t.terminalThemeOverrideName,
+      getCurrentColumn: (t) => t.terminalThemeOverrideId,
       referencedTable: $db.customTerminalThemes,
-      getReferencedColumn: (t) => t.name,
+      getReferencedColumn: (t) => t.id,
       builder:
           (
             joinBuilder, {
@@ -4824,7 +4883,7 @@ class $ConnectionsTableManager
           PrefetchHooks Function({
             bool identityId,
             bool credentialId,
-            bool terminalThemeOverrideName,
+            bool terminalThemeOverrideId,
           })
         > {
   $ConnectionsTableManager(_$CliqDatabase db, Connections table)
@@ -4848,12 +4907,12 @@ class $ConnectionsTableManager
                 Value<int?> credentialId = const Value.absent(),
                 Value<String?> label = const Value.absent(),
                 Value<ConnectionIcon> icon = const Value.absent(),
-                Value<String?> color = const Value.absent(),
+                Value<Color?> iconColor = const Value.absent(),
+                Value<Color?> iconBackgroundColor = const Value.absent(),
                 Value<String?> groupName = const Value.absent(),
-                Value<int?> terminalFontSizeOverride = const Value.absent(),
-                Value<String?> terminalFontFamilyOverride =
+                Value<TerminalTypography?> terminalTypographyOverride =
                     const Value.absent(),
-                Value<String?> terminalThemeOverrideName = const Value.absent(),
+                Value<int?> terminalThemeOverrideId = const Value.absent(),
               }) => ConnectionsCompanion(
                 id: id,
                 address: address,
@@ -4863,11 +4922,11 @@ class $ConnectionsTableManager
                 credentialId: credentialId,
                 label: label,
                 icon: icon,
-                color: color,
+                iconColor: iconColor,
+                iconBackgroundColor: iconBackgroundColor,
                 groupName: groupName,
-                terminalFontSizeOverride: terminalFontSizeOverride,
-                terminalFontFamilyOverride: terminalFontFamilyOverride,
-                terminalThemeOverrideName: terminalThemeOverrideName,
+                terminalTypographyOverride: terminalTypographyOverride,
+                terminalThemeOverrideId: terminalThemeOverrideId,
               ),
           createCompanionCallback:
               ({
@@ -4879,12 +4938,12 @@ class $ConnectionsTableManager
                 Value<int?> credentialId = const Value.absent(),
                 Value<String?> label = const Value.absent(),
                 Value<ConnectionIcon> icon = const Value.absent(),
-                Value<String?> color = const Value.absent(),
+                Value<Color?> iconColor = const Value.absent(),
+                Value<Color?> iconBackgroundColor = const Value.absent(),
                 Value<String?> groupName = const Value.absent(),
-                Value<int?> terminalFontSizeOverride = const Value.absent(),
-                Value<String?> terminalFontFamilyOverride =
+                Value<TerminalTypography?> terminalTypographyOverride =
                     const Value.absent(),
-                Value<String?> terminalThemeOverrideName = const Value.absent(),
+                Value<int?> terminalThemeOverrideId = const Value.absent(),
               }) => ConnectionsCompanion.insert(
                 id: id,
                 address: address,
@@ -4894,11 +4953,11 @@ class $ConnectionsTableManager
                 credentialId: credentialId,
                 label: label,
                 icon: icon,
-                color: color,
+                iconColor: iconColor,
+                iconBackgroundColor: iconBackgroundColor,
                 groupName: groupName,
-                terminalFontSizeOverride: terminalFontSizeOverride,
-                terminalFontFamilyOverride: terminalFontFamilyOverride,
-                terminalThemeOverrideName: terminalThemeOverrideName,
+                terminalTypographyOverride: terminalTypographyOverride,
+                terminalThemeOverrideId: terminalThemeOverrideId,
               ),
           withReferenceMapper: (p0) => p0
               .map(
@@ -4910,7 +4969,7 @@ class $ConnectionsTableManager
               ({
                 identityId = false,
                 credentialId = false,
-                terminalThemeOverrideName = false,
+                terminalThemeOverrideId = false,
               }) {
                 return PrefetchHooks(
                   db: db,
@@ -4957,17 +5016,17 @@ class $ConnectionsTableManager
                                   )
                                   as T;
                         }
-                        if (terminalThemeOverrideName) {
+                        if (terminalThemeOverrideId) {
                           state =
                               state.withJoin(
                                     currentTable: table,
                                     currentColumn:
-                                        table.terminalThemeOverrideName,
+                                        table.terminalThemeOverrideId,
                                     referencedTable: $ConnectionsReferences
-                                        ._terminalThemeOverrideNameTable(db),
+                                        ._terminalThemeOverrideIdTable(db),
                                     referencedColumn: $ConnectionsReferences
-                                        ._terminalThemeOverrideNameTable(db)
-                                        .name,
+                                        ._terminalThemeOverrideIdTable(db)
+                                        .id,
                                   )
                                   as T;
                         }
@@ -4998,7 +5057,7 @@ typedef $ConnectionsProcessedTableManager =
       PrefetchHooks Function({
         bool identityId,
         bool credentialId,
-        bool terminalThemeOverrideName,
+        bool terminalThemeOverrideId,
       })
     >;
 

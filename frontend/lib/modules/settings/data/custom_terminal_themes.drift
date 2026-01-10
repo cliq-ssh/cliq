@@ -1,7 +1,8 @@
 import '../../../shared/data/converters/color_converter.dart';
 
 CREATE TABLE custom_terminal_themes (
-    name                        TEXT PRIMARY KEY NOT NULL,
+    id                          INTEGER PRIMARY KEY AUTOINCREMENT,
+    name                        TEXT NOT NULL,
     author                      TEXT,
 
     black_color                 INTEGER NOT NULL MAPPED BY `const ColorConverter()`,
@@ -26,5 +27,7 @@ CREATE TABLE custom_terminal_themes (
     cursor_color                INTEGER NOT NULL MAPPED BY `const ColorConverter()`,
     selection_background_color  INTEGER NOT NULL MAPPED BY `const ColorConverter()`,
     selection_foreground_color  INTEGER MAPPED BY `const ColorConverter()`,
-    cursor_text_color           INTEGER MAPPED BY `const ColorConverter()`
+    cursor_text_color           INTEGER MAPPED BY `const ColorConverter()`,
+
+    UNIQUE(name)
 );

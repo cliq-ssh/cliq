@@ -25,7 +25,7 @@ class TerminalPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     // set background
-    final bgPaint = Paint()..color = controller.colors.backgroundColor;
+    final bgPaint = Paint()..color = controller.theme.backgroundColor;
     canvas.drawRect(Offset.zero & size, bgPaint);
 
     final (cellW, cellH) = measureChar(controller.typography);
@@ -59,8 +59,8 @@ class TerminalPainter extends CustomPainter {
         if (sb.isEmpty) return;
         final fmt = lastFmt ?? FormattingOptions();
         final effectiveFg = fmt.concealed
-            ? controller.colors.foregroundColor.withAlpha(0)
-            : (fmt.effectiveFgColor ?? controller.colors.foregroundColor);
+            ? controller.theme.foregroundColor.withAlpha(0)
+            : (fmt.effectiveFgColor ?? controller.theme.foregroundColor);
 
         final style = controller.typography.toTextStyle().copyWith(
           color: effectiveFg,
@@ -124,8 +124,8 @@ class TerminalPainter extends CustomPainter {
       final cellFg = cell.fmt.effectiveFgColor;
       final cellBg = cell.fmt.effectiveBgColor;
 
-      final Color fillColor = cellFg ?? controller.colors.foregroundColor;
-      final Color charColor = cellBg ?? controller.colors.backgroundColor;
+      final Color fillColor = cellFg ?? controller.theme.foregroundColor;
+      final Color charColor = cellBg ?? controller.theme.backgroundColor;
 
       final cursorRect = Rect.fromLTWH(
         visibleCursorCol * cellW,
@@ -141,7 +141,7 @@ class TerminalPainter extends CustomPainter {
           final displayedChar = cell.ch.isEmpty ? ' ' : cell.ch;
           final charStyle = TextStyle(
             color: charColor,
-            fontSize: controller.typography.fontSize,
+            fontSize: controller.typography.fontSize.toDouble(),
             fontFamily: controller.typography.fontFamily,
             fontWeight: cell.fmt.bold ? FontWeight.w700 : FontWeight.w400,
             fontStyle: cell.fmt.italic ? FontStyle.italic : FontStyle.normal,

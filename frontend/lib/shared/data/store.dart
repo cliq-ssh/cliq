@@ -79,18 +79,28 @@ enum StoreKey<T> {
 
   static String? _typographyToValue(TerminalTypography? value) {
     if (value == null) return null;
-    return [value.fontFamily, value.fontSize.toString()].join(';');
+    return [value.fontSize, value.fontFamily].join(';');
   }
 
   static TerminalTypography? _typographyFromValue(String? value) {
     if (value == null) return null;
     final parts = value.split(';');
     if (parts.length != 2) return null;
-    final fontFamily = parts[0];
-    final fontSize = double.tryParse(parts[1]);
+    final fontSize = int.tryParse(parts[0]);
+    final fontFamily = parts[1];
     if (fontSize == null) return null;
-    return TerminalTypography(fontFamily: fontFamily, fontSize: fontSize);
+    return TerminalTypography(fontSize: fontSize, fontFamily: fontFamily);
   }
+}
+
+/// Small data class representing a change in the store
+class StoreChange {
+  final String key;
+  final dynamic value;
+  final bool deleted;
+
+  StoreChange.changed(this.key, {required this.value}) : deleted = false;
+  StoreChange.deleted(this.key) : value = null, deleted = true;
 }
 
 /// A simple key-value store that uses SharedPreferences and FlutterSecureStorage to store data.
@@ -99,12 +109,16 @@ enum StoreKey<T> {
 /// in the UI layer.
 class KeyValueStore {
   static final KeyValueStore _instance = KeyValueStore._();
+
   static final Map<String, dynamic> _localCache = {};
 
   late final SharedPreferences _preferences;
   bool _initialized = false;
 
   factory KeyValueStore() => _instance;
+
+  final StreamController<StoreChange> _changesController = .broadcast();
+  Stream<StoreChange> get changes => _changesController.stream;
 
   KeyValueStore._();
 
@@ -121,6 +135,24 @@ class KeyValueStore {
       // initializes all default values for keys that do not exist &
       // populate local cache
       _localCache[key.key] = await key.readAsync();
+    }
+  }
+
+  /// A stream of all changes made to the store.
+  Stream<T?> streamForKey<T>(StoreKey<T> key) async* {
+    _checkInitialized();
+    // yield current cached value first
+    yield readSync<T>(key);
+
+    // yield updates
+    await for (final StoreChange change in changes) {
+      if (change.key == key.key) {
+        if (change.deleted) {
+          yield null;
+        } else {
+          yield change.value as T?;
+        }
+      }
     }
   }
 
@@ -176,6 +208,7 @@ class KeyValueStore {
         'Invalid value for key ${key.key}! Got: ${effectiveValue.runtimeType}, Expected either String, int, bool or double',
       ),
     };
+    _changesController.add(StoreChange.changed(key.key, value: value));
   }
 
   /// Deletes the key from the local cache and the storage.
@@ -183,6 +216,7 @@ class KeyValueStore {
     _checkInitialized();
     _localCache.remove(key.key);
     _preferences.remove(key.key);
+    _changesController.add(StoreChange.deleted(key.key));
   }
 
   FutureOr<T>? _readOrInitSharedPrefsKey<T>(StoreKey<T> key) {

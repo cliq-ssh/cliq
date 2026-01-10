@@ -14,7 +14,7 @@ class EscapeParser {
   static final Logger _log = Logger('EscapeParser');
 
   final TerminalController controller;
-  final TerminalColorTheme colors;
+  final TerminalTheme colors;
 
   late final CsiParser _csiParser = CsiParser();
 
@@ -391,7 +391,7 @@ class EscapeParser {
         27 => () => formatting.inverted = false,
         28 => () => formatting.concealed = false,
         >= 30 && <= 37 => () => formatting.fgColor = ansi16ToColor(
-          controller.colors,
+          controller.theme,
           code - 30,
         ),
         38 => () {
@@ -400,7 +400,7 @@ class EscapeParser {
             case 5:
               if (offset == codes.length) return;
               formatting.fgColor = xterm256ToColor(
-                controller.colors,
+                controller.theme,
                 codes[offset],
               );
               break;
@@ -419,7 +419,7 @@ class EscapeParser {
         },
         39 => () => formatting.fgColor = null,
         >= 40 && <= 47 => () => formatting.bgColor = ansi16ToColor(
-          controller.colors,
+          controller.theme,
           code - 40,
         ),
         48 => () {
@@ -428,7 +428,7 @@ class EscapeParser {
             case 5:
               if ((offset + 1) == codes.length) return;
               formatting.bgColor = xterm256ToColor(
-                controller.colors,
+                controller.theme,
                 codes[offset + 1],
               );
               break;
@@ -447,11 +447,11 @@ class EscapeParser {
         },
         49 => () => formatting.bgColor = null,
         >= 90 && <= 97 => () => formatting.fgColor = ansi16ToColor(
-          controller.colors,
+          controller.theme,
           (code - 90) + 8,
         ),
         >= 100 && <= 107 => () => formatting.bgColor = ansi16ToColor(
-          controller.colors,
+          controller.theme,
           (code - 100) + 8,
         ),
         _ => throw ArgumentError('Unhandled formatting code: $code'),

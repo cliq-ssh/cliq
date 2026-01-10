@@ -1,5 +1,5 @@
 import 'package:cliq/modules/settings/extension/custom_terminal_theme.extension.dart';
-import 'package:cliq/modules/settings/provider/terminal_colors.provider.dart';
+import 'package:cliq/modules/settings/ui/terminal_theme_card.dart';
 import 'package:cliq/modules/settings/view/abstract_settings_page.dart';
 import 'package:cliq/modules/settings/view/settings_page.dart';
 import 'package:cliq/shared/data/database.dart';
@@ -14,6 +14,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lucide_flutter/lucide_flutter.dart';
 
 import '../../../shared/model/page_path.model.dart';
+import '../provider/terminal_theme.provider.dart';
 
 class TerminalThemeSettingsPage extends AbstractSettingsPage {
   static const PagePathBuilder pagePath = PagePathBuilder.child(
@@ -22,7 +23,7 @@ class TerminalThemeSettingsPage extends AbstractSettingsPage {
   );
 
   static const List<String> fonts = ['JetBrainsMono', 'SourceCodePro'];
-  static const String sampleText =
+  static const String sampleInput =
       "\x1b[31mLorem\x1b[0m "
       "\x1b[32mipsum\x1b[0m "
       "\x1b[33mdolor\x1b[0m "
@@ -61,7 +62,7 @@ class TerminalThemeSettingsPage extends AbstractSettingsPage {
     final selectedFontFamily = useState<String>(
       StoreKey.terminalTypography.readSync()?.fontFamily ?? fonts.first,
     );
-    final selectedFontSize = useState<double>(
+    final selectedFontSize = useState<int>(
       StoreKey.terminalTypography.readSync()?.fontSize ?? 16,
     );
     final selectedColors = useState<CustomTerminalTheme>(
@@ -71,7 +72,7 @@ class TerminalThemeSettingsPage extends AbstractSettingsPage {
     // init controller
     useEffect(() {
       terminalController.value = TerminalController(
-        colors: selectedColors.value.toTerminalColorTheme(),
+        theme: selectedColors.value.toTerminalTheme(),
         typography: TerminalTypography(
           fontFamily: selectedFontFamily.value,
           fontSize: selectedFontSize.value,
@@ -96,71 +97,10 @@ class TerminalThemeSettingsPage extends AbstractSettingsPage {
     // update colors on theme change
     useEffect(() {
       if (terminalController.value == null) return null;
-      terminalController.value!.colors = selectedColors.value
-          .toTerminalColorTheme();
+      terminalController.value!.theme = selectedColors.value.toTerminalTheme();
       StoreKey.terminalThemeName.write(selectedColors.value.name);
       return null;
     }, [selectedColors.value]);
-
-    buildTerminalThemeCard(CustomTerminalTheme theme) {
-      buildColor(Color color) {
-        return Container(width: 8, height: 16, color: color);
-      }
-
-      return GestureDetector(
-        onTap: () => selectedColors.value = theme,
-        child: FCard(
-          title: Row(
-            spacing: 16,
-            mainAxisAlignment: .spaceBetween,
-            children: [
-              Column(
-                crossAxisAlignment: .start,
-                children: [
-                  Row(
-                    children: [
-                      theme.redColor,
-                      theme.greenColor,
-                      theme.yellowColor,
-                      theme.blueColor,
-                      theme.purpleColor,
-                      theme.cyanColor,
-                      theme.whiteColor,
-                    ].map(buildColor).toList(),
-                  ),
-                  Row(
-                    children: [
-                      theme.brightRedColor,
-                      theme.brightGreenColor,
-                      theme.brightYellowColor,
-                      theme.brightBlueColor,
-                      theme.brightPurpleColor,
-                      theme.brightCyanColor,
-                      theme.brightWhiteColor,
-                    ].map(buildColor).toList(),
-                  ),
-                ],
-              ),
-              Column(
-                crossAxisAlignment: .start,
-                children: [
-                  Text(theme.name),
-                  Text(
-                    'built-in',
-                    style: context.theme.typography.xs.copyWith(
-                      color: context.theme.colors.mutedForeground,
-                      fontWeight: .normal,
-                    ),
-                  ),
-                ],
-              ),
-              const Spacer(),
-              if (selectedColors.value == theme) Icon(LucideIcons.check),
-            ],
-          ),
-        ),
-      );
-    }
 
     return SingleChildScrollView(
       child: CliqGridContainer(
@@ -186,7 +126,7 @@ class TerminalThemeSettingsPage extends AbstractSettingsPage {
                                 constraints.biggest,
                               );
                               terminalController.value!.activeBuffer.clear();
-                              terminalController.value!.feed(sampleText);
+                              terminalController.value!.feed(sampleInput);
                             });
                             return TerminalView(
                               controller: terminalController.value!,
@@ -203,14 +143,10 @@ class TerminalThemeSettingsPage extends AbstractSettingsPage {
                         ),
                       ),
                       label: Text('Font Size'),
-                      tooltipBuilder: (_, value) {
-                        final fontSize = (value * 48).round() + 4;
-                        return Text('$fontSize');
-                      },
-                      onEnd: (value) {
-                        final fontSize = (value.max * 48).round() + 4;
-                        selectedFontSize.value = fontSize.toDouble();
-                      },
+                      tooltipBuilder: (_, value) =>
+                          Text('${(value * 48).round() + 4}'),
+                      onEnd: (value) =>
+                          selectedFontSize.value = (value.max * 48).round() + 4,
                       marks: [
                         for (var i = 0; i <= 12; i++)
                           FSliderMark(
@@ -263,9 +199,15 @@ class TerminalThemeSettingsPage extends AbstractSettingsPage {
                     Column(
                       spacing: 12,
                       children: [
-                        buildTerminalThemeCard(defaultTerminalColorTheme),
-                        for (final theme in terminalThemes.entities)
-                          buildTerminalThemeCard(theme),
+                        for (final theme in [
+                          defaultTerminalColorTheme,
+                          ...terminalThemes.entities,
+                        ])
+                          TerminalThemeCard(
+                            onTap: () => selectedColors.value = theme,
+                            isSelected: selectedColors.value.id == theme.id,
+                            theme: theme,
+                          ),
                       ],
                     ),
                   ],

@@ -3,6 +3,8 @@ import '../../credentials/data/credentials.drift';
 import '../../connections/model/connection_icon.dart';
 import '../../connections/model/connection_color.dart';
 import '../../settings/data/custom_terminal_themes.drift';
+import '../../../shared/data/converters/color_converter.dart';
+import '../../../shared/data/converters/terminal_typography_converter.dart';
 
 CREATE TABLE connections (
     id                              INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -13,11 +15,11 @@ CREATE TABLE connections (
     credential_id                   INTEGER REFERENCES credentials(id) ON DELETE CASCADE,
     label                           TEXT,
     icon                            ENUM(ConnectionIcon) NOT NULL DEFAULT 'unknown',
-    color                           TEXT,
+    icon_color                      INTEGER MAPPED BY `const ColorConverter()`,
+    icon_background_color           INTEGER MAPPED BY `const ColorConverter()`,
     group_name                      TEXT,
-    terminal_font_size_override     INTEGER,
-    terminal_font_family_override   TEXT,
-    terminal_theme_override_name    TEXT REFERENCES custom_terminal_themes(name) ON DELETE SET NULL
+    terminal_typography_override    TEXT MAPPED BY `const TerminalTypographyConverter()`,
+    terminal_theme_override_id      INTEGER REFERENCES custom_terminal_themes(id) ON DELETE SET NULL
 );
 
 findAllConnectionFull:
@@ -31,7 +33,7 @@ findAllConnectionFull:
   LEFT JOIN identities i ON c.identity_id = i.id
   LEFT JOIN credentials cc ON c.credential_id = cc.id
   LEFT JOIN credentials ci ON i.credential_id = ci.id
-  LEFT JOIN custom_terminal_themes t ON c.terminal_theme_override_name = t.name;
+  LEFT JOIN custom_terminal_themes t ON c.terminal_theme_override_id = t.id;
 
 findAllConnectionGroupNames:
     SELECT DISTINCT group_name
