@@ -1,5 +1,7 @@
-package app.cliq.backend.user
+package app.cliq.backend.user.service
 
+import app.cliq.backend.user.User
+import app.cliq.backend.user.UserRepository
 import app.cliq.backend.user.factory.UserFactory
 import org.springframework.security.oauth2.core.oidc.user.OidcUser
 import org.springframework.stereotype.Service

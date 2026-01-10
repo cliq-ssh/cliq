@@ -1,6 +1,7 @@
-package app.cliq.backend.shared
+package app.cliq.backend.unit.email
 
 import app.cliq.backend.config.EmailProperties
+import app.cliq.backend.shared.EmailService
 import io.pebbletemplates.pebble.PebbleEngine
 import jakarta.mail.internet.MimeMessage
 import org.junit.jupiter.api.BeforeEach
@@ -19,7 +20,7 @@ import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
 @ExtendWith(MockitoExtension::class)
-class EmailServiceUnitTests {
+class EmailServiceTests {
     @Mock
     private lateinit var emailProperties: EmailProperties
 

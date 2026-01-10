@@ -1,27 +1,27 @@
-package app.cliq.backend
+package app.cliq.backend.acceptance
 
-import app.cliq.backend.support.DatabaseCleanupService
+import app.cliq.backend.acceptance.email.EMAIL
+import app.cliq.backend.acceptance.email.EMAIL_PWD
+import app.cliq.backend.acceptance.email.SMTP_HOST
+import app.cliq.backend.acceptance.email.SMTP_PORT
 import com.icegreen.greenmail.configuration.GreenMailConfiguration
 import com.icegreen.greenmail.junit5.GreenMailExtension
 import com.icegreen.greenmail.util.ServerSetupTest
-import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.extension.RegisterExtension
-import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
-import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc
-import org.springframework.context.annotation.ComponentScan
-import org.springframework.test.context.ActiveProfiles
 
 const val EMAIL = "cliq@localhost"
 const val EMAIL_PWD = "cliq"
 const val SMTP_HOST = "127.0.0.1"
 const val SMTP_PORT = 3025
 
+@AcceptanceTest
 @SpringBootTest(
+    webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
     properties = [
         "spring.mail.host=${SMTP_HOST}",
         "spring.mail.port=${SMTP_PORT}",
-        "spring.mail.username=$EMAIL",
+        "spring.mail.username=${EMAIL}",
         "spring.mail.password=${EMAIL_PWD}",
         "spring.mail.protocol=smtp",
         "spring.mail.properties.mail.smtp.auth=true",
@@ -30,13 +30,10 @@ const val SMTP_PORT = 3025
         "app.email.from-address=$EMAIL",
     ],
 )
-@AutoConfigureMockMvc
-@ComponentScan(basePackages = ["app.cliq.backend.support"])
-@ActiveProfiles("test")
-annotation class AcceptanceTest
+annotation class EmailAcceptanceTest
 
-@AcceptanceTest
-abstract class AcceptanceTester {
+@EmailAcceptanceTest
+abstract class EmailAcceptanceTester: AcceptanceTester() {
     companion object {
         @JvmField
         @RegisterExtension
@@ -47,12 +44,5 @@ abstract class AcceptanceTester {
                         .aConfig()
                         .withUser(EMAIL, EMAIL_PWD),
                 )
-    }
-
-    @AfterEach
-    fun clearDatabase(
-        @Autowired cleaner: DatabaseCleanupService,
-    ) {
-        cleaner.truncate()
     }
 }

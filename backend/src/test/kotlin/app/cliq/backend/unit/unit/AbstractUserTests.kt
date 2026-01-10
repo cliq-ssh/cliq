@@ -1,8 +1,9 @@
-package app.cliq.backend.user
+package app.cliq.backend.unit.unit
 
+import app.cliq.backend.user.User
 import java.time.OffsetDateTime
 
-abstract class AbstractUserUnitTests {
+abstract class AbstractUserTests {
     protected fun createTestUser(
         emailVerificationToken: String? = null,
         emailVerificationSentAt: OffsetDateTime? = null,

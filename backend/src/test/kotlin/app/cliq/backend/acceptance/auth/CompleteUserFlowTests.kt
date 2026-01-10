@@ -19,7 +19,7 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 import tools.jackson.databind.ObjectMapper
 
 @AcceptanceTest
-class CompleteUserFlowTest(
+class CompleteUserFlowTests(
     @Autowired
     private val mockMvc: MockMvc,
     @Autowired
@@ -100,6 +100,6 @@ class CompleteUserFlowTest(
                     .header(HttpHeaders.AUTHORIZATION, "Bearer ${refreshResponse.accessToken}")
                     .contentType(MediaType.APPLICATION_JSON_VALUE)
                     .content(objectMapper.writeValueAsString(refreshParams)),
-            ).andExpect(status().isOk)
+            ).andExpect(status().isNoContent)
     }
 }

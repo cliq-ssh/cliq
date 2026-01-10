@@ -30,7 +30,7 @@ TODO:
     - Test unverified email login
  */
 @AcceptanceTest
-class LocalLoginTest(
+class LocalLoginTests(
     @Autowired
     private val mockMvc: MockMvc,
     @Autowired

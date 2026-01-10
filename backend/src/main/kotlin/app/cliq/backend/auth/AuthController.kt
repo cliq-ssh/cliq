@@ -23,7 +23,7 @@ class AuthController(
     @ApiResponses(
         value = [
             ApiResponse(
-                responseCode = "200",
+                responseCode = "204",
                 description = "User successfully logged out",
                 content = [Content()],
             ),

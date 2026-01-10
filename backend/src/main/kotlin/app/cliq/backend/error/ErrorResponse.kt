@@ -26,7 +26,7 @@ data class ErrorResponse(
         fun fromAuthenticationException(authException: AuthenticationException): ErrorResponse =
             ErrorResponse(
                 statusCode = HttpStatus.UNAUTHORIZED,
-                errorCode = ErrorCode.INVALID_AUTH_TOKEN,
+                errorCode = ErrorCode.INVALID_JWT_ACCESS_TOKEN,
                 details = authException.message,
             )
     }

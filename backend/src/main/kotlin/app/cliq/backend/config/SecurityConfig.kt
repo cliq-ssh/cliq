@@ -1,5 +1,6 @@
 package app.cliq.backend.config
 
+import app.cliq.backend.config.security.exception.handler.ApplicationAuthenticationEntryPoint
 import app.cliq.backend.config.security.jwt.JwtAuthenticationConfigurer
 import app.cliq.backend.config.security.oidc.OidcLoginSuccessHandler
 import app.cliq.backend.config.security.oidc.OidcLogoutHandler
@@ -19,10 +20,11 @@ const val PARALLELISM = 4
 const val MEMORY = 1 shl 14
 const val ITERATIONS = 3
 
-@EnableMethodSecurity
 @Configuration
+@EnableMethodSecurity
 class SecurityConfig(
     private val jwtAuthenticationConfigurer: JwtAuthenticationConfigurer,
+    private val applicationAuthenticationEntryPoint: ApplicationAuthenticationEntryPoint,
 ) {
     @Bean
     fun passwordEncoder(): PasswordEncoder =
@@ -56,6 +58,18 @@ class SecurityConfig(
             .formLogin { it.disable() }
             .httpBasic { it.disable() }
             .sessionManagement { it.sessionCreationPolicy(SessionCreationPolicy.STATELESS) }
+            .exceptionHandling { it.authenticationEntryPoint(applicationAuthenticationEntryPoint) }
+            .authorizeHttpRequests {
+                it
+                    // Actuator
+                    .requestMatchers("/actuator/**").permitAll()
+                    // Auth endpoints
+                    .requestMatchers("/api/auth/register", "/api/auth/register").permitAll()
+                    // User endpoints
+                    .requestMatchers("/api/user/password-reset/start", "/api/user/password-reset/reset").permitAll()
+                    .requestMatchers("/api/user/verification", "/api/user/verification/resend-email").permitAll()
+                    .anyRequest().authenticated()
+            }
             .with(jwtAuthenticationConfigurer)
 
         return http.build()

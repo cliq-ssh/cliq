@@ -143,6 +143,9 @@ dependencies {
     testImplementation("org.jetbrains.kotlin:kotlin-test-junit5")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 
+    // JPA/SQL
+    implementation("org.springframework.boot:spring-boot-starter-data-jpa-test")
+
     // Greenmail
     val greenmailVersion = "2.1.8"
     testImplementation("com.icegreen:greenmail-spring:$greenmailVersion")

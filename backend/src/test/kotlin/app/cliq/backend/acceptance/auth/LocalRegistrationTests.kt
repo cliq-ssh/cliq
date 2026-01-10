@@ -4,7 +4,7 @@ import app.cliq.backend.acceptance.AcceptanceTest
 import app.cliq.backend.acceptance.AcceptanceTester
 import app.cliq.backend.auth.params.LoginParams
 import app.cliq.backend.auth.params.RegistrationParams
-import app.cliq.backend.auth.view.UserResponse
+import app.cliq.backend.user.view.UserResponse
 import app.cliq.backend.docs.EXAMPLE_EMAIL
 import app.cliq.backend.docs.EXAMPLE_PASSWORD
 import app.cliq.backend.docs.EXAMPLE_USERNAME
@@ -22,7 +22,7 @@ import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
 @AcceptanceTest
-class LocalRegistrationTest(
+class LocalRegistrationTests(
     @Autowired
     private val mockMvc: MockMvc,
     @Autowired

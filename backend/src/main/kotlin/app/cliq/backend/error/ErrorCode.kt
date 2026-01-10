@@ -32,8 +32,7 @@ data class ErrorCode private constructor(
 
         // ### Authentication errors ###
         val AUTHENTICATION_MISSING = of(2100U, "Any kind of authentication is missing")
-        val INVALID_JWT_ACCESS_TOKEN = of(2100U, "Invalid JWT access token")
-        val INVALID_AUTH_TOKEN = of(2101U, "Invalid authentication token")
+        val INVALID_JWT_ACCESS_TOKEN = of(2101U, "Invalid authentication token")
         val INVALID_REFRESH_TOKEN = of(2102U, "Invalid refresh token")
         val REFRESH_TOKEN_EXPIRED = of(2103U, "Refresh token is expired")
 

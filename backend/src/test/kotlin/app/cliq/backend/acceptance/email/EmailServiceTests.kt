@@ -1,7 +1,8 @@
-package app.cliq.backend.shared
+package app.cliq.backend.acceptance.email
 
-import app.cliq.backend.AcceptanceTest
-import app.cliq.backend.AcceptanceTester
+import app.cliq.backend.acceptance.EmailAcceptanceTest
+import app.cliq.backend.acceptance.EmailAcceptanceTester
+import app.cliq.backend.shared.EmailService
 import jakarta.mail.internet.MimeMessage
 import org.apache.commons.mail2.jakarta.util.MimeMessageParser
 import org.junit.jupiter.api.Assertions
@@ -10,11 +11,18 @@ import org.springframework.beans.factory.annotation.Autowired
 import java.util.Locale
 import kotlin.test.assertTrue
 
-@AcceptanceTest
-class EmailServiceAcceptanceTests(
+
+const val EMAIL = "cliq@localhost"
+const val EMAIL_PWD = "cliq"
+const val SMTP_HOST = "127.0.0.1"
+const val SMTP_PORT = 3025
+
+
+@EmailAcceptanceTest
+class EmailServiceTests(
     @Autowired
     private val emailService: EmailService,
-) : AcceptanceTester() {
+) : EmailAcceptanceTester() {
     @Test
     fun `isEnabled should return true`() {
         assertTrue(emailService.isEnabled())

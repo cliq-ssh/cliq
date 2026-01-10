@@ -1,7 +1,9 @@
-package app.cliq.backend.user
+package app.cliq.backend.acceptance.user
 
-import app.cliq.backend.AcceptanceTest
-import app.cliq.backend.AcceptanceTester
+import app.cliq.backend.acceptance.EmailAcceptanceTest
+import app.cliq.backend.acceptance.EmailAcceptanceTester
+import app.cliq.backend.user.UNVERIFIED_USER_INTERVAL_MINUTES
+import app.cliq.backend.user.UserRepository
 import org.apache.commons.mail2.jakarta.util.MimeMessageParser
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertNotNull
@@ -9,17 +11,17 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.MediaType
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders
-import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
+import org.springframework.test.web.servlet.result.MockMvcResultMatchers
 import tools.jackson.databind.ObjectMapper
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
-@AcceptanceTest
-class UserVerificationAcceptanceTests(
+@EmailAcceptanceTest
+class UserVerificationTests(
     @Autowired private val mockMvc: MockMvc,
     @Autowired private val objectMapper: ObjectMapper,
     @Autowired private val userRepository: UserRepository,
-) : AcceptanceTester() {
+) : EmailAcceptanceTester() {
     @Test
     fun `cannot verify with an invalid token`() {
         val email = "test@example.lan"
@@ -36,12 +38,12 @@ class UserVerificationAcceptanceTests(
                     .post("/api/user/register")
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(objectMapper.writeValueAsString(userDetails)),
-            ).andExpect(status().isCreated)
+            ).andExpect(MockMvcResultMatchers.status().isCreated)
 
         mockMvc
             .perform(
                 MockMvcRequestBuilders.get("/api/user/verification/{token}", "invalid-token"),
-            ).andExpect(status().isNotFound)
+            ).andExpect(MockMvcResultMatchers.status().isNotFound)
 
         assertTrue(greenMail.waitForIncomingEmail(10_000, 1))
 
@@ -67,7 +69,7 @@ class UserVerificationAcceptanceTests(
                     .post("/api/user/register")
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(objectMapper.writeValueAsString(userDetails)),
-            ).andExpect(status().isCreated)
+            ).andExpect(MockMvcResultMatchers.status().isCreated)
 
         assertTrue(greenMail.waitForIncomingEmail(1))
 
@@ -86,7 +88,7 @@ class UserVerificationAcceptanceTests(
                     .post("/api/user/verification")
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(objectMapper.writeValueAsString(verifyContent)),
-            ).andExpect(status().isOk)
+            ).andExpect(MockMvcResultMatchers.status().isOk)
 
         mockMvc
             .perform(
@@ -94,7 +96,7 @@ class UserVerificationAcceptanceTests(
                     .post("/api/user/verification")
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(objectMapper.writeValueAsString(verifyContent)),
-            ).andExpect(status().isBadRequest)
+            ).andExpect(MockMvcResultMatchers.status().isBadRequest)
 
         user = userRepository.findByEmail(email)
         assertTrue(user != null)
@@ -123,7 +125,7 @@ class UserVerificationAcceptanceTests(
                     .post("/api/user/register")
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(objectMapper.writeValueAsString(userDetails)),
-            ).andExpect(status().isCreated)
+            ).andExpect(MockMvcResultMatchers.status().isCreated)
 
         assertTrue(greenMail.waitForIncomingEmail(1))
         val user = userRepository.findByEmail(email)
@@ -146,7 +148,7 @@ class UserVerificationAcceptanceTests(
                     .post("/api/user/verification")
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(objectMapper.writeValueAsString(verifyContent)),
-            ).andExpect(status().isForbidden)
+            ).andExpect(MockMvcResultMatchers.status().isForbidden)
     }
 
     @Test
@@ -167,7 +169,7 @@ class UserVerificationAcceptanceTests(
                     .post("/api/user/register")
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(objectMapper.writeValueAsString(userDetails)),
-            ).andExpect(status().isCreated)
+            ).andExpect(MockMvcResultMatchers.status().isCreated)
 
         assertTrue(greenMail.waitForIncomingEmail(1))
 
@@ -178,7 +180,7 @@ class UserVerificationAcceptanceTests(
                     .post("/api/user/verification/resend-email")
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(objectMapper.writeValueAsString(mapOf("email" to email))),
-            ).andExpect(status().isNoContent)
+            ).andExpect(MockMvcResultMatchers.status().isNoContent)
         assertTrue(greenMail.waitForIncomingEmail(1))
 
         val emailMessages = greenMail.receivedMessages[1]

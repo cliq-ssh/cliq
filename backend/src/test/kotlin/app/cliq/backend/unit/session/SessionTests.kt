@@ -9,7 +9,7 @@ import org.mockito.Mockito.mock
 import java.time.OffsetDateTime
 import java.time.ZoneOffset
 
-class SessionTest {
+class SessionTests {
 
     private val user: User = mock(User::class.java)
 

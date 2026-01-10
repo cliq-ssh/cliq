@@ -18,7 +18,7 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 import tools.jackson.databind.ObjectMapper
 
 @AcceptanceTest
-class TokenTest(
+class TokenTests(
     @Autowired
     private val mockMvc: MockMvc,
     @Autowired
@@ -54,7 +54,7 @@ class TokenTest(
 
         // Can log in with the new access token
         mockMvc.perform(
-            MockMvcRequestBuilders.get("/api/auth/me")
+            MockMvcRequestBuilders.get("/api/user/me")
                 .header(HttpHeaders.AUTHORIZATION, "Bearer ${response.accessToken}")
         ).andExpect(status().isOk)
     }

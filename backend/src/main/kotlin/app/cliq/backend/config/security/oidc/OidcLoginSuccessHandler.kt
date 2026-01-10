@@ -4,7 +4,7 @@ import app.cliq.backend.session.Session
 import app.cliq.backend.session.SessionFactory
 import app.cliq.backend.session.SessionRepository
 import app.cliq.backend.user.User
-import app.cliq.backend.user.UserOidcService
+import app.cliq.backend.user.service.UserOidcService
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
 import org.springframework.security.core.Authentication

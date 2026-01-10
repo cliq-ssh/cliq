@@ -5,11 +5,11 @@ import app.cliq.backend.auth.params.LoginParams
 import app.cliq.backend.auth.params.RegistrationParams
 import app.cliq.backend.auth.service.JwtService
 import app.cliq.backend.auth.view.TokenResponse
-import app.cliq.backend.auth.view.UserResponse
 import app.cliq.backend.exception.EmailNotVerifiedException
 import app.cliq.backend.exception.InvalidEmailOrPasswordException
 import app.cliq.backend.user.UserRepository
 import app.cliq.backend.user.factory.UserFactory
+import app.cliq.backend.user.view.UserResponse
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.media.Content
 import io.swagger.v3.oas.annotations.media.Schema
@@ -54,7 +54,7 @@ class LocalAuthController(
 //            ApiResponse(responseCode = "403", description = "Registration has been disabled"),
         ],
     )
-    private fun register(
+    fun register(
         @Valid @RequestBody registrationParams: RegistrationParams,
     ): ResponseEntity<UserResponse> {
         val user = userFactory.createFromRegistrationParams(registrationParams)

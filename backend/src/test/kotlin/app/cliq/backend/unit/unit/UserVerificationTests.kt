@@ -1,10 +1,11 @@
-package app.cliq.backend.user
+package app.cliq.backend.unit.unit
 
+import app.cliq.backend.user.UNVERIFIED_USER_INTERVAL_MINUTES
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import java.time.OffsetDateTime
 
-class UserVerificationUnitTests : AbstractUserUnitTests() {
+class UserVerificationTests : AbstractUserTests() {
     @Test
     fun `isEmailVerificationTokenValid should return true when token is not null and not expired`() {
         // Given

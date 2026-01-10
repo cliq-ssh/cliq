@@ -8,14 +8,14 @@ import io.swagger.v3.oas.models.info.Info
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 
-const val API_TOKEN_SECURITY_SCHEME_NAME = "API Token"
+const val JWT_SECURITY_SCHEME_NAME = "JWT"
 const val OIDC_SECURITY_SCHEME_NAME = "oidc"
 
 @Configuration
 @SecurityScheme(
-    name = API_TOKEN_SECURITY_SCHEME_NAME,
+    name = JWT_SECURITY_SCHEME_NAME,
     type = SecuritySchemeType.HTTP,
-    bearerFormat = "API Key",
+    bearerFormat = "JWT",
     scheme = "Bearer",
 )
 class OpenApiConfig(

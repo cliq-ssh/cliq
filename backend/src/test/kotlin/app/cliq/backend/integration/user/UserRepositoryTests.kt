@@ -1,20 +1,20 @@
-package app.cliq.backend.user
+package app.cliq.backend.integration.user
 
+import app.cliq.backend.integration.IntegrationTest
+import app.cliq.backend.user.User
+import app.cliq.backend.user.UserRepository
 import jakarta.persistence.EntityManager
-import org.assertj.core.api.Assertions.assertThat
+import org.assertj.core.api.Assertions
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.test.context.SpringBootTest
-import org.springframework.test.context.ActiveProfiles
 import org.springframework.transaction.annotation.Transactional
 import java.time.OffsetDateTime
 import java.util.Locale
 
-@SpringBootTest
+@IntegrationTest
 @Transactional
-@ActiveProfiles("test")
-class UserRepositoryIntegrationTests(
+class UserRepositoryTests(
     @Autowired
     private val entityManager: EntityManager,
     @Autowired
@@ -23,7 +23,7 @@ class UserRepositoryIntegrationTests(
     @BeforeEach
     fun setUp() {
         userRepository.deleteAll()
-        entityManager.flush()
+        userRepository.flush()
         entityManager.clear()
     }
 
@@ -83,9 +83,9 @@ class UserRepositoryIntegrationTests(
         val deletedCount = userRepository.deleteUnverifiedUsersOlderThan(cutoffTime)
 
         // Then
-        assertThat(deletedCount).isEqualTo(1)
-        assertThat(userRepository.findAll()).hasSize(1)
-        assertThat(userRepository.findAll().first().email).isEqualTo("recent@example.com")
+        Assertions.assertThat(deletedCount).isEqualTo(1)
+        Assertions.assertThat(userRepository.findAll()).hasSize(1)
+        Assertions.assertThat(userRepository.findAll().first().email).isEqualTo("recent@example.com")
     }
 
     @Test
@@ -108,8 +108,8 @@ class UserRepositoryIntegrationTests(
         val deletedCount = userRepository.deleteUnverifiedUsersOlderThan(cutoffTime)
 
         // Then
-        assertThat(deletedCount).isEqualTo(0)
-        assertThat(userRepository.findAll()).hasSize(1)
+        Assertions.assertThat(deletedCount).isEqualTo(0)
+        Assertions.assertThat(userRepository.findAll()).hasSize(1)
     }
 
     @Test
@@ -121,7 +121,7 @@ class UserRepositoryIntegrationTests(
         val deletedCount = userRepository.deleteUnverifiedUsersOlderThan(cutoffTime)
 
         // Then
-        assertThat(deletedCount).isEqualTo(0)
+        Assertions.assertThat(deletedCount).isEqualTo(0)
     }
 
     @Test
@@ -159,7 +159,7 @@ class UserRepositoryIntegrationTests(
         val deletedCount = userRepository.deleteUnverifiedUsersOlderThan(cutoffTime)
 
         // Then
-        assertThat(deletedCount).isEqualTo(2)
-        assertThat(userRepository.findAll()).hasSize(1)
+        Assertions.assertThat(deletedCount).isEqualTo(2)
+        Assertions.assertThat(userRepository.findAll()).hasSize(1)
     }
 }

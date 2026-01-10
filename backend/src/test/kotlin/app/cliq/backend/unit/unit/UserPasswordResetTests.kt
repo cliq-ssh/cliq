@@ -1,10 +1,11 @@
-package app.cliq.backend.user
+package app.cliq.backend.unit.unit
 
+import app.cliq.backend.user.PASSWORD_RESET_TOKEN_INTERVAL_MINUTES
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import java.time.OffsetDateTime
 
-class UserPasswordResetUnitTests : AbstractUserUnitTests() {
+class UserPasswordResetTests : AbstractUserTests() {
     @Test
     fun `isPasswordResetTokenExpired should return false when both token and sent date are null`() {
         // Given

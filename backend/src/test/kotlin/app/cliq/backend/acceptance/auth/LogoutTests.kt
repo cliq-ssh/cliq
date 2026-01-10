@@ -16,7 +16,7 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 import tools.jackson.databind.ObjectMapper
 
 @AcceptanceTest
-class LogoutTest(
+class LogoutTests(
     @Autowired
     private val mockMvc: MockMvc,
     @Autowired
@@ -36,7 +36,7 @@ class LogoutTest(
             .perform(
                 MockMvcRequestBuilders.post("/api/auth/logout")
                     .header(HttpHeaders.AUTHORIZATION, "Bearer ${tokenPair.jwt.tokenValue}")
-            ).andExpect(status().isOk)
+            ).andExpect(status().isNoContent)
 
         // test access token is invalid by trying to get the current user information
         mockMvc.perform(
