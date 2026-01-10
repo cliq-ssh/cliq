@@ -445,7 +445,7 @@ class CreateOrEditConnectionView extends HookConsumerWidget {
 
             SizedBox(
               width: double.infinity,
-              child: FButton(onPress: onSave, child: const Text('Save Host')),
+              child: FButton(onPress: onSave, child: Text(isUpdate ? 'Update' : 'Save')),
             ),
           ],
         ),
