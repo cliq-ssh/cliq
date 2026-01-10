@@ -1,7 +1,8 @@
 import 'package:cliq/modules/settings/view/abstract_settings_page.dart';
 import 'package:cliq/modules/settings/view/settings_page.dart';
 import 'package:cliq/shared/data/store.dart';
-import 'package:cliq_ui/cliq_ui.dart' show CliqGridColumn, CliqGridRow, CliqGridContainer;
+import 'package:cliq_ui/cliq_ui.dart'
+    show CliqGridColumn, CliqGridRow, CliqGridContainer;
 import 'package:flutter/cupertino.dart';
 import 'package:forui/forui.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -41,19 +42,29 @@ class DebugSettingsPage extends AbstractSettingsPage {
                               for (final key in StoreKey.values)
                                 Row(
                                   children: [
-                                    Text(key.name, style: context.theme.typography.sm),
+                                    Text(
+                                      key.name,
+                                      style: context.theme.typography.sm,
+                                    ),
                                     const Spacer(),
                                     Padding(
                                       padding: const .only(right: 8.0),
-                                      child: Text(key.readAsStringSync() ?? 'null',
-                                        style: context.theme.typography.sm.copyWith(
-                                            color: context.theme.colors.mutedForeground
-                                        ),
+                                      child: Text(
+                                        key.readAsStringSync() ?? 'null',
+                                        style: context.theme.typography.sm
+                                            .copyWith(
+                                              color: context
+                                                  .theme
+                                                  .colors
+                                                  .mutedForeground,
+                                            ),
                                       ),
                                     ),
                                     FButton.icon(
-                                        style: FButtonStyle.destructive(),
-                                        onPress: () => key.delete(), child: Icon(LucideIcons.trash))
+                                      style: FButtonStyle.destructive(),
+                                      onPress: () => key.delete(),
+                                      child: Icon(LucideIcons.trash),
+                                    ),
                                   ],
                                 ),
                             ],
@@ -66,7 +77,7 @@ class DebugSettingsPage extends AbstractSettingsPage {
                                 await key.delete();
                               }
                             },
-                          )
+                          ),
                         ],
                       ),
                     ),

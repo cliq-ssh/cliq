@@ -38,7 +38,11 @@ enum StoreKey<T> {
     fromValue: _typographyFromValue,
     toValue: _typographyToValue,
   ),
-  defaultTerminalThemeId<int>('default_terminal_theme', type: int, defaultValue: -1);
+  defaultTerminalThemeId<int>(
+    'default_terminal_theme',
+    type: int,
+    defaultValue: -1,
+  );
 
   final String key;
   final Type type;

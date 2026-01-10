@@ -1,29 +1,32 @@
+import 'package:cliq/shared/data/store.dart';
+
 import '../../../shared/data/database.dart';
 import '../../../shared/provider/abstract_entity.state.dart';
 import '../provider/terminal_theme.provider.dart';
 
 class CustomTerminalThemeState
     extends AbstractEntityState<CustomTerminalTheme, CustomTerminalThemeState> {
-  final CustomTerminalTheme? activeDefaultTheme;
+  final int activeDefaultThemeId;
 
   const CustomTerminalThemeState({
-    required this.activeDefaultTheme,
+    required this.activeDefaultThemeId,
     super.entities = const [],
   });
 
   CustomTerminalThemeState.initial()
-    : activeDefaultTheme = null,
+    : activeDefaultThemeId = StoreKey.defaultTerminalThemeId.readSync()!,
       super.initial();
 
   CustomTerminalTheme get effectiveActiveDefaultTheme =>
-      activeDefaultTheme ?? defaultTerminalColorTheme;
+      entities.where((t) => t.id == activeDefaultThemeId).firstOrNull ??
+      defaultTerminalColorTheme;
 
   CustomTerminalThemeState copyWith({
-    CustomTerminalTheme? activeDefaultTheme,
+    int? activeDefaultThemeId,
     List<CustomTerminalTheme>? entities,
   }) {
     return CustomTerminalThemeState(
-      activeDefaultTheme: activeDefaultTheme ?? this.activeDefaultTheme,
+      activeDefaultThemeId: activeDefaultThemeId ?? this.activeDefaultThemeId,
       entities: entities ?? this.entities,
     );
   }
