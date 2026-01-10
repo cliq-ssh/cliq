@@ -32,18 +32,13 @@ enum StoreKey<T> {
   ),
 
   terminalTypography<TerminalTypography>(
-    'terminal_typography',
+    'default_terminal_typography',
     type: TerminalTypography,
     defaultValue: TerminalTypography(fontFamily: 'SourceCodePro', fontSize: 16),
     fromValue: _typographyFromValue,
     toValue: _typographyToValue,
   ),
-  terminalTheme<TerminalColorThemes>(
-    'terminal_theme',
-    type: TerminalColorTheme,
-    fromValue: _terminalColorThemesFromValue,
-    toValue: _enumToValue,
-  );
+  terminalThemeName<String>('default_terminal_theme', type: String);
 
   final String key;
   final Type type;
@@ -81,8 +76,6 @@ enum StoreKey<T> {
       _enumFromValue(value, CliqTheme.values);
   static ThemeMode? _themeModeFromValue(String? value) =>
       _enumFromValue(value, ThemeMode.values);
-  static TerminalColorThemes? _terminalColorThemesFromValue(String? value) =>
-      _enumFromValue(value, TerminalColorThemes.values);
 
   static String? _typographyToValue(TerminalTypography? value) {
     if (value == null) return null;

@@ -12,7 +12,7 @@ class TerminalColorTheme {
   final Color green;
   final Color yellow;
   final Color blue;
-  final Color magenta;
+  final Color purple;
   final Color cyan;
   final Color white;
   final Color brightBlack;
@@ -20,7 +20,7 @@ class TerminalColorTheme {
   final Color brightGreen;
   final Color brightYellow;
   final Color brightBlue;
-  final Color brightMagenta;
+  final Color brightPurple;
   final Color brightCyan;
   final Color brightWhite;
 
@@ -34,7 +34,7 @@ class TerminalColorTheme {
     required this.green,
     required this.yellow,
     required this.blue,
-    required this.magenta,
+    required this.purple,
     required this.cyan,
     required this.white,
     required this.brightBlack,
@@ -42,7 +42,7 @@ class TerminalColorTheme {
     required this.brightGreen,
     required this.brightYellow,
     required this.brightBlue,
-    required this.brightMagenta,
+    required this.brightPurple,
     required this.brightCyan,
     required this.brightWhite,
   });

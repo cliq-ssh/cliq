@@ -99,8 +99,9 @@ class ConnectionCard extends HookConsumerWidget {
                             style: FButtonStyle.destructive(),
                             child: const Text('Delete'),
                             onPress: () {
-                              CliqDatabase.connectionService
-                                  .deleteConnectionById(connection.id);
+                              CliqDatabase.connectionService.deleteById(
+                                connection.id,
+                              );
                               Navigator.of(context).pop();
                             },
                           ),

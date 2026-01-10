@@ -1,7 +1,6 @@
-import 'package:cliq/modules/connections/model/connection_full.model.dart';
-
 import '../../credentials/data/credential_service.dart';
 import '../../identities/data/identity_service.dart';
+import '../model/connection_full.model.dart';
 import 'connections_repository.dart';
 
 final class ConnectionService {
@@ -29,6 +28,5 @@ final class ConnectionService {
     );
   }
 
-  Future<void> deleteConnectionById(int id) =>
-      connectionRepository.deleteById(id);
+  Future<void> deleteById(int id) => connectionRepository.deleteById(id);
 }

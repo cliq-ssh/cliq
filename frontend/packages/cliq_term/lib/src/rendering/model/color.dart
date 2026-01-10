@@ -11,7 +11,7 @@ Color ansi8ToColor(TerminalColorTheme colors, int code) {
     colors.green,
     colors.yellow,
     colors.blue,
-    colors.magenta,
+    colors.purple,
     colors.cyan,
     colors.white,
   ];
@@ -25,7 +25,7 @@ Color ansi16ToColor(TerminalColorTheme colors, int index) {
     colors.green,
     colors.yellow,
     colors.blue,
-    colors.magenta,
+    colors.purple,
     colors.cyan,
     colors.white,
     colors.brightBlack,
@@ -33,7 +33,7 @@ Color ansi16ToColor(TerminalColorTheme colors, int index) {
     colors.brightGreen,
     colors.brightYellow,
     colors.brightBlue,
-    colors.brightMagenta,
+    colors.brightPurple,
     colors.brightCyan,
     colors.brightWhite,
   ];

@@ -1,7 +1,6 @@
 import 'package:cliq/modules/connections/model/connection_full.model.dart';
 import 'package:cliq/modules/connections/provider/connection.provider.dart';
 import 'package:cliq/modules/session/model/session.model.dart';
-import 'package:cliq/shared/data/store.dart';
 import 'package:cliq_ui/cliq_ui.dart'
     show CliqGridColumn, CliqGridContainer, CliqGridRow;
 import 'package:dartssh2/dartssh2.dart';
@@ -40,32 +39,6 @@ class _ShellSessionPageState extends ConsumerState<ShellSessionPage>
   bool get wantKeepAlive => true;
 
   @override
-  void initState() {
-    super.initState();
-    // TODO: move to provider based pattern
-    terminalTypography = StoreKey.terminalTypography.readSync()!;
-    terminalColors =
-        (StoreKey.terminalTheme.readSync() ?? TerminalColorThemes.darcula)
-            .colors;
-
-    // TODO: listen for onTitleChange and update tab title
-    _terminalController = TerminalController(
-      colors: terminalColors,
-      typography: TerminalTypography(fontFamily: 'SourceCodePro', fontSize: 16),
-      debugLogging: kDebugMode,
-      onResize: (rows, cols) {
-        sshSession?.resizeTerminal(cols, rows);
-        //        showFToast(
-        //          context: context,
-        //          alignment: FToastAlignment.topCenter,
-        //          title: Text('$cols x $rows'),
-        //          duration: Duration(milliseconds: 500),
-        //        );
-      },
-    );
-  }
-
-  @override
   void dispose() {
     _terminalController.dispose();
     super.dispose();
@@ -77,6 +50,28 @@ class _ShellSessionPageState extends ConsumerState<ShellSessionPage>
 
     final typography = context.theme.typography;
     final size = MediaQuery.of(context).size;
+
+    useEffect(() {
+      // TODO: listen for onTitleChange and update tab title
+      _terminalController = TerminalController(
+        colors: terminalColors,
+        typography: TerminalTypography(
+          fontFamily: 'SourceCodePro',
+          fontSize: 16,
+        ),
+        debugLogging: kDebugMode,
+        onResize: (rows, cols) {
+          sshSession?.resizeTerminal(cols, rows);
+          //        showFToast(
+          //          context: context,
+          //          alignment: FToastAlignment.topCenter,
+          //          title: Text('$cols x $rows'),
+          //          duration: Duration(milliseconds: 500),
+          //        );
+        },
+      );
+      return null;
+    }, []);
 
     buildConnecting() {
       return [

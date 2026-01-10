@@ -9,16 +9,6 @@ class CustomTerminalThemes extends Table
   final GeneratedDatabase attachedDatabase;
   final String? _alias;
   CustomTerminalThemes(this.attachedDatabase, [this._alias]);
-  static const VerificationMeta _idMeta = const VerificationMeta('id');
-  late final GeneratedColumn<int> id = GeneratedColumn<int>(
-    'id',
-    aliasedName,
-    false,
-    hasAutoIncrement: true,
-    type: DriftSqlType.int,
-    requiredDuringInsert: false,
-    $customConstraints: 'PRIMARY KEY AUTOINCREMENT',
-  );
   static const VerificationMeta _nameMeta = const VerificationMeta('name');
   late final GeneratedColumn<String> name = GeneratedColumn<String>(
     'name',
@@ -26,7 +16,7 @@ class CustomTerminalThemes extends Table
     false,
     type: DriftSqlType.string,
     requiredDuringInsert: true,
-    $customConstraints: 'NOT NULL',
+    $customConstraints: 'PRIMARY KEY NOT NULL',
   );
   static const VerificationMeta _authorMeta = const VerificationMeta('author');
   late final GeneratedColumn<String> author = GeneratedColumn<String>(
@@ -37,218 +27,179 @@ class CustomTerminalThemes extends Table
     requiredDuringInsert: false,
     $customConstraints: '',
   );
-  static const VerificationMeta _blackColorMeta = const VerificationMeta(
-    'blackColor',
-  );
-  late final GeneratedColumn<int> blackColor = GeneratedColumn<int>(
-    'black_color',
-    aliasedName,
-    false,
-    type: DriftSqlType.int,
-    requiredDuringInsert: true,
-    $customConstraints: 'NOT NULL',
-  );
-  static const VerificationMeta _redColorMeta = const VerificationMeta(
-    'redColor',
-  );
-  late final GeneratedColumn<int> redColor = GeneratedColumn<int>(
-    'red_color',
-    aliasedName,
-    false,
-    type: DriftSqlType.int,
-    requiredDuringInsert: true,
-    $customConstraints: 'NOT NULL',
-  );
-  static const VerificationMeta _greenColorMeta = const VerificationMeta(
-    'greenColor',
-  );
-  late final GeneratedColumn<int> greenColor = GeneratedColumn<int>(
-    'green_color',
-    aliasedName,
-    false,
-    type: DriftSqlType.int,
-    requiredDuringInsert: true,
-    $customConstraints: 'NOT NULL',
-  );
-  static const VerificationMeta _yellowColorMeta = const VerificationMeta(
-    'yellowColor',
-  );
-  late final GeneratedColumn<int> yellowColor = GeneratedColumn<int>(
-    'yellow_color',
-    aliasedName,
-    false,
-    type: DriftSqlType.int,
-    requiredDuringInsert: true,
-    $customConstraints: 'NOT NULL',
-  );
-  static const VerificationMeta _blueColorMeta = const VerificationMeta(
-    'blueColor',
-  );
-  late final GeneratedColumn<int> blueColor = GeneratedColumn<int>(
-    'blue_color',
-    aliasedName,
-    false,
-    type: DriftSqlType.int,
-    requiredDuringInsert: true,
-    $customConstraints: 'NOT NULL',
-  );
-  static const VerificationMeta _purpleColorMeta = const VerificationMeta(
-    'purpleColor',
-  );
-  late final GeneratedColumn<int> purpleColor = GeneratedColumn<int>(
-    'purple_color',
-    aliasedName,
-    false,
-    type: DriftSqlType.int,
-    requiredDuringInsert: true,
-    $customConstraints: 'NOT NULL',
-  );
-  static const VerificationMeta _cyanColorMeta = const VerificationMeta(
-    'cyanColor',
-  );
-  late final GeneratedColumn<int> cyanColor = GeneratedColumn<int>(
-    'cyan_color',
-    aliasedName,
-    false,
-    type: DriftSqlType.int,
-    requiredDuringInsert: true,
-    $customConstraints: 'NOT NULL',
-  );
-  static const VerificationMeta _whiteColorMeta = const VerificationMeta(
-    'whiteColor',
-  );
-  late final GeneratedColumn<int> whiteColor = GeneratedColumn<int>(
-    'white_color',
-    aliasedName,
-    false,
-    type: DriftSqlType.int,
-    requiredDuringInsert: true,
-    $customConstraints: 'NOT NULL',
-  );
-  static const VerificationMeta _brightBlackColorMeta = const VerificationMeta(
-    'brightBlackColor',
-  );
-  late final GeneratedColumn<int> brightBlackColor = GeneratedColumn<int>(
-    'bright_black_color',
-    aliasedName,
-    false,
-    type: DriftSqlType.int,
-    requiredDuringInsert: true,
-    $customConstraints: 'NOT NULL',
-  );
-  static const VerificationMeta _brightRedColorMeta = const VerificationMeta(
-    'brightRedColor',
-  );
-  late final GeneratedColumn<int> brightRedColor = GeneratedColumn<int>(
-    'bright_red_color',
-    aliasedName,
-    false,
-    type: DriftSqlType.int,
-    requiredDuringInsert: true,
-    $customConstraints: 'NOT NULL',
-  );
-  static const VerificationMeta _brightGreenColorMeta = const VerificationMeta(
-    'brightGreenColor',
-  );
-  late final GeneratedColumn<int> brightGreenColor = GeneratedColumn<int>(
-    'bright_green_color',
-    aliasedName,
-    false,
-    type: DriftSqlType.int,
-    requiredDuringInsert: true,
-    $customConstraints: 'NOT NULL',
-  );
-  static const VerificationMeta _brightYellowColorMeta = const VerificationMeta(
-    'brightYellowColor',
-  );
-  late final GeneratedColumn<int> brightYellowColor = GeneratedColumn<int>(
-    'bright_yellow_color',
-    aliasedName,
-    false,
-    type: DriftSqlType.int,
-    requiredDuringInsert: true,
-    $customConstraints: 'NOT NULL',
-  );
-  static const VerificationMeta _brightBlueColorMeta = const VerificationMeta(
-    'brightBlueColor',
-  );
-  late final GeneratedColumn<int> brightBlueColor = GeneratedColumn<int>(
-    'bright_blue_color',
-    aliasedName,
-    false,
-    type: DriftSqlType.int,
-    requiredDuringInsert: true,
-    $customConstraints: 'NOT NULL',
-  );
-  static const VerificationMeta _brightPurpleColorMeta = const VerificationMeta(
-    'brightPurpleColor',
-  );
-  late final GeneratedColumn<int> brightPurpleColor = GeneratedColumn<int>(
-    'bright_purple_color',
-    aliasedName,
-    false,
-    type: DriftSqlType.int,
-    requiredDuringInsert: true,
-    $customConstraints: 'NOT NULL',
-  );
-  static const VerificationMeta _brightCyanColorMeta = const VerificationMeta(
-    'brightCyanColor',
-  );
-  late final GeneratedColumn<int> brightCyanColor = GeneratedColumn<int>(
-    'bright_cyan_color',
-    aliasedName,
-    false,
-    type: DriftSqlType.int,
-    requiredDuringInsert: true,
-    $customConstraints: 'NOT NULL',
-  );
-  static const VerificationMeta _brightWhiteColorMeta = const VerificationMeta(
-    'brightWhiteColor',
-  );
-  late final GeneratedColumn<int> brightWhiteColor = GeneratedColumn<int>(
-    'bright_white_color',
-    aliasedName,
-    false,
-    type: DriftSqlType.int,
-    requiredDuringInsert: true,
-    $customConstraints: 'NOT NULL',
-  );
-  static const VerificationMeta _backgroundColorMeta = const VerificationMeta(
-    'backgroundColor',
-  );
-  late final GeneratedColumn<int> backgroundColor = GeneratedColumn<int>(
-    'background_color',
-    aliasedName,
-    false,
-    type: DriftSqlType.int,
-    requiredDuringInsert: true,
-    $customConstraints: 'NOT NULL',
-  );
-  static const VerificationMeta _foregroundColorMeta = const VerificationMeta(
-    'foregroundColor',
-  );
-  late final GeneratedColumn<int> foregroundColor = GeneratedColumn<int>(
-    'foreground_color',
-    aliasedName,
-    false,
-    type: DriftSqlType.int,
-    requiredDuringInsert: true,
-    $customConstraints: 'NOT NULL',
-  );
-  static const VerificationMeta _cursorColorMeta = const VerificationMeta(
-    'cursorColor',
-  );
-  late final GeneratedColumn<int> cursorColor = GeneratedColumn<int>(
-    'cursor_color',
-    aliasedName,
-    false,
-    type: DriftSqlType.int,
-    requiredDuringInsert: true,
-    $customConstraints: 'NOT NULL',
-  );
-  static const VerificationMeta _selectionBackgroundColorMeta =
-      const VerificationMeta('selectionBackgroundColor');
-  late final GeneratedColumn<int> selectionBackgroundColor =
+  late final GeneratedColumnWithTypeConverter<Color, int> blackColor =
+      GeneratedColumn<int>(
+        'black_color',
+        aliasedName,
+        false,
+        type: DriftSqlType.int,
+        requiredDuringInsert: true,
+        $customConstraints: 'NOT NULL',
+      ).withConverter<Color>(CustomTerminalThemes.$converterblackColor);
+  late final GeneratedColumnWithTypeConverter<Color, int> redColor =
+      GeneratedColumn<int>(
+        'red_color',
+        aliasedName,
+        false,
+        type: DriftSqlType.int,
+        requiredDuringInsert: true,
+        $customConstraints: 'NOT NULL',
+      ).withConverter<Color>(CustomTerminalThemes.$converterredColor);
+  late final GeneratedColumnWithTypeConverter<Color, int> greenColor =
+      GeneratedColumn<int>(
+        'green_color',
+        aliasedName,
+        false,
+        type: DriftSqlType.int,
+        requiredDuringInsert: true,
+        $customConstraints: 'NOT NULL',
+      ).withConverter<Color>(CustomTerminalThemes.$convertergreenColor);
+  late final GeneratedColumnWithTypeConverter<Color, int> yellowColor =
+      GeneratedColumn<int>(
+        'yellow_color',
+        aliasedName,
+        false,
+        type: DriftSqlType.int,
+        requiredDuringInsert: true,
+        $customConstraints: 'NOT NULL',
+      ).withConverter<Color>(CustomTerminalThemes.$converteryellowColor);
+  late final GeneratedColumnWithTypeConverter<Color, int> blueColor =
+      GeneratedColumn<int>(
+        'blue_color',
+        aliasedName,
+        false,
+        type: DriftSqlType.int,
+        requiredDuringInsert: true,
+        $customConstraints: 'NOT NULL',
+      ).withConverter<Color>(CustomTerminalThemes.$converterblueColor);
+  late final GeneratedColumnWithTypeConverter<Color, int> purpleColor =
+      GeneratedColumn<int>(
+        'purple_color',
+        aliasedName,
+        false,
+        type: DriftSqlType.int,
+        requiredDuringInsert: true,
+        $customConstraints: 'NOT NULL',
+      ).withConverter<Color>(CustomTerminalThemes.$converterpurpleColor);
+  late final GeneratedColumnWithTypeConverter<Color, int> cyanColor =
+      GeneratedColumn<int>(
+        'cyan_color',
+        aliasedName,
+        false,
+        type: DriftSqlType.int,
+        requiredDuringInsert: true,
+        $customConstraints: 'NOT NULL',
+      ).withConverter<Color>(CustomTerminalThemes.$convertercyanColor);
+  late final GeneratedColumnWithTypeConverter<Color, int> whiteColor =
+      GeneratedColumn<int>(
+        'white_color',
+        aliasedName,
+        false,
+        type: DriftSqlType.int,
+        requiredDuringInsert: true,
+        $customConstraints: 'NOT NULL',
+      ).withConverter<Color>(CustomTerminalThemes.$converterwhiteColor);
+  late final GeneratedColumnWithTypeConverter<Color, int> brightBlackColor =
+      GeneratedColumn<int>(
+        'bright_black_color',
+        aliasedName,
+        false,
+        type: DriftSqlType.int,
+        requiredDuringInsert: true,
+        $customConstraints: 'NOT NULL',
+      ).withConverter<Color>(CustomTerminalThemes.$converterbrightBlackColor);
+  late final GeneratedColumnWithTypeConverter<Color, int> brightRedColor =
+      GeneratedColumn<int>(
+        'bright_red_color',
+        aliasedName,
+        false,
+        type: DriftSqlType.int,
+        requiredDuringInsert: true,
+        $customConstraints: 'NOT NULL',
+      ).withConverter<Color>(CustomTerminalThemes.$converterbrightRedColor);
+  late final GeneratedColumnWithTypeConverter<Color, int> brightGreenColor =
+      GeneratedColumn<int>(
+        'bright_green_color',
+        aliasedName,
+        false,
+        type: DriftSqlType.int,
+        requiredDuringInsert: true,
+        $customConstraints: 'NOT NULL',
+      ).withConverter<Color>(CustomTerminalThemes.$converterbrightGreenColor);
+  late final GeneratedColumnWithTypeConverter<Color, int> brightYellowColor =
+      GeneratedColumn<int>(
+        'bright_yellow_color',
+        aliasedName,
+        false,
+        type: DriftSqlType.int,
+        requiredDuringInsert: true,
+        $customConstraints: 'NOT NULL',
+      ).withConverter<Color>(CustomTerminalThemes.$converterbrightYellowColor);
+  late final GeneratedColumnWithTypeConverter<Color, int> brightBlueColor =
+      GeneratedColumn<int>(
+        'bright_blue_color',
+        aliasedName,
+        false,
+        type: DriftSqlType.int,
+        requiredDuringInsert: true,
+        $customConstraints: 'NOT NULL',
+      ).withConverter<Color>(CustomTerminalThemes.$converterbrightBlueColor);
+  late final GeneratedColumnWithTypeConverter<Color, int> brightPurpleColor =
+      GeneratedColumn<int>(
+        'bright_purple_color',
+        aliasedName,
+        false,
+        type: DriftSqlType.int,
+        requiredDuringInsert: true,
+        $customConstraints: 'NOT NULL',
+      ).withConverter<Color>(CustomTerminalThemes.$converterbrightPurpleColor);
+  late final GeneratedColumnWithTypeConverter<Color, int> brightCyanColor =
+      GeneratedColumn<int>(
+        'bright_cyan_color',
+        aliasedName,
+        false,
+        type: DriftSqlType.int,
+        requiredDuringInsert: true,
+        $customConstraints: 'NOT NULL',
+      ).withConverter<Color>(CustomTerminalThemes.$converterbrightCyanColor);
+  late final GeneratedColumnWithTypeConverter<Color, int> brightWhiteColor =
+      GeneratedColumn<int>(
+        'bright_white_color',
+        aliasedName,
+        false,
+        type: DriftSqlType.int,
+        requiredDuringInsert: true,
+        $customConstraints: 'NOT NULL',
+      ).withConverter<Color>(CustomTerminalThemes.$converterbrightWhiteColor);
+  late final GeneratedColumnWithTypeConverter<Color, int> backgroundColor =
+      GeneratedColumn<int>(
+        'background_color',
+        aliasedName,
+        false,
+        type: DriftSqlType.int,
+        requiredDuringInsert: true,
+        $customConstraints: 'NOT NULL',
+      ).withConverter<Color>(CustomTerminalThemes.$converterbackgroundColor);
+  late final GeneratedColumnWithTypeConverter<Color, int> foregroundColor =
+      GeneratedColumn<int>(
+        'foreground_color',
+        aliasedName,
+        false,
+        type: DriftSqlType.int,
+        requiredDuringInsert: true,
+        $customConstraints: 'NOT NULL',
+      ).withConverter<Color>(CustomTerminalThemes.$converterforegroundColor);
+  late final GeneratedColumnWithTypeConverter<Color, int> cursorColor =
+      GeneratedColumn<int>(
+        'cursor_color',
+        aliasedName,
+        false,
+        type: DriftSqlType.int,
+        requiredDuringInsert: true,
+        $customConstraints: 'NOT NULL',
+      ).withConverter<Color>(CustomTerminalThemes.$convertercursorColor);
+  late final GeneratedColumnWithTypeConverter<Color, int>
+  selectionBackgroundColor =
       GeneratedColumn<int>(
         'selection_background_color',
         aliasedName,
@@ -256,10 +207,11 @@ class CustomTerminalThemes extends Table
         type: DriftSqlType.int,
         requiredDuringInsert: true,
         $customConstraints: 'NOT NULL',
+      ).withConverter<Color>(
+        CustomTerminalThemes.$converterselectionBackgroundColor,
       );
-  static const VerificationMeta _selectionForegroundColorMeta =
-      const VerificationMeta('selectionForegroundColor');
-  late final GeneratedColumn<int> selectionForegroundColor =
+  late final GeneratedColumnWithTypeConverter<Color?, int>
+  selectionForegroundColor =
       GeneratedColumn<int>(
         'selection_foreground_color',
         aliasedName,
@@ -267,21 +219,20 @@ class CustomTerminalThemes extends Table
         type: DriftSqlType.int,
         requiredDuringInsert: false,
         $customConstraints: '',
+      ).withConverter<Color?>(
+        CustomTerminalThemes.$converterselectionForegroundColorn,
       );
-  static const VerificationMeta _cursorTextColorMeta = const VerificationMeta(
-    'cursorTextColor',
-  );
-  late final GeneratedColumn<int> cursorTextColor = GeneratedColumn<int>(
-    'cursor_text_color',
-    aliasedName,
-    true,
-    type: DriftSqlType.int,
-    requiredDuringInsert: false,
-    $customConstraints: '',
-  );
+  late final GeneratedColumnWithTypeConverter<Color?, int> cursorTextColor =
+      GeneratedColumn<int>(
+        'cursor_text_color',
+        aliasedName,
+        true,
+        type: DriftSqlType.int,
+        requiredDuringInsert: false,
+        $customConstraints: '',
+      ).withConverter<Color?>(CustomTerminalThemes.$convertercursorTextColorn);
   @override
   List<GeneratedColumn> get $columns => [
-    id,
     name,
     author,
     blackColor,
@@ -319,9 +270,6 @@ class CustomTerminalThemes extends Table
   }) {
     final context = VerificationContext();
     final data = instance.toColumns(true);
-    if (data.containsKey('id')) {
-      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
-    }
     if (data.containsKey('name')) {
       context.handle(
         _nameMeta,
@@ -336,239 +284,15 @@ class CustomTerminalThemes extends Table
         author.isAcceptableOrUnknown(data['author']!, _authorMeta),
       );
     }
-    if (data.containsKey('black_color')) {
-      context.handle(
-        _blackColorMeta,
-        blackColor.isAcceptableOrUnknown(data['black_color']!, _blackColorMeta),
-      );
-    } else if (isInserting) {
-      context.missing(_blackColorMeta);
-    }
-    if (data.containsKey('red_color')) {
-      context.handle(
-        _redColorMeta,
-        redColor.isAcceptableOrUnknown(data['red_color']!, _redColorMeta),
-      );
-    } else if (isInserting) {
-      context.missing(_redColorMeta);
-    }
-    if (data.containsKey('green_color')) {
-      context.handle(
-        _greenColorMeta,
-        greenColor.isAcceptableOrUnknown(data['green_color']!, _greenColorMeta),
-      );
-    } else if (isInserting) {
-      context.missing(_greenColorMeta);
-    }
-    if (data.containsKey('yellow_color')) {
-      context.handle(
-        _yellowColorMeta,
-        yellowColor.isAcceptableOrUnknown(
-          data['yellow_color']!,
-          _yellowColorMeta,
-        ),
-      );
-    } else if (isInserting) {
-      context.missing(_yellowColorMeta);
-    }
-    if (data.containsKey('blue_color')) {
-      context.handle(
-        _blueColorMeta,
-        blueColor.isAcceptableOrUnknown(data['blue_color']!, _blueColorMeta),
-      );
-    } else if (isInserting) {
-      context.missing(_blueColorMeta);
-    }
-    if (data.containsKey('purple_color')) {
-      context.handle(
-        _purpleColorMeta,
-        purpleColor.isAcceptableOrUnknown(
-          data['purple_color']!,
-          _purpleColorMeta,
-        ),
-      );
-    } else if (isInserting) {
-      context.missing(_purpleColorMeta);
-    }
-    if (data.containsKey('cyan_color')) {
-      context.handle(
-        _cyanColorMeta,
-        cyanColor.isAcceptableOrUnknown(data['cyan_color']!, _cyanColorMeta),
-      );
-    } else if (isInserting) {
-      context.missing(_cyanColorMeta);
-    }
-    if (data.containsKey('white_color')) {
-      context.handle(
-        _whiteColorMeta,
-        whiteColor.isAcceptableOrUnknown(data['white_color']!, _whiteColorMeta),
-      );
-    } else if (isInserting) {
-      context.missing(_whiteColorMeta);
-    }
-    if (data.containsKey('bright_black_color')) {
-      context.handle(
-        _brightBlackColorMeta,
-        brightBlackColor.isAcceptableOrUnknown(
-          data['bright_black_color']!,
-          _brightBlackColorMeta,
-        ),
-      );
-    } else if (isInserting) {
-      context.missing(_brightBlackColorMeta);
-    }
-    if (data.containsKey('bright_red_color')) {
-      context.handle(
-        _brightRedColorMeta,
-        brightRedColor.isAcceptableOrUnknown(
-          data['bright_red_color']!,
-          _brightRedColorMeta,
-        ),
-      );
-    } else if (isInserting) {
-      context.missing(_brightRedColorMeta);
-    }
-    if (data.containsKey('bright_green_color')) {
-      context.handle(
-        _brightGreenColorMeta,
-        brightGreenColor.isAcceptableOrUnknown(
-          data['bright_green_color']!,
-          _brightGreenColorMeta,
-        ),
-      );
-    } else if (isInserting) {
-      context.missing(_brightGreenColorMeta);
-    }
-    if (data.containsKey('bright_yellow_color')) {
-      context.handle(
-        _brightYellowColorMeta,
-        brightYellowColor.isAcceptableOrUnknown(
-          data['bright_yellow_color']!,
-          _brightYellowColorMeta,
-        ),
-      );
-    } else if (isInserting) {
-      context.missing(_brightYellowColorMeta);
-    }
-    if (data.containsKey('bright_blue_color')) {
-      context.handle(
-        _brightBlueColorMeta,
-        brightBlueColor.isAcceptableOrUnknown(
-          data['bright_blue_color']!,
-          _brightBlueColorMeta,
-        ),
-      );
-    } else if (isInserting) {
-      context.missing(_brightBlueColorMeta);
-    }
-    if (data.containsKey('bright_purple_color')) {
-      context.handle(
-        _brightPurpleColorMeta,
-        brightPurpleColor.isAcceptableOrUnknown(
-          data['bright_purple_color']!,
-          _brightPurpleColorMeta,
-        ),
-      );
-    } else if (isInserting) {
-      context.missing(_brightPurpleColorMeta);
-    }
-    if (data.containsKey('bright_cyan_color')) {
-      context.handle(
-        _brightCyanColorMeta,
-        brightCyanColor.isAcceptableOrUnknown(
-          data['bright_cyan_color']!,
-          _brightCyanColorMeta,
-        ),
-      );
-    } else if (isInserting) {
-      context.missing(_brightCyanColorMeta);
-    }
-    if (data.containsKey('bright_white_color')) {
-      context.handle(
-        _brightWhiteColorMeta,
-        brightWhiteColor.isAcceptableOrUnknown(
-          data['bright_white_color']!,
-          _brightWhiteColorMeta,
-        ),
-      );
-    } else if (isInserting) {
-      context.missing(_brightWhiteColorMeta);
-    }
-    if (data.containsKey('background_color')) {
-      context.handle(
-        _backgroundColorMeta,
-        backgroundColor.isAcceptableOrUnknown(
-          data['background_color']!,
-          _backgroundColorMeta,
-        ),
-      );
-    } else if (isInserting) {
-      context.missing(_backgroundColorMeta);
-    }
-    if (data.containsKey('foreground_color')) {
-      context.handle(
-        _foregroundColorMeta,
-        foregroundColor.isAcceptableOrUnknown(
-          data['foreground_color']!,
-          _foregroundColorMeta,
-        ),
-      );
-    } else if (isInserting) {
-      context.missing(_foregroundColorMeta);
-    }
-    if (data.containsKey('cursor_color')) {
-      context.handle(
-        _cursorColorMeta,
-        cursorColor.isAcceptableOrUnknown(
-          data['cursor_color']!,
-          _cursorColorMeta,
-        ),
-      );
-    } else if (isInserting) {
-      context.missing(_cursorColorMeta);
-    }
-    if (data.containsKey('selection_background_color')) {
-      context.handle(
-        _selectionBackgroundColorMeta,
-        selectionBackgroundColor.isAcceptableOrUnknown(
-          data['selection_background_color']!,
-          _selectionBackgroundColorMeta,
-        ),
-      );
-    } else if (isInserting) {
-      context.missing(_selectionBackgroundColorMeta);
-    }
-    if (data.containsKey('selection_foreground_color')) {
-      context.handle(
-        _selectionForegroundColorMeta,
-        selectionForegroundColor.isAcceptableOrUnknown(
-          data['selection_foreground_color']!,
-          _selectionForegroundColorMeta,
-        ),
-      );
-    }
-    if (data.containsKey('cursor_text_color')) {
-      context.handle(
-        _cursorTextColorMeta,
-        cursorTextColor.isAcceptableOrUnknown(
-          data['cursor_text_color']!,
-          _cursorTextColorMeta,
-        ),
-      );
-    }
     return context;
   }
 
   @override
-  Set<GeneratedColumn> get $primaryKey => {id};
+  Set<GeneratedColumn> get $primaryKey => {name};
   @override
   CustomTerminalTheme map(Map<String, dynamic> data, {String? tablePrefix}) {
     final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
     return CustomTerminalTheme(
-      id: attachedDatabase.typeMapping.read(
-        DriftSqlType.int,
-        data['${effectivePrefix}id'],
-      )!,
       name: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}name'],
@@ -577,93 +301,143 @@ class CustomTerminalThemes extends Table
         DriftSqlType.string,
         data['${effectivePrefix}author'],
       ),
-      blackColor: attachedDatabase.typeMapping.read(
-        DriftSqlType.int,
-        data['${effectivePrefix}black_color'],
-      )!,
-      redColor: attachedDatabase.typeMapping.read(
-        DriftSqlType.int,
-        data['${effectivePrefix}red_color'],
-      )!,
-      greenColor: attachedDatabase.typeMapping.read(
-        DriftSqlType.int,
-        data['${effectivePrefix}green_color'],
-      )!,
-      yellowColor: attachedDatabase.typeMapping.read(
-        DriftSqlType.int,
-        data['${effectivePrefix}yellow_color'],
-      )!,
-      blueColor: attachedDatabase.typeMapping.read(
-        DriftSqlType.int,
-        data['${effectivePrefix}blue_color'],
-      )!,
-      purpleColor: attachedDatabase.typeMapping.read(
-        DriftSqlType.int,
-        data['${effectivePrefix}purple_color'],
-      )!,
-      cyanColor: attachedDatabase.typeMapping.read(
-        DriftSqlType.int,
-        data['${effectivePrefix}cyan_color'],
-      )!,
-      whiteColor: attachedDatabase.typeMapping.read(
-        DriftSqlType.int,
-        data['${effectivePrefix}white_color'],
-      )!,
-      brightBlackColor: attachedDatabase.typeMapping.read(
-        DriftSqlType.int,
-        data['${effectivePrefix}bright_black_color'],
-      )!,
-      brightRedColor: attachedDatabase.typeMapping.read(
-        DriftSqlType.int,
-        data['${effectivePrefix}bright_red_color'],
-      )!,
-      brightGreenColor: attachedDatabase.typeMapping.read(
-        DriftSqlType.int,
-        data['${effectivePrefix}bright_green_color'],
-      )!,
-      brightYellowColor: attachedDatabase.typeMapping.read(
-        DriftSqlType.int,
-        data['${effectivePrefix}bright_yellow_color'],
-      )!,
-      brightBlueColor: attachedDatabase.typeMapping.read(
-        DriftSqlType.int,
-        data['${effectivePrefix}bright_blue_color'],
-      )!,
-      brightPurpleColor: attachedDatabase.typeMapping.read(
-        DriftSqlType.int,
-        data['${effectivePrefix}bright_purple_color'],
-      )!,
-      brightCyanColor: attachedDatabase.typeMapping.read(
-        DriftSqlType.int,
-        data['${effectivePrefix}bright_cyan_color'],
-      )!,
-      brightWhiteColor: attachedDatabase.typeMapping.read(
-        DriftSqlType.int,
-        data['${effectivePrefix}bright_white_color'],
-      )!,
-      backgroundColor: attachedDatabase.typeMapping.read(
-        DriftSqlType.int,
-        data['${effectivePrefix}background_color'],
-      )!,
-      foregroundColor: attachedDatabase.typeMapping.read(
-        DriftSqlType.int,
-        data['${effectivePrefix}foreground_color'],
-      )!,
-      cursorColor: attachedDatabase.typeMapping.read(
-        DriftSqlType.int,
-        data['${effectivePrefix}cursor_color'],
-      )!,
-      selectionBackgroundColor: attachedDatabase.typeMapping.read(
-        DriftSqlType.int,
-        data['${effectivePrefix}selection_background_color'],
-      )!,
-      selectionForegroundColor: attachedDatabase.typeMapping.read(
-        DriftSqlType.int,
-        data['${effectivePrefix}selection_foreground_color'],
+      blackColor: CustomTerminalThemes.$converterblackColor.fromSql(
+        attachedDatabase.typeMapping.read(
+          DriftSqlType.int,
+          data['${effectivePrefix}black_color'],
+        )!,
       ),
-      cursorTextColor: attachedDatabase.typeMapping.read(
-        DriftSqlType.int,
-        data['${effectivePrefix}cursor_text_color'],
+      redColor: CustomTerminalThemes.$converterredColor.fromSql(
+        attachedDatabase.typeMapping.read(
+          DriftSqlType.int,
+          data['${effectivePrefix}red_color'],
+        )!,
+      ),
+      greenColor: CustomTerminalThemes.$convertergreenColor.fromSql(
+        attachedDatabase.typeMapping.read(
+          DriftSqlType.int,
+          data['${effectivePrefix}green_color'],
+        )!,
+      ),
+      yellowColor: CustomTerminalThemes.$converteryellowColor.fromSql(
+        attachedDatabase.typeMapping.read(
+          DriftSqlType.int,
+          data['${effectivePrefix}yellow_color'],
+        )!,
+      ),
+      blueColor: CustomTerminalThemes.$converterblueColor.fromSql(
+        attachedDatabase.typeMapping.read(
+          DriftSqlType.int,
+          data['${effectivePrefix}blue_color'],
+        )!,
+      ),
+      purpleColor: CustomTerminalThemes.$converterpurpleColor.fromSql(
+        attachedDatabase.typeMapping.read(
+          DriftSqlType.int,
+          data['${effectivePrefix}purple_color'],
+        )!,
+      ),
+      cyanColor: CustomTerminalThemes.$convertercyanColor.fromSql(
+        attachedDatabase.typeMapping.read(
+          DriftSqlType.int,
+          data['${effectivePrefix}cyan_color'],
+        )!,
+      ),
+      whiteColor: CustomTerminalThemes.$converterwhiteColor.fromSql(
+        attachedDatabase.typeMapping.read(
+          DriftSqlType.int,
+          data['${effectivePrefix}white_color'],
+        )!,
+      ),
+      brightBlackColor: CustomTerminalThemes.$converterbrightBlackColor.fromSql(
+        attachedDatabase.typeMapping.read(
+          DriftSqlType.int,
+          data['${effectivePrefix}bright_black_color'],
+        )!,
+      ),
+      brightRedColor: CustomTerminalThemes.$converterbrightRedColor.fromSql(
+        attachedDatabase.typeMapping.read(
+          DriftSqlType.int,
+          data['${effectivePrefix}bright_red_color'],
+        )!,
+      ),
+      brightGreenColor: CustomTerminalThemes.$converterbrightGreenColor.fromSql(
+        attachedDatabase.typeMapping.read(
+          DriftSqlType.int,
+          data['${effectivePrefix}bright_green_color'],
+        )!,
+      ),
+      brightYellowColor: CustomTerminalThemes.$converterbrightYellowColor
+          .fromSql(
+            attachedDatabase.typeMapping.read(
+              DriftSqlType.int,
+              data['${effectivePrefix}bright_yellow_color'],
+            )!,
+          ),
+      brightBlueColor: CustomTerminalThemes.$converterbrightBlueColor.fromSql(
+        attachedDatabase.typeMapping.read(
+          DriftSqlType.int,
+          data['${effectivePrefix}bright_blue_color'],
+        )!,
+      ),
+      brightPurpleColor: CustomTerminalThemes.$converterbrightPurpleColor
+          .fromSql(
+            attachedDatabase.typeMapping.read(
+              DriftSqlType.int,
+              data['${effectivePrefix}bright_purple_color'],
+            )!,
+          ),
+      brightCyanColor: CustomTerminalThemes.$converterbrightCyanColor.fromSql(
+        attachedDatabase.typeMapping.read(
+          DriftSqlType.int,
+          data['${effectivePrefix}bright_cyan_color'],
+        )!,
+      ),
+      brightWhiteColor: CustomTerminalThemes.$converterbrightWhiteColor.fromSql(
+        attachedDatabase.typeMapping.read(
+          DriftSqlType.int,
+          data['${effectivePrefix}bright_white_color'],
+        )!,
+      ),
+      backgroundColor: CustomTerminalThemes.$converterbackgroundColor.fromSql(
+        attachedDatabase.typeMapping.read(
+          DriftSqlType.int,
+          data['${effectivePrefix}background_color'],
+        )!,
+      ),
+      foregroundColor: CustomTerminalThemes.$converterforegroundColor.fromSql(
+        attachedDatabase.typeMapping.read(
+          DriftSqlType.int,
+          data['${effectivePrefix}foreground_color'],
+        )!,
+      ),
+      cursorColor: CustomTerminalThemes.$convertercursorColor.fromSql(
+        attachedDatabase.typeMapping.read(
+          DriftSqlType.int,
+          data['${effectivePrefix}cursor_color'],
+        )!,
+      ),
+      selectionBackgroundColor: CustomTerminalThemes
+          .$converterselectionBackgroundColor
+          .fromSql(
+            attachedDatabase.typeMapping.read(
+              DriftSqlType.int,
+              data['${effectivePrefix}selection_background_color'],
+            )!,
+          ),
+      selectionForegroundColor: CustomTerminalThemes
+          .$converterselectionForegroundColorn
+          .fromSql(
+            attachedDatabase.typeMapping.read(
+              DriftSqlType.int,
+              data['${effectivePrefix}selection_foreground_color'],
+            ),
+          ),
+      cursorTextColor: CustomTerminalThemes.$convertercursorTextColorn.fromSql(
+        attachedDatabase.typeMapping.read(
+          DriftSqlType.int,
+          data['${effectivePrefix}cursor_text_color'],
+        ),
       ),
     );
   }
@@ -673,39 +447,82 @@ class CustomTerminalThemes extends Table
     return CustomTerminalThemes(attachedDatabase, alias);
   }
 
+  static TypeConverter<Color, int> $converterblackColor =
+      const ColorConverter();
+  static TypeConverter<Color, int> $converterredColor = const ColorConverter();
+  static TypeConverter<Color, int> $convertergreenColor =
+      const ColorConverter();
+  static TypeConverter<Color, int> $converteryellowColor =
+      const ColorConverter();
+  static TypeConverter<Color, int> $converterblueColor = const ColorConverter();
+  static TypeConverter<Color, int> $converterpurpleColor =
+      const ColorConverter();
+  static TypeConverter<Color, int> $convertercyanColor = const ColorConverter();
+  static TypeConverter<Color, int> $converterwhiteColor =
+      const ColorConverter();
+  static TypeConverter<Color, int> $converterbrightBlackColor =
+      const ColorConverter();
+  static TypeConverter<Color, int> $converterbrightRedColor =
+      const ColorConverter();
+  static TypeConverter<Color, int> $converterbrightGreenColor =
+      const ColorConverter();
+  static TypeConverter<Color, int> $converterbrightYellowColor =
+      const ColorConverter();
+  static TypeConverter<Color, int> $converterbrightBlueColor =
+      const ColorConverter();
+  static TypeConverter<Color, int> $converterbrightPurpleColor =
+      const ColorConverter();
+  static TypeConverter<Color, int> $converterbrightCyanColor =
+      const ColorConverter();
+  static TypeConverter<Color, int> $converterbrightWhiteColor =
+      const ColorConverter();
+  static TypeConverter<Color, int> $converterbackgroundColor =
+      const ColorConverter();
+  static TypeConverter<Color, int> $converterforegroundColor =
+      const ColorConverter();
+  static TypeConverter<Color, int> $convertercursorColor =
+      const ColorConverter();
+  static TypeConverter<Color, int> $converterselectionBackgroundColor =
+      const ColorConverter();
+  static TypeConverter<Color, int> $converterselectionForegroundColor =
+      const ColorConverter();
+  static TypeConverter<Color?, int?> $converterselectionForegroundColorn =
+      NullAwareTypeConverter.wrap($converterselectionForegroundColor);
+  static TypeConverter<Color, int> $convertercursorTextColor =
+      const ColorConverter();
+  static TypeConverter<Color?, int?> $convertercursorTextColorn =
+      NullAwareTypeConverter.wrap($convertercursorTextColor);
   @override
   bool get dontWriteConstraints => true;
 }
 
 class CustomTerminalTheme extends DataClass
     implements Insertable<CustomTerminalTheme> {
-  final int id;
   final String name;
   final String? author;
-  final int blackColor;
-  final int redColor;
-  final int greenColor;
-  final int yellowColor;
-  final int blueColor;
-  final int purpleColor;
-  final int cyanColor;
-  final int whiteColor;
-  final int brightBlackColor;
-  final int brightRedColor;
-  final int brightGreenColor;
-  final int brightYellowColor;
-  final int brightBlueColor;
-  final int brightPurpleColor;
-  final int brightCyanColor;
-  final int brightWhiteColor;
-  final int backgroundColor;
-  final int foregroundColor;
-  final int cursorColor;
-  final int selectionBackgroundColor;
-  final int? selectionForegroundColor;
-  final int? cursorTextColor;
+  final Color blackColor;
+  final Color redColor;
+  final Color greenColor;
+  final Color yellowColor;
+  final Color blueColor;
+  final Color purpleColor;
+  final Color cyanColor;
+  final Color whiteColor;
+  final Color brightBlackColor;
+  final Color brightRedColor;
+  final Color brightGreenColor;
+  final Color brightYellowColor;
+  final Color brightBlueColor;
+  final Color brightPurpleColor;
+  final Color brightCyanColor;
+  final Color brightWhiteColor;
+  final Color backgroundColor;
+  final Color foregroundColor;
+  final Color cursorColor;
+  final Color selectionBackgroundColor;
+  final Color? selectionForegroundColor;
+  final Color? cursorTextColor;
   const CustomTerminalTheme({
-    required this.id,
     required this.name,
     this.author,
     required this.blackColor,
@@ -734,45 +551,133 @@ class CustomTerminalTheme extends DataClass
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
-    map['id'] = Variable<int>(id);
     map['name'] = Variable<String>(name);
     if (!nullToAbsent || author != null) {
       map['author'] = Variable<String>(author);
     }
-    map['black_color'] = Variable<int>(blackColor);
-    map['red_color'] = Variable<int>(redColor);
-    map['green_color'] = Variable<int>(greenColor);
-    map['yellow_color'] = Variable<int>(yellowColor);
-    map['blue_color'] = Variable<int>(blueColor);
-    map['purple_color'] = Variable<int>(purpleColor);
-    map['cyan_color'] = Variable<int>(cyanColor);
-    map['white_color'] = Variable<int>(whiteColor);
-    map['bright_black_color'] = Variable<int>(brightBlackColor);
-    map['bright_red_color'] = Variable<int>(brightRedColor);
-    map['bright_green_color'] = Variable<int>(brightGreenColor);
-    map['bright_yellow_color'] = Variable<int>(brightYellowColor);
-    map['bright_blue_color'] = Variable<int>(brightBlueColor);
-    map['bright_purple_color'] = Variable<int>(brightPurpleColor);
-    map['bright_cyan_color'] = Variable<int>(brightCyanColor);
-    map['bright_white_color'] = Variable<int>(brightWhiteColor);
-    map['background_color'] = Variable<int>(backgroundColor);
-    map['foreground_color'] = Variable<int>(foregroundColor);
-    map['cursor_color'] = Variable<int>(cursorColor);
-    map['selection_background_color'] = Variable<int>(selectionBackgroundColor);
+    {
+      map['black_color'] = Variable<int>(
+        CustomTerminalThemes.$converterblackColor.toSql(blackColor),
+      );
+    }
+    {
+      map['red_color'] = Variable<int>(
+        CustomTerminalThemes.$converterredColor.toSql(redColor),
+      );
+    }
+    {
+      map['green_color'] = Variable<int>(
+        CustomTerminalThemes.$convertergreenColor.toSql(greenColor),
+      );
+    }
+    {
+      map['yellow_color'] = Variable<int>(
+        CustomTerminalThemes.$converteryellowColor.toSql(yellowColor),
+      );
+    }
+    {
+      map['blue_color'] = Variable<int>(
+        CustomTerminalThemes.$converterblueColor.toSql(blueColor),
+      );
+    }
+    {
+      map['purple_color'] = Variable<int>(
+        CustomTerminalThemes.$converterpurpleColor.toSql(purpleColor),
+      );
+    }
+    {
+      map['cyan_color'] = Variable<int>(
+        CustomTerminalThemes.$convertercyanColor.toSql(cyanColor),
+      );
+    }
+    {
+      map['white_color'] = Variable<int>(
+        CustomTerminalThemes.$converterwhiteColor.toSql(whiteColor),
+      );
+    }
+    {
+      map['bright_black_color'] = Variable<int>(
+        CustomTerminalThemes.$converterbrightBlackColor.toSql(brightBlackColor),
+      );
+    }
+    {
+      map['bright_red_color'] = Variable<int>(
+        CustomTerminalThemes.$converterbrightRedColor.toSql(brightRedColor),
+      );
+    }
+    {
+      map['bright_green_color'] = Variable<int>(
+        CustomTerminalThemes.$converterbrightGreenColor.toSql(brightGreenColor),
+      );
+    }
+    {
+      map['bright_yellow_color'] = Variable<int>(
+        CustomTerminalThemes.$converterbrightYellowColor.toSql(
+          brightYellowColor,
+        ),
+      );
+    }
+    {
+      map['bright_blue_color'] = Variable<int>(
+        CustomTerminalThemes.$converterbrightBlueColor.toSql(brightBlueColor),
+      );
+    }
+    {
+      map['bright_purple_color'] = Variable<int>(
+        CustomTerminalThemes.$converterbrightPurpleColor.toSql(
+          brightPurpleColor,
+        ),
+      );
+    }
+    {
+      map['bright_cyan_color'] = Variable<int>(
+        CustomTerminalThemes.$converterbrightCyanColor.toSql(brightCyanColor),
+      );
+    }
+    {
+      map['bright_white_color'] = Variable<int>(
+        CustomTerminalThemes.$converterbrightWhiteColor.toSql(brightWhiteColor),
+      );
+    }
+    {
+      map['background_color'] = Variable<int>(
+        CustomTerminalThemes.$converterbackgroundColor.toSql(backgroundColor),
+      );
+    }
+    {
+      map['foreground_color'] = Variable<int>(
+        CustomTerminalThemes.$converterforegroundColor.toSql(foregroundColor),
+      );
+    }
+    {
+      map['cursor_color'] = Variable<int>(
+        CustomTerminalThemes.$convertercursorColor.toSql(cursorColor),
+      );
+    }
+    {
+      map['selection_background_color'] = Variable<int>(
+        CustomTerminalThemes.$converterselectionBackgroundColor.toSql(
+          selectionBackgroundColor,
+        ),
+      );
+    }
     if (!nullToAbsent || selectionForegroundColor != null) {
       map['selection_foreground_color'] = Variable<int>(
-        selectionForegroundColor,
+        CustomTerminalThemes.$converterselectionForegroundColorn.toSql(
+          selectionForegroundColor,
+        ),
       );
     }
     if (!nullToAbsent || cursorTextColor != null) {
-      map['cursor_text_color'] = Variable<int>(cursorTextColor);
+      map['cursor_text_color'] = Variable<int>(
+        CustomTerminalThemes.$convertercursorTextColorn.toSql(cursorTextColor),
+      );
     }
     return map;
   }
 
   CustomTerminalThemesCompanion toCompanion(bool nullToAbsent) {
     return CustomTerminalThemesCompanion(
-      id: Value(id),
       name: Value(name),
       author: author == null && nullToAbsent
           ? const Value.absent()
@@ -812,101 +717,101 @@ class CustomTerminalTheme extends DataClass
   }) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return CustomTerminalTheme(
-      id: serializer.fromJson<int>(json['id']),
       name: serializer.fromJson<String>(json['name']),
       author: serializer.fromJson<String?>(json['author']),
-      blackColor: serializer.fromJson<int>(json['black_color']),
-      redColor: serializer.fromJson<int>(json['red_color']),
-      greenColor: serializer.fromJson<int>(json['green_color']),
-      yellowColor: serializer.fromJson<int>(json['yellow_color']),
-      blueColor: serializer.fromJson<int>(json['blue_color']),
-      purpleColor: serializer.fromJson<int>(json['purple_color']),
-      cyanColor: serializer.fromJson<int>(json['cyan_color']),
-      whiteColor: serializer.fromJson<int>(json['white_color']),
-      brightBlackColor: serializer.fromJson<int>(json['bright_black_color']),
-      brightRedColor: serializer.fromJson<int>(json['bright_red_color']),
-      brightGreenColor: serializer.fromJson<int>(json['bright_green_color']),
-      brightYellowColor: serializer.fromJson<int>(json['bright_yellow_color']),
-      brightBlueColor: serializer.fromJson<int>(json['bright_blue_color']),
-      brightPurpleColor: serializer.fromJson<int>(json['bright_purple_color']),
-      brightCyanColor: serializer.fromJson<int>(json['bright_cyan_color']),
-      brightWhiteColor: serializer.fromJson<int>(json['bright_white_color']),
-      backgroundColor: serializer.fromJson<int>(json['background_color']),
-      foregroundColor: serializer.fromJson<int>(json['foreground_color']),
-      cursorColor: serializer.fromJson<int>(json['cursor_color']),
-      selectionBackgroundColor: serializer.fromJson<int>(
+      blackColor: serializer.fromJson<Color>(json['black_color']),
+      redColor: serializer.fromJson<Color>(json['red_color']),
+      greenColor: serializer.fromJson<Color>(json['green_color']),
+      yellowColor: serializer.fromJson<Color>(json['yellow_color']),
+      blueColor: serializer.fromJson<Color>(json['blue_color']),
+      purpleColor: serializer.fromJson<Color>(json['purple_color']),
+      cyanColor: serializer.fromJson<Color>(json['cyan_color']),
+      whiteColor: serializer.fromJson<Color>(json['white_color']),
+      brightBlackColor: serializer.fromJson<Color>(json['bright_black_color']),
+      brightRedColor: serializer.fromJson<Color>(json['bright_red_color']),
+      brightGreenColor: serializer.fromJson<Color>(json['bright_green_color']),
+      brightYellowColor: serializer.fromJson<Color>(
+        json['bright_yellow_color'],
+      ),
+      brightBlueColor: serializer.fromJson<Color>(json['bright_blue_color']),
+      brightPurpleColor: serializer.fromJson<Color>(
+        json['bright_purple_color'],
+      ),
+      brightCyanColor: serializer.fromJson<Color>(json['bright_cyan_color']),
+      brightWhiteColor: serializer.fromJson<Color>(json['bright_white_color']),
+      backgroundColor: serializer.fromJson<Color>(json['background_color']),
+      foregroundColor: serializer.fromJson<Color>(json['foreground_color']),
+      cursorColor: serializer.fromJson<Color>(json['cursor_color']),
+      selectionBackgroundColor: serializer.fromJson<Color>(
         json['selection_background_color'],
       ),
-      selectionForegroundColor: serializer.fromJson<int?>(
+      selectionForegroundColor: serializer.fromJson<Color?>(
         json['selection_foreground_color'],
       ),
-      cursorTextColor: serializer.fromJson<int?>(json['cursor_text_color']),
+      cursorTextColor: serializer.fromJson<Color?>(json['cursor_text_color']),
     );
   }
   @override
   Map<String, dynamic> toJson({ValueSerializer? serializer}) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return <String, dynamic>{
-      'id': serializer.toJson<int>(id),
       'name': serializer.toJson<String>(name),
       'author': serializer.toJson<String?>(author),
-      'black_color': serializer.toJson<int>(blackColor),
-      'red_color': serializer.toJson<int>(redColor),
-      'green_color': serializer.toJson<int>(greenColor),
-      'yellow_color': serializer.toJson<int>(yellowColor),
-      'blue_color': serializer.toJson<int>(blueColor),
-      'purple_color': serializer.toJson<int>(purpleColor),
-      'cyan_color': serializer.toJson<int>(cyanColor),
-      'white_color': serializer.toJson<int>(whiteColor),
-      'bright_black_color': serializer.toJson<int>(brightBlackColor),
-      'bright_red_color': serializer.toJson<int>(brightRedColor),
-      'bright_green_color': serializer.toJson<int>(brightGreenColor),
-      'bright_yellow_color': serializer.toJson<int>(brightYellowColor),
-      'bright_blue_color': serializer.toJson<int>(brightBlueColor),
-      'bright_purple_color': serializer.toJson<int>(brightPurpleColor),
-      'bright_cyan_color': serializer.toJson<int>(brightCyanColor),
-      'bright_white_color': serializer.toJson<int>(brightWhiteColor),
-      'background_color': serializer.toJson<int>(backgroundColor),
-      'foreground_color': serializer.toJson<int>(foregroundColor),
-      'cursor_color': serializer.toJson<int>(cursorColor),
-      'selection_background_color': serializer.toJson<int>(
+      'black_color': serializer.toJson<Color>(blackColor),
+      'red_color': serializer.toJson<Color>(redColor),
+      'green_color': serializer.toJson<Color>(greenColor),
+      'yellow_color': serializer.toJson<Color>(yellowColor),
+      'blue_color': serializer.toJson<Color>(blueColor),
+      'purple_color': serializer.toJson<Color>(purpleColor),
+      'cyan_color': serializer.toJson<Color>(cyanColor),
+      'white_color': serializer.toJson<Color>(whiteColor),
+      'bright_black_color': serializer.toJson<Color>(brightBlackColor),
+      'bright_red_color': serializer.toJson<Color>(brightRedColor),
+      'bright_green_color': serializer.toJson<Color>(brightGreenColor),
+      'bright_yellow_color': serializer.toJson<Color>(brightYellowColor),
+      'bright_blue_color': serializer.toJson<Color>(brightBlueColor),
+      'bright_purple_color': serializer.toJson<Color>(brightPurpleColor),
+      'bright_cyan_color': serializer.toJson<Color>(brightCyanColor),
+      'bright_white_color': serializer.toJson<Color>(brightWhiteColor),
+      'background_color': serializer.toJson<Color>(backgroundColor),
+      'foreground_color': serializer.toJson<Color>(foregroundColor),
+      'cursor_color': serializer.toJson<Color>(cursorColor),
+      'selection_background_color': serializer.toJson<Color>(
         selectionBackgroundColor,
       ),
-      'selection_foreground_color': serializer.toJson<int?>(
+      'selection_foreground_color': serializer.toJson<Color?>(
         selectionForegroundColor,
       ),
-      'cursor_text_color': serializer.toJson<int?>(cursorTextColor),
+      'cursor_text_color': serializer.toJson<Color?>(cursorTextColor),
     };
   }
 
   CustomTerminalTheme copyWith({
-    int? id,
     String? name,
     Value<String?> author = const Value.absent(),
-    int? blackColor,
-    int? redColor,
-    int? greenColor,
-    int? yellowColor,
-    int? blueColor,
-    int? purpleColor,
-    int? cyanColor,
-    int? whiteColor,
-    int? brightBlackColor,
-    int? brightRedColor,
-    int? brightGreenColor,
-    int? brightYellowColor,
-    int? brightBlueColor,
-    int? brightPurpleColor,
-    int? brightCyanColor,
-    int? brightWhiteColor,
-    int? backgroundColor,
-    int? foregroundColor,
-    int? cursorColor,
-    int? selectionBackgroundColor,
-    Value<int?> selectionForegroundColor = const Value.absent(),
-    Value<int?> cursorTextColor = const Value.absent(),
+    Color? blackColor,
+    Color? redColor,
+    Color? greenColor,
+    Color? yellowColor,
+    Color? blueColor,
+    Color? purpleColor,
+    Color? cyanColor,
+    Color? whiteColor,
+    Color? brightBlackColor,
+    Color? brightRedColor,
+    Color? brightGreenColor,
+    Color? brightYellowColor,
+    Color? brightBlueColor,
+    Color? brightPurpleColor,
+    Color? brightCyanColor,
+    Color? brightWhiteColor,
+    Color? backgroundColor,
+    Color? foregroundColor,
+    Color? cursorColor,
+    Color? selectionBackgroundColor,
+    Value<Color?> selectionForegroundColor = const Value.absent(),
+    Value<Color?> cursorTextColor = const Value.absent(),
   }) => CustomTerminalTheme(
-    id: id ?? this.id,
     name: name ?? this.name,
     author: author.present ? author.value : this.author,
     blackColor: blackColor ?? this.blackColor,
@@ -939,7 +844,6 @@ class CustomTerminalTheme extends DataClass
   );
   CustomTerminalTheme copyWithCompanion(CustomTerminalThemesCompanion data) {
     return CustomTerminalTheme(
-      id: data.id.present ? data.id.value : this.id,
       name: data.name.present ? data.name.value : this.name,
       author: data.author.present ? data.author.value : this.author,
       blackColor: data.blackColor.present
@@ -1008,7 +912,6 @@ class CustomTerminalTheme extends DataClass
   @override
   String toString() {
     return (StringBuffer('CustomTerminalTheme(')
-          ..write('id: $id, ')
           ..write('name: $name, ')
           ..write('author: $author, ')
           ..write('blackColor: $blackColor, ')
@@ -1039,7 +942,6 @@ class CustomTerminalTheme extends DataClass
 
   @override
   int get hashCode => Object.hashAll([
-    id,
     name,
     author,
     blackColor,
@@ -1069,7 +971,6 @@ class CustomTerminalTheme extends DataClass
   bool operator ==(Object other) =>
       identical(this, other) ||
       (other is CustomTerminalTheme &&
-          other.id == this.id &&
           other.name == this.name &&
           other.author == this.author &&
           other.blackColor == this.blackColor &&
@@ -1098,33 +999,32 @@ class CustomTerminalTheme extends DataClass
 
 class CustomTerminalThemesCompanion
     extends UpdateCompanion<CustomTerminalTheme> {
-  final Value<int> id;
   final Value<String> name;
   final Value<String?> author;
-  final Value<int> blackColor;
-  final Value<int> redColor;
-  final Value<int> greenColor;
-  final Value<int> yellowColor;
-  final Value<int> blueColor;
-  final Value<int> purpleColor;
-  final Value<int> cyanColor;
-  final Value<int> whiteColor;
-  final Value<int> brightBlackColor;
-  final Value<int> brightRedColor;
-  final Value<int> brightGreenColor;
-  final Value<int> brightYellowColor;
-  final Value<int> brightBlueColor;
-  final Value<int> brightPurpleColor;
-  final Value<int> brightCyanColor;
-  final Value<int> brightWhiteColor;
-  final Value<int> backgroundColor;
-  final Value<int> foregroundColor;
-  final Value<int> cursorColor;
-  final Value<int> selectionBackgroundColor;
-  final Value<int?> selectionForegroundColor;
-  final Value<int?> cursorTextColor;
+  final Value<Color> blackColor;
+  final Value<Color> redColor;
+  final Value<Color> greenColor;
+  final Value<Color> yellowColor;
+  final Value<Color> blueColor;
+  final Value<Color> purpleColor;
+  final Value<Color> cyanColor;
+  final Value<Color> whiteColor;
+  final Value<Color> brightBlackColor;
+  final Value<Color> brightRedColor;
+  final Value<Color> brightGreenColor;
+  final Value<Color> brightYellowColor;
+  final Value<Color> brightBlueColor;
+  final Value<Color> brightPurpleColor;
+  final Value<Color> brightCyanColor;
+  final Value<Color> brightWhiteColor;
+  final Value<Color> backgroundColor;
+  final Value<Color> foregroundColor;
+  final Value<Color> cursorColor;
+  final Value<Color> selectionBackgroundColor;
+  final Value<Color?> selectionForegroundColor;
+  final Value<Color?> cursorTextColor;
+  final Value<int> rowid;
   const CustomTerminalThemesCompanion({
-    this.id = const Value.absent(),
     this.name = const Value.absent(),
     this.author = const Value.absent(),
     this.blackColor = const Value.absent(),
@@ -1149,33 +1049,34 @@ class CustomTerminalThemesCompanion
     this.selectionBackgroundColor = const Value.absent(),
     this.selectionForegroundColor = const Value.absent(),
     this.cursorTextColor = const Value.absent(),
+    this.rowid = const Value.absent(),
   });
   CustomTerminalThemesCompanion.insert({
-    this.id = const Value.absent(),
     required String name,
     this.author = const Value.absent(),
-    required int blackColor,
-    required int redColor,
-    required int greenColor,
-    required int yellowColor,
-    required int blueColor,
-    required int purpleColor,
-    required int cyanColor,
-    required int whiteColor,
-    required int brightBlackColor,
-    required int brightRedColor,
-    required int brightGreenColor,
-    required int brightYellowColor,
-    required int brightBlueColor,
-    required int brightPurpleColor,
-    required int brightCyanColor,
-    required int brightWhiteColor,
-    required int backgroundColor,
-    required int foregroundColor,
-    required int cursorColor,
-    required int selectionBackgroundColor,
+    required Color blackColor,
+    required Color redColor,
+    required Color greenColor,
+    required Color yellowColor,
+    required Color blueColor,
+    required Color purpleColor,
+    required Color cyanColor,
+    required Color whiteColor,
+    required Color brightBlackColor,
+    required Color brightRedColor,
+    required Color brightGreenColor,
+    required Color brightYellowColor,
+    required Color brightBlueColor,
+    required Color brightPurpleColor,
+    required Color brightCyanColor,
+    required Color brightWhiteColor,
+    required Color backgroundColor,
+    required Color foregroundColor,
+    required Color cursorColor,
+    required Color selectionBackgroundColor,
     this.selectionForegroundColor = const Value.absent(),
     this.cursorTextColor = const Value.absent(),
+    this.rowid = const Value.absent(),
   }) : name = Value(name),
        blackColor = Value(blackColor),
        redColor = Value(redColor),
@@ -1198,7 +1099,6 @@ class CustomTerminalThemesCompanion
        cursorColor = Value(cursorColor),
        selectionBackgroundColor = Value(selectionBackgroundColor);
   static Insertable<CustomTerminalTheme> custom({
-    Expression<int>? id,
     Expression<String>? name,
     Expression<String>? author,
     Expression<int>? blackColor,
@@ -1223,9 +1123,9 @@ class CustomTerminalThemesCompanion
     Expression<int>? selectionBackgroundColor,
     Expression<int>? selectionForegroundColor,
     Expression<int>? cursorTextColor,
+    Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
-      if (id != null) 'id': id,
       if (name != null) 'name': name,
       if (author != null) 'author': author,
       if (blackColor != null) 'black_color': blackColor,
@@ -1252,38 +1152,38 @@ class CustomTerminalThemesCompanion
       if (selectionForegroundColor != null)
         'selection_foreground_color': selectionForegroundColor,
       if (cursorTextColor != null) 'cursor_text_color': cursorTextColor,
+      if (rowid != null) 'rowid': rowid,
     });
   }
 
   CustomTerminalThemesCompanion copyWith({
-    Value<int>? id,
     Value<String>? name,
     Value<String?>? author,
-    Value<int>? blackColor,
-    Value<int>? redColor,
-    Value<int>? greenColor,
-    Value<int>? yellowColor,
-    Value<int>? blueColor,
-    Value<int>? purpleColor,
-    Value<int>? cyanColor,
-    Value<int>? whiteColor,
-    Value<int>? brightBlackColor,
-    Value<int>? brightRedColor,
-    Value<int>? brightGreenColor,
-    Value<int>? brightYellowColor,
-    Value<int>? brightBlueColor,
-    Value<int>? brightPurpleColor,
-    Value<int>? brightCyanColor,
-    Value<int>? brightWhiteColor,
-    Value<int>? backgroundColor,
-    Value<int>? foregroundColor,
-    Value<int>? cursorColor,
-    Value<int>? selectionBackgroundColor,
-    Value<int?>? selectionForegroundColor,
-    Value<int?>? cursorTextColor,
+    Value<Color>? blackColor,
+    Value<Color>? redColor,
+    Value<Color>? greenColor,
+    Value<Color>? yellowColor,
+    Value<Color>? blueColor,
+    Value<Color>? purpleColor,
+    Value<Color>? cyanColor,
+    Value<Color>? whiteColor,
+    Value<Color>? brightBlackColor,
+    Value<Color>? brightRedColor,
+    Value<Color>? brightGreenColor,
+    Value<Color>? brightYellowColor,
+    Value<Color>? brightBlueColor,
+    Value<Color>? brightPurpleColor,
+    Value<Color>? brightCyanColor,
+    Value<Color>? brightWhiteColor,
+    Value<Color>? backgroundColor,
+    Value<Color>? foregroundColor,
+    Value<Color>? cursorColor,
+    Value<Color>? selectionBackgroundColor,
+    Value<Color?>? selectionForegroundColor,
+    Value<Color?>? cursorTextColor,
+    Value<int>? rowid,
   }) {
     return CustomTerminalThemesCompanion(
-      id: id ?? this.id,
       name: name ?? this.name,
       author: author ?? this.author,
       blackColor: blackColor ?? this.blackColor,
@@ -1310,15 +1210,13 @@ class CustomTerminalThemesCompanion
       selectionForegroundColor:
           selectionForegroundColor ?? this.selectionForegroundColor,
       cursorTextColor: cursorTextColor ?? this.cursorTextColor,
+      rowid: rowid ?? this.rowid,
     );
   }
 
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
-    if (id.present) {
-      map['id'] = Variable<int>(id.value);
-    }
     if (name.present) {
       map['name'] = Variable<String>(name.value);
     }
@@ -1326,74 +1224,143 @@ class CustomTerminalThemesCompanion
       map['author'] = Variable<String>(author.value);
     }
     if (blackColor.present) {
-      map['black_color'] = Variable<int>(blackColor.value);
+      map['black_color'] = Variable<int>(
+        CustomTerminalThemes.$converterblackColor.toSql(blackColor.value),
+      );
     }
     if (redColor.present) {
-      map['red_color'] = Variable<int>(redColor.value);
+      map['red_color'] = Variable<int>(
+        CustomTerminalThemes.$converterredColor.toSql(redColor.value),
+      );
     }
     if (greenColor.present) {
-      map['green_color'] = Variable<int>(greenColor.value);
+      map['green_color'] = Variable<int>(
+        CustomTerminalThemes.$convertergreenColor.toSql(greenColor.value),
+      );
     }
     if (yellowColor.present) {
-      map['yellow_color'] = Variable<int>(yellowColor.value);
+      map['yellow_color'] = Variable<int>(
+        CustomTerminalThemes.$converteryellowColor.toSql(yellowColor.value),
+      );
     }
     if (blueColor.present) {
-      map['blue_color'] = Variable<int>(blueColor.value);
+      map['blue_color'] = Variable<int>(
+        CustomTerminalThemes.$converterblueColor.toSql(blueColor.value),
+      );
     }
     if (purpleColor.present) {
-      map['purple_color'] = Variable<int>(purpleColor.value);
+      map['purple_color'] = Variable<int>(
+        CustomTerminalThemes.$converterpurpleColor.toSql(purpleColor.value),
+      );
     }
     if (cyanColor.present) {
-      map['cyan_color'] = Variable<int>(cyanColor.value);
+      map['cyan_color'] = Variable<int>(
+        CustomTerminalThemes.$convertercyanColor.toSql(cyanColor.value),
+      );
     }
     if (whiteColor.present) {
-      map['white_color'] = Variable<int>(whiteColor.value);
+      map['white_color'] = Variable<int>(
+        CustomTerminalThemes.$converterwhiteColor.toSql(whiteColor.value),
+      );
     }
     if (brightBlackColor.present) {
-      map['bright_black_color'] = Variable<int>(brightBlackColor.value);
+      map['bright_black_color'] = Variable<int>(
+        CustomTerminalThemes.$converterbrightBlackColor.toSql(
+          brightBlackColor.value,
+        ),
+      );
     }
     if (brightRedColor.present) {
-      map['bright_red_color'] = Variable<int>(brightRedColor.value);
+      map['bright_red_color'] = Variable<int>(
+        CustomTerminalThemes.$converterbrightRedColor.toSql(
+          brightRedColor.value,
+        ),
+      );
     }
     if (brightGreenColor.present) {
-      map['bright_green_color'] = Variable<int>(brightGreenColor.value);
+      map['bright_green_color'] = Variable<int>(
+        CustomTerminalThemes.$converterbrightGreenColor.toSql(
+          brightGreenColor.value,
+        ),
+      );
     }
     if (brightYellowColor.present) {
-      map['bright_yellow_color'] = Variable<int>(brightYellowColor.value);
+      map['bright_yellow_color'] = Variable<int>(
+        CustomTerminalThemes.$converterbrightYellowColor.toSql(
+          brightYellowColor.value,
+        ),
+      );
     }
     if (brightBlueColor.present) {
-      map['bright_blue_color'] = Variable<int>(brightBlueColor.value);
+      map['bright_blue_color'] = Variable<int>(
+        CustomTerminalThemes.$converterbrightBlueColor.toSql(
+          brightBlueColor.value,
+        ),
+      );
     }
     if (brightPurpleColor.present) {
-      map['bright_purple_color'] = Variable<int>(brightPurpleColor.value);
+      map['bright_purple_color'] = Variable<int>(
+        CustomTerminalThemes.$converterbrightPurpleColor.toSql(
+          brightPurpleColor.value,
+        ),
+      );
     }
     if (brightCyanColor.present) {
-      map['bright_cyan_color'] = Variable<int>(brightCyanColor.value);
+      map['bright_cyan_color'] = Variable<int>(
+        CustomTerminalThemes.$converterbrightCyanColor.toSql(
+          brightCyanColor.value,
+        ),
+      );
     }
     if (brightWhiteColor.present) {
-      map['bright_white_color'] = Variable<int>(brightWhiteColor.value);
+      map['bright_white_color'] = Variable<int>(
+        CustomTerminalThemes.$converterbrightWhiteColor.toSql(
+          brightWhiteColor.value,
+        ),
+      );
     }
     if (backgroundColor.present) {
-      map['background_color'] = Variable<int>(backgroundColor.value);
+      map['background_color'] = Variable<int>(
+        CustomTerminalThemes.$converterbackgroundColor.toSql(
+          backgroundColor.value,
+        ),
+      );
     }
     if (foregroundColor.present) {
-      map['foreground_color'] = Variable<int>(foregroundColor.value);
+      map['foreground_color'] = Variable<int>(
+        CustomTerminalThemes.$converterforegroundColor.toSql(
+          foregroundColor.value,
+        ),
+      );
     }
     if (cursorColor.present) {
-      map['cursor_color'] = Variable<int>(cursorColor.value);
+      map['cursor_color'] = Variable<int>(
+        CustomTerminalThemes.$convertercursorColor.toSql(cursorColor.value),
+      );
     }
     if (selectionBackgroundColor.present) {
       map['selection_background_color'] = Variable<int>(
-        selectionBackgroundColor.value,
+        CustomTerminalThemes.$converterselectionBackgroundColor.toSql(
+          selectionBackgroundColor.value,
+        ),
       );
     }
     if (selectionForegroundColor.present) {
       map['selection_foreground_color'] = Variable<int>(
-        selectionForegroundColor.value,
+        CustomTerminalThemes.$converterselectionForegroundColorn.toSql(
+          selectionForegroundColor.value,
+        ),
       );
     }
     if (cursorTextColor.present) {
-      map['cursor_text_color'] = Variable<int>(cursorTextColor.value);
+      map['cursor_text_color'] = Variable<int>(
+        CustomTerminalThemes.$convertercursorTextColorn.toSql(
+          cursorTextColor.value,
+        ),
+      );
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
     }
     return map;
   }
@@ -1401,7 +1368,6 @@ class CustomTerminalThemesCompanion
   @override
   String toString() {
     return (StringBuffer('CustomTerminalThemesCompanion(')
-          ..write('id: $id, ')
           ..write('name: $name, ')
           ..write('author: $author, ')
           ..write('blackColor: $blackColor, ')
@@ -1425,7 +1391,8 @@ class CustomTerminalThemesCompanion
           ..write('cursorColor: $cursorColor, ')
           ..write('selectionBackgroundColor: $selectionBackgroundColor, ')
           ..write('selectionForegroundColor: $selectionForegroundColor, ')
-          ..write('cursorTextColor: $cursorTextColor')
+          ..write('cursorTextColor: $cursorTextColor, ')
+          ..write('rowid: $rowid')
           ..write(')'))
         .toString();
   }
@@ -2090,6 +2057,40 @@ class Connections extends Table with TableInfo<Connections, Connection> {
     requiredDuringInsert: false,
     $customConstraints: '',
   );
+  static const VerificationMeta _terminalFontSizeOverrideMeta =
+      const VerificationMeta('terminalFontSizeOverride');
+  late final GeneratedColumn<int> terminalFontSizeOverride =
+      GeneratedColumn<int>(
+        'terminal_font_size_override',
+        aliasedName,
+        true,
+        type: DriftSqlType.int,
+        requiredDuringInsert: false,
+        $customConstraints: '',
+      );
+  static const VerificationMeta _terminalFontFamilyOverrideMeta =
+      const VerificationMeta('terminalFontFamilyOverride');
+  late final GeneratedColumn<String> terminalFontFamilyOverride =
+      GeneratedColumn<String>(
+        'terminal_font_family_override',
+        aliasedName,
+        true,
+        type: DriftSqlType.string,
+        requiredDuringInsert: false,
+        $customConstraints: '',
+      );
+  static const VerificationMeta _terminalThemeOverrideNameMeta =
+      const VerificationMeta('terminalThemeOverrideName');
+  late final GeneratedColumn<String> terminalThemeOverrideName =
+      GeneratedColumn<String>(
+        'terminal_theme_override_name',
+        aliasedName,
+        true,
+        type: DriftSqlType.string,
+        requiredDuringInsert: false,
+        $customConstraints:
+            'REFERENCES custom_terminal_themes(name)ON DELETE SET NULL',
+      );
   @override
   List<GeneratedColumn> get $columns => [
     id,
@@ -2102,6 +2103,9 @@ class Connections extends Table with TableInfo<Connections, Connection> {
     icon,
     color,
     groupName,
+    terminalFontSizeOverride,
+    terminalFontFamilyOverride,
+    terminalThemeOverrideName,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -2173,6 +2177,33 @@ class Connections extends Table with TableInfo<Connections, Connection> {
         groupName.isAcceptableOrUnknown(data['group_name']!, _groupNameMeta),
       );
     }
+    if (data.containsKey('terminal_font_size_override')) {
+      context.handle(
+        _terminalFontSizeOverrideMeta,
+        terminalFontSizeOverride.isAcceptableOrUnknown(
+          data['terminal_font_size_override']!,
+          _terminalFontSizeOverrideMeta,
+        ),
+      );
+    }
+    if (data.containsKey('terminal_font_family_override')) {
+      context.handle(
+        _terminalFontFamilyOverrideMeta,
+        terminalFontFamilyOverride.isAcceptableOrUnknown(
+          data['terminal_font_family_override']!,
+          _terminalFontFamilyOverrideMeta,
+        ),
+      );
+    }
+    if (data.containsKey('terminal_theme_override_name')) {
+      context.handle(
+        _terminalThemeOverrideNameMeta,
+        terminalThemeOverrideName.isAcceptableOrUnknown(
+          data['terminal_theme_override_name']!,
+          _terminalThemeOverrideNameMeta,
+        ),
+      );
+    }
     return context;
   }
 
@@ -2224,6 +2255,18 @@ class Connections extends Table with TableInfo<Connections, Connection> {
         DriftSqlType.string,
         data['${effectivePrefix}group_name'],
       ),
+      terminalFontSizeOverride: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}terminal_font_size_override'],
+      ),
+      terminalFontFamilyOverride: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}terminal_font_family_override'],
+      ),
+      terminalThemeOverrideName: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}terminal_theme_override_name'],
+      ),
     );
   }
 
@@ -2249,6 +2292,9 @@ class Connection extends DataClass implements Insertable<Connection> {
   final ConnectionIcon icon;
   final String? color;
   final String? groupName;
+  final int? terminalFontSizeOverride;
+  final String? terminalFontFamilyOverride;
+  final String? terminalThemeOverrideName;
   const Connection({
     required this.id,
     required this.address,
@@ -2260,6 +2306,9 @@ class Connection extends DataClass implements Insertable<Connection> {
     required this.icon,
     this.color,
     this.groupName,
+    this.terminalFontSizeOverride,
+    this.terminalFontFamilyOverride,
+    this.terminalThemeOverrideName,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -2288,6 +2337,21 @@ class Connection extends DataClass implements Insertable<Connection> {
     if (!nullToAbsent || groupName != null) {
       map['group_name'] = Variable<String>(groupName);
     }
+    if (!nullToAbsent || terminalFontSizeOverride != null) {
+      map['terminal_font_size_override'] = Variable<int>(
+        terminalFontSizeOverride,
+      );
+    }
+    if (!nullToAbsent || terminalFontFamilyOverride != null) {
+      map['terminal_font_family_override'] = Variable<String>(
+        terminalFontFamilyOverride,
+      );
+    }
+    if (!nullToAbsent || terminalThemeOverrideName != null) {
+      map['terminal_theme_override_name'] = Variable<String>(
+        terminalThemeOverrideName,
+      );
+    }
     return map;
   }
 
@@ -2315,6 +2379,17 @@ class Connection extends DataClass implements Insertable<Connection> {
       groupName: groupName == null && nullToAbsent
           ? const Value.absent()
           : Value(groupName),
+      terminalFontSizeOverride: terminalFontSizeOverride == null && nullToAbsent
+          ? const Value.absent()
+          : Value(terminalFontSizeOverride),
+      terminalFontFamilyOverride:
+          terminalFontFamilyOverride == null && nullToAbsent
+          ? const Value.absent()
+          : Value(terminalFontFamilyOverride),
+      terminalThemeOverrideName:
+          terminalThemeOverrideName == null && nullToAbsent
+          ? const Value.absent()
+          : Value(terminalThemeOverrideName),
     );
   }
 
@@ -2336,6 +2411,15 @@ class Connection extends DataClass implements Insertable<Connection> {
       ),
       color: serializer.fromJson<String?>(json['color']),
       groupName: serializer.fromJson<String?>(json['group_name']),
+      terminalFontSizeOverride: serializer.fromJson<int?>(
+        json['terminal_font_size_override'],
+      ),
+      terminalFontFamilyOverride: serializer.fromJson<String?>(
+        json['terminal_font_family_override'],
+      ),
+      terminalThemeOverrideName: serializer.fromJson<String?>(
+        json['terminal_theme_override_name'],
+      ),
     );
   }
   @override
@@ -2352,6 +2436,15 @@ class Connection extends DataClass implements Insertable<Connection> {
       'icon': serializer.toJson<int>(Connections.$convertericon.toJson(icon)),
       'color': serializer.toJson<String?>(color),
       'group_name': serializer.toJson<String?>(groupName),
+      'terminal_font_size_override': serializer.toJson<int?>(
+        terminalFontSizeOverride,
+      ),
+      'terminal_font_family_override': serializer.toJson<String?>(
+        terminalFontFamilyOverride,
+      ),
+      'terminal_theme_override_name': serializer.toJson<String?>(
+        terminalThemeOverrideName,
+      ),
     };
   }
 
@@ -2366,6 +2459,9 @@ class Connection extends DataClass implements Insertable<Connection> {
     ConnectionIcon? icon,
     Value<String?> color = const Value.absent(),
     Value<String?> groupName = const Value.absent(),
+    Value<int?> terminalFontSizeOverride = const Value.absent(),
+    Value<String?> terminalFontFamilyOverride = const Value.absent(),
+    Value<String?> terminalThemeOverrideName = const Value.absent(),
   }) => Connection(
     id: id ?? this.id,
     address: address ?? this.address,
@@ -2377,6 +2473,15 @@ class Connection extends DataClass implements Insertable<Connection> {
     icon: icon ?? this.icon,
     color: color.present ? color.value : this.color,
     groupName: groupName.present ? groupName.value : this.groupName,
+    terminalFontSizeOverride: terminalFontSizeOverride.present
+        ? terminalFontSizeOverride.value
+        : this.terminalFontSizeOverride,
+    terminalFontFamilyOverride: terminalFontFamilyOverride.present
+        ? terminalFontFamilyOverride.value
+        : this.terminalFontFamilyOverride,
+    terminalThemeOverrideName: terminalThemeOverrideName.present
+        ? terminalThemeOverrideName.value
+        : this.terminalThemeOverrideName,
   );
   Connection copyWithCompanion(ConnectionsCompanion data) {
     return Connection(
@@ -2394,6 +2499,15 @@ class Connection extends DataClass implements Insertable<Connection> {
       icon: data.icon.present ? data.icon.value : this.icon,
       color: data.color.present ? data.color.value : this.color,
       groupName: data.groupName.present ? data.groupName.value : this.groupName,
+      terminalFontSizeOverride: data.terminalFontSizeOverride.present
+          ? data.terminalFontSizeOverride.value
+          : this.terminalFontSizeOverride,
+      terminalFontFamilyOverride: data.terminalFontFamilyOverride.present
+          ? data.terminalFontFamilyOverride.value
+          : this.terminalFontFamilyOverride,
+      terminalThemeOverrideName: data.terminalThemeOverrideName.present
+          ? data.terminalThemeOverrideName.value
+          : this.terminalThemeOverrideName,
     );
   }
 
@@ -2409,7 +2523,10 @@ class Connection extends DataClass implements Insertable<Connection> {
           ..write('label: $label, ')
           ..write('icon: $icon, ')
           ..write('color: $color, ')
-          ..write('groupName: $groupName')
+          ..write('groupName: $groupName, ')
+          ..write('terminalFontSizeOverride: $terminalFontSizeOverride, ')
+          ..write('terminalFontFamilyOverride: $terminalFontFamilyOverride, ')
+          ..write('terminalThemeOverrideName: $terminalThemeOverrideName')
           ..write(')'))
         .toString();
   }
@@ -2426,6 +2543,9 @@ class Connection extends DataClass implements Insertable<Connection> {
     icon,
     color,
     groupName,
+    terminalFontSizeOverride,
+    terminalFontFamilyOverride,
+    terminalThemeOverrideName,
   );
   @override
   bool operator ==(Object other) =>
@@ -2440,7 +2560,10 @@ class Connection extends DataClass implements Insertable<Connection> {
           other.label == this.label &&
           other.icon == this.icon &&
           other.color == this.color &&
-          other.groupName == this.groupName);
+          other.groupName == this.groupName &&
+          other.terminalFontSizeOverride == this.terminalFontSizeOverride &&
+          other.terminalFontFamilyOverride == this.terminalFontFamilyOverride &&
+          other.terminalThemeOverrideName == this.terminalThemeOverrideName);
 }
 
 class ConnectionsCompanion extends UpdateCompanion<Connection> {
@@ -2454,6 +2577,9 @@ class ConnectionsCompanion extends UpdateCompanion<Connection> {
   final Value<ConnectionIcon> icon;
   final Value<String?> color;
   final Value<String?> groupName;
+  final Value<int?> terminalFontSizeOverride;
+  final Value<String?> terminalFontFamilyOverride;
+  final Value<String?> terminalThemeOverrideName;
   const ConnectionsCompanion({
     this.id = const Value.absent(),
     this.address = const Value.absent(),
@@ -2465,6 +2591,9 @@ class ConnectionsCompanion extends UpdateCompanion<Connection> {
     this.icon = const Value.absent(),
     this.color = const Value.absent(),
     this.groupName = const Value.absent(),
+    this.terminalFontSizeOverride = const Value.absent(),
+    this.terminalFontFamilyOverride = const Value.absent(),
+    this.terminalThemeOverrideName = const Value.absent(),
   });
   ConnectionsCompanion.insert({
     this.id = const Value.absent(),
@@ -2477,6 +2606,9 @@ class ConnectionsCompanion extends UpdateCompanion<Connection> {
     this.icon = const Value.absent(),
     this.color = const Value.absent(),
     this.groupName = const Value.absent(),
+    this.terminalFontSizeOverride = const Value.absent(),
+    this.terminalFontFamilyOverride = const Value.absent(),
+    this.terminalThemeOverrideName = const Value.absent(),
   }) : address = Value(address),
        port = Value(port);
   static Insertable<Connection> custom({
@@ -2490,6 +2622,9 @@ class ConnectionsCompanion extends UpdateCompanion<Connection> {
     Expression<int>? icon,
     Expression<String>? color,
     Expression<String>? groupName,
+    Expression<int>? terminalFontSizeOverride,
+    Expression<String>? terminalFontFamilyOverride,
+    Expression<String>? terminalThemeOverrideName,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
@@ -2502,6 +2637,12 @@ class ConnectionsCompanion extends UpdateCompanion<Connection> {
       if (icon != null) 'icon': icon,
       if (color != null) 'color': color,
       if (groupName != null) 'group_name': groupName,
+      if (terminalFontSizeOverride != null)
+        'terminal_font_size_override': terminalFontSizeOverride,
+      if (terminalFontFamilyOverride != null)
+        'terminal_font_family_override': terminalFontFamilyOverride,
+      if (terminalThemeOverrideName != null)
+        'terminal_theme_override_name': terminalThemeOverrideName,
     });
   }
 
@@ -2516,6 +2657,9 @@ class ConnectionsCompanion extends UpdateCompanion<Connection> {
     Value<ConnectionIcon>? icon,
     Value<String?>? color,
     Value<String?>? groupName,
+    Value<int?>? terminalFontSizeOverride,
+    Value<String?>? terminalFontFamilyOverride,
+    Value<String?>? terminalThemeOverrideName,
   }) {
     return ConnectionsCompanion(
       id: id ?? this.id,
@@ -2528,6 +2672,12 @@ class ConnectionsCompanion extends UpdateCompanion<Connection> {
       icon: icon ?? this.icon,
       color: color ?? this.color,
       groupName: groupName ?? this.groupName,
+      terminalFontSizeOverride:
+          terminalFontSizeOverride ?? this.terminalFontSizeOverride,
+      terminalFontFamilyOverride:
+          terminalFontFamilyOverride ?? this.terminalFontFamilyOverride,
+      terminalThemeOverrideName:
+          terminalThemeOverrideName ?? this.terminalThemeOverrideName,
     );
   }
 
@@ -2564,6 +2714,21 @@ class ConnectionsCompanion extends UpdateCompanion<Connection> {
     if (groupName.present) {
       map['group_name'] = Variable<String>(groupName.value);
     }
+    if (terminalFontSizeOverride.present) {
+      map['terminal_font_size_override'] = Variable<int>(
+        terminalFontSizeOverride.value,
+      );
+    }
+    if (terminalFontFamilyOverride.present) {
+      map['terminal_font_family_override'] = Variable<String>(
+        terminalFontFamilyOverride.value,
+      );
+    }
+    if (terminalThemeOverrideName.present) {
+      map['terminal_theme_override_name'] = Variable<String>(
+        terminalThemeOverrideName.value,
+      );
+    }
     return map;
   }
 
@@ -2579,7 +2744,10 @@ class ConnectionsCompanion extends UpdateCompanion<Connection> {
           ..write('label: $label, ')
           ..write('icon: $icon, ')
           ..write('color: $color, ')
-          ..write('groupName: $groupName')
+          ..write('groupName: $groupName, ')
+          ..write('terminalFontSizeOverride: $terminalFontSizeOverride, ')
+          ..write('terminalFontFamilyOverride: $terminalFontFamilyOverride, ')
+          ..write('terminalThemeOverrideName: $terminalThemeOverrideName')
           ..write(')'))
         .toString();
   }
@@ -2594,23 +2762,30 @@ abstract class _$CliqDatabase extends GeneratedDatabase {
   late final Credentials credentials = Credentials(this);
   late final Identities identities = Identities(this);
   late final Connections connections = Connections(this);
-  Selectable<FindFullIdentityByIdResult> findFullIdentityById(int id) {
+  Selectable<FindAllConnectionFullResult> findAllConnectionFull() {
     return customSelect(
-      'SELECT i.id AS identity_id, i.username AS identity_username, i.credential_id AS identity_credential_id, c.id AS credential_id, c.type AS credential_type, c.data AS credential_data, c.passphrase AS credential_passphrase FROM identities AS i LEFT JOIN credentials AS c ON c.id = i.credential_id WHERE i.id = ?1',
-      variables: [Variable<int>(id)],
-      readsFrom: {identities, credentials},
-    ).map(
-      (QueryRow row) => FindFullIdentityByIdResult(
-        identityId: row.read<int>('identity_id'),
-        identityUsername: row.read<String>('identity_username'),
-        identityCredentialId: row.read<int>('identity_credential_id'),
-        credentialId: row.readNullable<int>('credential_id'),
-        credentialType: NullAwareTypeConverter.wrapFromSql(
-          Credentials.$convertertype,
-          row.readNullable<int>('credential_type'),
+      'SELECT"c"."id" AS "nested_0.id", "c"."address" AS "nested_0.address", "c"."port" AS "nested_0.port", "c"."identity_id" AS "nested_0.identity_id", "c"."username" AS "nested_0.username", "c"."credential_id" AS "nested_0.credential_id", "c"."label" AS "nested_0.label", "c"."icon" AS "nested_0.icon", "c"."color" AS "nested_0.color", "c"."group_name" AS "nested_0.group_name", "c"."terminal_font_size_override" AS "nested_0.terminal_font_size_override", "c"."terminal_font_family_override" AS "nested_0.terminal_font_family_override", "c"."terminal_theme_override_name" AS "nested_0.terminal_theme_override_name","i"."id" AS "nested_1.id", "i"."username" AS "nested_1.username", "i"."credential_id" AS "nested_1.credential_id","cc"."id" AS "nested_2.id", "cc"."type" AS "nested_2.type", "cc"."data" AS "nested_2.data", "cc"."passphrase" AS "nested_2.passphrase","ci"."id" AS "nested_3.id", "ci"."type" AS "nested_3.type", "ci"."data" AS "nested_3.data", "ci"."passphrase" AS "nested_3.passphrase","t"."name" AS "nested_4.name", "t"."author" AS "nested_4.author", "t"."black_color" AS "nested_4.black_color", "t"."red_color" AS "nested_4.red_color", "t"."green_color" AS "nested_4.green_color", "t"."yellow_color" AS "nested_4.yellow_color", "t"."blue_color" AS "nested_4.blue_color", "t"."purple_color" AS "nested_4.purple_color", "t"."cyan_color" AS "nested_4.cyan_color", "t"."white_color" AS "nested_4.white_color", "t"."bright_black_color" AS "nested_4.bright_black_color", "t"."bright_red_color" AS "nested_4.bright_red_color", "t"."bright_green_color" AS "nested_4.bright_green_color", "t"."bright_yellow_color" AS "nested_4.bright_yellow_color", "t"."bright_blue_color" AS "nested_4.bright_blue_color", "t"."bright_purple_color" AS "nested_4.bright_purple_color", "t"."bright_cyan_color" AS "nested_4.bright_cyan_color", "t"."bright_white_color" AS "nested_4.bright_white_color", "t"."background_color" AS "nested_4.background_color", "t"."foreground_color" AS "nested_4.foreground_color", "t"."cursor_color" AS "nested_4.cursor_color", "t"."selection_background_color" AS "nested_4.selection_background_color", "t"."selection_foreground_color" AS "nested_4.selection_foreground_color", "t"."cursor_text_color" AS "nested_4.cursor_text_color" FROM connections AS c LEFT JOIN identities AS i ON c.identity_id = i.id LEFT JOIN credentials AS cc ON c.credential_id = cc.id LEFT JOIN credentials AS ci ON i.credential_id = ci.id LEFT JOIN custom_terminal_themes AS t ON c.terminal_theme_override_name = t.name',
+      variables: [],
+      readsFrom: {connections, identities, credentials, customTerminalThemes},
+    ).asyncMap(
+      (QueryRow row) async => FindAllConnectionFullResult(
+        connection: await connections.mapFromRow(row, tablePrefix: 'nested_0'),
+        identity: await identities.mapFromRowOrNull(
+          row,
+          tablePrefix: 'nested_1',
         ),
-        credentialData: row.readNullable<String>('credential_data'),
-        credentialPassphrase: row.readNullable<String>('credential_passphrase'),
+        credential: await credentials.mapFromRowOrNull(
+          row,
+          tablePrefix: 'nested_2',
+        ),
+        identityCredential: await credentials.mapFromRowOrNull(
+          row,
+          tablePrefix: 'nested_3',
+        ),
+        terminalThemeOverride: await customTerminalThemes.mapFromRowOrNull(
+          row,
+          tablePrefix: 'nested_4',
+        ),
       ),
     );
   }
@@ -2621,71 +2796,6 @@ abstract class _$CliqDatabase extends GeneratedDatabase {
       variables: [],
       readsFrom: {connections},
     ).map((QueryRow row) => row.readNullable<String>('group_name'));
-  }
-
-  Selectable<FindAllConnectionFullResult> findAllConnectionFull() {
-    return customSelect(
-      'SELECT con.id AS connection_id, con.address, con.port, con.identity_id, con.username AS connection_username, con.credential_id AS connection_credential_ref_id, con.label, con.icon, con.color, con.group_name, i.id AS identity_id, i.username AS identity_username, i.credential_id AS identity_credential_ref_id, ci.id AS identity_credential_id_explicit, ci.type AS identity_credential_type, ci.data AS identity_credential_data, ci.passphrase AS identity_credential_passphrase, cc.id AS connection_credential_id_explicit, cc.type AS connection_credential_type, cc.data AS connection_credential_data, cc.passphrase AS connection_credential_passphrase, COALESCE(ci.id, cc.id) AS effective_credential_id, COALESCE(ci.type, cc.type) AS effective_credential_type, COALESCE(ci.data, cc.data) AS effective_credential_data, COALESCE(ci.passphrase, cc.passphrase) AS effective_credential_passphrase FROM connections AS con LEFT JOIN identities AS i ON i.id = con.identity_id LEFT JOIN credentials AS ci ON ci.id = i.credential_id LEFT JOIN credentials AS cc ON cc.id = con.credential_id ORDER BY con.id',
-      variables: [],
-      readsFrom: {connections, identities, credentials},
-    ).map(
-      (QueryRow row) => FindAllConnectionFullResult(
-        connectionId: row.read<int>('connection_id'),
-        address: row.read<String>('address'),
-        port: row.read<int>('port'),
-        identityId: row.readNullable<int>('identity_id'),
-        connectionUsername: row.readNullable<String>('connection_username'),
-        connectionCredentialRefId: row.readNullable<int>(
-          'connection_credential_ref_id',
-        ),
-        label: row.readNullable<String>('label'),
-        icon: Connections.$convertericon.fromSql(row.read<int>('icon')),
-        color: row.readNullable<String>('color'),
-        groupName: row.readNullable<String>('group_name'),
-        identityId1: row.readNullable<int>('identity_id'),
-        identityUsername: row.readNullable<String>('identity_username'),
-        identityCredentialRefId: row.readNullable<int>(
-          'identity_credential_ref_id',
-        ),
-        identityCredentialIdExplicit: row.readNullable<int>(
-          'identity_credential_id_explicit',
-        ),
-        identityCredentialType: NullAwareTypeConverter.wrapFromSql(
-          Credentials.$convertertype,
-          row.readNullable<int>('identity_credential_type'),
-        ),
-        identityCredentialData: row.readNullable<String>(
-          'identity_credential_data',
-        ),
-        identityCredentialPassphrase: row.readNullable<String>(
-          'identity_credential_passphrase',
-        ),
-        connectionCredentialIdExplicit: row.readNullable<int>(
-          'connection_credential_id_explicit',
-        ),
-        connectionCredentialType: NullAwareTypeConverter.wrapFromSql(
-          Credentials.$convertertype,
-          row.readNullable<int>('connection_credential_type'),
-        ),
-        connectionCredentialData: row.readNullable<String>(
-          'connection_credential_data',
-        ),
-        connectionCredentialPassphrase: row.readNullable<String>(
-          'connection_credential_passphrase',
-        ),
-        effectiveCredentialId: row.readNullable<int>('effective_credential_id'),
-        effectiveCredentialType: NullAwareTypeConverter.wrapFromSql(
-          Credentials.$convertertype,
-          row.readNullable<int>('effective_credential_type'),
-        ),
-        effectiveCredentialData: row.readNullable<String>(
-          'effective_credential_data',
-        ),
-        effectiveCredentialPassphrase: row.readNullable<String>(
-          'effective_credential_passphrase',
-        ),
-      ),
-    );
   }
 
   @override
@@ -2714,65 +2824,108 @@ abstract class _$CliqDatabase extends GeneratedDatabase {
       ),
       result: [TableUpdate('connections', kind: UpdateKind.delete)],
     ),
+    WritePropagation(
+      on: TableUpdateQuery.onTableName(
+        'custom_terminal_themes',
+        limitUpdateKind: UpdateKind.delete,
+      ),
+      result: [TableUpdate('connections', kind: UpdateKind.update)],
+    ),
   ]);
 }
 
 typedef $CustomTerminalThemesCreateCompanionBuilder =
     CustomTerminalThemesCompanion Function({
-      Value<int> id,
       required String name,
       Value<String?> author,
-      required int blackColor,
-      required int redColor,
-      required int greenColor,
-      required int yellowColor,
-      required int blueColor,
-      required int purpleColor,
-      required int cyanColor,
-      required int whiteColor,
-      required int brightBlackColor,
-      required int brightRedColor,
-      required int brightGreenColor,
-      required int brightYellowColor,
-      required int brightBlueColor,
-      required int brightPurpleColor,
-      required int brightCyanColor,
-      required int brightWhiteColor,
-      required int backgroundColor,
-      required int foregroundColor,
-      required int cursorColor,
-      required int selectionBackgroundColor,
-      Value<int?> selectionForegroundColor,
-      Value<int?> cursorTextColor,
+      required Color blackColor,
+      required Color redColor,
+      required Color greenColor,
+      required Color yellowColor,
+      required Color blueColor,
+      required Color purpleColor,
+      required Color cyanColor,
+      required Color whiteColor,
+      required Color brightBlackColor,
+      required Color brightRedColor,
+      required Color brightGreenColor,
+      required Color brightYellowColor,
+      required Color brightBlueColor,
+      required Color brightPurpleColor,
+      required Color brightCyanColor,
+      required Color brightWhiteColor,
+      required Color backgroundColor,
+      required Color foregroundColor,
+      required Color cursorColor,
+      required Color selectionBackgroundColor,
+      Value<Color?> selectionForegroundColor,
+      Value<Color?> cursorTextColor,
+      Value<int> rowid,
     });
 typedef $CustomTerminalThemesUpdateCompanionBuilder =
     CustomTerminalThemesCompanion Function({
-      Value<int> id,
       Value<String> name,
       Value<String?> author,
-      Value<int> blackColor,
-      Value<int> redColor,
-      Value<int> greenColor,
-      Value<int> yellowColor,
-      Value<int> blueColor,
-      Value<int> purpleColor,
-      Value<int> cyanColor,
-      Value<int> whiteColor,
-      Value<int> brightBlackColor,
-      Value<int> brightRedColor,
-      Value<int> brightGreenColor,
-      Value<int> brightYellowColor,
-      Value<int> brightBlueColor,
-      Value<int> brightPurpleColor,
-      Value<int> brightCyanColor,
-      Value<int> brightWhiteColor,
-      Value<int> backgroundColor,
-      Value<int> foregroundColor,
-      Value<int> cursorColor,
-      Value<int> selectionBackgroundColor,
-      Value<int?> selectionForegroundColor,
-      Value<int?> cursorTextColor,
+      Value<Color> blackColor,
+      Value<Color> redColor,
+      Value<Color> greenColor,
+      Value<Color> yellowColor,
+      Value<Color> blueColor,
+      Value<Color> purpleColor,
+      Value<Color> cyanColor,
+      Value<Color> whiteColor,
+      Value<Color> brightBlackColor,
+      Value<Color> brightRedColor,
+      Value<Color> brightGreenColor,
+      Value<Color> brightYellowColor,
+      Value<Color> brightBlueColor,
+      Value<Color> brightPurpleColor,
+      Value<Color> brightCyanColor,
+      Value<Color> brightWhiteColor,
+      Value<Color> backgroundColor,
+      Value<Color> foregroundColor,
+      Value<Color> cursorColor,
+      Value<Color> selectionBackgroundColor,
+      Value<Color?> selectionForegroundColor,
+      Value<Color?> cursorTextColor,
+      Value<int> rowid,
     });
+
+final class $CustomTerminalThemesReferences
+    extends
+        BaseReferences<
+          _$CliqDatabase,
+          CustomTerminalThemes,
+          CustomTerminalTheme
+        > {
+  $CustomTerminalThemesReferences(
+    super.$_db,
+    super.$_table,
+    super.$_typedResult,
+  );
+
+  static MultiTypedResultKey<Connections, List<Connection>>
+  _connectionsRefsTable(_$CliqDatabase db) => MultiTypedResultKey.fromTable(
+    db.connections,
+    aliasName: $_aliasNameGenerator(
+      db.customTerminalThemes.name,
+      db.connections.terminalThemeOverrideName,
+    ),
+  );
+
+  $ConnectionsProcessedTableManager get connectionsRefs {
+    final manager = $ConnectionsTableManager($_db, $_db.connections).filter(
+      (f) => f.terminalThemeOverrideName.name.sqlEquals(
+        $_itemColumn<String>('name')!,
+      ),
+    );
+
+    final cache = $_typedResult.readTableOrNull(_connectionsRefsTable($_db));
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
+}
 
 class $CustomTerminalThemesFilterComposer
     extends Composer<_$CliqDatabase, CustomTerminalThemes> {
@@ -2783,11 +2936,6 @@ class $CustomTerminalThemesFilterComposer
     super.$addJoinBuilderToRootComposer,
     super.$removeJoinBuilderFromRootComposer,
   });
-  ColumnFilters<int> get id => $composableBuilder(
-    column: $table.id,
-    builder: (column) => ColumnFilters(column),
-  );
-
   ColumnFilters<String> get name => $composableBuilder(
     column: $table.name,
     builder: (column) => ColumnFilters(column),
@@ -2798,115 +2946,162 @@ class $CustomTerminalThemesFilterComposer
     builder: (column) => ColumnFilters(column),
   );
 
-  ColumnFilters<int> get blackColor => $composableBuilder(
-    column: $table.blackColor,
-    builder: (column) => ColumnFilters(column),
-  );
+  ColumnWithTypeConverterFilters<Color, Color, int> get blackColor =>
+      $composableBuilder(
+        column: $table.blackColor,
+        builder: (column) => ColumnWithTypeConverterFilters(column),
+      );
 
-  ColumnFilters<int> get redColor => $composableBuilder(
-    column: $table.redColor,
-    builder: (column) => ColumnFilters(column),
-  );
+  ColumnWithTypeConverterFilters<Color, Color, int> get redColor =>
+      $composableBuilder(
+        column: $table.redColor,
+        builder: (column) => ColumnWithTypeConverterFilters(column),
+      );
 
-  ColumnFilters<int> get greenColor => $composableBuilder(
-    column: $table.greenColor,
-    builder: (column) => ColumnFilters(column),
-  );
+  ColumnWithTypeConverterFilters<Color, Color, int> get greenColor =>
+      $composableBuilder(
+        column: $table.greenColor,
+        builder: (column) => ColumnWithTypeConverterFilters(column),
+      );
 
-  ColumnFilters<int> get yellowColor => $composableBuilder(
-    column: $table.yellowColor,
-    builder: (column) => ColumnFilters(column),
-  );
+  ColumnWithTypeConverterFilters<Color, Color, int> get yellowColor =>
+      $composableBuilder(
+        column: $table.yellowColor,
+        builder: (column) => ColumnWithTypeConverterFilters(column),
+      );
 
-  ColumnFilters<int> get blueColor => $composableBuilder(
-    column: $table.blueColor,
-    builder: (column) => ColumnFilters(column),
-  );
+  ColumnWithTypeConverterFilters<Color, Color, int> get blueColor =>
+      $composableBuilder(
+        column: $table.blueColor,
+        builder: (column) => ColumnWithTypeConverterFilters(column),
+      );
 
-  ColumnFilters<int> get purpleColor => $composableBuilder(
-    column: $table.purpleColor,
-    builder: (column) => ColumnFilters(column),
-  );
+  ColumnWithTypeConverterFilters<Color, Color, int> get purpleColor =>
+      $composableBuilder(
+        column: $table.purpleColor,
+        builder: (column) => ColumnWithTypeConverterFilters(column),
+      );
 
-  ColumnFilters<int> get cyanColor => $composableBuilder(
-    column: $table.cyanColor,
-    builder: (column) => ColumnFilters(column),
-  );
+  ColumnWithTypeConverterFilters<Color, Color, int> get cyanColor =>
+      $composableBuilder(
+        column: $table.cyanColor,
+        builder: (column) => ColumnWithTypeConverterFilters(column),
+      );
 
-  ColumnFilters<int> get whiteColor => $composableBuilder(
-    column: $table.whiteColor,
-    builder: (column) => ColumnFilters(column),
-  );
+  ColumnWithTypeConverterFilters<Color, Color, int> get whiteColor =>
+      $composableBuilder(
+        column: $table.whiteColor,
+        builder: (column) => ColumnWithTypeConverterFilters(column),
+      );
 
-  ColumnFilters<int> get brightBlackColor => $composableBuilder(
-    column: $table.brightBlackColor,
-    builder: (column) => ColumnFilters(column),
-  );
+  ColumnWithTypeConverterFilters<Color, Color, int> get brightBlackColor =>
+      $composableBuilder(
+        column: $table.brightBlackColor,
+        builder: (column) => ColumnWithTypeConverterFilters(column),
+      );
 
-  ColumnFilters<int> get brightRedColor => $composableBuilder(
-    column: $table.brightRedColor,
-    builder: (column) => ColumnFilters(column),
-  );
+  ColumnWithTypeConverterFilters<Color, Color, int> get brightRedColor =>
+      $composableBuilder(
+        column: $table.brightRedColor,
+        builder: (column) => ColumnWithTypeConverterFilters(column),
+      );
 
-  ColumnFilters<int> get brightGreenColor => $composableBuilder(
-    column: $table.brightGreenColor,
-    builder: (column) => ColumnFilters(column),
-  );
+  ColumnWithTypeConverterFilters<Color, Color, int> get brightGreenColor =>
+      $composableBuilder(
+        column: $table.brightGreenColor,
+        builder: (column) => ColumnWithTypeConverterFilters(column),
+      );
 
-  ColumnFilters<int> get brightYellowColor => $composableBuilder(
-    column: $table.brightYellowColor,
-    builder: (column) => ColumnFilters(column),
-  );
+  ColumnWithTypeConverterFilters<Color, Color, int> get brightYellowColor =>
+      $composableBuilder(
+        column: $table.brightYellowColor,
+        builder: (column) => ColumnWithTypeConverterFilters(column),
+      );
 
-  ColumnFilters<int> get brightBlueColor => $composableBuilder(
-    column: $table.brightBlueColor,
-    builder: (column) => ColumnFilters(column),
-  );
+  ColumnWithTypeConverterFilters<Color, Color, int> get brightBlueColor =>
+      $composableBuilder(
+        column: $table.brightBlueColor,
+        builder: (column) => ColumnWithTypeConverterFilters(column),
+      );
 
-  ColumnFilters<int> get brightPurpleColor => $composableBuilder(
-    column: $table.brightPurpleColor,
-    builder: (column) => ColumnFilters(column),
-  );
+  ColumnWithTypeConverterFilters<Color, Color, int> get brightPurpleColor =>
+      $composableBuilder(
+        column: $table.brightPurpleColor,
+        builder: (column) => ColumnWithTypeConverterFilters(column),
+      );
 
-  ColumnFilters<int> get brightCyanColor => $composableBuilder(
-    column: $table.brightCyanColor,
-    builder: (column) => ColumnFilters(column),
-  );
+  ColumnWithTypeConverterFilters<Color, Color, int> get brightCyanColor =>
+      $composableBuilder(
+        column: $table.brightCyanColor,
+        builder: (column) => ColumnWithTypeConverterFilters(column),
+      );
 
-  ColumnFilters<int> get brightWhiteColor => $composableBuilder(
-    column: $table.brightWhiteColor,
-    builder: (column) => ColumnFilters(column),
-  );
+  ColumnWithTypeConverterFilters<Color, Color, int> get brightWhiteColor =>
+      $composableBuilder(
+        column: $table.brightWhiteColor,
+        builder: (column) => ColumnWithTypeConverterFilters(column),
+      );
 
-  ColumnFilters<int> get backgroundColor => $composableBuilder(
-    column: $table.backgroundColor,
-    builder: (column) => ColumnFilters(column),
-  );
+  ColumnWithTypeConverterFilters<Color, Color, int> get backgroundColor =>
+      $composableBuilder(
+        column: $table.backgroundColor,
+        builder: (column) => ColumnWithTypeConverterFilters(column),
+      );
 
-  ColumnFilters<int> get foregroundColor => $composableBuilder(
-    column: $table.foregroundColor,
-    builder: (column) => ColumnFilters(column),
-  );
+  ColumnWithTypeConverterFilters<Color, Color, int> get foregroundColor =>
+      $composableBuilder(
+        column: $table.foregroundColor,
+        builder: (column) => ColumnWithTypeConverterFilters(column),
+      );
 
-  ColumnFilters<int> get cursorColor => $composableBuilder(
-    column: $table.cursorColor,
-    builder: (column) => ColumnFilters(column),
-  );
+  ColumnWithTypeConverterFilters<Color, Color, int> get cursorColor =>
+      $composableBuilder(
+        column: $table.cursorColor,
+        builder: (column) => ColumnWithTypeConverterFilters(column),
+      );
 
-  ColumnFilters<int> get selectionBackgroundColor => $composableBuilder(
+  ColumnWithTypeConverterFilters<Color, Color, int>
+  get selectionBackgroundColor => $composableBuilder(
     column: $table.selectionBackgroundColor,
-    builder: (column) => ColumnFilters(column),
+    builder: (column) => ColumnWithTypeConverterFilters(column),
   );
 
-  ColumnFilters<int> get selectionForegroundColor => $composableBuilder(
+  ColumnWithTypeConverterFilters<Color?, Color, int>
+  get selectionForegroundColor => $composableBuilder(
     column: $table.selectionForegroundColor,
-    builder: (column) => ColumnFilters(column),
+    builder: (column) => ColumnWithTypeConverterFilters(column),
   );
 
-  ColumnFilters<int> get cursorTextColor => $composableBuilder(
-    column: $table.cursorTextColor,
-    builder: (column) => ColumnFilters(column),
-  );
+  ColumnWithTypeConverterFilters<Color?, Color, int> get cursorTextColor =>
+      $composableBuilder(
+        column: $table.cursorTextColor,
+        builder: (column) => ColumnWithTypeConverterFilters(column),
+      );
+
+  Expression<bool> connectionsRefs(
+    Expression<bool> Function($ConnectionsFilterComposer f) f,
+  ) {
+    final $ConnectionsFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.name,
+      referencedTable: $db.connections,
+      getReferencedColumn: (t) => t.terminalThemeOverrideName,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $ConnectionsFilterComposer(
+            $db: $db,
+            $table: $db.connections,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
 }
 
 class $CustomTerminalThemesOrderingComposer
@@ -2918,11 +3113,6 @@ class $CustomTerminalThemesOrderingComposer
     super.$addJoinBuilderToRootComposer,
     super.$removeJoinBuilderFromRootComposer,
   });
-  ColumnOrderings<int> get id => $composableBuilder(
-    column: $table.id,
-    builder: (column) => ColumnOrderings(column),
-  );
-
   ColumnOrderings<String> get name => $composableBuilder(
     column: $table.name,
     builder: (column) => ColumnOrderings(column),
@@ -3053,118 +3243,159 @@ class $CustomTerminalThemesAnnotationComposer
     super.$addJoinBuilderToRootComposer,
     super.$removeJoinBuilderFromRootComposer,
   });
-  GeneratedColumn<int> get id =>
-      $composableBuilder(column: $table.id, builder: (column) => column);
-
   GeneratedColumn<String> get name =>
       $composableBuilder(column: $table.name, builder: (column) => column);
 
   GeneratedColumn<String> get author =>
       $composableBuilder(column: $table.author, builder: (column) => column);
 
-  GeneratedColumn<int> get blackColor => $composableBuilder(
-    column: $table.blackColor,
-    builder: (column) => column,
-  );
+  GeneratedColumnWithTypeConverter<Color, int> get blackColor =>
+      $composableBuilder(
+        column: $table.blackColor,
+        builder: (column) => column,
+      );
 
-  GeneratedColumn<int> get redColor =>
+  GeneratedColumnWithTypeConverter<Color, int> get redColor =>
       $composableBuilder(column: $table.redColor, builder: (column) => column);
 
-  GeneratedColumn<int> get greenColor => $composableBuilder(
-    column: $table.greenColor,
-    builder: (column) => column,
-  );
+  GeneratedColumnWithTypeConverter<Color, int> get greenColor =>
+      $composableBuilder(
+        column: $table.greenColor,
+        builder: (column) => column,
+      );
 
-  GeneratedColumn<int> get yellowColor => $composableBuilder(
-    column: $table.yellowColor,
-    builder: (column) => column,
-  );
+  GeneratedColumnWithTypeConverter<Color, int> get yellowColor =>
+      $composableBuilder(
+        column: $table.yellowColor,
+        builder: (column) => column,
+      );
 
-  GeneratedColumn<int> get blueColor =>
+  GeneratedColumnWithTypeConverter<Color, int> get blueColor =>
       $composableBuilder(column: $table.blueColor, builder: (column) => column);
 
-  GeneratedColumn<int> get purpleColor => $composableBuilder(
-    column: $table.purpleColor,
-    builder: (column) => column,
-  );
+  GeneratedColumnWithTypeConverter<Color, int> get purpleColor =>
+      $composableBuilder(
+        column: $table.purpleColor,
+        builder: (column) => column,
+      );
 
-  GeneratedColumn<int> get cyanColor =>
+  GeneratedColumnWithTypeConverter<Color, int> get cyanColor =>
       $composableBuilder(column: $table.cyanColor, builder: (column) => column);
 
-  GeneratedColumn<int> get whiteColor => $composableBuilder(
-    column: $table.whiteColor,
-    builder: (column) => column,
-  );
+  GeneratedColumnWithTypeConverter<Color, int> get whiteColor =>
+      $composableBuilder(
+        column: $table.whiteColor,
+        builder: (column) => column,
+      );
 
-  GeneratedColumn<int> get brightBlackColor => $composableBuilder(
-    column: $table.brightBlackColor,
-    builder: (column) => column,
-  );
+  GeneratedColumnWithTypeConverter<Color, int> get brightBlackColor =>
+      $composableBuilder(
+        column: $table.brightBlackColor,
+        builder: (column) => column,
+      );
 
-  GeneratedColumn<int> get brightRedColor => $composableBuilder(
-    column: $table.brightRedColor,
-    builder: (column) => column,
-  );
+  GeneratedColumnWithTypeConverter<Color, int> get brightRedColor =>
+      $composableBuilder(
+        column: $table.brightRedColor,
+        builder: (column) => column,
+      );
 
-  GeneratedColumn<int> get brightGreenColor => $composableBuilder(
-    column: $table.brightGreenColor,
-    builder: (column) => column,
-  );
+  GeneratedColumnWithTypeConverter<Color, int> get brightGreenColor =>
+      $composableBuilder(
+        column: $table.brightGreenColor,
+        builder: (column) => column,
+      );
 
-  GeneratedColumn<int> get brightYellowColor => $composableBuilder(
-    column: $table.brightYellowColor,
-    builder: (column) => column,
-  );
+  GeneratedColumnWithTypeConverter<Color, int> get brightYellowColor =>
+      $composableBuilder(
+        column: $table.brightYellowColor,
+        builder: (column) => column,
+      );
 
-  GeneratedColumn<int> get brightBlueColor => $composableBuilder(
-    column: $table.brightBlueColor,
-    builder: (column) => column,
-  );
+  GeneratedColumnWithTypeConverter<Color, int> get brightBlueColor =>
+      $composableBuilder(
+        column: $table.brightBlueColor,
+        builder: (column) => column,
+      );
 
-  GeneratedColumn<int> get brightPurpleColor => $composableBuilder(
-    column: $table.brightPurpleColor,
-    builder: (column) => column,
-  );
+  GeneratedColumnWithTypeConverter<Color, int> get brightPurpleColor =>
+      $composableBuilder(
+        column: $table.brightPurpleColor,
+        builder: (column) => column,
+      );
 
-  GeneratedColumn<int> get brightCyanColor => $composableBuilder(
-    column: $table.brightCyanColor,
-    builder: (column) => column,
-  );
+  GeneratedColumnWithTypeConverter<Color, int> get brightCyanColor =>
+      $composableBuilder(
+        column: $table.brightCyanColor,
+        builder: (column) => column,
+      );
 
-  GeneratedColumn<int> get brightWhiteColor => $composableBuilder(
-    column: $table.brightWhiteColor,
-    builder: (column) => column,
-  );
+  GeneratedColumnWithTypeConverter<Color, int> get brightWhiteColor =>
+      $composableBuilder(
+        column: $table.brightWhiteColor,
+        builder: (column) => column,
+      );
 
-  GeneratedColumn<int> get backgroundColor => $composableBuilder(
-    column: $table.backgroundColor,
-    builder: (column) => column,
-  );
+  GeneratedColumnWithTypeConverter<Color, int> get backgroundColor =>
+      $composableBuilder(
+        column: $table.backgroundColor,
+        builder: (column) => column,
+      );
 
-  GeneratedColumn<int> get foregroundColor => $composableBuilder(
-    column: $table.foregroundColor,
-    builder: (column) => column,
-  );
+  GeneratedColumnWithTypeConverter<Color, int> get foregroundColor =>
+      $composableBuilder(
+        column: $table.foregroundColor,
+        builder: (column) => column,
+      );
 
-  GeneratedColumn<int> get cursorColor => $composableBuilder(
-    column: $table.cursorColor,
-    builder: (column) => column,
-  );
+  GeneratedColumnWithTypeConverter<Color, int> get cursorColor =>
+      $composableBuilder(
+        column: $table.cursorColor,
+        builder: (column) => column,
+      );
 
-  GeneratedColumn<int> get selectionBackgroundColor => $composableBuilder(
-    column: $table.selectionBackgroundColor,
-    builder: (column) => column,
-  );
+  GeneratedColumnWithTypeConverter<Color, int> get selectionBackgroundColor =>
+      $composableBuilder(
+        column: $table.selectionBackgroundColor,
+        builder: (column) => column,
+      );
 
-  GeneratedColumn<int> get selectionForegroundColor => $composableBuilder(
-    column: $table.selectionForegroundColor,
-    builder: (column) => column,
-  );
+  GeneratedColumnWithTypeConverter<Color?, int> get selectionForegroundColor =>
+      $composableBuilder(
+        column: $table.selectionForegroundColor,
+        builder: (column) => column,
+      );
 
-  GeneratedColumn<int> get cursorTextColor => $composableBuilder(
-    column: $table.cursorTextColor,
-    builder: (column) => column,
-  );
+  GeneratedColumnWithTypeConverter<Color?, int> get cursorTextColor =>
+      $composableBuilder(
+        column: $table.cursorTextColor,
+        builder: (column) => column,
+      );
+
+  Expression<T> connectionsRefs<T extends Object>(
+    Expression<T> Function($ConnectionsAnnotationComposer a) f,
+  ) {
+    final $ConnectionsAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.name,
+      referencedTable: $db.connections,
+      getReferencedColumn: (t) => t.terminalThemeOverrideName,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $ConnectionsAnnotationComposer(
+            $db: $db,
+            $table: $db.connections,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
 }
 
 class $CustomTerminalThemesTableManager
@@ -3178,16 +3409,9 @@ class $CustomTerminalThemesTableManager
           $CustomTerminalThemesAnnotationComposer,
           $CustomTerminalThemesCreateCompanionBuilder,
           $CustomTerminalThemesUpdateCompanionBuilder,
-          (
-            CustomTerminalTheme,
-            BaseReferences<
-              _$CliqDatabase,
-              CustomTerminalThemes,
-              CustomTerminalTheme
-            >,
-          ),
+          (CustomTerminalTheme, $CustomTerminalThemesReferences),
           CustomTerminalTheme,
-          PrefetchHooks Function()
+          PrefetchHooks Function({bool connectionsRefs})
         > {
   $CustomTerminalThemesTableManager(
     _$CliqDatabase db,
@@ -3204,33 +3428,32 @@ class $CustomTerminalThemesTableManager
               $CustomTerminalThemesAnnotationComposer($db: db, $table: table),
           updateCompanionCallback:
               ({
-                Value<int> id = const Value.absent(),
                 Value<String> name = const Value.absent(),
                 Value<String?> author = const Value.absent(),
-                Value<int> blackColor = const Value.absent(),
-                Value<int> redColor = const Value.absent(),
-                Value<int> greenColor = const Value.absent(),
-                Value<int> yellowColor = const Value.absent(),
-                Value<int> blueColor = const Value.absent(),
-                Value<int> purpleColor = const Value.absent(),
-                Value<int> cyanColor = const Value.absent(),
-                Value<int> whiteColor = const Value.absent(),
-                Value<int> brightBlackColor = const Value.absent(),
-                Value<int> brightRedColor = const Value.absent(),
-                Value<int> brightGreenColor = const Value.absent(),
-                Value<int> brightYellowColor = const Value.absent(),
-                Value<int> brightBlueColor = const Value.absent(),
-                Value<int> brightPurpleColor = const Value.absent(),
-                Value<int> brightCyanColor = const Value.absent(),
-                Value<int> brightWhiteColor = const Value.absent(),
-                Value<int> backgroundColor = const Value.absent(),
-                Value<int> foregroundColor = const Value.absent(),
-                Value<int> cursorColor = const Value.absent(),
-                Value<int> selectionBackgroundColor = const Value.absent(),
-                Value<int?> selectionForegroundColor = const Value.absent(),
-                Value<int?> cursorTextColor = const Value.absent(),
+                Value<Color> blackColor = const Value.absent(),
+                Value<Color> redColor = const Value.absent(),
+                Value<Color> greenColor = const Value.absent(),
+                Value<Color> yellowColor = const Value.absent(),
+                Value<Color> blueColor = const Value.absent(),
+                Value<Color> purpleColor = const Value.absent(),
+                Value<Color> cyanColor = const Value.absent(),
+                Value<Color> whiteColor = const Value.absent(),
+                Value<Color> brightBlackColor = const Value.absent(),
+                Value<Color> brightRedColor = const Value.absent(),
+                Value<Color> brightGreenColor = const Value.absent(),
+                Value<Color> brightYellowColor = const Value.absent(),
+                Value<Color> brightBlueColor = const Value.absent(),
+                Value<Color> brightPurpleColor = const Value.absent(),
+                Value<Color> brightCyanColor = const Value.absent(),
+                Value<Color> brightWhiteColor = const Value.absent(),
+                Value<Color> backgroundColor = const Value.absent(),
+                Value<Color> foregroundColor = const Value.absent(),
+                Value<Color> cursorColor = const Value.absent(),
+                Value<Color> selectionBackgroundColor = const Value.absent(),
+                Value<Color?> selectionForegroundColor = const Value.absent(),
+                Value<Color?> cursorTextColor = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
               }) => CustomTerminalThemesCompanion(
-                id: id,
                 name: name,
                 author: author,
                 blackColor: blackColor,
@@ -3255,36 +3478,36 @@ class $CustomTerminalThemesTableManager
                 selectionBackgroundColor: selectionBackgroundColor,
                 selectionForegroundColor: selectionForegroundColor,
                 cursorTextColor: cursorTextColor,
+                rowid: rowid,
               ),
           createCompanionCallback:
               ({
-                Value<int> id = const Value.absent(),
                 required String name,
                 Value<String?> author = const Value.absent(),
-                required int blackColor,
-                required int redColor,
-                required int greenColor,
-                required int yellowColor,
-                required int blueColor,
-                required int purpleColor,
-                required int cyanColor,
-                required int whiteColor,
-                required int brightBlackColor,
-                required int brightRedColor,
-                required int brightGreenColor,
-                required int brightYellowColor,
-                required int brightBlueColor,
-                required int brightPurpleColor,
-                required int brightCyanColor,
-                required int brightWhiteColor,
-                required int backgroundColor,
-                required int foregroundColor,
-                required int cursorColor,
-                required int selectionBackgroundColor,
-                Value<int?> selectionForegroundColor = const Value.absent(),
-                Value<int?> cursorTextColor = const Value.absent(),
+                required Color blackColor,
+                required Color redColor,
+                required Color greenColor,
+                required Color yellowColor,
+                required Color blueColor,
+                required Color purpleColor,
+                required Color cyanColor,
+                required Color whiteColor,
+                required Color brightBlackColor,
+                required Color brightRedColor,
+                required Color brightGreenColor,
+                required Color brightYellowColor,
+                required Color brightBlueColor,
+                required Color brightPurpleColor,
+                required Color brightCyanColor,
+                required Color brightWhiteColor,
+                required Color backgroundColor,
+                required Color foregroundColor,
+                required Color cursorColor,
+                required Color selectionBackgroundColor,
+                Value<Color?> selectionForegroundColor = const Value.absent(),
+                Value<Color?> cursorTextColor = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
               }) => CustomTerminalThemesCompanion.insert(
-                id: id,
                 name: name,
                 author: author,
                 blackColor: blackColor,
@@ -3309,11 +3532,48 @@ class $CustomTerminalThemesTableManager
                 selectionBackgroundColor: selectionBackgroundColor,
                 selectionForegroundColor: selectionForegroundColor,
                 cursorTextColor: cursorTextColor,
+                rowid: rowid,
               ),
           withReferenceMapper: (p0) => p0
-              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .map(
+                (e) => (
+                  e.readTable(table),
+                  $CustomTerminalThemesReferences(db, table, e),
+                ),
+              )
               .toList(),
-          prefetchHooksCallback: null,
+          prefetchHooksCallback: ({connectionsRefs = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [if (connectionsRefs) db.connections],
+              addJoins: null,
+              getPrefetchedDataCallback: (items) async {
+                return [
+                  if (connectionsRefs)
+                    await $_getPrefetchedData<
+                      CustomTerminalTheme,
+                      CustomTerminalThemes,
+                      Connection
+                    >(
+                      currentTable: table,
+                      referencedTable: $CustomTerminalThemesReferences
+                          ._connectionsRefsTable(db),
+                      managerFromTypedResult: (p0) =>
+                          $CustomTerminalThemesReferences(
+                            db,
+                            table,
+                            p0,
+                          ).connectionsRefs,
+                      referencedItemsForCurrentItem: (item, referencedItems) =>
+                          referencedItems.where(
+                            (e) => e.terminalThemeOverrideName == item.name,
+                          ),
+                      typedResults: items,
+                    ),
+                ];
+              },
+            );
+          },
         ),
       );
 }
@@ -3328,16 +3588,9 @@ typedef $CustomTerminalThemesProcessedTableManager =
       $CustomTerminalThemesAnnotationComposer,
       $CustomTerminalThemesCreateCompanionBuilder,
       $CustomTerminalThemesUpdateCompanionBuilder,
-      (
-        CustomTerminalTheme,
-        BaseReferences<
-          _$CliqDatabase,
-          CustomTerminalThemes,
-          CustomTerminalTheme
-        >,
-      ),
+      (CustomTerminalTheme, $CustomTerminalThemesReferences),
       CustomTerminalTheme,
-      PrefetchHooks Function()
+      PrefetchHooks Function({bool connectionsRefs})
     >;
 typedef $CredentialsCreateCompanionBuilder =
     CredentialsCompanion Function({
@@ -4095,6 +4348,9 @@ typedef $ConnectionsCreateCompanionBuilder =
       Value<ConnectionIcon> icon,
       Value<String?> color,
       Value<String?> groupName,
+      Value<int?> terminalFontSizeOverride,
+      Value<String?> terminalFontFamilyOverride,
+      Value<String?> terminalThemeOverrideName,
     });
 typedef $ConnectionsUpdateCompanionBuilder =
     ConnectionsCompanion Function({
@@ -4108,6 +4364,9 @@ typedef $ConnectionsUpdateCompanionBuilder =
       Value<ConnectionIcon> icon,
       Value<String?> color,
       Value<String?> groupName,
+      Value<int?> terminalFontSizeOverride,
+      Value<String?> terminalFontFamilyOverride,
+      Value<String?> terminalThemeOverrideName,
     });
 
 final class $ConnectionsReferences
@@ -4146,6 +4405,31 @@ final class $ConnectionsReferences
       $_db.credentials,
     ).filter((f) => f.id.sqlEquals($_column));
     final item = $_typedResult.readTableOrNull(_credentialIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+
+  static CustomTerminalThemes _terminalThemeOverrideNameTable(
+    _$CliqDatabase db,
+  ) => db.customTerminalThemes.createAlias(
+    $_aliasNameGenerator(
+      db.connections.terminalThemeOverrideName,
+      db.customTerminalThemes.name,
+    ),
+  );
+
+  $CustomTerminalThemesProcessedTableManager? get terminalThemeOverrideName {
+    final $_column = $_itemColumn<String>('terminal_theme_override_name');
+    if ($_column == null) return null;
+    final manager = $CustomTerminalThemesTableManager(
+      $_db,
+      $_db.customTerminalThemes,
+    ).filter((f) => f.name.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(
+      _terminalThemeOverrideNameTable($_db),
+    );
     if (item == null) return manager;
     return ProcessedTableManager(
       manager.$state.copyWith(prefetchedData: [item]),
@@ -4202,6 +4486,16 @@ class $ConnectionsFilterComposer extends Composer<_$CliqDatabase, Connections> {
     builder: (column) => ColumnFilters(column),
   );
 
+  ColumnFilters<int> get terminalFontSizeOverride => $composableBuilder(
+    column: $table.terminalFontSizeOverride,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get terminalFontFamilyOverride => $composableBuilder(
+    column: $table.terminalFontFamilyOverride,
+    builder: (column) => ColumnFilters(column),
+  );
+
   $IdentitiesFilterComposer get identityId {
     final $IdentitiesFilterComposer composer = $composerBuilder(
       composer: this,
@@ -4239,6 +4533,29 @@ class $ConnectionsFilterComposer extends Composer<_$CliqDatabase, Connections> {
           }) => $CredentialsFilterComposer(
             $db: $db,
             $table: $db.credentials,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  $CustomTerminalThemesFilterComposer get terminalThemeOverrideName {
+    final $CustomTerminalThemesFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.terminalThemeOverrideName,
+      referencedTable: $db.customTerminalThemes,
+      getReferencedColumn: (t) => t.name,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $CustomTerminalThemesFilterComposer(
+            $db: $db,
+            $table: $db.customTerminalThemes,
             $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
             joinBuilder: joinBuilder,
             $removeJoinBuilderFromRootComposer:
@@ -4298,6 +4615,16 @@ class $ConnectionsOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<int> get terminalFontSizeOverride => $composableBuilder(
+    column: $table.terminalFontSizeOverride,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get terminalFontFamilyOverride => $composableBuilder(
+    column: $table.terminalFontFamilyOverride,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   $IdentitiesOrderingComposer get identityId {
     final $IdentitiesOrderingComposer composer = $composerBuilder(
       composer: this,
@@ -4343,6 +4670,29 @@ class $ConnectionsOrderingComposer
     );
     return composer;
   }
+
+  $CustomTerminalThemesOrderingComposer get terminalThemeOverrideName {
+    final $CustomTerminalThemesOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.terminalThemeOverrideName,
+      referencedTable: $db.customTerminalThemes,
+      getReferencedColumn: (t) => t.name,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $CustomTerminalThemesOrderingComposer(
+            $db: $db,
+            $table: $db.customTerminalThemes,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
 }
 
 class $ConnectionsAnnotationComposer
@@ -4377,6 +4727,16 @@ class $ConnectionsAnnotationComposer
 
   GeneratedColumn<String> get groupName =>
       $composableBuilder(column: $table.groupName, builder: (column) => column);
+
+  GeneratedColumn<int> get terminalFontSizeOverride => $composableBuilder(
+    column: $table.terminalFontSizeOverride,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get terminalFontFamilyOverride => $composableBuilder(
+    column: $table.terminalFontFamilyOverride,
+    builder: (column) => column,
+  );
 
   $IdentitiesAnnotationComposer get identityId {
     final $IdentitiesAnnotationComposer composer = $composerBuilder(
@@ -4423,6 +4783,29 @@ class $ConnectionsAnnotationComposer
     );
     return composer;
   }
+
+  $CustomTerminalThemesAnnotationComposer get terminalThemeOverrideName {
+    final $CustomTerminalThemesAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.terminalThemeOverrideName,
+      referencedTable: $db.customTerminalThemes,
+      getReferencedColumn: (t) => t.name,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $CustomTerminalThemesAnnotationComposer(
+            $db: $db,
+            $table: $db.customTerminalThemes,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
 }
 
 class $ConnectionsTableManager
@@ -4438,7 +4821,11 @@ class $ConnectionsTableManager
           $ConnectionsUpdateCompanionBuilder,
           (Connection, $ConnectionsReferences),
           Connection,
-          PrefetchHooks Function({bool identityId, bool credentialId})
+          PrefetchHooks Function({
+            bool identityId,
+            bool credentialId,
+            bool terminalThemeOverrideName,
+          })
         > {
   $ConnectionsTableManager(_$CliqDatabase db, Connections table)
     : super(
@@ -4463,6 +4850,10 @@ class $ConnectionsTableManager
                 Value<ConnectionIcon> icon = const Value.absent(),
                 Value<String?> color = const Value.absent(),
                 Value<String?> groupName = const Value.absent(),
+                Value<int?> terminalFontSizeOverride = const Value.absent(),
+                Value<String?> terminalFontFamilyOverride =
+                    const Value.absent(),
+                Value<String?> terminalThemeOverrideName = const Value.absent(),
               }) => ConnectionsCompanion(
                 id: id,
                 address: address,
@@ -4474,6 +4865,9 @@ class $ConnectionsTableManager
                 icon: icon,
                 color: color,
                 groupName: groupName,
+                terminalFontSizeOverride: terminalFontSizeOverride,
+                terminalFontFamilyOverride: terminalFontFamilyOverride,
+                terminalThemeOverrideName: terminalThemeOverrideName,
               ),
           createCompanionCallback:
               ({
@@ -4487,6 +4881,10 @@ class $ConnectionsTableManager
                 Value<ConnectionIcon> icon = const Value.absent(),
                 Value<String?> color = const Value.absent(),
                 Value<String?> groupName = const Value.absent(),
+                Value<int?> terminalFontSizeOverride = const Value.absent(),
+                Value<String?> terminalFontFamilyOverride =
+                    const Value.absent(),
+                Value<String?> terminalThemeOverrideName = const Value.absent(),
               }) => ConnectionsCompanion.insert(
                 id: id,
                 address: address,
@@ -4498,6 +4896,9 @@ class $ConnectionsTableManager
                 icon: icon,
                 color: color,
                 groupName: groupName,
+                terminalFontSizeOverride: terminalFontSizeOverride,
+                terminalFontFamilyOverride: terminalFontFamilyOverride,
+                terminalThemeOverrideName: terminalThemeOverrideName,
               ),
           withReferenceMapper: (p0) => p0
               .map(
@@ -4505,60 +4906,79 @@ class $ConnectionsTableManager
                     (e.readTable(table), $ConnectionsReferences(db, table, e)),
               )
               .toList(),
-          prefetchHooksCallback: ({identityId = false, credentialId = false}) {
-            return PrefetchHooks(
-              db: db,
-              explicitlyWatchedTables: [],
-              addJoins:
-                  <
-                    T extends TableManagerState<
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic
-                    >
-                  >(state) {
-                    if (identityId) {
-                      state =
-                          state.withJoin(
-                                currentTable: table,
-                                currentColumn: table.identityId,
-                                referencedTable: $ConnectionsReferences
-                                    ._identityIdTable(db),
-                                referencedColumn: $ConnectionsReferences
-                                    ._identityIdTable(db)
-                                    .id,
-                              )
-                              as T;
-                    }
-                    if (credentialId) {
-                      state =
-                          state.withJoin(
-                                currentTable: table,
-                                currentColumn: table.credentialId,
-                                referencedTable: $ConnectionsReferences
-                                    ._credentialIdTable(db),
-                                referencedColumn: $ConnectionsReferences
-                                    ._credentialIdTable(db)
-                                    .id,
-                              )
-                              as T;
-                    }
+          prefetchHooksCallback:
+              ({
+                identityId = false,
+                credentialId = false,
+                terminalThemeOverrideName = false,
+              }) {
+                return PrefetchHooks(
+                  db: db,
+                  explicitlyWatchedTables: [],
+                  addJoins:
+                      <
+                        T extends TableManagerState<
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic
+                        >
+                      >(state) {
+                        if (identityId) {
+                          state =
+                              state.withJoin(
+                                    currentTable: table,
+                                    currentColumn: table.identityId,
+                                    referencedTable: $ConnectionsReferences
+                                        ._identityIdTable(db),
+                                    referencedColumn: $ConnectionsReferences
+                                        ._identityIdTable(db)
+                                        .id,
+                                  )
+                                  as T;
+                        }
+                        if (credentialId) {
+                          state =
+                              state.withJoin(
+                                    currentTable: table,
+                                    currentColumn: table.credentialId,
+                                    referencedTable: $ConnectionsReferences
+                                        ._credentialIdTable(db),
+                                    referencedColumn: $ConnectionsReferences
+                                        ._credentialIdTable(db)
+                                        .id,
+                                  )
+                                  as T;
+                        }
+                        if (terminalThemeOverrideName) {
+                          state =
+                              state.withJoin(
+                                    currentTable: table,
+                                    currentColumn:
+                                        table.terminalThemeOverrideName,
+                                    referencedTable: $ConnectionsReferences
+                                        ._terminalThemeOverrideNameTable(db),
+                                    referencedColumn: $ConnectionsReferences
+                                        ._terminalThemeOverrideNameTable(db)
+                                        .name,
+                                  )
+                                  as T;
+                        }
 
-                    return state;
+                        return state;
+                      },
+                  getPrefetchedDataCallback: (items) async {
+                    return [];
                   },
-              getPrefetchedDataCallback: (items) async {
-                return [];
+                );
               },
-            );
-          },
         ),
       );
 }
@@ -4575,7 +4995,11 @@ typedef $ConnectionsProcessedTableManager =
       $ConnectionsUpdateCompanionBuilder,
       (Connection, $ConnectionsReferences),
       Connection,
-      PrefetchHooks Function({bool identityId, bool credentialId})
+      PrefetchHooks Function({
+        bool identityId,
+        bool credentialId,
+        bool terminalThemeOverrideName,
+      })
     >;
 
 class $CliqDatabaseManager {
@@ -4591,76 +5015,17 @@ class $CliqDatabaseManager {
       $ConnectionsTableManager(_db, _db.connections);
 }
 
-class FindFullIdentityByIdResult {
-  final int identityId;
-  final String identityUsername;
-  final int identityCredentialId;
-  final int? credentialId;
-  final CredentialType? credentialType;
-  final String? credentialData;
-  final String? credentialPassphrase;
-  FindFullIdentityByIdResult({
-    required this.identityId,
-    required this.identityUsername,
-    required this.identityCredentialId,
-    this.credentialId,
-    this.credentialType,
-    this.credentialData,
-    this.credentialPassphrase,
-  });
-}
-
 class FindAllConnectionFullResult {
-  final int connectionId;
-  final String address;
-  final int port;
-  final int? identityId;
-  final String? connectionUsername;
-  final int? connectionCredentialRefId;
-  final String? label;
-  final ConnectionIcon icon;
-  final String? color;
-  final String? groupName;
-  final int? identityId1;
-  final String? identityUsername;
-  final int? identityCredentialRefId;
-  final int? identityCredentialIdExplicit;
-  final CredentialType? identityCredentialType;
-  final String? identityCredentialData;
-  final String? identityCredentialPassphrase;
-  final int? connectionCredentialIdExplicit;
-  final CredentialType? connectionCredentialType;
-  final String? connectionCredentialData;
-  final String? connectionCredentialPassphrase;
-  final int? effectiveCredentialId;
-  final CredentialType? effectiveCredentialType;
-  final String? effectiveCredentialData;
-  final String? effectiveCredentialPassphrase;
+  final Connection connection;
+  final Identity? identity;
+  final Credential? credential;
+  final Credential? identityCredential;
+  final CustomTerminalTheme? terminalThemeOverride;
   FindAllConnectionFullResult({
-    required this.connectionId,
-    required this.address,
-    required this.port,
-    this.identityId,
-    this.connectionUsername,
-    this.connectionCredentialRefId,
-    this.label,
-    required this.icon,
-    this.color,
-    this.groupName,
-    this.identityId1,
-    this.identityUsername,
-    this.identityCredentialRefId,
-    this.identityCredentialIdExplicit,
-    this.identityCredentialType,
-    this.identityCredentialData,
-    this.identityCredentialPassphrase,
-    this.connectionCredentialIdExplicit,
-    this.connectionCredentialType,
-    this.connectionCredentialData,
-    this.connectionCredentialPassphrase,
-    this.effectiveCredentialId,
-    this.effectiveCredentialType,
-    this.effectiveCredentialData,
-    this.effectiveCredentialPassphrase,
+    required this.connection,
+    this.identity,
+    this.credential,
+    this.identityCredential,
+    this.terminalThemeOverride,
   });
 }

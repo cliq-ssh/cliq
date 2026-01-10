@@ -1,5 +1,8 @@
+import 'package:cliq/modules/settings/extension/custom_terminal_theme.extension.dart';
+import 'package:cliq/modules/settings/provider/terminal_colors.provider.dart';
 import 'package:cliq/modules/settings/view/abstract_settings_page.dart';
 import 'package:cliq/modules/settings/view/settings_page.dart';
+import 'package:cliq/shared/data/database.dart';
 import 'package:cliq/shared/data/store.dart';
 import 'package:cliq_term/cliq_term.dart';
 import 'package:cliq_ui/cliq_ui.dart'
@@ -53,6 +56,7 @@ class TerminalThemeSettingsPage extends AbstractSettingsPage {
 
   @override
   Widget buildBody(BuildContext context, WidgetRef ref) {
+    final terminalThemes = ref.watch(terminalThemeProvider);
     final terminalController = useState<TerminalController?>(null);
     final selectedFontFamily = useState<String>(
       StoreKey.terminalTypography.readSync()?.fontFamily ?? fonts.first,
@@ -60,14 +64,14 @@ class TerminalThemeSettingsPage extends AbstractSettingsPage {
     final selectedFontSize = useState<double>(
       StoreKey.terminalTypography.readSync()?.fontSize ?? 16,
     );
-    final selectedColors = useState<TerminalColorThemes>(
-      StoreKey.terminalTheme.readSync() ?? TerminalColorThemes.darcula,
+    final selectedColors = useState<CustomTerminalTheme>(
+      terminalThemes.effectiveActiveDefaultTheme,
     );
 
     // init controller
     useEffect(() {
       terminalController.value = TerminalController(
-        colors: selectedColors.value.colors,
+        colors: selectedColors.value.toTerminalColorTheme(),
         typography: TerminalTypography(
           fontFamily: selectedFontFamily.value,
           fontSize: selectedFontSize.value,
@@ -92,12 +96,13 @@ class TerminalThemeSettingsPage extends AbstractSettingsPage {
     // update colors on theme change
     useEffect(() {
       if (terminalController.value == null) return null;
-      terminalController.value!.colors = selectedColors.value.colors;
-      StoreKey.terminalTheme.write(selectedColors.value);
+      terminalController.value!.colors = selectedColors.value
+          .toTerminalColorTheme();
+      StoreKey.terminalThemeName.write(selectedColors.value.name);
       return null;
     }, [selectedColors.value]);
 
-    buildTerminalThemeCard(TerminalColorThemes theme) {
+    buildTerminalThemeCard(CustomTerminalTheme theme) {
       buildColor(Color color) {
         return Container(width: 8, height: 16, color: color);
       }
@@ -114,24 +119,24 @@ class TerminalThemeSettingsPage extends AbstractSettingsPage {
                 children: [
                   Row(
                     children: [
-                      theme.colors.red,
-                      theme.colors.green,
-                      theme.colors.yellow,
-                      theme.colors.blue,
-                      theme.colors.magenta,
-                      theme.colors.cyan,
-                      theme.colors.white,
+                      theme.redColor,
+                      theme.greenColor,
+                      theme.yellowColor,
+                      theme.blueColor,
+                      theme.purpleColor,
+                      theme.cyanColor,
+                      theme.whiteColor,
                     ].map(buildColor).toList(),
                   ),
                   Row(
                     children: [
-                      theme.colors.brightRed,
-                      theme.colors.brightGreen,
-                      theme.colors.brightYellow,
-                      theme.colors.brightBlue,
-                      theme.colors.brightMagenta,
-                      theme.colors.brightCyan,
-                      theme.colors.brightWhite,
+                      theme.brightRedColor,
+                      theme.brightGreenColor,
+                      theme.brightYellowColor,
+                      theme.brightBlueColor,
+                      theme.brightPurpleColor,
+                      theme.brightCyanColor,
+                      theme.brightWhiteColor,
                     ].map(buildColor).toList(),
                   ),
                 ],
@@ -173,7 +178,7 @@ class TerminalThemeSettingsPage extends AbstractSettingsPage {
                         width: double.infinity,
                         height: 200,
                         padding: const .all(8),
-                        color: selectedColors.value.colors.backgroundColor,
+                        color: selectedColors.value.backgroundColor,
                         child: LayoutBuilder(
                           builder: (_, constraints) {
                             WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -258,7 +263,8 @@ class TerminalThemeSettingsPage extends AbstractSettingsPage {
                     Column(
                       spacing: 12,
                       children: [
-                        for (final theme in TerminalColorThemes.values)
+                        buildTerminalThemeCard(defaultTerminalColorTheme),
+                        for (final theme in terminalThemes.entities)
                           buildTerminalThemeCard(theme),
                       ],
                     ),

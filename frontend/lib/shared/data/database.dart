@@ -1,3 +1,5 @@
+import 'dart:ui';
+
 import 'package:cliq/modules/connections/data/connection_service.dart';
 import 'package:cliq/modules/settings/data/custom_terminal_theme_service.dart';
 import 'package:cliq/modules/settings/data/custom_terminal_themes_repository.dart';
@@ -13,6 +15,7 @@ import '../../modules/credentials/data/credentials_repository.dart';
 import '../../modules/credentials/model/credential_type.dart';
 import '../../modules/identities/data/identities_repository.dart';
 import '../../modules/identities/data/identity_service.dart';
+import 'converters/color_converter.dart';
 
 part 'database.g.dart';
 
