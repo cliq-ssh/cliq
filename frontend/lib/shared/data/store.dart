@@ -31,14 +31,14 @@ enum StoreKey<T> {
     toValue: _enumToValue,
   ),
 
-  terminalTypography<TerminalTypography>(
+  defaultTerminalTypography<TerminalTypography>(
     'default_terminal_typography',
     type: TerminalTypography,
     defaultValue: TerminalTypography(fontFamily: 'SourceCodePro', fontSize: 16),
     fromValue: _typographyFromValue,
     toValue: _typographyToValue,
   ),
-  terminalThemeName<String>('default_terminal_theme', type: String);
+  defaultTerminalThemeId<int>('default_terminal_theme', type: int, defaultValue: -1);
 
   final String key;
   final Type type;

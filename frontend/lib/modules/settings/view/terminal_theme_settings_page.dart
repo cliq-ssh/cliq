@@ -60,10 +60,10 @@ class TerminalThemeSettingsPage extends AbstractSettingsPage {
     final terminalThemes = ref.watch(terminalThemeProvider);
     final terminalController = useState<TerminalController?>(null);
     final selectedFontFamily = useState<String>(
-      StoreKey.terminalTypography.readSync()?.fontFamily ?? fonts.first,
+      StoreKey.defaultTerminalTypography.readSync()?.fontFamily ?? fonts.first,
     );
     final selectedFontSize = useState<int>(
-      StoreKey.terminalTypography.readSync()?.fontSize ?? 16,
+      StoreKey.defaultTerminalTypography.readSync()?.fontSize ?? 16,
     );
     final selectedColors = useState<CustomTerminalTheme>(
       terminalThemes.effectiveActiveDefaultTheme,
@@ -90,7 +90,7 @@ class TerminalThemeSettingsPage extends AbstractSettingsPage {
         fontSize: selectedFontSize.value,
       );
       terminalController.value!.typography = typography;
-      StoreKey.terminalTypography.write(typography);
+      StoreKey.defaultTerminalTypography.write(typography);
       return null;
     }, [selectedFontFamily.value, selectedFontSize.value]);
 
@@ -98,7 +98,7 @@ class TerminalThemeSettingsPage extends AbstractSettingsPage {
     useEffect(() {
       if (terminalController.value == null) return null;
       terminalController.value!.theme = selectedColors.value.toTerminalTheme();
-      StoreKey.terminalThemeName.write(selectedColors.value.name);
+      StoreKey.defaultTerminalThemeId.write(selectedColors.value.id);
       return null;
     }, [selectedColors.value]);
 

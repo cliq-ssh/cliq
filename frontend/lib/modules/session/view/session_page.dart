@@ -45,7 +45,7 @@ class _ShellSessionPageState extends ConsumerState<ShellSessionPage>
     final typography = context.theme.typography;
     final size = MediaQuery.of(context).size;
 
-    final terminalTypography = useStore(StoreKey.terminalTypography);
+    final terminalTypography = useStore(StoreKey.defaultTerminalTypography);
     final terminalTheme = ref.watch(terminalThemeProvider);
 
     getEffectiveTerminalTypography() =>
