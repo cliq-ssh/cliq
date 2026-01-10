@@ -7,11 +7,11 @@ import org.springframework.data.repository.query.Param
 import java.time.OffsetDateTime
 
 interface UserRepository : JpaRepository<User, Long> {
-    fun existsUserByEmail(email: String): Boolean
+    fun existsByEmail(email: String): Boolean
 
-    fun findUserByEmail(email: String): User?
+    fun findByEmail(email: String): User?
 
-    fun findUserByResetTokenAndEmail(
+    fun findByResetTokenAndEmail(
         resetToken: String,
         email: String,
     ): User?
@@ -25,4 +25,6 @@ interface UserRepository : JpaRepository<User, Long> {
     @Modifying
     @Query("DELETE FROM User u WHERE u.resetSentAt < :cutoffTime")
     fun deleteExpiredPasswordResetTokensOlderThan(cutoffTime: OffsetDateTime): Int
+
+    fun findByOidcSub(oidcSub: String): User?
 }

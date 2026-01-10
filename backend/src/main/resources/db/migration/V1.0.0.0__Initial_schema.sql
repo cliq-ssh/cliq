@@ -7,6 +7,7 @@
 CREATE TABLE users
 (
     "id"                         BIGINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
+    "oidc_sub"                   TEXT UNIQUE,
     "email"                      TEXT                     NOT NULL UNIQUE,
     "name"                       TEXT                     NOT NULL,
     "locale"                     TEXT                     NOT NULL,
@@ -24,18 +25,19 @@ CREATE TABLE users
 
 CREATE TABLE sessions
 (
-    "id"               BIGINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
-    "user_id"          BIGINT REFERENCES "users" (id) ON DELETE CASCADE NOT NULL,
-    "api_key"          TEXT                                             NOT NULL UNIQUE,
-    "name"             TEXT,
-    "user_agent"       TEXT,
-    "last_accessed_at" timestamp with time zone,
-    "created_at"       timestamp with time zone                         NOT NULL,
-    "updated_at"       timestamp with time zone                         NOT NULL
+    "id"              BIGINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
+    "oidc_session_id" TEXT UNIQUE,
+    "user_id"         BIGINT REFERENCES "users" (id) ON DELETE CASCADE NOT NULL,
+    "refresh_token"   TEXT                                             NOT NULL UNIQUE,
+    "name"            TEXT,
+    "last_used_at"    timestamp with time zone,
+    "expires_at"      timestamp with time zone                         NOT NULL,
+    "created_at"      timestamp with time zone                         NOT NULL
 );
 
 CREATE INDEX idx_sessions_user_id ON sessions (user_id);
-CREATE INDEX idx_sessions_api_key ON sessions (api_key);
+CREATE INDEX idx_sessions_oidc_session_id ON sessions (oidc_session_id);
+CREATE INDEX idx_sessions_refresh_token ON sessions (refresh_token);
 
 -- ############################################################
 -- #                                                          #

@@ -1,36 +1,37 @@
 package app.cliq.backend.config
 
-import io.swagger.v3.oas.annotations.enums.SecuritySchemeIn
+import app.cliq.backend.config.properties.InfoProperties
 import io.swagger.v3.oas.annotations.enums.SecuritySchemeType
 import io.swagger.v3.oas.annotations.security.SecurityScheme
 import io.swagger.v3.oas.models.OpenAPI
 import io.swagger.v3.oas.models.info.Info
-import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 
-const val API_TOKEN_SECURITY_SCHEME_NAME = "API Token"
+const val JWT_SECURITY_SCHEME_NAME = "JWT"
+const val OIDC_SECURITY_SCHEME_NAME = "oidc"
 
 @Configuration
 @SecurityScheme(
-    name = API_TOKEN_SECURITY_SCHEME_NAME,
+    name = JWT_SECURITY_SCHEME_NAME,
     type = SecuritySchemeType.HTTP,
-    bearerFormat = "API_KEY",
-    scheme = "bearer",
-    `in` = SecuritySchemeIn.HEADER,
+    bearerFormat = "JWT",
+    scheme = "Bearer",
 )
 class OpenApiConfig(
-    @Value($$"${app.info.name}") private val name: String,
-    @Value($$"${app.info.version}") private val version: String,
-    @Value($$"${app.info.description}") private val description: String,
+    private val infoProperties: InfoProperties,
 ) {
     @Bean
-    fun apiDocConfig(): OpenAPI =
-        OpenAPI()
-            .info(
-                Info()
-                    .title(name)
-                    .version(version)
-                    .description(description),
-            )
+    fun apiDocConfig(): OpenAPI {
+        val openApi =
+            OpenAPI()
+                .info(
+                    Info()
+                        .title(infoProperties.name)
+                        .version(infoProperties.version)
+                        .description(infoProperties.description),
+                )
+
+        return openApi
+    }
 }

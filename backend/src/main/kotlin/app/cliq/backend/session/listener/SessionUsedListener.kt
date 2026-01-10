@@ -24,7 +24,7 @@ class SessionUsedListener(
                 IllegalArgumentException("Session with ID ${event.sessionId} not found")
             }
 
-        session.lastAccessedAt = OffsetDateTime.now(clock)
+        session.lastUsedAt = OffsetDateTime.now(clock)
 
         sessionRepository.save(session)
     }
