@@ -2,53 +2,41 @@ import '../../identities/data/identities.drift';
 import '../../credentials/data/credentials.drift';
 import '../../connections/model/connection_icon.dart';
 import '../../connections/model/connection_color.dart';
+import '../../settings/data/custom_terminal_themes.drift';
+import '../../../shared/data/converters/color_converter.dart';
+import '../../../shared/data/converters/terminal_typography_converter.dart';
 
 CREATE TABLE connections (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    address TEXT NOT NULL,
-    port INTEGER NOT NULL,
-    identity_id INTEGER REFERENCES identities(id),
-    username TEXT,
-    credential_id INTEGER REFERENCES credentials(id) ON DELETE CASCADE,
-    label TEXT,
-    icon ENUM(ConnectionIcon) NOT NULL DEFAULT 'unknown',
-    color TEXT,
-    group_name TEXT
+    id                              INTEGER PRIMARY KEY AUTOINCREMENT,
+    address                         TEXT NOT NULL,
+    port                            INTEGER NOT NULL,
+    identity_id                     INTEGER REFERENCES identities(id),
+    username                        TEXT,
+    credential_id                   INTEGER REFERENCES credentials(id) ON DELETE CASCADE,
+    label                           TEXT,
+    icon                            ENUM(ConnectionIcon) NOT NULL DEFAULT 'unknown',
+    icon_color                      INTEGER MAPPED BY `const ColorConverter()`,
+    icon_background_color           INTEGER MAPPED BY `const ColorConverter()`,
+    group_name                      TEXT,
+    terminal_typography_override    TEXT MAPPED BY `const TerminalTypographyConverter()`,
+    terminal_theme_override_id      INTEGER REFERENCES custom_terminal_themes(id) ON DELETE SET NULL
 );
 
-findAllConnectionGroupNames: SELECT DISTINCT group_name FROM connections WHERE group_name IS NOT NULL AND group_name != '' ORDER BY group_name ASC;
+findAllConnectionFull:
+  SELECT
+    c.** AS connection,
+    i.** AS identity,
+    cc.** AS credential,
+    ci.** AS identityCredential,
+    t.** AS terminalThemeOverride
+  FROM connections c
+  LEFT JOIN identities i ON c.identity_id = i.id
+  LEFT JOIN credentials cc ON c.credential_id = cc.id
+  LEFT JOIN credentials ci ON i.credential_id = ci.id
+  LEFT JOIN custom_terminal_themes t ON c.terminal_theme_override_id = t.id;
 
-findAllConnectionFull: SELECT
-  con.id                                          AS connection_id,
-  con.address,
-  con.port,
-  con.identity_id,
-  con.username                                    AS connection_username,
-  con.credential_id                               AS connection_credential_ref_id,
-  con.label,
-  con.icon,
-  con.color,
-  con.group_name,
-  i.id                                            AS identity_id,
-  i.username                                      AS identity_username,
-  i.credential_id                                 AS identity_credential_ref_id,
-  ci.id                                           AS identity_credential_id_explicit,
-  ci.type                                         AS identity_credential_type,
-  ci.data                                         AS identity_credential_data,
-  ci.passphrase                                   AS identity_credential_passphrase,
-  cc.id                                           AS connection_credential_id_explicit,
-  cc.type                                         AS connection_credential_type,
-  cc.data                                         AS connection_credential_data,
-  cc.passphrase                                   AS connection_credential_passphrase,
-  COALESCE(ci.id, cc.id)                          AS effective_credential_id,
-  COALESCE(ci.type, cc.type)                      AS effective_credential_type,
-  COALESCE(ci.data, cc.data)                      AS effective_credential_data,
-  COALESCE(ci.passphrase, cc.passphrase)          AS effective_credential_passphrase
-FROM connections AS con
-LEFT JOIN identities AS i
-  ON i.id = con.identity_id
-LEFT JOIN credentials AS ci
-  ON ci.id = i.credential_id
-LEFT JOIN credentials AS cc
-  ON cc.id = con.credential_id
-ORDER BY con.id;
+findAllConnectionGroupNames:
+    SELECT DISTINCT group_name
+    FROM connections
+    WHERE group_name IS NOT NULL AND group_name != ''
+    ORDER BY group_name ASC;

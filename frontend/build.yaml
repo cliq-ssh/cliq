@@ -5,3 +5,4 @@ targets:
         options:
           databases:
             cliq_db: lib/data/sqlite/database.dart
+          apply_converters_on_variables: true

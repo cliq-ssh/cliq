@@ -9,4 +9,11 @@ class IdentityFull extends Identity {
     required super.credentialId,
     this.credential,
   });
+
+  IdentityFull.fromIdentity(Identity identity, {this.credential})
+    : super(
+        id: identity.id,
+        username: identity.username,
+        credentialId: identity.credentialId,
+      );
 }

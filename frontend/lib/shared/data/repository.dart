@@ -12,6 +12,8 @@ abstract class Repository<T extends Table, R> {
 
   TableInfo<T, R> get table;
 
+  Selectable<R> selectAll() => db.select(table);
+
   Future<int> insert(UpdateCompanion<R> row) {
     return db.into(table).insert(row).then((id) {
       _log.finest('Inserted row with id $id');

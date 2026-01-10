@@ -35,7 +35,6 @@ dependencies:
   forui_hooks: 0.17.0
   dartssh2: ^2.13.0
   uuid: ^4.5.2
-  system_fonts: ^1.0.1
   simple_icons: ^14.6.1
   url_launcher: ^6.3.2
 

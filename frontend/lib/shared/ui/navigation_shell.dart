@@ -1,7 +1,6 @@
 import 'package:cliq/modules/connections/extension/connection.extension.dart';
 import 'package:cliq/modules/connections/provider/connection.provider.dart';
 import 'package:cliq/shared/ui/session_tab.dart';
-import 'package:cliq_term/cliq_term.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:forui/forui.dart';
 import 'package:lucide_flutter/lucide_flutter.dart';
@@ -10,6 +9,7 @@ import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
 import '../../modules/session/provider/session.provider.dart';
+import '../../modules/settings/provider/terminal_theme.provider.dart';
 import '../../modules/settings/view/settings_page.dart';
 import '../extensions/router.extension.dart';
 
@@ -31,6 +31,7 @@ class NavigationShellState extends ConsumerState<NavigationShell>
   Widget build(BuildContext context) {
     final connections = ref.watch(connectionProvider);
     final sessions = ref.watch(sessionProvider);
+    final terminalTheme = ref.watch(terminalThemeProvider);
     final selectedSession = useState(sessions.selectedSession);
     final showTabs = useState(false);
 
@@ -44,8 +45,9 @@ class NavigationShellState extends ConsumerState<NavigationShell>
       header: Container(
         color:
             selectedSession.value != null && selectedSession.value!.isConnected
-            // TODO: get color from session
-            ? TerminalColorThemes.darcula.backgroundColor
+            ? (selectedSession.value?.connection.terminalThemeOverride ??
+                      terminalTheme.effectiveActiveDefaultTheme)
+                  .backgroundColor
             : null,
         padding: const EdgeInsets.all(8),
         child: SafeArea(

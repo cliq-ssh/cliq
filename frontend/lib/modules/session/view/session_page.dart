@@ -1,6 +1,10 @@
 import 'package:cliq/modules/connections/model/connection_full.model.dart';
 import 'package:cliq/modules/connections/provider/connection.provider.dart';
 import 'package:cliq/modules/session/model/session.model.dart';
+import 'package:cliq/modules/settings/extension/custom_terminal_theme.extension.dart';
+import 'package:cliq/modules/settings/provider/terminal_theme.provider.dart';
+import 'package:cliq/shared/data/store.dart';
+import 'package:cliq/shared/provider/store.provider.dart';
 import 'package:cliq_ui/cliq_ui.dart'
     show CliqGridColumn, CliqGridContainer, CliqGridRow;
 import 'package:dartssh2/dartssh2.dart';
@@ -26,50 +30,53 @@ class ShellSessionPage extends StatefulHookConsumerWidget {
 
 class _ShellSessionPageState extends ConsumerState<ShellSessionPage>
     with AutomaticKeepAliveClientMixin {
-  late final TerminalController _terminalController;
-
   ShellSession get session => widget.session;
   SSHClient? get sshClient => session.sshClient;
   SSHSession? get sshSession => session.sshSession;
-
-  // TODO: load from config
-  TerminalColorTheme theme = TerminalColorThemes.darcula;
 
   @override
   bool get wantKeepAlive => true;
 
   @override
-  void initState() {
-    super.initState();
-    // TODO: listen for onTitleChange and update tab title
-    _terminalController = TerminalController(
-      colors: theme,
-      typography: TerminalTypography(fontFamily: 'SourceCodePro', fontSize: 16),
-      debugLogging: kDebugMode,
-      onResize: (rows, cols) {
-        sshSession?.resizeTerminal(cols, rows);
-        //        showFToast(
-        //          context: context,
-        //          alignment: FToastAlignment.topCenter,
-        //          title: Text('$cols x $rows'),
-        //          duration: Duration(milliseconds: 500),
-        //        );
-      },
-    );
-  }
-
-  @override
-  void dispose() {
-    _terminalController.dispose();
-    super.dispose();
-  }
-
-  @override
   Widget build(BuildContext context) {
     super.build(context);
 
+    final terminalController = useState<TerminalController?>(null);
     final typography = context.theme.typography;
     final size = MediaQuery.of(context).size;
+
+    final terminalTypography = useStore(StoreKey.defaultTerminalTypography);
+    final terminalTheme = ref.watch(terminalThemeProvider);
+
+    getEffectiveTerminalTypography() =>
+        widget.session.connection.terminalTypographyOverride ??
+        terminalTypography.value!;
+
+    getEffectiveTerminalTheme() =>
+        widget.session.connection.terminalThemeOverride ??
+        terminalTheme.effectiveActiveDefaultTheme;
+
+    useEffect(() {
+      // TODO: listen for onTitleChange and update tab title
+      terminalController.value = TerminalController(
+        theme: getEffectiveTerminalTheme().toTerminalTheme(),
+        typography: getEffectiveTerminalTypography(),
+        debugLogging: kDebugMode,
+        onResize: (rows, cols) {
+          sshSession?.resizeTerminal(cols, rows);
+          // TODO: resize overlay
+        },
+      );
+      return () => terminalController.value?.dispose();
+    }, []);
+
+    useEffect(() {
+      if (terminalController.value == null) return null;
+      terminalController.value!.typography = getEffectiveTerminalTypography();
+      terminalController.value!.theme = getEffectiveTerminalTheme()
+          .toTerminalTheme();
+      return null;
+    }, [terminalTypography.value, terminalTheme]);
 
     buildConnecting() {
       return [
@@ -117,6 +124,8 @@ class _ShellSessionPageState extends ConsumerState<ShellSessionPage>
     }
 
     useEffect(() {
+      if (terminalController.value == null) return null;
+
       Future<void> openSsh(ConnectionFull connection) async {
         final client = await ref
             .read(sessionProvider.notifier)
@@ -126,19 +135,19 @@ class _ShellSessionPageState extends ConsumerState<ShellSessionPage>
             .read(sessionProvider.notifier)
             .spawnShell(widget.session.id, client);
 
-        _terminalController.fitResize(size);
-        _terminalController.onInput = (s) {
+        terminalController.value!.fitResize(size);
+        terminalController.value!.onInput = (s) {
           if (sshSession != null) {
             sshSession!.stdin.add(Uint8List.fromList(s.codeUnits));
           }
         };
 
         shell?.stdout.listen((data) {
-          _terminalController.feed(String.fromCharCodes(data));
+          terminalController.value!.feed(String.fromCharCodes(data));
         });
 
         shell?.stderr.listen((data) {
-          _terminalController.feed(String.fromCharCodes(data));
+          terminalController.value!.feed(String.fromCharCodes(data));
         });
       }
 
@@ -149,12 +158,12 @@ class _ShellSessionPageState extends ConsumerState<ShellSessionPage>
       return () => widget.session.dispose();
     }, []);
 
-    if (widget.session.isConnected) {
+    if (widget.session.isConnected && terminalController.value != null) {
       return SizedBox.expand(
         child: Container(
-          color: theme.backgroundColor,
+          color: getEffectiveTerminalTheme().backgroundColor,
           padding: const .all(8),
-          child: TerminalView(controller: _terminalController),
+          child: TerminalView(controller: terminalController.value!),
         ),
       );
     }
