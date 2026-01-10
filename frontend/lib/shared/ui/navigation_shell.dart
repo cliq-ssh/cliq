@@ -46,7 +46,8 @@ class NavigationShellState extends ConsumerState<NavigationShell>
         color:
             selectedSession.value != null && selectedSession.value!.isConnected
             ? (selectedSession.value?.connection.terminalThemeOverride ??
-                terminalTheme.effectiveActiveDefaultTheme).backgroundColor
+                      terminalTheme.effectiveActiveDefaultTheme)
+                  .backgroundColor
             : null,
         padding: const EdgeInsets.all(8),
         child: SafeArea(
