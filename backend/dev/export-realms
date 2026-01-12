@@ -18,4 +18,7 @@ trap cd_into_work_dir EXIT
 echo "Exporting realm 'cliq-dev'..."
 dev/kc export --dir /opt/keycloak/data/import --users realm_file --realm cliq-dev --optimized --http-management-port=9001
 
+echo "Exporting realm 'cliq-test'..."
+dev/kc export --dir /opt/keycloak/data/import --users realm_file --realm cliq-test --optimized --http-management-port=9001
+
 echo "Successfully exported realms!"

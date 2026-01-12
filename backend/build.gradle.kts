@@ -139,6 +139,9 @@ dependencies {
     // Spring
     testImplementation("org.springframework.boot:spring-boot-webmvc-test")
 
+    // WebTestClient
+    testImplementation("org.springframework.boot:spring-boot-webtestclient")
+
     // Junit 5
     testImplementation("org.jetbrains.kotlin:kotlin-test-junit5")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
@@ -159,6 +162,9 @@ dependencies {
     testImplementation("org.mockito:mockito-core:5.21.0")
     testImplementation("org.mockito:mockito-junit-jupiter:5.21.0")
     testImplementation("org.mockito.kotlin:mockito-kotlin:6.1.0")
+
+    // Keycloak
+    testImplementation("org.keycloak:keycloak-admin-client:26.0.8")
 
     // AssertJ
     testImplementation("org.assertj:assertj-core:3.27.6")
