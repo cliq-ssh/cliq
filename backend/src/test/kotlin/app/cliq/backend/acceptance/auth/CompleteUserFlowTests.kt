@@ -23,7 +23,7 @@ class CompleteUserFlowTests(
     @Autowired
     private val mockMvc: MockMvc,
     @Autowired
-    private val objectMapper: ObjectMapper
+    private val objectMapper: ObjectMapper,
 ) : AcceptanceTester() {
     @Test
     fun `test user registration, login, refresh and logout`() {
@@ -56,41 +56,47 @@ class CompleteUserFlowTests(
                 name = sessionName,
             )
 
-        val loginResult = mockMvc
-            .perform(
-                MockMvcRequestBuilders
-                    .post("/api/auth/login")
-                    .contentType(MediaType.APPLICATION_JSON_VALUE)
-                    .content(objectMapper.writeValueAsString(loginParams)),
-            ).andExpect(status().isOk)
-            .andReturn()
+        val loginResult =
+            mockMvc
+                .perform(
+                    MockMvcRequestBuilders
+                        .post("/api/auth/login")
+                        .contentType(MediaType.APPLICATION_JSON_VALUE)
+                        .content(objectMapper.writeValueAsString(loginParams)),
+                ).andExpect(status().isOk)
+                .andReturn()
         val loginContent = loginResult.response.contentAsString
         val loginResponse = objectMapper.readValue(loginContent, TokenResponse::class.java)
 
         // Test login by getting self the user information
-        mockMvc.perform(
-            MockMvcRequestBuilders.get("/api/user/me")
-                .header(HttpHeaders.AUTHORIZATION, "Bearer ${loginResponse.accessToken}")
-        ).andExpect(status().isOk)
+        mockMvc
+            .perform(
+                MockMvcRequestBuilders
+                    .get("/api/user/me")
+                    .header(HttpHeaders.AUTHORIZATION, "Bearer ${loginResponse.accessToken}"),
+            ).andExpect(status().isOk)
 
         // Refresh
         val refreshParams = RefreshParams(loginResponse.refreshToken)
-        val refreshResult = mockMvc
-            .perform(
-                MockMvcRequestBuilders
-                    .post("/api/auth/refresh")
-                    .contentType(MediaType.APPLICATION_JSON_VALUE)
-                    .content(objectMapper.writeValueAsString(refreshParams)),
-            ).andExpect(status().isOk)
-            .andReturn()
+        val refreshResult =
+            mockMvc
+                .perform(
+                    MockMvcRequestBuilders
+                        .post("/api/auth/refresh")
+                        .contentType(MediaType.APPLICATION_JSON_VALUE)
+                        .content(objectMapper.writeValueAsString(refreshParams)),
+                ).andExpect(status().isOk)
+                .andReturn()
         val refreshContent = refreshResult.response.contentAsString
         val refreshResponse = objectMapper.readValue(refreshContent, TokenResponse::class.java)
 
         // Test login with the new access token by getting self the user information
-        mockMvc.perform(
-            MockMvcRequestBuilders.get("/api/user/me")
-                .header(HttpHeaders.AUTHORIZATION, "Bearer ${refreshResponse.accessToken}")
-        ).andExpect(status().isOk)
+        mockMvc
+            .perform(
+                MockMvcRequestBuilders
+                    .get("/api/user/me")
+                    .header(HttpHeaders.AUTHORIZATION, "Bearer ${refreshResponse.accessToken}"),
+            ).andExpect(status().isOk)
 
         // logout
         mockMvc

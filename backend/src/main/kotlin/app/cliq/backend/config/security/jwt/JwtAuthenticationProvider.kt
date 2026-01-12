@@ -15,12 +15,12 @@ class JwtAuthenticationProvider(
     private val jwtAuthenticationFactory: JwtAuthenticationFactory,
     private val jwtResolver: JwtResolver,
 ) : AuthenticationProvider {
-
     override fun authenticate(authentication: Authentication): Authentication {
         val jwtAuthentication = authentication as JwtAuthentication
 
-        val jwtAccessToken = jwtAuthentication.credentials
-            ?: throw BadCredentialsException("Invalid JWT token")
+        val jwtAccessToken =
+            jwtAuthentication.credentials
+                ?: throw BadCredentialsException("Invalid JWT token")
 
         val session = jwtResolver.resolveSessionFromJwt(jwtAccessToken)
         eventPublisher.publishEvent(SessionUsedEvent(session.id!!))

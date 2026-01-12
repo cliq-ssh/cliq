@@ -62,15 +62,19 @@ class SecurityConfig(
             .authorizeHttpRequests {
                 it
                     // Actuator
-                    .requestMatchers("/actuator/**").permitAll()
+                    .requestMatchers("/actuator/**")
+                    .permitAll()
                     // Auth endpoints
-                    .requestMatchers("/api/auth/register", "/api/auth/register").permitAll()
+                    .requestMatchers("/api/auth/login", "/api/auth/refresh", "/api/auth/register")
+                    .permitAll()
                     // User endpoints
-                    .requestMatchers("/api/user/password-reset/start", "/api/user/password-reset/reset").permitAll()
-                    .requestMatchers("/api/user/verification", "/api/user/verification/resend-email").permitAll()
-                    .anyRequest().authenticated()
-            }
-            .with(jwtAuthenticationConfigurer)
+                    .requestMatchers("/api/user/password-reset/start", "/api/user/password-reset/reset")
+                    .permitAll()
+                    .requestMatchers("/api/user/verification", "/api/user/verification/resend-email")
+                    .permitAll()
+                    .anyRequest()
+                    .authenticated()
+            }.with(jwtAuthenticationConfigurer)
 
         return http.build()
     }

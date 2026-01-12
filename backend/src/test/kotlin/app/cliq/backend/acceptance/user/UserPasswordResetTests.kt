@@ -83,7 +83,7 @@ class UserPasswordResetTests(
                     .post("/api/auth/login")
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(objectMapper.writeValueAsString(loginParams)),
-            ).andExpect(MockMvcResultMatchers.status().isCreated)
+            ).andExpect(MockMvcResultMatchers.status().isOk)
     }
 
     @Test
@@ -230,10 +230,10 @@ class UserPasswordResetTests(
         mockMvc
             .perform(
                 MockMvcRequestBuilders
-                    .post("/api/session")
+                    .post("/api/auth/login")
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(objectMapper.writeValueAsString(loginParams)),
-            ).andExpect(MockMvcResultMatchers.status().isCreated)
+            ).andExpect(MockMvcResultMatchers.status().isOk)
     }
 
     @Test
@@ -306,12 +306,13 @@ class UserPasswordResetTests(
                     .post("/api/auth/login")
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(objectMapper.writeValueAsString(loginParams)),
-            ).andExpect(MockMvcResultMatchers.status().isCreated)
+            ).andExpect(MockMvcResultMatchers.status().isOk)
     }
 
     @Test
     fun `start password reset should not leak if emails are known`() {
-        val params = mapOf("email" to "unknown.email@cliq.internal")
+        val email = "unknown.email@cliq.internal"
+        val params = StartResetPasswordProcessParams(email)
 
         mockMvc
             .perform(

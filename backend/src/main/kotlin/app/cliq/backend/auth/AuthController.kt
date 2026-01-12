@@ -17,7 +17,6 @@ import org.springframework.web.bind.annotation.RequestMapping
 class AuthController(
     private val sessionRepository: SessionRepository,
 ) {
-
     @PostMapping("/logout")
     @Operation(summary = "Logs out the authenticated user and deletes the current session.")
     @ApiResponses(

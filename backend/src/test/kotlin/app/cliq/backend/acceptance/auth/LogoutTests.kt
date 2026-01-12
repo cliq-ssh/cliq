@@ -26,7 +26,7 @@ class LogoutTests(
     @Autowired
     private val refreshTokenService: RefreshTokenService,
     @Autowired
-    private val userCreationHelper: UserCreationHelper
+    private val userCreationHelper: UserCreationHelper,
 ) : AcceptanceTester() {
     @Test
     fun `test logout`() {
@@ -34,22 +34,26 @@ class LogoutTests(
 
         mockMvc
             .perform(
-                MockMvcRequestBuilders.post("/api/auth/logout")
-                    .header(HttpHeaders.AUTHORIZATION, "Bearer ${tokenPair.jwt.tokenValue}")
+                MockMvcRequestBuilders
+                    .post("/api/auth/logout")
+                    .header(HttpHeaders.AUTHORIZATION, "Bearer ${tokenPair.jwt.tokenValue}"),
             ).andExpect(status().isNoContent)
 
         // test access token is invalid by trying to get the current user information
-        mockMvc.perform(
-            MockMvcRequestBuilders.get("/api/user/me")
-        ).andExpect(status().isUnauthorized)
+        mockMvc
+            .perform(
+                MockMvcRequestBuilders.get("/api/user/me"),
+            ).andExpect(status().isUnauthorized)
 
         // test refresh token is invalid by trying to refresh the access token
         val refreshParams = RefreshParams(tokenPair.refreshToken)
-        mockMvc.perform(
-            MockMvcRequestBuilders.post("/api/auth/refresh")
-                .contentType(MediaType.APPLICATION_JSON_VALUE)
-                .content(objectMapper.writeValueAsString(refreshParams))
-        ).andExpect(status().isBadRequest)
+        mockMvc
+            .perform(
+                MockMvcRequestBuilders
+                    .post("/api/auth/refresh")
+                    .contentType(MediaType.APPLICATION_JSON_VALUE)
+                    .content(objectMapper.writeValueAsString(refreshParams)),
+            ).andExpect(status().isBadRequest)
 
         // assert session is deleted
         val hashedRefreshedToken = refreshTokenService.hashRefreshToken(tokenPair.refreshToken)

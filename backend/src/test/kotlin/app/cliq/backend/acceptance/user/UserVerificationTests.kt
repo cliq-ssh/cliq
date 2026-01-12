@@ -2,8 +2,14 @@ package app.cliq.backend.acceptance.user
 
 import app.cliq.backend.acceptance.EmailAcceptanceTest
 import app.cliq.backend.acceptance.EmailAcceptanceTester
+import app.cliq.backend.auth.params.RegistrationParams
+import app.cliq.backend.docs.EXAMPLE_EMAIL
+import app.cliq.backend.docs.EXAMPLE_PASSWORD
+import app.cliq.backend.docs.EXAMPLE_USERNAME
 import app.cliq.backend.user.UNVERIFIED_USER_INTERVAL_MINUTES
 import app.cliq.backend.user.UserRepository
+import app.cliq.backend.user.params.ResendVerificationEmailParams
+import app.cliq.backend.user.params.VerifyParams
 import org.apache.commons.mail2.jakarta.util.MimeMessageParser
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertNotNull
@@ -24,26 +30,34 @@ class UserVerificationTests(
 ) : EmailAcceptanceTester() {
     @Test
     fun `cannot verify with an invalid token`() {
-        val email = "test@example.lan"
-        val userDetails =
-            mapOf(
-                "email" to email,
-                "password" to "SecurePassword123",
-                "username" to "testuser",
+        val email = EXAMPLE_EMAIL
+        val password = EXAMPLE_PASSWORD
+        val username = EXAMPLE_USERNAME
+        val registrationParams =
+            RegistrationParams(
+                email = email,
+                password = password,
+                username = username,
             )
 
         mockMvc
             .perform(
                 MockMvcRequestBuilders
-                    .post("/api/user/register")
+                    .post("/api/auth/register")
                     .contentType(MediaType.APPLICATION_JSON)
-                    .content(objectMapper.writeValueAsString(userDetails)),
+                    .content(objectMapper.writeValueAsString(registrationParams)),
             ).andExpect(MockMvcResultMatchers.status().isCreated)
+
+        val invalidVerificationToken = "invalid-token"
+        val verifyContent = VerifyParams(email, invalidVerificationToken)
 
         mockMvc
             .perform(
-                MockMvcRequestBuilders.get("/api/user/verification/{token}", "invalid-token"),
-            ).andExpect(MockMvcResultMatchers.status().isNotFound)
+                MockMvcRequestBuilders
+                    .post("/api/user/verification")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(objectMapper.writeValueAsString(verifyContent)),
+            ).andExpect(MockMvcResultMatchers.status().isBadRequest)
 
         assertTrue(greenMail.waitForIncomingEmail(10_000, 1))
 
@@ -55,20 +69,22 @@ class UserVerificationTests(
 
     @Test
     fun `cannot verify twice`() {
-        val email = "test@example.lan"
-        val userDetails =
-            mapOf(
-                "email" to email,
-                "password" to "SecurePassword123",
-                "username" to "testuser",
+        val email = EXAMPLE_EMAIL
+        val password = EXAMPLE_PASSWORD
+        val username = EXAMPLE_USERNAME
+        val registrationParams =
+            RegistrationParams(
+                email = email,
+                password = password,
+                username = username,
             )
 
         mockMvc
             .perform(
                 MockMvcRequestBuilders
-                    .post("/api/user/register")
+                    .post("/api/auth/register")
                     .contentType(MediaType.APPLICATION_JSON)
-                    .content(objectMapper.writeValueAsString(userDetails)),
+                    .content(objectMapper.writeValueAsString(registrationParams)),
             ).andExpect(MockMvcResultMatchers.status().isCreated)
 
         assertTrue(greenMail.waitForIncomingEmail(1))
@@ -76,11 +92,7 @@ class UserVerificationTests(
         var user = userRepository.findByEmail(email)
         assertTrue(user != null)
 
-        val verifyContent =
-            mapOf(
-                "email" to email,
-                "verificationToken" to user.emailVerificationToken,
-            )
+        val verifyContent = VerifyParams(email, user.emailVerificationToken!!)
 
         mockMvc
             .perform(
@@ -109,22 +121,22 @@ class UserVerificationTests(
 
     @Test
     fun `cannot verify with an expired token`() {
-        // Create User
-        val email = "test@example.lan"
-
-        val userDetails =
-            mapOf(
-                "email" to email,
-                "password" to "SecurePassword123",
-                "username" to "testuser",
+        val email = EXAMPLE_EMAIL
+        val password = EXAMPLE_PASSWORD
+        val username = EXAMPLE_USERNAME
+        val registrationParams =
+            RegistrationParams(
+                email = email,
+                password = password,
+                username = username,
             )
 
         mockMvc
             .perform(
                 MockMvcRequestBuilders
-                    .post("/api/user/register")
+                    .post("/api/auth/register")
                     .contentType(MediaType.APPLICATION_JSON)
-                    .content(objectMapper.writeValueAsString(userDetails)),
+                    .content(objectMapper.writeValueAsString(registrationParams)),
             ).andExpect(MockMvcResultMatchers.status().isCreated)
 
         assertTrue(greenMail.waitForIncomingEmail(1))
@@ -136,11 +148,7 @@ class UserVerificationTests(
         userRepository.save(user)
 
         // Try to verify with the expired token
-        val verifyContent =
-            mapOf(
-                "email" to email,
-                "verificationToken" to user.emailVerificationToken,
-            )
+        val verifyContent = VerifyParams(email, user.emailVerificationToken!!)
 
         mockMvc
             .perform(
@@ -154,32 +162,35 @@ class UserVerificationTests(
     @Test
     fun `resend verification email`() {
         // Create User
-        val email = "test@example.lan"
-
-        val userDetails =
-            mapOf(
-                "email" to email,
-                "password" to "SecurePassword123",
-                "username" to "testuser",
+        val email = EXAMPLE_EMAIL
+        val password = EXAMPLE_PASSWORD
+        val username = EXAMPLE_USERNAME
+        val registrationParams =
+            RegistrationParams(
+                email = email,
+                password = password,
+                username = username,
             )
 
         mockMvc
             .perform(
                 MockMvcRequestBuilders
-                    .post("/api/user/register")
+                    .post("/api/auth/register")
                     .contentType(MediaType.APPLICATION_JSON)
-                    .content(objectMapper.writeValueAsString(userDetails)),
+                    .content(objectMapper.writeValueAsString(registrationParams)),
             ).andExpect(MockMvcResultMatchers.status().isCreated)
 
         assertTrue(greenMail.waitForIncomingEmail(1))
 
         // Resend verification email
+        val resendParams = ResendVerificationEmailParams(email)
+
         mockMvc
             .perform(
                 MockMvcRequestBuilders
                     .post("/api/user/verification/resend-email")
                     .contentType(MediaType.APPLICATION_JSON)
-                    .content(objectMapper.writeValueAsString(mapOf("email" to email))),
+                    .content(objectMapper.writeValueAsString(resendParams)),
             ).andExpect(MockMvcResultMatchers.status().isNoContent)
         assertTrue(greenMail.waitForIncomingEmail(1))
 

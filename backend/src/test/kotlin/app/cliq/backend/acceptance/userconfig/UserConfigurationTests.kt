@@ -3,6 +3,7 @@ package app.cliq.backend.acceptance.userconfig
 import app.cliq.backend.acceptance.AcceptanceTest
 import app.cliq.backend.acceptance.AcceptanceTester
 import app.cliq.backend.support.UserCreationHelper
+import app.cliq.backend.userconfig.view.ConfigurationView
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.MediaType
@@ -10,6 +11,7 @@ import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers
 import tools.jackson.databind.ObjectMapper
+import kotlin.test.assertEquals
 
 @AcceptanceTest
 class UserConfigurationTests(
@@ -39,7 +41,7 @@ class UserConfigurationTests(
     }
 
     @Test
-    fun `test endpoints can be accessed wit authentication`() {
+    fun `test endpoints can be accessed with authentication`() {
         val tokenPair = userCreationHelper.createRandomAuthenticatedUser()
 
         mockMvc
@@ -67,7 +69,6 @@ class UserConfigurationTests(
     @Test
     fun `test create and retrieve user configuration`() {
         val tokenPair = userCreationHelper.createRandomAuthenticatedUser()
-
 
         val payload =
             mapOf(
@@ -128,19 +129,21 @@ class UserConfigurationTests(
 
         val responseString = response.response.contentAsString
         assert(responseString.isNotEmpty())
-        val configJson = objectMapper.readTree(responseString)
-        val configUpdatedAt = configJson.get("updatedAt").asString()
+        val configurationView = objectMapper.readValue(responseString, ConfigurationView::class.java)
+        val configurationUpdatedAt = configurationView.updatedAt.toString()
 
         // Check last updated time
-        val result = mockMvc
-            .perform(
-                MockMvcRequestBuilders
-                    .get("/api/user/configuration/last-updated")
-                    .header("Authorization", "Bearer ${tokenPair.jwt.tokenValue}"),
-            ).andExpect(MockMvcResultMatchers.status().isOk)
-            .andReturn()
+        val result =
+            mockMvc
+                .perform(
+                    MockMvcRequestBuilders
+                        .get("/api/user/configuration/last-updated")
+                        .header("Authorization", "Bearer ${tokenPair.jwt.tokenValue}"),
+                ).andExpect(MockMvcResultMatchers.status().isOk)
+                .andReturn()
+
         val content = result.response.contentAsString
-        assert(content == configUpdatedAt)
+        assertEquals(configurationUpdatedAt, content)
     }
 
     @Test
@@ -178,17 +181,18 @@ class UserConfigurationTests(
 
         val responseString = secondResponse.response.contentAsString
         assert(responseString.isNotEmpty())
-        val initialConfigJson = objectMapper.readTree(responseString)
-        val initialConfigUpdatedAt = initialConfigJson.get("updatedAt").asString()
+        val configurationView = objectMapper.readValue(responseString, ConfigurationView::class.java)
+        val initialConfigUpdatedAt = configurationView.updatedAt.toString()
 
         // Check last updated time
-        val result = mockMvc
-            .perform(
-                MockMvcRequestBuilders
-                    .get("/api/user/configuration/last-updated")
-                    .header("Authorization", "Bearer ${tokenPair.jwt.tokenValue}"),
-            ).andExpect(MockMvcResultMatchers.status().isOk)
-            .andReturn()
+        val result =
+            mockMvc
+                .perform(
+                    MockMvcRequestBuilders
+                        .get("/api/user/configuration/last-updated")
+                        .header("Authorization", "Bearer ${tokenPair.jwt.tokenValue}"),
+                ).andExpect(MockMvcResultMatchers.status().isOk)
+                .andReturn()
         val content = result.response.contentAsString
         assert(content == initialConfigUpdatedAt)
 
@@ -222,17 +226,18 @@ class UserConfigurationTests(
 
         val updatedResponseString = response.response.contentAsString
         assert(updatedResponseString.isNotEmpty())
-        val updatedConfigJson = objectMapper.readTree(updatedResponseString)
-        val updatedConfigUpdatedAt = updatedConfigJson.get("updatedAt").asString()
+        val updatedConfigView = objectMapper.readValue(updatedResponseString, ConfigurationView::class.java)
+        val updatedConfigUpdatedAt = updatedConfigView.updatedAt.toString()
 
         // Check last updated time after update
-        val lastUpdatedResult = mockMvc
-            .perform(
-                MockMvcRequestBuilders
-                    .get("/api/user/configuration/last-updated")
-                    .header("Authorization", "Bearer ${tokenPair.jwt.tokenValue}"),
-            ).andExpect(MockMvcResultMatchers.status().isOk)
-            .andReturn()
+        val lastUpdatedResult =
+            mockMvc
+                .perform(
+                    MockMvcRequestBuilders
+                        .get("/api/user/configuration/last-updated")
+                        .header("Authorization", "Bearer ${tokenPair.jwt.tokenValue}"),
+                ).andExpect(MockMvcResultMatchers.status().isOk)
+                .andReturn()
         val lastUpdatedContent = lastUpdatedResult.response.contentAsString
         assert(lastUpdatedContent == updatedConfigUpdatedAt)
     }

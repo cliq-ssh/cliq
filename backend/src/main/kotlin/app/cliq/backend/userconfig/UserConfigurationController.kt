@@ -1,7 +1,7 @@
 package app.cliq.backend.userconfig
 
 import app.cliq.backend.annotations.Authenticated
-import app.cliq.backend.user.User
+import app.cliq.backend.session.Session
 import app.cliq.backend.userconfig.factory.UserConfigurationFactory
 import app.cliq.backend.userconfig.params.ConfigurationParams
 import app.cliq.backend.userconfig.view.ConfigurationView
@@ -40,9 +40,10 @@ class UserConfigurationController(
         ],
     )
     fun put(
-        @AuthenticationPrincipal user: User,
+        @AuthenticationPrincipal session: Session,
         @RequestBody configurationParams: ConfigurationParams,
     ): ResponseEntity<Void> {
+        val user = session.user
         val existingConfig = repository.getByUser(user)
 
         if (existingConfig == null) {
@@ -81,8 +82,9 @@ class UserConfigurationController(
         ],
     )
     fun get(
-        @AuthenticationPrincipal user: User,
+        @AuthenticationPrincipal session: Session,
     ): ResponseEntity<ConfigurationView> {
+        val user = session.user
         val config = repository.getByUser(user) ?: return ResponseEntity.notFound().build()
 
         val view = ConfigurationView(config.encryptedConfig, config.updatedAt, config.updatedAt)
@@ -108,10 +110,11 @@ class UserConfigurationController(
         ],
     )
     fun getUpdatedAt(
-        @AuthenticationPrincipal user: User,
-    ): ResponseEntity<OffsetDateTime> {
+        @AuthenticationPrincipal session: Session,
+    ): ResponseEntity<String> {
+        val user = session.user
         val updatedAt = repository.getUpdatedAtByUser(user)
 
-        return ResponseEntity.ok(updatedAt)
+        return ResponseEntity.ok(updatedAt.toString())
     }
 }

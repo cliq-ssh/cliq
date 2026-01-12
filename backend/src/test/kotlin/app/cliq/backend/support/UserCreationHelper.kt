@@ -47,10 +47,11 @@ class UserCreationHelper(
     ): TokenPair {
         val userCreationData = createRandomUser(email, password, username, verified, locale)
 
-        val loginParams = LoginParams(
-            email,
-            password,
-        )
+        val loginParams =
+            LoginParams(
+                email,
+                password,
+            )
 
         return jwtService.generateJwtTokenPair(loginParams, userCreationData.user)
     }

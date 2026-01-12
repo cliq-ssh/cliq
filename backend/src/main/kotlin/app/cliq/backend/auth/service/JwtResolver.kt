@@ -16,8 +16,9 @@ class JwtResolver(
     fun resolveSessionFromJwt(jwtAccessToken: String): Session {
         val jwt = jwtDecoder.decode(jwtAccessToken)
         val sessionId = jwt.getClaim<Long>(JwtClaims.SID)
-        val session = sessionRepository.findById(sessionId).getOrNull()
-            ?: throw BadCredentialsException("Invalid JWT Access Token")
+        val session =
+            sessionRepository.findById(sessionId).getOrNull()
+                ?: throw BadCredentialsException("Invalid JWT Access Token")
 
         return session
     }

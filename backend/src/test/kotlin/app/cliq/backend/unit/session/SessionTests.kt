@@ -10,7 +10,6 @@ import java.time.OffsetDateTime
 import java.time.ZoneOffset
 
 class SessionTests {
-
     private val user: User = mock(User::class.java)
 
     @Test
@@ -48,6 +47,6 @@ class SessionTests {
             name = null,
             lastUsedAt = null,
             expiresAt = expiresAt,
-            createdAt = OffsetDateTime.now()
+            createdAt = OffsetDateTime.now(),
         )
 }

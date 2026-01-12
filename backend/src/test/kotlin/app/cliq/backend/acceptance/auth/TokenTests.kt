@@ -26,7 +26,7 @@ class TokenTests(
     @Autowired
     private val sessionRepository: SessionRepository,
     @Autowired
-    private val userCreationHelper: UserCreationHelper
+    private val userCreationHelper: UserCreationHelper,
 ) : AcceptanceTester() {
     @Test
     fun `test token refresh`() {
@@ -34,12 +34,15 @@ class TokenTests(
 
         // refresh
         val refreshParams = RefreshParams(tokenPair.refreshToken)
-        val result = mockMvc.perform(
-            MockMvcRequestBuilders.post("/api/auth/refresh")
-                .contentType(MediaType.APPLICATION_JSON_VALUE)
-                .content(objectMapper.writeValueAsString(refreshParams))
-        ).andExpect(status().isOk)
-            .andReturn()
+        val result =
+            mockMvc
+                .perform(
+                    MockMvcRequestBuilders
+                        .post("/api/auth/refresh")
+                        .contentType(MediaType.APPLICATION_JSON_VALUE)
+                        .content(objectMapper.writeValueAsString(refreshParams)),
+                ).andExpect(status().isOk)
+                .andReturn()
 
         val content = result.response.contentAsString
         val response = objectMapper.readValue(content, TokenResponse::class.java)
@@ -53,9 +56,11 @@ class TokenTests(
         assertNotNull(newSession)
 
         // Can log in with the new access token
-        mockMvc.perform(
-            MockMvcRequestBuilders.get("/api/user/me")
-                .header(HttpHeaders.AUTHORIZATION, "Bearer ${response.accessToken}")
-        ).andExpect(status().isOk)
+        mockMvc
+            .perform(
+                MockMvcRequestBuilders
+                    .get("/api/user/me")
+                    .header(HttpHeaders.AUTHORIZATION, "Bearer ${response.accessToken}"),
+            ).andExpect(status().isOk)
     }
 }

@@ -25,13 +25,11 @@ class UserController {
             ApiResponse(
                 responseCode = "200",
                 description = "Reset password email successfully sent",
-                content = [Content(schema = Schema(implementation = UserResponse::class))]
+                content = [Content(schema = Schema(implementation = UserResponse::class))],
             ),
         ],
     )
     fun me(
         @AuthenticationPrincipal session: Session,
-    ): ResponseEntity<UserResponse> {
-        return ResponseEntity.ok().body(UserResponse.fromUser(session.user))
-    }
+    ): ResponseEntity<UserResponse> = ResponseEntity.ok().body(UserResponse.fromUser(session.user))
 }

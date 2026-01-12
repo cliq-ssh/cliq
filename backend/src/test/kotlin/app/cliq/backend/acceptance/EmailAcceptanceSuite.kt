@@ -21,7 +21,7 @@ const val SMTP_PORT = 3025
     properties = [
         "spring.mail.host=${SMTP_HOST}",
         "spring.mail.port=${SMTP_PORT}",
-        "spring.mail.username=${EMAIL}",
+        "spring.mail.username=$EMAIL",
         "spring.mail.password=${EMAIL_PWD}",
         "spring.mail.protocol=smtp",
         "spring.mail.properties.mail.smtp.auth=true",
@@ -33,7 +33,7 @@ const val SMTP_PORT = 3025
 annotation class EmailAcceptanceTest
 
 @EmailAcceptanceTest
-abstract class EmailAcceptanceTester: AcceptanceTester() {
+abstract class EmailAcceptanceTester : AcceptanceTester() {
     companion object {
         @JvmField
         @RegisterExtension
