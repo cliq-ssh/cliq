@@ -1,8 +1,9 @@
-package app.cliq.backend.auth.view
+package app.cliq.backend.session.view
 
 import app.cliq.backend.docs.EXAMPLE_DATETIME
 import app.cliq.backend.docs.EXAMPLE_SESSION_ID
 import app.cliq.backend.docs.EXAMPLE_SESSION_NAME
+import app.cliq.backend.session.Session
 import io.swagger.v3.oas.annotations.media.Schema
 import java.time.OffsetDateTime
 
@@ -18,4 +19,15 @@ open class SessionResponse(
     val expiresAt: OffsetDateTime,
     @field:Schema(example = EXAMPLE_DATETIME)
     val createdAt: OffsetDateTime,
-)
+) {
+    companion object {
+        fun fromSession(session: Session): SessionResponse =
+            SessionResponse(
+                id = session.id!!,
+                name = session.name,
+                lastUsedAt = session.lastUsedAt,
+                expiresAt = session.expiresAt,
+                createdAt = session.createdAt,
+            )
+    }
+}

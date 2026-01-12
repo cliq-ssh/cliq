@@ -1,6 +1,7 @@
 package app.cliq.backend.auth.view
 
 import app.cliq.backend.auth.jwt.TokenPair
+import app.cliq.backend.session.view.SessionResponse
 import io.swagger.v3.oas.annotations.media.Schema
 import java.time.OffsetDateTime
 

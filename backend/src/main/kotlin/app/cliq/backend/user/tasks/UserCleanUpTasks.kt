@@ -1,4 +1,4 @@
-package app.cliq.backend.user.scheduler
+package app.cliq.backend.user.tasks
 
 import app.cliq.backend.user.PASSWORD_RESET_TOKEN_INTERVAL_MINUTES
 import app.cliq.backend.user.UNVERIFIED_USER_INTERVAL_MINUTES
@@ -11,7 +11,7 @@ import java.time.Clock
 import java.time.OffsetDateTime
 
 @Component
-class UserScheduler(
+class UserCleanUpTasks(
     private val userRepository: UserRepository,
     private val clock: Clock,
 ) {
