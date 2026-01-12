@@ -1,5 +1,8 @@
-package app.cliq.backend.unit.unit
+package app.cliq.backend.unit.user
 
+import app.cliq.backend.docs.EXAMPLE_EMAIL
+import app.cliq.backend.docs.EXAMPLE_PASSWORD
+import app.cliq.backend.docs.EXAMPLE_USERNAME
 import app.cliq.backend.user.User
 import java.time.OffsetDateTime
 
@@ -12,9 +15,9 @@ abstract class AbstractUserTests {
     ): User =
         User(
             id = 1L,
-            email = "test@example.com",
-            name = "Test User",
-            password = "password",
+            email = EXAMPLE_EMAIL,
+            name = EXAMPLE_USERNAME,
+            password = EXAMPLE_PASSWORD,
             emailVerificationToken = emailVerificationToken,
             emailVerificationSentAt = emailVerificationSentAt,
             resetToken = resetToken,

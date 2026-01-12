@@ -8,6 +8,7 @@ import org.springframework.security.oauth2.jwt.JwtClaimsSet
 import org.springframework.security.oauth2.jwt.JwtEncoder
 import org.springframework.security.oauth2.jwt.JwtEncoderParameters
 import org.springframework.stereotype.Service
+import java.time.Clock
 import java.time.OffsetDateTime
 import java.time.temporal.ChronoUnit
 
@@ -15,6 +16,7 @@ import java.time.temporal.ChronoUnit
 class JwtFactory(
     private val jwtProperties: JwtProperties,
     private val jwtEncoder: JwtEncoder,
+    private val clock: Clock,
 ) {
     fun generateJwtAccessToken(
         session: Session,
@@ -38,4 +40,6 @@ class JwtFactory(
 
         return jwtEncoder.encode(JwtEncoderParameters.from(claims))
     }
+
+    fun generateJwtAccessToken(session: Session): Jwt = generateJwtAccessToken(session, OffsetDateTime.now(clock))
 }

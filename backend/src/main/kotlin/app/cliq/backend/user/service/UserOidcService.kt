@@ -6,6 +6,10 @@ import app.cliq.backend.user.factory.UserFactory
 import org.springframework.security.oauth2.core.oidc.user.OidcUser
 import org.springframework.stereotype.Service
 
+/*
+TODO:
+    - Add updating existing user
+ */
 @Service
 class UserOidcService(
     private val userRepository: UserRepository,

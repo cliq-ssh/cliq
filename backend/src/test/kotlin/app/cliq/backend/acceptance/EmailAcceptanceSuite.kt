@@ -1,9 +1,5 @@
 package app.cliq.backend.acceptance
 
-import app.cliq.backend.acceptance.email.EMAIL
-import app.cliq.backend.acceptance.email.EMAIL_PWD
-import app.cliq.backend.acceptance.email.SMTP_HOST
-import app.cliq.backend.acceptance.email.SMTP_PORT
 import com.icegreen.greenmail.configuration.GreenMailConfiguration
 import com.icegreen.greenmail.junit5.GreenMailExtension
 import com.icegreen.greenmail.util.ServerSetupTest

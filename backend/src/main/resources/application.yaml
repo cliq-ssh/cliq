@@ -91,19 +91,15 @@ springdoc:
     path: /api/openapi
     version: openapi_3_1
   swagger-ui:
-    path: /api/swagger-ui
+    path: /api/openapi/swagger-ui
     disable-swagger-default-url: true
-    oauth:
-      use-pkce-with-authorization-code-grant: true
-    oauth2-redirect-url: /api/swagger-ui/oauth2-redirect.html
   default-consumes-media-type: application/json
   default-produces-media-type: application/json
   show-actuator: true
+scalar:
+  path: /api/openapi/scalar
 
 management:
   health:
     mail:
       enabled: \${app.email.enabled}
-
-scalar:
-  path: /api/scalar

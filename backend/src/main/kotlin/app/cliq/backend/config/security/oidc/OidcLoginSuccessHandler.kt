@@ -1,7 +1,8 @@
 package app.cliq.backend.config.security.oidc
 
-import app.cliq.backend.session.Session
-import app.cliq.backend.session.SessionFactory
+import app.cliq.backend.auth.jwt.TokenPair
+import app.cliq.backend.auth.service.JwtService
+import app.cliq.backend.auth.service.RefreshTokenService
 import app.cliq.backend.session.SessionRepository
 import app.cliq.backend.user.User
 import app.cliq.backend.user.service.UserOidcService
@@ -15,7 +16,8 @@ import org.springframework.stereotype.Component
 @Component
 class OidcLoginSuccessHandler(
     private val userOidcService: UserOidcService,
-    private val sessionFactory: SessionFactory,
+    private val jwtService: JwtService,
+    private val refreshTokenService: RefreshTokenService,
     private val sessionRepository: SessionRepository,
 ) : AuthenticationSuccessHandler {
     override fun onAuthenticationSuccess(
@@ -25,27 +27,27 @@ class OidcLoginSuccessHandler(
     ) {
         val oidcUSer = authentication.principal as OidcUser
         val user = userOidcService.putUserFromJwt(oidcUSer)
-        val session = getSessionForOidcUser(user, oidcUSer)
+        val tokenPair = getTokenPairFromOidcUser(user, oidcUSer)
 
-        TODO("Generate a proper todo value to send to the client")
-//        response.sendRedirect("cliq://oauth/callback?apiKey=${todo}")
+        response.sendRedirect(
+            "cliq://oauth/callback?jwtAccessToken=${tokenPair.jwt.tokenValue}&refreshToken=${tokenPair.refreshToken}",
+        )
     }
 
-    private fun getSessionForOidcUser(
+    private fun getTokenPairFromOidcUser(
         user: User,
         oidcUser: OidcUser,
-    ): Session {
+    ): TokenPair {
         val oidcSessionId = extractSessionId(oidcUser)
         val existingSession =
             oidcSessionId?.let {
                 sessionRepository.findByOidcSessionId(it)
             }
-        if (existingSession != null) {
-            return existingSession
+        if (existingSession == null) {
+            return jwtService.generateOidcJwtTokenPair(user, oidcSessionId)
         }
 
-        TODO("Update to new JWT workflow")
-//        return sessionFactory.createFromOidcUser(user, oidcSessionId)
+        return refreshTokenService.rotate(existingSession)
     }
 
     private fun extractSessionId(oidcUser: OidcUser): String? = oidcUser.idToken.getClaim("sid") as String?

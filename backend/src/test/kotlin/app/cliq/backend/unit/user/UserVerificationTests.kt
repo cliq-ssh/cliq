@@ -1,4 +1,4 @@
-package app.cliq.backend.unit.unit
+package app.cliq.backend.unit.user
 
 import app.cliq.backend.user.UNVERIFIED_USER_INTERVAL_MINUTES
 import org.assertj.core.api.Assertions.assertThat

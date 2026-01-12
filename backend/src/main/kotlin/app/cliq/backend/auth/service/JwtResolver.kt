@@ -1,6 +1,7 @@
 package app.cliq.backend.auth.service
 
 import app.cliq.backend.auth.jwt.JwtClaims
+import app.cliq.backend.exception.InvalidRefreshTokenException
 import app.cliq.backend.session.Session
 import app.cliq.backend.session.SessionRepository
 import org.springframework.security.authentication.BadCredentialsException
@@ -12,6 +13,7 @@ import kotlin.jvm.optionals.getOrNull
 class JwtResolver(
     private val jwtDecoder: JwtDecoder,
     private val sessionRepository: SessionRepository,
+    private val refreshTokenService: RefreshTokenService,
 ) {
     fun resolveSessionFromJwt(jwtAccessToken: String): Session {
         val jwt = jwtDecoder.decode(jwtAccessToken)
@@ -21,5 +23,11 @@ class JwtResolver(
                 ?: throw BadCredentialsException("Invalid JWT Access Token")
 
         return session
+    }
+
+    fun resolveSessionFromRefreshToken(refreshToken: String): Session? {
+        val hashedRefreshToken = refreshTokenService.hashRefreshToken(refreshToken)
+
+        return sessionRepository.findByRefreshToken(hashedRefreshToken)
     }
 }

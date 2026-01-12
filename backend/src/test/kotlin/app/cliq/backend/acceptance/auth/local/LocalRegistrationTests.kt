@@ -1,4 +1,4 @@
-package app.cliq.backend.acceptance.auth
+package app.cliq.backend.acceptance.auth.local
 
 import app.cliq.backend.acceptance.AcceptanceTest
 import app.cliq.backend.acceptance.AcceptanceTester
@@ -14,7 +14,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.MediaType
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders
-import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
+import org.springframework.test.web.servlet.result.MockMvcResultMatchers
 import tools.jackson.databind.ObjectMapper
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
@@ -50,7 +50,7 @@ class LocalRegistrationTests(
                         .post("/api/auth/register")
                         .contentType(MediaType.APPLICATION_JSON_VALUE)
                         .content(objectMapper.writeValueAsString(registrationParams)),
-                ).andExpect(status().isCreated)
+                ).andExpect(MockMvcResultMatchers.status().isCreated)
                 .andReturn()
 
         // Response assertions
@@ -93,7 +93,7 @@ class LocalRegistrationTests(
                     .post("/api/auth/register")
                     .contentType(MediaType.APPLICATION_JSON_VALUE)
                     .content(objectMapper.writeValueAsString(registrationParams)),
-            ).andExpect(status().isCreated)
+            ).andExpect(MockMvcResultMatchers.status().isCreated)
 
         // Login
 
@@ -111,7 +111,7 @@ class LocalRegistrationTests(
                     .post("/api/auth/login")
                     .contentType(MediaType.APPLICATION_JSON_VALUE)
                     .content(objectMapper.writeValueAsString(loginParams)),
-            ).andExpect(status().isOk)
+            ).andExpect(MockMvcResultMatchers.status().isOk)
     }
 
     @Test
@@ -134,7 +134,7 @@ class LocalRegistrationTests(
                     .post("/api/auth/register")
                     .contentType(MediaType.APPLICATION_JSON_VALUE)
                     .content(objectMapper.writeValueAsString(registrationParams)),
-            ).andExpect(status().isCreated)
+            ).andExpect(MockMvcResultMatchers.status().isCreated)
 
         // Second registration with the same email should fail
         mockMvc
@@ -143,6 +143,6 @@ class LocalRegistrationTests(
                     .post("/api/auth/register")
                     .contentType(MediaType.APPLICATION_JSON_VALUE)
                     .content(objectMapper.writeValueAsString(registrationParams)),
-            ).andExpect(status().isBadRequest)
+            ).andExpect(MockMvcResultMatchers.status().isBadRequest)
     }
 }

@@ -31,8 +31,8 @@ class SessionFactory(
 
     fun createFromOidcUser(
         user: User,
-        refreshToken: RefreshToken,
         oidcSessionId: String?,
+        refreshToken: RefreshToken,
     ): Session = createSession(user, refreshToken, oidcSessionId = oidcSessionId)
 
     private fun createSession(

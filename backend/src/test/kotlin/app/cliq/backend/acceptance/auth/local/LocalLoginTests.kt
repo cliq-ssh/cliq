@@ -1,4 +1,4 @@
-package app.cliq.backend.acceptance.auth
+package app.cliq.backend.acceptance.auth.local
 
 import app.cliq.backend.acceptance.AcceptanceTest
 import app.cliq.backend.acceptance.AcceptanceTester
@@ -12,7 +12,7 @@ import app.cliq.backend.docs.EXAMPLE_PASSWORD
 import app.cliq.backend.docs.EXAMPLE_USERNAME
 import app.cliq.backend.session.SessionRepository
 import app.cliq.backend.user.factory.UserFactory
-import org.junit.jupiter.api.Assertions.assertTrue
+import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertNotNull
 import org.springframework.beans.factory.annotation.Autowired
@@ -20,7 +20,7 @@ import org.springframework.http.MediaType
 import org.springframework.security.oauth2.jwt.JwtDecoder
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders
-import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
+import org.springframework.test.web.servlet.result.MockMvcResultMatchers
 import tools.jackson.databind.ObjectMapper
 import kotlin.test.assertEquals
 
@@ -69,7 +69,7 @@ class LocalLoginTests(
                         .post("/api/auth/login")
                         .contentType(MediaType.APPLICATION_JSON_VALUE)
                         .content(objectMapper.writeValueAsString(loginParams)),
-                ).andExpect(status().isOk)
+                ).andExpect(MockMvcResultMatchers.status().isOk)
                 .andReturn()
 
         // Response assertions
@@ -80,7 +80,7 @@ class LocalLoginTests(
 
         // Session assertions
         val sessionOpt = sessionRepository.findById(response.id)
-        assertTrue(sessionOpt.isPresent)
+        Assertions.assertTrue(sessionOpt.isPresent)
 
         // Decode jwt
         val jwt = jwtDecoder.decode(response.accessToken)
@@ -91,6 +91,6 @@ class LocalLoginTests(
         assertEquals(response.id, sid)
         assertEquals(jwtProperties.issuer, issuer.toString())
         assertNotNull(jwt.expiresAt)
-        assertTrue(jwt.expiresAt!! > jwt.issuedAt)
+        Assertions.assertTrue(jwt.expiresAt!! > jwt.issuedAt)
     }
 }

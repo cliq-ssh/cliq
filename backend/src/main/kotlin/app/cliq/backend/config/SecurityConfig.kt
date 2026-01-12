@@ -64,6 +64,9 @@ class SecurityConfig(
                     // Actuator
                     .requestMatchers("/actuator/**")
                     .permitAll()
+                    // OpenAPI
+                    .requestMatchers("/api", "/api/openapi/**")
+                    .permitAll()
                     // Auth endpoints
                     .requestMatchers("/api/auth/login", "/api/auth/refresh", "/api/auth/register")
                     .permitAll()

@@ -11,11 +11,6 @@ import org.springframework.beans.factory.annotation.Autowired
 import java.util.Locale
 import kotlin.test.assertTrue
 
-const val EMAIL = "cliq@localhost"
-const val EMAIL_PWD = "cliq"
-const val SMTP_HOST = "127.0.0.1"
-const val SMTP_PORT = 3025
-
 @EmailAcceptanceTest
 class EmailServiceTests(
     @Autowired

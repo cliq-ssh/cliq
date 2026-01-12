@@ -17,7 +17,7 @@ class JwtAuthenticationFilter(
         // We do this because the default success handler makes a redirect to '/'
         successHandler = { _, _, _ -> }
 
-        // Beware, that AuthenticationEntryPoint, registered
+        // Beware that AuthenticationEntryPoint, registered
         // via HttpSecurity DSL (and used by ExceptionTranslationFilter),
         // will NOT be invoked while handling authentication exceptions
         // thrown by the authentication manager inside this filter

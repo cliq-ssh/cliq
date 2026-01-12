@@ -3,6 +3,7 @@ package app.cliq.backend.acceptance.auth
 import app.cliq.backend.acceptance.AcceptanceTest
 import app.cliq.backend.acceptance.AcceptanceTester
 import app.cliq.backend.auth.params.RefreshParams
+import app.cliq.backend.auth.service.JwtResolver
 import app.cliq.backend.auth.view.TokenResponse
 import app.cliq.backend.session.SessionRepository
 import app.cliq.backend.support.UserCreationHelper
@@ -26,6 +27,8 @@ class TokenTests(
     @Autowired
     private val sessionRepository: SessionRepository,
     @Autowired
+    private val jwtResolver: JwtResolver,
+    @Autowired
     private val userCreationHelper: UserCreationHelper,
 ) : AcceptanceTester() {
     @Test
@@ -34,6 +37,11 @@ class TokenTests(
 
         // refresh
         val refreshParams = RefreshParams(tokenPair.refreshToken)
+
+        // find session
+        val session = jwtResolver.resolveSessionFromRefreshToken(refreshParams.refreshToken)
+        assertNotNull(session)
+
         val result =
             mockMvc
                 .perform(
@@ -48,7 +56,7 @@ class TokenTests(
         val response = objectMapper.readValue(content, TokenResponse::class.java)
 
         // Old session does not exist
-        val oldSession = sessionRepository.findByRefreshToken(tokenPair.refreshToken)
+        val oldSession = jwtResolver.resolveSessionFromRefreshToken(refreshParams.refreshToken)
         assertNull(oldSession)
 
         // New session exists

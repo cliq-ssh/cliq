@@ -1,14 +1,12 @@
 package app.cliq.backend.auth
 
 import app.cliq.backend.auth.annotation.AuthController
-import app.cliq.backend.auth.jwt.TokenPair
 import app.cliq.backend.auth.params.RefreshParams
-import app.cliq.backend.auth.service.JwtService
+import app.cliq.backend.auth.service.JwtResolver
 import app.cliq.backend.auth.service.RefreshTokenService
 import app.cliq.backend.auth.view.TokenResponse
 import app.cliq.backend.exception.InvalidRefreshTokenException
 import app.cliq.backend.exception.RefreshTokenExpiredException
-import app.cliq.backend.session.SessionRepository
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.media.Content
 import io.swagger.v3.oas.annotations.media.Schema
@@ -33,8 +31,7 @@ TODO:
 @AuthController
 @RequestMapping("/api/auth")
 class TokenController(
-    private val sessionRepository: SessionRepository,
-    private val jwtService: JwtService,
+    private val jwtResolver: JwtResolver,
     private val refreshTokenService: RefreshTokenService,
     private val clock: Clock,
 ) {
@@ -62,15 +59,12 @@ class TokenController(
     private fun refreshToken(
         @RequestBody @Valid refreshParams: RefreshParams,
     ): ResponseEntity<TokenResponse> {
-        val hashedRefreshToken = refreshTokenService.hashRefreshToken(refreshParams.refreshToken)
         val session =
-            sessionRepository.findByRefreshToken(hashedRefreshToken) ?: throw InvalidRefreshTokenException()
+            jwtResolver.resolveSessionFromRefreshToken(refreshParams.refreshToken)
+                ?: throw InvalidRefreshTokenException()
         if (session.isExpired(OffsetDateTime.now(clock))) throw RefreshTokenExpiredException()
 
-        val issuedRefreshToken = refreshTokenService.issue(session.name, session.user)
-        val accessToken = jwtService.generateNewAccessToken(issuedRefreshToken.session)
-
-        val tokenPair = TokenPair.fromIssuedRefreshToken(accessToken, issuedRefreshToken)
+        val tokenPair = refreshTokenService.rotate(session)
 
         return ResponseEntity.ok(TokenResponse.fromTokenPair(tokenPair))
     }
