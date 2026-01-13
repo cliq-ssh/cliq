@@ -44,7 +44,7 @@ dev_dependencies:
     sdk: flutter
 
   flutter_lints: ^6.0.0
-  drift_dev: 2.30.0
+  drift_dev: 2.30.1
   build_runner: 2.10.4
   flutter_launcher_icons: ^0.14.4
   flutter_native_splash: 2.4.7
