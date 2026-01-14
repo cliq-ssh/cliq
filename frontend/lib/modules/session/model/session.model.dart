@@ -1,10 +1,10 @@
+import 'package:cliq/modules/connections/model/connection_full.model.dart';
 import 'package:dartssh2/dartssh2.dart';
-import '../../../shared/data/database.dart';
 import '../../connections/extension/connection.extension.dart';
 
 class ShellSession {
   final String id;
-  final Connection connection;
+  final ConnectionFull connection;
 
   /// A potential error that occurred during the connection attempt.
   /// If this is non-null, the session is considered disconnected.

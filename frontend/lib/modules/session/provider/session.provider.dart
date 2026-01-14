@@ -17,7 +17,7 @@ class ShellSessionNotifier extends Notifier<SSHSessionState> {
   SSHSessionState build() => SSHSessionState.initial();
 
   /// Creates a new session and navigates to the session branch.
-  void createAndGo(NavigationShellState shellState, Connection connection) {
+  void createAndGo(NavigationShellState shellState, ConnectionFull connection) {
     final id = uuid.generate();
 
     final newSession = ShellSession.disconnected(
