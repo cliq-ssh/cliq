@@ -136,15 +136,15 @@ dependencies {
 
     // Testing //
 
+    // Junit 5
+    testImplementation("org.jetbrains.kotlin:kotlin-test-junit5")
+    testRuntimeOnly("org.junit.platform:junit-platform-launcher")
+
     // Spring
     testImplementation("org.springframework.boot:spring-boot-webmvc-test")
 
     // Security
     testImplementation("org.springframework.boot:spring-boot-starter-security-test")
-
-    // Junit 5
-    testImplementation("org.jetbrains.kotlin:kotlin-test-junit5")
-    testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 
     // JPA/SQL
     testImplementation("org.springframework.boot:spring-boot-starter-data-jpa-test")

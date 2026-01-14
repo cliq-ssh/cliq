@@ -1,6 +1,5 @@
 package app.cliq.backend.error
 
-import app.cliq.backend.ratelimit.RateLimitException
 import io.swagger.v3.oas.annotations.media.Schema
 
 @ConsistentCopyVisibility
@@ -27,24 +26,18 @@ data class ErrorCode private constructor(
         val EMAIL_ALREADY_VERIFIED = of(2009U, "Email is already verified")
         val INVALID_RESET_PARAMS = of(2010U, "Invalid email or reset token")
 
-        // Rate limiting
-        val RATE_LIMIT_EXCEEDED = of(2010U, "Rate limit exceeded")
-
         // ### Authentication errors ###
         val MISSING_AUTHENTICATION_TOKEN = of(2100U, "Missing authentication token")
         val INVALID_JWT_ACCESS_TOKEN = of(2101U, "Invalid authentication token")
         val INVALID_REFRESH_TOKEN = of(2102U, "Invalid refresh token")
         val REFRESH_TOKEN_EXPIRED = of(2103U, "Refresh token is expired")
 
+        // Rate limiting
+        val RATE_LIMIT_EXCEEDED = of(2200U, "Rate limit exceeded")
+
         private fun of(
             code: UShort,
             description: String,
         ): ErrorCode = ErrorCode(code, description)
-
-        fun fromRateLimitException(exception: RateLimitException): ErrorCode {
-            val message = exception.message ?: RATE_LIMIT_EXCEEDED.description
-
-            return ErrorCode(RATE_LIMIT_EXCEEDED.code, message)
-        }
     }
 }

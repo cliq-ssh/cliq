@@ -6,22 +6,17 @@ import io.github.bucket4j.BucketConfiguration
 import jakarta.servlet.FilterChain
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
-import org.springframework.http.HttpMethod
 import org.springframework.security.web.servlet.util.matcher.PathPatternRequestMatcher
 import org.springframework.stereotype.Component
 import org.springframework.web.filter.OncePerRequestFilter
 import java.time.Duration
 import kotlin.time.Duration.Companion.nanoseconds
 
-/*
-TODO:
-    - add tests
- */
-
 @Component
 class RateLimiterFilter(
     private val rateLimiterProperties: RateLimiterProperties,
     private val rateLimiter: RateLimiter,
+    private val rateLimitResponseBuilder: RateLimitResponseBuilder,
 ) : OncePerRequestFilter() {
     override fun doFilterInternal(
         request: HttpServletRequest,
@@ -45,26 +40,19 @@ class RateLimiterFilter(
         }
 
         val retryAfterSeconds = probe.nanosToWaitForRefill.nanoseconds.inWholeSeconds
-        throw RateLimitException(retryAfterSeconds)
+        rateLimitResponseBuilder.buildResponse(response, retryAfterSeconds)
     }
 
-    private fun findRule(request: HttpServletRequest): RateLimiterProperties.RateLimit? {
-        if (request.method != HttpMethod.GET.name()) return null
-
-        return rateLimiterProperties.rateLimits.firstOrNull {
+    private fun findRule(request: HttpServletRequest): RateLimiterProperties.RateLimit? =
+        rateLimiterProperties.rateLimits.firstOrNull {
             matches(it.url, request)
         }
-    }
 
     private fun matches(
         url: String,
         request: HttpServletRequest,
     ): Boolean {
-        val matcher =
-            PathPatternRequestMatcher.pathPattern(
-                HttpMethod.GET,
-                url,
-            )
+        val matcher = PathPatternRequestMatcher.pathPattern(url)
 
         return matcher.matches(request)
     }

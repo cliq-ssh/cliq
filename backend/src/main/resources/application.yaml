@@ -39,6 +39,7 @@ spring:
       - rate-limit-buckets
     caffeine:
       spec: expireAfterAccess=3600s
+    type: caffeine
   config:
     import: optional:file:.env[.properties],optional:file:.env.local[.properties]
   jpa:
