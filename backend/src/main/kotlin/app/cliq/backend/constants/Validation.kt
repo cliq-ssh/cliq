@@ -1,4 +1,4 @@
-package app.cliq.backend.docs
+package app.cliq.backend.constants
 
 // Passwords
 const val MIN_PASSWORD_LENGTH = 8

@@ -4,6 +4,7 @@ import app.cliq.backend.config.security.exception.handler.ApplicationAuthenticat
 import app.cliq.backend.config.security.jwt.JwtAuthenticationConfigurer
 import app.cliq.backend.config.security.oidc.OidcLoginSuccessHandler
 import app.cliq.backend.config.security.oidc.OidcLogoutHandler
+import app.cliq.backend.constants.Features
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.context.annotation.Profile
@@ -31,7 +32,7 @@ class SecurityConfig(
         Argon2PasswordEncoder(SALT_LENGTH, HASH_LENGTH, PARALLELISM, MEMORY, ITERATIONS)
 
     @Bean
-    @Profile("oidc")
+    @Profile(Features.OIDC)
     fun oidcFilterChain(
         http: HttpSecurity,
         oidcLoginSuccessHandler: OidcLoginSuccessHandler,
@@ -71,6 +72,9 @@ class SecurityConfig(
                     .requestMatchers("/api/user/password-reset/start", "/api/user/password-reset/reset")
                     .permitAll()
                     .requestMatchers("/api/user/verification", "/api/user/verification/resend-email")
+                    .permitAll()
+                    // Server Configuration
+                    .requestMatchers("/api/server/configuration")
                     .permitAll()
                     // Deny all by default
                     .anyRequest()

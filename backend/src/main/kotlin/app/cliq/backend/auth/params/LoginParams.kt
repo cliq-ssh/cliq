@@ -1,10 +1,10 @@
 package app.cliq.backend.auth.params
 
-import app.cliq.backend.docs.EXAMPLE_EMAIL
-import app.cliq.backend.docs.EXAMPLE_PASSWORD
-import app.cliq.backend.docs.EXAMPLE_SESSION_NAME
-import app.cliq.backend.docs.MAX_PASSWORD_LENGTH
-import app.cliq.backend.docs.MIN_PASSWORD_LENGTH
+import app.cliq.backend.constants.EXAMPLE_EMAIL
+import app.cliq.backend.constants.EXAMPLE_PASSWORD
+import app.cliq.backend.constants.EXAMPLE_SESSION_NAME
+import app.cliq.backend.constants.MAX_PASSWORD_LENGTH
+import app.cliq.backend.constants.MIN_PASSWORD_LENGTH
 import io.swagger.v3.oas.annotations.media.Schema
 import jakarta.validation.constraints.Email
 import jakarta.validation.constraints.NotEmpty

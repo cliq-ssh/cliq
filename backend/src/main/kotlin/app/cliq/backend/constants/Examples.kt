@@ -1,4 +1,4 @@
-package app.cliq.backend.docs
+package app.cliq.backend.constants
 
 // User examples
 const val EXAMPLE_EMAIL = "user@example.lan"

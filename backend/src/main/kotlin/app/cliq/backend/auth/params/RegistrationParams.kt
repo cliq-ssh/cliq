@@ -1,10 +1,10 @@
 package app.cliq.backend.auth.params
 
-import app.cliq.backend.docs.EXAMPLE_EMAIL
-import app.cliq.backend.docs.EXAMPLE_PASSWORD
-import app.cliq.backend.docs.EXAMPLE_USERNAME
-import app.cliq.backend.docs.MAX_PASSWORD_LENGTH
-import app.cliq.backend.docs.MIN_PASSWORD_LENGTH
+import app.cliq.backend.constants.EXAMPLE_EMAIL
+import app.cliq.backend.constants.EXAMPLE_PASSWORD
+import app.cliq.backend.constants.EXAMPLE_USERNAME
+import app.cliq.backend.constants.MAX_PASSWORD_LENGTH
+import app.cliq.backend.constants.MIN_PASSWORD_LENGTH
 import app.cliq.backend.user.DEFAULT_LOCALE
 import app.cliq.backend.user.validator.EmailOccupiedConstraint
 import io.swagger.v3.oas.annotations.media.Schema

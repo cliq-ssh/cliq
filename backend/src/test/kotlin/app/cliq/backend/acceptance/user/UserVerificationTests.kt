@@ -3,9 +3,9 @@ package app.cliq.backend.acceptance.user
 import app.cliq.backend.acceptance.EmailAcceptanceTest
 import app.cliq.backend.acceptance.EmailAcceptanceTester
 import app.cliq.backend.auth.params.RegistrationParams
-import app.cliq.backend.docs.EXAMPLE_EMAIL
-import app.cliq.backend.docs.EXAMPLE_PASSWORD
-import app.cliq.backend.docs.EXAMPLE_USERNAME
+import app.cliq.backend.constants.EXAMPLE_EMAIL
+import app.cliq.backend.constants.EXAMPLE_PASSWORD
+import app.cliq.backend.constants.EXAMPLE_USERNAME
 import app.cliq.backend.user.UNVERIFIED_USER_INTERVAL_MINUTES
 import app.cliq.backend.user.UserRepository
 import app.cliq.backend.user.params.ResendVerificationEmailParams

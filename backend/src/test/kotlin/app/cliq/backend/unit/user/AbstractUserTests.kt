@@ -1,8 +1,8 @@
 package app.cliq.backend.unit.user
 
-import app.cliq.backend.docs.EXAMPLE_EMAIL
-import app.cliq.backend.docs.EXAMPLE_PASSWORD
-import app.cliq.backend.docs.EXAMPLE_USERNAME
+import app.cliq.backend.constants.EXAMPLE_EMAIL
+import app.cliq.backend.constants.EXAMPLE_PASSWORD
+import app.cliq.backend.constants.EXAMPLE_USERNAME
 import app.cliq.backend.user.User
 import java.time.OffsetDateTime
 

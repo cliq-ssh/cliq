@@ -1,5 +1,6 @@
 package app.cliq.backend.config.openapi
 
+import app.cliq.backend.constants.Oidc
 import io.swagger.v3.oas.models.OpenAPI
 import io.swagger.v3.oas.models.Operation
 import io.swagger.v3.oas.models.PathItem
@@ -35,7 +36,7 @@ class OAuthOpenApiConfig {
                 PathItem()
                     .get(operation)
 
-            openApi.paths.addPathItem("/oauth2/authorization/oidc", pathItem)
+            openApi.paths.addPathItem(Oidc.AUTHORIZATION_ENDPOINT, pathItem)
         }
 
     @Bean
@@ -62,7 +63,7 @@ class OAuthOpenApiConfig {
                 PathItem()
                     .get(operation)
 
-            openApi.paths.addPathItem("/login/oauth2/code/oidc", pathItem)
+            openApi.paths.addPathItem(Oidc.CALLBACK_ENDPOINT, pathItem)
         }
 
     @Bean
@@ -93,6 +94,6 @@ class OAuthOpenApiConfig {
                 PathItem()
                     .post(operation)
 
-            openApi.paths.addPathItem("/logout/connect/back-channel/oidc", pathItem)
+            openApi.paths.addPathItem(Oidc.BACK_CHANNEL_LOGOUT_ENDPOINT, pathItem)
         }
 }

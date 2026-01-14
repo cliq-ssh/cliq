@@ -6,9 +6,9 @@ import app.cliq.backend.auth.params.LoginParams
 import app.cliq.backend.auth.params.RefreshParams
 import app.cliq.backend.auth.params.RegistrationParams
 import app.cliq.backend.auth.view.TokenResponse
-import app.cliq.backend.docs.EXAMPLE_EMAIL
-import app.cliq.backend.docs.EXAMPLE_PASSWORD
-import app.cliq.backend.docs.EXAMPLE_USERNAME
+import app.cliq.backend.constants.EXAMPLE_EMAIL
+import app.cliq.backend.constants.EXAMPLE_PASSWORD
+import app.cliq.backend.constants.EXAMPLE_USERNAME
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpHeaders

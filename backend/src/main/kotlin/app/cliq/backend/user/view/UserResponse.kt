@@ -1,9 +1,9 @@
 package app.cliq.backend.user.view
 
-import app.cliq.backend.docs.EXAMPLE_DATETIME
-import app.cliq.backend.docs.EXAMPLE_EMAIL
-import app.cliq.backend.docs.EXAMPLE_USERNAME
-import app.cliq.backend.docs.EXAMPLE_USER_ID
+import app.cliq.backend.constants.EXAMPLE_DATETIME
+import app.cliq.backend.constants.EXAMPLE_EMAIL
+import app.cliq.backend.constants.EXAMPLE_USERNAME
+import app.cliq.backend.constants.EXAMPLE_USER_ID
 import app.cliq.backend.user.User
 import io.swagger.v3.oas.annotations.media.Schema
 import java.io.Serializable

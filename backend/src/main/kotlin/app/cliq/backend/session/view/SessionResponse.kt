@@ -1,8 +1,8 @@
 package app.cliq.backend.session.view
 
-import app.cliq.backend.docs.EXAMPLE_DATETIME
-import app.cliq.backend.docs.EXAMPLE_SESSION_ID
-import app.cliq.backend.docs.EXAMPLE_SESSION_NAME
+import app.cliq.backend.constants.EXAMPLE_DATETIME
+import app.cliq.backend.constants.EXAMPLE_SESSION_ID
+import app.cliq.backend.constants.EXAMPLE_SESSION_NAME
 import app.cliq.backend.session.Session
 import io.swagger.v3.oas.annotations.media.Schema
 import java.time.OffsetDateTime

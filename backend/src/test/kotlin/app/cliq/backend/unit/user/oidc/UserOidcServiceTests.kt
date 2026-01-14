@@ -1,7 +1,7 @@
 package app.cliq.backend.unit.user.oidc
 
-import app.cliq.backend.docs.EXAMPLE_EMAIL
-import app.cliq.backend.docs.EXAMPLE_USERNAME
+import app.cliq.backend.constants.EXAMPLE_EMAIL
+import app.cliq.backend.constants.EXAMPLE_USERNAME
 import app.cliq.backend.unit.user.AbstractUserTests
 import app.cliq.backend.user.UserRepository
 import app.cliq.backend.user.factory.UserFactory
