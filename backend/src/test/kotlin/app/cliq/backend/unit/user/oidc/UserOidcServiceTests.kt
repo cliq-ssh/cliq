@@ -56,7 +56,7 @@ class UserOidcServiceTests : AbstractUserTests() {
 
     @Test
     fun `returns already mapped user when oidcSub is linked`() {
-        val oidcUser = mockOidcUser(mockEmail = false, mockPreferredUsername = false)
+        val oidcUser = mockOidcUser(mockEmail = true, mockPreferredUsername = true)
         val existingUser = createTestUser().apply { oidcSub = OIDC_SUB }
 
         given(userRepository.findByOidcSub(OIDC_SUB)).willReturn(existingUser)
@@ -116,5 +116,35 @@ class UserOidcServiceTests : AbstractUserTests() {
             name = EXAMPLE_USERNAME,
         )
         verify(userRepository, times(1)).save(createdUser)
+    }
+
+    @Test
+    fun `updates already mapped user with latest oidc data`() {
+        val oidcUser =
+            mockOidcUser(
+                sub = OIDC_SUB,
+                email = "new.$EXAMPLE_EMAIL",
+                preferredUsername = "new-$EXAMPLE_USERNAME",
+            )
+        val existingUser =
+            createTestUser().apply {
+                oidcSub = OIDC_SUB
+                email = EXAMPLE_EMAIL
+                name = EXAMPLE_USERNAME
+            }
+
+        given(userRepository.findByOidcSub(OIDC_SUB)).willReturn(existingUser)
+        given(userRepository.save(existingUser)).willReturn(existingUser)
+
+        val result = classUnderTest.putUserFromJwt(oidcUser)
+
+        assertSame(existingUser, result)
+        assertEquals(OIDC_SUB, existingUser.oidcSub)
+        assertEquals("new.$EXAMPLE_EMAIL", existingUser.email)
+        assertEquals("new-$EXAMPLE_USERNAME", existingUser.name)
+
+        verify(userRepository, times(1)).findByOidcSub(OIDC_SUB)
+        verify(userRepository, times(0)).findByEmail(any())
+        verify(userFactory, times(0)).createOidcUser(any(), any(), any())
     }
 }

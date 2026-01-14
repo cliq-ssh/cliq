@@ -6,10 +6,6 @@ import app.cliq.backend.user.factory.UserFactory
 import org.springframework.security.oauth2.core.oidc.user.OidcUser
 import org.springframework.stereotype.Service
 
-/*
-TODO:
-    - Add updating existing user
- */
 @Service
 class UserOidcService(
     private val userRepository: UserRepository,
@@ -18,9 +14,23 @@ class UserOidcService(
     fun putUserFromJwt(oidcUser: OidcUser): User {
         val sub = oidcUser.subject
         var user = userRepository.findByOidcSub(sub)
-        user = user ?: linkOrCreateUser(oidcUser)
+        user =
+            when (user) {
+                null -> linkOrCreateUser(oidcUser)
+                else -> updateUser(user, oidcUser)
+            }
 
         return userRepository.save(user)
+    }
+
+    private fun updateUser(
+        user: User,
+        oidcUser: OidcUser,
+    ): User {
+        user.name = oidcUser.preferredUsername
+        user.email = oidcUser.email
+
+        return user
     }
 
     private fun linkOrCreateUser(oidcUser: OidcUser): User =
@@ -42,12 +52,10 @@ class UserOidcService(
         user.oidcSub = oidcUser.subject
     }
 
-    private fun createOidcUser(oidcUser: OidcUser): User {
-        val name = oidcUser.preferredUsername
-        return userFactory.createOidcUser(
+    private fun createOidcUser(oidcUser: OidcUser): User =
+        userFactory.createOidcUser(
             email = oidcUser.email,
             sub = oidcUser.subject,
-            name = name,
+            name = oidcUser.preferredUsername,
         )
-    }
 }

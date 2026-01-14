@@ -21,13 +21,6 @@ import org.springframework.web.bind.annotation.RequestMapping
 import java.time.Clock
 import java.time.OffsetDateTime
 
-/*
-TODO:
-    - add tests:
-        - normal flow
-        - try to refresh with old token
-        - try to refresh with expired token
-*/
 @AuthController
 @RequestMapping("/api/auth")
 class TokenController(

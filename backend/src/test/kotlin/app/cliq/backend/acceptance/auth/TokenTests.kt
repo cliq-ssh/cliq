@@ -17,6 +17,8 @@ import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 import tools.jackson.databind.ObjectMapper
+import java.time.Clock
+import java.time.OffsetDateTime
 
 @AcceptanceTest
 class TokenTests(
@@ -30,6 +32,8 @@ class TokenTests(
     private val jwtResolver: JwtResolver,
     @Autowired
     private val userCreationHelper: UserCreationHelper,
+    @Autowired
+    private val clock: Clock,
 ) : AcceptanceTester() {
     @Test
     fun `test token refresh`() {
@@ -70,5 +74,59 @@ class TokenTests(
                     .get("/api/user/me")
                     .header(HttpHeaders.AUTHORIZATION, "Bearer ${response.accessToken}"),
             ).andExpect(status().isOk)
+    }
+
+    @Test
+    fun `cannot refresh with old token`() {
+        val tokenPair = userCreationHelper.createRandomAuthenticatedUser()
+        val refreshParams = RefreshParams(tokenPair.refreshToken)
+
+        mockMvc
+            .perform(
+                MockMvcRequestBuilders
+                    .post("/api/auth/refresh")
+                    .contentType(MediaType.APPLICATION_JSON_VALUE)
+                    .content(objectMapper.writeValueAsString(refreshParams)),
+            ).andExpect(status().isOk)
+
+        mockMvc
+            .perform(
+                MockMvcRequestBuilders
+                    .post("/api/auth/refresh")
+                    .contentType(MediaType.APPLICATION_JSON_VALUE)
+                    .content(objectMapper.writeValueAsString(refreshParams)),
+            ).andExpect(status().isBadRequest)
+    }
+
+    @Test
+    fun `cannot refresh with invalid token`() {
+        val refreshParams = RefreshParams("invalid-token")
+
+        mockMvc
+            .perform(
+                MockMvcRequestBuilders
+                    .post("/api/auth/refresh")
+                    .contentType(MediaType.APPLICATION_JSON_VALUE)
+                    .content(objectMapper.writeValueAsString(refreshParams)),
+            ).andExpect(status().isBadRequest)
+    }
+
+    @Test
+    fun `cannot refresh with expired token`() {
+        val tokenPair = userCreationHelper.createRandomAuthenticatedUser()
+        val refreshParams = RefreshParams(tokenPair.refreshToken)
+
+        val session = jwtResolver.resolveSessionFromRefreshToken(refreshParams.refreshToken)
+        assertNotNull(session)
+        session.expiresAt = OffsetDateTime.now(clock).minusSeconds(1)
+        sessionRepository.save(session)
+
+        mockMvc
+            .perform(
+                MockMvcRequestBuilders
+                    .post("/api/auth/refresh")
+                    .contentType(MediaType.APPLICATION_JSON_VALUE)
+                    .content(objectMapper.writeValueAsString(refreshParams)),
+            ).andExpect(status().isBadRequest)
     }
 }

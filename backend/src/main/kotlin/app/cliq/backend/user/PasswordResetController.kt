@@ -48,7 +48,7 @@ class PasswordResetController(
         // Returning 204 even if the user does not exist is intentional to not leak
         val user = userRepository.findByEmail(params.email) ?: return ResponseEntity.noContent().build()
 
-        if (!user.isEmailVerified()) {
+        if (!user.isUsable()) {
             throw EmailNotFoundOrValidException()
         }
 

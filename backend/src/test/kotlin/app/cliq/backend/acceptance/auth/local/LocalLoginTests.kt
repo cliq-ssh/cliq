@@ -10,7 +10,9 @@ import app.cliq.backend.config.properties.JwtProperties
 import app.cliq.backend.docs.EXAMPLE_EMAIL
 import app.cliq.backend.docs.EXAMPLE_PASSWORD
 import app.cliq.backend.docs.EXAMPLE_USERNAME
+import app.cliq.backend.error.ErrorCode
 import app.cliq.backend.session.SessionRepository
+import app.cliq.backend.support.UserCreationHelper
 import app.cliq.backend.user.factory.UserFactory
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
@@ -24,11 +26,6 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers
 import tools.jackson.databind.ObjectMapper
 import kotlin.test.assertEquals
 
-/*
-TODO:
-    - Test invalid credentials
-    - Test unverified email login
- */
 @AcceptanceTest
 class LocalLoginTests(
     @Autowired
@@ -43,7 +40,14 @@ class LocalLoginTests(
     private val jwtDecoder: JwtDecoder,
     @Autowired
     private val jwtProperties: JwtProperties,
+    @Autowired
+    private val userCreationHelper: UserCreationHelper,
 ) : AcceptanceTester() {
+    data class ErrorResponseClient(
+        val errorCode: ErrorCode,
+        val details: Any? = null,
+    )
+
     @Test
     fun `test login flow`() {
         val registrationParams =
@@ -92,5 +96,48 @@ class LocalLoginTests(
         assertEquals(jwtProperties.issuer, issuer.toString())
         assertNotNull(jwt.expiresAt)
         Assertions.assertTrue(jwt.expiresAt!! > jwt.issuedAt)
+    }
+
+    @Test
+    fun `test invalid credentials`() {
+        val sessionCount = sessionRepository.count()
+
+        val loginParams = LoginParams(EXAMPLE_EMAIL, "invalidPassword")
+
+        mockMvc
+            .perform(
+                MockMvcRequestBuilders
+                    .post("/api/auth/login")
+                    .contentType(MediaType.APPLICATION_JSON_VALUE)
+                    .content(objectMapper.writeValueAsString(loginParams)),
+            ).andExpect(MockMvcResultMatchers.status().isBadRequest)
+
+        val newSessionCount = sessionRepository.count()
+        assertEquals(sessionCount, newSessionCount)
+    }
+
+    @Test
+    fun `test unverified email cannot login`() {
+        val sessionCount = sessionRepository.count()
+        val creationData = userCreationHelper.createRandomUser(verified = false)
+        val user = creationData.user
+        val loginParams = LoginParams(user.email, creationData.password)
+
+        val result =
+            mockMvc
+                .perform(
+                    MockMvcRequestBuilders
+                        .post("/api/auth/login")
+                        .contentType(MediaType.APPLICATION_JSON_VALUE)
+                        .content(objectMapper.writeValueAsString(loginParams)),
+                ).andExpect(MockMvcResultMatchers.status().isBadRequest)
+                .andReturn()
+
+        val content = result.response.contentAsString
+        val response = objectMapper.readValue(content, ErrorResponseClient::class.java)
+        assertEquals(ErrorCode.EMAIL_NOT_VERIFIED, response.errorCode)
+
+        val newSessionCount = sessionRepository.count()
+        assertEquals(sessionCount, newSessionCount)
     }
 }

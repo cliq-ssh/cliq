@@ -89,7 +89,7 @@ class LocalAuthController(
     ): ResponseEntity<TokenResponse> {
         val user = userRepository.findByEmail(loginParams.email) ?: throw InvalidEmailOrPasswordException()
 
-        if (!user.isEmailVerified()) throw EmailNotVerifiedException()
+        if (!user.isUsable()) throw EmailNotVerifiedException()
 
         if (!passwordEncoder.matches(
                 loginParams.password,

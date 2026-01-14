@@ -55,7 +55,9 @@ class User(
         resetToken != null && resetSentAt != null &&
             resetSentAt!!.isAfter(OffsetDateTime.now().minusMinutes(PASSWORD_RESET_TOKEN_INTERVAL_MINUTES))
 
-    override fun toString(): String = "User(id=$id)"
+    fun isUsable(): Boolean {
+        return isEmailVerified()
+    }
 
-    // TODO: add function to see if user can be used. This will be useful during authentication and token refreshes.
+    override fun toString(): String = "User(id=$id)"
 }
