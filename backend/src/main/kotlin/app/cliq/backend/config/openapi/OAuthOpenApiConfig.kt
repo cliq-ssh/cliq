@@ -39,6 +39,33 @@ class OAuthOpenApiConfig {
         }
 
     @Bean
+    fun oauthCallbackEndpoint(): OpenApiCustomizer =
+        OpenApiCustomizer { openApi: OpenAPI ->
+            val operation =
+                Operation()
+                    .summary("OAuth2 callback endpoint")
+                    .description("Handles the callback from the OIDC provider after authentication.")
+                    .responses(
+                        ApiResponses()
+                            .addApiResponse(
+                                "302",
+                                ApiResponse()
+                                    .description("Redirect to the app."),
+                            ).addApiResponse(
+                                "404",
+                                ApiResponse()
+                                    .description("OAuth2 has been disabled"),
+                            ),
+                    ).addTagsItem("Authentication")
+
+            val pathItem =
+                PathItem()
+                    .get(operation)
+
+            openApi.paths.addPathItem("/login/oauth2/code/oidc", pathItem)
+        }
+
+    @Bean
     fun oauthBackChannelLogoutEndpoint(): OpenApiCustomizer =
         OpenApiCustomizer { openApi: OpenAPI ->
             val operation =

@@ -1,5 +1,6 @@
 package app.cliq.backend.config.security.oidc
 
+import app.cliq.backend.auth.jwt.JwtClaims
 import app.cliq.backend.auth.jwt.TokenPair
 import app.cliq.backend.auth.service.JwtService
 import app.cliq.backend.auth.service.RefreshTokenService
@@ -50,5 +51,5 @@ class OidcLoginSuccessHandler(
         return refreshTokenService.rotate(existingSession)
     }
 
-    private fun extractSessionId(oidcUser: OidcUser): String? = oidcUser.idToken.getClaim("sid") as String?
+    private fun extractSessionId(oidcUser: OidcUser): String? = oidcUser.idToken.getClaim(JwtClaims.SID) as String?
 }
