@@ -18,4 +18,19 @@ class TerminalTypography {
       ],
     );
   }
+
+  @override
+  String toString() =>
+      'TerminalTypography(fontFamily: $fontFamily, fontSize: $fontSize)';
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+    return other is TerminalTypography &&
+        other.fontFamily == fontFamily &&
+        other.fontSize == fontSize;
+  }
+
+  @override
+  int get hashCode => fontFamily.hashCode ^ fontSize.hashCode;
 }

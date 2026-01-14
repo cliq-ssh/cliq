@@ -1,4 +1,6 @@
 import 'package:cliq/modules/settings/extension/custom_terminal_theme.extension.dart';
+import 'package:cliq/modules/settings/ui/terminal_font_family_select.dart';
+import 'package:cliq/modules/settings/ui/terminal_font_size_slider.dart';
 import 'package:cliq/modules/settings/ui/terminal_theme_card.dart';
 import 'package:cliq/modules/settings/view/abstract_settings_page.dart';
 import 'package:cliq/modules/settings/view/settings_page.dart';
@@ -22,7 +24,6 @@ class TerminalThemeSettingsPage extends AbstractSettingsPage {
     path: 'terminal-theme',
   );
 
-  static const List<String> fonts = ['JetBrainsMono', 'SourceCodePro'];
   static const String sampleInput =
       "\x1b[31mLorem\x1b[0m "
       "\x1b[32mipsum\x1b[0m "
@@ -60,7 +61,8 @@ class TerminalThemeSettingsPage extends AbstractSettingsPage {
     final terminalThemes = ref.watch(terminalThemeProvider);
     final terminalController = useState<TerminalController?>(null);
     final selectedFontFamily = useState<String>(
-      StoreKey.defaultTerminalTypography.readSync()?.fontFamily ?? fonts.first,
+      StoreKey.defaultTerminalTypography.readSync()?.fontFamily ??
+          TerminalFontFamilySelect.fonts.first,
     );
     final selectedFontSize = useState<int>(
       StoreKey.defaultTerminalTypography.readSync()?.fontSize ?? 16,
@@ -135,54 +137,14 @@ class TerminalThemeSettingsPage extends AbstractSettingsPage {
                           },
                         ),
                       ),
-                    FSlider(
-                      control: .managedContinuous(
-                        initial: FSliderValue(
-                          min: 0,
-                          max: (selectedFontSize.value - 4) / 48,
-                        ),
-                      ),
-                      label: Text('Font Size'),
-                      tooltipBuilder: (_, value) =>
-                          Text('${(value * 48).round() + 4}'),
-                      onEnd: (value) =>
-                          selectedFontSize.value = (value.max * 48).round() + 4,
-                      marks: [
-                        for (var i = 0; i <= 12; i++)
-                          FSliderMark(
-                            value: i / 12,
-                            label: ((i * 4) + 4) % 8 != 0
-                                ? Text('${(i * 4) + 4}')
-                                : null,
-                            tick: ((i * 4) + 4) % 8 == 0,
-                          ),
-                      ],
+                    TerminalFontSizeSlider(
+                      selectedFontSize: selectedFontSize.value,
+                      onEnd: (value) => selectedFontSize.value = value,
                     ),
-                    FSelect<String>.rich(
-                      control: .managed(
-                        initial: selectedFontFamily.value,
-                        onChange: (selected) {
-                          if (selected != null) {
-                            selectedFontFamily.value = selected;
-                          }
-                        },
-                      ),
-                      label: Text('Font Family'),
-                      hint: selectedFontFamily.value,
-                      format: (s) => s,
-                      children: [
-                        for (final font in fonts)
-                          FSelectItem(
-                            title: Text(
-                              font,
-                              style: TextStyle(
-                                fontFamily: font,
-                                fontWeight: .normal,
-                              ),
-                            ),
-                            value: font,
-                          ),
-                      ],
+                    TerminalFontFamilySelect(
+                      selectedFontFamily: selectedFontFamily.value,
+                      onChange: (selected) =>
+                          selectedFontFamily.value = selected,
                     ),
                     Row(
                       mainAxisAlignment: .spaceBetween,

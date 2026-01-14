@@ -2,9 +2,13 @@ import 'dart:async';
 
 import 'package:cliq/modules/connections/model/connection_full.model.dart';
 import 'package:cliq/modules/connections/model/connection_icon.dart';
+import 'package:cliq/modules/settings/ui/terminal_font_family_select.dart';
+import 'package:cliq/modules/settings/ui/terminal_font_size_slider.dart';
 import 'package:cliq/shared/extensions/async_snapshot.extension.dart';
 import 'package:cliq/shared/extensions/value.extension.dart';
+import 'package:cliq/shared/provider/store.provider.dart';
 import 'package:cliq/shared/utils/validators.dart';
+import 'package:cliq_term/cliq_term.dart';
 import 'package:cliq_ui/cliq_ui.dart' show useMemoizedFuture;
 import 'package:drift/drift.dart' hide Column;
 import 'package:flutter/material.dart';
@@ -17,55 +21,51 @@ import 'package:lucide_flutter/lucide_flutter.dart';
 
 import '../../../shared/data/database.dart';
 import '../../credentials/model/credential_type.dart';
+import '../../settings/provider/terminal_theme.provider.dart';
 import '../model/connection_color.dart';
 
 class CreateOrEditConnectionView extends HookConsumerWidget {
-  final String? currentLabel;
-  final String? currentGroup;
-  final String? currentAddress;
-  final String? currentPort;
-  final String? currentUsername;
+  final ConnectionsCompanion? current;
   final String? currentPassword;
   final String? currentPem;
   final String? currentPemPassphrase;
-  final ConnectionIcon? currentIcon;
-  final Color? currentIconColor;
-  final Color? currentIconBackgroundColor;
-  final bool isUpdate;
+  final bool isEdit;
 
   const CreateOrEditConnectionView.create({super.key})
-    : currentLabel = null,
-      currentGroup = null,
-      currentAddress = null,
-      currentPort = null,
-      currentUsername = null,
+    : current = null,
       currentPassword = null,
       currentPem = null,
       currentPemPassphrase = null,
-      currentIcon = null,
-      currentIconColor = null,
-      currentIconBackgroundColor = null,
-      isUpdate = false;
+      isEdit = false;
 
   CreateOrEditConnectionView.edit(ConnectionFull connection, {super.key})
-    : currentLabel = connection.label,
-      currentGroup = connection.groupName,
-      currentAddress = connection.address,
-      currentPort = connection.port.toString(),
-      currentUsername = connection.username,
-      currentPassword = connection.credential?.type == .password
+    : current = ConnectionsCompanion(
+        id: Value(connection.id),
+        label: Value(connection.label),
+        icon: Value(connection.icon),
+        iconColor: Value(connection.iconColor),
+        iconBackgroundColor: Value(connection.iconBackgroundColor),
+        groupName: Value(connection.groupName),
+        address: Value(connection.address),
+        port: Value(connection.port),
+        username: Value(connection.username),
+        credentialId: Value(connection.credentialId),
+        identityId: Value(connection.identityId),
+        terminalTypographyOverride: Value(
+          connection.terminalTypographyOverride,
+        ),
+        terminalThemeOverrideId: Value(connection.terminalThemeOverrideId),
+      ),
+      currentPassword = connection.credential?.type == CredentialType.password
           ? connection.credential?.data
           : null,
-      currentPem = connection.credential?.type == .key
+      currentPem = connection.credential?.type == CredentialType.key
           ? connection.credential?.data
           : null,
-      currentPemPassphrase = connection.credential?.type == .key
+      currentPemPassphrase = connection.credential?.type == CredentialType.key
           ? connection.credential?.passphrase
           : null,
-      currentIcon = connection.icon,
-      currentIconColor = connection.iconColor,
-      currentIconBackgroundColor = connection.iconBackgroundColor,
-      isUpdate = true;
+      isEdit = true;
 
   static const List<(CredentialType, String, IconData)> allowedCredentialTypes =
       [
@@ -76,12 +76,23 @@ class CreateOrEditConnectionView extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final formKey = useMemoized(() => GlobalKey<FormState>());
+    final defaultTerminalTypography = useStore(.defaultTerminalTypography);
+    final terminalThemes = ref.watch(terminalThemeProvider);
+    final isTerminalOverridesExpanded = useState(
+      current?.terminalTypographyOverride.value != null,
+    );
 
-    final labelCtrl = useTextEditingController(text: currentLabel);
-    final groupCtrl = useFAutocompleteController(text: currentGroup);
-    final addressCtrl = useTextEditingController(text: currentAddress);
-    final portCtrl = useTextEditingController(text: currentPort);
-    final usernameCtrl = useTextEditingController(text: currentUsername);
+    final labelCtrl = useTextEditingController(text: current?.label.value);
+    final groupCtrl = useFAutocompleteController(
+      text: current?.groupName.value,
+    );
+    final addressCtrl = useTextEditingController(text: current?.address.value);
+    final portCtrl = useTextEditingController(
+      text: current?.port.value.toString(),
+    );
+    final usernameCtrl = useTextEditingController(
+      text: current?.username.value,
+    );
     final passwordCtrl = useTextEditingController(text: currentPassword);
     final pemCtrl = useTextEditingController(text: currentPem);
     final pemPassphraseCtrl = useTextEditingController(
@@ -89,13 +100,19 @@ class CreateOrEditConnectionView extends HookConsumerWidget {
     );
 
     final selectedIcon = useState<ConnectionIcon>(
-      currentIcon ?? ConnectionIcon.linux,
+      current?.icon.value ?? ConnectionIcon.linux,
     );
     final selectedIconColor = useState<Color>(
-      currentIconColor ?? ConnectionColor.red.color,
+      current?.iconColor.value ?? ConnectionColor.red.color,
     );
     final selectedIconBackgroundColor = useState<Color>(
-      currentIconBackgroundColor ?? Colors.white,
+      current?.iconBackgroundColor.value ?? Colors.white,
+    );
+    final selectedTypographyOverride = useState<TerminalTypography?>(
+      current?.terminalTypographyOverride.value,
+    );
+    final selectedTerminalThemeId = useState<int?>(
+      current?.terminalThemeOverrideId.value,
     );
 
     final labelPlaceholder = useState<String>('');
@@ -108,7 +125,9 @@ class CreateOrEditConnectionView extends HookConsumerWidget {
       return await CliqDatabase.identityService.hasIdentities();
     }, []);
 
-    buildColorSwatch({
+    /// Builds a color swatch for icon colors
+    /// May also include a child widget to preview the icon with the colors.
+    Widget buildColorSwatch({
       required Color foreground,
       required Color background,
       Widget? child,
@@ -137,6 +156,7 @@ class CreateOrEditConnectionView extends HookConsumerWidget {
       );
     }
 
+    /// Builds a text field with the given parameters. Helpful for reducing boilerplate.
     Widget buildTextField({
       required TextEditingController controller,
       required String label,
@@ -159,6 +179,8 @@ class CreateOrEditConnectionView extends HookConsumerWidget {
       );
     }
 
+    /// Inserts the additional credential based on the selected [additionalCredentialType].
+    /// Returns the inserted credential ID or null if no credential was added.
     Future<int?> maybeInsertCredential() async {
       if (additionalCredentialType.value == CredentialType.password) {
         return await CliqDatabase.credentialsRepository.insert(
@@ -179,37 +201,81 @@ class CreateOrEditConnectionView extends HookConsumerWidget {
       return null;
     }
 
-    onSave() async {
+    /// Sets the effective typography based on the provided [fontSize] and [fontFamily].
+    /// If either parameter is null, it falls back to the current override or default values.
+    /// If the resulting typography matches the default, the override is cleared.
+    setEffectiveTypography(int? fontSize, String? fontFamily) {
+      final typography = TerminalTypography(
+        fontSize:
+            fontSize ??
+            selectedTypographyOverride.value?.fontSize ??
+            defaultTerminalTypography.value!.fontSize,
+        fontFamily:
+            fontFamily ??
+            selectedTypographyOverride.value?.fontFamily ??
+            defaultTerminalTypography.value!.fontFamily,
+      );
+
+      if (typography == defaultTerminalTypography.value) {
+        selectedTypographyOverride.value = null;
+      } else {
+        selectedTypographyOverride.value = typography;
+      }
+    }
+
+    /// Handles the save action for the form.
+    /// Validates the form, inserts any additional credentials, and either updates
+    /// or creates a new connection based on the [isEdit] flag.
+    Future<void> onSave() async {
       if (!(formKey.currentState?.validate() ?? false)) return;
       final credentialId = await maybeInsertCredential();
 
-      if (isUpdate) {
+      if (isEdit) {
         final comp = ConnectionsCompanion(
-          label: ValueExtension.absentIfSame(labelCtrl.text, currentLabel),
-          icon: ValueExtension.absentIfSame(selectedIcon.value, currentIcon),
+          label: ValueExtension.absentIfSame(
+            labelCtrl.text,
+            current?.label.value,
+          ),
+          icon: ValueExtension.absentIfSame(
+            selectedIcon.value,
+            current?.icon.value,
+          ),
           iconColor: ValueExtension.absentIfSame(
             selectedIconColor.value,
-            currentIconColor,
+            current?.iconColor.value,
           ),
           iconBackgroundColor: ValueExtension.absentIfSame(
             selectedIconBackgroundColor.value,
-            currentIconBackgroundColor,
+            current?.iconBackgroundColor.value,
           ),
-          groupName: ValueExtension.absentIfSame(groupCtrl.text, currentGroup),
+          groupName: ValueExtension.absentIfSame(
+            groupCtrl.text,
+            current?.groupName.value,
+          ),
           address: ValueExtension.absentIfSame(
             addressCtrl.text.trim(),
-            currentAddress,
+            current?.address.value,
           ),
           port: ValueExtension.absentIfSame(
             int.tryParse(portCtrl.text.trim()) ?? 22,
-            (currentPort != null) ? int.tryParse(currentPort!) : null,
+            current?.port.value,
           ),
           username: ValueExtension.absentIfSame(
             usernameCtrl.text,
-            currentUsername,
+            current?.username.value,
           ),
           credentialId: ValueExtension.absentIfSame(credentialId, null),
           identityId: const Value.absent(), // TODO
+          terminalTypographyOverride: ValueExtension.absentIfSame(
+            selectedTypographyOverride.value,
+            current?.terminalTypographyOverride.value ??
+                defaultTerminalTypography.value,
+          ),
+          terminalThemeOverrideId: ValueExtension.absentIfSame(
+            selectedTerminalThemeId.value,
+            current?.terminalThemeOverrideId.value ??
+                terminalThemes.activeDefaultThemeId,
+          ),
         );
 
         await CliqDatabase.connectionsRepository.update(comp);
@@ -225,6 +291,12 @@ class CreateOrEditConnectionView extends HookConsumerWidget {
             port: int.tryParse(portCtrl.text.trim()) ?? 22,
             username: ValueExtension.absentIfNullOrEmpty(usernameCtrl.text),
             credentialId: ValueExtension.absentIfNullOrEmpty(credentialId),
+            terminalTypographyOverride: ValueExtension.absentIfNullOrEmpty(
+              selectedTypographyOverride.value,
+            ),
+            terminalThemeOverrideId: ValueExtension.absentIfNullOrEmpty(
+              selectedTerminalThemeId.value,
+            ),
             identityId: const Value.absent(), // TODO
           ),
         );
@@ -435,6 +507,99 @@ class CreateOrEditConnectionView extends HookConsumerWidget {
                           );
                         },
                       ),
+                      FAccordion(
+                        control: .lifted(
+                          expanded: (_) => isTerminalOverridesExpanded.value,
+                          onChange: (_, expanded) =>
+                              isTerminalOverridesExpanded.value = expanded,
+                        ),
+                        children: [
+                          FAccordionItem(
+                            title: Row(
+                              mainAxisSize: .min,
+                              children: [
+                                Text('Theme Overrides'),
+                                if (selectedTypographyOverride.value != null)
+                                  Text(
+                                    ' (changed)',
+                                    style: context.theme.typography.xs.copyWith(
+                                      color:
+                                          context.theme.colors.mutedForeground,
+                                      fontWeight: FontWeight.normal,
+                                    ),
+                                  ),
+                              ],
+                            ),
+                            child: Padding(
+                              padding: const .symmetric(vertical: 20),
+                              child: Column(
+                                spacing: 20,
+                                children: [
+                                  TerminalFontSizeSlider(
+                                    selectedFontSize:
+                                        selectedTypographyOverride
+                                            .value
+                                            ?.fontSize ??
+                                        defaultTerminalTypography
+                                            .value!
+                                            .fontSize,
+                                    onEnd: (value) =>
+                                        setEffectiveTypography(value, null),
+                                  ),
+                                  TerminalFontFamilySelect(
+                                    selectedFontFamily:
+                                        selectedTypographyOverride
+                                            .value
+                                            ?.fontFamily ??
+                                        defaultTerminalTypography
+                                            .value!
+                                            .fontFamily,
+                                    onChange: (selected) =>
+                                        setEffectiveTypography(null, selected),
+                                  ),
+                                  FSelect<int>.rich(
+                                    format: (s) {
+                                      return terminalThemes.entities
+                                          .firstWhere(
+                                            (t) => t.id == s,
+                                            orElse: () =>
+                                                defaultTerminalColorTheme,
+                                          )
+                                          .name;
+                                    },
+                                    control: .managed(
+                                      initial:
+                                          selectedTerminalThemeId.value ??
+                                          terminalThemes.activeDefaultThemeId,
+                                    ),
+                                    label: Text('Terminal Theme'),
+                                    onSaved: (selected) {
+                                      // if selected is default, set to null
+                                      if (selected ==
+                                          terminalThemes.activeDefaultThemeId) {
+                                        selected = null;
+                                        return;
+                                      }
+
+                                      selectedTerminalThemeId.value = selected;
+                                    },
+                                    children: [
+                                      for (final theme in [
+                                        defaultTerminalColorTheme,
+                                        ...terminalThemes.entities,
+                                      ])
+                                        FSelectItem(
+                                          value: theme.id,
+                                          title: Text(theme.name),
+                                        ),
+                                    ],
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
                     ],
                   ),
                 ],
@@ -447,7 +612,7 @@ class CreateOrEditConnectionView extends HookConsumerWidget {
               width: double.infinity,
               child: FButton(
                 onPress: onSave,
-                child: Text(isUpdate ? 'Update' : 'Save'),
+                child: Text(isEdit ? 'Edit' : 'Save'),
               ),
             ),
           ],

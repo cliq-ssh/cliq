@@ -25,6 +25,8 @@ class ConnectionFull extends Connection {
          groupName: connection.groupName,
          label: connection.label,
          username: connection.username,
+         terminalThemeOverrideId: connection.terminalThemeOverrideId,
+         terminalTypographyOverride: connection.terminalTypographyOverride,
        );
 
   factory ConnectionFull.fromResult(FindAllConnectionFullResult result) {
