@@ -2,7 +2,7 @@ package app.cliq.backend.acceptance.email
 
 import app.cliq.backend.acceptance.EmailAcceptanceTest
 import app.cliq.backend.acceptance.EmailAcceptanceTester
-import app.cliq.backend.shared.EmailService
+import app.cliq.backend.email.EmailService
 import jakarta.mail.internet.MimeMessage
 import org.apache.commons.mail2.jakarta.util.MimeMessageParser
 import org.junit.jupiter.api.Assertions

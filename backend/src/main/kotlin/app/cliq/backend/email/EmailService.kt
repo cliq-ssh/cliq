@@ -1,4 +1,4 @@
-package app.cliq.backend.shared
+package app.cliq.backend.email
 
 import app.cliq.backend.config.EmailProperties
 import io.pebbletemplates.pebble.PebbleEngine

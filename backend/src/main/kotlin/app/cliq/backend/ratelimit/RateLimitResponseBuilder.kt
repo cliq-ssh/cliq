@@ -2,7 +2,7 @@ package app.cliq.backend.ratelimit
 
 import app.cliq.backend.error.ErrorCode
 import app.cliq.backend.error.ErrorResponse
-import app.cliq.backend.shared.HttpUtils
+import app.cliq.backend.utils.HttpUtils
 import jakarta.servlet.http.HttpServletResponse
 import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatus

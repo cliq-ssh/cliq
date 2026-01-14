@@ -1,7 +1,7 @@
 package app.cliq.backend.config.security.exception.handler
 
 import app.cliq.backend.error.ErrorResponse
-import app.cliq.backend.shared.HttpUtils
+import app.cliq.backend.utils.HttpUtils
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
 import org.slf4j.LoggerFactory

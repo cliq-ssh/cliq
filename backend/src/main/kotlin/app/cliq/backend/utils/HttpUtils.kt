@@ -1,4 +1,4 @@
-package app.cliq.backend.shared
+package app.cliq.backend.utils
 
 import app.cliq.backend.error.ErrorResponse
 import jakarta.servlet.http.HttpServletResponse
