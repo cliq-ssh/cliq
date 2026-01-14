@@ -1,0 +1,33 @@
+import '../../../shared/data/converters/color_converter.dart';
+
+CREATE TABLE custom_terminal_themes (
+    id                          INTEGER PRIMARY KEY AUTOINCREMENT,
+    name                        TEXT NOT NULL,
+    author                      TEXT,
+
+    black_color                 INTEGER NOT NULL MAPPED BY `const ColorConverter()`,
+    red_color                   INTEGER NOT NULL MAPPED BY `const ColorConverter()`,
+    green_color                 INTEGER NOT NULL MAPPED BY `const ColorConverter()`,
+    yellow_color                INTEGER NOT NULL MAPPED BY `const ColorConverter()`,
+    blue_color                  INTEGER NOT NULL MAPPED BY `const ColorConverter()`,
+    purple_color                INTEGER NOT NULL MAPPED BY `const ColorConverter()`,
+    cyan_color                  INTEGER NOT NULL MAPPED BY `const ColorConverter()`,
+    white_color                 INTEGER NOT NULL MAPPED BY `const ColorConverter()`,
+    bright_black_color          INTEGER NOT NULL MAPPED BY `const ColorConverter()`,
+    bright_red_color            INTEGER NOT NULL MAPPED BY `const ColorConverter()`,
+    bright_green_color          INTEGER NOT NULL MAPPED BY `const ColorConverter()`,
+    bright_yellow_color         INTEGER NOT NULL MAPPED BY `const ColorConverter()`,
+    bright_blue_color           INTEGER NOT NULL MAPPED BY `const ColorConverter()`,
+    bright_purple_color         INTEGER NOT NULL MAPPED BY `const ColorConverter()`,
+    bright_cyan_color           INTEGER NOT NULL MAPPED BY `const ColorConverter()`,
+    bright_white_color          INTEGER NOT NULL MAPPED BY `const ColorConverter()`,
+
+    background_color            INTEGER NOT NULL MAPPED BY `const ColorConverter()`,
+    foreground_color            INTEGER NOT NULL MAPPED BY `const ColorConverter()`,
+    cursor_color                INTEGER NOT NULL MAPPED BY `const ColorConverter()`,
+    selection_background_color  INTEGER NOT NULL MAPPED BY `const ColorConverter()`,
+    selection_foreground_color  INTEGER MAPPED BY `const ColorConverter()`,
+    cursor_text_color           INTEGER MAPPED BY `const ColorConverter()`,
+
+    UNIQUE(name)
+);
