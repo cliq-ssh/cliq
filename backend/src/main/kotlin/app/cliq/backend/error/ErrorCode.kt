@@ -31,6 +31,7 @@ data class ErrorCode private constructor(
         val RATE_LIMIT_EXCEEDED = of(2010U, "Rate limit exceeded")
 
         // ### Authentication errors ###
+        val MISSING_AUTHENTICATION_TOKEN = of(2100U, "Missing authentication token")
         val INVALID_JWT_ACCESS_TOKEN = of(2101U, "Invalid authentication token")
         val INVALID_REFRESH_TOKEN = of(2102U, "Invalid refresh token")
         val REFRESH_TOKEN_EXPIRED = of(2103U, "Refresh token is expired")

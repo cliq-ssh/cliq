@@ -9,7 +9,6 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.context.properties.ConfigurationPropertiesScan
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc
-import org.springframework.boot.webtestclient.autoconfigure.AutoConfigureWebTestClient
 import org.springframework.context.annotation.ComponentScan
 import org.springframework.test.context.ActiveProfiles
 
@@ -17,7 +16,6 @@ import org.springframework.test.context.ActiveProfiles
 @ConfigurationPropertiesScan(basePackages = ["app.cliq.backend.support"])
 @ComponentScan(basePackages = ["app.cliq.backend.support"])
 @AutoConfigureMockMvc
-@AutoConfigureWebTestClient
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @ActiveProfiles("test")
 @Tag("acceptance")

@@ -91,7 +91,7 @@ dependencies {
 
     // Caching
     implementation("org.springframework.boot:spring-boot-starter-cache")
-    implementation("com.github.ben-manes.caffeine:caffeine:3.2.3")
+    implementation("com.github.ben-manes.caffeine:caffeine")
 
     // JPA/SQL
     implementation("org.springframework.boot:spring-boot-starter-data-jpa")
@@ -139,15 +139,15 @@ dependencies {
     // Spring
     testImplementation("org.springframework.boot:spring-boot-webmvc-test")
 
-    // WebTestClient
-    testImplementation("org.springframework.boot:spring-boot-webtestclient")
+    // Security
+    testImplementation("org.springframework.boot:spring-boot-starter-security-test")
 
     // Junit 5
     testImplementation("org.jetbrains.kotlin:kotlin-test-junit5")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 
     // JPA/SQL
-    implementation("org.springframework.boot:spring-boot-starter-data-jpa-test")
+    testImplementation("org.springframework.boot:spring-boot-starter-data-jpa-test")
 
     // Greenmail
     val greenmailVersion = "2.1.8"
@@ -161,16 +161,12 @@ dependencies {
     // Mockito
     testImplementation("org.mockito:mockito-core:5.21.0")
     testImplementation("org.mockito:mockito-junit-jupiter:5.21.0")
-    testImplementation("org.mockito.kotlin:mockito-kotlin:6.1.0")
-
-    // Keycloak
-    testImplementation("org.keycloak:keycloak-admin-client:26.0.8")
+    testImplementation("org.mockito.kotlin:mockito-kotlin:6.2.0")
 
     // AssertJ
     testImplementation("org.assertj:assertj-core:3.27.6")
 
     // Kotlin specifics
-    testImplementation("org.mockito.kotlin:mockito-kotlin:6.2.0")
     testImplementation("org.awaitility:awaitility-kotlin:4.3.0")
 }
 

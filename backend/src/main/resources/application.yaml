@@ -5,14 +5,13 @@ app:
     version: ${version}
     description: ${description}
   email:
-    enabled: \${MAIL_ENABLED}
-    from-address: \${MAIL_FROM}
-    from-name: \${MAIL_FROM_NAME}
+    enabled: \${MAIL_ENABLED:false}
+    from-address: \${MAIL_FROM:null}
+    from-name: \${MAIL_FROM_NAME:null}
   oidc:
-    enabled: \${OIDC_ENABLED:false}
-    issuer-uri: \${OIDC_ISSUER_URI}
-    client-id: \${OIDC_CLIENT_ID}
-    client-secret: \${OIDC_CLIENT_SECRET}
+    issuer-uri: \${OIDC_ISSUER_URI:}
+    client-id: \${OIDC_CLIENT_ID:}
+    client-secret: \${OIDC_CLIENT_SECRET:}
     scopes: \${OIDC_SCOPES:openid,profile,email}
   jwt:
     secret: \${JWT_SECRET}
@@ -33,24 +32,13 @@ logging:
     root: \${LOG_LEVEL_ROOT:info}
 
 spring:
+  profiles:
+    active: \${FEATURES:}
   cache:
     cache-names:
       - rate-limit-buckets
     caffeine:
       spec: expireAfterAccess=3600s
-  security:
-    oauth2:
-      client:
-        registration:
-          oidc:
-            client-id: \${app.oidc.client-id}
-            client-secret: \${app.oidc.client-secret}
-            scope: \${app.oidc.scopes}
-            authorization-grant-type: authorization_code
-            redirect-uri: "{baseUrl}/login/oauth2/code/{registrationId}"
-        provider:
-          oidc:
-            issuer-uri: \${app.oidc.issuer-uri}
   config:
     import: optional:file:.env[.properties],optional:file:.env.local[.properties]
   jpa:
@@ -103,3 +91,22 @@ management:
   health:
     mail:
       enabled: \${app.email.enabled}
+
+---
+spring:
+  config:
+    activate:
+      on-profile: oidc
+  security:
+    oauth2:
+      client:
+        registration:
+          oidc:
+            client-id: \${app.oidc.client-id}
+            client-secret: \${app.oidc.client-secret}
+            scope: \${app.oidc.scopes}
+            authorization-grant-type: authorization_code
+            redirect-uri: "{baseUrl}/login/oauth2/code/{registrationId}"
+        provider:
+          oidc:
+            issuer-uri: \${app.oidc.issuer-uri}

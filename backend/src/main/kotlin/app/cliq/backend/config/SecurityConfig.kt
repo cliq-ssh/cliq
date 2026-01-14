@@ -7,6 +7,7 @@ import app.cliq.backend.config.security.oidc.OidcLogoutHandler
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBooleanProperty
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
+import org.springframework.context.annotation.Profile
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity
 import org.springframework.security.config.annotation.web.builders.HttpSecurity
 import org.springframework.security.config.http.SessionCreationPolicy
@@ -31,7 +32,7 @@ class SecurityConfig(
         Argon2PasswordEncoder(SALT_LENGTH, HASH_LENGTH, PARALLELISM, MEMORY, ITERATIONS)
 
     @Bean
-    @ConditionalOnBooleanProperty("app.oidc.enabled")
+    @Profile("oidc")
     fun oidcFilterChain(
         http: HttpSecurity,
         oidcLoginSuccessHandler: OidcLoginSuccessHandler,
@@ -47,9 +48,6 @@ class SecurityConfig(
                 }
             }.build()
 
-    // TODO:
-    //  - access denied handler
-    //  - fix 401 error handler
     @Bean
     fun securityFilterChain(http: HttpSecurity): SecurityFilterChain {
         http
@@ -75,6 +73,7 @@ class SecurityConfig(
                     .permitAll()
                     .requestMatchers("/api/user/verification", "/api/user/verification/resend-email")
                     .permitAll()
+                    // Deny all by default
                     .anyRequest()
                     .authenticated()
             }.with(jwtAuthenticationConfigurer)
