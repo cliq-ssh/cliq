@@ -25,6 +25,12 @@ import '../../settings/provider/terminal_theme.provider.dart';
 import '../model/connection_color.dart';
 
 class CreateOrEditConnectionView extends HookConsumerWidget {
+  static const List<(CredentialType, String, IconData)> allowedCredentialTypes =
+  [
+    (.password, 'Password', LucideIcons.rectangleEllipsis),
+    (.key, 'Key', LucideIcons.keyRound),
+  ];
+
   final ConnectionsCompanion? current;
   final String? currentPassword;
   final String? currentPem;
@@ -37,6 +43,17 @@ class CreateOrEditConnectionView extends HookConsumerWidget {
       currentPem = null,
       currentPemPassphrase = null,
       isEdit = false;
+
+  /* TODO: cleanup:
+    - move icon and color selection into accordion & into methods
+    - add randomise button for icon colors
+    - allow custom icon color
+
+    e.g.:
+    [ ] {randomise}
+    #abcdef #abcdef
+    [icon] [icon] [icon] [icon] [icon]
+   */
 
   CreateOrEditConnectionView.edit(ConnectionFull connection, {super.key})
     : current = ConnectionsCompanion(
@@ -66,12 +83,6 @@ class CreateOrEditConnectionView extends HookConsumerWidget {
           ? connection.credential?.passphrase
           : null,
       isEdit = true;
-
-  static const List<(CredentialType, String, IconData)> allowedCredentialTypes =
-      [
-        (.password, 'Password', LucideIcons.rectangleEllipsis),
-        (.key, 'Key', LucideIcons.keyRound),
-      ];
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
