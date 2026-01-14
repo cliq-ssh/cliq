@@ -170,6 +170,7 @@ dependencies {
     testImplementation("org.assertj:assertj-core:3.27.6")
 
     // Kotlin specifics
+    testImplementation("org.mockito.kotlin:mockito-kotlin:6.2.0")
     testImplementation("org.awaitility:awaitility-kotlin:4.3.0")
 }
 
