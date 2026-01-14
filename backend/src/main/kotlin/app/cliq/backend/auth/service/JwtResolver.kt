@@ -1,7 +1,6 @@
 package app.cliq.backend.auth.service
 
 import app.cliq.backend.auth.jwt.JwtClaims
-import app.cliq.backend.exception.InvalidRefreshTokenException
 import app.cliq.backend.session.Session
 import app.cliq.backend.session.SessionRepository
 import org.springframework.security.authentication.BadCredentialsException

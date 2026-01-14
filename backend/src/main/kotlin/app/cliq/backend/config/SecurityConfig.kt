@@ -4,7 +4,6 @@ import app.cliq.backend.config.security.exception.handler.ApplicationAuthenticat
 import app.cliq.backend.config.security.jwt.JwtAuthenticationConfigurer
 import app.cliq.backend.config.security.oidc.OidcLoginSuccessHandler
 import app.cliq.backend.config.security.oidc.OidcLogoutHandler
-import org.springframework.boot.autoconfigure.condition.ConditionalOnBooleanProperty
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.context.annotation.Profile

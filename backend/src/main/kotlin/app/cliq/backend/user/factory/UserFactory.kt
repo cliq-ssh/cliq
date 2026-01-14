@@ -6,7 +6,6 @@ import app.cliq.backend.user.PasswordResetEvent
 import app.cliq.backend.user.User
 import app.cliq.backend.user.UserRepository
 import app.cliq.backend.user.event.UserCreatedEvent
-import app.cliq.backend.user.params.UserRegistrationParams
 import org.springframework.context.ApplicationEventPublisher
 import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.stereotype.Service
@@ -54,17 +53,6 @@ class UserFactory(
         eventPublisher.publishEvent(PasswordResetEvent(id))
 
         return newUser
-    }
-
-    fun createFromRegistrationParams(registrationParams: UserRegistrationParams): User {
-        val hashedPassword = passwordEncoder.encode(registrationParams.password)
-
-        return createUser(
-            email = registrationParams.email,
-            password = hashedPassword!!,
-            name = registrationParams.username,
-            locale = registrationParams.locale,
-        )
     }
 
     fun createFromRegistrationParams(registrationParams: RegistrationParams): User {

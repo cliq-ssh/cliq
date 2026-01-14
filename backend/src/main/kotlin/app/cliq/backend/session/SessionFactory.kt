@@ -1,7 +1,6 @@
 package app.cliq.backend.session
 
 import app.cliq.backend.auth.jwt.RefreshToken
-import app.cliq.backend.auth.params.LoginParams
 import app.cliq.backend.user.User
 import org.springframework.stereotype.Service
 import java.time.Clock
@@ -12,12 +11,6 @@ class SessionFactory(
     private val sessionRepository: SessionRepository,
     private val clock: Clock,
 ) {
-    fun createFromLoginParams(
-        loginParams: LoginParams,
-        user: User,
-        refreshToken: RefreshToken,
-    ): Session = createSession(user, refreshToken, loginParams.name)
-
     fun createWithSessionName(
         sessionName: String?,
         user: User,
