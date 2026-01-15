@@ -17,19 +17,20 @@ class ShellSessionNotifier extends Notifier<SSHSessionState> {
   SSHSessionState build() => SSHSessionState.initial();
 
   /// Creates a new session and navigates to the session branch.
-  void createAndGo(NavigationShellState shellState, Connection connection) {
+  void createAndGo(NavigationShellState shellState, ConnectionFull connection) {
     final id = uuid.generate();
 
-    shellState.goToBranch(1);
     final newSession = ShellSession.disconnected(
       id: id,
       connection: connection,
     );
     final updatedSessions = [...state.activeSessions, newSession];
     final pageIndexes = _generatePageIndex(updatedSessions);
+    shellState.goToBranch(1);
+
     state = state.copyWith(
       activeSessions: updatedSessions,
-      selectedSessionId: id,
+      selectedSessionId: newSession.id,
       pageIndexes: pageIndexes,
     );
   }
@@ -38,7 +39,7 @@ class ShellSessionNotifier extends Notifier<SSHSessionState> {
   /// or to the default branch (dashboard) if no session is selected.
   void setSelectedSession(NavigationShellState shellState, String? sessionId) {
     shellState.goToBranch(sessionId == null ? 0 : 1);
-    state = state.copyWith(selectedSessionId: sessionId);
+    state = state.copyWith(selectedSessionId: sessionId ?? '');
   }
 
   void closeSession(NavigationShellState shellState, String sessionId) {

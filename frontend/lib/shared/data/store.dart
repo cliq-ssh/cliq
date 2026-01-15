@@ -31,17 +31,17 @@ enum StoreKey<T> {
     toValue: _enumToValue,
   ),
 
-  terminalTypography<TerminalTypography>(
-    'terminal_typography',
+  defaultTerminalTypography<TerminalTypography>(
+    'default_terminal_typography',
     type: TerminalTypography,
+    defaultValue: TerminalTypography(fontFamily: 'SourceCodePro', fontSize: 16),
     fromValue: _typographyFromValue,
     toValue: _typographyToValue,
   ),
-  terminalTheme<TerminalColorTheme>(
-    'terminal_color_theme',
-    type: TerminalColorTheme,
-    fromValue: _terminalColorsFromValue,
-    toValue: _terminalColorsToValue,
+  defaultTerminalThemeId<int>(
+    'default_terminal_theme',
+    type: int,
+    defaultValue: -1,
   );
 
   final String key;
@@ -81,84 +81,30 @@ enum StoreKey<T> {
   static ThemeMode? _themeModeFromValue(String? value) =>
       _enumFromValue(value, ThemeMode.values);
 
-  // save smicolon-separated typography values
   static String? _typographyToValue(TerminalTypography? value) {
     if (value == null) return null;
-    return [value.fontFamily, value.fontSize.toString()].join(';');
-  }
-
-  static String? _terminalColorsToValue(TerminalColorTheme? value) {
-    if (value == null) return null;
-    return [
-      value.cursorColor,
-      value.selectionColor,
-      value.backgroundColor,
-      value.foregroundColor,
-      value.selectionColor,
-      value.black,
-      value.red,
-      value.green,
-      value.yellow,
-      value.blue,
-      value.magenta,
-      value.cyan,
-      value.white,
-      value.brightBlack,
-      value.brightRed,
-      value.brightGreen,
-      value.brightYellow,
-      value.brightBlue,
-      value.brightMagenta,
-      value.brightCyan,
-      value.brightWhite,
-    ].join(';');
+    return [value.fontSize, value.fontFamily].join(';');
   }
 
   static TerminalTypography? _typographyFromValue(String? value) {
     if (value == null) return null;
     final parts = value.split(';');
     if (parts.length != 2) return null;
-    final fontFamily = parts[0];
-    final fontSize = double.tryParse(parts[1]);
+    final fontSize = int.tryParse(parts[0]);
+    final fontFamily = parts[1];
     if (fontSize == null) return null;
-    return TerminalTypography(fontFamily: fontFamily, fontSize: fontSize);
+    return TerminalTypography(fontSize: fontSize, fontFamily: fontFamily);
   }
+}
 
-  static TerminalColorTheme? _terminalColorsFromValue(String? value) {
-    if (value == null) return null;
-    final parts = value.split(';');
-    if (parts.length != 18) return null;
-    Color parseColor(String str) {
-      final intValue = int.tryParse(str);
-      if (intValue == null) {
-        throw FormatException('Invalid color value: $str');
-      }
-      return Color(intValue);
-    }
+/// Small data class representing a change in the store
+class StoreChange {
+  final String key;
+  final dynamic value;
+  final bool deleted;
 
-    return TerminalColorTheme(
-      cursorColor: parseColor(parts[0]),
-      selectionColor: parseColor(parts[1]),
-      backgroundColor: parseColor(parts[2]),
-      foregroundColor: parseColor(parts[3]),
-      black: parseColor(parts[5]),
-      red: parseColor(parts[6]),
-      green: parseColor(parts[7]),
-      yellow: parseColor(parts[8]),
-      blue: parseColor(parts[9]),
-      magenta: parseColor(parts[10]),
-      cyan: parseColor(parts[11]),
-      white: parseColor(parts[12]),
-      brightBlack: parseColor(parts[13]),
-      brightRed: parseColor(parts[14]),
-      brightGreen: parseColor(parts[15]),
-      brightYellow: parseColor(parts[16]),
-      brightBlue: parseColor(parts[17]),
-      brightMagenta: parseColor(parts[18]),
-      brightCyan: parseColor(parts[19]),
-      brightWhite: parseColor(parts[20]),
-    );
-  }
+  StoreChange.changed(this.key, {required this.value}) : deleted = false;
+  StoreChange.deleted(this.key) : value = null, deleted = true;
 }
 
 /// A simple key-value store that uses SharedPreferences and FlutterSecureStorage to store data.
@@ -167,12 +113,16 @@ enum StoreKey<T> {
 /// in the UI layer.
 class KeyValueStore {
   static final KeyValueStore _instance = KeyValueStore._();
+
   static final Map<String, dynamic> _localCache = {};
 
   late final SharedPreferences _preferences;
   bool _initialized = false;
 
   factory KeyValueStore() => _instance;
+
+  final StreamController<StoreChange> _changesController = .broadcast();
+  Stream<StoreChange> get changes => _changesController.stream;
 
   KeyValueStore._();
 
@@ -189,6 +139,24 @@ class KeyValueStore {
       // initializes all default values for keys that do not exist &
       // populate local cache
       _localCache[key.key] = await key.readAsync();
+    }
+  }
+
+  /// A stream of all changes made to the store.
+  Stream<T?> streamForKey<T>(StoreKey<T> key) async* {
+    _checkInitialized();
+    // yield current cached value first
+    yield readSync<T>(key);
+
+    // yield updates
+    await for (final StoreChange change in changes) {
+      if (change.key == key.key) {
+        if (change.deleted) {
+          yield null;
+        } else {
+          yield change.value as T?;
+        }
+      }
     }
   }
 
@@ -244,6 +212,7 @@ class KeyValueStore {
         'Invalid value for key ${key.key}! Got: ${effectiveValue.runtimeType}, Expected either String, int, bool or double',
       ),
     };
+    _changesController.add(StoreChange.changed(key.key, value: value));
   }
 
   /// Deletes the key from the local cache and the storage.
@@ -251,6 +220,7 @@ class KeyValueStore {
     _checkInitialized();
     _localCache.remove(key.key);
     _preferences.remove(key.key);
+    _changesController.add(StoreChange.deleted(key.key));
   }
 
   FutureOr<T>? _readOrInitSharedPrefsKey<T>(StoreKey<T> key) {

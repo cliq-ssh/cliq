@@ -1,6 +1,6 @@
 package app.cliq.backend.user.listener
 
-import app.cliq.backend.shared.EmailService
+import app.cliq.backend.email.EmailService
 import app.cliq.backend.user.UserRepository
 import app.cliq.backend.user.event.UserCreatedEvent
 import app.cliq.backend.user.service.UserService

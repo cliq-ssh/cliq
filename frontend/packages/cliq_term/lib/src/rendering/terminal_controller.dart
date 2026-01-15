@@ -14,8 +14,6 @@ enum CursorStyle { block, underline, bar }
 
 /// Controller for managing terminal state, including buffers, cursor, and input handling.
 class TerminalController extends ChangeNotifier {
-  final TerminalTypography typography;
-  final TerminalColorTheme colors;
   final Duration cursorBlinkInterval;
   final int maxScrollbackLines;
   final bool debugLogging;
@@ -23,6 +21,8 @@ class TerminalController extends ChangeNotifier {
   final void Function(String)? onTitleChange;
   final void Function()? onBell;
   void Function(String)? onInput;
+  TerminalTypography typography;
+  TerminalTheme theme;
 
   late TerminalBuffer front = TerminalBuffer(
     rows: rows,
@@ -38,7 +38,7 @@ class TerminalController extends ChangeNotifier {
 
   late final EscapeParser escapeParser = EscapeParser(
     controller: this,
-    colors: colors,
+    colors: theme,
   );
   late final ControlCharacterParser ccParser = ControlCharacterParser(
     controller: this,
@@ -53,7 +53,7 @@ class TerminalController extends ChangeNotifier {
 
   TerminalController({
     required this.typography,
-    required this.colors,
+    required this.theme,
     this.cursorBlinkInterval = const Duration(milliseconds: 600),
     this.maxScrollbackLines = 1000,
     this.debugLogging = false,
@@ -161,6 +161,11 @@ class TerminalController extends ChangeNotifier {
     notifyListeners();
   }
 
+  void setAutoWrapMode(bool enabled) {
+    activeBuffer.isAutoWrapMode = enabled;
+    notifyListeners();
+  }
+
   /// Feeds input string into the terminal, parsing escape sequences and control characters.
   void feed(String input) {
     int i = 0;
@@ -184,7 +189,7 @@ class TerminalController extends ChangeNotifier {
         continue;
       }
 
-      activeBuffer.write(cu);
+      activeBuffer.printChar(cu);
       i++;
     }
 

@@ -14,7 +14,7 @@ class EscapeParser {
   static final Logger _log = Logger('EscapeParser');
 
   final TerminalController controller;
-  final TerminalColorTheme colors;
+  final TerminalTheme colors;
 
   late final CsiParser _csiParser = CsiParser();
 
@@ -303,16 +303,16 @@ class EscapeParser {
   /// - https://terminalguide.namepad.de/seq/csi_sl/
   /// - https://terminalguide.namepad.de/seq/csi_sl__p/
   void _csiSetMode(CsiParseResult parsed, FormattingOptions formatting) {
-    final isSetMode = parsed.finalByteCode == 'h'.codeUnitAt(0);
+    final enabled = parsed.finalByteCode == 'h'.codeUnitAt(0);
     final isPrivate = parsed.leader == '?';
 
     void handleMode(int mode) {
       switch (mode) {
         case 4:
-          controller.setInsertMode(isSetMode);
+          controller.setInsertMode(enabled);
           break;
         case 20:
-          controller.setLineFeedMode(isSetMode);
+          controller.setLineFeedMode(enabled);
           break;
         default:
           if (controller.debugLogging) {
@@ -324,16 +324,19 @@ class EscapeParser {
 
     void handlePrivateMode(int mode) {
       switch (mode) {
+        case 7:
+          controller.setAutoWrapMode(enabled);
+          break;
         case 1047:
         case 47:
-          if (isSetMode) {
+          if (enabled) {
             controller.useBackBuffer(saveMainAndClear: false);
           } else {
             controller.useMainBuffer(restoreMain: false);
           }
           break;
         case 1049:
-          if (isSetMode) {
+          if (enabled) {
             controller.useBackBuffer(saveMainAndClear: true);
           } else {
             controller.useMainBuffer(restoreMain: true);
@@ -387,8 +390,8 @@ class EscapeParser {
         24 => () => formatting.underline = Underline.none,
         27 => () => formatting.inverted = false,
         28 => () => formatting.concealed = false,
-        >= 30 && <= 37 => () => formatting.fgColor = ansi8ToColor(
-          controller.colors,
+        >= 30 && <= 37 => () => formatting.fgColor = ansi16ToColor(
+          controller.theme,
           code - 30,
         ),
         38 => () {
@@ -397,7 +400,7 @@ class EscapeParser {
             case 5:
               if (offset == codes.length) return;
               formatting.fgColor = xterm256ToColor(
-                controller.colors,
+                controller.theme,
                 codes[offset],
               );
               break;
@@ -415,8 +418,8 @@ class EscapeParser {
           offset = codes.length;
         },
         39 => () => formatting.fgColor = null,
-        >= 40 && <= 47 => () => formatting.bgColor = ansi8ToColor(
-          controller.colors,
+        >= 40 && <= 47 => () => formatting.bgColor = ansi16ToColor(
+          controller.theme,
           code - 40,
         ),
         48 => () {
@@ -425,7 +428,7 @@ class EscapeParser {
             case 5:
               if ((offset + 1) == codes.length) return;
               formatting.bgColor = xterm256ToColor(
-                controller.colors,
+                controller.theme,
                 codes[offset + 1],
               );
               break;
@@ -443,6 +446,14 @@ class EscapeParser {
           offset = codes.length;
         },
         49 => () => formatting.bgColor = null,
+        >= 90 && <= 97 => () => formatting.fgColor = ansi16ToColor(
+          controller.theme,
+          (code - 90) + 8,
+        ),
+        >= 100 && <= 107 => () => formatting.bgColor = ansi16ToColor(
+          controller.theme,
+          (code - 100) + 8,
+        ),
         _ => throw ArgumentError('Unhandled formatting code: $code'),
       }).call();
     }
