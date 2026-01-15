@@ -5,6 +5,7 @@ import 'package:cliq/modules/connections/model/connection_icon.dart';
 import 'package:cliq/modules/settings/ui/terminal_font_family_select.dart';
 import 'package:cliq/modules/settings/ui/terminal_font_size_slider.dart';
 import 'package:cliq/shared/extensions/async_snapshot.extension.dart';
+import 'package:cliq/shared/extensions/color.extension.dart';
 import 'package:cliq/shared/extensions/value.extension.dart';
 import 'package:cliq/shared/provider/store.provider.dart';
 import 'package:cliq/shared/utils/validators.dart';
@@ -22,7 +23,6 @@ import 'package:lucide_flutter/lucide_flutter.dart';
 import '../../../shared/data/database.dart';
 import '../../credentials/model/credential_type.dart';
 import '../../settings/provider/terminal_theme.provider.dart';
-import '../model/connection_color.dart';
 
 class CreateOrEditConnectionView extends HookConsumerWidget {
   static const List<(CredentialType, String, IconData)> allowedCredentialTypes =
@@ -30,6 +30,17 @@ class CreateOrEditConnectionView extends HookConsumerWidget {
         (.password, 'Password', LucideIcons.rectangleEllipsis),
         (.key, 'Key', LucideIcons.keyRound),
       ];
+
+  static const List<Color> _colorExamples = [
+    Color(0xFFFFFFFF),
+    Color(0xFFEF4444),
+    Color(0xFFF97316),
+    Color(0xFFEAB308),
+    Color(0xFF22C55E),
+    Color(0xFF3B82F6),
+    Color(0xFF8B5CF6),
+    Color(0xFFEC4899),
+  ];
 
   final ConnectionsCompanion? current;
   final String? currentPassword;
@@ -103,10 +114,10 @@ class CreateOrEditConnectionView extends HookConsumerWidget {
       current?.icon.value ?? ConnectionIcon.linux,
     );
     final selectedIconColor = useState<Color>(
-      current?.iconColor.value ?? ConnectionColor.red.color,
+      current?.iconColor.value ?? Colors.white,
     );
     final selectedIconBackgroundColor = useState<Color>(
-      current?.iconBackgroundColor.value ?? Colors.white,
+      current?.iconBackgroundColor.value ?? Colors.black,
     );
     final selectedTypographyOverride = useState<TerminalTypography?>(
       current?.terminalTypographyOverride.value,
@@ -128,30 +139,122 @@ class CreateOrEditConnectionView extends HookConsumerWidget {
     /// Builds a color swatch for icon colors
     /// May also include a child widget to preview the icon with the colors.
     Widget buildColorSwatch({
-      required Color foreground,
-      required Color background,
-      Widget? child,
+      required Color color,
+      required bool isSelected,
+      Function(Color)? onTap,
     }) {
-      final isSelected =
-          selectedIconColor.value == foreground &&
-          selectedIconBackgroundColor.value == background;
       return GestureDetector(
-        onTap: () {
-          selectedIconColor.value = foreground;
-          selectedIconBackgroundColor.value = background;
-        },
+        onTap: () => onTap?.call(color),
         child: SizedBox.square(
           dimension: 36,
           child: Container(
             decoration: BoxDecoration(
-              color: background,
-              borderRadius: BorderRadius.circular(8),
-              border: isSelected
-                  ? Border.all(color: context.theme.colors.foreground, width: 2)
-                  : null,
+              color: color,
+              borderRadius: .circular(8),
+              border: Border.all(
+                color: context.theme.colors.primaryForeground,
+                width: 2,
+              ),
             ),
-            child: child,
+            child: isSelected
+                ? Icon(
+                    LucideIcons.check,
+                    color: context.theme.colors.foreground,
+                    size: 20,
+                  )
+                : null,
           ),
+        ),
+      );
+    }
+
+    Widget buildColorPicker({
+      required Color color,
+      Function(Color)? isSelected,
+      Function(Color)? onChange,
+      Widget? child,
+      Color? bgColor,
+    }) {
+      return Padding(
+        padding: const .symmetric(vertical: 16),
+        child: Row(
+          spacing: 32,
+          crossAxisAlignment: .start,
+          children: [
+            SizedBox(
+              width: 100,
+              child: Column(
+                spacing: 16,
+                children: [
+                  Container(
+                    width: 80,
+                    height: 80,
+                    decoration: BoxDecoration(
+                      color: bgColor ?? color,
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: child,
+                  ),
+                  Row(
+                    spacing: 8,
+                    children: [
+                      Expanded(
+                        child: FTextField(
+                          control: .lifted(
+                            value: TextEditingValue(text: color.toHex()),
+                            onChange: (val) {
+                              final result = ColorExtension.fromHex(val.text);
+                              if (result != null) onChange?.call(result);
+                            },
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+            Expanded(
+              child: Column(
+                spacing: 8,
+                crossAxisAlignment: .start,
+                children: [
+                  if (!isAutoDetectIcon.value &&
+                      selectedIcon.value.brandColor != null)
+                    FTooltip(
+                      tipBuilder: (_, _) => Text('Brand Color'),
+                      child: buildColorSwatch(
+                        color: selectedIcon.value.brandColor!,
+                        isSelected: isSelected?.call(
+                          selectedIcon.value.brandColor!,
+                        ),
+                        onTap: onChange,
+                      ),
+                    ),
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
+                    children: [
+                      for (final c in _colorExamples)
+                        buildColorSwatch(
+                          color: c,
+                          isSelected: isSelected?.call(c),
+                          onTap: onChange,
+                        ),
+                      FTooltip(
+                        tipBuilder: (_, _) => Text('Random'),
+                        child: FButton.icon(
+                          onPress: () =>
+                              onChange?.call(ColorExtension.generateRandom()),
+                          child: Icon(LucideIcons.dices),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ],
         ),
       );
     }
@@ -231,111 +334,74 @@ class CreateOrEditConnectionView extends HookConsumerWidget {
         child: Padding(
           padding: const .symmetric(vertical: 20),
           child: Column(
+            spacing: 8,
+            crossAxisAlignment: .start,
             children: [
-              if (!isAutoDetectIcon.value)
-                Container(
-                  width: 64,
-                  height: 64,
-                  decoration: BoxDecoration(
-                    color: selectedIconBackgroundColor.value,
-                    borderRadius: BorderRadius.circular(16),
-                  ),
+              FLabel(
+                label: Text('Background Color'),
+                axis: .vertical,
+                child: buildColorPicker(
+                  color: selectedIconBackgroundColor.value,
+                  isSelected: (c) => c == selectedIconBackgroundColor.value,
+                  onChange: (c) => selectedIconBackgroundColor.value = c,
+                ),
+              ),
+              FLabel(
+                label: Text('Icon Color'),
+                axis: .vertical,
+                child: buildColorPicker(
+                  color: selectedIconColor.value,
+                  isSelected: (c) => c == selectedIconColor.value,
+                  onChange: (c) => selectedIconColor.value = c,
                   child: Icon(
                     selectedIcon.value.iconData,
+                    size: 48,
                     color: selectedIconColor.value,
-                    size: 36,
                   ),
+                  bgColor: selectedIconBackgroundColor.value,
                 ),
-              Column(
-                spacing: 8,
-                crossAxisAlignment: .start,
-                children: [
-                  FLabel(
-                    label: Text('Colors'),
-                    axis: .vertical,
-                    child: Column(
+              ),
+              const SizedBox(height: 12),
+              FLabel(
+                label: Text('Icon'),
+                axis: .vertical,
+                child: Column(
+                  spacing: 20,
+                  children: [
+                    if (!isAutoDetectIcon.value)
+                      Wrap(
+                        spacing: 8,
+                        runSpacing: 8,
+                        children: [
+                          for (final icon in ConnectionIcon.values)
+                            FTooltip(
+                              tipBuilder: (_, _) => Text(icon.name),
+                              child: FButton.icon(
+                                style: icon == selectedIcon.value
+                                    ? FButtonStyle.primary()
+                                    : FButtonStyle.ghost(),
+                                onPress: () => selectedIcon.value = icon,
+                                child: Icon(icon.iconData),
+                              ),
+                            ),
+                        ],
+                      ),
+                    Row(
+                      mainAxisAlignment: .spaceBetween,
                       children: [
-                        if (!isAutoDetectIcon.value &&
-                            selectedIcon.value.brandColor != null)
-                          Wrap(
-                            spacing: 8,
-                            runSpacing: 8,
-                            children: [
-                              buildColorSwatch(
-                                foreground: Colors.white,
-                                background: selectedIcon.value.brandColor!,
-                                child: Icon(
-                                  selectedIcon.value.iconData,
-                                  color: Colors.white,
-                                ),
-                              ),
-                              buildColorSwatch(
-                                foreground: selectedIcon.value.brandColor!,
-                                background: Colors.white,
-                                child: Icon(
-                                  selectedIcon.value.iconData,
-                                  color: selectedIcon.value.brandColor!,
-                                ),
-                              ),
-                            ],
+                        Flexible(
+                          child: Text(
+                            'Automatically set icon based on detected host OS',
                           ),
-                        Wrap(
-                          spacing: 8,
-                          runSpacing: 8,
-                          children: [
-                            for (final c in ConnectionColor.values)
-                              buildColorSwatch(
-                                foreground: Colors.white,
-                                background: c.color,
-                              ),
-                          ],
+                        ),
+                        FSwitch(
+                          value: isAutoDetectIcon.value,
+                          onChange: (value) => isAutoDetectIcon.value = value,
                         ),
                       ],
                     ),
-                  ),
-                  const SizedBox(height: 12),
-                  FLabel(
-                    label: Text('Icon'),
-                    axis: .vertical,
-                    child: Column(
-                      children: [
-                        if (!isAutoDetectIcon.value)
-                          Wrap(
-                            spacing: 8,
-                            runSpacing: 8,
-                            children: [
-                              for (final icon in ConnectionIcon.values)
-                                FTooltip(
-                                  tipBuilder: (_, _) => Text(icon.name),
-                                  child: FButton.icon(
-                                    style: icon == selectedIcon.value
-                                        ? FButtonStyle.primary()
-                                        : FButtonStyle.ghost(),
-                                    onPress: () => selectedIcon.value = icon,
-                                    child: Icon(icon.iconData),
-                                  ),
-                                ),
-                            ],
-                          ),
-                        Row(
-                          mainAxisAlignment: .spaceBetween,
-                          children: [
-                            Flexible(
-                              child: Text(
-                                'Automatically set icon based on detected host OS',
-                              ),
-                            ),
-                            FSwitch(
-                              value: isAutoDetectIcon.value,
-                              onChange: (value) =>
-                                  isAutoDetectIcon.value = value,
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ],
           ),
@@ -345,20 +411,7 @@ class CreateOrEditConnectionView extends HookConsumerWidget {
 
     FAccordionItem buildThemeItem() {
       return FAccordionItem(
-        title: Row(
-          mainAxisSize: .min,
-          children: [
-            Text('Terminal Appearance'),
-            if (selectedTypographyOverride.value != null)
-              Text(
-                ' (changed)',
-                style: context.theme.typography.xs.copyWith(
-                  color: context.theme.colors.mutedForeground,
-                  fontWeight: FontWeight.normal,
-                ),
-              ),
-          ],
-        ),
+        title: Text('Terminal Appearance'),
         child: Padding(
           padding: const .symmetric(vertical: 20),
           child: Column(
