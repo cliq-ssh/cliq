@@ -4,32 +4,35 @@ import styles from './styles.module.css';
 
 const FeatureList = [
   {
-    title: 'Easy to Use',
-    Svg: require('@site/static/img/undraw_docusaurus_mountain.svg').default,
+    title: 'Secure by design',
+    Svg: require('@site/static/img/datalock.svg').default,
     description: (
       <>
-        Docusaurus was designed from the ground up to be easily installed and
-        used to get your website up and running quickly.
+        Encryption and decryption happen entirely on the client, so secrets never leave
+        the app unprotected. The backend never sees raw passwords or keys and only
+        processes already-encrypted data.
       </>
     ),
   },
   {
-    title: 'Focus on What Matters',
-    Svg: require('@site/static/img/undraw_docusaurus_tree.svg').default,
+    title: 'Powered by open source',
+    Svg: require('@site/static/img/open-source.svg').default,
     description: (
       <>
-        Docusaurus lets you focus on your docs, and we&apos;ll do the chores. Go
-        ahead and move your docs into the <code>docs</code> directory.
+        Fully open source and auditable from end to end. Review the SSH and SFTP code,
+        contribute fixes or features, and adapt the client to your own workflows without
+        being locked into a proprietary ecosystem.
       </>
     ),
   },
   {
-    title: 'Powered by React',
-    Svg: require('@site/static/img/undraw_docusaurus_react.svg').default,
+    title: 'Self hosted',
+    Svg: require('@site/static/img/server.svg').default,
     description: (
       <>
-        Extend or customize your website layout by reusing React. Docusaurus can
-        be extended while reusing the same header and footer.
+        Run the coordination and sync services on your own infrastructure, so host
+        lists, keys, and connection history never leave your environment. Keep full
+        control over where your data lives and how it is secured.
       </>
     ),
   },
