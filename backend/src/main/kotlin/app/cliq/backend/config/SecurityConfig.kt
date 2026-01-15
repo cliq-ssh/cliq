@@ -1,15 +1,18 @@
 package app.cliq.backend.config
 
+import app.cliq.backend.config.security.exception.handler.ApplicationAuthenticationEntryPoint
+import app.cliq.backend.config.security.jwt.JwtAuthenticationConfigurer
+import app.cliq.backend.config.security.oidc.OidcLoginSuccessHandler
+import app.cliq.backend.config.security.oidc.OidcLogoutHandler
+import app.cliq.backend.constants.Features
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
+import org.springframework.context.annotation.Profile
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity
 import org.springframework.security.config.annotation.web.builders.HttpSecurity
-import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity
 import org.springframework.security.config.http.SessionCreationPolicy
-import org.springframework.security.core.userdetails.UserDetailsService
 import org.springframework.security.crypto.argon2.Argon2PasswordEncoder
 import org.springframework.security.crypto.password.PasswordEncoder
-import org.springframework.security.provisioning.InMemoryUserDetailsManager
 import org.springframework.security.web.SecurityFilterChain
 
 const val SALT_LENGTH = 16
@@ -19,26 +22,65 @@ const val MEMORY = 1 shl 14
 const val ITERATIONS = 3
 
 @Configuration
-@EnableWebSecurity
-@EnableMethodSecurity(securedEnabled = true, prePostEnabled = true)
-class SecurityConfig {
+@EnableMethodSecurity
+class SecurityConfig(
+    private val jwtAuthenticationConfigurer: JwtAuthenticationConfigurer,
+    private val applicationAuthenticationEntryPoint: ApplicationAuthenticationEntryPoint,
+) {
     @Bean
     fun passwordEncoder(): PasswordEncoder =
         Argon2PasswordEncoder(SALT_LENGTH, HASH_LENGTH, PARALLELISM, MEMORY, ITERATIONS)
 
     @Bean
-    fun securityFilterChain(http: HttpSecurity): SecurityFilterChain =
+    @Profile(Features.OIDC)
+    fun oidcFilterChain(
+        http: HttpSecurity,
+        oidcLoginSuccessHandler: OidcLoginSuccessHandler,
+        oidcLogoutHandler: OidcLogoutHandler,
+    ): SecurityFilterChain =
         http
-            .csrf { it.disable() }
-            .sessionManagement { it.sessionCreationPolicy(SessionCreationPolicy.STATELESS) }
-            .formLogin { it.disable() }
-            .httpBasic { it.disable() }
-            /* We permit all requests. Authentication is handled by the "AuthenticationInterceptor" together with the
-             "Authenticated" annotation.
-             */
-            .authorizeHttpRequests { auth -> auth.anyRequest().permitAll() }
-            .build()
+            .securityMatcher("/oauth2/**", "/login/oauth2/**", "/logout/connect/back-channel/**")
+            .oauth2Login {
+                it.successHandler(oidcLoginSuccessHandler)
+            }.oidcLogout { it ->
+                it.backChannel {
+                    it.logoutHandler(oidcLogoutHandler)
+                }
+            }.build()
 
     @Bean
-    fun userDetailsService(): UserDetailsService = InMemoryUserDetailsManager()
+    fun securityFilterChain(http: HttpSecurity): SecurityFilterChain {
+        http
+            .securityMatcher("/api/**")
+            .csrf { it.disable() }
+            .formLogin { it.disable() }
+            .httpBasic { it.disable() }
+            .sessionManagement { it.sessionCreationPolicy(SessionCreationPolicy.STATELESS) }
+            .exceptionHandling { it.authenticationEntryPoint(applicationAuthenticationEntryPoint) }
+            .authorizeHttpRequests {
+                it
+                    // Actuator
+                    .requestMatchers("/actuator/**")
+                    .permitAll()
+                    // OpenAPI
+                    .requestMatchers("/api", "/api/openapi/**")
+                    .permitAll()
+                    // Auth endpoints
+                    .requestMatchers("/api/auth/login", "/api/auth/refresh", "/api/auth/register")
+                    .permitAll()
+                    // User endpoints
+                    .requestMatchers("/api/user/password-reset/start", "/api/user/password-reset/reset")
+                    .permitAll()
+                    .requestMatchers("/api/user/verification", "/api/user/verification/resend-email")
+                    .permitAll()
+                    // Server Configuration
+                    .requestMatchers("/api/server/configuration")
+                    .permitAll()
+                    // Deny all by default
+                    .anyRequest()
+                    .authenticated()
+            }.with(jwtAuthenticationConfigurer)
+
+        return http.build()
+    }
 }

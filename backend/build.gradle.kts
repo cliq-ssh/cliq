@@ -14,14 +14,14 @@ plugins {
 
     // Linter and Formatter
     id("org.jlleitschuh.gradle.ktlint") version "14.0.1"
+    id("com.autonomousapps.dependency-analysis") version "3.5.1"
 }
 
 group = "app.cliq"
 version = "0.1.0"
 description = "Open source SSH & SFTP client with focus on security and portability"
 
-// TODO: change with kotlin 2.3.0
-val targetJvmVersion = 24
+val targetJvmVersion = 25
 
 java {
     toolchain {
@@ -47,7 +47,7 @@ flyway {
 }
 
 ktlint {
-    version.set("1.7.1")
+    version.set("1.8.0")
     android.set(false)
     ignoreFailures.set(false)
     reporters {
@@ -57,6 +57,16 @@ ktlint {
     filter {
         exclude("**/generated/**")
         include("**/kotlin/**")
+    }
+}
+
+dependencyAnalysis {
+    issues {
+        all {
+            onAny {
+                severity("fail")
+            }
+        }
     }
 }
 
@@ -70,23 +80,34 @@ buildscript {
     }
 }
 
-val springModulithVersion by extra("2.0.1")
-
 dependencies {
     // Web Framework
     implementation("org.springframework.boot:spring-boot-starter-webmvc")
     implementation("org.springframework.boot:spring-boot-starter-actuator")
 
+    // Rate limiting
+    implementation("com.bucket4j:bucket4j_jdk17-core:8.16.0")
+    implementation("com.bucket4j:bucket4j_jdk17-caffeine:8.16.0")
+
+    // Caching
+    implementation("org.springframework.boot:spring-boot-starter-cache")
+    implementation("com.github.ben-manes.caffeine:caffeine")
+
     // JPA/SQL
     implementation("org.springframework.boot:spring-boot-starter-data-jpa")
     runtimeOnly("org.postgresql:postgresql")
     // Flyway
+    val flywayVersion = "11.20.1"
     implementation("org.springframework.boot:spring-boot-starter-flyway")
-    implementation("org.flywaydb:flyway-core:11.20.1")
-    implementation("org.flywaydb:flyway-database-postgresql:11.20.1")
+    implementation("org.flywaydb:flyway-core:$flywayVersion")
+    implementation("org.flywaydb:flyway-database-postgresql:$flywayVersion")
 
     // Security
     implementation("org.springframework.boot:spring-boot-starter-security")
+    // OIDC
+    implementation("org.springframework.boot:spring-boot-starter-oauth2-client")
+
+    // Local auth
     implementation("org.springframework.security:spring-security-crypto")
     implementation("org.bouncycastle:bcprov-jdk18on:1.83")
 
@@ -111,45 +132,42 @@ dependencies {
     annotationProcessor("org.springframework.boot:spring-boot-configuration-processor")
 
     // Kotlin specifics
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.10.2")
     implementation("org.jetbrains.kotlin:kotlin-reflect")
 
-    // Modulith
-    implementation("org.springframework.modulith:spring-modulith-starter-core")
-    implementation("org.springframework.modulith:spring-modulith-starter-jpa")
-    runtimeOnly("org.springframework.modulith:spring-modulith-actuator")
-    runtimeOnly("org.springframework.modulith:spring-modulith-observability")
-
     // Testing //
-
-    // Spring
-    testImplementation("org.springframework.boot:spring-boot-webmvc-test")
-
-    // Modulith
-    testImplementation("org.springframework.modulith:spring-modulith-starter-test")
 
     // Junit 5
     testImplementation("org.jetbrains.kotlin:kotlin-test-junit5")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 
+    // Spring
+    testImplementation("org.springframework.boot:spring-boot-webmvc-test")
+
+    // Security
+    testImplementation("org.springframework.boot:spring-boot-starter-security-test")
+
+    // JPA/SQL
+    testImplementation("org.springframework.boot:spring-boot-starter-data-jpa-test")
+
     // Greenmail
     val greenmailVersion = "2.1.8"
-    implementation("com.icegreen:greenmail-spring:$greenmailVersion")
+    testImplementation("com.icegreen:greenmail-spring:$greenmailVersion")
     testImplementation("com.icegreen:greenmail:$greenmailVersion")
     testImplementation("com.icegreen:greenmail-junit5:$greenmailVersion")
 
     // Mail commons
     testImplementation("org.apache.commons:commons-email2-jakarta:2.0.0-M1")
 
-    // Kotlin specifics
+    // Mockito
+    testImplementation("org.mockito:mockito-core:5.21.0")
+    testImplementation("org.mockito:mockito-junit-jupiter:5.21.0")
     testImplementation("org.mockito.kotlin:mockito-kotlin:6.2.0")
-    testImplementation("org.awaitility:awaitility-kotlin:4.3.0")
-}
 
-dependencyManagement {
-    imports {
-        mavenBom("org.springframework.modulith:spring-modulith-bom:$springModulithVersion")
-    }
+    // AssertJ
+    testImplementation("org.assertj:assertj-core:3.27.6")
+
+    // Kotlin specifics
+    testImplementation("org.awaitility:awaitility-kotlin:4.3.0")
 }
 
 kotlin {

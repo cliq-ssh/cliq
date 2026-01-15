@@ -1,12 +1,17 @@
 package app.cliq.backend.userconfig
 
-import app.cliq.backend.session.Authenticated
+import app.cliq.backend.annotations.Authenticated
 import app.cliq.backend.session.Session
 import app.cliq.backend.userconfig.factory.UserConfigurationFactory
 import app.cliq.backend.userconfig.params.ConfigurationParams
 import app.cliq.backend.userconfig.view.ConfigurationView
 import io.swagger.v3.oas.annotations.Operation
+import io.swagger.v3.oas.annotations.media.Content
+import io.swagger.v3.oas.annotations.media.Schema
+import io.swagger.v3.oas.annotations.responses.ApiResponse
+import io.swagger.v3.oas.annotations.responses.ApiResponses
 import io.swagger.v3.oas.annotations.tags.Tag
+import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
 import org.springframework.security.core.annotation.AuthenticationPrincipal
 import org.springframework.web.bind.annotation.GetMapping
@@ -26,14 +31,23 @@ class UserConfigurationController(
     @Authenticated
     @PutMapping
     @Operation(summary = "Insert or update user configuration")
+    @ApiResponses(
+        value = [
+            ApiResponse(
+                responseCode = "200",
+                description = "Successfully updated user configuration",
+            ),
+        ],
+    )
     fun put(
         @AuthenticationPrincipal session: Session,
         @RequestBody configurationParams: ConfigurationParams,
     ): ResponseEntity<Void> {
-        val existingConfig = repository.getByUser(session.user)
+        val user = session.user
+        val existingConfig = repository.getByUser(user)
 
         if (existingConfig == null) {
-            val config = userConfigurationFactory.createFromParams(configurationParams, session.user)
+            val config = userConfigurationFactory.createFromParams(configurationParams, user)
 
             repository.save(config)
         } else {
@@ -41,7 +55,7 @@ class UserConfigurationController(
                 userConfigurationFactory.updateFromParams(
                     existingConfig,
                     configurationParams,
-                    session.user,
+                    user,
                 )
 
             repository.save(config)
@@ -53,10 +67,25 @@ class UserConfigurationController(
     @Authenticated
     @GetMapping
     @Operation(summary = "Get's you the current configuration.")
+    @ApiResponses(
+        value = [
+            ApiResponse(
+                responseCode = "200",
+                description = "Successfully retrieved user configuration",
+                content = [
+                    Content(
+                        mediaType = MediaType.APPLICATION_JSON_VALUE,
+                        schema = Schema(implementation = ConfigurationView::class),
+                    ),
+                ],
+            ),
+        ],
+    )
     fun get(
         @AuthenticationPrincipal session: Session,
     ): ResponseEntity<ConfigurationView> {
-        val config = repository.getByUser(session.user) ?: return ResponseEntity.notFound().build()
+        val user = session.user
+        val config = repository.getByUser(user) ?: return ResponseEntity.notFound().build()
 
         val view = ConfigurationView(config.encryptedConfig, config.updatedAt, config.updatedAt)
 
@@ -66,11 +95,26 @@ class UserConfigurationController(
     @Authenticated
     @GetMapping("/last-updated")
     @Operation(summary = "Get's you when the config was last updated")
+    @ApiResponses(
+        value = [
+            ApiResponse(
+                responseCode = "200",
+                description = "Successfully retrieved last updated at",
+                content = [
+                    Content(
+                        mediaType = MediaType.TEXT_PLAIN_VALUE,
+                        schema = Schema(implementation = OffsetDateTime::class),
+                    ),
+                ],
+            ),
+        ],
+    )
     fun getUpdatedAt(
         @AuthenticationPrincipal session: Session,
-    ): ResponseEntity<OffsetDateTime> {
-        val updatedAt = repository.getUpdatedAtByUser(session.user)
+    ): ResponseEntity<String> {
+        val user = session.user
+        val updatedAt = repository.getUpdatedAtByUser(user)
 
-        return ResponseEntity.ok(updatedAt)
+        return ResponseEntity.ok(updatedAt.toString())
     }
 }
