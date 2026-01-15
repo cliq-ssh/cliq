@@ -1,4 +1,4 @@
-package app.cliq.backend.config
+package app.cliq.backend.config.properties
 
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.boot.context.properties.ConfigurationProperties

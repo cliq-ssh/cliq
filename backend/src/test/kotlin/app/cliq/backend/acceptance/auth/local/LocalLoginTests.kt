@@ -12,6 +12,7 @@ import app.cliq.backend.constants.EXAMPLE_PASSWORD
 import app.cliq.backend.constants.EXAMPLE_USERNAME
 import app.cliq.backend.error.ErrorCode
 import app.cliq.backend.session.SessionRepository
+import app.cliq.backend.support.ErrorResponseClient
 import app.cliq.backend.support.UserCreationHelper
 import app.cliq.backend.user.factory.UserFactory
 import org.junit.jupiter.api.Assertions
@@ -43,11 +44,6 @@ class LocalLoginTests(
     @Autowired
     private val userCreationHelper: UserCreationHelper,
 ) : AcceptanceTester() {
-    data class ErrorResponseClient(
-        val errorCode: ErrorCode,
-        val details: Any? = null,
-    )
-
     @Test
     fun `test login flow`() {
         val registrationParams =

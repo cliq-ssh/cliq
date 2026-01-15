@@ -35,6 +35,10 @@ data class ErrorCode private constructor(
         // Rate limiting
         val RATE_LIMIT_EXCEEDED = of(2200U, "Rate limit exceeded")
 
+        // ### Limitation errors ###
+        val LOCAL_LOGIN_DISABLED = of(3000U, "Local login is disabled")
+        val LOCAL_REGISTRATION_DISABLED = of(3001U, "Local registration is disabled")
+
         private fun of(
             code: UShort,
             description: String,

@@ -1,6 +1,6 @@
 package app.cliq.backend.email
 
-import app.cliq.backend.config.EmailProperties
+import app.cliq.backend.config.properties.EmailProperties
 import io.pebbletemplates.pebble.PebbleEngine
 import jakarta.mail.internet.InternetAddress
 import org.slf4j.LoggerFactory

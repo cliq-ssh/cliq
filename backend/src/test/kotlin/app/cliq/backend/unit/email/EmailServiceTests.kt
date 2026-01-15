@@ -1,6 +1,6 @@
 package app.cliq.backend.unit.email
 
-import app.cliq.backend.config.EmailProperties
+import app.cliq.backend.config.properties.EmailProperties
 import app.cliq.backend.email.EmailService
 import io.pebbletemplates.pebble.PebbleEngine
 import jakarta.mail.internet.MimeMessage

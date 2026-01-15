@@ -2,8 +2,11 @@ package app.cliq.backend.acceptance.serverconfiguration
 
 import app.cliq.backend.acceptance.AcceptanceTest
 import app.cliq.backend.acceptance.AcceptanceTester
+import app.cliq.backend.config.properties.InfoProperties
 import app.cliq.backend.serverconfig.view.ServerConfigResponse
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertNotNull
+import org.junit.jupiter.api.assertNull
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.get
@@ -14,6 +17,7 @@ import kotlin.test.assertEquals
 class ServerConfigurationTest(
     @Autowired private val mockMvc: MockMvc,
     @Autowired private val objectMapper: ObjectMapper,
+    @Autowired private val infoProperties: InfoProperties,
 ) : AcceptanceTester() {
     @Test
     fun `test server configuration is a public endpoint`() {
@@ -26,8 +30,18 @@ class ServerConfigurationTest(
         val content = result.response.contentAsString
         assert(content.isNotEmpty())
         val response = objectMapper.readValue(content, ServerConfigResponse::class.java)
-        val expected = ServerConfigResponse()
 
-        assertEquals(expected, response)
+        assertNull(response.oidcUrl)
+    }
+
+    @Test
+    fun `test server configuration returns version`() {
+        val result = mockMvc.get("/api/server/configuration").andReturn()
+        val content = result.response.contentAsString
+        assert(content.isNotEmpty())
+        val response = objectMapper.readValue(content, ServerConfigResponse::class.java)
+
+        assertNotNull(response.serverVersion)
+        assertEquals(infoProperties.version, response.serverVersion)
     }
 }

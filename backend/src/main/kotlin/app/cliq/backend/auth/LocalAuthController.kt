@@ -5,8 +5,11 @@ import app.cliq.backend.auth.params.LoginParams
 import app.cliq.backend.auth.params.RegistrationParams
 import app.cliq.backend.auth.service.JwtService
 import app.cliq.backend.auth.view.TokenResponse
+import app.cliq.backend.config.properties.AuthProperties
 import app.cliq.backend.exception.EmailNotVerifiedException
 import app.cliq.backend.exception.InvalidEmailOrPasswordException
+import app.cliq.backend.exception.LocalLoginDisabledException
+import app.cliq.backend.exception.LocalRegistrationDisabledException
 import app.cliq.backend.user.UserRepository
 import app.cliq.backend.user.factory.UserFactory
 import app.cliq.backend.user.view.UserResponse
@@ -31,6 +34,7 @@ class LocalAuthController(
     private val userFactory: UserFactory,
     private val passwordEncoder: PasswordEncoder,
     private val jwtService: JwtService,
+    private val authProperties: AuthProperties,
 ) {
     @PostMapping("/register")
     @Operation(summary = "Registers a new User for local authentication.")
@@ -51,12 +55,16 @@ class LocalAuthController(
                 description = "Invalid input",
                 content = [Content()],
             ),
-//            ApiResponse(responseCode = "403", description = "Registration has been disabled"),
+            ApiResponse(responseCode = "403", description = "Registration has been disabled"),
         ],
     )
     fun register(
         @Valid @RequestBody registrationParams: RegistrationParams,
     ): ResponseEntity<UserResponse> {
+        if (!authProperties.local.registration) {
+            throw LocalRegistrationDisabledException()
+        }
+
         val user = userFactory.createFromRegistrationParams(registrationParams)
 
         return ResponseEntity.status(HttpStatus.CREATED).body(UserResponse.fromUser(user))
@@ -81,12 +89,20 @@ class LocalAuthController(
                 description = "Invalid input",
                 content = [Content()],
             ),
-//          ApiResponse(responseCode = "403", description = "Login with local authentication has been disabled."),
+            ApiResponse(
+                responseCode = "403",
+                description = "Login with local authentication has been disabled.",
+                content = [Content()],
+            ),
         ],
     )
     private fun login(
         @Valid @RequestBody loginParams: LoginParams,
     ): ResponseEntity<TokenResponse> {
+        if (!authProperties.local.login) {
+            throw LocalLoginDisabledException()
+        }
+
         val user = userRepository.findByEmail(loginParams.email) ?: throw InvalidEmailOrPasswordException()
 
         if (!user.isUsable()) throw EmailNotVerifiedException()

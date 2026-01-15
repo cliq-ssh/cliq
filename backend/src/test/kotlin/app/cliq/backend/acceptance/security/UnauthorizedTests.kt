@@ -3,6 +3,7 @@ package app.cliq.backend.acceptance.security
 import app.cliq.backend.acceptance.AcceptanceTest
 import app.cliq.backend.acceptance.AcceptanceTester
 import app.cliq.backend.error.ErrorCode
+import app.cliq.backend.support.ErrorResponseClient
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.test.web.servlet.MockMvc
@@ -16,11 +17,6 @@ class UnauthorizedTests(
     @Autowired private val mockMvc: MockMvc,
     @Autowired private val objectMapper: ObjectMapper,
 ) : AcceptanceTester() {
-    data class ErrorResponseClient(
-        val errorCode: ErrorCode,
-        val details: Any? = null,
-    )
-
     @Test
     fun `test correct unauthorized response`() {
         val result =

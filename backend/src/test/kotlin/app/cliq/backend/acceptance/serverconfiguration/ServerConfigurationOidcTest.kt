@@ -25,8 +25,7 @@ class ServerConfigurationOidcTest(
         val content = result.response.contentAsString
         assert(content.isNotEmpty())
         val response = objectMapper.readValue(content, ServerConfigResponse::class.java)
-        val expected = ServerConfigResponse(oidcUrl = Oidc.AUTHORIZATION_ENDPOINT)
 
-        assertEquals(expected, response)
+        assertEquals(Oidc.AUTHORIZATION_ENDPOINT, response.oidcUrl)
     }
 }

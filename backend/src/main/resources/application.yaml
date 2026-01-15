@@ -8,6 +8,10 @@ app:
     enabled: \${MAIL_ENABLED:false}
     from-address: \${MAIL_FROM:null}
     from-name: \${MAIL_FROM_NAME:null}
+  auth:
+    local:
+      registration: \${ENABLE_LOCAL_REGISTRATION:true}
+      login: \${ENABLE_LOCAL_LOGIN:true}
   oidc:
     issuer-uri: \${OIDC_ISSUER_URI:}
     client-id: \${OIDC_CLIENT_ID:}
@@ -79,6 +83,7 @@ springdoc:
   api-docs:
     path: /api/openapi
     version: openapi_3_1
+    enabled: \${ENABLE_OPENAPI:false}
   swagger-ui:
     path: /api/openapi/swagger-ui
     disable-swagger-default-url: true
