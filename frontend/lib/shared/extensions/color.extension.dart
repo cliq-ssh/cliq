@@ -6,6 +6,16 @@ extension ColorExtension on Color {
     return '#${[if (withAlpha) a, r, g, b].map((c) => (c * 255).round().toRadixString(16).padLeft(2, '0')).join()}';
   }
 
+  Color invert() {
+    final argb = [
+      a,
+      r,
+      g,
+      b,
+    ].map((c) => (c * 255.0).round().clamp(0, 255)).toList();
+    return Color.fromARGB(argb[0], 255 - argb[1], 255 - argb[2], 255 - argb[3]);
+  }
+
   static Color generateRandom() => Color(Random().nextInt(0xffffffff));
 
   static Color? fromHex(String hex) {

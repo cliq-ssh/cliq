@@ -91,7 +91,6 @@ class CreateOrEditConnectionView extends HookConsumerWidget {
     final defaultTerminalTypography = useStore(.defaultTerminalTypography);
     final terminalThemes = ref.watch(terminalThemeProvider);
     final expandedAccordionItem = useState<int?>(null);
-    final isAutoDetectIcon = useState(current?.isIconAutoDetect.value ?? true);
 
     final labelCtrl = useTextEditingController(text: current?.label.value);
     final groupCtrl = useFAutocompleteController(
@@ -219,8 +218,7 @@ class CreateOrEditConnectionView extends HookConsumerWidget {
                 spacing: 8,
                 crossAxisAlignment: .start,
                 children: [
-                  if (!isAutoDetectIcon.value &&
-                      selectedIcon.value.brandColor != null)
+                  if (selectedIcon.value.brandColor != null)
                     FTooltip(
                       tipBuilder: (_, _) => Text('Brand Color'),
                       child: buildColorSwatch(
@@ -249,6 +247,14 @@ class CreateOrEditConnectionView extends HookConsumerWidget {
                           child: Icon(LucideIcons.dices),
                         ),
                       ),
+                      if (bgColor != null)
+                        FTooltip(
+                          tipBuilder: (_, _) => Text('Inverted Background'),
+                          child: FButton.icon(
+                            onPress: () => onChange?.call(bgColor.invert()),
+                            child: Icon(LucideIcons.squaresExclude),
+                          ),
+                        ),
                     ],
                   ),
                 ],
@@ -365,10 +371,11 @@ class CreateOrEditConnectionView extends HookConsumerWidget {
               FLabel(
                 label: Text('Icon'),
                 axis: .vertical,
-                child: Column(
-                  spacing: 20,
-                  children: [
-                    if (!isAutoDetectIcon.value)
+                child: Padding(
+                  padding: const .symmetric(vertical: 16),
+                  child: Column(
+                    spacing: 20,
+                    children: [
                       Wrap(
                         spacing: 8,
                         runSpacing: 8,
@@ -386,21 +393,8 @@ class CreateOrEditConnectionView extends HookConsumerWidget {
                             ),
                         ],
                       ),
-                    Row(
-                      mainAxisAlignment: .spaceBetween,
-                      children: [
-                        Flexible(
-                          child: Text(
-                            'Automatically set icon based on detected host OS',
-                          ),
-                        ),
-                        FSwitch(
-                          value: isAutoDetectIcon.value,
-                          onChange: (value) => isAutoDetectIcon.value = value,
-                        ),
-                      ],
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
             ],
@@ -520,10 +514,6 @@ class CreateOrEditConnectionView extends HookConsumerWidget {
             current?.terminalThemeOverrideId.value ??
                 terminalThemes.activeDefaultThemeId,
           ),
-          isIconAutoDetect: ValueExtension.absentIfSame(
-            isAutoDetectIcon.value,
-            current?.isIconAutoDetect.value,
-          ),
         );
 
         await CliqDatabase.connectionsRepository.update(comp);
@@ -545,7 +535,6 @@ class CreateOrEditConnectionView extends HookConsumerWidget {
             terminalThemeOverrideId: ValueExtension.absentIfNullOrEmpty(
               selectedTerminalThemeId.value,
             ),
-            isIconAutoDetect: Value(isAutoDetectIcon.value),
             identityId: const Value.absent(), // TODO
           ),
         );
@@ -602,6 +591,7 @@ class CreateOrEditConnectionView extends HookConsumerWidget {
                   ),
                   Row(
                     spacing: 8,
+                    crossAxisAlignment: .start,
                     children: [
                       Expanded(
                         flex: 4,
@@ -618,7 +608,7 @@ class CreateOrEditConnectionView extends HookConsumerWidget {
                         child: buildTextField(
                           controller: portCtrl,
                           label: 'Port',
-                          hint: '22',
+                          hint: '22-65535',
                           validator: Validators.port,
                         ),
                       ),
@@ -628,6 +618,7 @@ class CreateOrEditConnectionView extends HookConsumerWidget {
                     controller: usernameCtrl,
                     label: 'Username',
                     hint: 'root',
+                    validator: Validators.nonEmpty,
                   ),
 
                   if (additionalCredentialType.value == CredentialType.password)
