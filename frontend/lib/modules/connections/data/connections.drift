@@ -17,6 +17,7 @@ CREATE TABLE connections (
     icon                            ENUM(ConnectionIcon) NOT NULL DEFAULT 'unknown',
     icon_color                      INTEGER MAPPED BY `const ColorConverter()`,
     icon_background_color           INTEGER MAPPED BY `const ColorConverter()`,
+    is_icon_auto_detect             BOOLEAN NOT NULL DEFAULT TRUE,
     group_name                      TEXT,
     terminal_typography_override    TEXT MAPPED BY `const TerminalTypographyConverter()`,
     terminal_theme_override_id      INTEGER REFERENCES custom_terminal_themes(id) ON DELETE SET NULL

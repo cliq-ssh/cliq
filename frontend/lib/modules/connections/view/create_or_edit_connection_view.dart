@@ -26,10 +26,10 @@ import '../model/connection_color.dart';
 
 class CreateOrEditConnectionView extends HookConsumerWidget {
   static const List<(CredentialType, String, IconData)> allowedCredentialTypes =
-  [
-    (.password, 'Password', LucideIcons.rectangleEllipsis),
-    (.key, 'Key', LucideIcons.keyRound),
-  ];
+      [
+        (.password, 'Password', LucideIcons.rectangleEllipsis),
+        (.key, 'Key', LucideIcons.keyRound),
+      ];
 
   final ConnectionsCompanion? current;
   final String? currentPassword;
@@ -43,17 +43,6 @@ class CreateOrEditConnectionView extends HookConsumerWidget {
       currentPem = null,
       currentPemPassphrase = null,
       isEdit = false;
-
-  /* TODO: cleanup:
-    - move icon and color selection into accordion & into methods
-    - add randomise button for icon colors
-    - allow custom icon color
-
-    e.g.:
-    [ ] {randomise}
-    #abcdef #abcdef
-    [icon] [icon] [icon] [icon] [icon]
-   */
 
   CreateOrEditConnectionView.edit(ConnectionFull connection, {super.key})
     : current = ConnectionsCompanion(
@@ -72,6 +61,7 @@ class CreateOrEditConnectionView extends HookConsumerWidget {
           connection.terminalTypographyOverride,
         ),
         terminalThemeOverrideId: Value(connection.terminalThemeOverrideId),
+        isIconAutoDetect: Value(connection.isIconAutoDetect),
       ),
       currentPassword = connection.credential?.type == CredentialType.password
           ? connection.credential?.data
@@ -89,9 +79,8 @@ class CreateOrEditConnectionView extends HookConsumerWidget {
     final formKey = useMemoized(() => GlobalKey<FormState>());
     final defaultTerminalTypography = useStore(.defaultTerminalTypography);
     final terminalThemes = ref.watch(terminalThemeProvider);
-    final isTerminalOverridesExpanded = useState(
-      current?.terminalTypographyOverride.value != null,
-    );
+    final expandedAccordionItem = useState<int?>(null);
+    final isAutoDetectIcon = useState(current?.isIconAutoDetect.value ?? true);
 
     final labelCtrl = useTextEditingController(text: current?.label.value);
     final groupCtrl = useFAutocompleteController(
@@ -215,7 +204,10 @@ class CreateOrEditConnectionView extends HookConsumerWidget {
     /// Sets the effective typography based on the provided [fontSize] and [fontFamily].
     /// If either parameter is null, it falls back to the current override or default values.
     /// If the resulting typography matches the default, the override is cleared.
-    setEffectiveTypography(int? fontSize, String? fontFamily) {
+    TerminalTypography? getEffectiveTypography(
+      int? fontSize,
+      String? fontFamily,
+    ) {
       final typography = TerminalTypography(
         fontSize:
             fontSize ??
@@ -228,10 +220,198 @@ class CreateOrEditConnectionView extends HookConsumerWidget {
       );
 
       if (typography == defaultTerminalTypography.value) {
-        selectedTypographyOverride.value = null;
-      } else {
-        selectedTypographyOverride.value = typography;
+        return null;
       }
+      return typography;
+    }
+
+    FAccordionItem buildIconItem() {
+      return FAccordionItem(
+        title: Text('Icon & Color'),
+        child: Padding(
+          padding: const .symmetric(vertical: 20),
+          child: Column(
+            children: [
+              if (!isAutoDetectIcon.value)
+                Container(
+                  width: 64,
+                  height: 64,
+                  decoration: BoxDecoration(
+                    color: selectedIconBackgroundColor.value,
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: Icon(
+                    selectedIcon.value.iconData,
+                    color: selectedIconColor.value,
+                    size: 36,
+                  ),
+                ),
+              Column(
+                spacing: 8,
+                crossAxisAlignment: .start,
+                children: [
+                  FLabel(
+                    label: Text('Colors'),
+                    axis: .vertical,
+                    child: Column(
+                      children: [
+                        if (!isAutoDetectIcon.value &&
+                            selectedIcon.value.brandColor != null)
+                          Wrap(
+                            spacing: 8,
+                            runSpacing: 8,
+                            children: [
+                              buildColorSwatch(
+                                foreground: Colors.white,
+                                background: selectedIcon.value.brandColor!,
+                                child: Icon(
+                                  selectedIcon.value.iconData,
+                                  color: Colors.white,
+                                ),
+                              ),
+                              buildColorSwatch(
+                                foreground: selectedIcon.value.brandColor!,
+                                background: Colors.white,
+                                child: Icon(
+                                  selectedIcon.value.iconData,
+                                  color: selectedIcon.value.brandColor!,
+                                ),
+                              ),
+                            ],
+                          ),
+                        Wrap(
+                          spacing: 8,
+                          runSpacing: 8,
+                          children: [
+                            for (final c in ConnectionColor.values)
+                              buildColorSwatch(
+                                foreground: Colors.white,
+                                background: c.color,
+                              ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  FLabel(
+                    label: Text('Icon'),
+                    axis: .vertical,
+                    child: Column(
+                      children: [
+                        if (!isAutoDetectIcon.value)
+                          Wrap(
+                            spacing: 8,
+                            runSpacing: 8,
+                            children: [
+                              for (final icon in ConnectionIcon.values)
+                                FTooltip(
+                                  tipBuilder: (_, _) => Text(icon.name),
+                                  child: FButton.icon(
+                                    style: icon == selectedIcon.value
+                                        ? FButtonStyle.primary()
+                                        : FButtonStyle.ghost(),
+                                    onPress: () => selectedIcon.value = icon,
+                                    child: Icon(icon.iconData),
+                                  ),
+                                ),
+                            ],
+                          ),
+                        Row(
+                          mainAxisAlignment: .spaceBetween,
+                          children: [
+                            Flexible(
+                              child: Text(
+                                'Automatically set icon based on detected host OS',
+                              ),
+                            ),
+                            FSwitch(
+                              value: isAutoDetectIcon.value,
+                              onChange: (value) =>
+                                  isAutoDetectIcon.value = value,
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    FAccordionItem buildThemeItem() {
+      return FAccordionItem(
+        title: Row(
+          mainAxisSize: .min,
+          children: [
+            Text('Terminal Appearance'),
+            if (selectedTypographyOverride.value != null)
+              Text(
+                ' (changed)',
+                style: context.theme.typography.xs.copyWith(
+                  color: context.theme.colors.mutedForeground,
+                  fontWeight: FontWeight.normal,
+                ),
+              ),
+          ],
+        ),
+        child: Padding(
+          padding: const .symmetric(vertical: 20),
+          child: Column(
+            spacing: 20,
+            children: [
+              TerminalFontSizeSlider(
+                selectedFontSize:
+                    selectedTypographyOverride.value?.fontSize ??
+                    defaultTerminalTypography.value!.fontSize,
+                onEnd: (value) => selectedTypographyOverride.value =
+                    getEffectiveTypography(value, null),
+              ),
+              TerminalFontFamilySelect(
+                selectedFontFamily:
+                    selectedTypographyOverride.value?.fontFamily ??
+                    defaultTerminalTypography.value!.fontFamily,
+                onChange: (selected) => selectedTypographyOverride.value =
+                    getEffectiveTypography(null, selected),
+              ),
+              FSelect<int>.rich(
+                format: (s) => terminalThemes.entities
+                    .firstWhere(
+                      (t) => t.id == s,
+                      orElse: () => defaultTerminalColorTheme,
+                    )
+                    .name,
+                control: .managed(
+                  initial:
+                      selectedTerminalThemeId.value ??
+                      terminalThemes.activeDefaultThemeId,
+                ),
+                label: Text('Terminal Theme'),
+                onSaved: (selected) {
+                  // if selected is default, set to null
+                  if (selected == terminalThemes.activeDefaultThemeId) {
+                    selected = null;
+                    return;
+                  }
+
+                  selectedTerminalThemeId.value = selected;
+                },
+                children: [
+                  for (final theme in [
+                    defaultTerminalColorTheme,
+                    ...terminalThemes.entities,
+                  ])
+                    FSelectItem(value: theme.id, title: Text(theme.name)),
+                ],
+              ),
+            ],
+          ),
+        ),
+      );
     }
 
     /// Handles the save action for the form.
@@ -287,6 +467,10 @@ class CreateOrEditConnectionView extends HookConsumerWidget {
             current?.terminalThemeOverrideId.value ??
                 terminalThemes.activeDefaultThemeId,
           ),
+          isIconAutoDetect: ValueExtension.absentIfSame(
+            isAutoDetectIcon.value,
+            current?.isIconAutoDetect.value,
+          ),
         );
 
         await CliqDatabase.connectionsRepository.update(comp);
@@ -308,6 +492,7 @@ class CreateOrEditConnectionView extends HookConsumerWidget {
             terminalThemeOverrideId: ValueExtension.absentIfNullOrEmpty(
               selectedTerminalThemeId.value,
             ),
+            isIconAutoDetect: Value(isAutoDetectIcon.value),
             identityId: const Value.absent(), // TODO
           ),
         );
@@ -334,20 +519,6 @@ class CreateOrEditConnectionView extends HookConsumerWidget {
               ],
             ),
             const SizedBox(height: 8),
-            Container(
-              width: 64,
-              height: 64,
-              decoration: BoxDecoration(
-                color: selectedIconBackgroundColor.value,
-                borderRadius: BorderRadius.circular(16),
-              ),
-              child: Icon(
-                selectedIcon.value.iconData,
-                color: selectedIconColor.value,
-                size: 36,
-              ),
-            ),
-            const SizedBox(height: 12),
             Form(
               key: formKey,
               child: Column(
@@ -376,78 +547,29 @@ class CreateOrEditConnectionView extends HookConsumerWidget {
                     ),
                     items: groups.on(onData: (v) => v, onLoading: () => []),
                   ),
-
-                  Column(
+                  Row(
                     spacing: 8,
                     children: [
-                      if (selectedIcon.value.brandColor != null)
-                        Wrap(
-                          spacing: 8,
-                          runSpacing: 8,
-                          children: [
-                            buildColorSwatch(
-                              foreground: Colors.white,
-                              background: selectedIcon.value.brandColor!,
-                              child: Icon(
-                                selectedIcon.value.iconData,
-                                color: Colors.white,
-                              ),
-                            ),
-                            buildColorSwatch(
-                              foreground: selectedIcon.value.brandColor!,
-                              background: Colors.white,
-                              child: Icon(
-                                selectedIcon.value.iconData,
-                                color: selectedIcon.value.brandColor!,
-                              ),
-                            ),
-                          ],
+                      Expanded(
+                        flex: 4,
+                        child: buildTextField(
+                          controller: addressCtrl,
+                          label: 'Address',
+                          hint: '127.0.0.1',
+                          validator: Validators.address,
+                          onChange: (val) => labelPlaceholder.value = val.text,
                         ),
-
-                      Wrap(
-                        spacing: 8,
-                        runSpacing: 8,
-                        children: [
-                          for (final c in ConnectionColor.values)
-                            buildColorSwatch(
-                              foreground: Colors.white,
-                              background: c.color,
-                            ),
-                        ],
                       ),
-
-                      Wrap(
-                        spacing: 8,
-                        runSpacing: 8,
-                        children: [
-                          for (final icon in ConnectionIcon.values)
-                            FTooltip(
-                              tipBuilder: (_, _) => Text(icon.name),
-                              child: FButton.icon(
-                                style: icon == selectedIcon.value
-                                    ? FButtonStyle.primary()
-                                    : FButtonStyle.ghost(),
-                                onPress: () => selectedIcon.value = icon,
-                                child: Icon(icon.iconData),
-                              ),
-                            ),
-                        ],
+                      Expanded(
+                        flex: 2,
+                        child: buildTextField(
+                          controller: portCtrl,
+                          label: 'Port',
+                          hint: '22',
+                          validator: Validators.port,
+                        ),
                       ),
                     ],
-                  ),
-
-                  buildTextField(
-                    controller: addressCtrl,
-                    label: 'Address',
-                    hint: '127.0.0.1',
-                    validator: Validators.address,
-                    onChange: (val) => labelPlaceholder.value = val.text,
-                  ),
-                  buildTextField(
-                    controller: portCtrl,
-                    label: 'Port',
-                    hint: '22',
-                    validator: Validators.port,
                   ),
                   buildTextField(
                     controller: usernameCtrl,
@@ -511,7 +633,7 @@ class CreateOrEditConnectionView extends HookConsumerWidget {
                         ],
                         builder: (context, controller, child) {
                           return FButton(
-                            style: FButtonStyle.ghost(),
+                            style: FButtonStyle.secondary(),
                             prefix: const Icon(LucideIcons.plus),
                             onPress: controller.toggle,
                             child: const Text('Add Credential'),
@@ -520,96 +642,12 @@ class CreateOrEditConnectionView extends HookConsumerWidget {
                       ),
                       FAccordion(
                         control: .lifted(
-                          expanded: (_) => isTerminalOverridesExpanded.value,
-                          onChange: (_, expanded) =>
-                              isTerminalOverridesExpanded.value = expanded,
+                          expanded: (i) => expandedAccordionItem.value == i,
+                          onChange: (i, expanded) {
+                            expandedAccordionItem.value = expanded ? i : null;
+                          },
                         ),
-                        children: [
-                          FAccordionItem(
-                            title: Row(
-                              mainAxisSize: .min,
-                              children: [
-                                Text('Theme Overrides'),
-                                if (selectedTypographyOverride.value != null)
-                                  Text(
-                                    ' (changed)',
-                                    style: context.theme.typography.xs.copyWith(
-                                      color:
-                                          context.theme.colors.mutedForeground,
-                                      fontWeight: FontWeight.normal,
-                                    ),
-                                  ),
-                              ],
-                            ),
-                            child: Padding(
-                              padding: const .symmetric(vertical: 20),
-                              child: Column(
-                                spacing: 20,
-                                children: [
-                                  TerminalFontSizeSlider(
-                                    selectedFontSize:
-                                        selectedTypographyOverride
-                                            .value
-                                            ?.fontSize ??
-                                        defaultTerminalTypography
-                                            .value!
-                                            .fontSize,
-                                    onEnd: (value) =>
-                                        setEffectiveTypography(value, null),
-                                  ),
-                                  TerminalFontFamilySelect(
-                                    selectedFontFamily:
-                                        selectedTypographyOverride
-                                            .value
-                                            ?.fontFamily ??
-                                        defaultTerminalTypography
-                                            .value!
-                                            .fontFamily,
-                                    onChange: (selected) =>
-                                        setEffectiveTypography(null, selected),
-                                  ),
-                                  FSelect<int>.rich(
-                                    format: (s) {
-                                      return terminalThemes.entities
-                                          .firstWhere(
-                                            (t) => t.id == s,
-                                            orElse: () =>
-                                                defaultTerminalColorTheme,
-                                          )
-                                          .name;
-                                    },
-                                    control: .managed(
-                                      initial:
-                                          selectedTerminalThemeId.value ??
-                                          terminalThemes.activeDefaultThemeId,
-                                    ),
-                                    label: Text('Terminal Theme'),
-                                    onSaved: (selected) {
-                                      // if selected is default, set to null
-                                      if (selected ==
-                                          terminalThemes.activeDefaultThemeId) {
-                                        selected = null;
-                                        return;
-                                      }
-
-                                      selectedTerminalThemeId.value = selected;
-                                    },
-                                    children: [
-                                      for (final theme in [
-                                        defaultTerminalColorTheme,
-                                        ...terminalThemes.entities,
-                                      ])
-                                        FSelectItem(
-                                          value: theme.id,
-                                          title: Text(theme.name),
-                                        ),
-                                    ],
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-                        ],
+                        children: [buildIconItem(), buildThemeItem()],
                       ),
                     ],
                   ),
