@@ -1,4 +1,4 @@
-package app.cliq.backend.acceptance.serverconfiguration
+package app.cliq.backend.acceptance.serverconfig
 
 import app.cliq.backend.acceptance.AcceptanceTest
 import app.cliq.backend.acceptance.AcceptanceTester

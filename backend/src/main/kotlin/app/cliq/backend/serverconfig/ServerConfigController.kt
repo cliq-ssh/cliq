@@ -1,10 +1,7 @@
 package app.cliq.backend.serverconfig
 
-import app.cliq.backend.config.properties.InfoProperties
-import app.cliq.backend.constants.Features
-import app.cliq.backend.constants.Oidc
+import app.cliq.backend.serverconfig.factory.ServerConfigResponseFactory
 import app.cliq.backend.serverconfig.view.ServerConfigResponse
-import app.cliq.backend.utils.ProfileUtils
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.media.Content
 import io.swagger.v3.oas.annotations.media.Schema
@@ -20,8 +17,7 @@ import org.springframework.web.bind.annotation.RestController
 @RequestMapping("/api/server/configuration")
 @Tag(name = "Server Configuration", description = "Server configuration related endpoints")
 class ServerConfigController(
-    private val profileUtils: ProfileUtils,
-    private val infoProperties: InfoProperties,
+    private val serverConfigResponseFactory: ServerConfigResponseFactory,
 ) {
     @GetMapping
     @Operation(summary = "Get server configuration")
@@ -35,10 +31,8 @@ class ServerConfigController(
         ],
     )
     fun get(): ResponseEntity<ServerConfigResponse> {
-        if (profileUtils.isProfileActive(Features.OIDC)) {
-            return ResponseEntity.ok().body(ServerConfigResponse(infoProperties.version, Oidc.AUTHORIZATION_ENDPOINT))
-        }
+        val configResponse = serverConfigResponseFactory.getResponse()
 
-        return ResponseEntity.ok().body(ServerConfigResponse(infoProperties.version))
+        return ResponseEntity.ok().body(configResponse)
     }
 }
