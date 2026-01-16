@@ -108,18 +108,6 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                                 ThemeSettingsPage.pagePath.build(),
                               ),
                             ),
-                            FTile(
-                              prefix: Icon(LucideIcons.shield),
-                              suffix: Icon(LucideIcons.chevronRight),
-                              title: Text('Security'),
-                              onPress: null,
-                            ),
-                            FTile(
-                              prefix: Icon(LucideIcons.languages),
-                              suffix: Icon(LucideIcons.chevronRight),
-                              title: Text('Language'),
-                              onPress: null,
-                            ),
                             if (kDebugMode)
                               FTile(
                                 prefix: Icon(LucideIcons.bug),
