@@ -108,6 +108,12 @@ class CreateOrEditConnectionView extends HookConsumerWidget {
     final pemPassphraseCtrl = useTextEditingController(
       text: currentPemPassphrase,
     );
+    final iconColorCtrl = useTextEditingController(
+      text: current?.iconColor.value?.toHex(),
+    );
+    final iconBgColorCtrl = useTextEditingController(
+      text: current?.iconBackgroundColor.value?.toHex(),
+    );
 
     final selectedIcon = useState<ConnectionIcon>(
       current?.icon.value ?? ConnectionIcon.linux,
@@ -169,8 +175,9 @@ class CreateOrEditConnectionView extends HookConsumerWidget {
 
     Widget buildColorPicker({
       required Color color,
-      Function(Color)? isSelected,
-      Function(Color)? onChange,
+      required TextEditingController controller,
+      required bool Function(Color) isSelected,
+      void Function(String)? onChange,
       Widget? child,
       Color? bgColor,
     }) {
@@ -199,13 +206,11 @@ class CreateOrEditConnectionView extends HookConsumerWidget {
                     children: [
                       Expanded(
                         child: FTextField(
-                          control: .lifted(
-                            value: TextEditingValue(text: color.toHex()),
-                            onChange: (val) {
-                              final result = ColorExtension.fromHex(val.text);
-                              if (result != null) onChange?.call(result);
-                            },
+                          control: .managed(
+                            controller: controller,
+                            onChange: (value) => onChange?.call(value.text),
                           ),
+                          hint: '#FFFFFF',
                         ),
                       ),
                     ],
@@ -223,10 +228,10 @@ class CreateOrEditConnectionView extends HookConsumerWidget {
                       tipBuilder: (_, _) => Text('Brand Color'),
                       child: buildColorSwatch(
                         color: selectedIcon.value.brandColor!,
-                        isSelected: isSelected?.call(
+                        isSelected: isSelected.call(
                           selectedIcon.value.brandColor!,
                         ),
-                        onTap: onChange,
+                        onTap: (c) => controller.text = c.toHex(),
                       ),
                     ),
                   Wrap(
@@ -236,14 +241,15 @@ class CreateOrEditConnectionView extends HookConsumerWidget {
                       for (final c in _colorExamples)
                         buildColorSwatch(
                           color: c,
-                          isSelected: isSelected?.call(c),
-                          onTap: onChange,
+                          isSelected: isSelected.call(c),
+                          onTap: (c) => controller.text = c.toHex(),
                         ),
                       FTooltip(
                         tipBuilder: (_, _) => Text('Random'),
                         child: FButton.icon(
-                          onPress: () =>
-                              onChange?.call(ColorExtension.generateRandom()),
+                          onPress: () => onChange?.call(
+                            ColorExtension.generateRandom().toHex(),
+                          ),
                           child: Icon(LucideIcons.dices),
                         ),
                       ),
@@ -251,7 +257,8 @@ class CreateOrEditConnectionView extends HookConsumerWidget {
                         FTooltip(
                           tipBuilder: (_, _) => Text('Inverted Background'),
                           child: FButton.icon(
-                            onPress: () => onChange?.call(bgColor.invert()),
+                            onPress: () =>
+                                onChange?.call(bgColor.invert().toHex()),
                             child: Icon(LucideIcons.squaresExclude),
                           ),
                         ),
@@ -348,8 +355,13 @@ class CreateOrEditConnectionView extends HookConsumerWidget {
                 axis: .vertical,
                 child: buildColorPicker(
                   color: selectedIconBackgroundColor.value,
+                  controller: iconBgColorCtrl,
                   isSelected: (c) => c == selectedIconBackgroundColor.value,
-                  onChange: (c) => selectedIconBackgroundColor.value = c,
+                  onChange: (hex) {
+                    final result = ColorExtension.fromHex(hex);
+                    if (result != null)
+                      selectedIconBackgroundColor.value = result;
+                  },
                 ),
               ),
               FLabel(
@@ -357,8 +369,12 @@ class CreateOrEditConnectionView extends HookConsumerWidget {
                 axis: .vertical,
                 child: buildColorPicker(
                   color: selectedIconColor.value,
+                  controller: iconColorCtrl,
                   isSelected: (c) => c == selectedIconColor.value,
-                  onChange: (c) => selectedIconColor.value = c,
+                  onChange: (hex) {
+                    final result = ColorExtension.fromHex(hex);
+                    if (result != null) selectedIconColor.value = result;
+                  },
                   child: Icon(
                     selectedIcon.value.iconData,
                     size: 48,
