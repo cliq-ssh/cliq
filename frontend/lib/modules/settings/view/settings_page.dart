@@ -1,6 +1,5 @@
 import 'package:cliq/modules/settings/provider/sync.provider.dart';
 import 'package:cliq/modules/settings/view/identities_settings_page.dart';
-import 'package:cliq/modules/settings/view/sync_settings_page.dart';
 import 'package:cliq/modules/settings/view/terminal_theme_settings_page.dart';
 import 'package:cliq/modules/settings/view/theme_settings_page.dart';
 import 'package:cliq/shared/extensions/router.extension.dart';
@@ -49,7 +48,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                       spacing: 16,
                       children: [
                         FTileGroup(
-                          label: Text('SSH Settings'),
+                          label: Text('My Vault'),
                           children: [
                             FTile(
                               prefix: Icon(LucideIcons.refreshCcw),
@@ -60,16 +59,40 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                                   : Text(
                                       'Connected as ${sync.api!.session.name}, Last sync: ${sync.lastSync != null ? sync.lastSync!.toLocal().toString() : 'N/A'}',
                                     ),
+                              onPress: null,
+                            ),
+                            FTile(
+                              prefix: Icon(LucideIcons.users),
+                              suffix: Icon(LucideIcons.chevronRight),
+                              title: Text('Identities'),
                               onPress: () => context.pushPath(
-                                SyncSettingsPage.pagePath.build(),
+                                IdentitiesSettingsPage.pagePath.build(),
                               ),
                             ),
                             FTile(
                               prefix: Icon(LucideIcons.keyRound),
                               suffix: Icon(LucideIcons.chevronRight),
-                              title: Text('Identities'),
+                              title: Text('Keys'),
+                              onPress: null,
+                            ),
+                            FTile(
+                              prefix: Icon(LucideIcons.fingerprintPattern),
+                              suffix: Icon(LucideIcons.chevronRight),
+                              title: Text('Known Hosts'),
+                              onPress: null,
+                            ),
+                            FTile(
+                              prefix: Icon(LucideIcons.clock),
+                              suffix: Icon(LucideIcons.chevronRight),
+                              title: Text('History'),
+                              onPress: null,
+                            ),
+                            FTile(
+                              prefix: Icon(LucideIcons.squareTerminal),
+                              suffix: Icon(LucideIcons.chevronRight),
+                              title: Text('Terminal Theme'),
                               onPress: () => context.pushPath(
-                                IdentitiesSettingsPage.pagePath.build(),
+                                TerminalThemeSettingsPage.pagePath.build(),
                               ),
                             ),
                           ],
@@ -80,18 +103,22 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                             FTile(
                               prefix: Icon(LucideIcons.palette),
                               suffix: Icon(LucideIcons.chevronRight),
-                              title: Text('Theme'),
+                              title: Text('Appearance'),
                               onPress: () => context.pushPath(
                                 ThemeSettingsPage.pagePath.build(),
                               ),
                             ),
                             FTile(
-                              prefix: Icon(LucideIcons.squareTerminal),
+                              prefix: Icon(LucideIcons.shield),
                               suffix: Icon(LucideIcons.chevronRight),
-                              title: Text('Terminal Theme'),
-                              onPress: () => context.pushPath(
-                                TerminalThemeSettingsPage.pagePath.build(),
-                              ),
+                              title: Text('Security'),
+                              onPress: null,
+                            ),
+                            FTile(
+                              prefix: Icon(LucideIcons.languages),
+                              suffix: Icon(LucideIcons.chevronRight),
+                              title: Text('Language'),
+                              onPress: null,
                             ),
                             if (kDebugMode)
                               FTile(

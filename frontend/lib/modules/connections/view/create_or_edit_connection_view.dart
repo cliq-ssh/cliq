@@ -359,8 +359,9 @@ class CreateOrEditConnectionView extends HookConsumerWidget {
                   isSelected: (c) => c == selectedIconBackgroundColor.value,
                   onChange: (hex) {
                     final result = ColorExtension.fromHex(hex);
-                    if (result != null)
+                    if (result != null) {
                       selectedIconBackgroundColor.value = result;
+                    }
                   },
                 ),
               ),

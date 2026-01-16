@@ -4,7 +4,6 @@ import 'package:cliq/modules/settings/view/debug_settings_page.dart';
 import 'package:cliq/modules/settings/view/identities_settings_page.dart';
 import 'package:cliq/modules/settings/view/license_page.dart';
 import 'package:cliq/modules/settings/view/settings_page.dart';
-import 'package:cliq/modules/settings/view/sync_settings_page.dart';
 import 'package:cliq/modules/settings/view/terminal_theme_settings_page.dart';
 import 'package:cliq/modules/settings/view/theme_settings_page.dart';
 import 'package:flutter/cupertino.dart';
@@ -73,10 +72,6 @@ class Router {
           GoRoute(
             path: LicenseSettingsPage.pagePath.path,
             pageBuilder: _swipe(const LicenseSettingsPage()),
-          ),
-          GoRoute(
-            path: SyncSettingsPage.pagePath.path,
-            pageBuilder: _swipe(const SyncSettingsPage()),
           ),
           GoRoute(
             path: TerminalThemeSettingsPage.pagePath.path,
