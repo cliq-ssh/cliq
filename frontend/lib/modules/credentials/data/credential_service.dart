@@ -5,7 +5,6 @@ import 'package:drift/drift.dart';
 import 'package:logging/logging.dart';
 
 import '../../../shared/data/database.dart';
-import '../model/credential_type.dart';
 import 'credentials_repository.dart';
 
 final class CredentialService {

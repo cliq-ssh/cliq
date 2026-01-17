@@ -86,12 +86,9 @@ class CreateOrEditConnectionView extends HookConsumerWidget {
     final portCtrl = useTextEditingController(
       text: current?.port.value.toString(),
     );
-    final usernameCtrl = useTextEditingController(
+    final usernameCtrl = useFAutocompleteController(
       text: current?.username.value,
     );
-    final passwordCtrl = useTextEditingController();
-    final pemCtrl = useTextEditingController();
-    final pemPassphraseCtrl = useTextEditingController();
 
     final iconColorCtrl = useTextEditingController(
       text: current?.iconColor.value?.toHex(),
@@ -117,7 +114,8 @@ class CreateOrEditConnectionView extends HookConsumerWidget {
     );
 
     final labelPlaceholder = useState<String>('');
-    final additionalCredentialType = useState<CredentialType?>(null);
+    final selectedCredentials =
+        useState<Map<int, (CredentialType, String, String?)>>({});
 
     final groups = useMemoizedFuture(() async {
       return await CliqDatabase.connectionService.findAllGroupNamesDistinct();
@@ -273,6 +271,29 @@ class CreateOrEditConnectionView extends HookConsumerWidget {
         obscureText: obscure,
         maxLines: maxLines,
         minLines: minLines,
+        autovalidateMode: AutovalidateMode.onUserInteraction,
+      );
+    }
+
+    Widget buildAutocompleteTextField({
+      required FAutocompleteController controller,
+      required String label,
+      required Map<String, String> items,
+      String? hint,
+      String? Function(String?)? validator,
+    }) {
+      return FAutocomplete.builder(
+        control: .managed(controller: controller),
+        label: Text(label),
+        filter: (text) => items.values.where(
+          (item) => item.toLowerCase().contains(text.toLowerCase()),
+        ),
+        contentBuilder: (context, text, suggestions) => [
+          for (final entry in items.entries)
+            FAutocompleteItem(value: entry.key, title: Text(entry.value)),
+        ],
+        hint: hint,
+        validator: validator,
         autovalidateMode: AutovalidateMode.onUserInteraction,
       );
     }
@@ -438,12 +459,23 @@ class CreateOrEditConnectionView extends HookConsumerWidget {
       );
     }
 
+    buildRemoveCredentialButton(int key) {
+      return FButton.icon(
+        style: FButtonStyle.destructive(),
+        onPress: () {
+          final updated = {...selectedCredentials.value};
+          updated.remove(key);
+          selectedCredentials.value = updated;
+        },
+        child: const Icon(LucideIcons.trash),
+      );
+    }
+
     /// Handles the save action for the form.
     /// Validates the form, inserts any additional credentials, and either updates
     /// or creates a new connection based on the [isEdit] flag.
     Future<void> onSave() async {
       if (!(formKey.currentState?.validate() ?? false)) return;
-      final credentialId = await maybeInsertCredential();
 
       if (isEdit) {
         final comp = ConnectionsCompanion(
@@ -479,7 +511,6 @@ class CreateOrEditConnectionView extends HookConsumerWidget {
             usernameCtrl.text,
             current?.username.value,
           ),
-          credentialId: ValueExtension.absentIfSame(credentialId, null),
           identityId: const Value.absent(), // TODO
           terminalTypographyOverride: ValueExtension.absentIfSame(
             selectedTypographyOverride.value,
@@ -590,35 +621,89 @@ class CreateOrEditConnectionView extends HookConsumerWidget {
                       ),
                     ],
                   ),
-                  buildTextField(
-                    controller: usernameCtrl,
-                    label: 'Username',
-                    hint: 'root',
-                    validator: Validators.nonEmpty,
+
+                  Row(
+                    children: [
+                      Expanded(
+                        child: buildAutocompleteTextField(
+                          controller: usernameCtrl,
+                          label: 'Username',
+                          hint: 'root',
+                          validator: Validators.nonEmpty,
+                          items: {
+                            for (final identity in identities.entities)
+                              identity.id.toString(): identity.username,
+                          },
+                        ),
+                      ),
+                    ],
                   ),
 
-                  if (additionalCredentialType.value == CredentialType.password)
-                    buildTextField(
-                      controller: passwordCtrl,
-                      label: 'Password',
-                      obscure: true,
-                      maxLines: 1,
-                    ),
-                  if (additionalCredentialType.value == CredentialType.key) ...[
-                    buildTextField(
-                      controller: pemCtrl,
-                      label: 'PEM Key',
-                      hint: '-----BEGIN OPENSSH PRIVATE KEY-----',
-                      minLines: 5,
-                      maxLines: null,
-                    ),
-                    buildTextField(
-                      controller: pemPassphraseCtrl,
-                      label: 'PEM Passphrase',
-                      obscure: true,
-                      maxLines: 1,
-                    ),
-                  ],
+                  for (final c in selectedCredentials.value.entries)
+                    if (c.value.$1 == .password)
+                      FCard(
+                        child: Column(
+                          children: [
+                            Row(
+                              mainAxisAlignment: .end,
+                              children: [buildRemoveCredentialButton(c.key)],
+                            ),
+                            FTextFormField(
+                              control: .lifted(
+                                value: TextEditingValue(text: c.value.$2),
+                                onChange: (v) => selectedCredentials.value = {
+                                  ...selectedCredentials.value,
+                                  c.key: (c.value.$1, v.text, c.value.$3),
+                                },
+                              ),
+                              label: Text('Password'),
+                              minLines: 1,
+                              obscureText: true,
+                              autovalidateMode: .onUserInteraction,
+                            ),
+                          ],
+                        ),
+                      )
+                    else if (c.value.$1 == .key) ...[
+                      FCard(
+                        child: Column(
+                          children: [
+                            Row(
+                              mainAxisAlignment: .end,
+                              children: [buildRemoveCredentialButton(c.key)],
+                            ),
+                            FTextFormField(
+                              control: .lifted(
+                                value: TextEditingValue(text: c.value.$2),
+                                onChange: (v) => selectedCredentials.value = {
+                                  ...selectedCredentials.value,
+                                  c.key: (c.value.$1, v.text, c.value.$3),
+                                },
+                              ),
+                              label: Text('PEM Key'),
+                              hint: '-----BEGIN OPENSSH PRIVATE KEY-----',
+                              minLines: 5,
+                              maxLines: null,
+                              autovalidateMode: .onUserInteraction,
+                            ),
+                            const SizedBox(height: 12),
+                            FTextFormField(
+                              control: .lifted(
+                                value: TextEditingValue(text: c.value.$3 ?? ''),
+                                onChange: (v) => selectedCredentials.value = {
+                                  ...selectedCredentials.value,
+                                  c.key: (c.value.$1, c.value.$2, v.text),
+                                },
+                              ),
+                              label: Text('PEM Passphrase'),
+                              obscureText: true,
+                              maxLines: 1,
+                              autovalidateMode: .onUserInteraction,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
 
                   Wrap(
                     spacing: 16,
@@ -640,8 +725,14 @@ class CreateOrEditConnectionView extends HookConsumerWidget {
                                 FItem(
                                   prefix: Icon(type.$3),
                                   title: Text(type.$2),
-                                  onPress: () =>
-                                      additionalCredentialType.value = type.$1,
+                                  onPress: () => selectedCredentials.value = {
+                                    ...selectedCredentials.value,
+                                    DateTime.now().millisecondsSinceEpoch: (
+                                      type.$1,
+                                      '',
+                                      null,
+                                    ),
+                                  },
                                 ),
                             ],
                           ),
