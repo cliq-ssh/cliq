@@ -2,6 +2,26 @@ import '../../credentials/data/credentials.drift';
 
 CREATE TABLE identities (
     id              INTEGER PRIMARY KEY AUTOINCREMENT,
-    username        TEXT NOT NULL,
-    credential_id   INTEGER REFERENCES credentials(id) ON DELETE CASCADE NOT NULL
+    label           TEXT NOT NULL,
+    username        TEXT NOT NULL
 );
+
+CREATE TABLE identity_credentials (
+    identity_id     INTEGER NOT NULL REFERENCES identities(id) ON DELETE CASCADE,
+    credential_id   INTEGER NOT NULL REFERENCES credentials(id) ON DELETE CASCADE,
+    PRIMARY KEY (identity_id, credential_id)
+);
+
+findAllIdentityFull:
+  SELECT
+    i.** AS identity,
+
+    LIST(
+      SELECT
+        credentials.id
+      FROM identity_credentials
+      JOIN credentials ON credentials.id = identity_credentials.credential_id
+      WHERE identity_credentials.identity_id = i.id
+      ORDER BY credentials.id
+    ) AS identityCredentials
+  FROM identities i;

@@ -21,7 +21,17 @@ abstract class Repository<T extends Table, R> {
     });
   }
 
-  Future<void> insertAll(List<UpdateCompanion<R>> rows) {
+  Future<List<int>> insertAll(List<UpdateCompanion<R>> rows) async {
+    _log.finest('Inserting ${rows.length} rows');
+
+    final List<int> ids = [];
+    for (final row in rows) {
+      ids.add(await insert(row));
+    }
+    return ids;
+  }
+
+  Future<void> insertAllBatch(List<UpdateCompanion<R>> rows) {
     _log.finest('Inserting ${rows.length} rows');
     return db.batch((batch) => batch.insertAll(table, rows));
   }

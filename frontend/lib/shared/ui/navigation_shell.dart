@@ -93,7 +93,9 @@ class NavigationShellState extends ConsumerState<NavigationShell>
                           ),
                         ],
                         child: FButton.icon(
-                          onPress: () => showTabs.value = !showTabs.value,
+                          onPress: connections.entities.isNotEmpty
+                              ? () => showTabs.value = !showTabs.value
+                              : null,
                           child: Icon(LucideIcons.plus),
                         ),
                       ),

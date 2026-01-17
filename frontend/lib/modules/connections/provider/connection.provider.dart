@@ -15,7 +15,7 @@ class ConnectionNotifier
   ConnectionEntityState buildInitialState() => .initial();
   @override
   Stream<List<ConnectionFull>> get entityStream =>
-      CliqDatabase.connectionService.watchConnectionFullAll();
+      CliqDatabase.connectionService.watchAll();
 
   ConnectionFull? findById(int id) {
     for (final connection in state.entities) {

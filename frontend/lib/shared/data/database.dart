@@ -1,6 +1,7 @@
 import 'dart:ui';
 
 import 'package:cliq/modules/connections/data/connection_service.dart';
+import 'package:cliq/modules/identities/data/identity_credentials_repository.dart';
 import 'package:cliq/modules/settings/data/custom_terminal_theme_service.dart';
 import 'package:cliq/modules/settings/data/custom_terminal_themes_repository.dart';
 import 'package:cliq_term/cliq_term.dart';
@@ -8,6 +9,7 @@ import 'package:drift/drift.dart';
 import 'package:drift_flutter/drift_flutter.dart';
 import 'package:path_provider/path_provider.dart';
 
+import '../../modules/connections/data/connection_credentials_repository.dart';
 import '../../modules/connections/data/connections_repository.dart';
 import '../../modules/connections/model/connection_icon.dart';
 import '../../modules/credentials/data/credential_service.dart'
@@ -26,6 +28,7 @@ part 'database.g.dart';
     '../../modules/connections/data/connections.drift',
     '../../modules/credentials/data/credentials.drift',
     '../../modules/identities/data/identities.drift',
+    '../../modules/keys/data/keys.drift',
     '../../modules/settings/data/custom_terminal_themes.drift',
   },
 )
@@ -34,9 +37,11 @@ final class CliqDatabase extends _$CliqDatabase {
   static late CredentialService credentialService;
 
   static late IdentitiesRepository identitiesRepository;
+  static late IdentityCredentialsRepository identityCredentialsRepository;
   static late IdentityService identityService;
 
   static late ConnectionsRepository connectionsRepository;
+  static late ConnectionCredentialsRepository connectionsCredentialsRepository;
   static late ConnectionService connectionService;
 
   static late CustomTerminalThemesRepository customTerminalThemesRepository;
@@ -54,14 +59,18 @@ final class CliqDatabase extends _$CliqDatabase {
     credentialService = CredentialService(credentialsRepository);
 
     identitiesRepository = IdentitiesRepository(db);
+    identityCredentialsRepository = IdentityCredentialsRepository(db);
     identityService = IdentityService(
       identitiesRepository,
-      credentialsRepository,
+      identityCredentialsRepository,
+      credentialService,
     );
 
     connectionsRepository = ConnectionsRepository(db);
+    connectionsCredentialsRepository = ConnectionCredentialsRepository(db);
     connectionService = ConnectionService(
       connectionsRepository,
+      connectionsCredentialsRepository,
       credentialService,
       identityService,
     );

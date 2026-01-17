@@ -1,0 +1,6 @@
+CREATE TABLE keys (
+    id              INTEGER PRIMARY KEY AUTOINCREMENT,
+    label           TEXT NOT NULL,
+    private_pem     TEXT NOT NULL,
+    passphrase      TEXT
+);

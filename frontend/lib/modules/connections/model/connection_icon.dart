@@ -13,12 +13,19 @@ enum ConnectionIcon {
     SimpleIcons.raspberrypi,
     brandColor: SimpleIconColors.raspberrypi,
   ),
+  mint(SimpleIcons.linuxmint, brandColor: SimpleIconColors.linuxmint),
+  redHat(SimpleIcons.redhat, brandColor: SimpleIconColors.redhat),
+  freeBsd(SimpleIcons.freebsd, brandColor: SimpleIconColors.freebsd),
+  manjaro(SimpleIcons.manjaro, brandColor: SimpleIconColors.manjaro),
   android(SimpleIcons.android, brandColor: SimpleIconColors.android),
   centos(SimpleIcons.centos, brandColor: SimpleIconColors.centos),
 
   // generic icons
   computer(LucideIcons.computer),
   laptop(LucideIcons.laptop),
+  server(LucideIcons.server),
+  hardDrive(LucideIcons.hardDrive),
+  router(LucideIcons.router),
 
   unknown(LucideIcons.circleQuestionMark);
 

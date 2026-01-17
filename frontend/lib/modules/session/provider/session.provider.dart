@@ -1,4 +1,5 @@
 import 'package:cliq/modules/connections/model/connection_full.model.dart';
+import 'package:cliq/modules/credentials/data/credential_service.dart';
 import 'package:cliq/modules/session/model/session.state.dart';
 import 'package:cliq/shared/ui/navigation_shell.dart';
 import 'package:dartssh2/dartssh2.dart';
@@ -67,34 +68,16 @@ class ShellSessionNotifier extends Notifier<SSHSessionState> {
   }
 
   Future<SSHClient> createSSHClient(ConnectionFull connection) async {
-    final Credential? cred = connection.effectiveCredential;
-
-    List<SSHKeyPair> keyPairs = [];
-    if (cred != null && cred.type == .key) {
-      if (SSHKeyPair.isEncryptedPem(cred.data)) {
-        if (cred.passphrase == null) {
-          throw Exception('Key is encrypted but no passphrase provided');
-        }
-        keyPairs = [
-          ...keyPairs,
-          ...SSHKeyPair.fromPem(cred.data, cred.passphrase!),
-        ];
-      } else {
-        keyPairs = [...keyPairs, ...SSHKeyPair.fromPem(cred.data)];
-      }
-    }
+    final (password, keys) = CredentialService.collectAuthenticationMethods(
+      await CliqDatabase.credentialService.findByIds(connection.credentialIds),
+    );
 
     final socket = await SSHSocket.connect(connection.address, connection.port);
     final sshClient = SSHClient(
       socket,
       username: connection.effectiveUsername,
-      identities: keyPairs,
-      onPasswordRequest: () {
-        if (cred != null && cred.type == .password) {
-          return cred.data;
-        }
-        return null;
-      },
+      identities: keys,
+      onPasswordRequest: password != null ? () => password : null,
     );
 
     return sshClient;

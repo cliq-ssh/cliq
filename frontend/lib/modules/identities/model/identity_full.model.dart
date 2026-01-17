@@ -1,19 +1,26 @@
 import '../../../shared/data/database.dart';
 
 class IdentityFull extends Identity {
-  final Credential? credential;
+  final List<int> credentialIds;
 
   const IdentityFull({
     required super.id,
+    required super.label,
     required super.username,
-    required super.credentialId,
-    this.credential,
+    required this.credentialIds,
   });
 
-  IdentityFull.fromIdentity(Identity identity, {this.credential})
+  IdentityFull.fromIdentity(Identity identity, {required this.credentialIds})
     : super(
         id: identity.id,
+        label: identity.label,
         username: identity.username,
-        credentialId: identity.credentialId,
       );
+
+  factory IdentityFull.fromFindAllResult(FindAllIdentityFullResult result) {
+    return IdentityFull.fromIdentity(
+      result.identity,
+      credentialIds: result.identityCredentials,
+    );
+  }
 }
