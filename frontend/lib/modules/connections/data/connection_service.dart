@@ -24,7 +24,7 @@ final class ConnectionService {
 
   Stream<List<ConnectionFull>> watchConnectionFullAll() {
     return connectionRepository.db.findAllConnectionFull().watch().map(
-      (c) => c.map(ConnectionFull.fromResult).toList(),
+      (c) => c.map(ConnectionFull.fromFindAllResult).toList(),
     );
   }
 

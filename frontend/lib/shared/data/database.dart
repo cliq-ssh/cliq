@@ -26,6 +26,7 @@ part 'database.g.dart';
     '../../modules/connections/data/connections.drift',
     '../../modules/credentials/data/credentials.drift',
     '../../modules/identities/data/identities.drift',
+    '../../modules/keys/data/keys.drift',
     '../../modules/settings/data/custom_terminal_themes.drift',
   },
 )
