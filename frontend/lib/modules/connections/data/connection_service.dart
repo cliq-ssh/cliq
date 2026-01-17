@@ -1,4 +1,5 @@
 import 'package:cliq/modules/connections/data/connection_credentials_repository.dart';
+import 'package:cliq/shared/data/database.dart';
 
 import '../../credentials/data/credential_service.dart';
 import '../../identities/data/identity_service.dart';
@@ -30,6 +31,22 @@ final class ConnectionService {
     return connectionRepository.db.findAllConnectionFull().watch().map(
       (c) => c.map(ConnectionFull.fromFindAllResult).toList(),
     );
+  }
+
+  Future<int> createConnection(
+    ConnectionsCompanion connection,
+    List<CredentialsCompanion> credentials,
+  ) async {
+    final connectionId = await connectionRepository.insert(connection);
+    await credentialService.insertAllWithRelation(
+      credentials,
+      relationRepository: connectionCredentialsRepository,
+      builder: (id) => ConnectionCredentialsCompanion.insert(
+        connectionId: connectionId,
+        credentialId: id,
+      ),
+    );
+    return connectionId;
   }
 
   Future<void> deleteById(int id) => connectionRepository.deleteById(id);

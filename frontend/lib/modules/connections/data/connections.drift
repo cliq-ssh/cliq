@@ -18,7 +18,12 @@ CREATE TABLE connections (
     is_icon_auto_detect             BOOLEAN NOT NULL DEFAULT TRUE,
     group_name                      TEXT,
     terminal_typography_override    TEXT MAPPED BY `const TerminalTypographyConverter()`,
-    terminal_theme_override_id      INTEGER REFERENCES custom_terminal_themes(id) ON DELETE SET NULL
+    terminal_theme_override_id      INTEGER REFERENCES custom_terminal_themes(id) ON DELETE SET NULL,
+
+    CONSTRAINT username_or_identity_id CHECK (
+        (identity_id IS NOT NULL AND username IS NULL) OR
+        (identity_id IS NULL AND username IS NOT NULL)
+    )
 );
 
 CREATE TABLE connection_credentials (
@@ -35,8 +40,7 @@ findAllConnectionFull:
 
     LIST(
       SELECT
-        credentials.id,
-        credentials.type
+        credentials.id
       FROM connection_credentials
         JOIN credentials ON credentials.id = connection_credentials.credential_id
         WHERE connection_credentials.connection_id = c.id
@@ -45,8 +49,7 @@ findAllConnectionFull:
 
     LIST(
       SELECT
-        credentials.id,
-        credentials.type
+        credentials.id
       FROM identity_credentials
         JOIN credentials ON credentials.id = identity_credentials.credential_id
         WHERE identity_credentials.identity_id = i.id

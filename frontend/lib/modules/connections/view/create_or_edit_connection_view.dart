@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:cliq/modules/connections/model/connection_full.model.dart';
 import 'package:cliq/modules/connections/model/connection_icon.dart';
+import 'package:cliq/modules/identities/provider/identity.provider.dart';
 import 'package:cliq/modules/settings/ui/terminal_font_family_select.dart';
 import 'package:cliq/modules/settings/ui/terminal_font_size_slider.dart';
 import 'package:cliq/shared/extensions/async_snapshot.extension.dart';
@@ -43,16 +44,10 @@ class CreateOrEditConnectionView extends HookConsumerWidget {
   ];
 
   final ConnectionsCompanion? current;
-  final String? currentPassword;
-  final String? currentPem;
-  final String? currentPemPassphrase;
   final bool isEdit;
 
   const CreateOrEditConnectionView.create({super.key})
     : current = null,
-      currentPassword = null,
-      currentPem = null,
-      currentPemPassphrase = null,
       isEdit = false;
 
   CreateOrEditConnectionView.edit(ConnectionFull connection, {super.key})
@@ -66,7 +61,6 @@ class CreateOrEditConnectionView extends HookConsumerWidget {
         address: Value(connection.address),
         port: Value(connection.port),
         username: Value(connection.username),
-        credentialId: Value(connection.credentialId),
         identityId: Value(connection.identityId),
         terminalTypographyOverride: Value(
           connection.terminalTypographyOverride,
@@ -74,21 +68,13 @@ class CreateOrEditConnectionView extends HookConsumerWidget {
         terminalThemeOverrideId: Value(connection.terminalThemeOverrideId),
         isIconAutoDetect: Value(connection.isIconAutoDetect),
       ),
-      currentPassword = connection.credential?.type == CredentialType.password
-          ? connection.credential?.data
-          : null,
-      currentPem = connection.credential?.type == CredentialType.key
-          ? connection.credential?.data
-          : null,
-      currentPemPassphrase = connection.credential?.type == CredentialType.key
-          ? connection.credential?.passphrase
-          : null,
       isEdit = true;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final formKey = useMemoized(() => GlobalKey<FormState>());
     final defaultTerminalTypography = useStore(.defaultTerminalTypography);
+    final identities = ref.watch(identityProvider);
     final terminalThemes = ref.watch(terminalThemeProvider);
     final expandedAccordionItem = useState<int?>(null);
 
@@ -103,11 +89,10 @@ class CreateOrEditConnectionView extends HookConsumerWidget {
     final usernameCtrl = useTextEditingController(
       text: current?.username.value,
     );
-    final passwordCtrl = useTextEditingController(text: currentPassword);
-    final pemCtrl = useTextEditingController(text: currentPem);
-    final pemPassphraseCtrl = useTextEditingController(
-      text: currentPemPassphrase,
-    );
+    final passwordCtrl = useTextEditingController();
+    final pemCtrl = useTextEditingController();
+    final pemPassphraseCtrl = useTextEditingController();
+
     final iconColorCtrl = useTextEditingController(
       text: current?.iconColor.value?.toHex(),
     );
@@ -136,9 +121,6 @@ class CreateOrEditConnectionView extends HookConsumerWidget {
 
     final groups = useMemoizedFuture(() async {
       return await CliqDatabase.connectionService.findAllGroupNamesDistinct();
-    }, []);
-    final hasIdentities = useMemoizedFuture(() async {
-      return await CliqDatabase.identityService.hasIdentities();
     }, []);
 
     /// Builds a color swatch for icon colors
@@ -293,28 +275,6 @@ class CreateOrEditConnectionView extends HookConsumerWidget {
         minLines: minLines,
         autovalidateMode: AutovalidateMode.onUserInteraction,
       );
-    }
-
-    /// Inserts the additional credential based on the selected [additionalCredentialType].
-    /// Returns the inserted credential ID or null if no credential was added.
-    Future<int?> maybeInsertCredential() async {
-      if (additionalCredentialType.value == CredentialType.password) {
-        return await CliqDatabase.credentialsRepository.insert(
-          CredentialsCompanion.insert(type: .password, data: passwordCtrl.text),
-        );
-      } else if (additionalCredentialType.value == CredentialType.key) {
-        final passphrase = pemPassphraseCtrl.text.trim();
-        return await CliqDatabase.credentialsRepository.insert(
-          CredentialsCompanion.insert(
-            type: .key,
-            data: pemCtrl.text,
-            passphrase: Value.absentIfNull(
-              passphrase.isNotEmpty ? passphrase : null,
-            ),
-          ),
-        );
-      }
-      return null;
     }
 
     /// Sets the effective typography based on the provided [fontSize] and [fontFamily].
@@ -545,7 +505,6 @@ class CreateOrEditConnectionView extends HookConsumerWidget {
             address: addressCtrl.text.trim(),
             port: int.tryParse(portCtrl.text.trim()) ?? 22,
             username: ValueExtension.absentIfNullOrEmpty(usernameCtrl.text),
-            credentialId: ValueExtension.absentIfNullOrEmpty(credentialId),
             terminalTypographyOverride: ValueExtension.absentIfNullOrEmpty(
               selectedTypographyOverride.value,
             ),
@@ -666,18 +625,13 @@ class CreateOrEditConnectionView extends HookConsumerWidget {
                     runSpacing: 8,
                     alignment: WrapAlignment.center,
                     children: [
-                      hasIdentities.on(
-                        defaultValue: const SizedBox.shrink(),
-                        onData: (has) {
-                          if (!has) return const SizedBox.shrink();
-                          return FButton(
-                            style: FButtonStyle.ghost(),
-                            prefix: const Icon(LucideIcons.keyRound),
-                            onPress: null,
-                            child: const Text('Use Identity'),
-                          );
-                        },
-                      ),
+                      if (identities.entities.isNotEmpty)
+                        FButton(
+                          style: FButtonStyle.ghost(),
+                          prefix: const Icon(LucideIcons.keyRound),
+                          onPress: null,
+                          child: const Text('Use Identity'),
+                        ),
                       FPopoverMenu(
                         menu: [
                           FItemGroup(

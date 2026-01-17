@@ -1,15 +1,13 @@
-import 'package:cliq/modules/credentials/model/credential_type.dart';
-
 import '../../../shared/data/database.dart';
 import '../../identities/model/identity_full.model.dart';
 
 /// Model class that better wraps the [FindFullConnectionByIdResult] class.
 class ConnectionFull extends Connection {
-  final Map<CredentialType, int> credentialIds;
+  final List<int> credentialIds;
   final IdentityFull? identity;
   final CustomTerminalTheme? terminalThemeOverride;
 
-  String get effectiveUsername => username ?? identity!.username;
+  String get effectiveUsername => identity?.username ?? username!;
 
   ConnectionFull.fromConnection(
     Connection connection, {
@@ -36,9 +34,7 @@ class ConnectionFull extends Connection {
     if (result.identity != null) {
       identityFull = IdentityFull.fromIdentity(
         result.identity!,
-        credentialIds: result.identityCredentials.asMap().map(
-          (_, cred) => MapEntry(cred.type, cred.id),
-        ),
+        credentialIds: result.identityCredentials,
       );
     }
 
@@ -46,9 +42,7 @@ class ConnectionFull extends Connection {
       result.connection,
       identity: identityFull,
       terminalThemeOverride: result.terminalThemeOverride,
-      credentialIds: result.connectionCredentials.asMap().map(
-        (_, cred) => MapEntry(cred.type, cred.id),
-      ),
+      credentialIds: result.connectionCredentials,
     );
   }
 }

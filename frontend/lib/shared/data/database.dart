@@ -63,7 +63,7 @@ final class CliqDatabase extends _$CliqDatabase {
     identityService = IdentityService(
       identitiesRepository,
       identityCredentialsRepository,
-      credentialsRepository,
+      credentialService,
     );
 
     connectionsRepository = ConnectionsRepository(db);

@@ -1,7 +1,7 @@
+import 'package:cliq/modules/credentials/data/credential_service.dart';
 import 'package:cliq/modules/identities/data/identity_credentials_repository.dart';
 import 'package:cliq/modules/identities/model/identity_full.model.dart';
 
-import '../../credentials/data/credentials_repository.dart';
 import '../../../shared/data/database.dart';
 import 'identities_repository.dart';
 
@@ -9,12 +9,12 @@ final class IdentityService {
   final IdentitiesRepository identityRepository;
   final IdentityCredentialsRepository identityCredentialsRepository;
 
-  final CredentialsRepository credentialRepository;
+  final CredentialService credentialService;
 
   const IdentityService(
     this.identityRepository,
     this.identityCredentialsRepository,
-    this.credentialRepository,
+    this.credentialService,
   );
 
   Stream<List<IdentityFull>> watchAll() {
@@ -23,18 +23,20 @@ final class IdentityService {
     );
   }
 
-  Future<bool> hasIdentities() async => await identityRepository.count() > 0;
-
   Future<int> createIdentity(
-    String username,
-    CredentialsCompanion credential,
+    IdentitiesCompanion identity,
+    List<CredentialsCompanion> credentials,
   ) async {
-    final credentialId = await credentialRepository.insert(credential);
-    return await identityRepository.insert(
-      IdentitiesCompanion.insert(
-        username: username,
-        credentialId: credentialId,
+    final identityId = await identityRepository.insert(identity);
+    await credentialService.insertAllWithRelation(
+      credentials,
+      relationRepository: identityCredentialsRepository,
+      builder: (id) => IdentityCredentialsCompanion.insert(
+        identityId: identityId,
+        credentialId: id,
       ),
     );
+
+    return identityId;
   }
 }

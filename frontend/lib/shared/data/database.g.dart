@@ -1751,6 +1751,15 @@ class Identities extends Table with TableInfo<Identities, Identity> {
     requiredDuringInsert: false,
     $customConstraints: 'PRIMARY KEY AUTOINCREMENT',
   );
+  static const VerificationMeta _labelMeta = const VerificationMeta('label');
+  late final GeneratedColumn<String> label = GeneratedColumn<String>(
+    'label',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    $customConstraints: 'NOT NULL',
+  );
   static const VerificationMeta _usernameMeta = const VerificationMeta(
     'username',
   );
@@ -1763,7 +1772,7 @@ class Identities extends Table with TableInfo<Identities, Identity> {
     $customConstraints: 'NOT NULL',
   );
   @override
-  List<GeneratedColumn> get $columns => [id, username];
+  List<GeneratedColumn> get $columns => [id, label, username];
   @override
   String get aliasedName => _alias ?? actualTableName;
   @override
@@ -1778,6 +1787,14 @@ class Identities extends Table with TableInfo<Identities, Identity> {
     final data = instance.toColumns(true);
     if (data.containsKey('id')) {
       context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
+    if (data.containsKey('label')) {
+      context.handle(
+        _labelMeta,
+        label.isAcceptableOrUnknown(data['label']!, _labelMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_labelMeta);
     }
     if (data.containsKey('username')) {
       context.handle(
@@ -1800,6 +1817,10 @@ class Identities extends Table with TableInfo<Identities, Identity> {
         DriftSqlType.int,
         data['${effectivePrefix}id'],
       )!,
+      label: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}label'],
+      )!,
       username: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}username'],
@@ -1818,18 +1839,28 @@ class Identities extends Table with TableInfo<Identities, Identity> {
 
 class Identity extends DataClass implements Insertable<Identity> {
   final int id;
+  final String label;
   final String username;
-  const Identity({required this.id, required this.username});
+  const Identity({
+    required this.id,
+    required this.label,
+    required this.username,
+  });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
     map['id'] = Variable<int>(id);
+    map['label'] = Variable<String>(label);
     map['username'] = Variable<String>(username);
     return map;
   }
 
   IdentitiesCompanion toCompanion(bool nullToAbsent) {
-    return IdentitiesCompanion(id: Value(id), username: Value(username));
+    return IdentitiesCompanion(
+      id: Value(id),
+      label: Value(label),
+      username: Value(username),
+    );
   }
 
   factory Identity.fromJson(
@@ -1839,6 +1870,7 @@ class Identity extends DataClass implements Insertable<Identity> {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return Identity(
       id: serializer.fromJson<int>(json['id']),
+      label: serializer.fromJson<String>(json['label']),
       username: serializer.fromJson<String>(json['username']),
     );
   }
@@ -1847,15 +1879,20 @@ class Identity extends DataClass implements Insertable<Identity> {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return <String, dynamic>{
       'id': serializer.toJson<int>(id),
+      'label': serializer.toJson<String>(label),
       'username': serializer.toJson<String>(username),
     };
   }
 
-  Identity copyWith({int? id, String? username}) =>
-      Identity(id: id ?? this.id, username: username ?? this.username);
+  Identity copyWith({int? id, String? label, String? username}) => Identity(
+    id: id ?? this.id,
+    label: label ?? this.label,
+    username: username ?? this.username,
+  );
   Identity copyWithCompanion(IdentitiesCompanion data) {
     return Identity(
       id: data.id.present ? data.id.value : this.id,
+      label: data.label.present ? data.label.value : this.label,
       username: data.username.present ? data.username.value : this.username,
     );
   }
@@ -1864,45 +1901,58 @@ class Identity extends DataClass implements Insertable<Identity> {
   String toString() {
     return (StringBuffer('Identity(')
           ..write('id: $id, ')
+          ..write('label: $label, ')
           ..write('username: $username')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode => Object.hash(id, username);
+  int get hashCode => Object.hash(id, label, username);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
       (other is Identity &&
           other.id == this.id &&
+          other.label == this.label &&
           other.username == this.username);
 }
 
 class IdentitiesCompanion extends UpdateCompanion<Identity> {
   final Value<int> id;
+  final Value<String> label;
   final Value<String> username;
   const IdentitiesCompanion({
     this.id = const Value.absent(),
+    this.label = const Value.absent(),
     this.username = const Value.absent(),
   });
   IdentitiesCompanion.insert({
     this.id = const Value.absent(),
+    required String label,
     required String username,
-  }) : username = Value(username);
+  }) : label = Value(label),
+       username = Value(username);
   static Insertable<Identity> custom({
     Expression<int>? id,
+    Expression<String>? label,
     Expression<String>? username,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
+      if (label != null) 'label': label,
       if (username != null) 'username': username,
     });
   }
 
-  IdentitiesCompanion copyWith({Value<int>? id, Value<String>? username}) {
+  IdentitiesCompanion copyWith({
+    Value<int>? id,
+    Value<String>? label,
+    Value<String>? username,
+  }) {
     return IdentitiesCompanion(
       id: id ?? this.id,
+      label: label ?? this.label,
       username: username ?? this.username,
     );
   }
@@ -1912,6 +1962,9 @@ class IdentitiesCompanion extends UpdateCompanion<Identity> {
     final map = <String, Expression>{};
     if (id.present) {
       map['id'] = Variable<int>(id.value);
+    }
+    if (label.present) {
+      map['label'] = Variable<String>(label.value);
     }
     if (username.present) {
       map['username'] = Variable<String>(username.value);
@@ -1923,6 +1976,7 @@ class IdentitiesCompanion extends UpdateCompanion<Identity> {
   String toString() {
     return (StringBuffer('IdentitiesCompanion(')
           ..write('id: $id, ')
+          ..write('label: $label, ')
           ..write('username: $username')
           ..write(')'))
         .toString();
@@ -2788,6 +2842,10 @@ class Connections extends Table with TableInfo<Connections, Connection> {
     $converterterminalTypographyOverride,
   );
   @override
+  List<String> get customConstraints => const [
+    'CONSTRAINT username_or_identity_id CHECK((identity_id IS NOT NULL AND username IS NULL)OR(identity_id IS NULL AND username IS NOT NULL))',
+  ];
+  @override
   bool get dontWriteConstraints => true;
 }
 
@@ -3523,27 +3581,17 @@ abstract class _$CliqDatabase extends GeneratedDatabase {
       ConnectionCredentials(this);
   Selectable<FindAllIdentityFullResult> findAllIdentityFull() {
     return customSelect(
-      'SELECT"i"."id" AS "nested_0.id", "i"."username" AS "nested_0.username", i.id AS "\$n_0" FROM identities AS i',
+      'SELECT"i"."id" AS "nested_0.id", "i"."label" AS "nested_0.label", "i"."username" AS "nested_0.username", i.id AS "\$n_0" FROM identities AS i',
       variables: [],
       readsFrom: {credentials, identityCredentials, identities},
     ).asyncMap(
       (QueryRow row) async => FindAllIdentityFullResult(
         identity: await identities.mapFromRow(row, tablePrefix: 'nested_0'),
-        identityCredentials:
-            await customSelect(
-                  'SELECT credentials.id, credentials.type FROM identity_credentials JOIN credentials ON credentials.id = identity_credentials.credential_id WHERE identity_credentials.identity_id = ?1 ORDER BY credentials.id',
-                  variables: [Variable<int>(row.read('\$n_0'))],
-                  readsFrom: {credentials, identityCredentials, identities},
-                )
-                .map(
-                  (QueryRow row) => FindAllIdentityFullIdentityCredentials(
-                    id: row.read<int>('id'),
-                    type: Credentials.$convertertype.fromSql(
-                      row.read<int>('type'),
-                    ),
-                  ),
-                )
-                .get(),
+        identityCredentials: await customSelect(
+          'SELECT credentials.id FROM identity_credentials JOIN credentials ON credentials.id = identity_credentials.credential_id WHERE identity_credentials.identity_id = ?1 ORDER BY credentials.id',
+          variables: [Variable<int>(row.read('\$n_0'))],
+          readsFrom: {credentials, identityCredentials, identities},
+        ).map((QueryRow row) => row.read<int>('id')).get(),
       ),
     );
   }
@@ -3571,7 +3619,7 @@ abstract class _$CliqDatabase extends GeneratedDatabase {
 
   Selectable<FindAllConnectionFullResult> findAllConnectionFull() {
     return customSelect(
-      'SELECT"c"."id" AS "nested_0.id", "c"."address" AS "nested_0.address", "c"."port" AS "nested_0.port", "c"."identity_id" AS "nested_0.identity_id", "c"."username" AS "nested_0.username", "c"."label" AS "nested_0.label", "c"."icon" AS "nested_0.icon", "c"."icon_color" AS "nested_0.icon_color", "c"."icon_background_color" AS "nested_0.icon_background_color", "c"."is_icon_auto_detect" AS "nested_0.is_icon_auto_detect", "c"."group_name" AS "nested_0.group_name", "c"."terminal_typography_override" AS "nested_0.terminal_typography_override", "c"."terminal_theme_override_id" AS "nested_0.terminal_theme_override_id","i"."id" AS "nested_1.id", "i"."username" AS "nested_1.username","t"."id" AS "nested_2.id", "t"."name" AS "nested_2.name", "t"."author" AS "nested_2.author", "t"."black_color" AS "nested_2.black_color", "t"."red_color" AS "nested_2.red_color", "t"."green_color" AS "nested_2.green_color", "t"."yellow_color" AS "nested_2.yellow_color", "t"."blue_color" AS "nested_2.blue_color", "t"."purple_color" AS "nested_2.purple_color", "t"."cyan_color" AS "nested_2.cyan_color", "t"."white_color" AS "nested_2.white_color", "t"."bright_black_color" AS "nested_2.bright_black_color", "t"."bright_red_color" AS "nested_2.bright_red_color", "t"."bright_green_color" AS "nested_2.bright_green_color", "t"."bright_yellow_color" AS "nested_2.bright_yellow_color", "t"."bright_blue_color" AS "nested_2.bright_blue_color", "t"."bright_purple_color" AS "nested_2.bright_purple_color", "t"."bright_cyan_color" AS "nested_2.bright_cyan_color", "t"."bright_white_color" AS "nested_2.bright_white_color", "t"."background_color" AS "nested_2.background_color", "t"."foreground_color" AS "nested_2.foreground_color", "t"."cursor_color" AS "nested_2.cursor_color", "t"."selection_background_color" AS "nested_2.selection_background_color", "t"."selection_foreground_color" AS "nested_2.selection_foreground_color", "t"."cursor_text_color" AS "nested_2.cursor_text_color", c.id AS "\$n_0", i.id AS "\$n_1" FROM connections AS c LEFT JOIN identities AS i ON c.identity_id = i.id LEFT JOIN custom_terminal_themes AS t ON c.terminal_theme_override_id = t.id',
+      'SELECT"c"."id" AS "nested_0.id", "c"."address" AS "nested_0.address", "c"."port" AS "nested_0.port", "c"."identity_id" AS "nested_0.identity_id", "c"."username" AS "nested_0.username", "c"."label" AS "nested_0.label", "c"."icon" AS "nested_0.icon", "c"."icon_color" AS "nested_0.icon_color", "c"."icon_background_color" AS "nested_0.icon_background_color", "c"."is_icon_auto_detect" AS "nested_0.is_icon_auto_detect", "c"."group_name" AS "nested_0.group_name", "c"."terminal_typography_override" AS "nested_0.terminal_typography_override", "c"."terminal_theme_override_id" AS "nested_0.terminal_theme_override_id","i"."id" AS "nested_1.id", "i"."label" AS "nested_1.label", "i"."username" AS "nested_1.username","t"."id" AS "nested_2.id", "t"."name" AS "nested_2.name", "t"."author" AS "nested_2.author", "t"."black_color" AS "nested_2.black_color", "t"."red_color" AS "nested_2.red_color", "t"."green_color" AS "nested_2.green_color", "t"."yellow_color" AS "nested_2.yellow_color", "t"."blue_color" AS "nested_2.blue_color", "t"."purple_color" AS "nested_2.purple_color", "t"."cyan_color" AS "nested_2.cyan_color", "t"."white_color" AS "nested_2.white_color", "t"."bright_black_color" AS "nested_2.bright_black_color", "t"."bright_red_color" AS "nested_2.bright_red_color", "t"."bright_green_color" AS "nested_2.bright_green_color", "t"."bright_yellow_color" AS "nested_2.bright_yellow_color", "t"."bright_blue_color" AS "nested_2.bright_blue_color", "t"."bright_purple_color" AS "nested_2.bright_purple_color", "t"."bright_cyan_color" AS "nested_2.bright_cyan_color", "t"."bright_white_color" AS "nested_2.bright_white_color", "t"."background_color" AS "nested_2.background_color", "t"."foreground_color" AS "nested_2.foreground_color", "t"."cursor_color" AS "nested_2.cursor_color", "t"."selection_background_color" AS "nested_2.selection_background_color", "t"."selection_foreground_color" AS "nested_2.selection_foreground_color", "t"."cursor_text_color" AS "nested_2.cursor_text_color", c.id AS "\$n_0", i.id AS "\$n_1" FROM connections AS c LEFT JOIN identities AS i ON c.identity_id = i.id LEFT JOIN custom_terminal_themes AS t ON c.terminal_theme_override_id = t.id',
       variables: [],
       readsFrom: {
         credentials,
@@ -3592,36 +3640,16 @@ abstract class _$CliqDatabase extends GeneratedDatabase {
           row,
           tablePrefix: 'nested_2',
         ),
-        connectionCredentials:
-            await customSelect(
-                  'SELECT credentials.id, credentials.type FROM connection_credentials JOIN credentials ON credentials.id = connection_credentials.credential_id WHERE connection_credentials.connection_id = ?1 ORDER BY credentials.id',
-                  variables: [Variable<int>(row.read('\$n_0'))],
-                  readsFrom: {credentials, connectionCredentials, connections},
-                )
-                .map(
-                  (QueryRow row) => FindAllConnectionFullConnectionCredentials(
-                    id: row.read<int>('id'),
-                    type: Credentials.$convertertype.fromSql(
-                      row.read<int>('type'),
-                    ),
-                  ),
-                )
-                .get(),
-        identityCredentials:
-            await customSelect(
-                  'SELECT credentials.id, credentials.type FROM identity_credentials JOIN credentials ON credentials.id = identity_credentials.credential_id WHERE identity_credentials.identity_id = ?1 ORDER BY credentials.id',
-                  variables: [Variable<int>(row.read('\$n_1'))],
-                  readsFrom: {credentials, identityCredentials, identities},
-                )
-                .map(
-                  (QueryRow row) => FindAllConnectionFullIdentityCredentials(
-                    id: row.read<int>('id'),
-                    type: Credentials.$convertertype.fromSql(
-                      row.read<int>('type'),
-                    ),
-                  ),
-                )
-                .get(),
+        connectionCredentials: await customSelect(
+          'SELECT credentials.id FROM connection_credentials JOIN credentials ON credentials.id = connection_credentials.credential_id WHERE connection_credentials.connection_id = ?1 ORDER BY credentials.id',
+          variables: [Variable<int>(row.read('\$n_0'))],
+          readsFrom: {credentials, connectionCredentials, connections},
+        ).map((QueryRow row) => row.read<int>('id')).get(),
+        identityCredentials: await customSelect(
+          'SELECT credentials.id FROM identity_credentials JOIN credentials ON credentials.id = identity_credentials.credential_id WHERE identity_credentials.identity_id = ?1 ORDER BY credentials.id',
+          variables: [Variable<int>(row.read('\$n_1'))],
+          readsFrom: {credentials, identityCredentials, identities},
+        ).map((QueryRow row) => row.read<int>('id')).get(),
       ),
     );
   }
@@ -4735,9 +4763,17 @@ typedef $KeysProcessedTableManager =
       PrefetchHooks Function({bool credentialsRefs})
     >;
 typedef $IdentitiesCreateCompanionBuilder =
-    IdentitiesCompanion Function({Value<int> id, required String username});
+    IdentitiesCompanion Function({
+      Value<int> id,
+      required String label,
+      required String username,
+    });
 typedef $IdentitiesUpdateCompanionBuilder =
-    IdentitiesCompanion Function({Value<int> id, Value<String> username});
+    IdentitiesCompanion Function({
+      Value<int> id,
+      Value<String> label,
+      Value<String> username,
+    });
 
 final class $IdentitiesReferences
     extends BaseReferences<_$CliqDatabase, Identities, Identity> {
@@ -4799,6 +4835,11 @@ class $IdentitiesFilterComposer extends Composer<_$CliqDatabase, Identities> {
   });
   ColumnFilters<int> get id => $composableBuilder(
     column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get label => $composableBuilder(
+    column: $table.label,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -4871,6 +4912,11 @@ class $IdentitiesOrderingComposer extends Composer<_$CliqDatabase, Identities> {
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get label => $composableBuilder(
+    column: $table.label,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<String> get username => $composableBuilder(
     column: $table.username,
     builder: (column) => ColumnOrderings(column),
@@ -4888,6 +4934,9 @@ class $IdentitiesAnnotationComposer
   });
   GeneratedColumn<int> get id =>
       $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get label =>
+      $composableBuilder(column: $table.label, builder: (column) => column);
 
   GeneratedColumn<String> get username =>
       $composableBuilder(column: $table.username, builder: (column) => column);
@@ -4975,13 +5024,20 @@ class $IdentitiesTableManager
           updateCompanionCallback:
               ({
                 Value<int> id = const Value.absent(),
+                Value<String> label = const Value.absent(),
                 Value<String> username = const Value.absent(),
-              }) => IdentitiesCompanion(id: id, username: username),
+              }) =>
+                  IdentitiesCompanion(id: id, label: label, username: username),
           createCompanionCallback:
               ({
                 Value<int> id = const Value.absent(),
+                required String label,
                 required String username,
-              }) => IdentitiesCompanion.insert(id: id, username: username),
+              }) => IdentitiesCompanion.insert(
+                id: id,
+                label: label,
+                username: username,
+              ),
           withReferenceMapper: (p0) => p0
               .map(
                 (e) =>
@@ -7006,19 +7062,10 @@ class $CliqDatabaseManager {
 
 class FindAllIdentityFullResult {
   final Identity identity;
-  final List<FindAllIdentityFullIdentityCredentials> identityCredentials;
+  final List<int> identityCredentials;
   FindAllIdentityFullResult({
     required this.identity,
     required this.identityCredentials,
-  });
-}
-
-class FindAllIdentityFullIdentityCredentials {
-  final int id;
-  final CredentialType type;
-  FindAllIdentityFullIdentityCredentials({
-    required this.id,
-    required this.type,
   });
 }
 
@@ -7032,31 +7079,13 @@ class FindAllConnectionFullResult {
   final Connection connection;
   final Identity? identity;
   final CustomTerminalTheme? terminalThemeOverride;
-  final List<FindAllConnectionFullConnectionCredentials> connectionCredentials;
-  final List<FindAllConnectionFullIdentityCredentials> identityCredentials;
+  final List<int> connectionCredentials;
+  final List<int> identityCredentials;
   FindAllConnectionFullResult({
     required this.connection,
     this.identity,
     this.terminalThemeOverride,
     required this.connectionCredentials,
     required this.identityCredentials,
-  });
-}
-
-class FindAllConnectionFullConnectionCredentials {
-  final int id;
-  final CredentialType type;
-  FindAllConnectionFullConnectionCredentials({
-    required this.id,
-    required this.type,
-  });
-}
-
-class FindAllConnectionFullIdentityCredentials {
-  final int id;
-  final CredentialType type;
-  FindAllConnectionFullIdentityCredentials({
-    required this.id,
-    required this.type,
   });
 }
