@@ -19,10 +19,7 @@ class CredentialFull extends Credential {
         password: credential.password,
       );
 
-  factory CredentialFull.fromResult(FindCredentialFullByIdResult result) {
-    return .fromCredential(
-      result.credential,
-      key: result.credentialKey,
-    );
+  factory CredentialFull.fromResult(FindCredentialFullByIdsResult result) {
+    return .fromCredential(result.credential, key: result.credentialKey);
   }
 }

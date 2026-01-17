@@ -3548,15 +3548,18 @@ abstract class _$CliqDatabase extends GeneratedDatabase {
     );
   }
 
-  Selectable<FindCredentialFullByIdResult> findCredentialFullById(
-    int credentialId,
+  Selectable<FindCredentialFullByIdsResult> findCredentialFullByIds(
+    List<int> var1,
   ) {
+    var $arrayStartIndex = 1;
+    final expandedvar1 = $expandVar($arrayStartIndex, var1.length);
+    $arrayStartIndex += var1.length;
     return customSelect(
-      'SELECT"c"."id" AS "nested_0.id", "c"."type" AS "nested_0.type", "c"."key_id" AS "nested_0.key_id", "c"."password" AS "nested_0.password","k"."id" AS "nested_1.id", "k"."label" AS "nested_1.label", "k"."private_pem" AS "nested_1.private_pem", "k"."passphrase" AS "nested_1.passphrase" FROM credentials AS c LEFT JOIN keys AS k ON c.key_id = k.id WHERE c.id = ?1',
-      variables: [Variable<int>(credentialId)],
+      'SELECT"c"."id" AS "nested_0.id", "c"."type" AS "nested_0.type", "c"."key_id" AS "nested_0.key_id", "c"."password" AS "nested_0.password","k"."id" AS "nested_1.id", "k"."label" AS "nested_1.label", "k"."private_pem" AS "nested_1.private_pem", "k"."passphrase" AS "nested_1.passphrase" FROM credentials AS c LEFT JOIN keys AS k ON c.key_id = k.id WHERE c.id IN ($expandedvar1)',
+      variables: [for (var $ in var1) Variable<int>($)],
       readsFrom: {credentials, keys},
     ).asyncMap(
-      (QueryRow row) async => FindCredentialFullByIdResult(
+      (QueryRow row) async => FindCredentialFullByIdsResult(
         credential: await credentials.mapFromRow(row, tablePrefix: 'nested_0'),
         credentialKey: await keys.mapFromRowOrNull(
           row,
@@ -7019,10 +7022,10 @@ class FindAllIdentityFullIdentityCredentials {
   });
 }
 
-class FindCredentialFullByIdResult {
+class FindCredentialFullByIdsResult {
   final Credential credential;
   final Key? credentialKey;
-  FindCredentialFullByIdResult({required this.credential, this.credentialKey});
+  FindCredentialFullByIdsResult({required this.credential, this.credentialKey});
 }
 
 class FindAllConnectionFullResult {

@@ -1,3 +1,5 @@
+import 'package:cliq/modules/connections/data/connection_credentials_repository.dart';
+
 import '../../credentials/data/credential_service.dart';
 import '../../identities/data/identity_service.dart';
 import '../model/connection_full.model.dart';
@@ -5,12 +7,14 @@ import 'connections_repository.dart';
 
 final class ConnectionService {
   final ConnectionsRepository connectionRepository;
+  final ConnectionCredentialsRepository connectionCredentialsRepository;
 
   final CredentialService credentialService;
   final IdentityService identityService;
 
   const ConnectionService(
     this.connectionRepository,
+    this.connectionCredentialsRepository,
     this.credentialService,
     this.identityService,
   );
@@ -22,7 +26,7 @@ final class ConnectionService {
         .then((groups) => groups.whereType<String>().toList());
   }
 
-  Stream<List<ConnectionFull>> watchConnectionFullAll() {
+  Stream<List<ConnectionFull>> watchAll() {
     return connectionRepository.db.findAllConnectionFull().watch().map(
       (c) => c.map(ConnectionFull.fromFindAllResult).toList(),
     );
