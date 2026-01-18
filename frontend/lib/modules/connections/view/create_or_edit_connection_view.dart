@@ -3,8 +3,9 @@ import 'dart:async';
 import 'package:cliq/modules/connections/model/connection_full.model.dart';
 import 'package:cliq/modules/connections/model/connection_icon.dart';
 import 'package:cliq/modules/identities/provider/identity.provider.dart';
-import 'package:cliq/modules/settings/ui/terminal_font_family_select.dart';
-import 'package:cliq/modules/settings/ui/terminal_font_size_slider.dart';
+import 'package:cliq/shared/ui/create_or_edit_credential_form.dart';
+import 'package:cliq/shared/ui/terminal_font_family_select.dart';
+import 'package:cliq/shared/ui/terminal_font_size_slider.dart';
 import 'package:cliq/shared/extensions/async_snapshot.extension.dart';
 import 'package:cliq/shared/extensions/color.extension.dart';
 import 'package:cliq/shared/extensions/value.extension.dart';
@@ -44,10 +45,12 @@ class CreateOrEditConnectionView extends HookConsumerWidget {
   ];
 
   final ConnectionsCompanion? current;
+  final List<int>? currentCredentialIds;
   final bool isEdit;
 
   const CreateOrEditConnectionView.create({super.key})
     : current = null,
+      currentCredentialIds = null,
       isEdit = false;
 
   CreateOrEditConnectionView.edit(ConnectionFull connection, {super.key})
@@ -68,6 +71,7 @@ class CreateOrEditConnectionView extends HookConsumerWidget {
         terminalThemeOverrideId: Value(connection.terminalThemeOverrideId),
         isIconAutoDetect: Value(connection.isIconAutoDetect),
       ),
+      currentCredentialIds = connection.credentialIds,
       isEdit = true;
 
   @override
@@ -114,9 +118,6 @@ class CreateOrEditConnectionView extends HookConsumerWidget {
     );
 
     final labelPlaceholder = useState<String>('');
-    final selectedCredentials =
-        useState<Map<int, (CredentialType, String, String?)>>({});
-
     final groups = useMemoizedFuture(() async {
       return await CliqDatabase.connectionService.findAllGroupNamesDistinct();
     }, []);
@@ -459,18 +460,6 @@ class CreateOrEditConnectionView extends HookConsumerWidget {
       );
     }
 
-    buildRemoveCredentialButton(int key) {
-      return FButton.icon(
-        style: FButtonStyle.destructive(),
-        onPress: () {
-          final updated = {...selectedCredentials.value};
-          updated.remove(key);
-          selectedCredentials.value = updated;
-        },
-        child: const Icon(LucideIcons.trash),
-      );
-    }
-
     /// Handles the save action for the form.
     /// Validates the form, inserts any additional credentials, and either updates
     /// or creates a new connection based on the [isEdit] flag.
@@ -639,123 +628,18 @@ class CreateOrEditConnectionView extends HookConsumerWidget {
                     ],
                   ),
 
-                  for (final c in selectedCredentials.value.entries)
-                    if (c.value.$1 == .password)
-                      FCard(
-                        child: Column(
-                          children: [
-                            Row(
-                              mainAxisAlignment: .end,
-                              children: [buildRemoveCredentialButton(c.key)],
-                            ),
-                            FTextFormField(
-                              control: .lifted(
-                                value: TextEditingValue(text: c.value.$2),
-                                onChange: (v) => selectedCredentials.value = {
-                                  ...selectedCredentials.value,
-                                  c.key: (c.value.$1, v.text, c.value.$3),
-                                },
-                              ),
-                              label: Text('Password'),
-                              minLines: 1,
-                              obscureText: true,
-                              autovalidateMode: .onUserInteraction,
-                            ),
-                          ],
-                        ),
-                      )
-                    else if (c.value.$1 == .key) ...[
-                      FCard(
-                        child: Column(
-                          children: [
-                            Row(
-                              mainAxisAlignment: .end,
-                              children: [buildRemoveCredentialButton(c.key)],
-                            ),
-                            FTextFormField(
-                              control: .lifted(
-                                value: TextEditingValue(text: c.value.$2),
-                                onChange: (v) => selectedCredentials.value = {
-                                  ...selectedCredentials.value,
-                                  c.key: (c.value.$1, v.text, c.value.$3),
-                                },
-                              ),
-                              label: Text('PEM Key'),
-                              hint: '-----BEGIN OPENSSH PRIVATE KEY-----',
-                              minLines: 5,
-                              maxLines: null,
-                              autovalidateMode: .onUserInteraction,
-                            ),
-                            const SizedBox(height: 12),
-                            FTextFormField(
-                              control: .lifted(
-                                value: TextEditingValue(text: c.value.$3 ?? ''),
-                                onChange: (v) => selectedCredentials.value = {
-                                  ...selectedCredentials.value,
-                                  c.key: (c.value.$1, c.value.$2, v.text),
-                                },
-                              ),
-                              label: Text('PEM Passphrase'),
-                              obscureText: true,
-                              maxLines: 1,
-                              autovalidateMode: .onUserInteraction,
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
+                  isEdit
+                      ? CreateOrEditCredentialsForm.edit(currentCredentialIds)
+                      : CreateOrEditCredentialsForm.create(),
 
-                  Wrap(
-                    spacing: 16,
-                    runSpacing: 8,
-                    alignment: WrapAlignment.center,
-                    children: [
-                      if (identities.entities.isNotEmpty)
-                        FButton(
-                          style: FButtonStyle.ghost(),
-                          prefix: const Icon(LucideIcons.keyRound),
-                          onPress: null,
-                          child: const Text('Use Identity'),
-                        ),
-                      FPopoverMenu(
-                        menu: [
-                          FItemGroup(
-                            children: [
-                              for (final type in allowedCredentialTypes)
-                                FItem(
-                                  prefix: Icon(type.$3),
-                                  title: Text(type.$2),
-                                  onPress: () => selectedCredentials.value = {
-                                    ...selectedCredentials.value,
-                                    DateTime.now().millisecondsSinceEpoch: (
-                                      type.$1,
-                                      '',
-                                      null,
-                                    ),
-                                  },
-                                ),
-                            ],
-                          ),
-                        ],
-                        builder: (context, controller, child) {
-                          return FButton(
-                            style: FButtonStyle.secondary(),
-                            prefix: const Icon(LucideIcons.plus),
-                            onPress: controller.toggle,
-                            child: const Text('Add Credential'),
-                          );
-                        },
-                      ),
-                      FAccordion(
-                        control: .lifted(
-                          expanded: (i) => expandedAccordionItem.value == i,
-                          onChange: (i, expanded) {
-                            expandedAccordionItem.value = expanded ? i : null;
-                          },
-                        ),
-                        children: [buildIconItem(), buildThemeItem()],
-                      ),
-                    ],
+                  FAccordion(
+                    control: .lifted(
+                      expanded: (i) => expandedAccordionItem.value == i,
+                      onChange: (i, expanded) {
+                        expandedAccordionItem.value = expanded ? i : null;
+                      },
+                    ),
+                    children: [buildIconItem(), buildThemeItem()],
                   ),
                 ],
               ),

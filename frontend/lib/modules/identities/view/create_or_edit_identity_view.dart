@@ -12,20 +12,16 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lucide_flutter/lucide_flutter.dart';
 
 import '../../../shared/data/database.dart';
-import '../../credentials/model/credential_type.dart';
+import '../../../shared/ui/create_or_edit_credential_form.dart';
 
 class CreateOrEditIdentityView extends HookConsumerWidget {
-  static const List<(CredentialType, String, IconData)> allowedCredentialTypes =
-      [
-        (.password, 'Password', LucideIcons.rectangleEllipsis),
-        (.key, 'Key', LucideIcons.keyRound),
-      ];
-
   final IdentitiesCompanion? current;
+  final List<int>? currentCredentialIds;
   final bool isEdit;
 
   const CreateOrEditIdentityView.create({super.key})
     : current = null,
+      currentCredentialIds = null,
       isEdit = false;
 
   CreateOrEditIdentityView.edit(IdentityFull identity, {super.key})
@@ -34,6 +30,7 @@ class CreateOrEditIdentityView extends HookConsumerWidget {
         label: Value(identity.label),
         username: Value(identity.username),
       ),
+      currentCredentialIds = identity.credentialIds,
       isEdit = true;
 
   @override
@@ -44,23 +41,6 @@ class CreateOrEditIdentityView extends HookConsumerWidget {
       text: current?.username.value,
     );
 
-    final selectedCredentials =
-        useState<Map<int, (CredentialType, String, String?)>>({});
-
-    // TODO: Move credential handling to custom widget
-
-    buildRemoveCredentialButton(int key) {
-      return FButton.icon(
-        style: FButtonStyle.destructive(),
-        onPress: () {
-          final updated = {...selectedCredentials.value};
-          updated.remove(key);
-          selectedCredentials.value = updated;
-        },
-        child: const Icon(LucideIcons.trash),
-      );
-    }
-
     /// Handles the save action for the form.
     /// Validates the form, inserts any additional credentials, and either updates
     /// or creates a new connection based on the [isEdit] flag.
@@ -68,33 +48,27 @@ class CreateOrEditIdentityView extends HookConsumerWidget {
       if (!(formKey.currentState?.validate() ?? false)) return;
 
       if (isEdit) {
-        final comp = IdentitiesCompanion(
-          label: ValueExtension.absentIfSame(
-            labelCtrl.text,
-            current?.label.value,
-          ),
-          username: ValueExtension.absentIfSame(
-            usernameCtrl.text,
-            current?.username.value,
+        // TODO: handle credentials update in IdentityService
+        await CliqDatabase.identitiesRepository.update(
+          IdentitiesCompanion(
+            label: ValueExtension.absentIfSame(
+              labelCtrl.text,
+              current?.label.value,
+            ),
+            username: ValueExtension.absentIfSame(
+              usernameCtrl.text,
+              current?.username.value,
+            ),
           ),
         );
-        await CliqDatabase.identitiesRepository.update(comp);
       } else {
-        final insert = IdentitiesCompanion(
-          label: Value(labelCtrl.text),
-          username: Value(usernameCtrl.text),
-        );
         await CliqDatabase.identityService.createIdentity(
-          insert,
-          selectedCredentials.value.values
-              .map(
-                (c) => CredentialsCompanion.insert(
-                  type: c.$1,
-                  keyId: Value.absentIfNull(null),
-                  password: Value.absentIfNull(c.$3),
-                ),
-              )
-              .toList(),
+          IdentitiesCompanion(
+            label: Value(labelCtrl.text),
+            username: Value(usernameCtrl.text),
+          ),
+          // TODO: get credentials; use state to save credentials in form widget and only return ids here
+          [],
         );
       }
 
@@ -139,108 +113,9 @@ class CreateOrEditIdentityView extends HookConsumerWidget {
                     validator: Validators.nonEmpty,
                   ),
 
-                  for (final c in selectedCredentials.value.entries)
-                    if (c.value.$1 == .password)
-                      FCard(
-                        child: Column(
-                          children: [
-                            Row(
-                              mainAxisAlignment: .end,
-                              children: [buildRemoveCredentialButton(c.key)],
-                            ),
-                            FTextFormField(
-                              control: .lifted(
-                                value: TextEditingValue(text: c.value.$2),
-                                onChange: (v) => selectedCredentials.value = {
-                                  ...selectedCredentials.value,
-                                  c.key: (c.value.$1, v.text, c.value.$3),
-                                },
-                              ),
-                              label: Text('Password'),
-                              minLines: 1,
-                              obscureText: true,
-                              autovalidateMode: .onUserInteraction,
-                            ),
-                          ],
-                        ),
-                      )
-                    else if (c.value.$1 == .key) ...[
-                      FCard(
-                        child: Column(
-                          children: [
-                            Row(
-                              mainAxisAlignment: .end,
-                              children: [buildRemoveCredentialButton(c.key)],
-                            ),
-                            FTextFormField(
-                              control: .lifted(
-                                value: TextEditingValue(text: c.value.$2),
-                                onChange: (v) => selectedCredentials.value = {
-                                  ...selectedCredentials.value,
-                                  c.key: (c.value.$1, v.text, c.value.$3),
-                                },
-                              ),
-                              label: Text('PEM Key'),
-                              hint: '-----BEGIN OPENSSH PRIVATE KEY-----',
-                              minLines: 5,
-                              maxLines: null,
-                              autovalidateMode: .onUserInteraction,
-                            ),
-                            const SizedBox(height: 12),
-                            FTextFormField(
-                              control: .lifted(
-                                value: TextEditingValue(text: c.value.$3 ?? ''),
-                                onChange: (v) => selectedCredentials.value = {
-                                  ...selectedCredentials.value,
-                                  c.key: (c.value.$1, c.value.$2, v.text),
-                                },
-                              ),
-                              label: Text('PEM Passphrase'),
-                              obscureText: true,
-                              maxLines: 1,
-                              autovalidateMode: .onUserInteraction,
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-
-                  Wrap(
-                    spacing: 16,
-                    runSpacing: 8,
-                    alignment: WrapAlignment.center,
-                    children: [
-                      FPopoverMenu(
-                        menu: [
-                          FItemGroup(
-                            children: [
-                              for (final type in allowedCredentialTypes)
-                                FItem(
-                                  prefix: Icon(type.$3),
-                                  title: Text(type.$2),
-                                  onPress: () => selectedCredentials.value = {
-                                    ...selectedCredentials.value,
-                                    DateTime.now().millisecondsSinceEpoch: (
-                                      type.$1,
-                                      '',
-                                      null,
-                                    ),
-                                  },
-                                ),
-                            ],
-                          ),
-                        ],
-                        builder: (context, controller, child) {
-                          return FButton(
-                            style: FButtonStyle.secondary(),
-                            prefix: const Icon(LucideIcons.plus),
-                            onPress: controller.toggle,
-                            child: const Text('Add Credential'),
-                          );
-                        },
-                      ),
-                    ],
-                  ),
+                  isEdit
+                      ? CreateOrEditCredentialsForm.edit(currentCredentialIds)
+                      : CreateOrEditCredentialsForm.create(),
                 ],
               ),
             ),

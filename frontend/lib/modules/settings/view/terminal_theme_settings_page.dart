@@ -1,6 +1,6 @@
 import 'package:cliq/modules/settings/extension/custom_terminal_theme.extension.dart';
-import 'package:cliq/modules/settings/ui/terminal_font_family_select.dart';
-import 'package:cliq/modules/settings/ui/terminal_font_size_slider.dart';
+import 'package:cliq/shared/ui/terminal_font_family_select.dart';
+import 'package:cliq/shared/ui/terminal_font_size_slider.dart';
 import 'package:cliq/modules/settings/ui/terminal_theme_card.dart';
 import 'package:cliq/modules/settings/view/abstract_settings_page.dart';
 import 'package:cliq/modules/settings/view/settings_page.dart';
@@ -115,7 +115,6 @@ class TerminalThemeSettingsPage extends AbstractSettingsPage {
                   spacing: 20,
                   children: [
                     if (terminalController.value != null)
-                      // draw container with full width and height 200
                       Container(
                         width: double.infinity,
                         height: 200,
