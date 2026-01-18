@@ -39,4 +39,6 @@ final class IdentityService {
 
     return identityId;
   }
+
+  Future<void> deleteById(int id) => identityRepository.deleteById(id);
 }
