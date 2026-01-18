@@ -43,7 +43,6 @@ final class _CredentialData {
     String? initialData,
     String? initialPassphrase,
   }) {
-    ;
     if (initialData != null) {
       dataController.text = initialData;
     }
