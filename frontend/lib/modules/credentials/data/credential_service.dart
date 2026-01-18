@@ -1,4 +1,5 @@
 import 'package:cliq/modules/credentials/model/credential_full.model.dart';
+import 'package:cliq/modules/credentials/model/credential_type.dart';
 import 'package:cliq/shared/data/repository.dart';
 import 'package:dartssh2/dartssh2.dart';
 import 'package:drift/drift.dart';
@@ -62,6 +63,22 @@ final class CredentialService {
         .findCredentialFullByIds(ids)
         .map(CredentialFull.fromResult)
         .get();
+  }
+
+  Future<int> create(
+    CredentialType type,
+    String data,
+    String? passphrase,
+  ) async {
+    // TODO: handle key insertion
+    final int? keyId = null;
+    return await credentialRepository.insert(
+      CredentialsCompanion.insert(
+        type: type,
+        keyId: Value.absentIfNull(keyId),
+        password: Value.absentIfNull(type == .password ? data : null),
+      ),
+    );
   }
 
   Future<List<int>> insertAllWithRelation<T extends Table, R>(

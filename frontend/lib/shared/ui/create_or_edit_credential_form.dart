@@ -58,7 +58,7 @@ final class _CredentialData {
   }
 }
 
-class CreateOrEditCredentialsForm extends HookConsumerWidget {
+class CreateOrEditCredentialsForm extends StatefulHookConsumerWidget {
   final List<int>? current;
   final bool isEdit;
 
@@ -69,16 +69,58 @@ class CreateOrEditCredentialsForm extends HookConsumerWidget {
   const CreateOrEditCredentialsForm.edit(this.current, {super.key})
     : isEdit = true;
 
-  // TODO: maybe make this stateful? add save method to insert/update credentials & return their IDs
+  static CreateOrEditCredentialsFormState of(BuildContext context) =>
+      context.findAncestorStateOfType<CreateOrEditCredentialsFormState>()!;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final selectedCredentials = useState<List<_CredentialData>>([]);
+  ConsumerState<CreateOrEditCredentialsForm> createState() =>
+      CreateOrEditCredentialsFormState();
+}
 
+class CreateOrEditCredentialsFormState
+    extends ConsumerState<CreateOrEditCredentialsForm> {
+  late final ValueNotifier<List<_CredentialData>> _selectedCredentials;
+
+  @override
+  void initState() {
+    super.initState();
+    _selectedCredentials = ValueNotifier<List<_CredentialData>>([]);
+  }
+
+  Future<List<int>?> save() async {
+    // TODO: return null if form is invalid
+
+    // TODO save logic
+    final ids = <int>[];
+    for (final data in _selectedCredentials.value) {
+      if (widget.isEdit) {
+        // TODO: handle edit case
+      } else {
+        CliqDatabase.credentialService.create(
+          data.type,
+          data.dataController.text,
+          data.passphraseController.text.isNotEmpty
+              ? data.passphraseController.text
+              : null,
+        );
+      }
+    }
+
+    return ids;
+  }
+
+  @override
+  void dispose() {
+    _selectedCredentials.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
     useEffect(() {
-      if (current != null) {
-        CliqDatabase.credentialService.findByIds(current!).then((creds) {
-          selectedCredentials.value = creds.map((c) {
+      if (widget.current != null) {
+        CliqDatabase.credentialService.findByIds(widget.current!).then((creds) {
+          _selectedCredentials.value = creds.map((c) {
             return _CredentialData(
               type: c.type,
               initialData: c.type == .password ? c.password : c.key?.privatePem,
@@ -89,7 +131,7 @@ class CreateOrEditCredentialsForm extends HookConsumerWidget {
       }
 
       return () {
-        for (final credential in selectedCredentials.value) {
+        for (final credential in _selectedCredentials.value) {
           credential.dispose();
         }
       };
@@ -109,9 +151,9 @@ class CreateOrEditCredentialsForm extends HookConsumerWidget {
             style: FButtonStyle.ghost(),
             onPress: () {
               credential.dispose();
-              final updated = [...selectedCredentials.value];
+              final updated = [..._selectedCredentials.value];
               updated.remove(credential);
-              selectedCredentials.value = updated;
+              _selectedCredentials.value = updated;
             },
             child: const Icon(LucideIcons.trash, size: 16),
           ),
@@ -122,8 +164,8 @@ class CreateOrEditCredentialsForm extends HookConsumerWidget {
     buildFormFields() {
       final children = [];
 
-      for (int i = 0; i < selectedCredentials.value.length; i++) {
-        final data = selectedCredentials.value[i];
+      for (int i = 0; i < _selectedCredentials.value.length; i++) {
+        final data = _selectedCredentials.value[i];
         final allowedType = _AllowedCredentialType.values.firstWhere(
           (e) => e.type == data.type,
         );
@@ -150,7 +192,7 @@ class CreateOrEditCredentialsForm extends HookConsumerWidget {
         if (_AllowedCredentialType.values.any(
           (a) =>
               !a.singleInstance ||
-              !selectedCredentials.value.any((e) => e.type == a.type),
+              !_selectedCredentials.value.any((e) => e.type == a.type),
         ))
           Wrap(
             spacing: 16,
@@ -163,7 +205,7 @@ class CreateOrEditCredentialsForm extends HookConsumerWidget {
                     children: [
                       for (final allowed in _AllowedCredentialType.values)
                         if (!allowed.singleInstance ||
-                            !selectedCredentials.value.any(
+                            !_selectedCredentials.value.any(
                               (e) => e.type == allowed.type,
                             ))
                           FItem(
@@ -171,10 +213,10 @@ class CreateOrEditCredentialsForm extends HookConsumerWidget {
                             title: Text(allowed.label),
                             onPress: () {
                               final updated = [
-                                ...selectedCredentials.value,
+                                ..._selectedCredentials.value,
                                 _CredentialData(type: allowed.type),
                               ];
-                              selectedCredentials.value = updated;
+                              _selectedCredentials.value = updated;
                             },
                           ),
                     ],
