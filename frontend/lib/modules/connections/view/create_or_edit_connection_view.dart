@@ -77,6 +77,7 @@ class CreateOrEditConnectionView extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final formKey = useMemoized(() => GlobalKey<FormState>());
+
     final defaultTerminalTypography = useStore(.defaultTerminalTypography);
     final identities = ref.watch(identityProvider);
     final terminalThemes = ref.watch(terminalThemeProvider);
@@ -465,6 +466,12 @@ class CreateOrEditConnectionView extends HookConsumerWidget {
     /// or creates a new connection based on the [isEdit] flag.
     Future<void> onSave() async {
       if (!(formKey.currentState?.validate() ?? false)) return;
+      final credentialIds = await CreateOrEditCredentialsForm.of(
+        context,
+      ).save();
+      if (credentialIds == null) return;
+
+      // TODO: update edit & delete to handle credentials, use ConnectionService
 
       if (isEdit) {
         final comp = ConnectionsCompanion(

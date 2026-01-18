@@ -25,11 +25,11 @@ final class IdentityService {
 
   Future<int> createIdentity(
     IdentitiesCompanion identity,
-    List<CredentialsCompanion> credentials,
+    List<int> credentialIds,
   ) async {
     final identityId = await identityRepository.insert(identity);
     await credentialService.insertAllWithRelation(
-      credentials,
+      credentialIds,
       relationRepository: identityCredentialsRepository,
       builder: (id) => IdentityCredentialsCompanion.insert(
         identityId: identityId,

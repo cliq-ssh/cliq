@@ -46,6 +46,10 @@ class CreateOrEditIdentityView extends HookConsumerWidget {
     /// or creates a new connection based on the [isEdit] flag.
     Future<void> onSave() async {
       if (!(formKey.currentState?.validate() ?? false)) return;
+      final credentialIds = await CreateOrEditCredentialsForm.of(
+        context,
+      ).save();
+      if (credentialIds == null) return;
 
       if (isEdit) {
         // TODO: handle credentials update in IdentityService
@@ -67,8 +71,7 @@ class CreateOrEditIdentityView extends HookConsumerWidget {
             label: Value(labelCtrl.text),
             username: Value(usernameCtrl.text),
           ),
-          // TODO: get credentials; use state to save credentials in form widget and only return ids here
-          [],
+          credentialIds,
         );
       }
 

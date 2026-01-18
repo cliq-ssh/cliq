@@ -35,11 +35,11 @@ final class ConnectionService {
 
   Future<int> createConnection(
     ConnectionsCompanion connection,
-    List<CredentialsCompanion> credentials,
+    List<int> credentialIds,
   ) async {
     final connectionId = await connectionRepository.insert(connection);
     await credentialService.insertAllWithRelation(
-      credentials,
+      credentialIds,
       relationRepository: connectionCredentialsRepository,
       builder: (id) => ConnectionCredentialsCompanion.insert(
         connectionId: connectionId,

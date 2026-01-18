@@ -82,12 +82,10 @@ final class CredentialService {
   }
 
   Future<List<int>> insertAllWithRelation<T extends Table, R>(
-    List<CredentialsCompanion> credentials, {
+    List<int> credentialIds, {
     required Repository<T, R> relationRepository,
     required UpdateCompanion<R> Function(int) builder,
   }) async {
-    final credentialIds = await credentialRepository.insertAll(credentials);
-
     await relationRepository.insertAllBatch(
       credentialIds.map((credentialId) => builder(credentialId)).toList(),
     );
