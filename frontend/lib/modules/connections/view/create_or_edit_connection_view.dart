@@ -26,10 +26,10 @@ import '../model/connection_color.dart';
 
 class CreateOrEditConnectionView extends HookConsumerWidget {
   static const List<(CredentialType, String, IconData)> allowedCredentialTypes =
-  [
-    (.password, 'Password', LucideIcons.rectangleEllipsis),
-    (.key, 'Key', LucideIcons.keyRound),
-  ];
+      [
+        (.password, 'Password', LucideIcons.rectangleEllipsis),
+        (.key, 'Key', LucideIcons.keyRound),
+      ];
 
   final ConnectionsCompanion? current;
   final String? currentPassword;
