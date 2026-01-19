@@ -3579,6 +3579,25 @@ abstract class _$CliqDatabase extends GeneratedDatabase {
   late final Connections connections = Connections(this);
   late final ConnectionCredentials connectionCredentials =
       ConnectionCredentials(this);
+  Selectable<int> findAllKeyIds() {
+    return customSelect(
+      'SELECT id FROM keys',
+      variables: [],
+      readsFrom: {keys},
+    ).map((QueryRow row) => row.read<int>('id'));
+  }
+
+  Selectable<Key> findKeyByIds(List<int> var1) {
+    var $arrayStartIndex = 1;
+    final expandedvar1 = $expandVar($arrayStartIndex, var1.length);
+    $arrayStartIndex += var1.length;
+    return customSelect(
+      'SELECT * FROM keys WHERE id IN ($expandedvar1)',
+      variables: [for (var $ in var1) Variable<int>($)],
+      readsFrom: {keys},
+    ).asyncMap(keys.mapFromRow);
+  }
+
   Selectable<FindAllIdentityFullResult> findAllIdentityFull() {
     return customSelect(
       'SELECT"i"."id" AS "nested_0.id", "i"."label" AS "nested_0.label", "i"."username" AS "nested_0.username", i.id AS "\$n_0" FROM identities AS i',

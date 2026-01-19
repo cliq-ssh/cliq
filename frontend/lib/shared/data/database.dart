@@ -18,6 +18,8 @@ import '../../modules/credentials/data/credentials_repository.dart';
 import '../../modules/credentials/model/credential_type.dart';
 import '../../modules/identities/data/identities_repository.dart';
 import '../../modules/identities/data/identity_service.dart';
+import '../../modules/keys/data/key_repository.dart';
+import '../../modules/keys/data/key_service.dart';
 import 'converters/color_converter.dart';
 import 'converters/terminal_typography_converter.dart';
 
@@ -33,6 +35,9 @@ part 'database.g.dart';
   },
 )
 final class CliqDatabase extends _$CliqDatabase {
+  static late KeyRepository keyRepository;
+  static late KeyService keyService;
+
   static late CredentialsRepository credentialsRepository;
   static late CredentialService credentialService;
 
@@ -55,6 +60,9 @@ final class CliqDatabase extends _$CliqDatabase {
 
   static void init() {
     final db = CliqDatabase();
+    keyRepository = KeyRepository(db);
+    keyService = KeyService(keyRepository);
+
     credentialsRepository = CredentialsRepository(db);
     credentialService = CredentialService(credentialsRepository);
 
