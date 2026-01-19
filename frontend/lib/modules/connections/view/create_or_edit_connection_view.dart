@@ -473,7 +473,7 @@ class CreateOrEditConnectionView extends HookConsumerWidget {
       // null is only returned when validation fails
       if (newCredentialIds == null) return;
 
-      // TODO: update edit & delete to handle credentials, use ConnectionService
+      // TODO: cleanup, implement identity selection
 
       if (isEdit) {
         final comp = ConnectionsCompanion(

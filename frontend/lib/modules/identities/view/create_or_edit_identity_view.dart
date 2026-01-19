@@ -55,7 +55,6 @@ class CreateOrEditIdentityView extends HookConsumerWidget {
       if (newCredentialIds == null) return;
 
       if (isEdit) {
-        // TODO: handle credentials update in IdentityService
         await CliqDatabase.identityService.update(
           current!.id.value,
           IdentitiesCompanion(
