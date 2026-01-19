@@ -1,9 +1,9 @@
 package app.cliq.backend.user.service
 
-import app.cliq.backend.shared.EmailService
-import app.cliq.backend.shared.TokenGenerator
+import app.cliq.backend.email.EmailService
 import app.cliq.backend.user.User
 import app.cliq.backend.user.UserRepository
+import app.cliq.backend.utils.TokenGenerator
 import org.slf4j.LoggerFactory
 import org.springframework.context.MessageSource
 import org.springframework.stereotype.Service

@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+    id="Layer_1"
+    data-name="Layer 1"
+    viewBox="0 0 190.11 190.11"
+    version="1.1"
+    sodipodi:docname="Datalock.svg"
+    inkscape:version="1.4.2 (f4327f4, 2025-05-13)"
+    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+    xmlns="http://www.w3.org/2000/svg"
+>
+    <sodipodi:namedview
+        id="namedview4"
+        pagecolor="#ffffff"
+        bordercolor="#666666"
+        borderopacity="1.0"
+        inkscape:showpageshadow="2"
+        inkscape:pageopacity="0.0"
+        inkscape:pagecheckerboard="0"
+        inkscape:deskcolor="#d1d1d1"
+        showgrid="false"
+        inkscape:zoom="1.6707663"
+        inkscape:cx="38.006513"
+        inkscape:cy="70.925539"
+        inkscape:window-width="1920"
+        inkscape:window-height="1017"
+        inkscape:window-x="1912"
+        inkscape:window-y="-8"
+        inkscape:window-maximized="1"
+        inkscape:current-layer="g46"/>
+    <defs
+        id="defs1">
+        <style
+            id="style1">
+            .cls-1 {
+            stroke: #fff;
+            stroke-miterlimit: 10;
+            stroke-width: 2.5px;
+            }
+
+            .cls-2 {
+            fill: #fff;
+            }
+        </style>
+    </defs>
+    <g
+        id="g46"
+        transform="translate(414.03239,17.624339)"
+        inkscape:export-filename="Datalock.svg"
+        inkscape:export-xdpi="59"
+        inkscape:export-ydpi="59"
+        inkscape:label="Lock">
+        <path
+            d="m -318.98653,6.2207031 c -21.41,0 -38.8203,17.4203129 -38.8203,38.8203129 V 65.73856 h 14.16992 V 45.041016 c 0,-6.8 2.7607,-12.969688 7.2207,-17.429688 4.46,-4.46 10.61968,-7.220703 17.42968,-7.220703 13.62,0 24.65039,11.040391 24.65039,24.650391 v 22.803952 l 14.17969,14.492187 V 45.041016 c 0,-21.4 -17.42008,-38.8203129 -38.83008,-38.8203129 z"
+            style="fill:none;fill-opacity:1;stroke:currentColor;stroke-width:2.5px;stroke-miterlimit:10;stroke-opacity:1"
+            id="path44"
+            sodipodi:nodetypes="ssccssssccss"
+            inkscape:label="Handle"/>
+        <path
+            d="m -363.2977,64.191406 c -1.56,0 -2.83008,1.260078 -2.83008,2.830078 v 80.039066 c 0,1.56 1.26008,2.83007 2.83008,2.83007 h 88.64062 c 1.56,10e-6 2.83008,-1.26007 2.83008,-2.83007 v -57.2793 c 0,-0.02147 -6.8e-4,-0.04292 -0.002,-0.06445 0.001,0.05347 0.002,0.106571 0,0.160156 0.001,-0.06008 6e-5,-0.119712 -0.002,-0.179687 -10e-5,-0.0032 1.2e-4,-0.0066 0,-0.0098 -6.3e-4,-0.01897 -0.003,-0.03772 -0.004,-0.05664 -0.0141,-0.254396 -0.0612,-0.506203 -0.14258,-0.748047 -0.006,-0.0184 -0.013,-0.03642 -0.0195,-0.05469 -0.0835,-0.232256 -0.1979,-0.455352 -0.3418,-0.662109 -0.0189,-0.02703 -0.0387,-0.05366 -0.0586,-0.08008 -0.074,-0.0988 -0.15233,-0.195046 -0.24024,-0.285156 l -7.51953,-7.685547 -14.17968,-14.492187 -0.57032,-0.582031 c -0.13684,-0.136843 -0.28676,-0.26015 -0.44336,-0.365235 -0.23371,-0.156516 -0.48787,-0.275788 -0.75195,-0.357422 -0.0893,-0.02763 -0.17963,-0.05158 -0.27148,-0.07031 -0.18436,-0.03749 -0.37292,-0.05664 -0.5625,-0.05664 h -46.70118 -14.16992 z m 0,2.820313 h 5.49023 14.16992 43.8711 c -10e-6,0.0033 0,0.0065 0,0.0098 V 89.78125 c 0,1.56 1.26008,2.830078 2.83008,2.830078 l 0.01,0.0098 h 22.26953 v 54.439452 h -88.64062 z m 66.36133,0 2.59961,2.65625 12.55273,12.822265 7.12695,7.28125 h -22.27929 z"
+            style="fill:currentColor;fill-opacity:1"
+            id="path45"
+            inkscape:label="Body"/>
+        <path
+            class="cls-2"
+            d="m -303.19635,103.23092 c 0,5.2 -2.51,9.81 -6.39,12.68 v 9.09 c 0,5.19 -4.2,9.39 -9.39,9.39 -5.19,0 -9.39,-4.2 -9.39,-9.39 v -9.09 c -3.88,-2.88 -6.39,-7.49 -6.39,-12.68 0,-8.720003 7.07,-15.790003 15.78,-15.790003 8.71,0 15.78,7.07 15.78,15.790003 z"
+            id="path46"
+            style="display:inline;fill:currentColor;fill-opacity:1"
+            inkscape:label="Keyhole"/>
+    </g>
+</svg>

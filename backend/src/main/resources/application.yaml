@@ -1,14 +1,49 @@
+debug: \${DEBUG:false}
 app:
   info:
     name: ${rootProject.name}
     version: ${version}
     description: ${description}
   email:
-    enabled: true
-    from-address: noreply@cliq.app
-    from-name: CLIq
+    enabled: \${MAIL_ENABLED:false}
+    from-address: \${MAIL_FROM:null}
+    from-name: \${MAIL_FROM_NAME:null}
+  auth:
+    local:
+      registration: \${ENABLE_LOCAL_REGISTRATION:true}
+      login: \${ENABLE_LOCAL_LOGIN:true}
+  oidc:
+    issuer-uri: \${OIDC_ISSUER_URI:}
+    client-id: \${OIDC_CLIENT_ID:}
+    client-secret: \${OIDC_CLIENT_SECRET:}
+    scopes: \${OIDC_SCOPES:openid,profile,email}
+  jwt:
+    secret: \${JWT_SECRET}
+    access-token-expires-minutes: \${JWT_ACCESS_TOKEN_EXPIRES_MINUTES:10}
+    refresh-token-expires-days: \${JWT_REFRESH_TOKEN_EXPIRES_DAYS:30}
+  rate-limits:
+    - name: login
+      url: /api/auth/login
+      target: IP
+      requests-per-minute: 5
+    - name: refresh
+      url: /api/auth/refresh
+      target: IP
+      requests-per-minute: 10
+
+logging:
+  level:
+    root: \${LOG_LEVEL_ROOT:info}
 
 spring:
+  profiles:
+    active: \${FEATURES:}
+  cache:
+    cache-names:
+      - rate-limit-buckets
+    caffeine:
+      spec: expireAfterAccess=3600s
+    type: caffeine
   config:
     import: optional:file:.env[.properties],optional:file:.env.local[.properties]
   jpa:
@@ -48,16 +83,36 @@ springdoc:
   api-docs:
     path: /api/openapi
     version: openapi_3_1
+    enabled: \${ENABLE_OPENAPI:false}
   swagger-ui:
-    path: /api/swagger-ui
+    path: /api/openapi/swagger-ui
     disable-swagger-default-url: true
   default-consumes-media-type: application/json
   default-produces-media-type: application/json
+  show-actuator: true
+scalar:
+  path: /api/openapi/scalar
 
 management:
   health:
     mail:
       enabled: \${app.email.enabled}
 
-scalar:
-  path: /api/scalar
+---
+spring:
+  config:
+    activate:
+      on-profile: oidc
+  security:
+    oauth2:
+      client:
+        registration:
+          oidc:
+            client-id: \${app.oidc.client-id}
+            client-secret: \${app.oidc.client-secret}
+            scope: \${app.oidc.scopes}
+            authorization-grant-type: authorization_code
+            redirect-uri: "{baseUrl}/login/oauth2/code/{registrationId}"
+        provider:
+          oidc:
+            issuer-uri: \${app.oidc.issuer-uri}

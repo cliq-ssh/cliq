@@ -1,6 +1,7 @@
 package app.cliq.backend.user
 
 import app.cliq.backend.exception.EmailAlreadyVerifiedException
+import app.cliq.backend.exception.EmailVerificationTokenNotFoundException
 import app.cliq.backend.exception.ExpiredEmailVerificationTokenException
 import app.cliq.backend.exception.InternalServerErrorException
 import app.cliq.backend.exception.InvalidVerifyParamsException
@@ -65,7 +66,11 @@ class UserVerificationController(
         @Valid @RequestBody verifyParams: VerifyParams,
     ): ResponseEntity<UserResponse> {
         val user =
-            userRepository.findUserByEmail(verifyParams.email) ?: throw InvalidVerifyParamsException()
+            userRepository.findByEmail(verifyParams.email) ?: throw InvalidVerifyParamsException()
+
+        if (user.emailVerificationToken != verifyParams.verificationToken) {
+            throw EmailVerificationTokenNotFoundException()
+        }
 
         if (user.isEmailVerified()) {
             throw EmailAlreadyVerifiedException()
@@ -104,7 +109,7 @@ class UserVerificationController(
     fun resendVerificationEmail(
         @Valid @RequestBody params: ResendVerificationEmailParams,
     ): ResponseEntity<Void> {
-        userRepository.findUserByEmail(params.email)?.let {
+        userRepository.findByEmail(params.email)?.let {
             if (it.isEmailVerified()) {
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST).build()
             }

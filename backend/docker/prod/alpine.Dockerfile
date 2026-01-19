@@ -1,4 +1,4 @@
-ARG JDK_VERSION=24
+ARG JDK_VERSION=25
 ARG JRE_VERSION=25
 ARG TEMURIN_ALPINE_VERSION=3.22
 ARG ALPINE_VERSION=3.23
@@ -32,6 +32,8 @@ RUN java -Djarmode=tools -jar application.jar extract --layers --destination ext
 # Stage 2: Create cliq jre with jlink
 FROM eclipse-temurin:${JRE_VERSION}-jdk-alpine-${TEMURIN_ALPINE_VERSION} AS jre-builder
 
+ARG JRE_VERSION
+
 WORKDIR /jre-build
 COPY --from=builder /app/application.jar .
 
@@ -41,7 +43,7 @@ RUN jar xf application.jar
 # Identify required modules with jdeps
 RUN jdeps --ignore-missing-deps -q \
     --recursive \
-    --multi-release 24 \
+    --multi-release ${JRE_VERSION} \
     --print-module-deps \
     --class-path 'BOOT-INF/lib/*' \
     application.jar > deps.info
