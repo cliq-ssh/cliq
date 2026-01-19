@@ -1998,12 +1998,12 @@ class Credentials extends Table with TableInfo<Credentials, Credential> {
     requiredDuringInsert: false,
     $customConstraints: 'PRIMARY KEY AUTOINCREMENT',
   );
-  late final GeneratedColumnWithTypeConverter<CredentialType, int> type =
-      GeneratedColumn<int>(
+  late final GeneratedColumnWithTypeConverter<CredentialType, String> type =
+      GeneratedColumn<String>(
         'type',
         aliasedName,
         false,
-        type: DriftSqlType.int,
+        type: DriftSqlType.string,
         requiredDuringInsert: true,
         $customConstraints: 'NOT NULL',
       ).withConverter<CredentialType>(Credentials.$convertertype);
@@ -2072,7 +2072,7 @@ class Credentials extends Table with TableInfo<Credentials, Credential> {
       )!,
       type: Credentials.$convertertype.fromSql(
         attachedDatabase.typeMapping.read(
-          DriftSqlType.int,
+          DriftSqlType.string,
           data['${effectivePrefix}type'],
         )!,
       ),
@@ -2092,8 +2092,8 @@ class Credentials extends Table with TableInfo<Credentials, Credential> {
     return Credentials(attachedDatabase, alias);
   }
 
-  static JsonTypeConverter2<CredentialType, int, int> $convertertype =
-      const EnumIndexConverter<CredentialType>(CredentialType.values);
+  static JsonTypeConverter2<CredentialType, String, String> $convertertype =
+      const EnumNameConverter<CredentialType>(CredentialType.values);
   @override
   bool get dontWriteConstraints => true;
 }
@@ -2114,7 +2114,7 @@ class Credential extends DataClass implements Insertable<Credential> {
     final map = <String, Expression>{};
     map['id'] = Variable<int>(id);
     {
-      map['type'] = Variable<int>(Credentials.$convertertype.toSql(type));
+      map['type'] = Variable<String>(Credentials.$convertertype.toSql(type));
     }
     if (!nullToAbsent || keyId != null) {
       map['key_id'] = Variable<int>(keyId);
@@ -2146,7 +2146,7 @@ class Credential extends DataClass implements Insertable<Credential> {
     return Credential(
       id: serializer.fromJson<int>(json['id']),
       type: Credentials.$convertertype.fromJson(
-        serializer.fromJson<int>(json['type']),
+        serializer.fromJson<String>(json['type']),
       ),
       keyId: serializer.fromJson<int?>(json['key_id']),
       password: serializer.fromJson<String?>(json['password']),
@@ -2157,7 +2157,9 @@ class Credential extends DataClass implements Insertable<Credential> {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return <String, dynamic>{
       'id': serializer.toJson<int>(id),
-      'type': serializer.toJson<int>(Credentials.$convertertype.toJson(type)),
+      'type': serializer.toJson<String>(
+        Credentials.$convertertype.toJson(type),
+      ),
       'key_id': serializer.toJson<int?>(keyId),
       'password': serializer.toJson<String?>(password),
     };
@@ -2225,7 +2227,7 @@ class CredentialsCompanion extends UpdateCompanion<Credential> {
   }) : type = Value(type);
   static Insertable<Credential> custom({
     Expression<int>? id,
-    Expression<int>? type,
+    Expression<String>? type,
     Expression<int>? keyId,
     Expression<String>? password,
   }) {
@@ -2258,7 +2260,9 @@ class CredentialsCompanion extends UpdateCompanion<Credential> {
       map['id'] = Variable<int>(id.value);
     }
     if (type.present) {
-      map['type'] = Variable<int>(Credentials.$convertertype.toSql(type.value));
+      map['type'] = Variable<String>(
+        Credentials.$convertertype.toSql(type.value),
+      );
     }
     if (keyId.present) {
       map['key_id'] = Variable<int>(keyId.value);
@@ -5238,7 +5242,7 @@ class $CredentialsFilterComposer extends Composer<_$CliqDatabase, Credentials> {
     builder: (column) => ColumnFilters(column),
   );
 
-  ColumnWithTypeConverterFilters<CredentialType, CredentialType, int>
+  ColumnWithTypeConverterFilters<CredentialType, CredentialType, String>
   get type => $composableBuilder(
     column: $table.type,
     builder: (column) => ColumnWithTypeConverterFilters(column),
@@ -5337,7 +5341,7 @@ class $CredentialsOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
-  ColumnOrderings<int> get type => $composableBuilder(
+  ColumnOrderings<String> get type => $composableBuilder(
     column: $table.type,
     builder: (column) => ColumnOrderings(column),
   );
@@ -5383,7 +5387,7 @@ class $CredentialsAnnotationComposer
   GeneratedColumn<int> get id =>
       $composableBuilder(column: $table.id, builder: (column) => column);
 
-  GeneratedColumnWithTypeConverter<CredentialType, int> get type =>
+  GeneratedColumnWithTypeConverter<CredentialType, String> get type =>
       $composableBuilder(column: $table.type, builder: (column) => column);
 
   GeneratedColumn<String> get password =>

@@ -49,5 +49,8 @@ final class ConnectionService {
     return connectionId;
   }
 
-  Future<void> deleteById(int id) => connectionRepository.deleteById(id);
+  Future<void> deleteById(int id, List<int> credentialIds) async {
+    await credentialService.deleteByIds(credentialIds);
+    return connectionRepository.deleteById(id);
+  }
 }

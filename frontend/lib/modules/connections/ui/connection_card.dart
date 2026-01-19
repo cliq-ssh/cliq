@@ -102,6 +102,7 @@ class ConnectionCard extends HookConsumerWidget {
                             onPress: () {
                               CliqDatabase.connectionService.deleteById(
                                 connection.id,
+                                connection.credentialIds,
                               );
                               Navigator.of(context).pop();
                             },

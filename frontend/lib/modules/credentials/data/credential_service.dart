@@ -92,4 +92,7 @@ final class CredentialService {
 
     return credentialIds;
   }
+
+  Future<void> deleteByIds(List<int> ids) =>
+      credentialRepository.deleteByIds(ids);
 }

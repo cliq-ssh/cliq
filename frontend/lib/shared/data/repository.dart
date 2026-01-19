@@ -48,6 +48,15 @@ abstract class Repository<T extends Table, R> {
     return (db.delete(table)..where((row) => _whereId(row, id))).go();
   }
 
+  Future<void> deleteByIds(List<int> ids) async {
+    _log.finest('Deleting rows with ids $ids');
+    return db.batch((batch) {
+      for (final id in ids) {
+        batch.deleteWhere(table, (row) => _whereId(row, id));
+      }
+    });
+  }
+
   Future<void> deleteAll() {
     _log.finest('Deleting all rows');
     return db.delete(table).go();

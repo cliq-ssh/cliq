@@ -36,6 +36,10 @@ class CreateOrEditIdentityView extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final formKey = useMemoized(() => GlobalKey<FormState>());
+    final credentialsKey = useMemoized(
+      () => GlobalKey<CreateOrEditCredentialsFormState>(),
+    );
+
     final labelCtrl = useTextEditingController(text: current?.label.value);
     final usernameCtrl = useTextEditingController(
       text: current?.username.value,
@@ -46,10 +50,9 @@ class CreateOrEditIdentityView extends HookConsumerWidget {
     /// or creates a new connection based on the [isEdit] flag.
     Future<void> onSave() async {
       if (!(formKey.currentState?.validate() ?? false)) return;
-      final credentialIds = await CreateOrEditCredentialsForm.of(
-        context,
-      ).save();
+      final credentialIds = await credentialsKey.currentState?.save();
       if (credentialIds == null) return;
+      print('Credential IDs: $credentialIds');
 
       if (isEdit) {
         // TODO: handle credentials update in IdentityService
@@ -117,8 +120,11 @@ class CreateOrEditIdentityView extends HookConsumerWidget {
                   ),
 
                   isEdit
-                      ? CreateOrEditCredentialsForm.edit(currentCredentialIds)
-                      : CreateOrEditCredentialsForm.create(),
+                      ? CreateOrEditCredentialsForm.edit(
+                          key: credentialsKey,
+                          currentCredentialIds,
+                        )
+                      : CreateOrEditCredentialsForm.create(key: credentialsKey),
                 ],
               ),
             ),

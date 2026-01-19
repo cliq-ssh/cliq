@@ -2,6 +2,7 @@ import 'package:cliq/modules/connections/view/connections_page.dart';
 import 'package:cliq/modules/session/view/session_page_wrapper.dart';
 import 'package:cliq/modules/settings/view/debug_settings_page.dart';
 import 'package:cliq/modules/settings/view/identities_settings_page.dart';
+import 'package:cliq/modules/settings/view/keys_settings_page.dart';
 import 'package:cliq/modules/settings/view/license_page.dart';
 import 'package:cliq/modules/settings/view/settings_page.dart';
 import 'package:cliq/modules/settings/view/terminal_theme_settings_page.dart';
@@ -68,6 +69,10 @@ class Router {
           GoRoute(
             path: IdentitiesSettingsPage.pagePath.path,
             pageBuilder: _swipe(const IdentitiesSettingsPage()),
+          ),
+          GoRoute(
+            path: KeysSettingsPage.pagePath.path,
+            pageBuilder: _swipe(const KeysSettingsPage()),
           ),
           GoRoute(
             path: LicenseSettingsPage.pagePath.path,

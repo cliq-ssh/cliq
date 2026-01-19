@@ -1,5 +1,6 @@
 import 'package:cliq/modules/settings/provider/sync.provider.dart';
 import 'package:cliq/modules/settings/view/identities_settings_page.dart';
+import 'package:cliq/modules/settings/view/keys_settings_page.dart';
 import 'package:cliq/modules/settings/view/terminal_theme_settings_page.dart';
 import 'package:cliq/modules/settings/view/theme_settings_page.dart';
 import 'package:cliq/shared/extensions/router.extension.dart';
@@ -73,7 +74,9 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                               prefix: Icon(LucideIcons.keyRound),
                               suffix: Icon(LucideIcons.chevronRight),
                               title: Text('Keys'),
-                              onPress: null,
+                              onPress: () => context.pushPath(
+                                KeysSettingsPage.pagePath.build(),
+                              ),
                             ),
                             FTile(
                               prefix: Icon(LucideIcons.fingerprintPattern),

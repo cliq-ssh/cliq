@@ -58,6 +58,15 @@ final class CliqDatabase extends _$CliqDatabase {
   @override
   int get schemaVersion => 1;
 
+  @override
+  MigrationStrategy get migration {
+    return MigrationStrategy(
+      beforeOpen: (details) async {
+        await customStatement('PRAGMA foreign_keys = ON');
+      },
+    );
+  }
+
   static void init() {
     final db = CliqDatabase();
     keysRepository = KeyRepository(db);

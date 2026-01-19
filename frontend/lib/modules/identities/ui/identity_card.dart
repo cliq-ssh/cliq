@@ -95,6 +95,7 @@ class IdentityCard extends HookConsumerWidget {
                             onPress: () {
                               CliqDatabase.identityService.deleteById(
                                 identity.id,
+                                identity.credentialIds,
                               );
                               Navigator.of(context).pop();
                             },

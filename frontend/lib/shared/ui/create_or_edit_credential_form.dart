@@ -6,6 +6,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lucide_flutter/lucide_flutter.dart';
 
 import '../../modules/credentials/model/credential_type.dart';
+import '../utils/validators.dart';
 
 /// Helper class to define allowed credential types and their properties.
 enum _AllowedCredentialType {
@@ -68,9 +69,6 @@ class CreateOrEditCredentialsForm extends StatefulHookConsumerWidget {
   const CreateOrEditCredentialsForm.edit(this.current, {super.key})
     : isEdit = true;
 
-  static CreateOrEditCredentialsFormState of(BuildContext context) =>
-      context.findAncestorStateOfType<CreateOrEditCredentialsFormState>()!;
-
   @override
   ConsumerState<CreateOrEditCredentialsForm> createState() =>
       CreateOrEditCredentialsFormState();
@@ -78,6 +76,7 @@ class CreateOrEditCredentialsForm extends StatefulHookConsumerWidget {
 
 class CreateOrEditCredentialsFormState
     extends ConsumerState<CreateOrEditCredentialsForm> {
+  late final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   late final ValueNotifier<List<_CredentialData>> _selectedCredentials;
 
   @override
@@ -87,7 +86,9 @@ class CreateOrEditCredentialsFormState
   }
 
   Future<List<int>?> save() async {
-    // TODO: return null if form is invalid
+    if (!(_formKey.currentState?.validate() ?? false)) {
+      return null;
+    }
 
     // TODO save logic
     final ids = <int>[];
@@ -95,12 +96,14 @@ class CreateOrEditCredentialsFormState
       if (widget.isEdit) {
         // TODO: handle edit case
       } else {
-        CliqDatabase.credentialService.create(
-          data.type,
-          data.dataController.text,
-          data.passphraseController.text.isNotEmpty
-              ? data.passphraseController.text
-              : null,
+        ids.add(
+          await CliqDatabase.credentialService.create(
+            data.type,
+            data.dataController.text,
+            data.passphraseController.text.isNotEmpty
+                ? data.passphraseController.text
+                : null,
+          ),
         );
       }
     }
@@ -110,6 +113,9 @@ class CreateOrEditCredentialsFormState
 
   @override
   void dispose() {
+    for (final credential in _selectedCredentials.value) {
+      credential.dispose();
+    }
     _selectedCredentials.dispose();
     super.dispose();
   }
@@ -129,112 +135,117 @@ class CreateOrEditCredentialsFormState
         });
       }
 
-      return () {
-        for (final credential in _selectedCredentials.value) {
-          credential.dispose();
-        }
-      };
+      return null;
     }, []);
 
-    buildCredentialLabel(_CredentialData credential) {
-      final allowedType = _AllowedCredentialType.values.firstWhere(
-        (e) => e.type == credential.type,
-      );
+    return Form(
+      key: _formKey,
+      child: ValueListenableBuilder(
+        valueListenable: _selectedCredentials,
+        builder: (_, selectedCredentials, _) {
+          buildCredentialLabel(_CredentialData credential) {
+            final allowedType = _AllowedCredentialType.values.firstWhere(
+              (e) => e.type == credential.type,
+            );
 
-      return Row(
-        spacing: 8,
-        mainAxisAlignment: .spaceBetween,
-        children: [
-          Text(allowedType.label),
-          FButton.icon(
-            style: FButtonStyle.ghost(),
-            onPress: () {
-              credential.dispose();
-              final updated = [..._selectedCredentials.value];
-              updated.remove(credential);
-              _selectedCredentials.value = updated;
-            },
-            child: const Icon(LucideIcons.trash, size: 16),
-          ),
-        ],
-      );
-    }
+            return Row(
+              spacing: 8,
+              mainAxisAlignment: .spaceBetween,
+              children: [
+                Text(allowedType.label),
+                FButton.icon(
+                  style: FButtonStyle.ghost(),
+                  onPress: () {
+                    credential.dispose();
+                    final updated = [...selectedCredentials];
+                    updated.remove(credential);
+                    _selectedCredentials.value = updated;
+                  },
+                  child: const Icon(LucideIcons.trash, size: 16),
+                ),
+              ],
+            );
+          }
 
-    buildFormFields() {
-      final children = [];
+          buildFormFields() {
+            final children = [];
 
-      for (int i = 0; i < _selectedCredentials.value.length; i++) {
-        final data = _selectedCredentials.value[i];
-        final allowedType = _AllowedCredentialType.values.firstWhere(
-          (e) => e.type == data.type,
-        );
-        children.add(switch (allowedType) {
-          .password => FTextFormField(
-            control: .managed(controller: data.dataController),
-            label: buildCredentialLabel(data),
-            minLines: 1,
-            obscureText: true,
-            autovalidateMode: .onUserInteraction,
-          ),
-        });
-      }
+            for (int i = 0; i < selectedCredentials.length; i++) {
+              final data = selectedCredentials[i];
+              final allowedType = _AllowedCredentialType.values.firstWhere(
+                (e) => e.type == data.type,
+              );
+              children.add(switch (allowedType) {
+                .password => FTextFormField(
+                  control: .managed(controller: data.dataController),
+                  label: buildCredentialLabel(data),
+                  minLines: 1,
+                  obscureText: true,
+                  validator: Validators.nonEmpty,
+                  autovalidateMode: .onUserInteraction,
+                ),
+              });
+            }
 
-      return children;
-    }
+            return children;
+          }
 
-    return Column(
-      spacing: 16,
-      children: [
-        ...buildFormFields(),
-
-        // check if there are any allowed credential types left to add
-        if (_AllowedCredentialType.values.any(
-          (a) =>
-              !a.singleInstance ||
-              !_selectedCredentials.value.any((e) => e.type == a.type),
-        ))
-          Wrap(
+          return Column(
             spacing: 16,
-            runSpacing: 8,
-            alignment: WrapAlignment.center,
             children: [
-              FPopoverMenu(
-                menu: [
-                  FItemGroup(
-                    children: [
-                      for (final allowed in _AllowedCredentialType.values)
-                        if (!allowed.singleInstance ||
-                            !_selectedCredentials.value.any(
-                              (e) => e.type == allowed.type,
-                            ))
-                          FItem(
-                            prefix: Icon(allowed.icon),
-                            title: Text(allowed.label),
-                            onPress: () {
-                              final updated = [
-                                ..._selectedCredentials.value,
-                                _CredentialData(type: allowed.type),
-                              ];
-                              _selectedCredentials.value = updated;
-                            },
+              ...buildFormFields(),
+
+              // check if there are any allowed credential types left to add
+              if (_AllowedCredentialType.values.any(
+                (a) =>
+                    !a.singleInstance ||
+                    !selectedCredentials.any((e) => e.type == a.type),
+              ))
+                Wrap(
+                  spacing: 16,
+                  runSpacing: 8,
+                  alignment: WrapAlignment.center,
+                  children: [
+                    FPopoverMenu(
+                      menu: [
+                        FItemGroup(
+                          children: [
+                            for (final allowed in _AllowedCredentialType.values)
+                              if (!allowed.singleInstance ||
+                                  !selectedCredentials.any(
+                                    (e) => e.type == allowed.type,
+                                  ))
+                                FItem(
+                                  prefix: Icon(allowed.icon),
+                                  title: Text(allowed.label),
+                                  onPress: () {
+                                    final updated = [
+                                      ...selectedCredentials,
+                                      _CredentialData(type: allowed.type),
+                                    ];
+                                    _selectedCredentials.value = updated;
+                                  },
+                                ),
+                          ],
+                        ),
+                      ],
+                      builder: (context, controller, child) {
+                        return FButton(
+                          style: FButtonStyle.ghost(),
+                          prefix: const Icon(LucideIcons.plus),
+                          onPress: controller.toggle,
+                          child: Flexible(
+                            child: const Text('Add Authentication Method'),
                           ),
-                    ],
-                  ),
-                ],
-                builder: (context, controller, child) {
-                  return FButton(
-                    style: FButtonStyle.ghost(),
-                    prefix: const Icon(LucideIcons.plus),
-                    onPress: controller.toggle,
-                    child: Flexible(
-                      child: const Text('Add Authentication Method'),
+                        );
+                      },
                     ),
-                  );
-                },
-              ),
+                  ],
+                ),
             ],
-          ),
-      ],
+          );
+        },
+      ),
     );
   }
 }
