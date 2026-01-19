@@ -35,21 +35,16 @@ part 'database.g.dart';
   },
 )
 final class CliqDatabase extends _$CliqDatabase {
-  static late KeyRepository keysRepository;
   static late KeyService keysService;
 
-  static late CredentialsRepository credentialsRepository;
   static late CredentialService credentialService;
 
-  static late IdentitiesRepository identitiesRepository;
   static late IdentityCredentialsRepository identityCredentialsRepository;
   static late IdentityService identityService;
 
-  static late ConnectionsRepository connectionsRepository;
   static late ConnectionCredentialsRepository connectionsCredentialsRepository;
   static late ConnectionService connectionService;
 
-  static late CustomTerminalThemesRepository customTerminalThemesRepository;
   static late CustomTerminalThemeService customTerminalThemeService;
 
   CliqDatabase([QueryExecutor? executor])
@@ -69,33 +64,38 @@ final class CliqDatabase extends _$CliqDatabase {
 
   static void init() {
     final db = CliqDatabase();
-    keysRepository = KeyRepository(db);
+
+    final keysRepository = KeyRepository(db);
+    final credentialsRepository = CredentialsRepository(db);
+    final identitiesRepository = IdentitiesRepository(db);
+    final connectionsRepository = ConnectionsRepository(db);
+    final customTerminalThemesRepository = CustomTerminalThemesRepository(db);
+
     keysService = KeyService(keysRepository);
-
-    credentialsRepository = CredentialsRepository(db);
     credentialService = CredentialService(credentialsRepository);
-
-    identitiesRepository = IdentitiesRepository(db);
     identityCredentialsRepository = IdentityCredentialsRepository(db);
     identityService = IdentityService(
       identitiesRepository,
       identityCredentialsRepository,
       credentialService,
     );
-
-    connectionsRepository = ConnectionsRepository(db);
     connectionsCredentialsRepository = ConnectionCredentialsRepository(db);
     connectionService = ConnectionService(
       connectionsRepository,
       connectionsCredentialsRepository,
       credentialService,
-      identityService,
     );
-
-    customTerminalThemesRepository = CustomTerminalThemesRepository(db);
     customTerminalThemeService = CustomTerminalThemeService(
       customTerminalThemesRepository,
     );
+  }
+
+  Future<void> deleteAll() async {
+    await customStatement('PRAGMA foreign_keys = OFF');
+    for (final table in allTables) {
+      await delete(table).go();
+    }
+    await customStatement('PRAGMA foreign_keys = ON');
   }
 
   static QueryExecutor _openConnection() {

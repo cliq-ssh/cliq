@@ -11,9 +11,9 @@ import 'credentials_repository.dart';
 final class CredentialService {
   static final Logger _log = Logger('CredentialService');
 
-  final CredentialsRepository credentialRepository;
+  final CredentialsRepository _credentialRepository;
 
-  const CredentialService(this.credentialRepository);
+  const CredentialService(this._credentialRepository);
 
   static (String?, List<SSHKeyPair>) collectAuthenticationMethods(
     List<CredentialFull> credentials,
@@ -59,24 +59,19 @@ final class CredentialService {
   }
 
   Future<List<CredentialFull>> findByIds(List<int> ids) {
-    return credentialRepository.db
+    return _credentialRepository.db
         .findCredentialFullByIds(ids)
         .map(CredentialFull.fromResult)
         .get();
   }
 
-  Future<int> create(
-    CredentialType type,
-    String data,
-    String? passphrase,
-  ) async {
-    // TODO: handle key insertion
-    final int? keyId = null;
-    return await credentialRepository.insert(
+  Future<int> create(CredentialType type, String data) async {
+    final (password, keyId) = extractCredentialData(type, data);
+    return await _credentialRepository.insert(
       CredentialsCompanion.insert(
         type: type,
         keyId: Value.absentIfNull(keyId),
-        password: Value.absentIfNull(type == .password ? data : null),
+        password: Value.absentIfNull(password),
       ),
     );
   }
@@ -93,6 +88,26 @@ final class CredentialService {
     return credentialIds;
   }
 
+  Future<int> update(int id, CredentialType type, String data) async {
+    final (password, keyId) = extractCredentialData(type, data);
+    await _credentialRepository.updateById(
+      id,
+      CredentialsCompanion(
+        password: Value.absentIfNull(password),
+        keyId: Value.absentIfNull(keyId),
+      ),
+    );
+
+    return id;
+  }
+
   Future<void> deleteByIds(List<int> ids) =>
-      credentialRepository.deleteByIds(ids);
+      _credentialRepository.deleteByIds(ids);
+
+  (String?, int?) extractCredentialData(CredentialType type, String data) {
+    return switch (type) {
+      .password => (data, null),
+      .key => (null, int.parse(data)),
+    };
+  }
 }

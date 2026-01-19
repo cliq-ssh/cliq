@@ -35,27 +35,17 @@ enum _AllowedCredentialType {
 }
 
 final class _CredentialData {
+  final int? id;
   final CredentialType type;
   final TextEditingController dataController = TextEditingController();
-  final TextEditingController passphraseController = TextEditingController();
 
-  _CredentialData({
-    required this.type,
-    String? initialData,
-    String? initialPassphrase,
-  }) {
+  _CredentialData({required this.id, required this.type, String? initialData}) {
     if (initialData != null) {
       dataController.text = initialData;
     }
-    if (initialPassphrase != null) {
-      passphraseController.text = initialPassphrase;
-    }
   }
 
-  void dispose() {
-    dataController.dispose();
-    passphraseController.dispose();
-  }
+  void dispose() => dataController.dispose();
 }
 
 class CreateOrEditCredentialsForm extends StatefulHookConsumerWidget {
@@ -85,30 +75,46 @@ class CreateOrEditCredentialsFormState
     _selectedCredentials = ValueNotifier<List<_CredentialData>>([]);
   }
 
+  /// Saves the current state of the form.
+  /// Validates the form and creates or updates credentials as necessary.
+  /// Returns a list of created credential IDs, or null if validation fails.
   Future<List<int>?> save() async {
     if (!(_formKey.currentState?.validate() ?? false)) {
       return null;
     }
 
-    // TODO save logic
-    final ids = <int>[];
+    final createdIds = <int>[];
+    final modifiedIds = <int>[];
     for (final data in _selectedCredentials.value) {
-      if (widget.isEdit) {
-        // TODO: handle edit case
+      if (data.id != null) {
+        modifiedIds.add(
+          await CliqDatabase.credentialService.update(
+            data.id!,
+            data.type,
+            data.dataController.text,
+          ),
+        );
       } else {
-        ids.add(
+        createdIds.add(
           await CliqDatabase.credentialService.create(
             data.type,
             data.dataController.text,
-            data.passphraseController.text.isNotEmpty
-                ? data.passphraseController.text
-                : null,
           ),
         );
       }
     }
 
-    return ids;
+    // check for removed/deleted credentials (in edit mode)
+    if (widget.isEdit && widget.current != null) {
+      final remaining = widget.current!
+          .where((id) => ![...createdIds, ...modifiedIds].contains(id))
+          .toList();
+      if (remaining.isNotEmpty) {
+        await CliqDatabase.credentialService.deleteByIds(remaining);
+      }
+    }
+
+    return createdIds;
   }
 
   @override
@@ -127,9 +133,12 @@ class CreateOrEditCredentialsFormState
         CliqDatabase.credentialService.findByIds(widget.current!).then((creds) {
           _selectedCredentials.value = creds.map((c) {
             return _CredentialData(
+              id: c.id,
               type: c.type,
-              initialData: c.type == .password ? c.password : c.key?.privatePem,
-              initialPassphrase: c.type == .key ? c.key?.passphrase : null,
+              initialData: switch (c.type) {
+                .password => c.password,
+                .key => c.keyId.toString(),
+              },
             );
           }).toList();
         });
@@ -221,7 +230,10 @@ class CreateOrEditCredentialsFormState
                                   onPress: () {
                                     final updated = [
                                       ...selectedCredentials,
-                                      _CredentialData(type: allowed.type),
+                                      _CredentialData(
+                                        id: null,
+                                        type: allowed.type,
+                                      ),
                                     ];
                                     _selectedCredentials.value = updated;
                                   },

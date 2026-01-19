@@ -36,8 +36,10 @@ abstract class Repository<T extends Table, R> {
     return db.batch((batch) => batch.insertAll(table, rows));
   }
 
-  Future<int> update(UpdateCompanion<R> row) {
-    return db.update(table).write(row).then((count) {
+  Future<int> updateById(int id, UpdateCompanion<R> row) {
+    return (db.update(table)..where((t) => _whereId(t, id))).write(row).then((
+      count,
+    ) {
       _log.finest('Updated $count rows');
       return count;
     });

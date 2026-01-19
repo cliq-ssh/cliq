@@ -50,13 +50,14 @@ class CreateOrEditIdentityView extends HookConsumerWidget {
     /// or creates a new connection based on the [isEdit] flag.
     Future<void> onSave() async {
       if (!(formKey.currentState?.validate() ?? false)) return;
-      final credentialIds = await credentialsKey.currentState?.save();
-      if (credentialIds == null) return;
-      print('Credential IDs: $credentialIds');
+      final newCredentialIds = await credentialsKey.currentState?.save();
+      // null is only returned when validation fails
+      if (newCredentialIds == null) return;
 
       if (isEdit) {
         // TODO: handle credentials update in IdentityService
-        await CliqDatabase.identitiesRepository.update(
+        await CliqDatabase.identityService.update(
+          current!.id.value,
           IdentitiesCompanion(
             label: ValueExtension.absentIfSame(
               labelCtrl.text,
@@ -67,6 +68,7 @@ class CreateOrEditIdentityView extends HookConsumerWidget {
               current?.username.value,
             ),
           ),
+          newCredentialIds,
         );
       } else {
         await CliqDatabase.identityService.createIdentity(
@@ -74,7 +76,7 @@ class CreateOrEditIdentityView extends HookConsumerWidget {
             label: Value(labelCtrl.text),
             username: Value(usernameCtrl.text),
           ),
-          credentialIds,
+          newCredentialIds,
         );
       }
 

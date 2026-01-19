@@ -469,8 +469,9 @@ class CreateOrEditConnectionView extends HookConsumerWidget {
     /// or creates a new connection based on the [isEdit] flag.
     Future<void> onSave() async {
       if (!(formKey.currentState?.validate() ?? false)) return;
-      final credentialIds = await credentialsKey.currentState?.save();
-      if (credentialIds == null) return;
+      final newCredentialIds = await credentialsKey.currentState?.save();
+      // null is only returned when validation fails
+      if (newCredentialIds == null) return;
 
       // TODO: update edit & delete to handle credentials, use ConnectionService
 
@@ -521,9 +522,13 @@ class CreateOrEditConnectionView extends HookConsumerWidget {
           ),
         );
 
-        await CliqDatabase.connectionsRepository.update(comp);
+        await CliqDatabase.connectionService.update(
+          current!.id.value,
+          comp,
+          newCredentialIds,
+        );
       } else {
-        await CliqDatabase.connectionsRepository.insert(
+        await CliqDatabase.connectionService.createConnection(
           ConnectionsCompanion.insert(
             label: ValueExtension.absentIfNullOrEmpty(labelCtrl.text),
             icon: Value(selectedIcon.value),
@@ -541,6 +546,7 @@ class CreateOrEditConnectionView extends HookConsumerWidget {
             ),
             identityId: const Value.absent(), // TODO
           ),
+          newCredentialIds,
         );
       }
 

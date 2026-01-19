@@ -44,7 +44,8 @@ class CreateOrEditKeyView extends HookConsumerWidget {
       if (!(formKey.currentState?.validate() ?? false)) return;
 
       if (isEdit) {
-        await CliqDatabase.keysRepository.update(
+        await CliqDatabase.keysService.update(
+          current!.id.value,
           KeysCompanion(
             label: ValueExtension.absentIfSame(
               labelCtrl.text,
@@ -61,12 +62,10 @@ class CreateOrEditKeyView extends HookConsumerWidget {
           ),
         );
       } else {
-        await CliqDatabase.keysRepository.insert(
-          KeysCompanion.insert(
-            label: labelCtrl.text,
-            privatePem: pemCtrl.text,
-            passphrase: ValueExtension.absentIfNullOrEmpty(passCtrl.text),
-          ),
+        await CliqDatabase.keysService.createKey(
+          labelCtrl.text,
+          pemCtrl.text,
+          passphrase: passCtrl.text,
         );
       }
 
