@@ -35,8 +35,8 @@ part 'database.g.dart';
   },
 )
 final class CliqDatabase extends _$CliqDatabase {
-  static late KeyRepository keyRepository;
-  static late KeyService keyService;
+  static late KeyRepository keysRepository;
+  static late KeyService keysService;
 
   static late CredentialsRepository credentialsRepository;
   static late CredentialService credentialService;
@@ -60,8 +60,8 @@ final class CliqDatabase extends _$CliqDatabase {
 
   static void init() {
     final db = CliqDatabase();
-    keyRepository = KeyRepository(db);
-    keyService = KeyService(keyRepository);
+    keysRepository = KeyRepository(db);
+    keysService = KeyService(keysRepository);
 
     credentialsRepository = CredentialsRepository(db);
     credentialService = CredentialService(credentialsRepository);

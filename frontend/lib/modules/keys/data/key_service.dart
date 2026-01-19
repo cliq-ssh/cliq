@@ -11,4 +11,6 @@ final class KeyService {
   Future<List<Key>> findByIds(List<int> ids) {
     return keyRepository.db.findKeyByIds(ids).get();
   }
+
+  Future<void> deleteById(int id) => keyRepository.deleteById(id);
 }

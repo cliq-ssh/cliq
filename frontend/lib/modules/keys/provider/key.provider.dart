@@ -6,13 +6,13 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import '../../../shared/data/database.dart';
 import '../model/key.state.dart';
 
-final identityProvider = NotifierProvider(IdentityNotifier.new);
+final keyIdProvider = NotifierProvider(KeyNotifier.new);
 
-class IdentityNotifier extends AbstractEntityNotifier<int, KeyEntityState> {
+class KeyNotifier extends AbstractEntityNotifier<int, KeyEntityState> {
   @override
   KeyEntityState buildInitialState() => .initial();
   @override
-  Stream<List<int>> get entityStream => CliqDatabase.keyService.watchAll();
+  Stream<List<int>> get entityStream => CliqDatabase.keysService.watchAll();
 
   @override
   KeyEntityState buildStateFromEntities(List<int> entities) =>
