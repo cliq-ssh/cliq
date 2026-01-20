@@ -15,13 +15,15 @@ import '../../../shared/data/database.dart';
 class CreateOrEditKeyView extends HookConsumerWidget {
   final KeysCompanion? current;
   final bool isEdit;
+  final String? initialLabel;
 
-  const CreateOrEditKeyView.create({super.key})
+  const CreateOrEditKeyView.create({super.key, this.initialLabel})
     : current = null,
       isEdit = false;
 
   CreateOrEditKeyView.edit(Key keyEntity, {super.key})
-    : current = KeysCompanion(
+    : initialLabel = null,
+      current = KeysCompanion(
         id: Value(keyEntity.id),
         label: Value(keyEntity.label),
         privatePem: Value(keyEntity.privatePem),
@@ -33,7 +35,9 @@ class CreateOrEditKeyView extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final formKey = useMemoized(() => GlobalKey<FormState>());
 
-    final labelCtrl = useTextEditingController(text: current?.label.value);
+    final labelCtrl = useTextEditingController(
+      text: initialLabel ?? current?.label.value,
+    );
     final pemCtrl = useTextEditingController(text: current?.privatePem.value);
     final passCtrl = useTextEditingController(text: current?.passphrase.value);
 

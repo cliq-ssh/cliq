@@ -73,6 +73,7 @@ class CreateOrEditCredentialsForm extends StatefulHookConsumerWidget {
 class CreateOrEditCredentialsFormState
     extends ConsumerState<CreateOrEditCredentialsForm> {
   late final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
+  late final FocusNode _focusNode = FocusNode();
   late final ValueNotifier<List<_CredentialData>> _selectedCredentials;
 
   @override
@@ -82,13 +83,13 @@ class CreateOrEditCredentialsFormState
   }
 
   static String toAutocompleteString(int keyId, String keyLabel) {
-    return '$keyLabel ($keyId)';
+    return '${keyLabel.trim()} ($keyId)';
   }
 
   static (int? keyId, String? keyLabel) fromAutocompleteString(String value) {
     final match = RegExp(r'^(.*) \((\d+)\)$').firstMatch(value);
     if (match != null) {
-      final label = match.group(1)!;
+      final label = match.group(1)!.trim();
       final id = int.parse(match.group(2)!);
       return (id, label);
     }
@@ -218,6 +219,7 @@ class CreateOrEditCredentialsFormState
               children.add(switch (allowedType) {
                 .password => FTextFormField(
                   control: .managed(controller: data.controller),
+                  focusNode: _focusNode,
                   label: buildCredentialLabel(data),
                   minLines: 1,
                   obscureText: true,
@@ -247,9 +249,14 @@ class CreateOrEditCredentialsFormState
                       final result = await Commons.showResponsiveDialog(
                         context,
                         breakpoint,
-                        (_) => CreateOrEditKeyView.create(),
+                        (_) => CreateOrEditKeyView.create(
+                          initialLabel: data.controller.text.isEmpty
+                              ? null
+                              : data.controller.text.trim(),
+                        ),
                       );
                       if (result != null) {
+                        _focusNode.unfocus();
                         final newText = toAutocompleteString(
                           result.$1,
                           result.$2,
@@ -285,6 +292,7 @@ class CreateOrEditCredentialsFormState
                         value: suggestion,
                       ),
                   ],
+                  focusNode: _focusNode,
                   label: buildCredentialLabel(data),
                   minLines: 1,
                   validator: (s) {
