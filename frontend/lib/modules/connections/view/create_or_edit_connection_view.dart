@@ -74,6 +74,8 @@ class CreateOrEditConnectionView extends HookConsumerWidget {
       currentCredentialIds = connection.credentialIds,
       isEdit = true;
 
+  // TODO: move this to a utility class
+
   static String toAutocompleteString(int identityId, String identityLabel) {
     return '${identityLabel.trim()} ($identityId)';
   }
@@ -629,14 +631,7 @@ class CreateOrEditConnectionView extends HookConsumerWidget {
                     children: [
                       Expanded(
                         child: FAutocomplete.builder(
-                          control: .managed(
-                            controller: usernameCtrl,
-                            onChange: (text) {
-                              selectedIdentityId.value = fromAutocompleteString(
-                                text.text,
-                              ).$1;
-                            },
-                          ),
+                          control: .managed(controller: usernameCtrl),
                           filter: (query) async {
                             final values = identities.entities.map(
                               (i) => toAutocompleteString(i.id, i.label),
@@ -663,7 +658,18 @@ class CreateOrEditConnectionView extends HookConsumerWidget {
                           focusNode: usernameFocusNode,
                           label: Text('Username'),
                           minLines: 1,
-                          validator: Validators.nonEmpty,
+                          validator: (s) {
+                            final empty = Validators.nonEmpty(s);
+                            if (empty != null) return empty;
+
+                            // workaround as onChange does not trigger when selecting an autocomplete item
+                            WidgetsBinding.instance.addPostFrameCallback((_) {
+                              selectedIdentityId.value = fromAutocompleteString(
+                                s!,
+                              ).$1;
+                            });
+                            return null;
+                          },
                           autovalidateMode: .onUserInteraction,
                         ),
                       ),
