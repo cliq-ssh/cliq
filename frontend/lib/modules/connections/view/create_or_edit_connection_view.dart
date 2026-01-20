@@ -74,12 +74,27 @@ class CreateOrEditConnectionView extends HookConsumerWidget {
       currentCredentialIds = connection.credentialIds,
       isEdit = true;
 
+  static String toAutocompleteString(int identityId, String identityLabel) {
+    return '${identityLabel.trim()} ($identityId)';
+  }
+
+  static (int? keyId, String? keyLabel) fromAutocompleteString(String value) {
+    final match = RegExp(r'^(.*) \((\d+)\)$').firstMatch(value);
+    if (match != null) {
+      final label = match.group(1)!.trim();
+      final id = int.parse(match.group(2)!);
+      return (id, label);
+    }
+    return (null, null);
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final formKey = useMemoized(() => GlobalKey<FormState>());
     final credentialsKey = useMemoized(
       () => GlobalKey<CreateOrEditCredentialsFormState>(),
     );
+    final usernameFocusNode = useFocusNode();
 
     final defaultTerminalTypography = useStore(.defaultTerminalTypography);
     final identities = ref.watch(identityProvider);
@@ -120,6 +135,7 @@ class CreateOrEditConnectionView extends HookConsumerWidget {
     final selectedTerminalThemeId = useState<int?>(
       current?.terminalThemeOverrideId.value,
     );
+    final selectedIdentityId = useState<int?>(current?.identityId.value);
 
     final labelPlaceholder = useState<String>('');
     final groups = useMemoizedFuture(() async {
@@ -276,29 +292,6 @@ class CreateOrEditConnectionView extends HookConsumerWidget {
         obscureText: obscure,
         maxLines: maxLines,
         minLines: minLines,
-        autovalidateMode: AutovalidateMode.onUserInteraction,
-      );
-    }
-
-    Widget buildAutocompleteTextField({
-      required FAutocompleteController controller,
-      required String label,
-      required Map<String, String> items,
-      String? hint,
-      String? Function(String?)? validator,
-    }) {
-      return FAutocomplete.builder(
-        control: .managed(controller: controller),
-        label: Text(label),
-        filter: (text) => items.values.where(
-          (item) => item.toLowerCase().contains(text.toLowerCase()),
-        ),
-        contentBuilder: (context, text, suggestions) => [
-          for (final entry in items.entries)
-            FAutocompleteItem(value: entry.key, title: Text(entry.value)),
-        ],
-        hint: hint,
-        validator: validator,
         autovalidateMode: AutovalidateMode.onUserInteraction,
       );
     }
@@ -471,7 +464,7 @@ class CreateOrEditConnectionView extends HookConsumerWidget {
       if (!(formKey.currentState?.validate() ?? false)) return;
       final newCredentialIds = await credentialsKey.currentState?.save();
       // null is only returned when validation fails
-      if (newCredentialIds == null) return;
+      if (selectedIdentityId.value == null && newCredentialIds == null) return;
 
       // TODO: cleanup, implement identity selection
 
@@ -505,11 +498,16 @@ class CreateOrEditConnectionView extends HookConsumerWidget {
             int.tryParse(portCtrl.text.trim()) ?? 22,
             current?.port.value,
           ),
-          username: ValueExtension.absentIfSame(
-            usernameCtrl.text,
-            current?.username.value,
+          username: selectedIdentityId.value != null
+              ? Value.absent()
+              : ValueExtension.absentIfSame(
+                  usernameCtrl.text,
+                  current?.username.value,
+                ),
+          identityId: ValueExtension.absentIfSame(
+            selectedIdentityId.value,
+            current?.identityId.value,
           ),
-          identityId: const Value.absent(), // TODO
           terminalTypographyOverride: ValueExtension.absentIfSame(
             selectedTypographyOverride.value,
             current?.terminalTypographyOverride.value ??
@@ -537,16 +535,18 @@ class CreateOrEditConnectionView extends HookConsumerWidget {
             groupName: ValueExtension.absentIfNullOrEmpty(groupCtrl.text),
             address: addressCtrl.text.trim(),
             port: int.tryParse(portCtrl.text.trim()) ?? 22,
-            username: ValueExtension.absentIfNullOrEmpty(usernameCtrl.text),
+            username: selectedIdentityId.value != null
+                ? Value.absent()
+                : ValueExtension.absentIfNullOrEmpty(usernameCtrl.text),
             terminalTypographyOverride: ValueExtension.absentIfNullOrEmpty(
               selectedTypographyOverride.value,
             ),
             terminalThemeOverrideId: ValueExtension.absentIfNullOrEmpty(
               selectedTerminalThemeId.value,
             ),
-            identityId: const Value.absent(), // TODO
+            identityId: Value.absentIfNull(selectedIdentityId.value),
           ),
-          newCredentialIds,
+          newCredentialIds ?? [],
         );
       }
 
@@ -628,26 +628,57 @@ class CreateOrEditConnectionView extends HookConsumerWidget {
                   Row(
                     children: [
                       Expanded(
-                        child: buildAutocompleteTextField(
-                          controller: usernameCtrl,
-                          label: 'Username',
-                          hint: 'root',
-                          validator: Validators.nonEmpty,
-                          items: {
-                            for (final identity in identities.entities)
-                              identity.id.toString(): identity.username,
+                        child: FAutocomplete.builder(
+                          control: .managed(
+                            controller: usernameCtrl,
+                            onChange: (text) {
+                              selectedIdentityId.value = fromAutocompleteString(
+                                text.text,
+                              ).$1;
+                            },
+                          ),
+                          filter: (query) async {
+                            final values = identities.entities.map(
+                              (i) => toAutocompleteString(i.id, i.label),
+                            );
+                            if (query.isEmpty) {
+                              return values;
+                            }
+                            return values.where(
+                              (v) =>
+                                  v.toLowerCase().contains(query.toLowerCase()),
+                            );
                           },
+                          contentBuilder: (context, text, suggestions) => [
+                            for (final suggestion in suggestions)
+                              FAutocompleteItem(
+                                prefix: Icon(LucideIcons.users),
+                                title: Text(
+                                  fromAutocompleteString(suggestion).$2 ??
+                                      suggestion,
+                                ),
+                                value: suggestion,
+                              ),
+                          ],
+                          focusNode: usernameFocusNode,
+                          label: Text('Username'),
+                          minLines: 1,
+                          validator: Validators.nonEmpty,
+                          autovalidateMode: .onUserInteraction,
                         ),
                       ),
                     ],
                   ),
 
-                  isEdit
-                      ? CreateOrEditCredentialsForm.edit(
-                          key: credentialsKey,
-                          currentCredentialIds,
-                        )
-                      : CreateOrEditCredentialsForm.create(key: credentialsKey),
+                  if (selectedIdentityId.value == null)
+                    isEdit
+                        ? CreateOrEditCredentialsForm.edit(
+                            key: credentialsKey,
+                            currentCredentialIds,
+                          )
+                        : CreateOrEditCredentialsForm.create(
+                            key: credentialsKey,
+                          ),
 
                   FAccordion(
                     control: .lifted(

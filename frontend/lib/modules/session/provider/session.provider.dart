@@ -69,7 +69,9 @@ class ShellSessionNotifier extends Notifier<SSHSessionState> {
 
   Future<SSHClient> createSSHClient(ConnectionFull connection) async {
     final (password, keys) = CredentialService.collectAuthenticationMethods(
-      await CliqDatabase.credentialService.findByIds(connection.credentialIds),
+      await CliqDatabase.credentialService.findByIds(
+        connection.identity?.credentialIds ?? connection.credentialIds,
+      ),
     );
 
     final socket = await SSHSocket.connect(connection.address, connection.port);
