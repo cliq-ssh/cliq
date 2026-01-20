@@ -1,11 +1,18 @@
+import 'package:cliq/modules/keys/provider/key.provider.dart';
 import 'package:cliq/shared/data/database.dart';
+import 'package:cliq/shared/extensions/async_snapshot.extension.dart';
+import 'package:cliq_ui/cliq_ui.dart' show useMemoizedFuture;
+import 'package:cliq_ui/hooks/use_breakpoint.export.dart' show useBreakpoint;
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:forui/forui.dart';
+import 'package:forui_hooks/forui_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lucide_flutter/lucide_flutter.dart';
 
 import '../../modules/credentials/model/credential_type.dart';
+import '../../modules/keys/view/create_or_edit_key_view.dart';
+import '../utils/commons.dart';
 import '../utils/validators.dart';
 
 /// Helper class to define allowed credential types and their properties.
@@ -15,9 +22,8 @@ enum _AllowedCredentialType {
     label: 'Password',
     icon: LucideIcons.rectangleEllipsis,
     singleInstance: true,
-  )
-  // TODO: key(type: .key, label: 'Key', icon: LucideIcons.keyRound)
-  ;
+  ),
+  key(type: .key, label: 'Key', icon: LucideIcons.keyRound);
 
   final CredentialType type;
   final String label;
@@ -37,15 +43,15 @@ enum _AllowedCredentialType {
 final class _CredentialData {
   final int? id;
   final CredentialType type;
-  final TextEditingController dataController = TextEditingController();
+  final FAutocompleteController controller = FAutocompleteController();
 
   _CredentialData({required this.id, required this.type, String? initialData}) {
     if (initialData != null) {
-      dataController.text = initialData;
+      controller.text = initialData;
     }
   }
 
-  void dispose() => dataController.dispose();
+  void dispose() => controller.dispose();
 }
 
 class CreateOrEditCredentialsForm extends StatefulHookConsumerWidget {
@@ -75,6 +81,20 @@ class CreateOrEditCredentialsFormState
     _selectedCredentials = ValueNotifier<List<_CredentialData>>([]);
   }
 
+  static String toAutocompleteString(int keyId, String keyLabel) {
+    return '$keyLabel ($keyId)';
+  }
+
+  static (int? keyId, String? keyLabel) fromAutocompleteString(String value) {
+    final match = RegExp(r'^(.*) \((\d+)\)$').firstMatch(value);
+    if (match != null) {
+      final label = match.group(1)!;
+      final id = int.parse(match.group(2)!);
+      return (id, label);
+    }
+    return (null, null);
+  }
+
   /// Saves the current state of the form.
   /// Validates the form and creates or updates credentials as necessary.
   /// Returns a list of created credential IDs, or null if validation fails.
@@ -86,19 +106,24 @@ class CreateOrEditCredentialsFormState
     final createdIds = <int>[];
     final modifiedIds = <int>[];
     for (final data in _selectedCredentials.value) {
+      final controllerData = switch (data.type) {
+        .key => fromAutocompleteString(data.controller.text).$1!.toString(),
+        .password => data.controller.text,
+      };
+
       if (data.id != null) {
         modifiedIds.add(
           await CliqDatabase.credentialService.update(
             data.id!,
             data.type,
-            data.dataController.text,
+            controllerData,
           ),
         );
       } else {
         createdIds.add(
           await CliqDatabase.credentialService.create(
             data.type,
-            data.dataController.text,
+            controllerData,
           ),
         );
       }
@@ -128,6 +153,12 @@ class CreateOrEditCredentialsFormState
 
   @override
   Widget build(BuildContext context) {
+    final breakpoint = useBreakpoint();
+    final popoverController = useFPopoverController();
+    final keyIds = ref.watch(keyIdProvider);
+    final keysFuture = useMemoizedFuture(() async {
+      return await CliqDatabase.keysService.findByIds(keyIds.entities);
+    }, [keyIds]);
     useEffect(() {
       if (widget.current != null) {
         CliqDatabase.credentialService.findByIds(widget.current!).then((creds) {
@@ -137,7 +168,7 @@ class CreateOrEditCredentialsFormState
               type: c.type,
               initialData: switch (c.type) {
                 .password => c.password,
-                .key => c.keyId.toString(),
+                .key => toAutocompleteString(c.key!.id, c.key!.label),
               },
             );
           }).toList();
@@ -186,11 +217,89 @@ class CreateOrEditCredentialsFormState
               );
               children.add(switch (allowedType) {
                 .password => FTextFormField(
-                  control: .managed(controller: data.dataController),
+                  control: .managed(controller: data.controller),
                   label: buildCredentialLabel(data),
                   minLines: 1,
                   obscureText: true,
                   validator: Validators.nonEmpty,
+                  autovalidateMode: .onUserInteraction,
+                ),
+                .key => FAutocomplete.builder(
+                  control: .managed(controller: data.controller),
+                  filter: (query) async {
+                    return keysFuture.on(
+                      onLoading: () => [],
+                      onData: (keys) {
+                        final values = keys.map(
+                          (k) => toAutocompleteString(k.id, k.label),
+                        );
+                        if (query.isEmpty) {
+                          return values;
+                        }
+                        return values.where(
+                          (v) => v.toLowerCase().contains(query.toLowerCase()),
+                        );
+                      },
+                    );
+                  },
+                  contentEmptyBuilder: (_, _) => GestureDetector(
+                    onTap: () async {
+                      final result = await Commons.showResponsiveDialog(
+                        context,
+                        breakpoint,
+                        (_) => CreateOrEditKeyView.create(),
+                      );
+                      if (result != null) {
+                        final newText = toAutocompleteString(
+                          result.$1,
+                          result.$2,
+                        );
+                        data.controller.text = newText;
+                      }
+                    },
+                    child: Padding(
+                      padding: const .symmetric(horizontal: 8, vertical: 14),
+                      child: Row(
+                        spacing: 4,
+                        mainAxisAlignment: .center,
+                        children: [
+                          Icon(
+                            LucideIcons.plus,
+                            size: 16,
+                            color: context.theme.colors.foreground,
+                          ),
+                          data.controller.text.isEmpty
+                              ? Text('Create Key')
+                              : Text('Create Key "${data.controller.text}"'),
+                        ],
+                      ),
+                    ),
+                  ),
+                  contentBuilder: (context, text, suggestions) => [
+                    for (final suggestion in suggestions)
+                      FAutocompleteItem(
+                        prefix: Icon(LucideIcons.keyRound),
+                        title: Text(
+                          fromAutocompleteString(suggestion).$2 ?? suggestion,
+                        ),
+                        value: suggestion,
+                      ),
+                  ],
+                  label: buildCredentialLabel(data),
+                  minLines: 1,
+                  validator: (s) {
+                    final empty = Validators.nonEmpty(s);
+                    if (empty != null) {
+                      return empty;
+                    }
+                    final (id, label) = fromAutocompleteString(s ?? '');
+                    if (id == null ||
+                        (keysFuture.hasData &&
+                            !keysFuture.data!.any((k) => k.id == id))) {
+                      return 'Please select a valid key.';
+                    }
+                    return null;
+                  },
                   autovalidateMode: .onUserInteraction,
                 ),
               });
@@ -216,6 +325,7 @@ class CreateOrEditCredentialsFormState
                   alignment: WrapAlignment.center,
                   children: [
                     FPopoverMenu(
+                      control: .managed(controller: popoverController),
                       menu: [
                         FItemGroup(
                           children: [
@@ -228,6 +338,7 @@ class CreateOrEditCredentialsFormState
                                   prefix: Icon(allowed.icon),
                                   title: Text(allowed.label),
                                   onPress: () {
+                                    popoverController.hide();
                                     final updated = [
                                       ...selectedCredentials,
                                       _CredentialData(

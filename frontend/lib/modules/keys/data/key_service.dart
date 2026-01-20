@@ -19,8 +19,8 @@ final class KeyService {
     String? passphrase,
   }) => keyRepository.insert(
     KeysCompanion.insert(
-      label: label,
-      privatePem: privatePem,
+      label: label.trim(),
+      privatePem: privatePem.trim(),
       passphrase: Value.absentIfNull(passphrase),
     ),
   );

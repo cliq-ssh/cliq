@@ -43,34 +43,32 @@ class CreateOrEditKeyView extends HookConsumerWidget {
     Future<void> onSave() async {
       if (!(formKey.currentState?.validate() ?? false)) return;
 
-      if (isEdit) {
-        await CliqDatabase.keysService.update(
-          current!.id.value,
-          KeysCompanion(
-            label: ValueExtension.absentIfSame(
+      final keyId = isEdit
+          ? await CliqDatabase.keysService.update(
+              current!.id.value,
+              KeysCompanion(
+                label: ValueExtension.absentIfSame(
+                  labelCtrl.text.trim(),
+                  current?.label.value,
+                ),
+                privatePem: ValueExtension.absentIfSame(
+                  pemCtrl.text.trim(),
+                  current?.privatePem.value,
+                ),
+                passphrase: ValueExtension.absentIfSame(
+                  passCtrl.text.trim(),
+                  current?.passphrase.value,
+                ),
+              ),
+            )
+          : await CliqDatabase.keysService.createKey(
               labelCtrl.text,
-              current?.label.value,
-            ),
-            privatePem: ValueExtension.absentIfSame(
               pemCtrl.text,
-              current?.privatePem.value,
-            ),
-            passphrase: ValueExtension.absentIfSame(
-              passCtrl.text,
-              current?.passphrase.value,
-            ),
-          ),
-        );
-      } else {
-        await CliqDatabase.keysService.createKey(
-          labelCtrl.text,
-          pemCtrl.text,
-          passphrase: passCtrl.text,
-        );
-      }
+              passphrase: passCtrl.text,
+            );
 
       if (!context.mounted) return;
-      context.pop();
+      context.pop((keyId, labelCtrl.text));
     }
 
     return FScaffold(
