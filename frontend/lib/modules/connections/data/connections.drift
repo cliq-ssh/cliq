@@ -7,16 +7,16 @@ import '../../../shared/data/converters/terminal_typography_converter.dart';
 
 CREATE TABLE connections (
     id                              INTEGER PRIMARY KEY AUTOINCREMENT,
+    label                           TEXT NOT NULL,
     address                         TEXT NOT NULL,
     port                            INTEGER NOT NULL,
     identity_id                     INTEGER REFERENCES identities(id) ON DELETE SET NULL,
     username                        TEXT,
-    label                           TEXT,
-    icon                            ENUM(ConnectionIcon) NOT NULL DEFAULT 'unknown',
-    icon_color                      INTEGER MAPPED BY `const ColorConverter()`,
-    icon_background_color           INTEGER MAPPED BY `const ColorConverter()`,
-    is_icon_auto_detect             BOOLEAN NOT NULL DEFAULT TRUE,
     group_name                      TEXT,
+    icon                            ENUM(ConnectionIcon) NOT NULL DEFAULT 'unknown',
+    icon_color                      INTEGER NOT NULL MAPPED BY `const ColorConverter()`,
+    icon_background_color           INTEGER NOT NULL MAPPED BY `const ColorConverter()`,
+    is_icon_auto_detect             BOOLEAN NOT NULL DEFAULT TRUE,
     terminal_typography_override    TEXT MAPPED BY `const TerminalTypographyConverter()`,
     terminal_theme_override_id      INTEGER REFERENCES custom_terminal_themes(id) ON DELETE SET NULL,
 

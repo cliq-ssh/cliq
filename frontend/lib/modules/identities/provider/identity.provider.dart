@@ -17,6 +17,15 @@ class IdentityNotifier
   Stream<List<IdentityFull>> get entityStream =>
       CliqDatabase.identityService.watchAll();
 
+  IdentityFull? findById(int id) {
+    for (final identities in state.entities) {
+      if (identities.id == id) {
+        return identities;
+      }
+    }
+    return null;
+  }
+
   @override
   IdentityEntityState buildStateFromEntities(List<IdentityFull> entities) =>
       state.copyWith(entities: entities);

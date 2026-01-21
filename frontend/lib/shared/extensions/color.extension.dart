@@ -3,7 +3,7 @@ import 'dart:ui';
 
 extension ColorExtension on Color {
   String toHex({bool withAlpha = false}) {
-    return '#${[if (withAlpha) a, r, g, b].map((c) => (c * 255).round().toRadixString(16).padLeft(2, '0')).join()}';
+    return '#${[if (withAlpha) a, r, g, b].map((c) => (c * 255).round().toRadixString(16).padLeft(2, '0')).join().toUpperCase()}';
   }
 
   Color invert() {

@@ -95,7 +95,7 @@ class _SessionTabState extends ConsumerState<SessionTab> {
             crossAxisAlignment: .start,
             children: [
               Text(
-                widget.session.effectiveName,
+                widget.session.connection.label,
                 style: typography.lg.copyWith(fontWeight: .bold),
               ),
               if (widget.session.connection.groupName != null)
@@ -124,7 +124,7 @@ class _SessionTabState extends ConsumerState<SessionTab> {
               padding: const EdgeInsets.symmetric(vertical: 2),
               child: Row(
                 spacing: 8,
-                children: [?buildIcon(), Text(widget.session.effectiveName)],
+                children: [?buildIcon(), Text(widget.session.connection.label)],
               ),
             ),
           ),

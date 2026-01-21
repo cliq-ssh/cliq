@@ -2536,6 +2536,15 @@ class Connections extends Table with TableInfo<Connections, Connection> {
     requiredDuringInsert: false,
     $customConstraints: 'PRIMARY KEY AUTOINCREMENT',
   );
+  static const VerificationMeta _labelMeta = const VerificationMeta('label');
+  late final GeneratedColumn<String> label = GeneratedColumn<String>(
+    'label',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    $customConstraints: 'NOT NULL',
+  );
   static const VerificationMeta _addressMeta = const VerificationMeta(
     'address',
   );
@@ -2578,9 +2587,11 @@ class Connections extends Table with TableInfo<Connections, Connection> {
     requiredDuringInsert: false,
     $customConstraints: '',
   );
-  static const VerificationMeta _labelMeta = const VerificationMeta('label');
-  late final GeneratedColumn<String> label = GeneratedColumn<String>(
-    'label',
+  static const VerificationMeta _groupNameMeta = const VerificationMeta(
+    'groupName',
+  );
+  late final GeneratedColumn<String> groupName = GeneratedColumn<String>(
+    'group_name',
     aliasedName,
     true,
     type: DriftSqlType.string,
@@ -2597,24 +2608,24 @@ class Connections extends Table with TableInfo<Connections, Connection> {
         $customConstraints: 'NOT NULL DEFAULT \'unknown\'',
         defaultValue: const CustomExpression('\'unknown\''),
       ).withConverter<ConnectionIcon>(Connections.$convertericon);
-  late final GeneratedColumnWithTypeConverter<Color?, int> iconColor =
+  late final GeneratedColumnWithTypeConverter<Color, int> iconColor =
       GeneratedColumn<int>(
         'icon_color',
         aliasedName,
-        true,
+        false,
         type: DriftSqlType.int,
-        requiredDuringInsert: false,
-        $customConstraints: '',
-      ).withConverter<Color?>(Connections.$convertericonColorn);
-  late final GeneratedColumnWithTypeConverter<Color?, int> iconBackgroundColor =
+        requiredDuringInsert: true,
+        $customConstraints: 'NOT NULL',
+      ).withConverter<Color>(Connections.$convertericonColor);
+  late final GeneratedColumnWithTypeConverter<Color, int> iconBackgroundColor =
       GeneratedColumn<int>(
         'icon_background_color',
         aliasedName,
-        true,
+        false,
         type: DriftSqlType.int,
-        requiredDuringInsert: false,
-        $customConstraints: '',
-      ).withConverter<Color?>(Connections.$convertericonBackgroundColorn);
+        requiredDuringInsert: true,
+        $customConstraints: 'NOT NULL',
+      ).withConverter<Color>(Connections.$convertericonBackgroundColor);
   static const VerificationMeta _isIconAutoDetectMeta = const VerificationMeta(
     'isIconAutoDetect',
   );
@@ -2626,17 +2637,6 @@ class Connections extends Table with TableInfo<Connections, Connection> {
     requiredDuringInsert: false,
     $customConstraints: 'NOT NULL DEFAULT TRUE',
     defaultValue: const CustomExpression('TRUE'),
-  );
-  static const VerificationMeta _groupNameMeta = const VerificationMeta(
-    'groupName',
-  );
-  late final GeneratedColumn<String> groupName = GeneratedColumn<String>(
-    'group_name',
-    aliasedName,
-    true,
-    type: DriftSqlType.string,
-    requiredDuringInsert: false,
-    $customConstraints: '',
   );
   late final GeneratedColumnWithTypeConverter<TerminalTypography?, String>
   terminalTypographyOverride =
@@ -2665,16 +2665,16 @@ class Connections extends Table with TableInfo<Connections, Connection> {
   @override
   List<GeneratedColumn> get $columns => [
     id,
+    label,
     address,
     port,
     identityId,
     username,
-    label,
+    groupName,
     icon,
     iconColor,
     iconBackgroundColor,
     isIconAutoDetect,
-    groupName,
     terminalTypographyOverride,
     terminalThemeOverrideId,
   ];
@@ -2692,6 +2692,14 @@ class Connections extends Table with TableInfo<Connections, Connection> {
     final data = instance.toColumns(true);
     if (data.containsKey('id')) {
       context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
+    if (data.containsKey('label')) {
+      context.handle(
+        _labelMeta,
+        label.isAcceptableOrUnknown(data['label']!, _labelMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_labelMeta);
     }
     if (data.containsKey('address')) {
       context.handle(
@@ -2721,10 +2729,10 @@ class Connections extends Table with TableInfo<Connections, Connection> {
         username.isAcceptableOrUnknown(data['username']!, _usernameMeta),
       );
     }
-    if (data.containsKey('label')) {
+    if (data.containsKey('group_name')) {
       context.handle(
-        _labelMeta,
-        label.isAcceptableOrUnknown(data['label']!, _labelMeta),
+        _groupNameMeta,
+        groupName.isAcceptableOrUnknown(data['group_name']!, _groupNameMeta),
       );
     }
     if (data.containsKey('is_icon_auto_detect')) {
@@ -2734,12 +2742,6 @@ class Connections extends Table with TableInfo<Connections, Connection> {
           data['is_icon_auto_detect']!,
           _isIconAutoDetectMeta,
         ),
-      );
-    }
-    if (data.containsKey('group_name')) {
-      context.handle(
-        _groupNameMeta,
-        groupName.isAcceptableOrUnknown(data['group_name']!, _groupNameMeta),
       );
     }
     if (data.containsKey('terminal_theme_override_id')) {
@@ -2764,6 +2766,10 @@ class Connections extends Table with TableInfo<Connections, Connection> {
         DriftSqlType.int,
         data['${effectivePrefix}id'],
       )!,
+      label: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}label'],
+      )!,
       address: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}address'],
@@ -2780,9 +2786,9 @@ class Connections extends Table with TableInfo<Connections, Connection> {
         DriftSqlType.string,
         data['${effectivePrefix}username'],
       ),
-      label: attachedDatabase.typeMapping.read(
+      groupName: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
-        data['${effectivePrefix}label'],
+        data['${effectivePrefix}group_name'],
       ),
       icon: Connections.$convertericon.fromSql(
         attachedDatabase.typeMapping.read(
@@ -2790,26 +2796,22 @@ class Connections extends Table with TableInfo<Connections, Connection> {
           data['${effectivePrefix}icon'],
         )!,
       ),
-      iconColor: Connections.$convertericonColorn.fromSql(
+      iconColor: Connections.$convertericonColor.fromSql(
         attachedDatabase.typeMapping.read(
           DriftSqlType.int,
           data['${effectivePrefix}icon_color'],
-        ),
+        )!,
       ),
-      iconBackgroundColor: Connections.$convertericonBackgroundColorn.fromSql(
+      iconBackgroundColor: Connections.$convertericonBackgroundColor.fromSql(
         attachedDatabase.typeMapping.read(
           DriftSqlType.int,
           data['${effectivePrefix}icon_background_color'],
-        ),
+        )!,
       ),
       isIconAutoDetect: attachedDatabase.typeMapping.read(
         DriftSqlType.bool,
         data['${effectivePrefix}is_icon_auto_detect'],
       )!,
-      groupName: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}group_name'],
-      ),
       terminalTypographyOverride: Connections
           .$converterterminalTypographyOverriden
           .fromSql(
@@ -2833,12 +2835,8 @@ class Connections extends Table with TableInfo<Connections, Connection> {
   static JsonTypeConverter2<ConnectionIcon, int, int> $convertericon =
       const EnumIndexConverter<ConnectionIcon>(ConnectionIcon.values);
   static TypeConverter<Color, int> $convertericonColor = const ColorConverter();
-  static TypeConverter<Color?, int?> $convertericonColorn =
-      NullAwareTypeConverter.wrap($convertericonColor);
   static TypeConverter<Color, int> $convertericonBackgroundColor =
       const ColorConverter();
-  static TypeConverter<Color?, int?> $convertericonBackgroundColorn =
-      NullAwareTypeConverter.wrap($convertericonBackgroundColor);
   static TypeConverter<TerminalTypography, String>
   $converterterminalTypographyOverride = const TerminalTypographyConverter();
   static TypeConverter<TerminalTypography?, String?>
@@ -2855,30 +2853,30 @@ class Connections extends Table with TableInfo<Connections, Connection> {
 
 class Connection extends DataClass implements Insertable<Connection> {
   final int id;
+  final String label;
   final String address;
   final int port;
   final int? identityId;
   final String? username;
-  final String? label;
-  final ConnectionIcon icon;
-  final Color? iconColor;
-  final Color? iconBackgroundColor;
-  final bool isIconAutoDetect;
   final String? groupName;
+  final ConnectionIcon icon;
+  final Color iconColor;
+  final Color iconBackgroundColor;
+  final bool isIconAutoDetect;
   final TerminalTypography? terminalTypographyOverride;
   final int? terminalThemeOverrideId;
   const Connection({
     required this.id,
+    required this.label,
     required this.address,
     required this.port,
     this.identityId,
     this.username,
-    this.label,
-    required this.icon,
-    this.iconColor,
-    this.iconBackgroundColor,
-    required this.isIconAutoDetect,
     this.groupName,
+    required this.icon,
+    required this.iconColor,
+    required this.iconBackgroundColor,
+    required this.isIconAutoDetect,
     this.terminalTypographyOverride,
     this.terminalThemeOverrideId,
   });
@@ -2886,6 +2884,7 @@ class Connection extends DataClass implements Insertable<Connection> {
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
     map['id'] = Variable<int>(id);
+    map['label'] = Variable<String>(label);
     map['address'] = Variable<String>(address);
     map['port'] = Variable<int>(port);
     if (!nullToAbsent || identityId != null) {
@@ -2894,26 +2893,23 @@ class Connection extends DataClass implements Insertable<Connection> {
     if (!nullToAbsent || username != null) {
       map['username'] = Variable<String>(username);
     }
-    if (!nullToAbsent || label != null) {
-      map['label'] = Variable<String>(label);
+    if (!nullToAbsent || groupName != null) {
+      map['group_name'] = Variable<String>(groupName);
     }
     {
       map['icon'] = Variable<int>(Connections.$convertericon.toSql(icon));
     }
-    if (!nullToAbsent || iconColor != null) {
+    {
       map['icon_color'] = Variable<int>(
-        Connections.$convertericonColorn.toSql(iconColor),
+        Connections.$convertericonColor.toSql(iconColor),
       );
     }
-    if (!nullToAbsent || iconBackgroundColor != null) {
+    {
       map['icon_background_color'] = Variable<int>(
-        Connections.$convertericonBackgroundColorn.toSql(iconBackgroundColor),
+        Connections.$convertericonBackgroundColor.toSql(iconBackgroundColor),
       );
     }
     map['is_icon_auto_detect'] = Variable<bool>(isIconAutoDetect);
-    if (!nullToAbsent || groupName != null) {
-      map['group_name'] = Variable<String>(groupName);
-    }
     if (!nullToAbsent || terminalTypographyOverride != null) {
       map['terminal_typography_override'] = Variable<String>(
         Connections.$converterterminalTypographyOverriden.toSql(
@@ -2932,6 +2928,7 @@ class Connection extends DataClass implements Insertable<Connection> {
   ConnectionsCompanion toCompanion(bool nullToAbsent) {
     return ConnectionsCompanion(
       id: Value(id),
+      label: Value(label),
       address: Value(address),
       port: Value(port),
       identityId: identityId == null && nullToAbsent
@@ -2940,20 +2937,13 @@ class Connection extends DataClass implements Insertable<Connection> {
       username: username == null && nullToAbsent
           ? const Value.absent()
           : Value(username),
-      label: label == null && nullToAbsent
-          ? const Value.absent()
-          : Value(label),
-      icon: Value(icon),
-      iconColor: iconColor == null && nullToAbsent
-          ? const Value.absent()
-          : Value(iconColor),
-      iconBackgroundColor: iconBackgroundColor == null && nullToAbsent
-          ? const Value.absent()
-          : Value(iconBackgroundColor),
-      isIconAutoDetect: Value(isIconAutoDetect),
       groupName: groupName == null && nullToAbsent
           ? const Value.absent()
           : Value(groupName),
+      icon: Value(icon),
+      iconColor: Value(iconColor),
+      iconBackgroundColor: Value(iconBackgroundColor),
+      isIconAutoDetect: Value(isIconAutoDetect),
       terminalTypographyOverride:
           terminalTypographyOverride == null && nullToAbsent
           ? const Value.absent()
@@ -2971,20 +2961,20 @@ class Connection extends DataClass implements Insertable<Connection> {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return Connection(
       id: serializer.fromJson<int>(json['id']),
+      label: serializer.fromJson<String>(json['label']),
       address: serializer.fromJson<String>(json['address']),
       port: serializer.fromJson<int>(json['port']),
       identityId: serializer.fromJson<int?>(json['identity_id']),
       username: serializer.fromJson<String?>(json['username']),
-      label: serializer.fromJson<String?>(json['label']),
+      groupName: serializer.fromJson<String?>(json['group_name']),
       icon: Connections.$convertericon.fromJson(
         serializer.fromJson<int>(json['icon']),
       ),
-      iconColor: serializer.fromJson<Color?>(json['icon_color']),
-      iconBackgroundColor: serializer.fromJson<Color?>(
+      iconColor: serializer.fromJson<Color>(json['icon_color']),
+      iconBackgroundColor: serializer.fromJson<Color>(
         json['icon_background_color'],
       ),
       isIconAutoDetect: serializer.fromJson<bool>(json['is_icon_auto_detect']),
-      groupName: serializer.fromJson<String?>(json['group_name']),
       terminalTypographyOverride: serializer.fromJson<TerminalTypography?>(
         json['terminal_typography_override'],
       ),
@@ -2998,16 +2988,16 @@ class Connection extends DataClass implements Insertable<Connection> {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return <String, dynamic>{
       'id': serializer.toJson<int>(id),
+      'label': serializer.toJson<String>(label),
       'address': serializer.toJson<String>(address),
       'port': serializer.toJson<int>(port),
       'identity_id': serializer.toJson<int?>(identityId),
       'username': serializer.toJson<String?>(username),
-      'label': serializer.toJson<String?>(label),
-      'icon': serializer.toJson<int>(Connections.$convertericon.toJson(icon)),
-      'icon_color': serializer.toJson<Color?>(iconColor),
-      'icon_background_color': serializer.toJson<Color?>(iconBackgroundColor),
-      'is_icon_auto_detect': serializer.toJson<bool>(isIconAutoDetect),
       'group_name': serializer.toJson<String?>(groupName),
+      'icon': serializer.toJson<int>(Connections.$convertericon.toJson(icon)),
+      'icon_color': serializer.toJson<Color>(iconColor),
+      'icon_background_color': serializer.toJson<Color>(iconBackgroundColor),
+      'is_icon_auto_detect': serializer.toJson<bool>(isIconAutoDetect),
       'terminal_typography_override': serializer.toJson<TerminalTypography?>(
         terminalTypographyOverride,
       ),
@@ -3019,33 +3009,31 @@ class Connection extends DataClass implements Insertable<Connection> {
 
   Connection copyWith({
     int? id,
+    String? label,
     String? address,
     int? port,
     Value<int?> identityId = const Value.absent(),
     Value<String?> username = const Value.absent(),
-    Value<String?> label = const Value.absent(),
-    ConnectionIcon? icon,
-    Value<Color?> iconColor = const Value.absent(),
-    Value<Color?> iconBackgroundColor = const Value.absent(),
-    bool? isIconAutoDetect,
     Value<String?> groupName = const Value.absent(),
+    ConnectionIcon? icon,
+    Color? iconColor,
+    Color? iconBackgroundColor,
+    bool? isIconAutoDetect,
     Value<TerminalTypography?> terminalTypographyOverride =
         const Value.absent(),
     Value<int?> terminalThemeOverrideId = const Value.absent(),
   }) => Connection(
     id: id ?? this.id,
+    label: label ?? this.label,
     address: address ?? this.address,
     port: port ?? this.port,
     identityId: identityId.present ? identityId.value : this.identityId,
     username: username.present ? username.value : this.username,
-    label: label.present ? label.value : this.label,
-    icon: icon ?? this.icon,
-    iconColor: iconColor.present ? iconColor.value : this.iconColor,
-    iconBackgroundColor: iconBackgroundColor.present
-        ? iconBackgroundColor.value
-        : this.iconBackgroundColor,
-    isIconAutoDetect: isIconAutoDetect ?? this.isIconAutoDetect,
     groupName: groupName.present ? groupName.value : this.groupName,
+    icon: icon ?? this.icon,
+    iconColor: iconColor ?? this.iconColor,
+    iconBackgroundColor: iconBackgroundColor ?? this.iconBackgroundColor,
+    isIconAutoDetect: isIconAutoDetect ?? this.isIconAutoDetect,
     terminalTypographyOverride: terminalTypographyOverride.present
         ? terminalTypographyOverride.value
         : this.terminalTypographyOverride,
@@ -3056,13 +3044,14 @@ class Connection extends DataClass implements Insertable<Connection> {
   Connection copyWithCompanion(ConnectionsCompanion data) {
     return Connection(
       id: data.id.present ? data.id.value : this.id,
+      label: data.label.present ? data.label.value : this.label,
       address: data.address.present ? data.address.value : this.address,
       port: data.port.present ? data.port.value : this.port,
       identityId: data.identityId.present
           ? data.identityId.value
           : this.identityId,
       username: data.username.present ? data.username.value : this.username,
-      label: data.label.present ? data.label.value : this.label,
+      groupName: data.groupName.present ? data.groupName.value : this.groupName,
       icon: data.icon.present ? data.icon.value : this.icon,
       iconColor: data.iconColor.present ? data.iconColor.value : this.iconColor,
       iconBackgroundColor: data.iconBackgroundColor.present
@@ -3071,7 +3060,6 @@ class Connection extends DataClass implements Insertable<Connection> {
       isIconAutoDetect: data.isIconAutoDetect.present
           ? data.isIconAutoDetect.value
           : this.isIconAutoDetect,
-      groupName: data.groupName.present ? data.groupName.value : this.groupName,
       terminalTypographyOverride: data.terminalTypographyOverride.present
           ? data.terminalTypographyOverride.value
           : this.terminalTypographyOverride,
@@ -3085,16 +3073,16 @@ class Connection extends DataClass implements Insertable<Connection> {
   String toString() {
     return (StringBuffer('Connection(')
           ..write('id: $id, ')
+          ..write('label: $label, ')
           ..write('address: $address, ')
           ..write('port: $port, ')
           ..write('identityId: $identityId, ')
           ..write('username: $username, ')
-          ..write('label: $label, ')
+          ..write('groupName: $groupName, ')
           ..write('icon: $icon, ')
           ..write('iconColor: $iconColor, ')
           ..write('iconBackgroundColor: $iconBackgroundColor, ')
           ..write('isIconAutoDetect: $isIconAutoDetect, ')
-          ..write('groupName: $groupName, ')
           ..write('terminalTypographyOverride: $terminalTypographyOverride, ')
           ..write('terminalThemeOverrideId: $terminalThemeOverrideId')
           ..write(')'))
@@ -3104,16 +3092,16 @@ class Connection extends DataClass implements Insertable<Connection> {
   @override
   int get hashCode => Object.hash(
     id,
+    label,
     address,
     port,
     identityId,
     username,
-    label,
+    groupName,
     icon,
     iconColor,
     iconBackgroundColor,
     isIconAutoDetect,
-    groupName,
     terminalTypographyOverride,
     terminalThemeOverrideId,
   );
@@ -3122,93 +3110,96 @@ class Connection extends DataClass implements Insertable<Connection> {
       identical(this, other) ||
       (other is Connection &&
           other.id == this.id &&
+          other.label == this.label &&
           other.address == this.address &&
           other.port == this.port &&
           other.identityId == this.identityId &&
           other.username == this.username &&
-          other.label == this.label &&
+          other.groupName == this.groupName &&
           other.icon == this.icon &&
           other.iconColor == this.iconColor &&
           other.iconBackgroundColor == this.iconBackgroundColor &&
           other.isIconAutoDetect == this.isIconAutoDetect &&
-          other.groupName == this.groupName &&
           other.terminalTypographyOverride == this.terminalTypographyOverride &&
           other.terminalThemeOverrideId == this.terminalThemeOverrideId);
 }
 
 class ConnectionsCompanion extends UpdateCompanion<Connection> {
   final Value<int> id;
+  final Value<String> label;
   final Value<String> address;
   final Value<int> port;
   final Value<int?> identityId;
   final Value<String?> username;
-  final Value<String?> label;
-  final Value<ConnectionIcon> icon;
-  final Value<Color?> iconColor;
-  final Value<Color?> iconBackgroundColor;
-  final Value<bool> isIconAutoDetect;
   final Value<String?> groupName;
+  final Value<ConnectionIcon> icon;
+  final Value<Color> iconColor;
+  final Value<Color> iconBackgroundColor;
+  final Value<bool> isIconAutoDetect;
   final Value<TerminalTypography?> terminalTypographyOverride;
   final Value<int?> terminalThemeOverrideId;
   const ConnectionsCompanion({
     this.id = const Value.absent(),
+    this.label = const Value.absent(),
     this.address = const Value.absent(),
     this.port = const Value.absent(),
     this.identityId = const Value.absent(),
     this.username = const Value.absent(),
-    this.label = const Value.absent(),
+    this.groupName = const Value.absent(),
     this.icon = const Value.absent(),
     this.iconColor = const Value.absent(),
     this.iconBackgroundColor = const Value.absent(),
     this.isIconAutoDetect = const Value.absent(),
-    this.groupName = const Value.absent(),
     this.terminalTypographyOverride = const Value.absent(),
     this.terminalThemeOverrideId = const Value.absent(),
   });
   ConnectionsCompanion.insert({
     this.id = const Value.absent(),
+    required String label,
     required String address,
     required int port,
     this.identityId = const Value.absent(),
     this.username = const Value.absent(),
-    this.label = const Value.absent(),
-    this.icon = const Value.absent(),
-    this.iconColor = const Value.absent(),
-    this.iconBackgroundColor = const Value.absent(),
-    this.isIconAutoDetect = const Value.absent(),
     this.groupName = const Value.absent(),
+    this.icon = const Value.absent(),
+    required Color iconColor,
+    required Color iconBackgroundColor,
+    this.isIconAutoDetect = const Value.absent(),
     this.terminalTypographyOverride = const Value.absent(),
     this.terminalThemeOverrideId = const Value.absent(),
-  }) : address = Value(address),
-       port = Value(port);
+  }) : label = Value(label),
+       address = Value(address),
+       port = Value(port),
+       iconColor = Value(iconColor),
+       iconBackgroundColor = Value(iconBackgroundColor);
   static Insertable<Connection> custom({
     Expression<int>? id,
+    Expression<String>? label,
     Expression<String>? address,
     Expression<int>? port,
     Expression<int>? identityId,
     Expression<String>? username,
-    Expression<String>? label,
+    Expression<String>? groupName,
     Expression<int>? icon,
     Expression<int>? iconColor,
     Expression<int>? iconBackgroundColor,
     Expression<bool>? isIconAutoDetect,
-    Expression<String>? groupName,
     Expression<String>? terminalTypographyOverride,
     Expression<int>? terminalThemeOverrideId,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
+      if (label != null) 'label': label,
       if (address != null) 'address': address,
       if (port != null) 'port': port,
       if (identityId != null) 'identity_id': identityId,
       if (username != null) 'username': username,
-      if (label != null) 'label': label,
+      if (groupName != null) 'group_name': groupName,
       if (icon != null) 'icon': icon,
       if (iconColor != null) 'icon_color': iconColor,
       if (iconBackgroundColor != null)
         'icon_background_color': iconBackgroundColor,
       if (isIconAutoDetect != null) 'is_icon_auto_detect': isIconAutoDetect,
-      if (groupName != null) 'group_name': groupName,
       if (terminalTypographyOverride != null)
         'terminal_typography_override': terminalTypographyOverride,
       if (terminalThemeOverrideId != null)
@@ -3218,31 +3209,31 @@ class ConnectionsCompanion extends UpdateCompanion<Connection> {
 
   ConnectionsCompanion copyWith({
     Value<int>? id,
+    Value<String>? label,
     Value<String>? address,
     Value<int>? port,
     Value<int?>? identityId,
     Value<String?>? username,
-    Value<String?>? label,
-    Value<ConnectionIcon>? icon,
-    Value<Color?>? iconColor,
-    Value<Color?>? iconBackgroundColor,
-    Value<bool>? isIconAutoDetect,
     Value<String?>? groupName,
+    Value<ConnectionIcon>? icon,
+    Value<Color>? iconColor,
+    Value<Color>? iconBackgroundColor,
+    Value<bool>? isIconAutoDetect,
     Value<TerminalTypography?>? terminalTypographyOverride,
     Value<int?>? terminalThemeOverrideId,
   }) {
     return ConnectionsCompanion(
       id: id ?? this.id,
+      label: label ?? this.label,
       address: address ?? this.address,
       port: port ?? this.port,
       identityId: identityId ?? this.identityId,
       username: username ?? this.username,
-      label: label ?? this.label,
+      groupName: groupName ?? this.groupName,
       icon: icon ?? this.icon,
       iconColor: iconColor ?? this.iconColor,
       iconBackgroundColor: iconBackgroundColor ?? this.iconBackgroundColor,
       isIconAutoDetect: isIconAutoDetect ?? this.isIconAutoDetect,
-      groupName: groupName ?? this.groupName,
       terminalTypographyOverride:
           terminalTypographyOverride ?? this.terminalTypographyOverride,
       terminalThemeOverrideId:
@@ -3256,6 +3247,9 @@ class ConnectionsCompanion extends UpdateCompanion<Connection> {
     if (id.present) {
       map['id'] = Variable<int>(id.value);
     }
+    if (label.present) {
+      map['label'] = Variable<String>(label.value);
+    }
     if (address.present) {
       map['address'] = Variable<String>(address.value);
     }
@@ -3268,29 +3262,26 @@ class ConnectionsCompanion extends UpdateCompanion<Connection> {
     if (username.present) {
       map['username'] = Variable<String>(username.value);
     }
-    if (label.present) {
-      map['label'] = Variable<String>(label.value);
+    if (groupName.present) {
+      map['group_name'] = Variable<String>(groupName.value);
     }
     if (icon.present) {
       map['icon'] = Variable<int>(Connections.$convertericon.toSql(icon.value));
     }
     if (iconColor.present) {
       map['icon_color'] = Variable<int>(
-        Connections.$convertericonColorn.toSql(iconColor.value),
+        Connections.$convertericonColor.toSql(iconColor.value),
       );
     }
     if (iconBackgroundColor.present) {
       map['icon_background_color'] = Variable<int>(
-        Connections.$convertericonBackgroundColorn.toSql(
+        Connections.$convertericonBackgroundColor.toSql(
           iconBackgroundColor.value,
         ),
       );
     }
     if (isIconAutoDetect.present) {
       map['is_icon_auto_detect'] = Variable<bool>(isIconAutoDetect.value);
-    }
-    if (groupName.present) {
-      map['group_name'] = Variable<String>(groupName.value);
     }
     if (terminalTypographyOverride.present) {
       map['terminal_typography_override'] = Variable<String>(
@@ -3311,16 +3302,16 @@ class ConnectionsCompanion extends UpdateCompanion<Connection> {
   String toString() {
     return (StringBuffer('ConnectionsCompanion(')
           ..write('id: $id, ')
+          ..write('label: $label, ')
           ..write('address: $address, ')
           ..write('port: $port, ')
           ..write('identityId: $identityId, ')
           ..write('username: $username, ')
-          ..write('label: $label, ')
+          ..write('groupName: $groupName, ')
           ..write('icon: $icon, ')
           ..write('iconColor: $iconColor, ')
           ..write('iconBackgroundColor: $iconBackgroundColor, ')
           ..write('isIconAutoDetect: $isIconAutoDetect, ')
-          ..write('groupName: $groupName, ')
           ..write('terminalTypographyOverride: $terminalTypographyOverride, ')
           ..write('terminalThemeOverrideId: $terminalThemeOverrideId')
           ..write(')'))
@@ -3642,7 +3633,7 @@ abstract class _$CliqDatabase extends GeneratedDatabase {
 
   Selectable<FindAllConnectionFullResult> findAllConnectionFull() {
     return customSelect(
-      'SELECT"c"."id" AS "nested_0.id", "c"."address" AS "nested_0.address", "c"."port" AS "nested_0.port", "c"."identity_id" AS "nested_0.identity_id", "c"."username" AS "nested_0.username", "c"."label" AS "nested_0.label", "c"."icon" AS "nested_0.icon", "c"."icon_color" AS "nested_0.icon_color", "c"."icon_background_color" AS "nested_0.icon_background_color", "c"."is_icon_auto_detect" AS "nested_0.is_icon_auto_detect", "c"."group_name" AS "nested_0.group_name", "c"."terminal_typography_override" AS "nested_0.terminal_typography_override", "c"."terminal_theme_override_id" AS "nested_0.terminal_theme_override_id","i"."id" AS "nested_1.id", "i"."label" AS "nested_1.label", "i"."username" AS "nested_1.username","t"."id" AS "nested_2.id", "t"."name" AS "nested_2.name", "t"."author" AS "nested_2.author", "t"."black_color" AS "nested_2.black_color", "t"."red_color" AS "nested_2.red_color", "t"."green_color" AS "nested_2.green_color", "t"."yellow_color" AS "nested_2.yellow_color", "t"."blue_color" AS "nested_2.blue_color", "t"."purple_color" AS "nested_2.purple_color", "t"."cyan_color" AS "nested_2.cyan_color", "t"."white_color" AS "nested_2.white_color", "t"."bright_black_color" AS "nested_2.bright_black_color", "t"."bright_red_color" AS "nested_2.bright_red_color", "t"."bright_green_color" AS "nested_2.bright_green_color", "t"."bright_yellow_color" AS "nested_2.bright_yellow_color", "t"."bright_blue_color" AS "nested_2.bright_blue_color", "t"."bright_purple_color" AS "nested_2.bright_purple_color", "t"."bright_cyan_color" AS "nested_2.bright_cyan_color", "t"."bright_white_color" AS "nested_2.bright_white_color", "t"."background_color" AS "nested_2.background_color", "t"."foreground_color" AS "nested_2.foreground_color", "t"."cursor_color" AS "nested_2.cursor_color", "t"."selection_background_color" AS "nested_2.selection_background_color", "t"."selection_foreground_color" AS "nested_2.selection_foreground_color", "t"."cursor_text_color" AS "nested_2.cursor_text_color", c.id AS "\$n_0", i.id AS "\$n_1" FROM connections AS c LEFT JOIN identities AS i ON c.identity_id = i.id LEFT JOIN custom_terminal_themes AS t ON c.terminal_theme_override_id = t.id',
+      'SELECT"c"."id" AS "nested_0.id", "c"."label" AS "nested_0.label", "c"."address" AS "nested_0.address", "c"."port" AS "nested_0.port", "c"."identity_id" AS "nested_0.identity_id", "c"."username" AS "nested_0.username", "c"."group_name" AS "nested_0.group_name", "c"."icon" AS "nested_0.icon", "c"."icon_color" AS "nested_0.icon_color", "c"."icon_background_color" AS "nested_0.icon_background_color", "c"."is_icon_auto_detect" AS "nested_0.is_icon_auto_detect", "c"."terminal_typography_override" AS "nested_0.terminal_typography_override", "c"."terminal_theme_override_id" AS "nested_0.terminal_theme_override_id","i"."id" AS "nested_1.id", "i"."label" AS "nested_1.label", "i"."username" AS "nested_1.username","t"."id" AS "nested_2.id", "t"."name" AS "nested_2.name", "t"."author" AS "nested_2.author", "t"."black_color" AS "nested_2.black_color", "t"."red_color" AS "nested_2.red_color", "t"."green_color" AS "nested_2.green_color", "t"."yellow_color" AS "nested_2.yellow_color", "t"."blue_color" AS "nested_2.blue_color", "t"."purple_color" AS "nested_2.purple_color", "t"."cyan_color" AS "nested_2.cyan_color", "t"."white_color" AS "nested_2.white_color", "t"."bright_black_color" AS "nested_2.bright_black_color", "t"."bright_red_color" AS "nested_2.bright_red_color", "t"."bright_green_color" AS "nested_2.bright_green_color", "t"."bright_yellow_color" AS "nested_2.bright_yellow_color", "t"."bright_blue_color" AS "nested_2.bright_blue_color", "t"."bright_purple_color" AS "nested_2.bright_purple_color", "t"."bright_cyan_color" AS "nested_2.bright_cyan_color", "t"."bright_white_color" AS "nested_2.bright_white_color", "t"."background_color" AS "nested_2.background_color", "t"."foreground_color" AS "nested_2.foreground_color", "t"."cursor_color" AS "nested_2.cursor_color", "t"."selection_background_color" AS "nested_2.selection_background_color", "t"."selection_foreground_color" AS "nested_2.selection_foreground_color", "t"."cursor_text_color" AS "nested_2.cursor_text_color", c.id AS "\$n_0", i.id AS "\$n_1" FROM connections AS c LEFT JOIN identities AS i ON c.identity_id = i.id LEFT JOIN custom_terminal_themes AS t ON c.terminal_theme_override_id = t.id',
       variables: [],
       readsFrom: {
         credentials,
@@ -6009,32 +6000,32 @@ typedef $IdentityCredentialsProcessedTableManager =
 typedef $ConnectionsCreateCompanionBuilder =
     ConnectionsCompanion Function({
       Value<int> id,
+      required String label,
       required String address,
       required int port,
       Value<int?> identityId,
       Value<String?> username,
-      Value<String?> label,
-      Value<ConnectionIcon> icon,
-      Value<Color?> iconColor,
-      Value<Color?> iconBackgroundColor,
-      Value<bool> isIconAutoDetect,
       Value<String?> groupName,
+      Value<ConnectionIcon> icon,
+      required Color iconColor,
+      required Color iconBackgroundColor,
+      Value<bool> isIconAutoDetect,
       Value<TerminalTypography?> terminalTypographyOverride,
       Value<int?> terminalThemeOverrideId,
     });
 typedef $ConnectionsUpdateCompanionBuilder =
     ConnectionsCompanion Function({
       Value<int> id,
+      Value<String> label,
       Value<String> address,
       Value<int> port,
       Value<int?> identityId,
       Value<String?> username,
-      Value<String?> label,
-      Value<ConnectionIcon> icon,
-      Value<Color?> iconColor,
-      Value<Color?> iconBackgroundColor,
-      Value<bool> isIconAutoDetect,
       Value<String?> groupName,
+      Value<ConnectionIcon> icon,
+      Value<Color> iconColor,
+      Value<Color> iconBackgroundColor,
+      Value<bool> isIconAutoDetect,
       Value<TerminalTypography?> terminalTypographyOverride,
       Value<int?> terminalThemeOverrideId,
     });
@@ -6125,6 +6116,11 @@ class $ConnectionsFilterComposer extends Composer<_$CliqDatabase, Connections> {
     builder: (column) => ColumnFilters(column),
   );
 
+  ColumnFilters<String> get label => $composableBuilder(
+    column: $table.label,
+    builder: (column) => ColumnFilters(column),
+  );
+
   ColumnFilters<String> get address => $composableBuilder(
     column: $table.address,
     builder: (column) => ColumnFilters(column),
@@ -6140,8 +6136,8 @@ class $ConnectionsFilterComposer extends Composer<_$CliqDatabase, Connections> {
     builder: (column) => ColumnFilters(column),
   );
 
-  ColumnFilters<String> get label => $composableBuilder(
-    column: $table.label,
+  ColumnFilters<String> get groupName => $composableBuilder(
+    column: $table.groupName,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -6151,13 +6147,13 @@ class $ConnectionsFilterComposer extends Composer<_$CliqDatabase, Connections> {
     builder: (column) => ColumnWithTypeConverterFilters(column),
   );
 
-  ColumnWithTypeConverterFilters<Color?, Color, int> get iconColor =>
+  ColumnWithTypeConverterFilters<Color, Color, int> get iconColor =>
       $composableBuilder(
         column: $table.iconColor,
         builder: (column) => ColumnWithTypeConverterFilters(column),
       );
 
-  ColumnWithTypeConverterFilters<Color?, Color, int> get iconBackgroundColor =>
+  ColumnWithTypeConverterFilters<Color, Color, int> get iconBackgroundColor =>
       $composableBuilder(
         column: $table.iconBackgroundColor,
         builder: (column) => ColumnWithTypeConverterFilters(column),
@@ -6165,11 +6161,6 @@ class $ConnectionsFilterComposer extends Composer<_$CliqDatabase, Connections> {
 
   ColumnFilters<bool> get isIconAutoDetect => $composableBuilder(
     column: $table.isIconAutoDetect,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  ColumnFilters<String> get groupName => $composableBuilder(
-    column: $table.groupName,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -6269,6 +6260,11 @@ class $ConnectionsOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get label => $composableBuilder(
+    column: $table.label,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<String> get address => $composableBuilder(
     column: $table.address,
     builder: (column) => ColumnOrderings(column),
@@ -6284,8 +6280,8 @@ class $ConnectionsOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
-  ColumnOrderings<String> get label => $composableBuilder(
-    column: $table.label,
+  ColumnOrderings<String> get groupName => $composableBuilder(
+    column: $table.groupName,
     builder: (column) => ColumnOrderings(column),
   );
 
@@ -6306,11 +6302,6 @@ class $ConnectionsOrderingComposer
 
   ColumnOrderings<bool> get isIconAutoDetect => $composableBuilder(
     column: $table.isIconAutoDetect,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  ColumnOrderings<String> get groupName => $composableBuilder(
-    column: $table.groupName,
     builder: (column) => ColumnOrderings(column),
   );
 
@@ -6378,6 +6369,9 @@ class $ConnectionsAnnotationComposer
   GeneratedColumn<int> get id =>
       $composableBuilder(column: $table.id, builder: (column) => column);
 
+  GeneratedColumn<String> get label =>
+      $composableBuilder(column: $table.label, builder: (column) => column);
+
   GeneratedColumn<String> get address =>
       $composableBuilder(column: $table.address, builder: (column) => column);
 
@@ -6387,16 +6381,16 @@ class $ConnectionsAnnotationComposer
   GeneratedColumn<String> get username =>
       $composableBuilder(column: $table.username, builder: (column) => column);
 
-  GeneratedColumn<String> get label =>
-      $composableBuilder(column: $table.label, builder: (column) => column);
+  GeneratedColumn<String> get groupName =>
+      $composableBuilder(column: $table.groupName, builder: (column) => column);
 
   GeneratedColumnWithTypeConverter<ConnectionIcon, int> get icon =>
       $composableBuilder(column: $table.icon, builder: (column) => column);
 
-  GeneratedColumnWithTypeConverter<Color?, int> get iconColor =>
+  GeneratedColumnWithTypeConverter<Color, int> get iconColor =>
       $composableBuilder(column: $table.iconColor, builder: (column) => column);
 
-  GeneratedColumnWithTypeConverter<Color?, int> get iconBackgroundColor =>
+  GeneratedColumnWithTypeConverter<Color, int> get iconBackgroundColor =>
       $composableBuilder(
         column: $table.iconBackgroundColor,
         builder: (column) => column,
@@ -6406,9 +6400,6 @@ class $ConnectionsAnnotationComposer
     column: $table.isIconAutoDetect,
     builder: (column) => column,
   );
-
-  GeneratedColumn<String> get groupName =>
-      $composableBuilder(column: $table.groupName, builder: (column) => column);
 
   GeneratedColumnWithTypeConverter<TerminalTypography?, String>
   get terminalTypographyOverride => $composableBuilder(
@@ -6521,62 +6512,62 @@ class $ConnectionsTableManager
           updateCompanionCallback:
               ({
                 Value<int> id = const Value.absent(),
+                Value<String> label = const Value.absent(),
                 Value<String> address = const Value.absent(),
                 Value<int> port = const Value.absent(),
                 Value<int?> identityId = const Value.absent(),
                 Value<String?> username = const Value.absent(),
-                Value<String?> label = const Value.absent(),
-                Value<ConnectionIcon> icon = const Value.absent(),
-                Value<Color?> iconColor = const Value.absent(),
-                Value<Color?> iconBackgroundColor = const Value.absent(),
-                Value<bool> isIconAutoDetect = const Value.absent(),
                 Value<String?> groupName = const Value.absent(),
+                Value<ConnectionIcon> icon = const Value.absent(),
+                Value<Color> iconColor = const Value.absent(),
+                Value<Color> iconBackgroundColor = const Value.absent(),
+                Value<bool> isIconAutoDetect = const Value.absent(),
                 Value<TerminalTypography?> terminalTypographyOverride =
                     const Value.absent(),
                 Value<int?> terminalThemeOverrideId = const Value.absent(),
               }) => ConnectionsCompanion(
                 id: id,
+                label: label,
                 address: address,
                 port: port,
                 identityId: identityId,
                 username: username,
-                label: label,
+                groupName: groupName,
                 icon: icon,
                 iconColor: iconColor,
                 iconBackgroundColor: iconBackgroundColor,
                 isIconAutoDetect: isIconAutoDetect,
-                groupName: groupName,
                 terminalTypographyOverride: terminalTypographyOverride,
                 terminalThemeOverrideId: terminalThemeOverrideId,
               ),
           createCompanionCallback:
               ({
                 Value<int> id = const Value.absent(),
+                required String label,
                 required String address,
                 required int port,
                 Value<int?> identityId = const Value.absent(),
                 Value<String?> username = const Value.absent(),
-                Value<String?> label = const Value.absent(),
-                Value<ConnectionIcon> icon = const Value.absent(),
-                Value<Color?> iconColor = const Value.absent(),
-                Value<Color?> iconBackgroundColor = const Value.absent(),
-                Value<bool> isIconAutoDetect = const Value.absent(),
                 Value<String?> groupName = const Value.absent(),
+                Value<ConnectionIcon> icon = const Value.absent(),
+                required Color iconColor,
+                required Color iconBackgroundColor,
+                Value<bool> isIconAutoDetect = const Value.absent(),
                 Value<TerminalTypography?> terminalTypographyOverride =
                     const Value.absent(),
                 Value<int?> terminalThemeOverrideId = const Value.absent(),
               }) => ConnectionsCompanion.insert(
                 id: id,
+                label: label,
                 address: address,
                 port: port,
                 identityId: identityId,
                 username: username,
-                label: label,
+                groupName: groupName,
                 icon: icon,
                 iconColor: iconColor,
                 iconBackgroundColor: iconBackgroundColor,
                 isIconAutoDetect: isIconAutoDetect,
-                groupName: groupName,
                 terminalTypographyOverride: terminalTypographyOverride,
                 terminalThemeOverrideId: terminalThemeOverrideId,
               ),

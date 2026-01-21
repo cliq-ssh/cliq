@@ -24,6 +24,7 @@ class ConnectionFull extends Connection {
          groupName: connection.groupName,
          label: connection.label,
          username: connection.username,
+         identityId: connection.identityId,
          terminalThemeOverrideId: connection.terminalThemeOverrideId,
          terminalTypographyOverride: connection.terminalTypographyOverride,
          isIconAutoDetect: connection.isIconAutoDetect,

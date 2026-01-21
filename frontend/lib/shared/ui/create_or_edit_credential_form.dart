@@ -12,6 +12,7 @@ import 'package:lucide_flutter/lucide_flutter.dart';
 
 import '../../modules/credentials/model/credential_type.dart';
 import '../../modules/keys/view/create_or_edit_key_view.dart';
+import '../utils/autocomplete_utils.dart';
 import '../utils/commons.dart';
 import '../utils/validators.dart';
 
@@ -82,20 +83,6 @@ class CreateOrEditCredentialsFormState
     _selectedCredentials = ValueNotifier<List<_CredentialData>>([]);
   }
 
-  static String toAutocompleteString(int keyId, String keyLabel) {
-    return '${keyLabel.trim()} ($keyId)';
-  }
-
-  static (int? keyId, String? keyLabel) fromAutocompleteString(String value) {
-    final match = RegExp(r'^(.*) \((\d+)\)$').firstMatch(value);
-    if (match != null) {
-      final label = match.group(1)!.trim();
-      final id = int.parse(match.group(2)!);
-      return (id, label);
-    }
-    return (null, null);
-  }
-
   /// Saves the current state of the form.
   /// Validates the form and creates or updates credentials as necessary.
   /// Returns a list of created credential IDs, or null if validation fails.
@@ -108,7 +95,9 @@ class CreateOrEditCredentialsFormState
     final modifiedIds = <int>[];
     for (final data in _selectedCredentials.value) {
       final controllerData = switch (data.type) {
-        .key => fromAutocompleteString(data.controller.text).$1!.toString(),
+        .key => AutocompleteUtils.fromAutocompleteString(
+          data.controller.text,
+        ).$1!.toString(),
         .password => data.controller.text,
       };
 
@@ -169,7 +158,10 @@ class CreateOrEditCredentialsFormState
               type: c.type,
               initialData: switch (c.type) {
                 .password => c.password,
-                .key => toAutocompleteString(c.key!.id, c.key!.label),
+                .key => AutocompleteUtils.toAutocompleteString(
+                  c.key!.id,
+                  c.key!.label,
+                ),
               },
             );
           }).toList();
@@ -233,7 +225,10 @@ class CreateOrEditCredentialsFormState
                       onLoading: () => [],
                       onData: (keys) {
                         final values = keys.map(
-                          (k) => toAutocompleteString(k.id, k.label),
+                          (k) => AutocompleteUtils.toAutocompleteString(
+                            k.id,
+                            k.label,
+                          ),
                         );
                         if (query.isEmpty) {
                           return values;
@@ -257,7 +252,7 @@ class CreateOrEditCredentialsFormState
                       );
                       if (result != null) {
                         _focusNode.unfocus();
-                        final newText = toAutocompleteString(
+                        final newText = AutocompleteUtils.toAutocompleteString(
                           result.$1,
                           result.$2,
                         );
@@ -287,7 +282,10 @@ class CreateOrEditCredentialsFormState
                       FAutocompleteItem(
                         prefix: Icon(LucideIcons.keyRound),
                         title: Text(
-                          fromAutocompleteString(suggestion).$2 ?? suggestion,
+                          AutocompleteUtils.fromAutocompleteString(
+                                suggestion,
+                              ).$2 ??
+                              suggestion,
                         ),
                         value: suggestion,
                       ),
@@ -300,7 +298,8 @@ class CreateOrEditCredentialsFormState
                     if (empty != null) {
                       return empty;
                     }
-                    final (id, label) = fromAutocompleteString(s ?? '');
+                    final (id, label) =
+                        AutocompleteUtils.fromAutocompleteString(s ?? '');
                     if (id == null ||
                         (keysFuture.hasData &&
                             !keysFuture.data!.any((k) => k.id == id))) {

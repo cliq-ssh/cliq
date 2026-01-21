@@ -1,4 +1,3 @@
-import 'package:cliq/modules/connections/extension/connection.extension.dart';
 import 'package:cliq/modules/connections/provider/connection.provider.dart';
 import 'package:cliq/shared/ui/session_tab.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
@@ -81,7 +80,7 @@ class NavigationShellState extends ConsumerState<NavigationShell>
                             children: [
                               for (final connection in connections.entities)
                                 FItem(
-                                  title: Text(connection.effectiveName),
+                                  title: Text(connection.label),
                                   onPress: () {
                                     ref
                                         .read(sessionProvider.notifier)

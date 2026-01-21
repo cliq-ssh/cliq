@@ -3,13 +3,15 @@ import 'dart:async';
 import 'package:cliq/modules/connections/model/connection_full.model.dart';
 import 'package:cliq/modules/connections/model/connection_icon.dart';
 import 'package:cliq/modules/identities/provider/identity.provider.dart';
+import 'package:cliq/shared/extensions/text_controller.extension.dart';
 import 'package:cliq/shared/ui/create_or_edit_credential_form.dart';
 import 'package:cliq/shared/ui/terminal_font_family_select.dart';
 import 'package:cliq/shared/ui/terminal_font_size_slider.dart';
 import 'package:cliq/shared/extensions/async_snapshot.extension.dart';
 import 'package:cliq/shared/extensions/color.extension.dart';
-import 'package:cliq/shared/extensions/value.extension.dart';
 import 'package:cliq/shared/provider/store.provider.dart';
+import 'package:cliq/shared/utils/autocomplete_utils.dart';
+import 'package:cliq/shared/utils/input_formatters.dart';
 import 'package:cliq/shared/utils/validators.dart';
 import 'package:cliq_term/cliq_term.dart';
 import 'package:cliq_ui/cliq_ui.dart' show useMemoizedFuture;
@@ -53,6 +55,8 @@ class CreateOrEditConnectionView extends HookConsumerWidget {
       currentCredentialIds = null,
       isEdit = false;
 
+  // TODO: check terminal typogrpahy saving
+
   CreateOrEditConnectionView.edit(ConnectionFull connection, {super.key})
     : current = ConnectionsCompanion(
         id: Value(connection.id),
@@ -63,7 +67,14 @@ class CreateOrEditConnectionView extends HookConsumerWidget {
         groupName: Value(connection.groupName),
         address: Value(connection.address),
         port: Value(connection.port),
-        username: Value(connection.username),
+        username: Value(
+          connection.identityId == null
+              ? connection.username
+              : AutocompleteUtils.toAutocompleteString(
+                  connection.identity!.id,
+                  connection.identity!.label,
+                ),
+        ),
         identityId: Value(connection.identityId),
         terminalTypographyOverride: Value(
           connection.terminalTypographyOverride,
@@ -73,22 +84,6 @@ class CreateOrEditConnectionView extends HookConsumerWidget {
       ),
       currentCredentialIds = connection.credentialIds,
       isEdit = true;
-
-  // TODO: move this to a utility class
-
-  static String toAutocompleteString(int identityId, String identityLabel) {
-    return '${identityLabel.trim()} ($identityId)';
-  }
-
-  static (int? keyId, String? keyLabel) fromAutocompleteString(String value) {
-    final match = RegExp(r'^(.*) \((\d+)\)$').firstMatch(value);
-    if (match != null) {
-      final label = match.group(1)!.trim();
-      final id = int.parse(match.group(2)!);
-      return (id, label);
-    }
-    return (null, null);
-  }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -116,10 +111,10 @@ class CreateOrEditConnectionView extends HookConsumerWidget {
     );
 
     final iconColorCtrl = useTextEditingController(
-      text: current?.iconColor.value?.toHex(),
+      text: current?.iconColor.value.toHex(),
     );
     final iconBgColorCtrl = useTextEditingController(
-      text: current?.iconBackgroundColor.value?.toHex(),
+      text: current?.iconBackgroundColor.value.toHex(),
     );
 
     final selectedIcon = useState<ConnectionIcon>(
@@ -139,10 +134,75 @@ class CreateOrEditConnectionView extends HookConsumerWidget {
     );
     final selectedIdentityId = useState<int?>(current?.identityId.value);
 
-    final labelPlaceholder = useState<String>('');
     final groups = useMemoizedFuture(() async {
       return await CliqDatabase.connectionService.findAllGroupNamesDistinct();
     }, []);
+
+    Future<void> onSave() async {
+      if (!(formKey.currentState?.validate() ?? false)) return;
+      final newCredentialIds = await credentialsKey.currentState?.save();
+      // null is only returned when validation fails
+      if (selectedIdentityId.value == null && newCredentialIds == null) return;
+
+      final connectionId = isEdit
+          ? await CliqDatabase.connectionService.update(
+              current!.id.value,
+              address: addressCtrl.textOrNull,
+              iconColor: selectedIconColor.value,
+              iconBackgroundColor: selectedIconBackgroundColor.value,
+              icon: selectedIcon.value,
+              label: labelCtrl.textOrNull,
+              groupName: groupCtrl.textOrNull,
+              port: int.tryParse(portCtrl.text.trim()),
+              username: usernameCtrl.textOrNull,
+              identityId: selectedIdentityId.value,
+              terminalTypographyOverride: selectedTypographyOverride.value,
+              terminalThemeOverrideId: selectedTerminalThemeId.value,
+              newCredentialIds: newCredentialIds,
+              compareTo: current,
+            )
+          : await CliqDatabase.connectionService.createConnection(
+              address: addressCtrl.text.trim(),
+              iconColor: selectedIconColor.value,
+              iconBackgroundColor: selectedIconBackgroundColor.value,
+              icon: selectedIcon.value,
+              label: labelCtrl.textOrNull,
+              groupName: groupCtrl.textOrNull,
+              port: int.tryParse(portCtrl.text.trim()),
+              username: usernameCtrl.textOrNull,
+              identityId: selectedIdentityId.value,
+              terminalTypographyOverride: selectedTypographyOverride.value,
+              terminalThemeOverrideId: selectedTerminalThemeId.value,
+              credentialIds: newCredentialIds ?? [],
+            );
+
+      if (!context.mounted) return;
+      context.pop(connectionId);
+    }
+
+    /// Gets the effective typography based on the provided [fontSize] and [fontFamily].
+    /// If either parameter is null, it falls back to the current override or default values.
+    /// If the resulting typography matches the default, the override is cleared.
+    TerminalTypography? getEffectiveTypography(
+      int? fontSize,
+      String? fontFamily,
+    ) {
+      final typography = TerminalTypography(
+        fontSize:
+            fontSize ??
+            selectedTypographyOverride.value?.fontSize ??
+            defaultTerminalTypography.value!.fontSize,
+        fontFamily:
+            fontFamily ??
+            selectedTypographyOverride.value?.fontFamily ??
+            defaultTerminalTypography.value!.fontFamily,
+      );
+
+      if (typography == defaultTerminalTypography.value) {
+        return null;
+      }
+      return typography;
+    }
 
     /// Builds a color swatch for icon colors
     /// May also include a child widget to preview the icon with the colors.
@@ -213,6 +273,7 @@ class CreateOrEditConnectionView extends HookConsumerWidget {
                             controller: controller,
                             onChange: (value) => onChange?.call(value.text),
                           ),
+                          inputFormatters: InputFormatters.hex(),
                           hint: '#FFFFFF',
                         ),
                       ),
@@ -273,53 +334,6 @@ class CreateOrEditConnectionView extends HookConsumerWidget {
           ],
         ),
       );
-    }
-
-    /// Builds a text field with the given parameters. Helpful for reducing boilerplate.
-    Widget buildTextField({
-      required TextEditingController controller,
-      required String label,
-      String? hint,
-      String? Function(String?)? validator,
-      bool obscure = false,
-      int? maxLines,
-      int? minLines,
-      void Function(TextEditingValue)? onChange,
-    }) {
-      return FTextFormField(
-        control: .managed(controller: controller, onChange: onChange),
-        label: Text(label),
-        hint: hint,
-        validator: validator,
-        obscureText: obscure,
-        maxLines: maxLines,
-        minLines: minLines,
-        autovalidateMode: AutovalidateMode.onUserInteraction,
-      );
-    }
-
-    /// Sets the effective typography based on the provided [fontSize] and [fontFamily].
-    /// If either parameter is null, it falls back to the current override or default values.
-    /// If the resulting typography matches the default, the override is cleared.
-    TerminalTypography? getEffectiveTypography(
-      int? fontSize,
-      String? fontFamily,
-    ) {
-      final typography = TerminalTypography(
-        fontSize:
-            fontSize ??
-            selectedTypographyOverride.value?.fontSize ??
-            defaultTerminalTypography.value!.fontSize,
-        fontFamily:
-            fontFamily ??
-            selectedTypographyOverride.value?.fontFamily ??
-            defaultTerminalTypography.value!.fontFamily,
-      );
-
-      if (typography == defaultTerminalTypography.value) {
-        return null;
-      }
-      return typography;
     }
 
     FAccordionItem buildIconItem() {
@@ -459,101 +473,27 @@ class CreateOrEditConnectionView extends HookConsumerWidget {
       );
     }
 
-    /// Handles the save action for the form.
-    /// Validates the form, inserts any additional credentials, and either updates
-    /// or creates a new connection based on the [isEdit] flag.
-    Future<void> onSave() async {
-      if (!(formKey.currentState?.validate() ?? false)) return;
-      final newCredentialIds = await credentialsKey.currentState?.save();
-      // null is only returned when validation fails
-      if (selectedIdentityId.value == null && newCredentialIds == null) return;
-
-      // TODO: cleanup, implement identity selection
-
-      if (isEdit) {
-        final comp = ConnectionsCompanion(
-          label: ValueExtension.absentIfSame(
-            labelCtrl.text,
-            current?.label.value,
-          ),
-          icon: ValueExtension.absentIfSame(
-            selectedIcon.value,
-            current?.icon.value,
-          ),
-          iconColor: ValueExtension.absentIfSame(
-            selectedIconColor.value,
-            current?.iconColor.value,
-          ),
-          iconBackgroundColor: ValueExtension.absentIfSame(
-            selectedIconBackgroundColor.value,
-            current?.iconBackgroundColor.value,
-          ),
-          groupName: ValueExtension.absentIfSame(
-            groupCtrl.text,
-            current?.groupName.value,
-          ),
-          address: ValueExtension.absentIfSame(
-            addressCtrl.text.trim(),
-            current?.address.value,
-          ),
-          port: ValueExtension.absentIfSame(
-            int.tryParse(portCtrl.text.trim()) ?? 22,
-            current?.port.value,
-          ),
-          username: selectedIdentityId.value != null
-              ? Value.absent()
-              : ValueExtension.absentIfSame(
-                  usernameCtrl.text,
-                  current?.username.value,
-                ),
-          identityId: ValueExtension.absentIfSame(
-            selectedIdentityId.value,
-            current?.identityId.value,
-          ),
-          terminalTypographyOverride: ValueExtension.absentIfSame(
-            selectedTypographyOverride.value,
-            current?.terminalTypographyOverride.value ??
-                defaultTerminalTypography.value,
-          ),
-          terminalThemeOverrideId: ValueExtension.absentIfSame(
-            selectedTerminalThemeId.value,
-            current?.terminalThemeOverrideId.value ??
-                terminalThemes.activeDefaultThemeId,
-          ),
-        );
-
-        await CliqDatabase.connectionService.update(
-          current!.id.value,
-          comp,
-          newCredentialIds,
-        );
-      } else {
-        await CliqDatabase.connectionService.createConnection(
-          ConnectionsCompanion.insert(
-            label: ValueExtension.absentIfNullOrEmpty(labelCtrl.text),
-            icon: Value(selectedIcon.value),
-            iconColor: Value(selectedIconColor.value),
-            iconBackgroundColor: Value(selectedIconBackgroundColor.value),
-            groupName: ValueExtension.absentIfNullOrEmpty(groupCtrl.text),
-            address: addressCtrl.text.trim(),
-            port: int.tryParse(portCtrl.text.trim()) ?? 22,
-            username: selectedIdentityId.value != null
-                ? Value.absent()
-                : ValueExtension.absentIfNullOrEmpty(usernameCtrl.text),
-            terminalTypographyOverride: ValueExtension.absentIfNullOrEmpty(
-              selectedTypographyOverride.value,
-            ),
-            terminalThemeOverrideId: ValueExtension.absentIfNullOrEmpty(
-              selectedTerminalThemeId.value,
-            ),
-            identityId: Value.absentIfNull(selectedIdentityId.value),
-          ),
-          newCredentialIds ?? [],
-        );
-      }
-
-      if (!context.mounted) return;
-      context.pop();
+    /// Builds a text field with the given parameters. Helpful for reducing boilerplate.
+    Widget buildTextField({
+      required TextEditingController controller,
+      required String label,
+      String? hint,
+      String? Function(String?)? validator,
+      bool obscure = false,
+      int? maxLines,
+      int? minLines,
+      void Function(TextEditingValue)? onChange,
+    }) {
+      return FTextFormField(
+        control: .managed(controller: controller, onChange: onChange),
+        label: Text(label),
+        hint: hint,
+        validator: validator,
+        obscureText: obscure,
+        maxLines: maxLines,
+        minLines: minLines,
+        autovalidateMode: AutovalidateMode.onUserInteraction,
+      );
     }
 
     return FScaffold(
@@ -582,7 +522,7 @@ class CreateOrEditConnectionView extends HookConsumerWidget {
                   FTextFormField(
                     control: .managed(controller: labelCtrl),
                     label: const Text('Label'),
-                    hint: labelPlaceholder.value,
+                    hint: labelCtrl.text.isEmpty ? addressCtrl.text : null,
                   ),
 
                   FAutocomplete(
@@ -612,7 +552,6 @@ class CreateOrEditConnectionView extends HookConsumerWidget {
                           label: 'Address',
                           hint: '127.0.0.1',
                           validator: Validators.address,
-                          onChange: (val) => labelPlaceholder.value = val.text,
                         ),
                       ),
                       Expanded(
@@ -620,7 +559,7 @@ class CreateOrEditConnectionView extends HookConsumerWidget {
                         child: buildTextField(
                           controller: portCtrl,
                           label: 'Port',
-                          hint: '22-65535',
+                          hint: '22',
                           validator: Validators.port,
                         ),
                       ),
@@ -634,7 +573,10 @@ class CreateOrEditConnectionView extends HookConsumerWidget {
                           control: .managed(controller: usernameCtrl),
                           filter: (query) async {
                             final values = identities.entities.map(
-                              (i) => toAutocompleteString(i.id, i.label),
+                              (i) => AutocompleteUtils.toAutocompleteString(
+                                i.id,
+                                i.label,
+                              ),
                             );
                             if (query.isEmpty) {
                               return values;
@@ -649,7 +591,9 @@ class CreateOrEditConnectionView extends HookConsumerWidget {
                               FAutocompleteItem(
                                 prefix: Icon(LucideIcons.users),
                                 title: Text(
-                                  fromAutocompleteString(suggestion).$2 ??
+                                  AutocompleteUtils.fromAutocompleteString(
+                                        suggestion,
+                                      ).$2 ??
                                       suggestion,
                                 ),
                                 value: suggestion,
@@ -664,9 +608,10 @@ class CreateOrEditConnectionView extends HookConsumerWidget {
 
                             // workaround as onChange does not trigger when selecting an autocomplete item
                             WidgetsBinding.instance.addPostFrameCallback((_) {
-                              selectedIdentityId.value = fromAutocompleteString(
-                                s!,
-                              ).$1;
+                              selectedIdentityId.value =
+                                  AutocompleteUtils.fromAutocompleteString(
+                                    s!,
+                                  ).$1;
                             });
                             return null;
                           },

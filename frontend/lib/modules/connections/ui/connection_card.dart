@@ -44,7 +44,7 @@ class ConnectionCard extends HookConsumerWidget {
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(connection.label ?? connection.address),
+                    Text(connection.label),
                     Text(
                       connection.effectiveUsername,
                       style: context.theme.typography.xs.copyWith(

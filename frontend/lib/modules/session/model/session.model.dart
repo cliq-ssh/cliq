@@ -1,6 +1,5 @@
 import 'package:cliq/modules/connections/model/connection_full.model.dart';
 import 'package:dartssh2/dartssh2.dart';
-import '../../connections/extension/connection.extension.dart';
 
 class ShellSession {
   final String id;
@@ -38,7 +37,6 @@ class ShellSession {
 
   /// Whether the session is likely in the process of connecting, since it is not connected and has no error.
   bool get isLikelyLoading => !isConnected && connectionError == null;
-  String get effectiveName => connection.effectiveName;
 
   void dispose() {
     sshSession?.kill(SSHSignal.KILL);
