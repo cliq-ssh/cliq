@@ -599,7 +599,11 @@ class CreateOrEditConnectionView extends HookConsumerWidget {
                           ],
                           contentEmptyBuilder: (_, _) => SizedBox.shrink(),
                           focusNode: usernameFocusNode,
-                          label: Text(selectedIdentityId.value == null ? 'Username' : 'Identity'),
+                          label: Text(
+                            selectedIdentityId.value == null
+                                ? 'Username'
+                                : 'Identity',
+                          ),
                           minLines: 1,
                           validator: (s) {
                             // workaround as onChange does not trigger when selecting an autocomplete item

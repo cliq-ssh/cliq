@@ -1,6 +1,7 @@
 import 'package:cliq/modules/credentials/data/credential_service.dart';
 import 'package:cliq/modules/identities/data/identity_credentials_repository.dart';
 import 'package:cliq/modules/identities/model/identity_full.model.dart';
+import 'package:cliq/shared/extensions/value.extension.dart';
 
 import '../../../shared/data/database.dart';
 import 'identities_repository.dart';
@@ -23,11 +24,17 @@ final class IdentityService {
     );
   }
 
-  Future<int> createIdentity(
-    IdentitiesCompanion identity,
-    List<int> credentialIds,
-  ) async {
-    final identityId = await _identityRepository.insert(identity);
+  Future<int> createIdentity({
+    required String label,
+    required String username,
+    required List<int> credentialIds,
+  }) async {
+    final identityId = await _identityRepository.insert(
+      IdentitiesCompanion.insert(
+        label: label.trim(),
+        username: username.trim(),
+      ),
+    );
     await _credentialService.insertAllWithRelation(
       credentialIds,
       relationRepository: _identityCredentialsRepository,
@@ -41,11 +48,22 @@ final class IdentityService {
   }
 
   Future<int> update(
-    int identityId,
-    IdentitiesCompanion identity, [
+    int identityId, {
+    required String? label,
+    required String? username,
     List<int>? newCredentialIds,
-  ]) async {
-    await _identityRepository.updateById(identityId, identity);
+    IdentitiesCompanion? compareTo,
+  }) async {
+    await _identityRepository.updateById(
+      identityId,
+      IdentitiesCompanion(
+        label: ValueExtension.absentIfNullOrSame(label, compareTo?.label),
+        username: ValueExtension.absentIfNullOrSame(
+          username,
+          compareTo?.username,
+        ),
+      ),
+    );
 
     if (newCredentialIds != null) {
       await _credentialService.insertAllWithRelation(

@@ -1,6 +1,6 @@
 import 'dart:async';
 
-import 'package:cliq/shared/extensions/value.extension.dart';
+import 'package:cliq/shared/extensions/text_controller.extension.dart';
 import 'package:cliq/shared/utils/validators.dart';
 import 'package:drift/drift.dart' hide Column;
 import 'package:flutter/material.dart' hide Key;
@@ -50,24 +50,14 @@ class CreateOrEditKeyView extends HookConsumerWidget {
       final keyId = isEdit
           ? await CliqDatabase.keysService.update(
               current!.id.value,
-              KeysCompanion(
-                label: ValueExtension.absentIfSame(
-                  labelCtrl.text.trim(),
-                  current?.label.value,
-                ),
-                privatePem: ValueExtension.absentIfSame(
-                  pemCtrl.text.trim(),
-                  current?.privatePem.value,
-                ),
-                passphrase: ValueExtension.absentIfSame(
-                  passCtrl.text.trim(),
-                  current?.passphrase.value,
-                ),
-              ),
+              label: labelCtrl.textOrNull,
+              privatePem: pemCtrl.textOrNull,
+              passphrase: passCtrl.textOrNull,
+              compareTo: current,
             )
           : await CliqDatabase.keysService.createKey(
-              labelCtrl.text,
-              pemCtrl.text,
+              label: labelCtrl.text,
+              privatePem: pemCtrl.text,
               passphrase: passCtrl.text,
             );
 

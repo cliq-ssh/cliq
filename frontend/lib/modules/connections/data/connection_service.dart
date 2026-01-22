@@ -36,24 +36,6 @@ final class ConnectionService {
     );
   }
 
-  // TODO: label: Value(getEffectiveLabel()),
-  //             icon: Value(selectedIcon.value),
-  //             iconColor: Value(selectedIconColor.value),
-  //             iconBackgroundColor: Value(selectedIconBackgroundColor.value),
-  //             groupName: ValueExtension.absentIfNullOrEmpty(groupCtrl.text),
-  //             address: addressCtrl.text.trim(),
-  //             port: int.tryParse(portCtrl.text.trim()) ?? 22,
-  //             username: selectedIdentityId.value != null
-  //                 ? Value.absent()
-  //                 : ValueExtension.absentIfNullOrEmpty(usernameCtrl.text),
-  //             terminalTypographyOverride: ValueExtension.absentIfNullOrEmpty(
-  //               selectedTypographyOverride.value,
-  //             ),
-  //             terminalThemeOverrideId: ValueExtension.absentIfNullOrEmpty(
-  //               selectedTerminalThemeId.value,
-  //             ),
-  //             identityId: Value.absentIfNull(selectedIdentityId.value),
-
   Future<int> createConnection({
     required String address,
     required Color iconColor,
@@ -70,8 +52,8 @@ final class ConnectionService {
   }) async {
     final connectionId = await _connectionRepository.insert(
       ConnectionsCompanion.insert(
-        label: label ?? address,
-        address: address,
+        label: (label ?? address).trim(),
+        address: address.trim(),
         port: port ?? 22,
         groupName: Value.absentIfNull(groupName),
         icon: Value.absentIfNull(icon),
@@ -100,7 +82,6 @@ final class ConnectionService {
 
   Future<int> update(
     int connectionId, {
-    required List<int>? newCredentialIds,
     required String? address,
     required Color? iconColor,
     required Color? iconBackgroundColor,
@@ -112,6 +93,7 @@ final class ConnectionService {
     required int? identityId,
     required TerminalTypography? terminalTypographyOverride,
     required int? terminalThemeOverrideId,
+    List<int>? newCredentialIds,
     ConnectionsCompanion? compareTo,
   }) async {
     await _connectionRepository.updateById(

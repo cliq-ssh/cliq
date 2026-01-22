@@ -1,7 +1,7 @@
 import 'dart:async';
 
 import 'package:cliq/modules/identities/model/identity_full.model.dart';
-import 'package:cliq/shared/extensions/value.extension.dart';
+import 'package:cliq/shared/extensions/text_controller.extension.dart';
 import 'package:cliq/shared/utils/validators.dart';
 import 'package:drift/drift.dart' hide Column;
 import 'package:flutter/material.dart';
@@ -61,24 +61,14 @@ class CreateOrEditIdentityView extends HookConsumerWidget {
       final identityId = isEdit
           ? await CliqDatabase.identityService.update(
               current!.id.value,
-              IdentitiesCompanion(
-                label: ValueExtension.absentIfSame(
-                  labelCtrl.text,
-                  current?.label.value,
-                ),
-                username: ValueExtension.absentIfSame(
-                  usernameCtrl.text,
-                  current?.username.value,
-                ),
-              ),
-              newCredentialIds,
+              label: labelCtrl.textOrNull,
+              username: usernameCtrl.textOrNull,
+              newCredentialIds: newCredentialIds,
             )
           : await CliqDatabase.identityService.createIdentity(
-              IdentitiesCompanion(
-                label: Value(labelCtrl.text),
-                username: Value(usernameCtrl.text),
-              ),
-              newCredentialIds,
+              label: labelCtrl.text,
+              username: usernameCtrl.text,
+              credentialIds: newCredentialIds,
             );
 
       if (!context.mounted) return;
