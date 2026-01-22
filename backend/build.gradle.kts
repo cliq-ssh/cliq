@@ -6,7 +6,7 @@ plugins {
     kotlin("plugin.allopen") version "2.3.0"
 
     // Spring / Spring Boot
-    id("org.springframework.boot") version "4.0.1"
+    id("org.springframework.boot") version "4.0.2"
     id("io.spring.dependency-management") version "1.1.7"
 
     // Database Migrations
@@ -161,7 +161,7 @@ dependencies {
     // Mockito
     testImplementation("org.mockito:mockito-core:5.21.0")
     testImplementation("org.mockito:mockito-junit-jupiter:5.21.0")
-    testImplementation("org.mockito.kotlin:mockito-kotlin:6.2.1")
+    testImplementation("org.mockito.kotlin:mockito-kotlin:6.2.2")
 
     // AssertJ
     testImplementation("org.assertj:assertj-core:3.27.6")
