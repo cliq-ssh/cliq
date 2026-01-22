@@ -142,13 +142,13 @@ final class ConnectionService {
           identityId,
           compareTo?.identityId.value,
         ),
-        terminalTypographyOverride: ValueExtension.absentIfNullOrSame(
+        terminalTypographyOverride: ValueExtension.absentIfSame(
           terminalTypographyOverride,
-          compareTo?.terminalTypographyOverride,
+          compareTo?.terminalTypographyOverride.value,
         ),
-        terminalThemeOverrideId: ValueExtension.absentIfNullOrSame(
+        terminalThemeOverrideId: ValueExtension.absentIfSame(
           terminalThemeOverrideId,
-          compareTo?.terminalThemeOverrideId,
+          compareTo?.terminalThemeOverrideId.value,
         ),
       ),
     );

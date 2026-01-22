@@ -55,8 +55,6 @@ class CreateOrEditConnectionView extends HookConsumerWidget {
       currentCredentialIds = null,
       isEdit = false;
 
-  // TODO: check terminal typogrpahy saving
-
   CreateOrEditConnectionView.edit(ConnectionFull connection, {super.key})
     : current = ConnectionsCompanion(
         id: Value(connection.id),
