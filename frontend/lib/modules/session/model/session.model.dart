@@ -1,6 +1,21 @@
 import 'package:cliq/modules/connections/model/connection_full.model.dart';
 import 'package:dartssh2/dartssh2.dart';
 
+/// DTO for the state of a known host verification.
+class KnownHostState {
+  final bool isKnown;
+  final bool isMatch;
+  final String? host;
+  final String? fingerprint;
+
+  const KnownHostState({
+    required this.host,
+    required this.fingerprint,
+    required this.isKnown,
+    required this.isMatch,
+  });
+}
+
 class ShellSession {
   final String id;
   final ConnectionFull connection;
@@ -18,6 +33,8 @@ class ShellSession {
   /// The SSH session associated with this session, only set if connected.
   final SSHSession? sshSession;
 
+  final KnownHostState? knownHostState;
+
   const ShellSession({
     required this.id,
     required this.connection,
@@ -25,13 +42,15 @@ class ShellSession {
     this.connectedAt,
     this.sshClient,
     this.sshSession,
+    this.knownHostState,
   });
 
   const ShellSession.disconnected({required this.id, required this.connection})
     : connectionError = null,
       connectedAt = null,
       sshClient = null,
-      sshSession = null;
+      sshSession = null,
+      knownHostState = null;
 
   bool get isConnected => sshClient != null && sshSession != null;
 
@@ -48,6 +67,7 @@ class ShellSession {
     DateTime? connectedAt,
     SSHClient? sshClient,
     SSHSession? sshSession,
+    KnownHostState? knownHostState,
   }) {
     return ShellSession(
       id: id,
@@ -55,6 +75,7 @@ class ShellSession {
       connectedAt: connectedAt ?? this.connectedAt,
       sshClient: sshClient ?? this.sshClient,
       sshSession: sshSession ?? this.sshSession,
+      knownHostState: knownHostState ?? this.knownHostState,
     );
   }
 }

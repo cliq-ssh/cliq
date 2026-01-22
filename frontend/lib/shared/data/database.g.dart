@@ -3,6 +3,306 @@
 part of 'database.dart';
 
 // ignore_for_file: type=lint
+class KnownHosts extends Table with TableInfo<KnownHosts, KnownHost> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  KnownHosts(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  late final GeneratedColumn<int> id = GeneratedColumn<int>(
+    'id',
+    aliasedName,
+    false,
+    hasAutoIncrement: true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    $customConstraints: 'PRIMARY KEY AUTOINCREMENT',
+  );
+  static const VerificationMeta _hostMeta = const VerificationMeta('host');
+  late final GeneratedColumn<String> host = GeneratedColumn<String>(
+    'host',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    $customConstraints: 'NOT NULL',
+  );
+  static const VerificationMeta _fingerprintMeta = const VerificationMeta(
+    'fingerprint',
+  );
+  late final GeneratedColumn<String> fingerprint = GeneratedColumn<String>(
+    'fingerprint',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    $customConstraints: 'NOT NULL',
+  );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+    'created_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    $customConstraints: 'NOT NULL DEFAULT CURRENT_TIMESTAMP',
+    defaultValue: const CustomExpression('CURRENT_TIMESTAMP'),
+  );
+  @override
+  List<GeneratedColumn> get $columns => [id, host, fingerprint, createdAt];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'known_hosts';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<KnownHost> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
+    if (data.containsKey('host')) {
+      context.handle(
+        _hostMeta,
+        host.isAcceptableOrUnknown(data['host']!, _hostMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_hostMeta);
+    }
+    if (data.containsKey('fingerprint')) {
+      context.handle(
+        _fingerprintMeta,
+        fingerprint.isAcceptableOrUnknown(
+          data['fingerprint']!,
+          _fingerprintMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_fingerprintMeta);
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  KnownHost map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return KnownHost(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}id'],
+      )!,
+      host: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}host'],
+      )!,
+      fingerprint: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}fingerprint'],
+      )!,
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}created_at'],
+      )!,
+    );
+  }
+
+  @override
+  KnownHosts createAlias(String alias) {
+    return KnownHosts(attachedDatabase, alias);
+  }
+
+  @override
+  bool get dontWriteConstraints => true;
+}
+
+class KnownHost extends DataClass implements Insertable<KnownHost> {
+  final int id;
+  final String host;
+  final String fingerprint;
+  final DateTime createdAt;
+  const KnownHost({
+    required this.id,
+    required this.host,
+    required this.fingerprint,
+    required this.createdAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<int>(id);
+    map['host'] = Variable<String>(host);
+    map['fingerprint'] = Variable<String>(fingerprint);
+    map['created_at'] = Variable<DateTime>(createdAt);
+    return map;
+  }
+
+  KnownHostsCompanion toCompanion(bool nullToAbsent) {
+    return KnownHostsCompanion(
+      id: Value(id),
+      host: Value(host),
+      fingerprint: Value(fingerprint),
+      createdAt: Value(createdAt),
+    );
+  }
+
+  factory KnownHost.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return KnownHost(
+      id: serializer.fromJson<int>(json['id']),
+      host: serializer.fromJson<String>(json['host']),
+      fingerprint: serializer.fromJson<String>(json['fingerprint']),
+      createdAt: serializer.fromJson<DateTime>(json['created_at']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<int>(id),
+      'host': serializer.toJson<String>(host),
+      'fingerprint': serializer.toJson<String>(fingerprint),
+      'created_at': serializer.toJson<DateTime>(createdAt),
+    };
+  }
+
+  KnownHost copyWith({
+    int? id,
+    String? host,
+    String? fingerprint,
+    DateTime? createdAt,
+  }) => KnownHost(
+    id: id ?? this.id,
+    host: host ?? this.host,
+    fingerprint: fingerprint ?? this.fingerprint,
+    createdAt: createdAt ?? this.createdAt,
+  );
+  KnownHost copyWithCompanion(KnownHostsCompanion data) {
+    return KnownHost(
+      id: data.id.present ? data.id.value : this.id,
+      host: data.host.present ? data.host.value : this.host,
+      fingerprint: data.fingerprint.present
+          ? data.fingerprint.value
+          : this.fingerprint,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('KnownHost(')
+          ..write('id: $id, ')
+          ..write('host: $host, ')
+          ..write('fingerprint: $fingerprint, ')
+          ..write('createdAt: $createdAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(id, host, fingerprint, createdAt);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is KnownHost &&
+          other.id == this.id &&
+          other.host == this.host &&
+          other.fingerprint == this.fingerprint &&
+          other.createdAt == this.createdAt);
+}
+
+class KnownHostsCompanion extends UpdateCompanion<KnownHost> {
+  final Value<int> id;
+  final Value<String> host;
+  final Value<String> fingerprint;
+  final Value<DateTime> createdAt;
+  const KnownHostsCompanion({
+    this.id = const Value.absent(),
+    this.host = const Value.absent(),
+    this.fingerprint = const Value.absent(),
+    this.createdAt = const Value.absent(),
+  });
+  KnownHostsCompanion.insert({
+    this.id = const Value.absent(),
+    required String host,
+    required String fingerprint,
+    this.createdAt = const Value.absent(),
+  }) : host = Value(host),
+       fingerprint = Value(fingerprint);
+  static Insertable<KnownHost> custom({
+    Expression<int>? id,
+    Expression<String>? host,
+    Expression<String>? fingerprint,
+    Expression<DateTime>? createdAt,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (host != null) 'host': host,
+      if (fingerprint != null) 'fingerprint': fingerprint,
+      if (createdAt != null) 'created_at': createdAt,
+    });
+  }
+
+  KnownHostsCompanion copyWith({
+    Value<int>? id,
+    Value<String>? host,
+    Value<String>? fingerprint,
+    Value<DateTime>? createdAt,
+  }) {
+    return KnownHostsCompanion(
+      id: id ?? this.id,
+      host: host ?? this.host,
+      fingerprint: fingerprint ?? this.fingerprint,
+      createdAt: createdAt ?? this.createdAt,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<int>(id.value);
+    }
+    if (host.present) {
+      map['host'] = Variable<String>(host.value);
+    }
+    if (fingerprint.present) {
+      map['fingerprint'] = Variable<String>(fingerprint.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('KnownHostsCompanion(')
+          ..write('id: $id, ')
+          ..write('host: $host, ')
+          ..write('fingerprint: $fingerprint, ')
+          ..write('createdAt: $createdAt')
+          ..write(')'))
+        .toString();
+  }
+}
+
 class CustomTerminalThemes extends Table
     with TableInfo<CustomTerminalThemes, CustomTerminalTheme> {
   @override
@@ -3562,6 +3862,7 @@ class ConnectionCredentialsCompanion
 abstract class _$CliqDatabase extends GeneratedDatabase {
   _$CliqDatabase(QueryExecutor e) : super(e);
   $CliqDatabaseManager get managers => $CliqDatabaseManager(this);
+  late final KnownHosts knownHosts = KnownHosts(this);
   late final CustomTerminalThemes customTerminalThemes = CustomTerminalThemes(
     this,
   );
@@ -3574,6 +3875,14 @@ abstract class _$CliqDatabase extends GeneratedDatabase {
   late final Connections connections = Connections(this);
   late final ConnectionCredentials connectionCredentials =
       ConnectionCredentials(this);
+  Selectable<KnownHost> findKnownHostByHost(String var1) {
+    return customSelect(
+      'SELECT * FROM known_hosts WHERE host = ?1',
+      variables: [Variable<String>(var1)],
+      readsFrom: {knownHosts},
+    ).asyncMap(knownHosts.mapFromRow);
+  }
+
   Selectable<int> findAllKeyIds() {
     return customSelect(
       'SELECT id FROM keys',
@@ -3681,6 +3990,7 @@ abstract class _$CliqDatabase extends GeneratedDatabase {
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
   @override
   List<DatabaseSchemaEntity> get allSchemaEntities => [
+    knownHosts,
     customTerminalThemes,
     keys,
     identities,
@@ -3743,6 +4053,175 @@ abstract class _$CliqDatabase extends GeneratedDatabase {
   ]);
 }
 
+typedef $KnownHostsCreateCompanionBuilder =
+    KnownHostsCompanion Function({
+      Value<int> id,
+      required String host,
+      required String fingerprint,
+      Value<DateTime> createdAt,
+    });
+typedef $KnownHostsUpdateCompanionBuilder =
+    KnownHostsCompanion Function({
+      Value<int> id,
+      Value<String> host,
+      Value<String> fingerprint,
+      Value<DateTime> createdAt,
+    });
+
+class $KnownHostsFilterComposer extends Composer<_$CliqDatabase, KnownHosts> {
+  $KnownHostsFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get host => $composableBuilder(
+    column: $table.host,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get fingerprint => $composableBuilder(
+    column: $table.fingerprint,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $KnownHostsOrderingComposer extends Composer<_$CliqDatabase, KnownHosts> {
+  $KnownHostsOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get host => $composableBuilder(
+    column: $table.host,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get fingerprint => $composableBuilder(
+    column: $table.fingerprint,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $KnownHostsAnnotationComposer
+    extends Composer<_$CliqDatabase, KnownHosts> {
+  $KnownHostsAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<int> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get host =>
+      $composableBuilder(column: $table.host, builder: (column) => column);
+
+  GeneratedColumn<String> get fingerprint => $composableBuilder(
+    column: $table.fingerprint,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+}
+
+class $KnownHostsTableManager
+    extends
+        RootTableManager<
+          _$CliqDatabase,
+          KnownHosts,
+          KnownHost,
+          $KnownHostsFilterComposer,
+          $KnownHostsOrderingComposer,
+          $KnownHostsAnnotationComposer,
+          $KnownHostsCreateCompanionBuilder,
+          $KnownHostsUpdateCompanionBuilder,
+          (KnownHost, BaseReferences<_$CliqDatabase, KnownHosts, KnownHost>),
+          KnownHost,
+          PrefetchHooks Function()
+        > {
+  $KnownHostsTableManager(_$CliqDatabase db, KnownHosts table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $KnownHostsFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $KnownHostsOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $KnownHostsAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                Value<String> host = const Value.absent(),
+                Value<String> fingerprint = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+              }) => KnownHostsCompanion(
+                id: id,
+                host: host,
+                fingerprint: fingerprint,
+                createdAt: createdAt,
+              ),
+          createCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                required String host,
+                required String fingerprint,
+                Value<DateTime> createdAt = const Value.absent(),
+              }) => KnownHostsCompanion.insert(
+                id: id,
+                host: host,
+                fingerprint: fingerprint,
+                createdAt: createdAt,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $KnownHostsProcessedTableManager =
+    ProcessedTableManager<
+      _$CliqDatabase,
+      KnownHosts,
+      KnownHost,
+      $KnownHostsFilterComposer,
+      $KnownHostsOrderingComposer,
+      $KnownHostsAnnotationComposer,
+      $KnownHostsCreateCompanionBuilder,
+      $KnownHostsUpdateCompanionBuilder,
+      (KnownHost, BaseReferences<_$CliqDatabase, KnownHosts, KnownHost>),
+      KnownHost,
+      PrefetchHooks Function()
+    >;
 typedef $CustomTerminalThemesCreateCompanionBuilder =
     CustomTerminalThemesCompanion Function({
       Value<int> id,
@@ -7059,6 +7538,8 @@ typedef $ConnectionCredentialsProcessedTableManager =
 class $CliqDatabaseManager {
   final _$CliqDatabase _db;
   $CliqDatabaseManager(this._db);
+  $KnownHostsTableManager get knownHosts =>
+      $KnownHostsTableManager(_db, _db.knownHosts);
   $CustomTerminalThemesTableManager get customTerminalThemes =>
       $CustomTerminalThemesTableManager(_db, _db.customTerminalThemes);
   $KeysTableManager get keys => $KeysTableManager(_db, _db.keys);

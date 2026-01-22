@@ -67,7 +67,10 @@ class ShellSessionNotifier extends Notifier<SSHSessionState> {
     );
   }
 
-  Future<SSHClient> createSSHClient(ConnectionFull connection) async {
+  Future<SSHClient> createSSHClient(
+    String sessionId,
+    ConnectionFull connection,
+  ) async {
     final (password, keys) = CredentialService.collectAuthenticationMethods(
       await CliqDatabase.credentialService.findByIds(
         connection.identity?.credentialIds ?? connection.credentialIds,
@@ -79,6 +82,32 @@ class ShellSessionNotifier extends Notifier<SSHSessionState> {
       socket,
       username: connection.effectiveUsername,
       identities: keys,
+      onVerifyHostKey: (_, fingerprintRaw) async {
+        final fingerprint = fingerprintRaw
+            .map((e) => e.toRadixString(16).padLeft(2, '0'))
+            .join(':');
+
+        // check db whether host is known
+        final (isHostKnown, isKeyMatch) = await CliqDatabase.knownHostService
+            .isHostKnown(connection.addressAndPort, fingerprint);
+
+        if (isHostKnown && isKeyMatch) return true;
+
+        _modifySession(
+          sessionId,
+          (session) => session.copyWith(
+            knownHostState: KnownHostState(
+              host: connection.addressAndPort,
+              fingerprint: fingerprint,
+              isKnown: isHostKnown,
+              isMatch: isKeyMatch,
+            ),
+          ),
+        );
+
+        // fail the verification for now, try again if the user accepts
+        return false;
+      },
       onPasswordRequest: password != null ? () => password : null,
     );
 

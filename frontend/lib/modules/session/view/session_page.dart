@@ -96,7 +96,29 @@ class _ShellSessionPageState extends ConsumerState<ShellSessionPage>
       ];
     }
 
+    buildKnownHostWarning() {
+      return [
+        Icon(LucideIcons.fingerprintPattern, size: 36),
+        Text.rich(
+          TextSpan(
+            children: [
+              TextSpan(text: 'Accept fingerprint for '),
+              TextSpan(
+                text: '${widget.session.connection.addressAndPort}?',
+                style: typography.xl.copyWith(fontWeight: .bold),
+              ),
+            ],
+          ),
+          style: typography.xl,
+        ),
+        FCard(child: Text(widget.session.knownHostState!.fingerprint!)),
+      ];
+    }
+
     buildError() {
+      if (widget.session.knownHostState != null) {
+        return buildKnownHostWarning();
+      }
       return [
         Icon(LucideIcons.plugZap, size: 36),
         Text.rich(
@@ -129,7 +151,7 @@ class _ShellSessionPageState extends ConsumerState<ShellSessionPage>
       Future<void> openSsh(ConnectionFull connection) async {
         final client = await ref
             .read(sessionProvider.notifier)
-            .createSSHClient(connection);
+            .createSSHClient(widget.session.id, connection);
 
         final shell = await ref
             .read(sessionProvider.notifier)

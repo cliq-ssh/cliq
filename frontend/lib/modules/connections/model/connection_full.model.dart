@@ -7,6 +7,7 @@ class ConnectionFull extends Connection {
   final IdentityFull? identity;
   final CustomTerminalTheme? terminalThemeOverride;
 
+  String get addressAndPort => '$address:$port';
   String get effectiveUsername => identity?.username ?? username!;
 
   ConnectionFull.fromConnection(

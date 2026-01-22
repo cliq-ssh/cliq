@@ -1,0 +1,9 @@
+CREATE TABLE known_hosts (
+    id          INTEGER PRIMARY KEY AUTOINCREMENT,
+    host        TEXT NOT NULL,
+    fingerprint TEXT NOT NULL,
+    created_at  DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+findKnownHostByHost:
+    SELECT * FROM known_hosts WHERE host = ?;
