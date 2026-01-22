@@ -35,6 +35,7 @@ final class IdentityService {
         username: username.trim(),
       ),
     );
+
     await _credentialService.insertAllWithRelation(
       credentialIds,
       relationRepository: _identityCredentialsRepository,

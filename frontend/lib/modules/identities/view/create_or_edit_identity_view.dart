@@ -64,6 +64,7 @@ class CreateOrEditIdentityView extends HookConsumerWidget {
               label: labelCtrl.textOrNull,
               username: usernameCtrl.textOrNull,
               newCredentialIds: newCredentialIds,
+              compareTo: current,
             )
           : await CliqDatabase.identityService.createIdentity(
               label: labelCtrl.text,

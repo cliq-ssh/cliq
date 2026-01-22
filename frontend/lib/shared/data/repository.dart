@@ -40,7 +40,7 @@ abstract class Repository<T extends Table, R> {
     return (db.update(table)..where((t) => _whereId(t, id))).write(row).then((
       count,
     ) {
-      _log.finest('Updated $count rows: id $id, data $row');
+      _log.finest('Updated $count rows');
       return count;
     });
   }
