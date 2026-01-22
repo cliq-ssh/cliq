@@ -8,7 +8,6 @@ import 'package:forui/forui.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lucide_flutter/lucide_flutter.dart';
 
-import '../../../shared/data/database.dart';
 import '../../../shared/model/page_path.model.dart';
 
 class DebugSettingsPage extends AbstractSettingsPage {
@@ -80,15 +79,6 @@ class DebugSettingsPage extends AbstractSettingsPage {
                           ),
                         ],
                       ),
-                    ),
-                    FButton(
-                      style: FButtonStyle.destructive(),
-                      child: Text('Reset SQLite database'),
-                      onPress: () async {
-                        await CliqDatabase.connectionsRepository.deleteAll();
-                        await CliqDatabase.credentialsRepository.deleteAll();
-                        await CliqDatabase.identitiesRepository.deleteAll();
-                      },
                     ),
                   ],
                 ),

@@ -74,7 +74,7 @@ class SyncNotifier extends Notifier<SyncState> {
 
   @override
   SyncState build() {
-    attemptRecover();
+    // TODO: attemptRecover();
     return SyncState.initial();
   }
 }

@@ -1,42 +1,67 @@
 import '../../identities/data/identities.drift';
 import '../../credentials/data/credentials.drift';
 import '../../connections/model/connection_icon.dart';
-import '../../connections/model/connection_color.dart';
 import '../../settings/data/custom_terminal_themes.drift';
 import '../../../shared/data/converters/color_converter.dart';
 import '../../../shared/data/converters/terminal_typography_converter.dart';
 
 CREATE TABLE connections (
     id                              INTEGER PRIMARY KEY AUTOINCREMENT,
+    label                           TEXT NOT NULL,
     address                         TEXT NOT NULL,
     port                            INTEGER NOT NULL,
-    identity_id                     INTEGER REFERENCES identities(id),
+    identity_id                     INTEGER REFERENCES identities(id) ON DELETE SET NULL,
     username                        TEXT,
-    credential_id                   INTEGER REFERENCES credentials(id) ON DELETE CASCADE,
-    label                           TEXT,
-    icon                            ENUM(ConnectionIcon) NOT NULL DEFAULT 'unknown',
-    icon_color                      INTEGER MAPPED BY `const ColorConverter()`,
-    icon_background_color           INTEGER MAPPED BY `const ColorConverter()`,
     group_name                      TEXT,
+    icon                            ENUM(ConnectionIcon) NOT NULL DEFAULT 'unknown',
+    icon_color                      INTEGER NOT NULL MAPPED BY `const ColorConverter()`,
+    icon_background_color           INTEGER NOT NULL MAPPED BY `const ColorConverter()`,
+    is_icon_auto_detect             BOOLEAN NOT NULL DEFAULT TRUE,
     terminal_typography_override    TEXT MAPPED BY `const TerminalTypographyConverter()`,
-    terminal_theme_override_id      INTEGER REFERENCES custom_terminal_themes(id) ON DELETE SET NULL
+    terminal_theme_override_id      INTEGER REFERENCES custom_terminal_themes(id) ON DELETE SET NULL,
+
+    CONSTRAINT username_or_identity_id CHECK (
+        (identity_id IS NOT NULL AND username IS NULL) OR
+        (identity_id IS NULL AND username IS NOT NULL)
+    )
+);
+
+CREATE TABLE connection_credentials (
+    connection_id   INTEGER NOT NULL REFERENCES connections(id) ON DELETE CASCADE,
+    credential_id   INTEGER NOT NULL REFERENCES credentials(id) ON DELETE CASCADE,
+    PRIMARY KEY (connection_id, credential_id)
 );
 
 findAllConnectionFull:
   SELECT
     c.** AS connection,
     i.** AS identity,
-    cc.** AS credential,
-    ci.** AS identityCredential,
-    t.** AS terminalThemeOverride
+    t.** AS terminalThemeOverride,
+
+    LIST(
+      SELECT
+        credentials.id
+      FROM connection_credentials
+        JOIN credentials ON credentials.id = connection_credentials.credential_id
+        WHERE connection_credentials.connection_id = c.id
+        ORDER BY credentials.id
+    ) AS connectionCredentials,
+
+    LIST(
+      SELECT
+        credentials.id
+      FROM identity_credentials
+        JOIN credentials ON credentials.id = identity_credentials.credential_id
+        WHERE identity_credentials.identity_id = i.id
+        ORDER BY credentials.id
+    ) AS identityCredentials
+
   FROM connections c
-  LEFT JOIN identities i ON c.identity_id = i.id
-  LEFT JOIN credentials cc ON c.credential_id = cc.id
-  LEFT JOIN credentials ci ON i.credential_id = ci.id
-  LEFT JOIN custom_terminal_themes t ON c.terminal_theme_override_id = t.id;
+    LEFT JOIN identities i ON c.identity_id = i.id
+    LEFT JOIN custom_terminal_themes t ON c.terminal_theme_override_id = t.id;
 
 findAllConnectionGroupNames:
     SELECT DISTINCT group_name
     FROM connections
-    WHERE group_name IS NOT NULL AND group_name != ''
-    ORDER BY group_name ASC;
+      WHERE group_name IS NOT NULL AND group_name != ''
+      ORDER BY group_name ASC;

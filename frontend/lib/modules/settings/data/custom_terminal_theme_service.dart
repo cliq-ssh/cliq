@@ -2,11 +2,11 @@ import 'package:cliq/modules/settings/data/custom_terminal_themes_repository.dar
 import 'package:cliq/shared/data/database.dart';
 
 final class CustomTerminalThemeService {
-  final CustomTerminalThemesRepository customTerminalThemesRepository;
+  final CustomTerminalThemesRepository _customTerminalThemesRepository;
 
-  const CustomTerminalThemeService(this.customTerminalThemesRepository);
+  const CustomTerminalThemeService(this._customTerminalThemesRepository);
 
   Stream<List<CustomTerminalTheme>> watchAll() {
-    return customTerminalThemesRepository.selectAll().watch();
+    return _customTerminalThemesRepository.selectAll().watch();
   }
 }

@@ -1,0 +1,12 @@
+CREATE TABLE keys (
+    id              INTEGER PRIMARY KEY AUTOINCREMENT,
+    label           TEXT NOT NULL,
+    private_pem     TEXT NOT NULL,
+    passphrase      TEXT
+);
+
+findAllKeyIds:
+    SELECT id FROM keys;
+
+findKeyByIds:
+    SELECT * FROM keys WHERE id IN ?;

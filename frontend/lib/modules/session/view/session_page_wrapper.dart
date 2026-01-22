@@ -34,7 +34,7 @@ class _SessionPageState extends ConsumerState<SessionPageWrapper> {
         for (final session in session.activeSessions)
           ShellSessionPage(
             key: PageStorageKey(
-              'session-${session.effectiveName}--${session.id}',
+              'session-${session.connection.label}--${session.id}',
             ),
             session: session,
           ),

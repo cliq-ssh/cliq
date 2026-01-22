@@ -3,17 +3,16 @@ import '../../identities/model/identity_full.model.dart';
 
 /// Model class that better wraps the [FindFullConnectionByIdResult] class.
 class ConnectionFull extends Connection {
+  final List<int> credentialIds;
   final IdentityFull? identity;
-  final Credential? credential;
   final CustomTerminalTheme? terminalThemeOverride;
 
-  String get effectiveUsername => username ?? identity!.username;
-  Credential? get effectiveCredential => credential ?? identity?.credential;
+  String get effectiveUsername => identity?.username ?? username!;
 
   ConnectionFull.fromConnection(
     Connection connection, {
+    required this.credentialIds,
     this.identity,
-    this.credential,
     this.terminalThemeOverride,
   }) : super(
          id: connection.id,
@@ -25,24 +24,26 @@ class ConnectionFull extends Connection {
          groupName: connection.groupName,
          label: connection.label,
          username: connection.username,
+         identityId: connection.identityId,
          terminalThemeOverrideId: connection.terminalThemeOverrideId,
          terminalTypographyOverride: connection.terminalTypographyOverride,
+         isIconAutoDetect: connection.isIconAutoDetect,
        );
 
-  factory ConnectionFull.fromResult(FindAllConnectionFullResult result) {
+  factory ConnectionFull.fromFindAllResult(FindAllConnectionFullResult result) {
     IdentityFull? identityFull;
     if (result.identity != null) {
       identityFull = IdentityFull.fromIdentity(
         result.identity!,
-        credential: result.identityCredential,
+        credentialIds: result.identityCredentials,
       );
     }
 
     return .fromConnection(
       result.connection,
       identity: identityFull,
-      credential: result.credential,
       terminalThemeOverride: result.terminalThemeOverride,
+      credentialIds: result.connectionCredentials,
     );
   }
 }

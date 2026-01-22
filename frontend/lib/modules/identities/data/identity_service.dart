@@ -1,25 +1,86 @@
-import '../../credentials/data/credentials_repository.dart';
+import 'package:cliq/modules/credentials/data/credential_service.dart';
+import 'package:cliq/modules/identities/data/identity_credentials_repository.dart';
+import 'package:cliq/modules/identities/model/identity_full.model.dart';
+import 'package:cliq/shared/extensions/value.extension.dart';
+
 import '../../../shared/data/database.dart';
 import 'identities_repository.dart';
 
 final class IdentityService {
-  final IdentitiesRepository identityRepository;
-  final CredentialsRepository credentialRepository;
+  final IdentitiesRepository _identityRepository;
+  final IdentityCredentialsRepository _identityCredentialsRepository;
 
-  const IdentityService(this.identityRepository, this.credentialRepository);
+  final CredentialService _credentialService;
 
-  Future<bool> hasIdentities() async => await identityRepository.count() > 0;
+  const IdentityService(
+    this._identityRepository,
+    this._identityCredentialsRepository,
+    this._credentialService,
+  );
 
-  Future<int> createIdentity(
-    String username,
-    CredentialsCompanion credential,
-  ) async {
-    final credentialId = await credentialRepository.insert(credential);
-    return await identityRepository.insert(
+  Stream<List<IdentityFull>> watchAll() {
+    return _identityRepository.db.findAllIdentityFull().watch().map(
+      (c) => c.map(IdentityFull.fromFindAllResult).toList(),
+    );
+  }
+
+  Future<int> createIdentity({
+    required String label,
+    required String username,
+    required List<int> credentialIds,
+  }) async {
+    final identityId = await _identityRepository.insert(
       IdentitiesCompanion.insert(
-        username: username,
-        credentialId: credentialId,
+        label: label.trim(),
+        username: username.trim(),
       ),
     );
+
+    await _credentialService.insertAllWithRelation(
+      credentialIds,
+      relationRepository: _identityCredentialsRepository,
+      builder: (id) => IdentityCredentialsCompanion.insert(
+        identityId: identityId,
+        credentialId: id,
+      ),
+    );
+
+    return identityId;
+  }
+
+  Future<int> update(
+    int identityId, {
+    required String? label,
+    required String? username,
+    List<int>? newCredentialIds,
+    IdentitiesCompanion? compareTo,
+  }) async {
+    await _identityRepository.updateById(
+      identityId,
+      IdentitiesCompanion(
+        label: ValueExtension.absentIfNullOrSame(label, compareTo?.label),
+        username: ValueExtension.absentIfNullOrSame(
+          username,
+          compareTo?.username,
+        ),
+      ),
+    );
+
+    if (newCredentialIds != null) {
+      await _credentialService.insertAllWithRelation(
+        newCredentialIds,
+        relationRepository: _identityCredentialsRepository,
+        builder: (id) => IdentityCredentialsCompanion.insert(
+          identityId: identityId,
+          credentialId: id,
+        ),
+      );
+    }
+    return identityId;
+  }
+
+  Future<void> deleteById(int id, List<int> credentialIds) async {
+    await _credentialService.deleteByIds(credentialIds);
+    return _identityRepository.deleteById(id);
   }
 }

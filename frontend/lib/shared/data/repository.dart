@@ -21,13 +21,25 @@ abstract class Repository<T extends Table, R> {
     });
   }
 
-  Future<void> insertAll(List<UpdateCompanion<R>> rows) {
+  Future<List<int>> insertAll(List<UpdateCompanion<R>> rows) async {
+    _log.finest('Inserting ${rows.length} rows');
+
+    final List<int> ids = [];
+    for (final row in rows) {
+      ids.add(await insert(row));
+    }
+    return ids;
+  }
+
+  Future<void> insertAllBatch(List<UpdateCompanion<R>> rows) {
     _log.finest('Inserting ${rows.length} rows');
     return db.batch((batch) => batch.insertAll(table, rows));
   }
 
-  Future<int> update(UpdateCompanion<R> row) {
-    return db.update(table).write(row).then((count) {
+  Future<int> updateById(int id, UpdateCompanion<R> row) {
+    return (db.update(table)..where((t) => _whereId(t, id))).write(row).then((
+      count,
+    ) {
       _log.finest('Updated $count rows');
       return count;
     });
@@ -36,6 +48,15 @@ abstract class Repository<T extends Table, R> {
   Future<void> deleteById(int id) {
     _log.finest('Deleting row with id $id');
     return (db.delete(table)..where((row) => _whereId(row, id))).go();
+  }
+
+  Future<void> deleteByIds(List<int> ids) async {
+    _log.finest('Deleting rows with ids $ids');
+    return db.batch((batch) {
+      for (final id in ids) {
+        batch.deleteWhere(table, (row) => _whereId(row, id));
+      }
+    });
   }
 
   Future<void> deleteAll() {
