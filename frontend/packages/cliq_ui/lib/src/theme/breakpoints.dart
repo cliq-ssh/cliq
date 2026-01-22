@@ -1,4 +1,15 @@
-enum Breakpoint { sm, md, lg, xl, xxl }
+enum Breakpoint {
+  sm,
+  md,
+  lg,
+  xl,
+  xxl;
+
+  bool operator <(Breakpoint other) => index < other.index;
+  bool operator <=(Breakpoint other) => index <= other.index;
+  bool operator >(Breakpoint other) => index > other.index;
+  bool operator >=(Breakpoint other) => index >= other.index;
+}
 
 typedef BreakpointMap<T> = Map<Breakpoint, T>;
 

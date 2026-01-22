@@ -2,7 +2,6 @@ import 'package:cliq/modules/keys/provider/key.provider.dart';
 import 'package:cliq/shared/data/database.dart';
 import 'package:cliq/shared/extensions/async_snapshot.extension.dart';
 import 'package:cliq_ui/cliq_ui.dart' show useMemoizedFuture;
-import 'package:cliq_ui/hooks/use_breakpoint.export.dart' show useBreakpoint;
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:forui/forui.dart';
@@ -143,7 +142,6 @@ class CreateOrEditCredentialsFormState
 
   @override
   Widget build(BuildContext context) {
-    final breakpoint = useBreakpoint();
     final popoverController = useFPopoverController();
     final keyIds = ref.watch(keyIdProvider);
     final keysFuture = useMemoizedFuture(() async {
@@ -243,7 +241,6 @@ class CreateOrEditCredentialsFormState
                     onTap: () async {
                       final result = await Commons.showResponsiveDialog(
                         context,
-                        breakpoint,
                         (_) => CreateOrEditKeyView.create(
                           initialLabel: data.controller.text.isEmpty
                               ? null

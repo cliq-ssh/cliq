@@ -4,7 +4,7 @@ import 'package:cliq/modules/identities/view/create_or_edit_identity_view.dart';
 import 'package:cliq/modules/settings/view/abstract_settings_page.dart';
 import 'package:cliq/modules/settings/view/settings_page.dart';
 import 'package:cliq_ui/cliq_ui.dart'
-    show CliqGridContainer, CliqGridRow, CliqGridColumn, useBreakpoint;
+    show CliqGridContainer, CliqGridRow, CliqGridColumn;
 import 'package:flutter/cupertino.dart';
 import 'package:forui/forui.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -23,12 +23,10 @@ class IdentitiesSettingsPage extends AbstractSettingsPage {
 
   @override
   Widget buildBody(BuildContext context, WidgetRef ref) {
-    final breakpoint = useBreakpoint();
     final identities = ref.watch(identityProvider);
 
     openAddIdentityView() => Commons.showResponsiveDialog(
       context,
-      breakpoint,
       (_) => CreateOrEditIdentityView.create(),
     );
 

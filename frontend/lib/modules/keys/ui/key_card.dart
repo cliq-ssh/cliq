@@ -1,7 +1,6 @@
 import 'package:cliq/modules/keys/view/create_or_edit_key_view.dart';
 import 'package:cliq/shared/data/database.dart';
 import 'package:cliq/shared/utils/commons.dart';
-import 'package:cliq_ui/cliq_ui.dart' show useBreakpoint;
 import 'package:flutter/material.dart' hide Key;
 import 'package:forui/forui.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -14,8 +13,6 @@ class KeyCard extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final breakpoint = useBreakpoint();
-
     return FCard(
       title: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -46,7 +43,6 @@ class KeyCard extends HookConsumerWidget {
                     title: Text('Edit'),
                     onPress: () => Commons.showResponsiveDialog(
                       context,
-                      breakpoint,
                       (_) => CreateOrEditKeyView.edit(keyEntity),
                     ),
                   ),

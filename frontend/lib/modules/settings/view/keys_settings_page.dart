@@ -2,7 +2,7 @@ import 'package:cliq/modules/keys/view/create_or_edit_key_view.dart';
 import 'package:cliq/modules/settings/view/abstract_settings_page.dart';
 import 'package:cliq/modules/settings/view/settings_page.dart';
 import 'package:cliq_ui/cliq_ui.dart'
-    show CliqGridContainer, CliqGridRow, CliqGridColumn, useBreakpoint;
+    show CliqGridContainer, CliqGridRow, CliqGridColumn;
 import 'package:cliq_ui/hooks/use_memoized_future.export.dart'
     show useMemoizedFuture;
 import 'package:flutter/cupertino.dart';
@@ -27,7 +27,6 @@ class KeysSettingsPage extends AbstractSettingsPage {
 
   @override
   Widget buildBody(BuildContext context, WidgetRef ref) {
-    final breakpoint = useBreakpoint();
     final keyIds = ref.watch(keyIdProvider);
     final keysFuture = useMemoizedFuture(() async {
       return await CliqDatabase.keysService.findByIds(keyIds.entities);
@@ -35,7 +34,6 @@ class KeysSettingsPage extends AbstractSettingsPage {
 
     openAddKeyView() => Commons.showResponsiveDialog(
       context,
-      breakpoint,
       (_) => CreateOrEditKeyView.create(),
     );
 
