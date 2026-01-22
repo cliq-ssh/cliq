@@ -569,7 +569,7 @@ class CreateOrEditConnectionView extends HookConsumerWidget {
                       Expanded(
                         child: FAutocomplete.builder(
                           control: .managed(controller: usernameCtrl),
-                          filter: (query) async {
+                          filter: (query) {
                             final values = identities.entities.map(
                               (i) => AutocompleteUtils.toAutocompleteString(
                                 i.id,
@@ -597,13 +597,11 @@ class CreateOrEditConnectionView extends HookConsumerWidget {
                                 value: suggestion,
                               ),
                           ],
+                          contentEmptyBuilder: (_, _) => SizedBox.shrink(),
                           focusNode: usernameFocusNode,
-                          label: Text('Username'),
+                          label: Text(selectedIdentityId.value == null ? 'Username' : 'Identity'),
                           minLines: 1,
                           validator: (s) {
-                            final empty = Validators.nonEmpty(s);
-                            if (empty != null) return empty;
-
                             // workaround as onChange does not trigger when selecting an autocomplete item
                             WidgetsBinding.instance.addPostFrameCallback((_) {
                               selectedIdentityId.value =
@@ -611,6 +609,10 @@ class CreateOrEditConnectionView extends HookConsumerWidget {
                                     s!,
                                   ).$1;
                             });
+
+                            final empty = Validators.nonEmpty(s);
+                            if (empty != null) return empty;
+
                             return null;
                           },
                           autovalidateMode: .onUserInteraction,
