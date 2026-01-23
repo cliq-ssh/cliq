@@ -22,6 +22,6 @@ docker compose run --rm node yarn install
 echo "Starting server..."
 docker compose up -d
 
-echo "Server listening on http://localhost:3000"
+echo "Server listening on http://localhost:3000/cliq"
 
 echo "Finished install"
