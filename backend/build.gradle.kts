@@ -164,7 +164,7 @@ dependencies {
     testImplementation("org.mockito.kotlin:mockito-kotlin:6.2.2")
 
     // AssertJ
-    testImplementation("org.assertj:assertj-core:3.27.6")
+    testImplementation("org.assertj:assertj-core:3.27.7")
 
     // Kotlin specifics
     testImplementation("org.awaitility:awaitility-kotlin:4.3.0")
