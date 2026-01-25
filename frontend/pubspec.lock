@@ -202,7 +202,7 @@ packages:
     source: hosted
     version: "1.15.0"
   crypto:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: crypto
       sha256: c8ea0233063ba03258fbcf2ca4d6dadfefe14f02fab57702265467a19f27fadf
@@ -228,10 +228,11 @@ packages:
   dartssh2:
     dependency: "direct main"
     description:
-      name: dartssh2
-      sha256: bb242396c1d90f05c261b5eb8338cc67167e803c0948b0207029339cc568a66c
-      url: "https://pub.dev"
-    source: hosted
+      path: "."
+      ref: master
+      resolved-ref: "5bc40d5d887cea53846d255202f26f9d7e74e1cf"
+      url: "https://github.com/cliq-ssh/dartssh2.git"
+    source: git
     version: "2.13.0"
   dio:
     dependency: transitive
