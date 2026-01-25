@@ -27,14 +27,14 @@ class KnownHosts extends Table with TableInfo<KnownHosts, KnownHost> {
     requiredDuringInsert: true,
     $customConstraints: 'NOT NULL',
   );
-  static const VerificationMeta _fingerprintMeta = const VerificationMeta(
-    'fingerprint',
+  static const VerificationMeta _hostKeyMeta = const VerificationMeta(
+    'hostKey',
   );
-  late final GeneratedColumn<String> fingerprint = GeneratedColumn<String>(
-    'fingerprint',
+  late final GeneratedColumn<Uint8List> hostKey = GeneratedColumn<Uint8List>(
+    'hostKey',
     aliasedName,
     false,
-    type: DriftSqlType.string,
+    type: DriftSqlType.blob,
     requiredDuringInsert: true,
     $customConstraints: 'NOT NULL',
   );
@@ -51,7 +51,7 @@ class KnownHosts extends Table with TableInfo<KnownHosts, KnownHost> {
     defaultValue: const CustomExpression('CURRENT_TIMESTAMP'),
   );
   @override
-  List<GeneratedColumn> get $columns => [id, host, fingerprint, createdAt];
+  List<GeneratedColumn> get $columns => [id, host, hostKey, createdAt];
   @override
   String get aliasedName => _alias ?? actualTableName;
   @override
@@ -75,16 +75,13 @@ class KnownHosts extends Table with TableInfo<KnownHosts, KnownHost> {
     } else if (isInserting) {
       context.missing(_hostMeta);
     }
-    if (data.containsKey('fingerprint')) {
+    if (data.containsKey('hostKey')) {
       context.handle(
-        _fingerprintMeta,
-        fingerprint.isAcceptableOrUnknown(
-          data['fingerprint']!,
-          _fingerprintMeta,
-        ),
+        _hostKeyMeta,
+        hostKey.isAcceptableOrUnknown(data['hostKey']!, _hostKeyMeta),
       );
     } else if (isInserting) {
-      context.missing(_fingerprintMeta);
+      context.missing(_hostKeyMeta);
     }
     if (data.containsKey('created_at')) {
       context.handle(
@@ -109,9 +106,9 @@ class KnownHosts extends Table with TableInfo<KnownHosts, KnownHost> {
         DriftSqlType.string,
         data['${effectivePrefix}host'],
       )!,
-      fingerprint: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}fingerprint'],
+      hostKey: attachedDatabase.typeMapping.read(
+        DriftSqlType.blob,
+        data['${effectivePrefix}hostKey'],
       )!,
       createdAt: attachedDatabase.typeMapping.read(
         DriftSqlType.dateTime,
@@ -132,12 +129,12 @@ class KnownHosts extends Table with TableInfo<KnownHosts, KnownHost> {
 class KnownHost extends DataClass implements Insertable<KnownHost> {
   final int id;
   final String host;
-  final String fingerprint;
+  final Uint8List hostKey;
   final DateTime createdAt;
   const KnownHost({
     required this.id,
     required this.host,
-    required this.fingerprint,
+    required this.hostKey,
     required this.createdAt,
   });
   @override
@@ -145,7 +142,7 @@ class KnownHost extends DataClass implements Insertable<KnownHost> {
     final map = <String, Expression>{};
     map['id'] = Variable<int>(id);
     map['host'] = Variable<String>(host);
-    map['fingerprint'] = Variable<String>(fingerprint);
+    map['hostKey'] = Variable<Uint8List>(hostKey);
     map['created_at'] = Variable<DateTime>(createdAt);
     return map;
   }
@@ -154,7 +151,7 @@ class KnownHost extends DataClass implements Insertable<KnownHost> {
     return KnownHostsCompanion(
       id: Value(id),
       host: Value(host),
-      fingerprint: Value(fingerprint),
+      hostKey: Value(hostKey),
       createdAt: Value(createdAt),
     );
   }
@@ -167,7 +164,7 @@ class KnownHost extends DataClass implements Insertable<KnownHost> {
     return KnownHost(
       id: serializer.fromJson<int>(json['id']),
       host: serializer.fromJson<String>(json['host']),
-      fingerprint: serializer.fromJson<String>(json['fingerprint']),
+      hostKey: serializer.fromJson<Uint8List>(json['hostKey']),
       createdAt: serializer.fromJson<DateTime>(json['created_at']),
     );
   }
@@ -177,7 +174,7 @@ class KnownHost extends DataClass implements Insertable<KnownHost> {
     return <String, dynamic>{
       'id': serializer.toJson<int>(id),
       'host': serializer.toJson<String>(host),
-      'fingerprint': serializer.toJson<String>(fingerprint),
+      'hostKey': serializer.toJson<Uint8List>(hostKey),
       'created_at': serializer.toJson<DateTime>(createdAt),
     };
   }
@@ -185,21 +182,19 @@ class KnownHost extends DataClass implements Insertable<KnownHost> {
   KnownHost copyWith({
     int? id,
     String? host,
-    String? fingerprint,
+    Uint8List? hostKey,
     DateTime? createdAt,
   }) => KnownHost(
     id: id ?? this.id,
     host: host ?? this.host,
-    fingerprint: fingerprint ?? this.fingerprint,
+    hostKey: hostKey ?? this.hostKey,
     createdAt: createdAt ?? this.createdAt,
   );
   KnownHost copyWithCompanion(KnownHostsCompanion data) {
     return KnownHost(
       id: data.id.present ? data.id.value : this.id,
       host: data.host.present ? data.host.value : this.host,
-      fingerprint: data.fingerprint.present
-          ? data.fingerprint.value
-          : this.fingerprint,
+      hostKey: data.hostKey.present ? data.hostKey.value : this.hostKey,
       createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
     );
   }
@@ -209,52 +204,53 @@ class KnownHost extends DataClass implements Insertable<KnownHost> {
     return (StringBuffer('KnownHost(')
           ..write('id: $id, ')
           ..write('host: $host, ')
-          ..write('fingerprint: $fingerprint, ')
+          ..write('hostKey: $hostKey, ')
           ..write('createdAt: $createdAt')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode => Object.hash(id, host, fingerprint, createdAt);
+  int get hashCode =>
+      Object.hash(id, host, $driftBlobEquality.hash(hostKey), createdAt);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
       (other is KnownHost &&
           other.id == this.id &&
           other.host == this.host &&
-          other.fingerprint == this.fingerprint &&
+          $driftBlobEquality.equals(other.hostKey, this.hostKey) &&
           other.createdAt == this.createdAt);
 }
 
 class KnownHostsCompanion extends UpdateCompanion<KnownHost> {
   final Value<int> id;
   final Value<String> host;
-  final Value<String> fingerprint;
+  final Value<Uint8List> hostKey;
   final Value<DateTime> createdAt;
   const KnownHostsCompanion({
     this.id = const Value.absent(),
     this.host = const Value.absent(),
-    this.fingerprint = const Value.absent(),
+    this.hostKey = const Value.absent(),
     this.createdAt = const Value.absent(),
   });
   KnownHostsCompanion.insert({
     this.id = const Value.absent(),
     required String host,
-    required String fingerprint,
+    required Uint8List hostKey,
     this.createdAt = const Value.absent(),
   }) : host = Value(host),
-       fingerprint = Value(fingerprint);
+       hostKey = Value(hostKey);
   static Insertable<KnownHost> custom({
     Expression<int>? id,
     Expression<String>? host,
-    Expression<String>? fingerprint,
+    Expression<Uint8List>? hostKey,
     Expression<DateTime>? createdAt,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
       if (host != null) 'host': host,
-      if (fingerprint != null) 'fingerprint': fingerprint,
+      if (hostKey != null) 'hostKey': hostKey,
       if (createdAt != null) 'created_at': createdAt,
     });
   }
@@ -262,13 +258,13 @@ class KnownHostsCompanion extends UpdateCompanion<KnownHost> {
   KnownHostsCompanion copyWith({
     Value<int>? id,
     Value<String>? host,
-    Value<String>? fingerprint,
+    Value<Uint8List>? hostKey,
     Value<DateTime>? createdAt,
   }) {
     return KnownHostsCompanion(
       id: id ?? this.id,
       host: host ?? this.host,
-      fingerprint: fingerprint ?? this.fingerprint,
+      hostKey: hostKey ?? this.hostKey,
       createdAt: createdAt ?? this.createdAt,
     );
   }
@@ -282,8 +278,8 @@ class KnownHostsCompanion extends UpdateCompanion<KnownHost> {
     if (host.present) {
       map['host'] = Variable<String>(host.value);
     }
-    if (fingerprint.present) {
-      map['fingerprint'] = Variable<String>(fingerprint.value);
+    if (hostKey.present) {
+      map['hostKey'] = Variable<Uint8List>(hostKey.value);
     }
     if (createdAt.present) {
       map['created_at'] = Variable<DateTime>(createdAt.value);
@@ -296,7 +292,7 @@ class KnownHostsCompanion extends UpdateCompanion<KnownHost> {
     return (StringBuffer('KnownHostsCompanion(')
           ..write('id: $id, ')
           ..write('host: $host, ')
-          ..write('fingerprint: $fingerprint, ')
+          ..write('hostKey: $hostKey, ')
           ..write('createdAt: $createdAt')
           ..write(')'))
         .toString();
@@ -4057,14 +4053,14 @@ typedef $KnownHostsCreateCompanionBuilder =
     KnownHostsCompanion Function({
       Value<int> id,
       required String host,
-      required String fingerprint,
+      required Uint8List hostKey,
       Value<DateTime> createdAt,
     });
 typedef $KnownHostsUpdateCompanionBuilder =
     KnownHostsCompanion Function({
       Value<int> id,
       Value<String> host,
-      Value<String> fingerprint,
+      Value<Uint8List> hostKey,
       Value<DateTime> createdAt,
     });
 
@@ -4086,8 +4082,8 @@ class $KnownHostsFilterComposer extends Composer<_$CliqDatabase, KnownHosts> {
     builder: (column) => ColumnFilters(column),
   );
 
-  ColumnFilters<String> get fingerprint => $composableBuilder(
-    column: $table.fingerprint,
+  ColumnFilters<Uint8List> get hostKey => $composableBuilder(
+    column: $table.hostKey,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -4115,8 +4111,8 @@ class $KnownHostsOrderingComposer extends Composer<_$CliqDatabase, KnownHosts> {
     builder: (column) => ColumnOrderings(column),
   );
 
-  ColumnOrderings<String> get fingerprint => $composableBuilder(
-    column: $table.fingerprint,
+  ColumnOrderings<Uint8List> get hostKey => $composableBuilder(
+    column: $table.hostKey,
     builder: (column) => ColumnOrderings(column),
   );
 
@@ -4141,10 +4137,8 @@ class $KnownHostsAnnotationComposer
   GeneratedColumn<String> get host =>
       $composableBuilder(column: $table.host, builder: (column) => column);
 
-  GeneratedColumn<String> get fingerprint => $composableBuilder(
-    column: $table.fingerprint,
-    builder: (column) => column,
-  );
+  GeneratedColumn<Uint8List> get hostKey =>
+      $composableBuilder(column: $table.hostKey, builder: (column) => column);
 
   GeneratedColumn<DateTime> get createdAt =>
       $composableBuilder(column: $table.createdAt, builder: (column) => column);
@@ -4180,24 +4174,24 @@ class $KnownHostsTableManager
               ({
                 Value<int> id = const Value.absent(),
                 Value<String> host = const Value.absent(),
-                Value<String> fingerprint = const Value.absent(),
+                Value<Uint8List> hostKey = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
               }) => KnownHostsCompanion(
                 id: id,
                 host: host,
-                fingerprint: fingerprint,
+                hostKey: hostKey,
                 createdAt: createdAt,
               ),
           createCompanionCallback:
               ({
                 Value<int> id = const Value.absent(),
                 required String host,
-                required String fingerprint,
+                required Uint8List hostKey,
                 Value<DateTime> createdAt = const Value.absent(),
               }) => KnownHostsCompanion.insert(
                 id: id,
                 host: host,
-                fingerprint: fingerprint,
+                hostKey: hostKey,
                 createdAt: createdAt,
               ),
           withReferenceMapper: (p0) => p0

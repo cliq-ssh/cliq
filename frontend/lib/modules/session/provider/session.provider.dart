@@ -1,7 +1,10 @@
+import 'dart:convert';
+
 import 'package:cliq/modules/connections/model/connection_full.model.dart';
 import 'package:cliq/modules/credentials/data/credential_service.dart';
 import 'package:cliq/modules/session/model/session.state.dart';
 import 'package:cliq/shared/ui/navigation_shell.dart';
+import 'package:crypto/crypto.dart';
 import 'package:dartssh2/dartssh2.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:uuid/v4.dart';
@@ -43,6 +46,8 @@ class ShellSessionNotifier extends Notifier<SSHSessionState> {
     state = state.copyWith(selectedSessionId: sessionId ?? '');
   }
 
+  /// Closes the session with the given [sessionId].
+  /// If the closed session was the selected one, selects the last session in the list or navigates to the default branch if no sessions remain.
   void closeSession(NavigationShellState shellState, String sessionId) {
     final updatedSessions = state.activeSessions
         .where((s) => s.id != sessionId)
@@ -67,8 +72,24 @@ class ShellSessionNotifier extends Notifier<SSHSessionState> {
     );
   }
 
+  /// Resets the session to a disconnected state, disposing of any existing SSH resources.
+  void resetSession(
+    NavigationShellState shellState,
+    String sessionId, {
+    bool skipHostKeyVerification = false,
+  }) {
+    _modifySession(
+      sessionId,
+      (session) => ShellSession.disconnected(
+        id: session.id,
+        connection: session.connection,
+        skipHostKeyVerification: skipHostKeyVerification,
+      ),
+    );
+  }
+
   Future<SSHClient> createSSHClient(
-    String sessionId,
+    ShellSession session,
     ConnectionFull connection,
   ) async {
     final (password, keys) = CredentialService.collectAuthenticationMethods(
@@ -82,25 +103,29 @@ class ShellSessionNotifier extends Notifier<SSHSessionState> {
       socket,
       username: connection.effectiveUsername,
       identities: keys,
-      onVerifyHostKey: (_, fingerprintRaw) async {
-        final fingerprint = fingerprintRaw
-            .map((e) => e.toRadixString(16).padLeft(2, '0'))
-            .join(':');
+      onVerifyHostKey: (algorithm, hostKey) async {
+        if (session.skipHostKeyVerification) {
+          return true;
+        }
 
         // check db whether host is known
-        final (isHostKnown, isKeyMatch) = await CliqDatabase.knownHostService
-            .isHostKnown(connection.addressAndPort, fingerprint);
+        final (knownHost, isKeyMatch) = await CliqDatabase.knownHostService
+            .isHostKnown(connection.addressAndPort, hostKey);
 
-        if (isHostKnown && isKeyMatch) return true;
+        if (knownHost != null && isKeyMatch) return true;
+
+        final sha256Fingerprint =
+            'SHA256:${base64.encode(sha256.convert(hostKey).bytes).replaceAll('=', '')}';
 
         _modifySession(
-          sessionId,
+          session.id,
           (session) => session.copyWith(
-            knownHostState: KnownHostState(
+            knownHostError: KnownHostError(
               host: connection.addressAndPort,
-              fingerprint: fingerprint,
-              isKnown: isHostKnown,
-              isMatch: isKeyMatch,
+              hostKey: hostKey,
+              algorithm: algorithm,
+              sha256Fingerprint: sha256Fingerprint,
+              knownHost: knownHost,
             ),
           ),
         );
@@ -131,14 +156,23 @@ class ShellSessionNotifier extends Notifier<SSHSessionState> {
       sshClient.close();
       _modifySession(
         sessionId,
-        (session) => ShellSession(
-          id: session.id,
-          connection: session.connection,
-          connectionError: e.toString(),
-        ),
+        (session) => session.copyWith(connectionError: e.toString()),
       );
       return null;
     }
+  }
+
+  Future<void> acceptFingerprint(String sessionId, KnownHostError error) async {
+    await (error.knownHost != null
+        ? CliqDatabase.knownHostService.update(
+            error.knownHost!.id.value,
+            hostKey: error.hostKey,
+            compareTo: error.knownHost,
+          )
+        : CliqDatabase.knownHostService.createKey(
+            host: error.host,
+            hostKey: error.hostKey,
+          ));
   }
 
   void _modifySession(
