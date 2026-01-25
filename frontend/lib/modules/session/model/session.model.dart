@@ -5,11 +5,11 @@ import 'package:cliq/shared/data/database.dart';
 import 'package:dartssh2/dartssh2.dart';
 
 class KnownHostError {
-  /// Whether the host is known but may not match
   final String host;
   final Uint8List hostKey;
   final String algorithm;
   final String sha256Fingerprint;
+  // The known host entry that was found, if any.
   final KnownHostsCompanion? knownHost;
 
   const KnownHostError({
