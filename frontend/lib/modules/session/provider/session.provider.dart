@@ -162,17 +162,18 @@ class ShellSessionNotifier extends Notifier<SSHSessionState> {
     }
   }
 
-  Future<void> acceptFingerprint(String sessionId, KnownHostError error) async {
-    await (error.knownHost != null
-        ? CliqDatabase.knownHostService.update(
-            error.knownHost!.id.value,
-            hostKey: error.hostKey,
-            compareTo: error.knownHost,
-          )
-        : CliqDatabase.knownHostService.createKey(
-            host: error.host,
-            hostKey: error.hostKey,
-          ));
+  Future<int> acceptFingerprint(String sessionId, KnownHostError error) {
+    if (error.knownHost != null) {
+      return CliqDatabase.knownHostService.update(
+        error.knownHost!.id.value,
+        hostKey: error.hostKey,
+        compareTo: error.knownHost,
+      );
+    }
+    return CliqDatabase.knownHostService.createKey(
+      host: error.host,
+      hostKey: error.hostKey,
+    );
   }
 
   void _modifySession(
