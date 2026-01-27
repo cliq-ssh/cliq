@@ -30,7 +30,7 @@ jobs:
       - name: Copy compose override
         run: cp compose.override.dist.yaml compose.override.yaml
 
-      - name: Install docus
+      - name: Install Docusaurus
         run: bash dev/install
 
       - name: Build Docusaurus
