@@ -22,14 +22,16 @@ jobs:
     permissions:
       contents: read
     steps:
-      - uses: actions/checkout@v6
-      - name: Setup Node.js
-        uses: actions/setup-node@v6
-        with:
-          node-version: '25'
-          cache: 'yarn'
-          cache-dependency-path: './docs/yarn.lock'
-      - name: Install dependencies
-        run: yarn install --frozen-lockfile
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Copy compose override
+        run: cp compose.override.dist.yaml compose.override.yaml
+
+      - name: Install Docusaurus
+        run: bash dev/install
+
       - name: Build Docusaurus
-        run: yarn build
+        env:
+          NODE_ENV: production
+        run: bash dev/yarn build
