@@ -161,7 +161,7 @@ dependencies {
     // Mockito
     testImplementation("org.mockito:mockito-core:5.21.0")
     testImplementation("org.mockito:mockito-junit-jupiter:5.21.0")
-    testImplementation("org.mockito.kotlin:mockito-kotlin:6.2.2")
+    testImplementation("org.mockito.kotlin:mockito-kotlin:6.2.3")
 
     // AssertJ
     testImplementation("org.assertj:assertj-core:3.27.7")
