@@ -1,6 +1,6 @@
 services:
   node:
-    image: node:25.4.0
+    image: node:25.5.0
     user: ${UID:-1000}:${GID:-1000}
     restart: unless-stopped
     command: ["yarn", "start", "--poll", "1000", "--host", "0.0.0.0"]
