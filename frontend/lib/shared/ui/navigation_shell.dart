@@ -220,14 +220,8 @@ class NavigationShellState extends ConsumerState<NavigationShell>
                   .read(sessionProvider.notifier)
                   .setSelectedSession(this, null),
             ),
-            buildSidebarTab(
-              isExpanded,
-              label: Text('History'),
-              icon: Icon(LucideIcons.clock, size: 20),
-              onPress: () {}
-            ),
             FDivider(style: (_) => context.theme.dividerStyles.horizontalStyle.copyWith(
-              color: context.theme.colors.mutedForeground.withValues(alpha: 0.125)
+              color: context.theme.colors.primaryForeground,
             )),
             if (!isExpanded)
               ...buildSidebarSessionTabs(isExpanded)

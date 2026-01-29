@@ -1,5 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:forui/forui.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
@@ -48,44 +49,41 @@ class _ResponsiveSidebarState
       children: [
         Row(
           children: [
-            SizedBox(width: widget.minWidth),
+            SizedBox(width: widget.minWidth + 1),
             Expanded(child: widget.child),
           ],
         ),
-        AnimatedSize(
-          duration: const Duration(milliseconds: 100),
-          curve: Curves.easeInOut,
-          alignment: .centerLeft,
-          child: LayoutBuilder(
-            builder: (context, constraints) {
-              return SizedBox(
-                width: isExpanded.value ? widget.maxWidth : widget.minWidth,
-                height: constraints.biggest.height,
-                child: Container(
-                  color: widget.backgroundColor,
-                  padding: widget.padding ?? .zero,
-                  child: Padding(
-                    padding: const .symmetric(vertical: 16),
-                    child: Column(
-                      spacing: 8,
-                      children: [
-                        ?widget.headerBuilder?.call(context, isExpanded.value),
-                        if (widget.contentBuilder != null)
-                          Expanded(
-                            child: ListView(
-                              children: widget.contentBuilder!.call(
-                                context,
-                                isExpanded.value,
-                              ),
-                            ),
-                          ),
-                        ?widget.footerBuilder?.call(context, isExpanded.value),
-                      ],
+        Container(
+          width: isExpanded.value ? widget.maxWidth : widget.minWidth + 1,
+          height: double.infinity,
+          padding: widget.padding ?? .zero,
+          decoration: BoxDecoration(
+            color: widget.backgroundColor,
+            border: Border(
+              right: BorderSide(
+                color: context.theme.colors.primaryForeground,
+                width: 1,
+              ),
+            ),
+          ),
+          child: Padding(
+            padding: const .symmetric(vertical: 16),
+            child: Column(
+              spacing: 8,
+              children: [
+                ?widget.headerBuilder?.call(context, isExpanded.value),
+                if (widget.contentBuilder != null)
+                  Expanded(
+                    child: ListView(
+                      children: widget.contentBuilder!.call(
+                        context,
+                        isExpanded.value,
+                      ),
                     ),
                   ),
-                ),
-              );
-            },
+                ?widget.footerBuilder?.call(context, isExpanded.value),
+              ],
+            ),
           ),
         ),
       ],
