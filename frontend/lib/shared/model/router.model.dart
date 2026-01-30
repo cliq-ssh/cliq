@@ -7,11 +7,11 @@ import 'package:cliq/modules/settings/view/known_hosts_settings.dart';
 import 'package:cliq/modules/settings/view/license_page.dart';
 import 'package:cliq/modules/settings/view/settings_page.dart';
 import 'package:cliq/modules/settings/view/terminal_theme_settings_page.dart';
-import 'package:cliq/modules/settings/view/theme_settings_page.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
+import '../../modules/settings/view/appearance_settings_page.dart';
 import '../ui/navigation_shell.dart';
 
 class Router {
@@ -88,8 +88,8 @@ class Router {
             pageBuilder: _swipe(const TerminalThemeSettingsPage()),
           ),
           GoRoute(
-            path: ThemeSettingsPage.pagePath.path,
-            pageBuilder: _swipe(const ThemeSettingsPage()),
+            path: AppearanceSettingsPage.pagePath.path,
+            pageBuilder: _swipe(const AppearanceSettingsPage()),
           ),
         ],
       ),

@@ -3,7 +3,6 @@ import 'package:cliq/modules/settings/view/identities_settings_page.dart';
 import 'package:cliq/modules/settings/view/keys_settings_page.dart';
 import 'package:cliq/modules/settings/view/known_hosts_settings.dart';
 import 'package:cliq/modules/settings/view/terminal_theme_settings_page.dart';
-import 'package:cliq/modules/settings/view/theme_settings_page.dart';
 import 'package:cliq/shared/extensions/router.extension.dart';
 import 'package:cliq/shared/utils/commons.dart';
 import 'package:flutter/foundation.dart';
@@ -14,6 +13,7 @@ import 'package:cliq_ui/cliq_ui.dart';
 import 'package:flutter/material.dart' hide LicensePage;
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
+import 'appearance_settings_page.dart';
 import 'debug_settings_page.dart';
 import 'license_page.dart';
 import '../../../shared/model/page_path.model.dart';
@@ -111,7 +111,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                               suffix: Icon(LucideIcons.chevronRight),
                               title: Text('Appearance'),
                               onPress: () => context.pushPath(
-                                ThemeSettingsPage.pagePath.build(),
+                                AppearanceSettingsPage.pagePath.build(),
                               ),
                             ),
                             if (kDebugMode)
