@@ -87,7 +87,7 @@ dependencies {
 
     // Rate limiting
     implementation("com.bucket4j:bucket4j_jdk17-core:8.16.0")
-    implementation("com.bucket4j:bucket4j_jdk17-caffeine:8.16.0")
+    implementation("com.bucket4j:bucket4j_jdk17-caffeine:8.16.1")
 
     // Caching
     implementation("org.springframework.boot:spring-boot-starter-cache")
