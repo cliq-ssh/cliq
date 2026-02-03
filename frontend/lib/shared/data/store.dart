@@ -8,15 +8,6 @@ import '../../modules/settings/model/desktop_navigation_position.model.dart';
 import '../../modules/settings/model/theme.model.dart';
 
 enum StoreKey<T> {
-  syncHostUrl<String?>('sync_host_url', type: String),
-  // TODO: put this in secure storage
-  syncToken<String?>('sync_token', type: String),
-
-  // TODO: temporary, remove this once backend implements proper token expiration handling
-  syncEmail<String?>('sync_email', type: String),
-  // TODO: put this in secure storage
-  syncPassword<String?>('sync_password', type: String),
-
   theme<CliqTheme>(
     'theme',
     type: CliqTheme,

@@ -1,4 +1,3 @@
-import 'package:cliq/modules/settings/provider/sync.provider.dart';
 import 'package:cliq/modules/settings/view/identities_settings_page.dart';
 import 'package:cliq/modules/settings/view/keys_settings_page.dart';
 import 'package:cliq/modules/settings/view/known_hosts_settings.dart';
@@ -30,8 +29,6 @@ class SettingsPage extends StatefulHookConsumerWidget {
 class _SettingsPageState extends ConsumerState<SettingsPage> {
   @override
   Widget build(BuildContext context) {
-    final sync = ref.watch(syncProvider);
-
     return FScaffold(
       header: FHeader.nested(
         prefixes: [FHeaderAction.back(onPress: () => context.pop())],
@@ -56,11 +53,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                               prefix: Icon(LucideIcons.refreshCcw),
                               suffix: Icon(LucideIcons.chevronRight),
                               title: Text('Sync'),
-                              subtitle: sync.api == null
-                                  ? Text('Not connected')
-                                  : Text(
-                                      'Connected as ${sync.api!.session.name}, Last sync: ${sync.lastSync != null ? sync.lastSync!.toLocal().toString() : 'N/A'}',
-                                    ),
+                              subtitle: Text('Not connected'),
                               onPress: null,
                             ),
                             FTile(
