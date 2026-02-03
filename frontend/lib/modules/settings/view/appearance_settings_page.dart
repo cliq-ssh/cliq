@@ -1,14 +1,16 @@
-import 'package:cliq/modules/settings/provider/theme.provider.dart';
 import 'package:cliq/modules/settings/view/abstract_settings_page.dart';
 import 'package:cliq/modules/settings/view/settings_page.dart';
 import 'package:cliq/shared/provider/store.provider.dart';
-import 'package:cliq_ui/cliq_ui.dart' show CliqGridContainer, CliqGridRow, CliqGridColumn;
+import 'package:cliq/shared/utils/platform_utils.dart';
+import 'package:cliq_ui/cliq_ui.dart'
+    show CliqGridContainer, CliqGridRow, CliqGridColumn;
 import 'package:flutter/material.dart';
 import 'package:forui/forui.dart';
 import 'package:forui_hooks/forui_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lucide_flutter/lucide_flutter.dart';
 
+import '../../../shared/data/store.dart';
 import '../../../shared/model/page_path.model.dart';
 import '../model/desktop_navigation_position.model.dart';
 import '../model/theme.model.dart';
@@ -23,25 +25,30 @@ class AppearanceSettingsPage extends AbstractSettingsPage {
 
   @override
   Widget buildBody(BuildContext context, WidgetRef ref) {
-    final theme = ref.watch(themeProvider);
+    final currentTheme = useStore(.theme);
+    final themeMode = useStore(.themeMode);
     final navPosition = useStore(.desktopNavigationPosition);
-    final currentTheme = theme.activeTheme;
+
+    final navPositionController =
+        useFRadioMultiValueNotifier<DesktopNavigationPosition>(
+          value: navPosition.value,
+        );
 
     final themeModeController = useFRadioMultiValueNotifier<ThemeMode>(
-      value: theme.themeMode,
+      value: themeMode.value,
     );
 
     buildThemeButton(CliqTheme t) {
-      final bool isCurrentTheme = t == currentTheme;
+      final bool isCurrentTheme = t == currentTheme.value;
       return GestureDetector(
-        onTap: () => ref.watch(themeProvider.notifier).setTheme(t),
+        onTap: () => StoreKey.theme.write(t),
         child: Tooltip(
           message: t.name,
           child: Container(
             width: 40,
             height: 40,
             decoration: BoxDecoration(
-              color: t.getThemeWithMode(theme.themeMode).colors.primary,
+              color: t.getThemeWithMode(themeMode.value!).colors.primary,
               borderRadius: BorderRadius.circular(10),
             ),
             child: Padding(
@@ -50,7 +57,7 @@ class AppearanceSettingsPage extends AbstractSettingsPage {
                   ? Icon(
                       LucideIcons.check,
                       color: t
-                          .getThemeWithMode(theme.themeMode)
+                          .getThemeWithMode(themeMode.value!)
                           .colors
                           .primaryForeground,
                     )
@@ -69,19 +76,39 @@ class AppearanceSettingsPage extends AbstractSettingsPage {
               sizes: {.sm: 12, .md: 8},
               child: Form(
                 onChanged: () {
-                  if (themeModeController.value.firstOrNull != null) {
-                    ref
-                        .watch(themeProvider.notifier)
-                        .setThemeMode(themeModeController.value.first);
+                  final themeMode = themeModeController.value.firstOrNull;
+                  final navPosition = navPositionController.value.firstOrNull;
+
+                  if (themeMode != null) {
+                    StoreKey.themeMode.write(themeMode);
+                  }
+                  if (PlatformUtils.isDesktop && navPosition != null) {
+                    StoreKey.desktopNavigationPosition.write(navPosition);
                   }
                 },
                 child: Column(
                   spacing: 20,
                   children: [
-                    FSelectTileGroup<ThemeMode>(
-                      control: FMultiValueControl.managed(
-                        initial: {theme.themeMode},
+                    if (PlatformUtils.isDesktop)
+                      FSelectTileGroup<DesktopNavigationPosition>(
+                        control: .managed(controller: navPositionController),
+                        label: const Text('Navigation Position'),
+                        description: const Text(
+                          'Select the position of the desktop navigation bar.',
+                        ),
+                        children: [
+                          for (DesktopNavigationPosition position
+                              in DesktopNavigationPosition.values) ...[
+                            FSelectTile(
+                              title: Text(position.getDisplayName(context)),
+                              suffix: Icon(position.icon),
+                              value: position,
+                            ),
+                          ],
+                        ],
                       ),
+                    FSelectTileGroup<ThemeMode>(
+                      control: .managed(controller: themeModeController),
                       label: const Text('Theme Mode'),
                       description: const Text(
                         'Select the theme mode for the application.',
@@ -89,7 +116,9 @@ class AppearanceSettingsPage extends AbstractSettingsPage {
                       children: [
                         FSelectTile(
                           title: const Text('System'),
-                          suffix: const Icon(LucideIcons.smartphone),
+                          suffix: PlatformUtils.isMobile
+                              ? const Icon(LucideIcons.smartphone)
+                              : const Icon(LucideIcons.monitor),
                           value: ThemeMode.system,
                         ),
                         FSelectTile(
@@ -108,11 +137,12 @@ class AppearanceSettingsPage extends AbstractSettingsPage {
                       alignment: .centerLeft,
                       child: FLabel(
                         axis: .vertical,
-                        child: Text('Color Theme',
-                            style: context.theme.typography.base.copyWith(
-                              color: context.theme.colors.primary,
-                              fontWeight: .bold
-                            )
+                        child: Text(
+                          'Color Theme',
+                          style: context.theme.typography.base.copyWith(
+                            color: context.theme.colors.primary,
+                            fontWeight: .bold,
+                          ),
                         ),
                       ),
                     ),
@@ -129,39 +159,6 @@ class AppearanceSettingsPage extends AbstractSettingsPage {
                               ],
                             ],
                           ),
-                        ),
-                      ],
-                    ),
-                    Column(
-                      spacing: 12,
-                      children: [
-                        FSelectTileGroup<DesktopNavigationPosition>(
-                          label: const Text('Navigation Position'),
-                          description: const Text(
-                            'Select the position of the desktop navigation bar.',
-                          ),
-                          children: [
-                            for (DesktopNavigationPosition position
-                            in DesktopNavigationPosition.values) ...[
-                              FSelectTile(
-                                title: Text(position.getDisplayName(context)),
-                                suffix: Icon(position.icon),
-                                value: position,
-                              ),
-                            ],
-                          ],
-                        ),
-                        Row(
-                          mainAxisAlignment: .spaceBetween,
-                          children: [
-                            Flexible(child: Text('Use terminal theme as navigation background')),
-                            FSwitch(
-                              value: true,
-                              onChange: (value) {
-                                // TODO
-                              },
-                            ),
-                          ],
                         ),
                       ],
                     ),

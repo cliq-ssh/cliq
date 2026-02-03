@@ -1,5 +1,6 @@
 import 'package:cliq/shared/data/store.dart';
 import 'package:cliq/shared/provider/router.provider.dart';
+import 'package:cliq/shared/provider/store.provider.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -9,7 +10,6 @@ import 'package:logging/logging.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'shared/data/database.dart';
-import 'modules/settings/provider/theme.provider.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -72,18 +72,19 @@ class _CliqAppState extends ConsumerState<CliqApp> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = useStore(.theme);
+    final themeMode = useStore(.themeMode);
     final router = ref.watch(routerProvider);
-    final theme = ref.watch(themeProvider);
 
     return MaterialApp.router(
       routerConfig: router.goRouter,
       debugShowCheckedModeBanner: false,
-      themeMode: theme.themeMode,
+      themeMode: themeMode.value,
       theme: ThemeData(brightness: Brightness.light),
       darkTheme: ThemeData(brightness: Brightness.dark),
       builder: (context, child) {
         return FAnimatedTheme(
-          data: theme.activeTheme.getThemeWithMode(theme.themeMode),
+          data: theme.value!.getThemeWithMode(themeMode.value!),
           child: FToaster(child: child ?? Container()),
         );
       },

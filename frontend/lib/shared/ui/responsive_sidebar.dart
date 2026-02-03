@@ -45,14 +45,8 @@ class _ResponsiveSidebarState
       return () => widget.controller.removeListener(listener);
     }, [widget.controller]);
 
-    return Stack(
+    return Row(
       children: [
-        Row(
-          children: [
-            SizedBox(width: widget.minWidth + 1),
-            Expanded(child: widget.child),
-          ],
-        ),
         Container(
           width: isExpanded.value ? widget.maxWidth : widget.minWidth + 1,
           height: double.infinity,
@@ -86,6 +80,7 @@ class _ResponsiveSidebarState
             ),
           ),
         ),
+        Expanded(child: widget.child),
       ],
     );
   }

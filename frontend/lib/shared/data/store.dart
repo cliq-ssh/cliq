@@ -8,14 +8,14 @@ import '../../modules/settings/model/desktop_navigation_position.model.dart';
 import '../../modules/settings/model/theme.model.dart';
 
 enum StoreKey<T> {
-  syncHostUrl<String>('sync_host_url', type: String),
+  syncHostUrl<String?>('sync_host_url', type: String),
   // TODO: put this in secure storage
-  syncToken<String>('sync_token', type: String),
+  syncToken<String?>('sync_token', type: String),
 
   // TODO: temporary, remove this once backend implements proper token expiration handling
-  syncEmail<String>('sync_email', type: String),
+  syncEmail<String?>('sync_email', type: String),
   // TODO: put this in secure storage
-  syncPassword<String>('sync_password', type: String),
+  syncPassword<String?>('sync_password', type: String),
 
   theme<CliqTheme>(
     'theme',
@@ -154,7 +154,7 @@ class KeyValueStore {
   }
 
   /// A stream of all changes made to the store.
-  Stream<T?> streamForKey<T>(StoreKey<T> key) async* {
+  Stream<T> streamForKey<T>(StoreKey<T> key) async* {
     _checkInitialized();
     // yield current cached value first
     yield readSync<T>(key);
@@ -163,9 +163,9 @@ class KeyValueStore {
     await for (final StoreChange change in changes) {
       if (change.key == key.key) {
         if (change.deleted) {
-          yield null;
+          yield key.defaultValue!;
         } else {
-          yield change.value as T?;
+          yield change.value ?? key.defaultValue!;
         }
       }
     }
@@ -173,9 +173,9 @@ class KeyValueStore {
 
   /// Reads the value of the key from the local cache.
   /// If the key does not exist in the cache, it will return null.
-  T? readSync<T>(StoreKey<T> key) {
+  T readSync<T>(StoreKey<T> key) {
     _checkInitialized();
-    return _localCache[key.key];
+    return _fromStringOrValue<T>(_localCache[key.key], key);
   }
 
   /// Reads the value of the key from the local cache and converts it to a string,
@@ -204,14 +204,18 @@ class KeyValueStore {
     StoreKey<T> key,
     T value, {
     bool storeLocal = true,
+    bool triggerChange = true,
   }) async {
     _checkInitialized();
     // simplify enums to strings
     if (storeLocal) {
       _localCache[key.key] = value;
     }
+    if (triggerChange) {
+      _changesController.add(StoreChange.changed(key.key, value: value));
+    }
     if (value is Enum) {
-      return await write(key, value.name, storeLocal: false);
+      return await write(key, value.name, storeLocal: false, triggerChange: false);
     }
     final dynamic effectiveValue = _toStringOrValue<T?>(value, key);
     await switch (effectiveValue) {
@@ -223,7 +227,6 @@ class KeyValueStore {
         'Invalid value for key ${key.key}! Got: ${effectiveValue.runtimeType}, Expected either String, int, bool or double',
       ),
     };
-    _changesController.add(StoreChange.changed(key.key, value: value));
   }
 
   /// Deletes the key from the local cache and the storage.
@@ -268,7 +271,10 @@ class KeyValueStore {
     return d;
   }
 
-  static T? _fromStringOrValue<T>(dynamic value, StoreKey<T> key) {
-    return key.fromValue?.call(value) ?? value as T?;
+  static T _fromStringOrValue<T>(dynamic value, StoreKey<T> key) {
+    if (value is T) {
+      return value;
+    }
+    return key.fromValue!.call(value) as T;
   }
 }

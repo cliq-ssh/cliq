@@ -220,9 +220,10 @@ class NavigationShellState extends ConsumerState<NavigationShell>
                   .read(sessionProvider.notifier)
                   .setSelectedSession(this, null),
             ),
-            FDivider(style: (_) => context.theme.dividerStyles.horizontalStyle.copyWith(
-              color: context.theme.colors.primaryForeground,
-            )),
+            FDivider(
+              style: (_) => context.theme.dividerStyles.horizontalStyle
+                  .copyWith(color: context.theme.colors.primaryForeground),
+            ),
             if (!isExpanded)
               ...buildSidebarSessionTabs(isExpanded)
             else if (sessions.activeSessions.isNotEmpty)
