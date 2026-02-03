@@ -99,15 +99,19 @@ class NavigationShellState extends ConsumerState<NavigationShell>
       bool? selected,
       void Function()? onPress,
       void Function(bool)? onHoverChange,
+      bool noPadding = false,
     }) {
-      return FSidebarItem(
-        label: !isExpanded && icon != null
-            ? Row(mainAxisAlignment: .center, children: [icon])
-            : label,
-        icon: isExpanded ? icon : null,
-        selected: selected ?? false,
-        onPress: onPress,
-        onHoverChange: onHoverChange,
+      return Padding(
+        padding: noPadding ? .zero : const .symmetric(horizontal: 16),
+        child: FSidebarItem(
+          label: !isExpanded && icon != null
+              ? Row(mainAxisAlignment: .center, children: [icon])
+              : label,
+          icon: isExpanded ? icon : null,
+          selected: selected ?? false,
+          onPress: onPress,
+          onHoverChange: onHoverChange,
+        ),
       );
     }
 
@@ -157,6 +161,7 @@ class NavigationShellState extends ConsumerState<NavigationShell>
               onPress: () => ref
                   .read(sessionProvider.notifier)
                   .setSelectedSession(this, session.id),
+              noPadding: isExpanded
             ),
           ),
         buildPopoverMenu(
@@ -167,6 +172,7 @@ class NavigationShellState extends ConsumerState<NavigationShell>
             onPress: connections.entities.isNotEmpty
                 ? () => showTabs.value = !showTabs.value
                 : null,
+            noPadding: isExpanded && sessions.activeSessions.isNotEmpty,
           ),
         ),
       ];
@@ -177,28 +183,30 @@ class NavigationShellState extends ConsumerState<NavigationShell>
         controller: _sidebarController,
         backgroundColor:
             getEffectiveSidebarColor() ?? context.theme.colors.background,
-        padding: const .symmetric(horizontal: 16),
         headerBuilder: (context, isExpanded) {
-          return Column(
-            mainAxisAlignment: .start,
-            crossAxisAlignment: .start,
-            children: [
-              Row(
-                mainAxisAlignment: !isExpanded ? .center : .spaceBetween,
-                children: [
-                  FButton.icon(
-                    style: FButtonStyle.ghost(),
-                    onPress: _sidebarController.toggle,
-                    child: Icon(
-                      _sidebarController.isExpanded
-                          ? LucideIcons.panelLeftClose
-                          : LucideIcons.panelLeftOpen,
-                      size: 20,
+          return Padding(
+            padding: const .symmetric(horizontal: 16),
+            child: Column(
+              mainAxisAlignment: .start,
+              crossAxisAlignment: .start,
+              children: [
+                Row(
+                  mainAxisAlignment: !isExpanded ? .center : .spaceBetween,
+                  children: [
+                    FButton.icon(
+                      style: FButtonStyle.ghost(),
+                      onPress: _sidebarController.toggle,
+                      child: Icon(
+                        _sidebarController.isExpanded
+                            ? LucideIcons.panelLeftClose
+                            : LucideIcons.panelLeftOpen,
+                        size: 20,
+                      ),
                     ),
-                  ),
-                ],
-              ),
-            ],
+                  ],
+                ),
+              ],
+            ),
           );
         },
         footerBuilder: (context, isExpanded) {
@@ -224,7 +232,7 @@ class NavigationShellState extends ConsumerState<NavigationShell>
               style: (_) => context.theme.dividerStyles.horizontalStyle
                   .copyWith(color: context.theme.colors.primaryForeground),
             ),
-            if (!isExpanded)
+            if (!isExpanded || sessions.activeSessions.isEmpty)
               ...buildSidebarSessionTabs(isExpanded)
             else if (sessions.activeSessions.isNotEmpty)
               FSidebarGroup(
