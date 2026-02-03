@@ -103,10 +103,8 @@ enum StoreKey<T> {
 class StoreChange {
   final String key;
   final dynamic value;
-  final bool deleted;
 
-  StoreChange.changed(this.key, {required this.value}) : deleted = false;
-  StoreChange.deleted(this.key) : value = null, deleted = true;
+  StoreChange(this.key, {required this.value});
 }
 
 /// A simple key-value store that uses SharedPreferences and FlutterSecureStorage to store data.
@@ -153,11 +151,7 @@ class KeyValueStore {
     // yield updates
     await for (final StoreChange change in changes) {
       if (change.key == key.key) {
-        if (change.deleted) {
-          yield key.defaultValue!;
-        } else {
-          yield change.value ?? key.defaultValue!;
-        }
+        yield change.value ?? key.defaultValue!;
       }
     }
   }
@@ -203,10 +197,15 @@ class KeyValueStore {
       _localCache[key.key] = value;
     }
     if (triggerChange) {
-      _changesController.add(StoreChange.changed(key.key, value: value));
+      _changesController.add(StoreChange(key.key, value: value));
     }
     if (value is Enum) {
-      return await write(key, value.name, storeLocal: false, triggerChange: false);
+      return await write(
+        key,
+        value.name,
+        storeLocal: false,
+        triggerChange: false,
+      );
     }
     final dynamic effectiveValue = _toStringOrValue<T?>(value, key);
     await switch (effectiveValue) {
@@ -221,11 +220,16 @@ class KeyValueStore {
   }
 
   /// Deletes the key from the local cache and the storage.
+  /// If the key has a default value, it will be reset to that value instead.
   Future<void> delete<T>(StoreKey<T> key) async {
     _checkInitialized();
-    _localCache.remove(key.key);
-    _preferences.remove(key.key);
-    _changesController.add(StoreChange.deleted(key.key));
+    if (key.defaultValue == null) {
+      _localCache.remove(key.key);
+      _preferences.remove(key.key);
+      _changesController.add(StoreChange(key.key, value: null));
+    } else {
+      write(key, key.defaultValue);
+    }
   }
 
   FutureOr<T>? _readOrInitSharedPrefsKey<T>(StoreKey<T> key) {
@@ -266,6 +270,6 @@ class KeyValueStore {
     if (value is T) {
       return value;
     }
-    return key.fromValue!.call(value) as T;
+    return (key.fromValue?.call(value) ?? key.defaultValue) as T;
   }
 }
