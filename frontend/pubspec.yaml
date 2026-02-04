@@ -26,13 +26,13 @@ dependencies:
       url: https://github.com/cliq-ssh/dartssh2.git
       ref: master
   lucide_flutter: 0.563.0
-  go_router: 17.0.1
+  go_router: 17.1.0
   flutter_hooks: 0.21.3+1
   shared_preferences: 2.5.4
-  hooks_riverpod: 3.2.0
-  riverpod: 3.2.0
+  hooks_riverpod: 3.2.1
+  riverpod: 3.2.1
   logging: ^1.3.0
-  drift: 2.30.1
+  drift: 2.31.0
   drift_flutter: 0.2.8
   path_provider: ^2.1.5
   forui: 0.17.0
@@ -47,7 +47,7 @@ dev_dependencies:
     sdk: flutter
 
   flutter_lints: ^6.0.0
-  drift_dev: 2.30.1
+  drift_dev: 2.31.0
   build_runner: 2.10.5
   flutter_launcher_icons: ^0.14.4
   flutter_native_splash: 2.4.7

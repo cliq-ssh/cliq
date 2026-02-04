@@ -86,8 +86,9 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-actuator")
 
     // Rate limiting
-    implementation("com.bucket4j:bucket4j_jdk17-core:8.16.0")
-    implementation("com.bucket4j:bucket4j_jdk17-caffeine:8.16.0")
+    val bucket4JVersion = "8.16.1"
+    implementation("com.bucket4j:bucket4j_jdk17-core:$bucket4JVersion")
+    implementation("com.bucket4j:bucket4j_jdk17-caffeine:$bucket4JVersion")
 
     // Caching
     implementation("org.springframework.boot:spring-boot-starter-cache")
