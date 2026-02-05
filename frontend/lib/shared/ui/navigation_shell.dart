@@ -42,7 +42,9 @@ class NavigationShellState extends ConsumerState<NavigationShell>
   Widget build(BuildContext context) {
     final breakpoint = useBreakpoint();
     final prefDesktopNavPosition = useStore(.desktopNavigationPosition);
-    final navPosition = useState<NavigationPosition>(breakpoint >= .lg ? prefDesktopNavPosition.value : .top);
+    final navPosition = useState<NavigationPosition>(
+      breakpoint >= .lg ? prefDesktopNavPosition.value : .top,
+    );
     final connections = ref.watch(connectionProvider);
     final sessions = ref.watch(sessionProvider);
     final terminalTheme = ref.watch(terminalThemeProvider);
@@ -69,7 +71,9 @@ class NavigationShellState extends ConsumerState<NavigationShell>
                   terminalTheme.effectiveActiveDefaultTheme)
               .backgroundColor,
         );
-        return hsl.withLightness((hsl.lightness - 0.02).clamp(0.0, 1.0)).toColor();
+        return hsl
+            .withLightness((hsl.lightness - 0.02).clamp(0.0, 1.0))
+            .toColor();
       }
       return context.theme.colors.background;
     }
@@ -83,7 +87,7 @@ class NavigationShellState extends ConsumerState<NavigationShell>
         onPress: () =>
             ref.read(sessionProvider.notifier).setSelectedSession(this, null),
         isTop: navPosition.value == .top,
-        noPadding: navPosition.value == .top
+        noPadding: navPosition.value == .top,
       );
     }
 
@@ -94,7 +98,7 @@ class NavigationShellState extends ConsumerState<NavigationShell>
         icon: Icon(LucideIcons.settings, size: 20),
         onPress: () => context.pushPath(SettingsPage.pagePath.build()),
         isTop: navPosition.value == .top,
-        noPadding: navPosition.value == .top
+        noPadding: navPosition.value == .top,
       );
     }
 
