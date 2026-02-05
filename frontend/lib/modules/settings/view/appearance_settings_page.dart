@@ -12,7 +12,7 @@ import 'package:lucide_flutter/lucide_flutter.dart';
 
 import '../../../shared/data/store.dart';
 import '../../../shared/model/page_path.model.dart';
-import '../model/desktop_navigation_position.model.dart';
+import '../model/navigation_position.model.dart';
 import '../model/theme.model.dart';
 
 class AppearanceSettingsPage extends AbstractSettingsPage {
@@ -30,7 +30,7 @@ class AppearanceSettingsPage extends AbstractSettingsPage {
     final navPosition = useStore(.desktopNavigationPosition);
 
     final navPositionController =
-        useFRadioMultiValueNotifier<DesktopNavigationPosition>(
+        useFRadioMultiValueNotifier<NavigationPosition>(
           value: navPosition.value,
         );
 
@@ -48,7 +48,7 @@ class AppearanceSettingsPage extends AbstractSettingsPage {
             width: 40,
             height: 40,
             decoration: BoxDecoration(
-              color: t.getThemeWithMode(themeMode.value!).colors.primary,
+              color: t.getThemeWithMode(themeMode.value).colors.primary,
               borderRadius: BorderRadius.circular(10),
             ),
             child: Padding(
@@ -57,7 +57,7 @@ class AppearanceSettingsPage extends AbstractSettingsPage {
                   ? Icon(
                       LucideIcons.check,
                       color: t
-                          .getThemeWithMode(themeMode.value!)
+                          .getThemeWithMode(themeMode.value)
                           .colors
                           .primaryForeground,
                     )
@@ -90,15 +90,15 @@ class AppearanceSettingsPage extends AbstractSettingsPage {
                   spacing: 20,
                   children: [
                     if (PlatformUtils.isDesktop)
-                      FSelectTileGroup<DesktopNavigationPosition>(
+                      FSelectTileGroup<NavigationPosition>(
                         control: .managed(controller: navPositionController),
                         label: const Text('Navigation Position'),
                         description: const Text(
                           'Select the position of the desktop navigation bar.',
                         ),
                         children: [
-                          for (DesktopNavigationPosition position
-                              in DesktopNavigationPosition.values) ...[
+                          for (NavigationPosition position
+                              in NavigationPosition.values) ...[
                             FSelectTile(
                               title: Text(position.getDisplayName(context)),
                               suffix: Icon(position.icon),

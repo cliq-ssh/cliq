@@ -4,7 +4,7 @@ import 'package:cliq_term/cliq_term.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import '../../modules/settings/model/desktop_navigation_position.model.dart';
+import '../../modules/settings/model/navigation_position.model.dart';
 import '../../modules/settings/model/theme.model.dart';
 
 enum StoreKey<T> {
@@ -35,10 +35,10 @@ enum StoreKey<T> {
     type: int,
     defaultValue: -1,
   ),
-  desktopNavigationPosition<DesktopNavigationPosition>(
+  desktopNavigationPosition<NavigationPosition>(
     'desktop_navigation_position',
-    type: DesktopNavigationPosition,
-    defaultValue: DesktopNavigationPosition.left,
+    type: NavigationPosition,
+    defaultValue: NavigationPosition.left,
     fromValue: _desktopNavigationPositionFromValue,
     toValue: _enumToValue,
   );
@@ -79,9 +79,9 @@ enum StoreKey<T> {
       _enumFromValue(value, CliqTheme.values);
   static ThemeMode? _themeModeFromValue(String? value) =>
       _enumFromValue(value, ThemeMode.values);
-  static DesktopNavigationPosition? _desktopNavigationPositionFromValue(
+  static NavigationPosition? _desktopNavigationPositionFromValue(
     String? value,
-  ) => _enumFromValue(value, DesktopNavigationPosition.values);
+  ) => _enumFromValue(value, NavigationPosition.values);
 
   static String? _typographyToValue(TerminalTypography? value) {
     if (value == null) return null;

@@ -53,7 +53,7 @@ class _ShellSessionPageState extends ConsumerState<ShellSessionPage>
 
     getEffectiveTerminalTypography() =>
         widget.session.connection.terminalTypographyOverride ??
-        terminalTypography.value!;
+        terminalTypography.value;
 
     getEffectiveTerminalTheme() =>
         widget.session.connection.terminalThemeOverride ??

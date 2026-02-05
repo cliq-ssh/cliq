@@ -1,6 +1,7 @@
 import 'package:cliq/modules/connections/provider/connection.provider.dart';
+import 'package:cliq/shared/provider/store.provider.dart';
+import 'package:cliq/shared/ui/hover_builder.dart';
 import 'package:cliq/shared/ui/responsive_sidebar.dart';
-import 'package:cliq/shared/ui/session_tab.dart';
 import 'package:cliq_ui/cliq_ui.dart' show useBreakpoint;
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:forui/forui.dart';
@@ -10,6 +11,7 @@ import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
 import '../../modules/session/provider/session.provider.dart';
+import '../../modules/settings/model/navigation_position.model.dart';
 import '../../modules/settings/provider/terminal_theme.provider.dart';
 import '../../modules/settings/view/settings_page.dart';
 import '../extensions/router.extension.dart';
@@ -39,150 +41,153 @@ class NavigationShellState extends ConsumerState<NavigationShell>
   @override
   Widget build(BuildContext context) {
     final breakpoint = useBreakpoint();
+    final prefDesktopNavPosition = useStore(.desktopNavigationPosition);
+    final navPosition = useState<NavigationPosition>(breakpoint >= .lg ? prefDesktopNavPosition.value : .top);
     final connections = ref.watch(connectionProvider);
     final sessions = ref.watch(sessionProvider);
     final terminalTheme = ref.watch(terminalThemeProvider);
     final selectedSession = useState(sessions.selectedSession);
     final showTabs = useState(false);
-    final isHovered = useState<String?>(null);
 
     useEffect(() {
       selectedSession.value = sessions.selectedSession;
       return null;
     }, [sessions, sessions.selectedSessionId]);
 
-    Color? getEffectiveSidebarColor() {
-      if (selectedSession.value != null && selectedSession.value!.isConnected) {
-        final color =
-            selectedSession
-                .value
-                ?.connection
-                .terminalThemeOverride
-                ?.backgroundColor ??
-            terminalTheme.effectiveActiveDefaultTheme.backgroundColor;
-        // make it a bit darker
-        return Color.lerp(color, Colors.black, 0.1);
-      }
+    useEffect(() {
+      navPosition.value = breakpoint >= .lg
+          ? prefDesktopNavPosition.value
+          : .top;
       return null;
+    }, [breakpoint, prefDesktopNavPosition.value]);
+
+    /// Gets the effective sidebar color based on the selected session and its terminal theme.
+    Color getEffectiveSidebarColor() {
+      if (selectedSession.value != null && selectedSession.value!.isConnected) {
+        final hsl = HSLColor.fromColor(
+          (selectedSession.value!.connection.terminalThemeOverride ??
+                  terminalTheme.effectiveActiveDefaultTheme)
+              .backgroundColor,
+        );
+        return hsl.withLightness((hsl.lightness - 0.02).clamp(0.0, 1.0)).toColor();
+      }
+      return context.theme.colors.background;
     }
 
-    buildPopoverMenu(Widget child) {
-      return FPopoverMenu(
-        control: .lifted(
-          shown: showTabs.value,
-          onChange: (show) => showTabs.value = show,
-        ),
-        menu: [
-          FItemGroup(
-            children: [
-              for (final connection in connections.entities)
-                FItem(
-                  title: Text(connection.label),
-                  onPress: () {
-                    ref
-                        .read(sessionProvider.notifier)
-                        .createAndGo(this, connection);
-                    showTabs.value = false;
-                  },
-                ),
-            ],
-          ),
-        ],
-        child: child,
+    buildDashboardTab(bool isExpanded) {
+      return buildSidebarTab(
+        isExpanded,
+        label: Text('Dashboard'),
+        icon: Icon(LucideIcons.house, size: 20),
+        selected: selectedSession.value == null,
+        onPress: () =>
+            ref.read(sessionProvider.notifier).setSelectedSession(this, null),
+        isTop: navPosition.value == .top,
+        noPadding: navPosition.value == .top
       );
     }
 
-    buildSidebarTab(
-      bool isExpanded, {
-      Widget? label,
-      Widget? icon,
-      bool? selected,
-      void Function()? onPress,
-      void Function(bool)? onHoverChange,
-      bool noPadding = false,
-    }) {
-      return Padding(
-        padding: noPadding ? .zero : const .symmetric(horizontal: 16),
-        child: FSidebarItem(
-          label: !isExpanded && icon != null
-              ? Row(mainAxisAlignment: .center, children: [icon])
-              : label,
-          icon: isExpanded ? icon : null,
-          selected: selected ?? false,
-          onPress: onPress,
-          onHoverChange: onHoverChange,
-        ),
+    buildSettingsTab(bool isExpanded) {
+      return buildSidebarTab(
+        isExpanded,
+        label: Text('Settings'),
+        icon: Icon(LucideIcons.settings, size: 20),
+        onPress: () => context.pushPath(SettingsPage.pagePath.build()),
+        isTop: navPosition.value == .top,
+        noPadding: navPosition.value == .top
       );
     }
 
-    buildSidebarSessionTabs(bool isExpanded) {
+    buildSessionTabs(bool isExpanded) {
       return [
         for (final session in sessions.activeSessions)
-          FTooltip(
-            tipBuilder: (_, _) => Text(session.connection.label),
-            child: buildSidebarTab(
-              isExpanded,
-              label: Row(
-                children: [
-                  Expanded(
-                    child: Text(
-                      session.connection.label,
-                      overflow: .fade,
-                      softWrap: false,
-                    ),
+          HoverBuilder(
+            builder: (context, isHovered) {
+              if (isHovered) {
+                return GestureDetector(
+                  onTap: () {
+                    ref
+                        .read(sessionProvider.notifier)
+                        .closeSession(this, session.id);
+                  },
+                  child: Icon(
+                    LucideIcons.x,
+                    color: context.theme.colors.destructive,
+                    size: 20,
                   ),
-                  if (isHovered.value == session.id) ...[
-                    GestureDetector(
-                      onTap: () {
-                        ref
-                            .read(sessionProvider.notifier)
-                            .closeSession(this, session.id);
-                      },
-                      child: Icon(LucideIcons.x, size: 16),
-                    ),
-                  ],
-                ],
-              ),
-              icon: Container(
+                );
+              }
+
+              return Container(
                 decoration: BoxDecoration(
                   color: session.connection.iconBackgroundColor,
-                  borderRadius: BorderRadius.circular(8),
+                  borderRadius: BorderRadius.circular(6),
                 ),
-                padding: .all(6),
+                padding: .all(5),
                 child: Icon(
                   session.connection.icon.iconData,
                   color: session.connection.iconColor,
-                  size: 12,
+                  size: 10,
                 ),
-              ),
-              selected: session.id == selectedSession.value?.id,
-              onHoverChange: (hovered) =>
-                  isHovered.value = hovered ? session.id : null,
-              onPress: () => ref
-                  .read(sessionProvider.notifier)
-                  .setSelectedSession(this, session.id),
-              noPadding: isExpanded
-            ),
+              );
+            },
+            wrapper: (child) {
+              return buildSidebarTab(
+                isExpanded,
+                label: Text(
+                  session.connection.label,
+                  overflow: .fade,
+                  softWrap: false,
+                ),
+                icon: child,
+                selected: session.id == selectedSession.value?.id,
+                onPress: () => ref
+                    .read(sessionProvider.notifier)
+                    .setSelectedSession(this, session.id),
+                noPadding: isExpanded,
+                isTop: navPosition.value == .top,
+              );
+            },
           ),
-        buildPopoverMenu(
-          buildSidebarTab(
-            isExpanded,
+        FPopoverMenu(
+          control: .lifted(
+            shown: showTabs.value,
+            onChange: (show) => showTabs.value = show,
+          ),
+          menu: [
+            FItemGroup(
+              children: [
+                for (final connection in connections.entities)
+                  FItem(
+                    title: Text(connection.label),
+                    onPress: () {
+                      ref
+                          .read(sessionProvider.notifier)
+                          .createAndGo(this, connection);
+                      showTabs.value = false;
+                    },
+                  ),
+              ],
+            ),
+          ],
+          child: buildSidebarTab(
+            isExpanded && navPosition.value == .left,
             label: Text('New Session'),
             icon: Icon(LucideIcons.plus, size: 20),
             onPress: connections.entities.isNotEmpty
                 ? () => showTabs.value = !showTabs.value
                 : null,
+            isTop: navPosition.value == .top,
             noPadding: isExpanded && sessions.activeSessions.isNotEmpty,
           ),
         ),
       ];
     }
 
-    if (breakpoint >= .lg) {
+    if (navPosition.value == .left) {
       return ResponsiveExpandableSidebar(
         controller: _sidebarController,
-        backgroundColor:
-            getEffectiveSidebarColor() ?? context.theme.colors.background,
+        backgroundColor: getEffectiveSidebarColor(),
         headerBuilder: (context, isExpanded) {
           return Padding(
             padding: const .symmetric(horizontal: 16),
@@ -209,35 +214,20 @@ class NavigationShellState extends ConsumerState<NavigationShell>
             ),
           );
         },
-        footerBuilder: (context, isExpanded) {
-          return buildSidebarTab(
-            isExpanded,
-            label: Text('Settings'),
-            icon: Icon(LucideIcons.settings, size: 20),
-            onPress: () => context.pushPath(SettingsPage.pagePath.build()),
-          );
-        },
+        footerBuilder: (_, isExpanded) => buildSettingsTab(isExpanded),
         contentBuilder: (context, isExpanded) {
           return [
-            buildSidebarTab(
-              isExpanded,
-              label: Text('Dashboard'),
-              icon: Icon(LucideIcons.house, size: 20),
-              selected: selectedSession.value == null,
-              onPress: () => ref
-                  .read(sessionProvider.notifier)
-                  .setSelectedSession(this, null),
-            ),
+            buildDashboardTab(isExpanded),
             FDivider(
               style: (_) => context.theme.dividerStyles.horizontalStyle
                   .copyWith(color: context.theme.colors.primaryForeground),
             ),
             if (!isExpanded || sessions.activeSessions.isEmpty)
-              ...buildSidebarSessionTabs(isExpanded)
+              ...buildSessionTabs(isExpanded)
             else if (sessions.activeSessions.isNotEmpty)
               FSidebarGroup(
                 label: Text('Sessions'),
-                children: buildSidebarSessionTabs(isExpanded),
+                children: buildSessionTabs(isExpanded),
               ),
           ];
         },
@@ -260,33 +250,13 @@ class NavigationShellState extends ConsumerState<NavigationShell>
                   child: Row(
                     spacing: 8,
                     children: [
-                      FButton.icon(
-                        style: widget.shell.currentIndex == 0
-                            ? FButtonStyle.primary()
-                            : FButtonStyle.outline(),
-                        onPress: () => ref
-                            .read(sessionProvider.notifier)
-                            .setSelectedSession(this, null),
-                        child: Icon(LucideIcons.house),
-                      ),
-                      for (final session in sessions.activeSessions)
-                        SessionTab(session: session),
-                      buildPopoverMenu(
-                        FButton.icon(
-                          onPress: connections.entities.isNotEmpty
-                              ? () => showTabs.value = !showTabs.value
-                              : null,
-                          child: Icon(LucideIcons.plus),
-                        ),
-                      ),
+                      buildDashboardTab(false),
+                      ...buildSessionTabs(true),
                     ],
                   ),
                 ),
               ),
-              FButton.icon(
-                child: Icon(LucideIcons.settings),
-                onPress: () => context.pushPath(SettingsPage.pagePath.build()),
-              ),
+              buildSettingsTab(false),
             ],
           ),
         ),
@@ -295,22 +265,29 @@ class NavigationShellState extends ConsumerState<NavigationShell>
     );
   }
 
-  void refresh() => setState(() {});
+  static Widget buildSidebarTab(
+    bool isExpanded, {
+    Widget? label,
+    Widget? icon,
+    bool? selected,
+    void Function()? onPress,
+    bool isTop = false,
+    bool noPadding = false,
+  }) {
+    Widget child = FSidebarItem(
+      label: !isExpanded && icon != null ? icon : label,
+      icon: isExpanded ? icon : null,
+      selected: selected ?? false,
+      onPress: onPress,
+    );
 
-  /// Simply checks whether there are two or more slashes in the current path.
-  bool canPop() {
-    final GoRouterState state = GoRouterState.of(context);
-    return (state.fullPath ?? state.matchedLocation).characters
-            .where((p0) => p0 == '/')
-            .length >=
-        2;
-  }
+    if (isTop) {
+      child = IntrinsicWidth(child: child);
+    }
 
-  /// Resets the current branch. Useful for popping an unknown amount of pages.
-  void resetLocation({int? index}) {
-    widget.shell.goBranch(
-      index ?? widget.shell.currentIndex,
-      initialLocation: true,
+    return Padding(
+      padding: noPadding ? .zero : const .symmetric(horizontal: 16),
+      child: child,
     );
   }
 

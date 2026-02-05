@@ -1,22 +1,22 @@
 import 'package:flutter/cupertino.dart';
 import 'package:lucide_flutter/lucide_flutter.dart';
 
-enum DesktopNavigationPosition {
+enum NavigationPosition {
   top,
   left;
 
   String getDisplayName(BuildContext context) {
     // TODO localization
     return switch (this) {
-      DesktopNavigationPosition.top => 'Top',
-      DesktopNavigationPosition.left => 'Left',
+      NavigationPosition.top => 'Top',
+      NavigationPosition.left => 'Left',
     };
   }
 
   IconData get icon {
     return switch (this) {
-      DesktopNavigationPosition.top => LucideIcons.panelTop,
-      DesktopNavigationPosition.left => LucideIcons.panelLeft,
+      NavigationPosition.top => LucideIcons.panelTop,
+      NavigationPosition.left => LucideIcons.panelLeft,
     };
   }
 }
