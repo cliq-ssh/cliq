@@ -1,4 +1,4 @@
-package app.cliq.backend.userconfig
+package app.cliq.backend.vault
 
 import app.cliq.backend.user.User
 import jakarta.persistence.Column
@@ -15,14 +15,15 @@ import java.time.OffsetDateTime
 
 @Entity
 @Table(
-    name = "user_configurations",
+    name = "vaults",
     uniqueConstraints = [UniqueConstraint(columnNames = ["user_id"])],
 )
-class UserConfiguration(
+class VaultData(
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(nullable = false)
     var user: User,
     @Column var encryptedConfig: String,
+    @Column(nullable = false) var version: String,
     @Column(nullable = false) var createdAt: OffsetDateTime,
     @Column(nullable = false) var updatedAt: OffsetDateTime,
     @Id

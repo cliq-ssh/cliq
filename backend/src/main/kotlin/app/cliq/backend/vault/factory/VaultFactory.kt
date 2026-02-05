@@ -1,30 +1,31 @@
-package app.cliq.backend.userconfig.factory
+package app.cliq.backend.vault.factory
 
 import app.cliq.backend.user.User
-import app.cliq.backend.userconfig.UserConfiguration
-import app.cliq.backend.userconfig.params.ConfigurationParams
+import app.cliq.backend.vault.VaultData
+import app.cliq.backend.vault.params.VaultParams
 import org.springframework.stereotype.Service
 import java.time.Clock
 import java.time.OffsetDateTime
 
 @Service
 class
-UserConfigurationFactory(
+VaultFactory(
     private val clock: Clock,
 ) {
     fun createFromParams(
-        configurationParams: ConfigurationParams,
+        vaultParams: VaultParams,
         user: User,
-    ): UserConfiguration = create(configurationParams.configuration, user)
+    ): VaultData = create(vaultParams.configuration, vaultParams.version, user)
 
     fun updateFromParams(
-        existingConfig: UserConfiguration,
-        configurationParams: ConfigurationParams,
+        existingConfig: VaultData,
+        vaultParams: VaultParams,
         user: User,
-    ): UserConfiguration =
-        UserConfiguration(
+    ): VaultData =
+        VaultData(
             user,
-            configurationParams.configuration,
+            vaultParams.configuration,
+            vaultParams.version,
             existingConfig.createdAt,
             OffsetDateTime.now(clock),
             id = existingConfig.id,
@@ -32,11 +33,13 @@ UserConfigurationFactory(
 
     fun create(
         encryptedConfig: String,
+        version: String,
         user: User,
-    ): UserConfiguration =
-        UserConfiguration(
+    ): VaultData =
+        VaultData(
             user = user,
             encryptedConfig = encryptedConfig,
+            version = version,
             createdAt = OffsetDateTime.now(clock),
             updatedAt = OffsetDateTime.now(clock),
         )

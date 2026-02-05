@@ -45,11 +45,12 @@ CREATE INDEX idx_sessions_refresh_token ON sessions (refresh_token);
 -- #                                                          #
 -- ############################################################
 
-CREATE TABLE user_configurations
+CREATE TABLE vaults
 (
     "id"               BIGINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
     "user_id"          BIGINT REFERENCES "users" (id) ON DELETE CASCADE UNIQUE NOT NULL,
     "encrypted_config" TEXT                                                    NOT NULL,
+    "version"          TEXT                                                    NOT NULL,
     "created_at"       timestamp with time zone                                NOT NULL,
     "updated_at"       timestamp with time zone                                NOT NULL
 );
