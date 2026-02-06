@@ -67,7 +67,9 @@ class NavigationShellState extends ConsumerState<NavigationShell>
 
     /// Gets the effective sidebar color based on the selected session and its terminal theme.
     Color getEffectiveSidebarColor() {
-      if (selectedSession.value != null && selectedSession.value!.isConnected) {
+      if (widget.shell.currentIndex == _sessionBranchIndex &&
+          selectedSession.value != null &&
+          selectedSession.value!.isConnected) {
         final hsl = HSLColor.fromColor(
           (selectedSession.value!.connection.terminalThemeOverride ??
                   terminalTheme.effectiveActiveDefaultTheme)
@@ -252,8 +254,16 @@ class NavigationShellState extends ConsumerState<NavigationShell>
     return FScaffold(
       childPad: false,
       header: Container(
-        color: getEffectiveSidebarColor(),
         padding: const EdgeInsets.all(8),
+        decoration: BoxDecoration(
+          color: getEffectiveSidebarColor(),
+          border: Border(
+            bottom: BorderSide(
+              color: context.theme.colors.primaryForeground,
+              width: 1,
+            ),
+          ),
+        ),
         child: SafeArea(
           child: Row(
             children: [
