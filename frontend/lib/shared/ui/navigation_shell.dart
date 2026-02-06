@@ -182,7 +182,9 @@ class NavigationShellState extends ConsumerState<NavigationShell>
                 ? () => showTabs.value = !showTabs.value
                 : null,
             isTop: navPosition.value == .top,
-            noPadding: isExpanded && sessions.activeSessions.isNotEmpty,
+            noPadding:
+                navPosition.value == .top ||
+                (sessions.activeSessions.isNotEmpty && isExpanded),
           ),
         ),
       ];
