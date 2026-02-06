@@ -6,7 +6,6 @@ import 'package:cliq/shared/extensions/router.extension.dart';
 import 'package:cliq/shared/utils/commons.dart';
 import 'package:flutter/foundation.dart';
 import 'package:forui/forui.dart';
-import 'package:go_router/go_router.dart';
 import 'package:lucide_flutter/lucide_flutter.dart';
 import 'package:cliq_ui/cliq_ui.dart';
 import 'package:flutter/material.dart' hide LicensePage;
@@ -30,9 +29,6 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
   @override
   Widget build(BuildContext context) {
     return FScaffold(
-      header: FHeader.nested(
-        prefixes: [FHeaderAction.back(onPress: () => context.pop())],
-      ),
       child: SingleChildScrollView(
         child: CliqGridContainer(
           children: [

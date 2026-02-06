@@ -75,7 +75,7 @@ class _ShellSessionPageState extends ConsumerState<ShellSessionPage>
     closeSession() {
       ref
           .read(sessionProvider.notifier)
-          .closeSession(NavigationShell.of(context), widget.session.id);
+          .closeAnyMaybeGo(NavigationShell.of(context), widget.session.id);
     }
 
     retrySession({bool skipHostKeyVerification = false}) {

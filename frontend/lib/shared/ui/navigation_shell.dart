@@ -13,8 +13,6 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import '../../modules/session/provider/session.provider.dart';
 import '../../modules/settings/model/navigation_position.model.dart';
 import '../../modules/settings/provider/terminal_theme.provider.dart';
-import '../../modules/settings/view/settings_page.dart';
-import '../extensions/router.extension.dart';
 
 class NavigationShell extends StatefulHookConsumerWidget {
   final StatefulNavigationShell shell;
@@ -30,6 +28,10 @@ class NavigationShell extends StatefulHookConsumerWidget {
 
 class NavigationShellState extends ConsumerState<NavigationShell>
     with TickerProviderStateMixin {
+  static const _sessionBranchIndex = 0;
+  static const _dashboardBranchIndex = 1;
+  static const _settingsBranchIndex = 2;
+
   late final ResponsiveSidebarController _sidebarController = .new();
 
   @override
@@ -79,24 +81,30 @@ class NavigationShellState extends ConsumerState<NavigationShell>
     }
 
     buildDashboardTab(bool isExpanded) {
-      return buildSidebarTab(
+      return _buildSidebarTab(
         isExpanded,
         label: Text('Dashboard'),
         icon: Icon(LucideIcons.house, size: 20),
-        selected: selectedSession.value == null,
-        onPress: () =>
-            ref.read(sessionProvider.notifier).setSelectedSession(this, null),
+        selected: widget.shell.currentIndex == _dashboardBranchIndex,
+        onPress: () {
+          ref.read(sessionProvider.notifier).setSelectedAndMaybeGo(this, null);
+          goToDashboardBranch();
+        },
         isTop: navPosition.value == .top,
         noPadding: navPosition.value == .top,
       );
     }
 
     buildSettingsTab(bool isExpanded) {
-      return buildSidebarTab(
+      return _buildSidebarTab(
         isExpanded,
         label: Text('Settings'),
         icon: Icon(LucideIcons.settings, size: 20),
-        onPress: () => context.pushPath(SettingsPage.pagePath.build()),
+        selected: widget.shell.currentIndex == _settingsBranchIndex,
+        onPress: () {
+          ref.read(sessionProvider.notifier).setSelectedAndMaybeGo(this, null);
+          goToSettingsBranch();
+        },
         isTop: navPosition.value == .top,
         noPadding: navPosition.value == .top,
       );
@@ -112,7 +120,7 @@ class NavigationShellState extends ConsumerState<NavigationShell>
                   onTap: () {
                     ref
                         .read(sessionProvider.notifier)
-                        .closeSession(this, session.id);
+                        .closeAnyMaybeGo(this, session.id);
                   },
                   child: Icon(
                     LucideIcons.x,
@@ -136,7 +144,7 @@ class NavigationShellState extends ConsumerState<NavigationShell>
               );
             },
             wrapper: (child) {
-              return buildSidebarTab(
+              return _buildSidebarTab(
                 isExpanded,
                 label: Text(
                   session.connection.label,
@@ -147,7 +155,7 @@ class NavigationShellState extends ConsumerState<NavigationShell>
                 selected: session.id == selectedSession.value?.id,
                 onPress: () => ref
                     .read(sessionProvider.notifier)
-                    .setSelectedSession(this, session.id),
+                    .setSelectedAndMaybeGo(this, session.id),
                 noPadding: isExpanded,
                 isTop: navPosition.value == .top,
               );
@@ -174,7 +182,7 @@ class NavigationShellState extends ConsumerState<NavigationShell>
               ],
             ),
           ],
-          child: buildSidebarTab(
+          child: _buildSidebarTab(
             isExpanded && navPosition.value == .left,
             label: Text('New Session'),
             icon: Icon(LucideIcons.plus, size: 20),
@@ -271,7 +279,7 @@ class NavigationShellState extends ConsumerState<NavigationShell>
     );
   }
 
-  static Widget buildSidebarTab(
+  static Widget _buildSidebarTab(
     bool isExpanded, {
     Widget? label,
     Widget? icon,
@@ -297,8 +305,12 @@ class NavigationShellState extends ConsumerState<NavigationShell>
     );
   }
 
+  void goToSessionBranch() => _goToBranch(_sessionBranchIndex);
+  void goToDashboardBranch() => _goToBranch(_dashboardBranchIndex);
+  void goToSettingsBranch() => _goToBranch(_settingsBranchIndex);
+
   /// Jumps to the corresponding [StatefulShellBranch], based on the specified index.
-  void goToBranch(int index) {
+  void _goToBranch(int index) {
     widget.shell.goBranch(
       index,
       initialLocation: widget.shell.currentIndex == index,

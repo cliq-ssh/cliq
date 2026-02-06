@@ -34,7 +34,7 @@ class _SessionTabState extends ConsumerState<SessionTab> {
     closeSession() {
       ref
           .read(sessionProvider.notifier)
-          .closeSession(NavigationShell.of(context), widget.session.id);
+          .closeAnyMaybeGo(NavigationShell.of(context), widget.session.id);
     }
 
     buildIcon() {
@@ -84,7 +84,10 @@ class _SessionTabState extends ConsumerState<SessionTab> {
     return GestureDetector(
       onTap: () => ref
           .read(sessionProvider.notifier)
-          .setSelectedSession(NavigationShell.of(context), widget.session.id),
+          .setSelectedAndMaybeGo(
+            NavigationShell.of(context),
+            widget.session.id,
+          ),
       onTertiaryTapUp: (details) {
         if (details.kind == .mouse) closeSession();
       },
