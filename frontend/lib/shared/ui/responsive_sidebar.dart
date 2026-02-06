@@ -54,10 +54,7 @@ class _ResponsiveSidebarState
           decoration: BoxDecoration(
             color: widget.backgroundColor,
             border: Border(
-              right: BorderSide(
-                color: context.theme.colors.primaryForeground,
-                width: 1,
-              ),
+              right: BorderSide(color: context.theme.colors.border, width: 1),
             ),
           ),
           child: Padding(

@@ -236,7 +236,7 @@ class NavigationShellState extends ConsumerState<NavigationShell>
             buildDashboardTab(isExpanded),
             FDivider(
               style: (_) => context.theme.dividerStyles.horizontalStyle
-                  .copyWith(color: context.theme.colors.primaryForeground),
+                  .copyWith(color: context.theme.colors.border),
             ),
             if (!isExpanded || sessions.activeSessions.isEmpty)
               ...buildSessionTabs(isExpanded)
@@ -258,10 +258,7 @@ class NavigationShellState extends ConsumerState<NavigationShell>
         decoration: BoxDecoration(
           color: getEffectiveSidebarColor(),
           border: Border(
-            bottom: BorderSide(
-              color: context.theme.colors.primaryForeground,
-              width: 1,
-            ),
+            bottom: BorderSide(color: context.theme.colors.border, width: 1),
           ),
         ),
         child: SafeArea(
