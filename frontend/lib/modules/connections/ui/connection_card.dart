@@ -27,7 +27,10 @@ class ConnectionCard extends HookConsumerWidget {
           .createAndGo(NavigationShell.of(context), connection);
     }
 
-    buildPopoverMenu({required FPopoverController controller, required Widget child}) {
+    buildPopoverMenu({
+      required FPopoverController controller,
+      required Widget child,
+    }) {
       return FPopoverMenu(
         control: .managed(controller: controller),
         menu: [
@@ -87,62 +90,65 @@ class ConnectionCard extends HookConsumerWidget {
       );
     }
 
-    return buildPopoverMenu(controller: primaryPopoverController, child: GestureDetector(
-      onDoubleTap: connect,
-      onSecondaryTap: () {
-        secondaryPopoverController.hide();
-        primaryPopoverController.toggle();
-      },
-      child: FCard(
-        title: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Flexible(
-              child: Row(
-                spacing: 16,
-                children: [
-                  Container(
-                    width: 48,
-                    height: 48,
-                    decoration: BoxDecoration(
-                      color: connection.iconBackgroundColor,
-                      borderRadius: .circular(16),
-                    ),
-                    child: Icon(
-                      connection.icon.iconData,
-                      color: connection.iconColor,
-                      size: 28,
-                    ),
-                  ),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(connection.label),
-                      Text(
-                        connection.effectiveUsername,
-                        style: context.theme.typography.xs.copyWith(
-                          color: context.theme.colors.mutedForeground,
-                          fontWeight: .normal,
-                        ),
+    return buildPopoverMenu(
+      controller: primaryPopoverController,
+      child: GestureDetector(
+        onDoubleTap: connect,
+        onSecondaryTap: () {
+          secondaryPopoverController.hide();
+          primaryPopoverController.toggle();
+        },
+        child: FCard(
+          title: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Flexible(
+                child: Row(
+                  spacing: 16,
+                  children: [
+                    Container(
+                      width: 48,
+                      height: 48,
+                      decoration: BoxDecoration(
+                        color: connection.iconBackgroundColor,
+                        borderRadius: .circular(16),
                       ),
-                    ],
-                  ),
-                ],
+                      child: Icon(
+                        connection.icon.iconData,
+                        color: connection.iconColor,
+                        size: 28,
+                      ),
+                    ),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(connection.label),
+                        Text(
+                          connection.effectiveUsername,
+                          style: context.theme.typography.xs.copyWith(
+                            color: context.theme.colors.mutedForeground,
+                            fontWeight: .normal,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
               ),
-            ),
-            buildPopoverMenu(
-              controller: secondaryPopoverController,
-              child: FButton.icon(
-                onPress: () {
-                  primaryPopoverController.hide();
-                  secondaryPopoverController.toggle();
-                },
-                child: Icon(LucideIcons.ellipsis),
+              buildPopoverMenu(
+                controller: secondaryPopoverController,
+                child: FButton.icon(
+                  onPress: () {
+                    primaryPopoverController.hide();
+                    secondaryPopoverController.toggle();
+                  },
+                  child: Icon(LucideIcons.ellipsis),
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
-    ));
+    );
   }
 }

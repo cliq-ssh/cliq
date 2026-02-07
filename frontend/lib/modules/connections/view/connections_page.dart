@@ -84,59 +84,56 @@ class _ConnectionsPageState extends ConsumerState<ConnectionsPage> {
       );
     }
 
-    return FScaffold(
-      child: connections.entities.isEmpty
-          ? buildNoHosts()
-          : SingleChildScrollView(
-              padding: EdgeInsets.only(bottom: 80),
-              child: CliqGridContainer(
-                children: [
-                  CliqGridRow(
-                    children: [
-                      CliqGridColumn(
-                        child: Padding(
-                          padding: const EdgeInsets.only(bottom: 16),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.end,
-                            children: [
-                              FButton(
-                                style: FButtonStyle.ghost(),
-                                prefix: Icon(LucideIcons.plus),
-                                onPress: openAddHostsView,
-                                child: Text('Add Host'),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                      CliqGridColumn(
-                        child: Column(
-                          spacing: 16,
+    return connections.entities.isEmpty
+        ? buildNoHosts()
+        : SingleChildScrollView(
+            padding: EdgeInsets.only(bottom: 80),
+            child: CliqGridContainer(
+              children: [
+                CliqGridRow(
+                  children: [
+                    CliqGridColumn(
+                      child: Padding(
+                        padding: const EdgeInsets.only(bottom: 16),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.end,
                           children: [
-                            for (final group
-                                in groupedConnections.value.entries)
-                              Column(
-                                spacing: 8,
-                                crossAxisAlignment: .start,
-                                children: [
-                                  Text(
-                                    group.key,
-                                    style: typography.lg.copyWith(
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                  for (final cf in group.value)
-                                    ConnectionCard(connection: cf),
-                                ],
-                              ),
+                            FButton(
+                              style: FButtonStyle.ghost(),
+                              prefix: Icon(LucideIcons.plus),
+                              onPress: openAddHostsView,
+                              child: Text('Add Host'),
+                            ),
                           ],
                         ),
                       ),
-                    ],
-                  ),
-                ],
-              ),
+                    ),
+                    CliqGridColumn(
+                      child: Column(
+                        spacing: 16,
+                        children: [
+                          for (final group in groupedConnections.value.entries)
+                            Column(
+                              spacing: 8,
+                              crossAxisAlignment: .start,
+                              children: [
+                                Text(
+                                  group.key,
+                                  style: typography.lg.copyWith(
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                                for (final cf in group.value)
+                                  ConnectionCard(connection: cf),
+                              ],
+                            ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ],
             ),
-    );
+          );
   }
 }

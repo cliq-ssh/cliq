@@ -284,29 +284,27 @@ class _ShellSessionPageState extends ConsumerState<ShellSessionPage>
       );
     }
 
-    return FScaffold(
-      child: CliqGridContainer(
-        alignment: .center,
-        children: [
-          CliqGridRow(
-            children: [
-              CliqGridColumn(
-                sizes: {.sm: 12, .md: 8},
-                child: Column(
-                  children: [
-                    if (session.knownHostError != null)
-                      ...buildKnownHostWarning()
-                    else if (session.connectionError != null)
-                      ...buildError()
-                    else if (session.isLikelyLoading)
-                      ...buildConnecting(),
-                  ],
-                ),
+    return CliqGridContainer(
+      alignment: .center,
+      children: [
+        CliqGridRow(
+          children: [
+            CliqGridColumn(
+              sizes: {.sm: 12, .md: 8},
+              child: Column(
+                children: [
+                  if (session.knownHostError != null)
+                    ...buildKnownHostWarning()
+                  else if (session.connectionError != null)
+                    ...buildError()
+                  else if (session.isLikelyLoading)
+                    ...buildConnecting(),
+                ],
               ),
-            ],
-          ),
-        ],
-      ),
+            ),
+          ],
+        ),
+      ],
     );
   }
 }

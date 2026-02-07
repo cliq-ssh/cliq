@@ -45,40 +45,43 @@ class _ResponsiveSidebarState
       return () => widget.controller.removeListener(listener);
     }, [widget.controller]);
 
-    return Row(
-      children: [
-        Container(
-          width: isExpanded.value ? widget.maxWidth : widget.minWidth + 1,
-          height: double.infinity,
-          padding: widget.padding ?? .zero,
-          decoration: BoxDecoration(
-            color: widget.backgroundColor,
-            border: Border(
-              right: BorderSide(color: context.theme.colors.border, width: 1),
+    return FScaffold(
+      childPad: false,
+      child: Row(
+        children: [
+          Container(
+            width: isExpanded.value ? widget.maxWidth : widget.minWidth + 1,
+            height: double.infinity,
+            padding: widget.padding ?? .zero,
+            decoration: BoxDecoration(
+              color: widget.backgroundColor,
+              border: Border(
+                right: BorderSide(color: context.theme.colors.border, width: 1),
+              ),
             ),
-          ),
-          child: Padding(
-            padding: const .symmetric(vertical: 16),
-            child: Column(
-              spacing: 8,
-              children: [
-                ?widget.headerBuilder?.call(context, isExpanded.value),
-                if (widget.contentBuilder != null)
-                  Expanded(
-                    child: ListView(
-                      children: widget.contentBuilder!.call(
-                        context,
-                        isExpanded.value,
+            child: Padding(
+              padding: const .symmetric(vertical: 16),
+              child: Column(
+                spacing: 8,
+                children: [
+                  ?widget.headerBuilder?.call(context, isExpanded.value),
+                  if (widget.contentBuilder != null)
+                    Expanded(
+                      child: ListView(
+                        children: widget.contentBuilder!.call(
+                          context,
+                          isExpanded.value,
+                        ),
                       ),
                     ),
-                  ),
-                ?widget.footerBuilder?.call(context, isExpanded.value),
-              ],
+                  ?widget.footerBuilder?.call(context, isExpanded.value),
+                ],
+              ),
             ),
           ),
-        ),
-        Expanded(child: widget.child),
-      ],
+          Expanded(child: widget.child),
+        ],
+      ),
     );
   }
 }
