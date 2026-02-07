@@ -247,7 +247,7 @@ class NavigationShellState extends ConsumerState<NavigationShell>
                   mainAxisAlignment: !isExpanded ? .center : .spaceBetween,
                   children: [
                     FButton.icon(
-                      style: FButtonStyle.ghost(),
+                      style: FButtonStyle.outline(),
                       onPress: _sidebarController.toggle,
                       child: Icon(
                         _sidebarController.isExpanded
