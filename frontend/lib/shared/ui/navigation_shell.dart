@@ -146,20 +146,52 @@ class NavigationShellState extends ConsumerState<NavigationShell>
               );
             },
             wrapper: (child) {
-              return _buildSidebarTab(
-                isExpanded,
-                label: Text(
-                  session.connection.label,
-                  overflow: .fade,
-                  softWrap: false,
-                ),
-                icon: child,
-                selected: session.id == selectedSession.value?.id,
-                onPress: () => ref
-                    .read(sessionProvider.notifier)
-                    .setSelectedAndMaybeGo(this, session.id),
-                noPadding: isExpanded,
-                isTop: navPosition.value == .top,
+              return FPopoverMenu(
+                autofocus: true,
+                menu: [
+                  FItemGroup(
+                    children: [
+                      FItem(
+                        prefix: const Icon(LucideIcons.copy),
+                        title: const Text('Duplicate'),
+                        onPress: () {
+                          ref
+                              .read(sessionProvider.notifier)
+                              .createAndGo(this, session.connection);
+                        },
+                      ),
+                      FItem(
+                        prefix: const Icon(LucideIcons.x),
+                        title: const Text('Close'),
+                        onPress: () {
+                          ref
+                              .read(sessionProvider.notifier)
+                              .closeAnyMaybeGo(this, session.id);
+                        },
+                      ),
+                    ],
+                  ),
+                ],
+                builder: (_, controller, _) {
+                  return GestureDetector(
+                    onSecondaryTap: controller.toggle,
+                    child: _buildSidebarTab(
+                      isExpanded,
+                      label: Text(
+                        session.connection.label,
+                        overflow: .fade,
+                        softWrap: false,
+                      ),
+                      icon: child,
+                      selected: session.id == selectedSession.value?.id,
+                      onPress: () => ref
+                          .read(sessionProvider.notifier)
+                          .setSelectedAndMaybeGo(this, session.id),
+                      noPadding: isExpanded,
+                      isTop: navPosition.value == .top,
+                    ),
+                  );
+                },
               );
             },
           ),
