@@ -65,64 +65,66 @@ class CreateOrEditKeyView extends HookConsumerWidget {
       context.pop((keyId, labelCtrl.text));
     }
 
-    return SingleChildScrollView(
-      padding: const .symmetric(horizontal: 32),
-      child: Column(
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.end,
-            children: [
-              FButton(
-                style: FButtonStyle.ghost(),
-                prefix: const Icon(LucideIcons.x),
-                onPress: () => context.pop(),
-                child: const Text('Close'),
-              ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          Form(
-            key: formKey,
-            child: Column(
-              spacing: 16,
-              crossAxisAlignment: CrossAxisAlignment.center,
+    return FScaffold(
+      child: SingleChildScrollView(
+        padding: const .symmetric(horizontal: 32),
+        child: Column(
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.end,
               children: [
-                FTextFormField(
-                  control: .managed(controller: labelCtrl),
-                  label: const Text('Label'),
-                  hint: 'My Key',
-                  validator: Validators.nonEmpty,
-                ),
-                FTextFormField(
-                  control: .managed(controller: pemCtrl),
-                  label: Text('PEM Key'),
-                  hint: '-----BEGIN OPENSSH PRIVATE KEY-----',
-                  minLines: 5,
-                  maxLines: null,
-                  validator: Validators.nonEmpty,
-                  autovalidateMode: .onUserInteraction,
-                ),
-                FTextFormField(
-                  control: .managed(controller: passCtrl),
-                  label: Text('PEM Passphrase'),
-                  obscureText: true,
-                  maxLines: 1,
-                  autovalidateMode: .onUserInteraction,
+                FButton(
+                  style: FButtonStyle.ghost(),
+                  prefix: const Icon(LucideIcons.x),
+                  onPress: () => context.pop(),
+                  child: const Text('Close'),
                 ),
               ],
             ),
-          ),
-
-          const SizedBox(height: 12),
-
-          SizedBox(
-            width: double.infinity,
-            child: FButton(
-              onPress: onSave,
-              child: Text(isEdit ? 'Edit' : 'Save'),
+            const SizedBox(height: 8),
+            Form(
+              key: formKey,
+              child: Column(
+                spacing: 16,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  FTextFormField(
+                    control: .managed(controller: labelCtrl),
+                    label: const Text('Label'),
+                    hint: 'My Key',
+                    validator: Validators.nonEmpty,
+                  ),
+                  FTextFormField(
+                    control: .managed(controller: pemCtrl),
+                    label: Text('PEM Key'),
+                    hint: '-----BEGIN OPENSSH PRIVATE KEY-----',
+                    minLines: 5,
+                    maxLines: null,
+                    validator: Validators.nonEmpty,
+                    autovalidateMode: .onUserInteraction,
+                  ),
+                  FTextFormField(
+                    control: .managed(controller: passCtrl),
+                    label: Text('PEM Passphrase'),
+                    obscureText: true,
+                    maxLines: 1,
+                    autovalidateMode: .onUserInteraction,
+                  ),
+                ],
+              ),
             ),
-          ),
-        ],
+
+            const SizedBox(height: 12),
+
+            SizedBox(
+              width: double.infinity,
+              child: FButton(
+                onPress: onSave,
+                child: Text(isEdit ? 'Edit' : 'Save'),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

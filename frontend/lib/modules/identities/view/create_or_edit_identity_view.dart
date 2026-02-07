@@ -76,62 +76,64 @@ class CreateOrEditIdentityView extends HookConsumerWidget {
       context.pop((identityId, labelCtrl.text));
     }
 
-    return SingleChildScrollView(
-      padding: const .symmetric(horizontal: 32),
-      child: Column(
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.end,
-            children: [
-              FButton(
-                style: FButtonStyle.ghost(),
-                prefix: const Icon(LucideIcons.x),
-                onPress: () => context.pop(),
-                child: const Text('Close'),
-              ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          Form(
-            key: formKey,
-            child: Column(
-              spacing: 16,
-              crossAxisAlignment: CrossAxisAlignment.center,
+    return FScaffold(
+      child: SingleChildScrollView(
+        padding: const .symmetric(horizontal: 32),
+        child: Column(
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.end,
               children: [
-                FTextFormField(
-                  control: .managed(controller: labelCtrl),
-                  label: const Text('Label'),
-                  hint: 'My Server',
-                  validator: Validators.nonEmpty,
+                FButton(
+                  style: FButtonStyle.ghost(),
+                  prefix: const Icon(LucideIcons.x),
+                  onPress: () => context.pop(),
+                  child: const Text('Close'),
                 ),
-
-                FTextFormField(
-                  control: .managed(controller: usernameCtrl),
-                  label: const Text('Username'),
-                  hint: 'root',
-                  validator: Validators.nonEmpty,
-                ),
-
-                isEdit
-                    ? CreateOrEditCredentialsForm.edit(
-                        key: credentialsKey,
-                        currentCredentialIds,
-                      )
-                    : CreateOrEditCredentialsForm.create(key: credentialsKey),
               ],
             ),
-          ),
+            const SizedBox(height: 8),
+            Form(
+              key: formKey,
+              child: Column(
+                spacing: 16,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  FTextFormField(
+                    control: .managed(controller: labelCtrl),
+                    label: const Text('Label'),
+                    hint: 'My Server',
+                    validator: Validators.nonEmpty,
+                  ),
 
-          const SizedBox(height: 12),
+                  FTextFormField(
+                    control: .managed(controller: usernameCtrl),
+                    label: const Text('Username'),
+                    hint: 'root',
+                    validator: Validators.nonEmpty,
+                  ),
 
-          SizedBox(
-            width: double.infinity,
-            child: FButton(
-              onPress: onSave,
-              child: Text(isEdit ? 'Edit' : 'Save'),
+                  isEdit
+                      ? CreateOrEditCredentialsForm.edit(
+                          key: credentialsKey,
+                          currentCredentialIds,
+                        )
+                      : CreateOrEditCredentialsForm.create(key: credentialsKey),
+                ],
+              ),
             ),
-          ),
-        ],
+
+            const SizedBox(height: 12),
+
+            SizedBox(
+              width: double.infinity,
+              child: FButton(
+                onPress: onSave,
+                child: Text(isEdit ? 'Edit' : 'Save'),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
