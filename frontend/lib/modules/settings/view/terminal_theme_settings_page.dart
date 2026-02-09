@@ -145,31 +145,45 @@ class TerminalThemeSettingsPage extends AbstractSettingsPage {
                       onChange: (selected) =>
                           selectedFontFamily.value = selected,
                     ),
-                    Row(
-                      mainAxisAlignment: .spaceBetween,
-                      children: [
-                        Text('Theme'),
-                        FButton(
-                          style: FButtonStyle.ghost(),
-                          prefix: Icon(LucideIcons.folderOpen),
-                          onPress: null,
-                          child: Text('Import'),
-                        ),
-                      ],
-                    ),
-                    Column(
-                      spacing: 12,
-                      children: [
-                        for (final theme in [
-                          defaultTerminalColorTheme,
-                          ...terminalThemes.entities,
-                        ])
-                          TerminalThemeCard(
-                            onTap: () => selectedColors.value = theme,
-                            isSelected: selectedColors.value.id == theme.id,
-                            theme: theme,
+                    FLabel(
+                      label: Row(
+                        mainAxisAlignment: .spaceBetween,
+                        crossAxisAlignment: .end,
+                        children: [
+                          Text('Theme'),
+                          Row(
+                            children: [
+                              FButton(
+                                style: FButtonStyle.ghost(),
+                                prefix: Icon(LucideIcons.swatchBook),
+                                onPress: null,
+                                child: Text('Browse'),
+                              ),
+                              FButton(
+                                style: FButtonStyle.ghost(),
+                                prefix: Icon(LucideIcons.folderOpen),
+                                onPress: null,
+                                child: Text('Import'),
+                              ),
+                            ],
                           ),
-                      ],
+                        ],
+                      ),
+                      axis: .vertical,
+                      child: Column(
+                        spacing: 12,
+                        children: [
+                          for (final theme in [
+                            defaultTerminalColorTheme,
+                            ...terminalThemes.entities,
+                          ])
+                            TerminalThemeCard(
+                              onTap: () => selectedColors.value = theme,
+                              isSelected: selectedColors.value.id == theme.id,
+                              theme: theme,
+                            ),
+                        ],
+                      ),
                     ),
                   ],
                 ),
