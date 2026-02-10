@@ -1,5 +1,6 @@
 import 'package:cliq/modules/connections/provider/connection.provider.dart';
 import 'package:cliq/shared/provider/store.provider.dart';
+import 'package:cliq/shared/ui/context_menu.dart';
 import 'package:cliq/shared/ui/responsive_sidebar.dart';
 import 'package:cliq_ui/cliq_ui.dart' show useBreakpoint;
 import 'package:flutter_hooks/flutter_hooks.dart';
@@ -114,97 +115,89 @@ class NavigationShellState extends ConsumerState<NavigationShell>
     buildSessionTabs(bool isExpanded) {
       return [
         for (final session in sessions.activeSessions)
-          FPopoverMenu(
-            autofocus: true,
-            menu: [
-              FItemGroup(
-                children: [
-                  FItem(
-                    prefix: const Icon(LucideIcons.copy),
-                    title: const Text('Duplicate'),
-                    onPress: () {
-                      ref
-                          .read(sessionProvider.notifier)
-                          .createAndGo(this, session.connection);
-                    },
-                  ),
-                  FItem(
-                    prefix: const Icon(LucideIcons.x),
-                    title: const Text('Close'),
-                    onPress: () {
-                      ref
-                          .read(sessionProvider.notifier)
-                          .closeAnyMaybeGo(this, session.id);
-                    },
-                  ),
-                ],
+          CustomContextMenu(
+            actions: [
+              .new(
+                label: 'Duplicate',
+                icon: LucideIcons.copy,
+                onPress: () {
+                  ref
+                      .read(sessionProvider.notifier)
+                      .createAndGo(this, session.connection);
+                },
+                shortcut: .new(mainKey: .keyD, modifiers: {.meta}),
+              ),
+              .new(
+                label: 'Close',
+                icon: LucideIcons.x,
+                onPress: () {
+                  ref
+                      .read(sessionProvider.notifier)
+                      .closeAnyMaybeGo(this, session.id);
+                },
+                shortcut: .new(mainKey: .keyW, modifiers: {.alt}),
               ),
             ],
-            builder: (_, controller, _) {
-              bool isHovered = false;
-
-              return GestureDetector(
-                onSecondaryTap: controller.toggle,
-                child: StatefulBuilder(
-                  builder: (context, setState) {
-                    return MouseRegion(
-                      onEnter: (_) => setState(() => isHovered = true),
-                      onExit: (_) => setState(() => isHovered = false),
-                      child: _buildSidebarTab(
-                        isExpanded,
-                        label: Row(
-                          spacing: 8,
-                          children: [
-                            Expanded(
-                              child: Text(
-                                session.connection.label,
-                                overflow: .fade,
-                                softWrap: false,
-                              ),
+            builder: (_) {
+              return StatefulBuilder(
+                builder: (context, setState) {
+                  return MouseRegion(
+                    onEnter: (_) => setState(() {}),
+                    onExit: (_) => setState(() {}),
+                    child: _buildSidebarTab(
+                      isExpanded,
+                      label: Row(
+                        spacing: 8,
+                        children: [
+                          Expanded(
+                            child: Text(
+                              session.connection.label,
+                              overflow: .fade,
+                              softWrap: false,
                             ),
-                            if (isHovered)
-                              GestureDetector(
-                                onTap: () {
-                                  ref
-                                      .read(sessionProvider.notifier)
-                                      .closeAnyMaybeGo(this, session.id);
-                                },
-                                child: const Icon(LucideIcons.x, size: 16),
-                              ),
-                          ],
-                        ),
-                        icon: Builder(
-                          builder: (context) {
-                            Widget child = Container(
-                              decoration: BoxDecoration(
-                                color: session.connection.iconBackgroundColor,
-                                borderRadius: BorderRadius.circular(6),
-                              ),
-                              padding: .all(5),
-                              child: Icon(
-                                session.connection.icon.iconData,
-                                color: session.connection.iconColor,
-                                size: 10,
-                              ),
-                            );
-
-                            if (!isExpanded) {
-                              child = AspectRatio(aspectRatio: 1, child: child);
-                            }
-
-                            return child;
-                          },
-                        ),
-                        selected: session.id == selectedSession.value?.id,
-                        onPress: () => ref
-                            .read(sessionProvider.notifier)
-                            .setSelectedAndMaybeGo(this, session.id),
-                        noPadding: isExpanded,
-                        isTop: navPosition.value == .top,
+                          ),
+                          if (true)
+                            GestureDetector(
+                              onTap: () {
+                                ref
+                                    .read(sessionProvider.notifier)
+                                    .closeAnyMaybeGo(this, session.id);
+                              },
+                              child: const Icon(LucideIcons.x, size: 16),
+                            ),
+                        ],
                       ),
-                    );
-                  },
-                ),
+                      icon: Builder(
+                        builder: (context) {
+                          Widget child = Container(
+                            decoration: BoxDecoration(
+                              color: session.connection.iconBackgroundColor,
+                              borderRadius: BorderRadius.circular(6),
+                            ),
+                            padding: .all(5),
+                            child: Icon(
+                              session.connection.icon.iconData,
+                              color: session.connection.iconColor,
+                              size: 10,
+                            ),
+                          );
+
+                          if (!isExpanded) {
+                            child = AspectRatio(aspectRatio: 1, child: child);
+                          }
+
+                          return child;
+                        },
+                      ),
+                      selected: session.id == selectedSession.value?.id,
+                      onPress: () => ref
+                          .read(sessionProvider.notifier)
+                          .setSelectedAndMaybeGo(this, session.id),
+                      noPadding: isExpanded,
+                      isTop: navPosition.value == .top,
+                    ),
+                  );
+                },
               );
             },
           ),
