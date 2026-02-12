@@ -5,12 +5,11 @@ publish_to: 'none'
 version: 0.1.0+1
 
 environment:
-  sdk: 3.11.0
+  sdk: ^3.11.0
+  flutter: ">=3.41.0"
 
 workspace:
-  - packages/cliq_api
-  - packages/cliq_term
-  - packages/cliq_ui
+  - packages/*
 
 dependencies:
   flutter:
