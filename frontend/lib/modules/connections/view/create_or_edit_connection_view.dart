@@ -189,11 +189,11 @@ class CreateOrEditConnectionView extends HookConsumerWidget {
         fontSize:
             fontSize ??
             selectedTypographyOverride.value?.fontSize ??
-            defaultTerminalTypography.value!.fontSize,
+            defaultTerminalTypography.value.fontSize,
         fontFamily:
             fontFamily ??
             selectedTypographyOverride.value?.fontFamily ??
-            defaultTerminalTypography.value!.fontFamily,
+            defaultTerminalTypography.value.fontFamily,
       );
 
       if (typography == defaultTerminalTypography.value) {
@@ -424,14 +424,14 @@ class CreateOrEditConnectionView extends HookConsumerWidget {
               TerminalFontSizeSlider(
                 selectedFontSize:
                     selectedTypographyOverride.value?.fontSize ??
-                    defaultTerminalTypography.value!.fontSize,
+                    defaultTerminalTypography.value.fontSize,
                 onEnd: (value) => selectedTypographyOverride.value =
                     getEffectiveTypography(value, null),
               ),
               TerminalFontFamilySelect(
                 selectedFontFamily:
                     selectedTypographyOverride.value?.fontFamily ??
-                    defaultTerminalTypography.value!.fontFamily,
+                    defaultTerminalTypography.value.fontFamily,
                 onChange: (selected) => selectedTypographyOverride.value =
                     getEffectiveTypography(null, selected),
               ),
