@@ -185,7 +185,7 @@ class CreateOrEditCredentialsFormState
               children: [
                 Text(allowedType.label),
                 FButton.icon(
-                  style: FButtonStyle.ghost(),
+                  variant: .ghost,
                   onPress: () {
                     credential.dispose();
                     final updated = [...selectedCredentials];
@@ -358,7 +358,7 @@ class CreateOrEditCredentialsFormState
                       ],
                       builder: (context, controller, child) {
                         return FButton(
-                          style: FButtonStyle.ghost(),
+                          variant: .ghost,
                           prefix: const Icon(LucideIcons.plus),
                           onPress: controller.toggle,
                           child: Flexible(

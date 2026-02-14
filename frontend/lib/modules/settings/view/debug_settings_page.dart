@@ -60,7 +60,7 @@ class DebugSettingsPage extends AbstractSettingsPage {
                                       ),
                                     ),
                                     FButton.icon(
-                                      style: FButtonStyle.destructive(),
+                                      variant: .destructive,
                                       onPress: () => key.delete(),
                                       child: Icon(LucideIcons.trash),
                                     ),
@@ -69,7 +69,7 @@ class DebugSettingsPage extends AbstractSettingsPage {
                             ],
                           ),
                           FButton(
-                            style: FButtonStyle.destructive(),
+                            variant: .destructive,
                             child: Text('Reset KeyValueStore'),
                             onPress: () async {
                               for (final key in StoreKey.values) {

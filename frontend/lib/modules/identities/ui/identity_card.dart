@@ -72,7 +72,7 @@ class IdentityCard extends HookConsumerWidget {
                     onPress: () => showFDialog(
                       context: context,
                       builder: (context, style, animation) => FDialog(
-                        style: style.call,
+                        style: style,
                         animation: animation,
                         direction: Axis.horizontal,
                         title: const Text('Are you sure?'),
@@ -81,12 +81,12 @@ class IdentityCard extends HookConsumerWidget {
                         ),
                         actions: [
                           FButton(
-                            style: FButtonStyle.outline(),
+                            variant: .outline,
                             child: const Text('Cancel'),
                             onPress: () => Navigator.of(context).pop(),
                           ),
                           FButton(
-                            style: FButtonStyle.destructive(),
+                            variant: .destructive,
                             child: const Text('Delete'),
                             onPress: () {
                               CliqDatabase.identityService.deleteById(
