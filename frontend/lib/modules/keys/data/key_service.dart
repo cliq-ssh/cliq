@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:cliq/modules/keys/data/key_repository.dart';
 import 'package:cliq/shared/data/database.dart';
 import 'package:drift/drift.dart' show Value;
@@ -22,7 +24,7 @@ final class KeyService {
   }) => keyRepository.insert(
     KeysCompanion.insert(
       label: label.trim(),
-      privatePem: privatePem.trim(),
+      privatePem: fixKey(privatePem),
       passphrase: Value.absentIfNull(passphrase),
     ),
   );
@@ -38,7 +40,7 @@ final class KeyService {
     KeysCompanion(
       label: ValueExtension.absentIfNullOrSame(label, compareTo?.label),
       privatePem: ValueExtension.absentIfNullOrSame(
-        privatePem,
+        privatePem == null ? null : fixKey(privatePem),
         compareTo?.privatePem,
       ),
       passphrase: ValueExtension.absentIfSame(
@@ -49,4 +51,13 @@ final class KeyService {
   );
 
   Future<void> deleteById(int id) => keyRepository.deleteById(id);
+
+  String fixKey(String privatePem) {
+    var lineSplitter = LineSplitter();
+
+    return lineSplitter
+        .convert(privatePem)
+        .where((line) => line.trim().isNotEmpty)
+        .join('\n');
+  }
 }
