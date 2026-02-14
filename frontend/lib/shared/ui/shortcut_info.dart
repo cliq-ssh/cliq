@@ -46,6 +46,7 @@ class ShortcutInfo extends StatelessWidget {
     .alt: _KeyDisplayInfo(label: 'ALT', widthModifier: 1.6),
     .enter: _KeyDisplayInfo(icon: LucideIcons.cornerDownLeft),
     .backspace: _KeyDisplayInfo(icon: LucideIcons.delete),
+    .delete: _KeyDisplayInfo(icon: LucideIcons.delete),
   };
 
   static final Map<LogicalKeyboardKey, _KeyDisplayInfo> _macOSKeyMap = {
@@ -54,6 +55,7 @@ class ShortcutInfo extends StatelessWidget {
   };
 
   static final Map<LogicalKeyboardKey, _KeyDisplayInfo> _windowsKeyMap = {
+    .control: _KeyDisplayInfo(label: 'CTRL', widthModifier: 1.8),
     .meta: _KeyDisplayInfo(label: 'WIN', widthModifier: 1.6),
   };
 
@@ -113,6 +115,25 @@ class ShortcutInfo extends StatelessWidget {
       children: [
         for (final mod in shortcut.modifiers) buildKey(mod),
         buildKey(shortcut.mainKey),
+      ],
+    );
+  }
+}
+
+class TextWithShortCutInfo extends StatelessWidget {
+  final String text;
+  final ShortcutActionInfo shortcut;
+
+  const TextWithShortCutInfo(this.text, {super.key, required this.shortcut});
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisSize: .min,
+      spacing: 8,
+      children: [
+        Text(text),
+        ShortcutInfo(shortcut: shortcut),
       ],
     );
   }

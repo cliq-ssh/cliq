@@ -13,6 +13,7 @@ class KnownHostCard extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     return FCard(
       title: Row(
+        spacing: 8,
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Flexible(
@@ -28,9 +29,11 @@ class KnownHostCard extends HookConsumerWidget {
                   ),
                   child: Icon(LucideIcons.fingerprintPattern, size: 28),
                 ),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [Text(knownHost.host)],
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [Text(knownHost.host, overflow: .fade, softWrap: false, style: context.theme.typography.lg)],
+                  ),
                 ),
               ],
             ),

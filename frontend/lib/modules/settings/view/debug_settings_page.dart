@@ -26,7 +26,6 @@ class DebugSettingsPage extends AbstractSettingsPage {
           CliqGridRow(
             children: [
               CliqGridColumn(
-                sizes: {.sm: 12, .md: 8},
                 child: Column(
                   mainAxisAlignment: .center,
                   spacing: 20,

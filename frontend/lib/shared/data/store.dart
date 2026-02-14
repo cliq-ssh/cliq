@@ -1,11 +1,14 @@
 import 'dart:async';
 
+import 'package:cliq/shared/ui/entity_card_view.dart';
 import 'package:cliq_term/cliq_term.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../modules/settings/model/navigation_position.model.dart';
 import '../../modules/settings/model/theme.model.dart';
+
+// TODO: replace key name with id to avoid potential issues with renaming keys in the future
 
 enum StoreKey<T> {
   theme<CliqTheme>(
@@ -40,6 +43,35 @@ enum StoreKey<T> {
     type: NavigationPosition,
     defaultValue: NavigationPosition.left,
     fromValue: _desktopNavigationPositionFromValue,
+    toValue: _enumToValue,
+  ),
+
+  knownHostsCardViewType<EntityCardViewType>(
+    'known_hosts_card_view_type',
+    type: EntityCardViewType,
+    defaultValue: .list,
+    fromValue: _entityCardViewTypeFromValue,
+    toValue: _enumToValue,
+  ),
+  identitiesCardViewType<EntityCardViewType>(
+    'identities_card_view_type',
+    type: EntityCardViewType,
+    defaultValue: .list,
+    fromValue: _entityCardViewTypeFromValue,
+    toValue: _enumToValue,
+  ),
+  connectionsCardViewType<EntityCardViewType>(
+    'connections_card_view_type',
+    type: EntityCardViewType,
+    defaultValue: .list,
+    fromValue: _entityCardViewTypeFromValue,
+    toValue: _enumToValue,
+  ),
+  keysCardViewType<EntityCardViewType>(
+    'keys_card_view_type',
+    type: EntityCardViewType,
+    defaultValue: .list,
+    fromValue: _entityCardViewTypeFromValue,
     toValue: _enumToValue,
   );
 
@@ -82,6 +114,8 @@ enum StoreKey<T> {
   static NavigationPosition? _desktopNavigationPositionFromValue(
     String? value,
   ) => _enumFromValue(value, NavigationPosition.values);
+  static EntityCardViewType? _entityCardViewTypeFromValue(String? value) =>
+      _enumFromValue(value, EntityCardViewType.values);
 
   static String? _typographyToValue(TerminalTypography? value) {
     if (value == null) return null;

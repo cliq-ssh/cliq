@@ -290,7 +290,6 @@ class _ShellSessionPageState extends ConsumerState<ShellSessionPage>
         CliqGridRow(
           children: [
             CliqGridColumn(
-              sizes: {.sm: 12, .md: 8},
               child: Column(
                 children: [
                   if (session.knownHostError != null)

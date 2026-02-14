@@ -2,6 +2,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:forui/forui.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:lucide_flutter/lucide_flutter.dart';
 
 abstract class AbstractSettingsPage extends HookConsumerWidget {
   const AbstractSettingsPage({super.key});
@@ -12,7 +13,13 @@ abstract class AbstractSettingsPage extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     return FScaffold(
       header: FHeader.nested(
-        prefixes: [FHeaderAction.back(onPress: () => context.pop())],
+        prefixes: [
+          FButton.icon(
+            variant: .outline,
+            onPress: () => context.pop(),
+            child: Icon(LucideIcons.arrowLeft),
+          ),
+        ],
       ),
       child: buildBody(context, ref),
     );

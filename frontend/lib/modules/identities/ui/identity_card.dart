@@ -16,6 +16,7 @@ class IdentityCard extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     return FCard(
       title: Row(
+        spacing: 8,
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Flexible(
@@ -31,25 +32,27 @@ class IdentityCard extends HookConsumerWidget {
                   ),
                   child: Icon(LucideIcons.users, size: 28),
                 ),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(identity.label),
-                    Text(
-                      identity.username,
-                      style: context.theme.typography.xs.copyWith(
-                        color: context.theme.colors.mutedForeground,
-                      ),
-                    ),
-                    if (identity.credentialIds.isNotEmpty)
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(identity.label, overflow: .fade, softWrap: false, style: context.theme.typography.lg),
                       Text(
-                        '${identity.credentialIds.length} credential(s)',
+                        identity.username,
                         style: context.theme.typography.xs.copyWith(
                           color: context.theme.colors.mutedForeground,
-                          fontWeight: .normal,
                         ),
                       ),
-                  ],
+                      if (identity.credentialIds.isNotEmpty)
+                        Text(
+                          '${identity.credentialIds.length} credential(s)',
+                          style: context.theme.typography.xs.copyWith(
+                            color: context.theme.colors.mutedForeground,
+                            fontWeight: .normal,
+                          ),
+                        ),
+                    ],
+                  ),
                 ),
               ],
             ),

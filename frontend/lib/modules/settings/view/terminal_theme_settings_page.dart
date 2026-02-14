@@ -110,7 +110,6 @@ class TerminalThemeSettingsPage extends AbstractSettingsPage {
           CliqGridRow(
             children: [
               CliqGridColumn(
-                sizes: {.sm: 12, .md: 8},
                 child: Column(
                   spacing: 20,
                   children: [
