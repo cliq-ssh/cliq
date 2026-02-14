@@ -9,7 +9,9 @@ environment:
   flutter: ">=3.41.0"
 
 workspace:
-  - packages/*
+  - packages/cliq_api
+  - packages/cliq_term
+  - packages/cliq_ui
 
 dependencies:
   flutter:
