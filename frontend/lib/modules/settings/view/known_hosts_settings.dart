@@ -18,6 +18,9 @@ class KnownHostsSettingsPage extends AbstractSettingsPage {
   const KnownHostsSettingsPage({super.key});
 
   @override
+  String get title => 'Known Hosts';
+
+  @override
   Widget buildBody(BuildContext context, WidgetRef ref) {
     final knownHosts = ref.watch(knownHostProvider);
 
@@ -28,9 +31,7 @@ class KnownHostsSettingsPage extends AbstractSettingsPage {
       noEntitiesTitle: 'No Known Hosts',
       noEntitiesSubtitle:
           'No known hosts have been added yet. Connect to a host to add it to your known hosts list.',
-      filterableFields: (k) => [
-        k.host,
-      ],
+      filterableFields: (k) => [k.host],
     );
   }
 }

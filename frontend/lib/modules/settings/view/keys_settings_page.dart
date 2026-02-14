@@ -24,6 +24,9 @@ class KeysSettingsPage extends AbstractSettingsPage {
   const KeysSettingsPage({super.key});
 
   @override
+  String get title => 'Keys';
+
+  @override
   Widget buildBody(BuildContext context, WidgetRef ref) {
     final keyIds = ref.watch(keyIdProvider);
     final keysFuture = useMemoizedFuture(() async {

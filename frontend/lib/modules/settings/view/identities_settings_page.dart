@@ -20,6 +20,9 @@ class IdentitiesSettingsPage extends AbstractSettingsPage {
   const IdentitiesSettingsPage({super.key});
 
   @override
+  String get title => 'Identities';
+
+  @override
   Widget buildBody(BuildContext context, WidgetRef ref) {
     final identities = ref.watch(identityProvider);
 
@@ -34,10 +37,7 @@ class IdentitiesSettingsPage extends AbstractSettingsPage {
         context,
         (_) => CreateOrEditIdentityView.create(),
       ),
-      filterableFields: (i) => [
-        i.label,
-        i.username,
-      ],
+      filterableFields: (i) => [i.label, i.username],
       entityCardBuilder: (identity) => IdentityCard(identity: identity),
     );
   }

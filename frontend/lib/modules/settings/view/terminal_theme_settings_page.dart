@@ -57,6 +57,9 @@ class TerminalThemeSettingsPage extends AbstractSettingsPage {
   const TerminalThemeSettingsPage({super.key});
 
   @override
+  String get title => 'Terminal Theme';
+
+  @override
   Widget buildBody(BuildContext context, WidgetRef ref) {
     final terminalThemes = ref.watch(terminalThemeProvider);
     final terminalController = useState<TerminalController?>(null);

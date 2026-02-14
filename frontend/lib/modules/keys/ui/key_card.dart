@@ -34,10 +34,15 @@ class KeyCard extends HookConsumerWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(keyEntity.label, overflow: .fade, softWrap: false, style: context.theme.typography.lg),
+                      Text(
+                        keyEntity.label,
+                        overflow: .fade,
+                        softWrap: false,
+                        style: context.theme.typography.lg,
+                      ),
                     ],
                   ),
-                )
+                ),
               ],
             ),
           ),

@@ -24,6 +24,9 @@ class AppearanceSettingsPage extends AbstractSettingsPage {
   const AppearanceSettingsPage({super.key});
 
   @override
+  String get title => 'Appearance';
+
+  @override
   Widget buildBody(BuildContext context, WidgetRef ref) {
     final currentTheme = useStore(.theme);
     final themeMode = useStore(.themeMode);

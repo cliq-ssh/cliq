@@ -164,6 +164,7 @@ class _ShellSessionPageState extends ConsumerState<ShellSessionPage>
         Icon(LucideIcons.fingerprintPattern, size: 48),
         const SizedBox(height: 8),
         Text.rich(
+          textAlign: .center,
           TextSpan(
             children: [
               session.knownHostError!.knownHost != null
@@ -204,7 +205,7 @@ class _ShellSessionPageState extends ConsumerState<ShellSessionPage>
               ),
             ],
           ),
-          child: Text(session.knownHostError!.sha256Fingerprint),
+          child: SelectableText(session.knownHostError!.sha256Fingerprint),
         ),
         const SizedBox(height: 8),
         Row(

@@ -149,7 +149,12 @@ class ConnectionCard extends HookConsumerWidget {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text(connection.label, overflow: .fade, softWrap: false, style: context.theme.typography.lg),
+                            Text(
+                              connection.label,
+                              overflow: .fade,
+                              softWrap: false,
+                              style: context.theme.typography.lg,
+                            ),
                             Text(
                               connection.effectiveUsername,
                               style: context.theme.typography.xs.copyWith(

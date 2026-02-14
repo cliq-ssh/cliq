@@ -19,6 +19,9 @@ class DebugSettingsPage extends AbstractSettingsPage {
   const DebugSettingsPage({super.key});
 
   @override
+  String get title => 'Debug';
+
+  @override
   Widget buildBody(BuildContext context, WidgetRef ref) {
     return SingleChildScrollView(
       child: CliqGridContainer(

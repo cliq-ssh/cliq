@@ -36,7 +36,12 @@ class IdentityCard extends HookConsumerWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(identity.label, overflow: .fade, softWrap: false, style: context.theme.typography.lg),
+                      Text(
+                        identity.label,
+                        overflow: .fade,
+                        softWrap: false,
+                        style: context.theme.typography.lg,
+                      ),
                       Text(
                         identity.username,
                         style: context.theme.typography.xs.copyWith(

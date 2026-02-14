@@ -7,12 +7,22 @@ import 'package:lucide_flutter/lucide_flutter.dart';
 abstract class AbstractSettingsPage extends HookConsumerWidget {
   const AbstractSettingsPage({super.key});
 
+  String get title;
   Widget buildBody(BuildContext context, WidgetRef ref);
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return FScaffold(
       header: FHeader.nested(
+        title: FBreadcrumb(
+          children: [
+            FBreadcrumbItem(
+              onPress: context.pop,
+              child: const Text('Settings'),
+            ),
+            FBreadcrumbItem(current: true, child: Text(title)),
+          ],
+        ),
         prefixes: [
           FButton.icon(
             variant: .outline,
@@ -21,7 +31,10 @@ abstract class AbstractSettingsPage extends HookConsumerWidget {
           ),
         ],
       ),
-      child: buildBody(context, ref),
+      child: Padding(
+        padding: const .only(top: 24),
+        child: buildBody(context, ref),
+      ),
     );
   }
 }

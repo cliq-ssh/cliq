@@ -1,7 +1,14 @@
 import 'package:cliq/shared/data/store.dart';
 import 'package:cliq/shared/ui/shortcut_info.dart';
 import 'package:cliq_ui/cliq_ui.dart'
-    show CliqGridContainer, CliqGridRow, CliqGridColumn, BreakpointMap, Breakpoint, BreakpointMapExtension, useBreakpoint;
+    show
+        CliqGridContainer,
+        CliqGridRow,
+        CliqGridColumn,
+        BreakpointMap,
+        Breakpoint,
+        BreakpointMapExtension,
+        useBreakpoint;
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:forui/forui.dart';
@@ -111,7 +118,12 @@ class EntityCardView<E> extends HookConsumerWidget {
           final child = entityCardBuilder(entity);
           return viewType.value == .list
               ? child
-              : SizedBox(width: ((constraints.maxWidth / gridCount) - 4 * (gridCount - 1)), child: child);
+              : SizedBox(
+                  width:
+                      ((constraints.maxWidth / gridCount) -
+                      4 * (gridCount - 1)),
+                  child: child,
+                );
         },
       );
     }
@@ -169,7 +181,8 @@ class EntityCardView<E> extends HookConsumerWidget {
                               spacing: 8,
                               mainAxisSize: .min,
                               children: [
-                                if (addEntityTitle != null && onAddEntity != null)
+                                if (addEntityTitle != null &&
+                                    onAddEntity != null)
                                   Row(
                                     mainAxisSize: .min,
                                     children: [
@@ -204,7 +217,7 @@ class EntityCardView<E> extends HookConsumerWidget {
                                   ),
                                 ),
                               ],
-                            )
+                            ),
                           ],
                         ),
                       ),
@@ -227,37 +240,38 @@ class EntityCardView<E> extends HookConsumerWidget {
                           return Column(
                             spacing: 16,
                             children: [
-                                for (final group in groupedEntities!.entries)
-                                  if (group.value.any(
-                                    (entity) => !isFilteredOut(entity),
-                                  ))
-                                    Row(
-                                      children: [
-                                        Expanded(
-                                          child: Column(
-                                            spacing: 8,
-                                            crossAxisAlignment: .start,
-                                            children: [
-                                              Text(
-                                                group.key,
-                                                style: typography.lg.copyWith(
-                                                  fontWeight: FontWeight.bold,
-                                                ),
+                              for (final group in groupedEntities!.entries)
+                                if (group.value.any(
+                                  (entity) => !isFilteredOut(entity),
+                                ))
+                                  Row(
+                                    children: [
+                                      Expanded(
+                                        child: Column(
+                                          spacing: 8,
+                                          crossAxisAlignment: .start,
+                                          children: [
+                                            Text(
+                                              group.key,
+                                              style: typography.lg.copyWith(
+                                                fontWeight: FontWeight.bold,
                                               ),
-                                              Wrap(
-                                                spacing: 8,
-                                                runSpacing: 16,
-                                                children: [
-                                                  for (final entity in group.value)
-                                                    if (!isFilteredOut(entity))
-                                                      buildEntity(entity),
-                                                ],
-                                              ),
-                                            ],
-                                          ),
+                                            ),
+                                            Wrap(
+                                              spacing: 8,
+                                              runSpacing: 16,
+                                              children: [
+                                                for (final entity
+                                                    in group.value)
+                                                  if (!isFilteredOut(entity))
+                                                    buildEntity(entity),
+                                              ],
+                                            ),
+                                          ],
                                         ),
-                                      ],
-                                    ),
+                                      ),
+                                    ],
+                                  ),
                             ],
                           );
                         },

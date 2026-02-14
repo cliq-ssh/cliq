@@ -32,7 +32,14 @@ class KnownHostCard extends HookConsumerWidget {
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [Text(knownHost.host, overflow: .fade, softWrap: false, style: context.theme.typography.lg)],
+                    children: [
+                      Text(
+                        knownHost.host,
+                        overflow: .fade,
+                        softWrap: false,
+                        style: context.theme.typography.lg,
+                      ),
+                    ],
                   ),
                 ),
               ],
