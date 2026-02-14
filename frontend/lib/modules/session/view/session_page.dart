@@ -211,13 +211,13 @@ class _ShellSessionPageState extends ConsumerState<ShellSessionPage>
           spacing: 8,
           children: [
             FButton(
-              style: FButtonStyle.outline(),
+              variant: .outline,
               onPress: closeSession,
               child: Text('Close'),
             ),
             const Spacer(),
             FButton(
-              style: FButtonStyle.outline(),
+              variant: .outline,
               onPress: () => retrySession(skipHostKeyVerification: true),
               child: Text('Accept'),
             ),
@@ -264,7 +264,7 @@ class _ShellSessionPageState extends ConsumerState<ShellSessionPage>
           mainAxisAlignment: .spaceBetween,
           children: [
             FButton(
-              style: FButtonStyle.outline(),
+              variant: .outline,
               onPress: closeSession,
               child: Text('Close'),
             ),
