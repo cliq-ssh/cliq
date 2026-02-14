@@ -154,13 +154,13 @@ class TerminalThemeSettingsPage extends AbstractSettingsPage {
                           Row(
                             children: [
                               FButton(
-                                style: FButtonStyle.ghost(),
+                                variant: .ghost,
                                 prefix: Icon(LucideIcons.swatchBook),
                                 onPress: null,
                                 child: Text('Browse'),
                               ),
                               FButton(
-                                style: FButtonStyle.ghost(),
+                                variant: .ghost,
                                 prefix: Icon(LucideIcons.folderOpen),
                                 onPress: null,
                                 child: Text('Import'),

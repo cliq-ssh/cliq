@@ -83,7 +83,7 @@ class _CliqAppState extends ConsumerState<CliqApp> {
       theme: ThemeData(brightness: Brightness.light),
       darkTheme: ThemeData(brightness: Brightness.dark),
       builder: (context, child) {
-        return FAnimatedTheme(
+        return FTheme(
           data: theme.value.getThemeWithMode(themeMode.value),
           child: FToaster(child: child ?? Container()),
         );

@@ -99,7 +99,7 @@ class _ConnectionsPageState extends ConsumerState<ConnectionsPage> {
                           mainAxisAlignment: MainAxisAlignment.end,
                           children: [
                             FButton(
-                              style: FButtonStyle.ghost(),
+                              variant: .ghost,
                               prefix: Icon(LucideIcons.plus),
                               onPress: openAddHostsView,
                               child: Text('Add Host'),

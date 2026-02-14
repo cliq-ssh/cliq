@@ -253,7 +253,7 @@ class NavigationShellState extends ConsumerState<NavigationShell>
                   mainAxisAlignment: !isExpanded ? .center : .spaceBetween,
                   children: [
                     FButton.icon(
-                      style: FButtonStyle.outline(),
+                      variant: .outline,
                       onPress: _sidebarController.toggle,
                       child: Icon(
                         _sidebarController.isExpanded
@@ -272,10 +272,7 @@ class NavigationShellState extends ConsumerState<NavigationShell>
         contentBuilder: (context, isExpanded) {
           return [
             buildDashboardTab(isExpanded),
-            FDivider(
-              style: (_) => context.theme.dividerStyles.horizontalStyle
-                  .copyWith(color: context.theme.colors.border),
-            ),
+            FDivider(style: .delta(color: context.theme.colors.border)),
             if (!isExpanded || sessions.activeSessions.isEmpty)
               ...buildSessionTabs(isExpanded)
             else if (sessions.activeSessions.isNotEmpty)
