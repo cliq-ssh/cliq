@@ -3,6 +3,7 @@ package app.cliq.backend.auth.service
 import app.cliq.backend.auth.jwt.JwtClaims
 import app.cliq.backend.session.Session
 import app.cliq.backend.session.SessionRepository
+import app.cliq.backend.utils.TokenUtils
 import org.springframework.security.authentication.BadCredentialsException
 import org.springframework.security.oauth2.jwt.JwtDecoder
 import org.springframework.stereotype.Service
@@ -13,6 +14,7 @@ class JwtResolver(
     private val jwtDecoder: JwtDecoder,
     private val sessionRepository: SessionRepository,
     private val refreshTokenService: RefreshTokenService,
+    private val tokenUtils: TokenUtils,
 ) {
     fun resolveSessionFromJwt(jwtAccessToken: String): Session {
         val jwt = jwtDecoder.decode(jwtAccessToken)
@@ -25,7 +27,7 @@ class JwtResolver(
     }
 
     fun resolveSessionFromRefreshToken(refreshToken: String): Session? {
-        val hashedRefreshToken = refreshTokenService.hashRefreshToken(refreshToken)
+        val hashedRefreshToken = tokenUtils.hashTokenUsingSha512(refreshToken)
 
         return sessionRepository.findByRefreshToken(hashedRefreshToken)
     }

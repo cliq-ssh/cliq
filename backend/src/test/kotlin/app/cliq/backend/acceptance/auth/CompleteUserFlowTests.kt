@@ -2,12 +2,10 @@ package app.cliq.backend.acceptance.auth
 
 import app.cliq.backend.acceptance.AcceptanceTest
 import app.cliq.backend.acceptance.AcceptanceTester
-import app.cliq.backend.auth.params.LoginParams
 import app.cliq.backend.auth.params.RefreshParams
 import app.cliq.backend.auth.params.RegistrationParams
 import app.cliq.backend.auth.view.TokenResponse
 import app.cliq.backend.constants.EXAMPLE_EMAIL
-import app.cliq.backend.constants.EXAMPLE_PASSWORD
 import app.cliq.backend.constants.EXAMPLE_USERNAME
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
@@ -48,13 +46,14 @@ class CompleteUserFlowTests(
             ).andExpect(status().isCreated)
 
         // Login
+        TODO("Implement SRP logic")
         val sessionName = "Test Session"
-        val loginParams =
-            LoginParams(
-                email = EXAMPLE_EMAIL,
-                password = EXAMPLE_PASSWORD,
-                name = sessionName,
-            )
+        val loginParams = mapOf<String, String>()
+//            LoginParams(
+//                email = EXAMPLE_EMAIL,
+//                password = EXAMPLE_PASSWORD,
+//                name = sessionName,
+//            )
 
         val loginResult =
             mockMvc

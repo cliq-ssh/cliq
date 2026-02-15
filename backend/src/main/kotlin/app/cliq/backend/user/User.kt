@@ -25,7 +25,6 @@ class User(
     @Column(nullable = false, unique = true) var email: String,
     @Column(nullable = false) var name: String,
     @Column(nullable = false) var locale: String = DEFAULT_LOCALE,
-    @Column(nullable = false) var password: String,
     var resetToken: String? = null,
     var resetSentAt: OffsetDateTime? = null,
     var emailVerificationToken: String? = null,
@@ -38,6 +37,12 @@ class User(
     var id: Long? = null,
     @Column(nullable = true, unique = true)
     var oidcSub: String? = null,
+    @Column(nullable = true)
+    var srpSalt: String? = null,
+    @Column(nullable = true)
+    var srpVerifier: String? = null,
+    @Column(nullable = true)
+    var dataEncryptionKey: String? = null,
 ) {
     fun isEmailVerified(): Boolean = null != emailVerifiedAt
 

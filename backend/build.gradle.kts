@@ -107,6 +107,8 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-security")
     // OIDC
     implementation("org.springframework.boot:spring-boot-starter-oauth2-client")
+    // SRP
+    implementation("com.nimbusds:srp6a:2.1.0")
 
     // Local auth
     implementation("org.springframework.security:spring-security-crypto")

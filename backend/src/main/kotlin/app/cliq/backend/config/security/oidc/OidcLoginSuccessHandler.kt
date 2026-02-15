@@ -30,6 +30,7 @@ class OidcLoginSuccessHandler(
         val user = userOidcService.putUserFromJwt(oidcUSer)
         val tokenPair = getTokenPairFromOidcUser(user, oidcUSer)
 
+        // TODO: replace with short lived one-time use token
         response.sendRedirect(
             "cliq://oauth/callback?jwtAccessToken=${tokenPair.jwt.tokenValue}&refreshToken=${tokenPair.refreshToken}",
         )

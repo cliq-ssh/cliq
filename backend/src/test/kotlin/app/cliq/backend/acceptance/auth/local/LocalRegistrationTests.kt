@@ -2,7 +2,6 @@ package app.cliq.backend.acceptance.auth.local
 
 import app.cliq.backend.acceptance.AcceptanceTest
 import app.cliq.backend.acceptance.AcceptanceTester
-import app.cliq.backend.auth.params.LoginParams
 import app.cliq.backend.auth.params.RegistrationParams
 import app.cliq.backend.constants.EXAMPLE_EMAIL
 import app.cliq.backend.constants.EXAMPLE_PASSWORD
@@ -98,12 +97,8 @@ class LocalRegistrationTests(
         // Login
 
         val sessionName = "Test Session"
-        val loginParams =
-            LoginParams(
-                email = EXAMPLE_EMAIL,
-                password = EXAMPLE_PASSWORD,
-                name = sessionName,
-            )
+        TODO("Implement SRP logic")
+        val loginParams = mapOf<String, String>()
 
         mockMvc
             .perform(

@@ -1,0 +1,10 @@
+package app.cliq.backend.auth.view.login
+
+import app.cliq.backend.auth.view.TokenResponse
+import io.swagger.v3.oas.annotations.media.Schema
+
+@Schema
+data class LoginFinishResponse(
+    val publicM2: String,
+    val session: TokenResponse,
+)

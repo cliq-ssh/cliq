@@ -2,7 +2,6 @@ package app.cliq.backend.acceptance.user
 
 import app.cliq.backend.acceptance.EmailAcceptanceTest
 import app.cliq.backend.acceptance.EmailAcceptanceTester
-import app.cliq.backend.auth.params.LoginParams
 import app.cliq.backend.session.SessionRepository
 import app.cliq.backend.support.UserCreationHelper
 import app.cliq.backend.user.PASSWORD_RESET_TOKEN_INTERVAL_MINUTES
@@ -75,7 +74,8 @@ class UserPasswordResetTests(
         assertEquals(updatedUser.resetToken, null)
         assertEquals(updatedUser.resetSentAt, null)
 
-        val loginParams = LoginParams(user.email, newPassword)
+        TODO("Implement SRP logic")
+        val loginParams = mapOf<String, String>()
 
         mockMvc
             .perform(
@@ -172,7 +172,8 @@ class UserPasswordResetTests(
             ).andExpect(MockMvcResultMatchers.status().isBadRequest)
 
         // Check that the old password is still working
-        val loginParams = LoginParams(user.email, password)
+        TODO("Implement SRP logic")
+        val loginParams = mapOf<String, String>()
 
         mockMvc
             .perform(
@@ -225,7 +226,8 @@ class UserPasswordResetTests(
             ).andExpect(MockMvcResultMatchers.status().isBadRequest)
 
         // Check that the old password is still working
-        val loginParams = LoginParams(user.email, password)
+        TODO("Implement SRP logic")
+        val loginParams = mapOf<String, String>()
 
         mockMvc
             .perform(
@@ -298,7 +300,8 @@ class UserPasswordResetTests(
 
         // Login with new password
 
-        val loginParams = LoginParams(user.email, newPassword)
+        TODO("Implement SRP logic")
+        val loginParams = mapOf<String, String>()
 
         mockMvc
             .perform(

@@ -1,4 +1,4 @@
-package app.cliq.backend.support
+package app.cliq.backend.support.encryption
 
 import org.bouncycastle.crypto.AsymmetricCipherKeyPair
 import org.bouncycastle.crypto.generators.Argon2BytesGenerator
@@ -12,13 +12,15 @@ import java.security.SecureRandom
 
 @TestComponent
 class KeyAndHashHelper {
-    fun buildArgon2BytesGenerator(salt: String): Argon2BytesGenerator {
-        val builder = Argon2Parameters.Builder(Argon2Parameters.ARGON2_id)
-            .withVersion(Argon2Parameters.ARGON2_VERSION_13)
-            .withMemoryAsKB(65_536) // 64MB
-            .withSalt(salt.toByteArray())
-            .withIterations(2)
-            .withParallelism(1)
+    fun buildArgon2BytesGenerator(salt: ByteArray): Argon2BytesGenerator {
+        val builder =
+            Argon2Parameters
+                .Builder(Argon2Parameters.ARGON2_id)
+                .withVersion(Argon2Parameters.ARGON2_VERSION_13)
+                .withMemoryAsKB(65_536) // 64MB
+                .withSalt(salt)
+                .withIterations(2)
+                .withParallelism(1)
         val params = builder.build()
 
         val generator = Argon2BytesGenerator()

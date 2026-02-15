@@ -41,6 +41,7 @@ spring:
   cache:
     cache-names:
       - rate-limit-buckets
+      - authentication-sessions
     caffeine:
       spec: expireAfterAccess=3600s
     type: caffeine

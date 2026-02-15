@@ -75,16 +75,6 @@ class PasswordResetController(
     fun resetPassword(
         @Valid @RequestBody params: ResetPasswordParams,
     ): ResponseEntity<UserResponse> {
-        val user =
-            userRepository.findByResetTokenAndEmail(params.resetToken, params.email)
-                ?: throw InvalidResetParamsException()
-
-        if (!user.isPasswordResetTokenExpired()) {
-            throw PasswordResetTokenExpired()
-        }
-
-        val newUser = userFactory.updateUserPassword(user, params.password)
-
-        return ResponseEntity.status(HttpStatus.OK).body(UserResponse.fromUser(newUser))
+        TODO("Implement password reset or maybe remove?")
     }
 }

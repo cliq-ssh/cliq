@@ -8,6 +8,9 @@ CREATE TABLE users
 (
     "id"                         BIGINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
     "oidc_sub"                   TEXT UNIQUE,
+    "srp_salt"                   TEXT,
+    "srp_verifier"               TEXT,
+    "data_encryption_key"        TEXT,
     "email"                      TEXT                     NOT NULL UNIQUE,
     "name"                       TEXT                     NOT NULL,
     "locale"                     TEXT                     NOT NULL,

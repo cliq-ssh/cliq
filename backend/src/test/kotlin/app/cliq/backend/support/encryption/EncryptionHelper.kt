@@ -1,4 +1,4 @@
-package app.cliq.backend.support
+package app.cliq.backend.support.encryption
 
 import org.springframework.boot.test.context.TestComponent
 import java.security.SecureRandom
@@ -8,11 +8,6 @@ import javax.crypto.spec.SecretKeySpec
 
 @TestComponent
 class EncryptionHelper {
-    data class EncryptedDEK(
-        val nonce: ByteArray,
-        val ciphertext: ByteArray,
-    )
-
     fun encryptDEKWithUMK(
         dek: ByteArray,
         umk: ByteArray,
@@ -27,14 +22,11 @@ class EncryptionHelper {
 
         cipher.init(Cipher.ENCRYPT_MODE, keySpec, gcmSpec)
 
-        // Optional but recommended: bind context
-        cipher.updateAAD("DEK_V1".toByteArray())
-
         val ciphertext = cipher.doFinal(dek)
 
         return EncryptedDEK(
             nonce = nonce,
-            ciphertext = ciphertext
+            ciphertext = ciphertext,
         )
     }
 
