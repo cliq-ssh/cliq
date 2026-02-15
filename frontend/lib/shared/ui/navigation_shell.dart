@@ -172,9 +172,12 @@ class NavigationShellState extends ConsumerState<NavigationShell>
                     ),
                     // TODO: make shortcut functional
                     FTooltip(
-                      tipBuilder: (_, __) => TextWithShortCutInfo(
+                      tipBuilder: (_, _) => TextWithShortCutInfo(
                         'Close',
-                        shortcut: ShortcutActionInfo(.keyW, modifiers: {.control}),
+                        shortcut: ShortcutActionInfo(
+                          .keyW,
+                          modifiers: {.control},
+                        ),
                       ),
                       child: FTappable(
                         onPress: () {
@@ -367,7 +370,10 @@ class NavigationShellState extends ConsumerState<NavigationShell>
       style: .delta(
         backgroundColor: .delta([
           FVariantValueDeltaOperation.base(Colors.transparent),
-          FVariantValueDeltaOperation.exact({.hovered, .selected}, context.theme.colors.card),
+          FVariantValueDeltaOperation.exact({
+            .hovered,
+            .selected,
+          }, context.theme.colors.card),
         ]),
       ),
       label: !isExpanded && icon != null ? icon : label,
