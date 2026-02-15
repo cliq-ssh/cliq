@@ -9,7 +9,7 @@ class ShortcutActionInfo {
   final LogicalKeyboardKey mainKey;
   final Set<LogicalKeyboardKey> modifiers;
 
-  ShortcutActionInfo({required this.mainKey, this.modifiers = const {}})
+  ShortcutActionInfo(this.mainKey, {this.modifiers = const {}})
     : assert(
         modifiers.every(
           (mod) =>

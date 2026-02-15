@@ -149,7 +149,7 @@ class EntityCardView<E> extends HookConsumerWidget {
                                 tipBuilder: (_, _) => TextWithShortCutInfo(
                                   'Filter items',
                                   shortcut: ShortcutActionInfo(
-                                    mainKey: .keyF,
+                                    .keyF,
                                     modifiers: {.control},
                                   ),
                                 ),
@@ -200,7 +200,7 @@ class EntityCardView<E> extends HookConsumerWidget {
                                         ? 'List View'
                                         : 'Grid View',
                                     shortcut: ShortcutActionInfo(
-                                      mainKey: .keyG,
+                                      .keyG,
                                       modifiers: {.control},
                                     ),
                                   ),

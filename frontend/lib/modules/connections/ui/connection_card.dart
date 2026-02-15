@@ -102,21 +102,21 @@ class ConnectionCard extends HookConsumerWidget {
           label: 'Connect',
           icon: LucideIcons.unplug,
           onPress: connect,
-          shortcut: ShortcutActionInfo(mainKey: .enter),
+          shortcut: ShortcutActionInfo(.enter),
         ),
         .new(
           label: 'Edit',
           icon: LucideIcons.pencil,
           onPress: edit,
-          shortcut: ShortcutActionInfo(mainKey: .keyE),
+          shortcut: ShortcutActionInfo(.keyE),
         ),
         .new(
           label: 'Delete',
           icon: LucideIcons.trash,
           onPress: delete,
           shortcut: Platform.isMacOS
-              ? ShortcutActionInfo(mainKey: .backspace, modifiers: {.meta})
-              : ShortcutActionInfo(mainKey: .delete),
+              ? ShortcutActionInfo(.backspace, modifiers: {.meta})
+              : ShortcutActionInfo(.delete),
         ),
       ],
       popoverController: primaryPopoverController,

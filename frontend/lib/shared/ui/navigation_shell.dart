@@ -2,6 +2,7 @@ import 'package:cliq/modules/connections/provider/connection.provider.dart';
 import 'package:cliq/shared/provider/store.provider.dart';
 import 'package:cliq/shared/ui/context_menu.dart';
 import 'package:cliq/shared/ui/responsive_sidebar.dart';
+import 'package:cliq/shared/ui/shortcut_info.dart';
 import 'package:cliq_ui/cliq_ui.dart' show useBreakpoint;
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:forui/forui.dart';
@@ -83,32 +84,50 @@ class NavigationShellState extends ConsumerState<NavigationShell>
     }
 
     buildDashboardTab(bool isExpanded) {
-      return _buildSidebarTab(
-        isExpanded,
-        label: Text('Dashboard'),
-        icon: Icon(LucideIcons.house, size: 20),
-        selected: widget.shell.currentIndex == _dashboardBranchIndex,
-        onPress: () {
-          ref.read(sessionProvider.notifier).setSelectedAndMaybeGo(this, null);
-          goToDashboardBranch();
-        },
-        isTop: navPosition.value == .top,
-        noPadding: navPosition.value == .top,
+      // TODO: make shortcut functional
+      return FTooltip(
+        tipBuilder: (_, _) => TextWithShortCutInfo(
+          'Dashboard',
+          shortcut: ShortcutActionInfo(.keyD, modifiers: {.control}),
+        ),
+        child: _buildSidebarTab(
+          isExpanded,
+          label: Text('Dashboard'),
+          icon: Icon(LucideIcons.house, size: 20),
+          selected: widget.shell.currentIndex == _dashboardBranchIndex,
+          onPress: () {
+            ref
+                .read(sessionProvider.notifier)
+                .setSelectedAndMaybeGo(this, null);
+            goToDashboardBranch();
+          },
+          isTop: navPosition.value == .top,
+          noPadding: navPosition.value == .top,
+        ),
       );
     }
 
     buildSettingsTab(bool isExpanded) {
-      return _buildSidebarTab(
-        isExpanded,
-        label: Text('Settings'),
-        icon: Icon(LucideIcons.settings, size: 20),
-        selected: widget.shell.currentIndex == _settingsBranchIndex,
-        onPress: () {
-          ref.read(sessionProvider.notifier).setSelectedAndMaybeGo(this, null);
-          goToSettingsBranch();
-        },
-        isTop: navPosition.value == .top,
-        noPadding: navPosition.value == .top,
+      // TODO: make shortcut functional
+      return FTooltip(
+        tipBuilder: (_, _) => TextWithShortCutInfo(
+          'Settings',
+          shortcut: ShortcutActionInfo(.comma, modifiers: {.control}),
+        ),
+        child: _buildSidebarTab(
+          isExpanded,
+          label: Text('Settings'),
+          icon: Icon(LucideIcons.settings, size: 20),
+          selected: widget.shell.currentIndex == _settingsBranchIndex,
+          onPress: () {
+            ref
+                .read(sessionProvider.notifier)
+                .setSelectedAndMaybeGo(this, null);
+            goToSettingsBranch();
+          },
+          isTop: navPosition.value == .top,
+          noPadding: navPosition.value == .top,
+        ),
       );
     }
 
@@ -125,7 +144,7 @@ class NavigationShellState extends ConsumerState<NavigationShell>
                       .read(sessionProvider.notifier)
                       .createAndGo(this, session.connection);
                 },
-                shortcut: .new(mainKey: .keyD, modifiers: {.meta}),
+                shortcut: .new(.keyD, modifiers: {.meta}),
               ),
               .new(
                 label: 'Close',
@@ -135,7 +154,7 @@ class NavigationShellState extends ConsumerState<NavigationShell>
                       .read(sessionProvider.notifier)
                       .closeAnyMaybeGo(this, session.id);
                 },
-                shortcut: .new(mainKey: .keyW, modifiers: {.alt}),
+                shortcut: .new(.keyW, modifiers: {.alt}),
               ),
             ],
             builder: (_) {
