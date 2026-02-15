@@ -1,6 +1,7 @@
 import 'package:cliq/modules/settings/provider/sync.provider.dart';
 import 'package:cliq/modules/settings/view/identities_settings_page.dart';
 import 'package:cliq/modules/settings/view/keys_settings_page.dart';
+import 'package:cliq/modules/settings/view/known_hosts_settings.dart';
 import 'package:cliq/modules/settings/view/terminal_theme_settings_page.dart';
 import 'package:cliq/modules/settings/view/theme_settings_page.dart';
 import 'package:cliq/shared/extensions/router.extension.dart';
@@ -82,7 +83,9 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                               prefix: Icon(LucideIcons.fingerprintPattern),
                               suffix: Icon(LucideIcons.chevronRight),
                               title: Text('Known Hosts'),
-                              onPress: null,
+                              onPress: () => context.pushPath(
+                                KnownHostsSettingsPage.pagePath.build(),
+                              ),
                             ),
                             FTile(
                               prefix: Icon(LucideIcons.clock),

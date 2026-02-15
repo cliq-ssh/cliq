@@ -1,16 +1,16 @@
 plugins {
     // Kotlin
-    kotlin("jvm") version "2.3.0"
-    kotlin("plugin.spring") version "2.3.0"
-    kotlin("plugin.jpa") version "2.3.0"
-    kotlin("plugin.allopen") version "2.3.0"
+    kotlin("jvm") version "2.3.10"
+    kotlin("plugin.spring") version "2.3.10"
+    kotlin("plugin.jpa") version "2.3.10"
+    kotlin("plugin.allopen") version "2.3.10"
 
     // Spring / Spring Boot
     id("org.springframework.boot") version "4.0.2"
     id("io.spring.dependency-management") version "1.1.7"
 
     // Database Migrations
-    id("org.flywaydb.flyway") version "11.20.2"
+    id("org.flywaydb.flyway") version "12.0.1"
 
     // Linter and Formatter
     id("org.jlleitschuh.gradle.ktlint") version "14.0.1"
@@ -76,7 +76,7 @@ repositories {
 
 buildscript {
     dependencies {
-        classpath("org.flywaydb:flyway-database-postgresql:11.20.2")
+        classpath("org.flywaydb:flyway-database-postgresql:12.0.1")
     }
 }
 
@@ -86,8 +86,9 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-actuator")
 
     // Rate limiting
-    implementation("com.bucket4j:bucket4j_jdk17-core:8.16.0")
-    implementation("com.bucket4j:bucket4j_jdk17-caffeine:8.16.0")
+    val bucket4JVersion = "8.16.1"
+    implementation("com.bucket4j:bucket4j_jdk17-core:$bucket4JVersion")
+    implementation("com.bucket4j:bucket4j_jdk17-caffeine:$bucket4JVersion")
 
     // Caching
     implementation("org.springframework.boot:spring-boot-starter-cache")
@@ -97,7 +98,7 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-data-jpa")
     runtimeOnly("org.postgresql:postgresql")
     // Flyway
-    val flywayVersion = "11.20.2"
+    val flywayVersion = "12.0.1"
     implementation("org.springframework.boot:spring-boot-starter-flyway")
     implementation("org.flywaydb:flyway-core:$flywayVersion")
     implementation("org.flywaydb:flyway-database-postgresql:$flywayVersion")
@@ -117,7 +118,7 @@ dependencies {
 
     // E-Mail
     implementation("org.springframework.boot:spring-boot-starter-mail")
-    implementation("io.pebbletemplates:pebble-spring-boot-starter:4.1.0")
+    implementation("io.pebbletemplates:pebble-spring-boot-starter:4.1.1")
 
     // Validation
     implementation("org.springframework.boot:spring-boot-starter-validation")
@@ -161,7 +162,7 @@ dependencies {
     // Mockito
     testImplementation("org.mockito:mockito-core:5.21.0")
     testImplementation("org.mockito:mockito-junit-jupiter:5.21.0")
-    testImplementation("org.mockito.kotlin:mockito-kotlin:6.2.2")
+    testImplementation("org.mockito.kotlin:mockito-kotlin:6.2.3")
 
     // AssertJ
     testImplementation("org.assertj:assertj-core:3.27.7")

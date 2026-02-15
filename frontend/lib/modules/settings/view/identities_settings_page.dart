@@ -81,7 +81,7 @@ class IdentitiesSettingsPage extends AbstractSettingsPage {
                           mainAxisAlignment: MainAxisAlignment.end,
                           children: [
                             FButton(
-                              style: FButtonStyle.ghost(),
+                              variant: .ghost,
                               prefix: Icon(LucideIcons.plus),
                               onPress: openAddIdentityView,
                               child: Text('Add Identity'),

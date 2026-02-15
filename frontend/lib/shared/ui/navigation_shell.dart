@@ -60,9 +60,9 @@ class NavigationShellState extends ConsumerState<NavigationShell>
                     spacing: 8,
                     children: [
                       FButton.icon(
-                        style: widget.shell.currentIndex == 0
-                            ? FButtonStyle.primary()
-                            : FButtonStyle.outline(),
+                        variant: widget.shell.currentIndex == 0
+                            ? null // TODO: primary?
+                            : .outline,
                         onPress: () => ref
                             .read(sessionProvider.notifier)
                             .setSelectedSession(this, null),

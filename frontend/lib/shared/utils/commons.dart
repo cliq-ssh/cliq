@@ -1,6 +1,7 @@
 import 'package:cliq/shared/ui/responsive_dialog.dart';
 import 'package:cliq/shared/utils/constants.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:forui/forui.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -17,6 +18,16 @@ final class Commons {
       mainAxisMaxRatio: 1,
       builder: (context) => ResponsiveDialog(child: builder(context)),
     );
+  }
+
+  static Future<void> copyToClipboard(BuildContext context, String text) async {
+    await Clipboard.setData(ClipboardData(text: text));
+    if (context.mounted) {
+      showFToast(
+        context: context,
+        title: Text('Successfully copied to clipboard!'),
+      );
+    }
   }
 
   static Future<void> launchGitHubUrl() => _launchUrl(Constants.githubUrl);

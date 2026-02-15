@@ -4,7 +4,7 @@ services:
     command:
       - start-dev
       - --import-realm
-    image: 'quay.io/keycloak/keycloak:26.5.2'
+    image: 'quay.io/keycloak/keycloak:26.5.3'
     init: true
     extra_hosts:
       - "host.docker.internal:host-gateway"
@@ -35,7 +35,7 @@ services:
         condition: service_healthy
 
   db:
-    image: postgres:18.1-alpine
+    image: postgres:18.2-alpine
     init: true
     environment:
       TZ: ${TZ}

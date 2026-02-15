@@ -1,16 +1,13 @@
-import 'package:cliq/modules/identities/model/identity_full.model.dart';
-import 'package:cliq/modules/identities/view/create_or_edit_identity_view.dart';
 import 'package:cliq/shared/data/database.dart';
-import 'package:cliq/shared/utils/commons.dart';
 import 'package:flutter/material.dart';
 import 'package:forui/forui.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lucide_flutter/lucide_flutter.dart';
 
-class IdentityCard extends HookConsumerWidget {
-  final IdentityFull identity;
+class KnownHostCard extends HookConsumerWidget {
+  final KnownHost knownHost;
 
-  const IdentityCard({super.key, required this.identity});
+  const KnownHostCard({super.key, required this.knownHost});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -29,27 +26,11 @@ class IdentityCard extends HookConsumerWidget {
                     color: context.theme.colors.border,
                     borderRadius: .circular(16),
                   ),
-                  child: Icon(LucideIcons.users, size: 28),
+                  child: Icon(LucideIcons.fingerprintPattern, size: 28),
                 ),
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(identity.label),
-                    Text(
-                      identity.username,
-                      style: context.theme.typography.xs.copyWith(
-                        color: context.theme.colors.mutedForeground,
-                      ),
-                    ),
-                    if (identity.credentialIds.isNotEmpty)
-                      Text(
-                        '${identity.credentialIds.length} credential(s)',
-                        style: context.theme.typography.xs.copyWith(
-                          color: context.theme.colors.mutedForeground,
-                          fontWeight: .normal,
-                        ),
-                      ),
-                  ],
+                  children: [Text(knownHost.host)],
                 ),
               ],
             ),
@@ -58,14 +39,6 @@ class IdentityCard extends HookConsumerWidget {
             menu: [
               FItemGroup(
                 children: [
-                  FItem(
-                    prefix: Icon(LucideIcons.pencil),
-                    title: Text('Edit'),
-                    onPress: () => Commons.showResponsiveDialog(
-                      context,
-                      (_) => CreateOrEditIdentityView.edit(identity),
-                    ),
-                  ),
                   FItem(
                     prefix: Icon(LucideIcons.trash),
                     title: Text('Delete'),
@@ -77,7 +50,7 @@ class IdentityCard extends HookConsumerWidget {
                         direction: Axis.horizontal,
                         title: const Text('Are you sure?'),
                         body: Text(
-                          'Are you sure you want to delete ${identity.label}? This action cannot be undone.',
+                          'Are you sure you want to delete the fingerprint of ${knownHost.host}? This action cannot be undone.',
                         ),
                         actions: [
                           FButton(
@@ -89,9 +62,8 @@ class IdentityCard extends HookConsumerWidget {
                             variant: .destructive,
                             child: const Text('Delete'),
                             onPress: () {
-                              CliqDatabase.identityService.deleteById(
-                                identity.id,
-                                identity.credentialIds,
+                              CliqDatabase.knownHostService.deleteById(
+                                knownHost.id,
                               );
                               Navigator.of(context).pop();
                             },

@@ -4,16 +4,19 @@ class SSHSessionState {
   final List<ShellSession> activeSessions;
   final String? selectedSessionId;
   final Map<String, int> pageIndexes;
+  final bool isAskForKnownHost;
 
   SSHSessionState.initial()
     : activeSessions = [],
       selectedSessionId = null,
-      pageIndexes = {};
+      pageIndexes = {},
+      isAskForKnownHost = false;
 
   const SSHSessionState({
     required this.activeSessions,
     required this.selectedSessionId,
     this.pageIndexes = const {},
+    this.isAskForKnownHost = false,
   });
 
   ShellSession? get selectedSession {

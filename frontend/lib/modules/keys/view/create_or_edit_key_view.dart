@@ -74,7 +74,7 @@ class CreateOrEditKeyView extends HookConsumerWidget {
               mainAxisAlignment: MainAxisAlignment.end,
               children: [
                 FButton(
-                  style: FButtonStyle.ghost(),
+                  variant: .ghost,
                   prefix: const Icon(LucideIcons.x),
                   onPress: () => context.pop(),
                   child: const Text('Close'),

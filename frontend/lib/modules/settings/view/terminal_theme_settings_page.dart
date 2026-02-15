@@ -150,7 +150,7 @@ class TerminalThemeSettingsPage extends AbstractSettingsPage {
                       children: [
                         Text('Theme'),
                         FButton(
-                          style: FButtonStyle.ghost(),
+                          variant: .ghost,
                           prefix: Icon(LucideIcons.folderOpen),
                           onPress: null,
                           child: Text('Import'),
