@@ -78,7 +78,7 @@ class CreateOrEditIdentityView extends HookConsumerWidget {
 
     return FScaffold(
       child: SingleChildScrollView(
-        padding: const .only(left: 32, right: 32, top: 16),
+        padding: const .symmetric(horizontal: 32, vertical: 20),
         child: Column(
           children: [
             Row(
@@ -122,7 +122,7 @@ class CreateOrEditIdentityView extends HookConsumerWidget {
               ),
             ),
 
-            const SizedBox(height: 12),
+            const SizedBox(height: 40),
 
             SizedBox(
               width: double.infinity,

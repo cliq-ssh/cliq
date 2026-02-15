@@ -1,4 +1,5 @@
 import 'package:cliq/modules/settings/extension/custom_terminal_theme.extension.dart';
+import 'package:cliq/modules/settings/view/create_or_edit_terminal_theme_view.dart';
 import 'package:cliq/shared/ui/terminal_font_family_select.dart';
 import 'package:cliq/shared/ui/terminal_font_size_slider.dart';
 import 'package:cliq/modules/settings/ui/terminal_theme_card.dart';
@@ -109,7 +110,13 @@ class TerminalThemeSettingsPage extends AbstractSettingsPage {
       return null;
     }, [selectedColors.value]);
 
+    create() => Commons.showResponsiveDialog(
+      context,
+      (_) => CreateOrEditTerminalThemeView.create(),
+    );
+
     return SingleChildScrollView(
+      padding: const EdgeInsets.only(bottom: 60),
       child: CliqGridContainer(
         children: [
           CliqGridRow(
@@ -159,9 +166,9 @@ class TerminalThemeSettingsPage extends AbstractSettingsPage {
                             children: [
                               FButton(
                                 variant: .ghost,
-                                prefix: Icon(LucideIcons.swatchBook),
-                                onPress: null,
-                                child: Text('Browse'),
+                                prefix: Icon(LucideIcons.plus),
+                                onPress: create,
+                                child: Text('Add Theme'),
                               ),
                               FButton(
                                 variant: .ghost,
@@ -211,6 +218,17 @@ class TerminalThemeSettingsPage extends AbstractSettingsPage {
                               onTap: () => selectedColors.value = theme,
                               isSelected: selectedColors.value.id == theme.id,
                               theme: theme,
+                              onEdit: () {
+                                if (selectedColors.value.id == theme.id) {
+                                  selectedColors.value = theme;
+                                }
+                              },
+                              onDelete: () {
+                                if (selectedColors.value.id == theme.id) {
+                                  selectedColors.value =
+                                      defaultTerminalColorTheme;
+                                }
+                              },
                             ),
                         ],
                       ),
