@@ -88,7 +88,7 @@ class KeysSettingsPage extends AbstractSettingsPage {
                           mainAxisAlignment: MainAxisAlignment.end,
                           children: [
                             FButton(
-                              style: FButtonStyle.ghost(),
+                              variant: .ghost,
                               prefix: Icon(LucideIcons.plus),
                               onPress: openAddKeyView,
                               child: Text('Add Key'),

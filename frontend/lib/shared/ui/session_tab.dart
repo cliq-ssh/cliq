@@ -117,9 +117,9 @@ class _SessionTabState extends ConsumerState<SessionTab> {
           onExit: (_) => isHovered.value = false,
           cursor: SystemMouseCursors.click,
           child: FBadge(
-            style: isSelected.value
-                ? FBadgeStyle.primary()
-                : FBadgeStyle.outline(),
+            variant: isSelected.value
+                ? null // TODO: primary?
+                : .outline,
             child: Padding(
               padding: const EdgeInsets.symmetric(vertical: 2),
               child: Row(

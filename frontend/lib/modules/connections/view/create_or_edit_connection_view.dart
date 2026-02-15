@@ -394,9 +394,9 @@ class CreateOrEditConnectionView extends HookConsumerWidget {
                             FTooltip(
                               tipBuilder: (_, _) => Text(icon.name),
                               child: FButton.icon(
-                                style: icon == selectedIcon.value
-                                    ? FButtonStyle.primary()
-                                    : FButtonStyle.ghost(),
+                                variant: icon == selectedIcon.value
+                                    ? null // TODO: primary?
+                                    : .ghost,
                                 onPress: () => selectedIcon.value = icon,
                                 child: Icon(icon.iconData),
                               ),
@@ -503,7 +503,7 @@ class CreateOrEditConnectionView extends HookConsumerWidget {
               mainAxisAlignment: MainAxisAlignment.end,
               children: [
                 FButton(
-                  style: FButtonStyle.ghost(),
+                  variant: .ghost,
                   prefix: const Icon(LucideIcons.x),
                   onPress: () => context.pop(),
                   child: const Text('Close'),
