@@ -158,80 +158,79 @@ class NavigationShellState extends ConsumerState<NavigationShell>
               ),
             ],
             builder: (_) {
-              return StatefulBuilder(
-                builder: (context, setState) {
-                  return MouseRegion(
-                    onEnter: (_) => setState(() {}),
-                    onExit: (_) => setState(() {}),
-                    child: _buildSidebarTab(
-                      isExpanded,
-                      label: Row(
-                        spacing: 8,
-                        children: [
-                          Expanded(
-                            child: Text(
-                              session.connection.label,
-                              overflow: .fade,
-                              softWrap: false,
-                            ),
-                          ),
-                          FTappable(
-                            onPress: () {
-                              ref
-                                  .read(sessionProvider.notifier)
-                                  .closeAnyMaybeGo(this, session.id);
-                            },
-                            builder: (context, states, child) {
-                              final isHovered =
-                                  states.contains(FTappableVariant.hovered) ||
-                                  states.contains(FTappableVariant.pressed);
-
-                              return Container(
-                                decoration: BoxDecoration(
-                                  color: isHovered
-                                      ? context.theme.colors.background
-                                      : null,
-                                  borderRadius: .circular(8),
-                                ),
-                                padding: const .all(4),
-                                child: child!,
-                              );
-                            },
-                            child: const Icon(LucideIcons.x, size: 16),
-                          ),
-                        ],
+              return _buildSidebarTab(
+                isExpanded,
+                label: Row(
+                  spacing: 8,
+                  children: [
+                    Expanded(
+                      child: Text(
+                        session.connection.label,
+                        overflow: .fade,
+                        softWrap: false,
                       ),
-                      icon: Builder(
-                        builder: (context) {
-                          Widget child = Container(
-                            decoration: BoxDecoration(
-                              color: session.connection.iconBackgroundColor,
-                              borderRadius: BorderRadius.circular(6),
-                            ),
-                            padding: .all(5),
-                            child: Icon(
-                              session.connection.icon.iconData,
-                              color: session.connection.iconColor,
-                              size: 10,
-                            ),
-                          );
-
-                          if (!isExpanded) {
-                            child = AspectRatio(aspectRatio: 1, child: child);
-                          }
-
-                          return child;
-                        },
-                      ),
-                      selected: session.id == selectedSession.value?.id,
-                      onPress: () => ref
-                          .read(sessionProvider.notifier)
-                          .setSelectedAndMaybeGo(this, session.id),
-                      noPadding: isExpanded,
-                      isTop: navPosition.value == .top,
                     ),
-                  );
-                },
+                    // TODO: make shortcut functional
+                    FTooltip(
+                      tipBuilder: (_, __) => TextWithShortCutInfo(
+                        'Close',
+                        shortcut: ShortcutActionInfo(.keyW, modifiers: {.control}),
+                      ),
+                      child: FTappable(
+                        onPress: () {
+                          ref
+                              .read(sessionProvider.notifier)
+                              .closeAnyMaybeGo(this, session.id);
+                        },
+                        builder: (context, states, child) {
+                          final isHovered =
+                              states.contains(FTappableVariant.hovered) ||
+                              states.contains(FTappableVariant.pressed);
+
+                          return Container(
+                            decoration: BoxDecoration(
+                              color: isHovered
+                                  ? context.theme.colors.background
+                                  : null,
+                              borderRadius: .circular(8),
+                            ),
+                            padding: const .all(4),
+                            child: child!,
+                          );
+                        },
+                        child: const Icon(LucideIcons.x, size: 16),
+                      ),
+                    ),
+                  ],
+                ),
+                icon: Builder(
+                  builder: (context) {
+                    Widget child = Container(
+                      decoration: BoxDecoration(
+                        color: session.connection.iconBackgroundColor,
+                        borderRadius: BorderRadius.circular(6),
+                      ),
+                      padding: .all(5),
+                      child: Icon(
+                        session.connection.icon.iconData,
+                        color: session.connection.iconColor,
+                        size: 10,
+                      ),
+                    );
+
+                    if (!isExpanded) {
+                      child = AspectRatio(aspectRatio: 1, child: child);
+                    }
+
+                    return child;
+                  },
+                ),
+                selected: session.id == selectedSession.value?.id,
+                onPress: () => ref
+                    .read(sessionProvider.notifier)
+                    .setSelectedAndMaybeGo(this, session.id),
+                noPadding: isExpanded,
+                isTop: navPosition.value == .top,
               );
             },
           ),
@@ -355,7 +354,7 @@ class NavigationShellState extends ConsumerState<NavigationShell>
     );
   }
 
-  static Widget _buildSidebarTab(
+  Widget _buildSidebarTab(
     bool isExpanded, {
     Widget? label,
     Widget? icon,
@@ -365,6 +364,12 @@ class NavigationShellState extends ConsumerState<NavigationShell>
     bool noPadding = false,
   }) {
     Widget child = FSidebarItem(
+      style: .delta(
+        backgroundColor: .delta([
+          FVariantValueDeltaOperation.base(Colors.transparent),
+          FVariantValueDeltaOperation.exact({.hovered, .selected}, context.theme.colors.card),
+        ]),
+      ),
       label: !isExpanded && icon != null ? icon : label,
       icon: isExpanded ? icon : null,
       selected: selected ?? false,
