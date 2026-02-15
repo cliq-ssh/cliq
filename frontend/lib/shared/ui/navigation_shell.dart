@@ -175,15 +175,30 @@ class NavigationShellState extends ConsumerState<NavigationShell>
                               softWrap: false,
                             ),
                           ),
-                          if (true)
-                            GestureDetector(
-                              onTap: () {
-                                ref
-                                    .read(sessionProvider.notifier)
-                                    .closeAnyMaybeGo(this, session.id);
-                              },
-                              child: const Icon(LucideIcons.x, size: 16),
-                            ),
+                          FTappable(
+                            onPress: () {
+                              ref
+                                  .read(sessionProvider.notifier)
+                                  .closeAnyMaybeGo(this, session.id);
+                            },
+                            builder: (context, states, child) {
+                              final isHovered =
+                                  states.contains(FTappableVariant.hovered) ||
+                                  states.contains(FTappableVariant.pressed);
+
+                              return Container(
+                                decoration: BoxDecoration(
+                                  color: isHovered
+                                      ? context.theme.colors.background
+                                      : null,
+                                  borderRadius: .circular(8),
+                                ),
+                                padding: const .all(4),
+                                child: child!,
+                              );
+                            },
+                            child: const Icon(LucideIcons.x, size: 16),
+                          ),
                         ],
                       ),
                       icon: Builder(
