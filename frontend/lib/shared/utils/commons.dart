@@ -1,5 +1,7 @@
+import 'package:cliq/modules/settings/model/terminal_theme_parser/terminal_theme_parser.dart';
 import 'package:cliq/shared/ui/responsive_dialog.dart';
 import 'package:cliq/shared/utils/constants.dart';
+import 'package:file_selector/file_selector.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:forui/forui.dart';
@@ -7,6 +9,13 @@ import 'package:url_launcher/url_launcher.dart';
 
 final class Commons {
   const Commons._();
+
+  static XTypeGroup get customTerminalThemeGroup => XTypeGroup(
+    label: 'Terminal Theme',
+    extensions: TerminalThemeParser.values
+        .map((e) => e.fileExtension)
+        .toList(growable: false),
+  );
 
   static Future<T?> showResponsiveDialog<T>(
     BuildContext context,

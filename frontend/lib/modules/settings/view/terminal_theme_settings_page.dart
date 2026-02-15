@@ -6,9 +6,11 @@ import 'package:cliq/modules/settings/view/abstract_settings_page.dart';
 import 'package:cliq/modules/settings/view/settings_page.dart';
 import 'package:cliq/shared/data/database.dart';
 import 'package:cliq/shared/data/store.dart';
+import 'package:cliq/shared/utils/commons.dart';
 import 'package:cliq_term/cliq_term.dart';
 import 'package:cliq_ui/cliq_ui.dart'
     show CliqGridColumn, CliqGridContainer, CliqGridRow;
+import 'package:file_selector/file_selector.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:forui/forui.dart';
@@ -164,7 +166,17 @@ class TerminalThemeSettingsPage extends AbstractSettingsPage {
                               FButton(
                                 variant: .ghost,
                                 prefix: Icon(LucideIcons.folderOpen),
-                                onPress: null,
+                                onPress: () async {
+                                  ref
+                                      .read(terminalThemeProvider.notifier)
+                                      .tryImportCustomTerminalTheme(
+                                        await openFile(
+                                          acceptedTypeGroups: [
+                                            Commons.customTerminalThemeGroup,
+                                          ],
+                                        ),
+                                      );
+                                },
                                 child: Text('Import'),
                               ),
                             ],

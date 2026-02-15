@@ -366,6 +366,8 @@ class NavigationShellState extends ConsumerState<NavigationShell>
     bool isTop = false,
     bool noPadding = false,
   }) {
+    // TODO: if color of session tab page is too similar, add border
+
     Widget child = FSidebarItem(
       style: .delta(
         backgroundColor: .delta([
