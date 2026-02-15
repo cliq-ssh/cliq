@@ -36,7 +36,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
             children: [
               CliqGridColumn(
                 child: Padding(
-                  padding: EdgeInsets.only(top: 80, bottom: 40),
+                  padding: EdgeInsets.only(top: 24, bottom: 40),
                   child: Column(
                     spacing: 16,
                     children: [
