@@ -99,7 +99,9 @@ class KittyTerminalThemeParser extends AbstractTerminalThemeParser {
     }
 
     if (colorMap.isEmpty || colorMap.length != fields.length) {
-      logger.warning('Failed to parse theme $fileName: Expected ${fields.length} fields, got ${colorMap.length}');
+      logger.warning(
+        'Failed to parse theme $fileName: Expected ${fields.length} fields, got ${colorMap.length}',
+      );
       return null;
     }
 
@@ -140,6 +142,8 @@ class KittyTerminalThemeParser extends AbstractTerminalThemeParser {
 
   List<String> _getEffectiveLines(String content) {
     final lines = LineSplitter.split(content);
-    return lines.where((line) => line.trim().isNotEmpty && !line.trim().startsWith('#')).toList();
+    return lines
+        .where((line) => line.trim().isNotEmpty && !line.trim().startsWith('#'))
+        .toList();
   }
 }

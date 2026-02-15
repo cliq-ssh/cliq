@@ -58,7 +58,7 @@ class WindowsTerminalThemeParser extends AbstractTerminalThemeParser {
     'background',
     'foreground',
     'cursorColor',
-    'selectionBackground'
+    'selectionBackground',
   };
 
   static Logger logger = Logger('WindowsTerminalThemeParser');
@@ -95,18 +95,30 @@ class WindowsTerminalThemeParser extends AbstractTerminalThemeParser {
         purpleColor: ColorExtension.fromHex(json['purple'] as String)!,
         cyanColor: ColorExtension.fromHex(json['cyan'] as String)!,
         whiteColor: ColorExtension.fromHex(json['white'] as String)!,
-        brightBlackColor: ColorExtension.fromHex(json['brightBlack'] as String)!,
+        brightBlackColor: ColorExtension.fromHex(
+          json['brightBlack'] as String,
+        )!,
         brightRedColor: ColorExtension.fromHex(json['brightRed'] as String)!,
-        brightGreenColor: ColorExtension.fromHex(json['brightGreen'] as String)!,
-        brightYellowColor: ColorExtension.fromHex(json['brightYellow'] as String)!,
+        brightGreenColor: ColorExtension.fromHex(
+          json['brightGreen'] as String,
+        )!,
+        brightYellowColor: ColorExtension.fromHex(
+          json['brightYellow'] as String,
+        )!,
         brightBlueColor: ColorExtension.fromHex(json['brightBlue'] as String)!,
-        brightPurpleColor: ColorExtension.fromHex(json['brightPurple'] as String)!,
+        brightPurpleColor: ColorExtension.fromHex(
+          json['brightPurple'] as String,
+        )!,
         brightCyanColor: ColorExtension.fromHex(json['brightCyan'] as String)!,
-        brightWhiteColor: ColorExtension.fromHex(json['brightWhite'] as String)!,
+        brightWhiteColor: ColorExtension.fromHex(
+          json['brightWhite'] as String,
+        )!,
         backgroundColor: ColorExtension.fromHex(json['background'] as String)!,
         foregroundColor: ColorExtension.fromHex(json['foreground'] as String)!,
         cursorColor: ColorExtension.fromHex(json['cursorColor'] as String)!,
-        selectionBackgroundColor: ColorExtension.fromHex(json['selectionBackground'] as String)!,
+        selectionBackgroundColor: ColorExtension.fromHex(
+          json['selectionBackground'] as String,
+        )!,
       );
     } catch (e) {
       logger.warning('Failed to parse theme $fileName: $e');

@@ -11,9 +11,14 @@ enum TerminalThemeParser {
 
   const TerminalThemeParser(this.fileExtension, this.abstractParser);
 
-  static AbstractTerminalThemeParser? getParser(String fileName, String content) {
+  static AbstractTerminalThemeParser? getParser(
+    String fileName,
+    String content,
+  ) {
     final split = fileName.split('.');
-    final parsers = split.length > 1 // check if there is an extension
+    final parsers =
+        split.length >
+            1 // check if there is an extension
         ? TerminalThemeParser.values.where((p) => p.fileExtension == split.last)
         : TerminalThemeParser.values;
 

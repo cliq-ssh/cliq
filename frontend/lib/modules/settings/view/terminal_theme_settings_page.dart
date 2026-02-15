@@ -167,7 +167,7 @@ class TerminalThemeSettingsPage extends AbstractSettingsPage {
                                 variant: .ghost,
                                 prefix: Icon(LucideIcons.folderOpen),
                                 onPress: () async {
-                                  ref
+                                  final error = await ref
                                       .read(terminalThemeProvider.notifier)
                                       .tryImportCustomTerminalTheme(
                                         await openFile(
@@ -176,6 +176,22 @@ class TerminalThemeSettingsPage extends AbstractSettingsPage {
                                           ],
                                         ),
                                       );
+
+                                  if (!context.mounted) return;
+                                  if (error != null) {
+                                    showFToast(
+                                      context: context,
+                                      icon: Icon(LucideIcons.circleX),
+                                      title: Text('Failed to import theme'),
+                                      description: Text(error),
+                                    );
+                                    return;
+                                  }
+                                  showFToast(
+                                    context: context,
+                                    icon: Icon(LucideIcons.circleCheck),
+                                    title: Text('Theme imported successfully'),
+                                  );
                                 },
                                 child: Text('Import'),
                               ),

@@ -43,24 +43,34 @@ class CustomTerminalThemeNotifier
   static final logger = Logger('CustomTerminalThemeNotifier');
 
   /// Attempts to import the given [file] as a [CustomTerminalTheme]
-  /// If the file is null, not parsable, or fails to import for any reason, this method returns null.
-  /// Else, it returns the ID of the newly created theme in the database.
-  Future<int?> tryImportCustomTerminalTheme(XFile? file) async {
+  /// If the file is null, not parsable, or fails to import for any reason, this method the i18n key of the error message.
+  Future<String?> tryImportCustomTerminalTheme(XFile? file) async {
     if (file == null) {
-      return null;
+      return 'customTerminalTheme.import.error.noFileSelected';
     }
     final content = await file.readAsString();
     final parser = TerminalThemeParser.getParser(file.name, content);
     if (parser == null) {
-      return null;
+      return 'customTerminalTheme.import.error.unrecognizedFormat';
     }
     final theme = parser.tryParse(file.name, content);
     if (theme == null) {
-      return null;
+      return 'customTerminalTheme.import.error.parsingFailed';
     }
-    final id = await CliqDatabase.customTerminalThemeService.createCustomTerminalTheme(theme);
-    logger.info('Successfully imported terminal theme ${theme.name} from file ${file.name} with id $id');
-    return id;
+
+    try {
+      await CliqDatabase.customTerminalThemeService.createCustomTerminalTheme(
+        theme,
+      );
+    } catch (e) {
+      logger.warning('Failed to import terminal theme (${file.name}): $e');
+      return 'customTerminalTheme.import.error.importFailed';
+    }
+
+    logger.info(
+      'Successfully imported terminal theme ${theme.name} from file ${file.name}',
+    );
+    return null;
   }
 
   @override

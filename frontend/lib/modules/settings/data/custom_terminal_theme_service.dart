@@ -10,7 +10,9 @@ final class CustomTerminalThemeService {
     return _customTerminalThemesRepository.selectAll().watch();
   }
 
-  Future<int> createCustomTerminalTheme(CustomTerminalThemesCompanion insert) async {
+  Future<int> createCustomTerminalTheme(
+    CustomTerminalThemesCompanion insert,
+  ) async {
     return await _customTerminalThemesRepository.insert(insert);
   }
 }
