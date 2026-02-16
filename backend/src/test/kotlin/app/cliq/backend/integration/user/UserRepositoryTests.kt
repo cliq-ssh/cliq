@@ -39,7 +39,6 @@ class UserRepositoryTests(
             email = email,
             name = name,
             locale = Locale.ENGLISH.toLanguageTag(),
-            password = "hashed_password",
             resetToken = null,
             resetSentAt = null,
             emailVerifiedAt = emailVerifiedAt,

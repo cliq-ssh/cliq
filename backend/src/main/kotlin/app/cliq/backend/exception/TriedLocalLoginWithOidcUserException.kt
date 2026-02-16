@@ -4,4 +4,5 @@ import app.cliq.backend.error.ApiException
 import app.cliq.backend.error.ErrorCode
 import org.springframework.http.HttpStatus
 
-class InvalidCredentialsException : ApiException(HttpStatus.BAD_REQUEST, ErrorCode.INVALID_CREDENTIALS)
+class TriedLocalLoginWithOidcUserException :
+    ApiException(HttpStatus.FORBIDDEN, ErrorCode.TRIED_LOCAL_LOGIN_WITH_OIDC_USER)

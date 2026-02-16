@@ -3,8 +3,10 @@ package app.cliq.backend.acceptance.auth.local
 import app.cliq.backend.acceptance.AcceptanceTest
 import app.cliq.backend.acceptance.AcceptanceTester
 import app.cliq.backend.auth.params.RegistrationParams
+import app.cliq.backend.constants.DEFAULT_DATA_ENCRYPTION_KEY
+import app.cliq.backend.constants.DEFAULT_SRP_SALT
+import app.cliq.backend.constants.DEFAULT_SRP_VERIFIER
 import app.cliq.backend.constants.EXAMPLE_EMAIL
-import app.cliq.backend.constants.EXAMPLE_PASSWORD
 import app.cliq.backend.constants.EXAMPLE_USERNAME
 import app.cliq.backend.error.ErrorCode
 import app.cliq.backend.support.ErrorResponseClient
@@ -34,8 +36,10 @@ class LocalRegistrationDisabledTests(
         val registrationParams =
             RegistrationParams(
                 EXAMPLE_EMAIL,
-                EXAMPLE_PASSWORD,
                 EXAMPLE_USERNAME,
+                DEFAULT_DATA_ENCRYPTION_KEY,
+                DEFAULT_SRP_SALT,
+                DEFAULT_SRP_VERIFIER,
             )
         val result =
             mockMvc

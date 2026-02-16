@@ -14,7 +14,6 @@ CREATE TABLE users
     "email"                      TEXT                     NOT NULL UNIQUE,
     "name"                       TEXT                     NOT NULL,
     "locale"                     TEXT                     NOT NULL,
-    "password"                   TEXT                     NOT NULL,
     "reset_token"                TEXT,
     "reset_sent_at"              timestamp with time zone,
     "email_verification_token"   TEXT,

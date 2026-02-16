@@ -13,7 +13,12 @@ import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc
 import org.springframework.context.annotation.ComponentScan
 import org.springframework.test.context.ActiveProfiles
 
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@SpringBootTest(
+    webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
+    properties = [
+        "app.rate-limits.enabled=false",
+    ],
+)
 @ConfigurationPropertiesScan(basePackages = ["app.cliq.backend.support"])
 @ComponentScan(basePackages = ["app.cliq.backend.support"])
 @AutoConfigureMockMvc

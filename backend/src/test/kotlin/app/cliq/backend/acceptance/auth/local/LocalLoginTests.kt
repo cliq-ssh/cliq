@@ -9,13 +9,13 @@ import app.cliq.backend.auth.service.SrpService
 import app.cliq.backend.auth.view.login.LoginFinishResponse
 import app.cliq.backend.auth.view.login.LoginStartResponse
 import app.cliq.backend.config.properties.JwtProperties
+import app.cliq.backend.constants.DEFAULT_EMAIL
 import app.cliq.backend.constants.DEFAULT_SESSION_NAME
 import app.cliq.backend.error.ErrorCode
 import app.cliq.backend.session.SessionRepository
 import app.cliq.backend.support.ErrorResponseClient
 import app.cliq.backend.support.UserCreationHelper
 import app.cliq.backend.user.UserRepository
-import app.cliq.backend.user.factory.UserFactory
 import com.nimbusds.srp6.BigIntegerUtils
 import com.nimbusds.srp6.SRP6ClientSession
 import org.junit.jupiter.api.Assertions
@@ -27,7 +27,6 @@ import org.springframework.http.MediaType
 import org.springframework.security.oauth2.jwt.JwtDecoder
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders
-import org.springframework.test.web.servlet.result.MockMvcResultMatchers
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 import tools.jackson.databind.ObjectMapper
 import kotlin.test.assertEquals
@@ -36,8 +35,6 @@ import kotlin.test.assertEquals
 class LocalLoginTests(
     @Autowired
     private val mockMvc: MockMvc,
-    @Autowired
-    private val userFactory: UserFactory,
     @Autowired
     private val objectMapper: ObjectMapper,
     @Autowired
@@ -63,14 +60,15 @@ class LocalLoginTests(
         srpClientSession.step1(user.email, userCreationData.password)
 
         val loginStartParams = LoginStartParams(user.email)
-        val startResult = mockMvc
-            .perform(
-                MockMvcRequestBuilders
-                    .post("/api/auth/login/start")
-                    .contentType(MediaType.APPLICATION_JSON_VALUE)
-                    .content(objectMapper.writeValueAsString(loginStartParams)),
-            ).andExpect(status().isOk)
-            .andReturn()
+        val startResult =
+            mockMvc
+                .perform(
+                    MockMvcRequestBuilders
+                        .post("/api/auth/login/start")
+                        .contentType(MediaType.APPLICATION_JSON_VALUE)
+                        .content(objectMapper.writeValueAsString(loginStartParams)),
+                ).andExpect(status().isOk)
+                .andReturn()
 
         val startContent = startResult.response.contentAsString
         assertNotNull(startContent)
@@ -124,16 +122,23 @@ class LocalLoginTests(
     fun `test invalid credentials`() {
         val sessionCount = sessionRepository.count()
 
-        TODO("Implement SRP logic")
-        val loginParams = mapOf<String, String>()
-
+        val loginStartParams = LoginStartParams(DEFAULT_EMAIL)
         mockMvc
             .perform(
                 MockMvcRequestBuilders
-                    .post("/api/auth/login")
+                    .post("/api/auth/login/start")
                     .contentType(MediaType.APPLICATION_JSON_VALUE)
-                    .content(objectMapper.writeValueAsString(loginParams)),
-            ).andExpect(MockMvcResultMatchers.status().isBadRequest)
+                    .content(objectMapper.writeValueAsString(loginStartParams)),
+            ).andExpect(status().isBadRequest)
+
+        val loginFinishParams = LoginFinishParams("invalid_token", "0", "0")
+        mockMvc
+            .perform(
+                MockMvcRequestBuilders
+                    .post("/api/auth/login/finish")
+                    .contentType(MediaType.APPLICATION_JSON_VALUE)
+                    .content(objectMapper.writeValueAsString(loginFinishParams)),
+            ).andExpect(status().isBadRequest)
 
         val newSessionCount = sessionRepository.count()
         assertEquals(sessionCount, newSessionCount)
@@ -144,17 +149,17 @@ class LocalLoginTests(
         val sessionCount = sessionRepository.count()
         val creationData = userCreationHelper.createRandomUser(verified = false)
         val user = creationData.user
-        TODO("Implement SRP logic")
-        val loginParams = mapOf<String, String>()
+
+        val loginStartParams = LoginStartParams(user.email)
 
         val result =
             mockMvc
                 .perform(
                     MockMvcRequestBuilders
-                        .post("/api/auth/login")
+                        .post("/api/auth/login/start")
                         .contentType(MediaType.APPLICATION_JSON_VALUE)
-                        .content(objectMapper.writeValueAsString(loginParams)),
-                ).andExpect(MockMvcResultMatchers.status().isBadRequest)
+                        .content(objectMapper.writeValueAsString(loginStartParams)),
+                ).andExpect(status().isBadRequest)
                 .andReturn()
 
         val content = result.response.contentAsString
@@ -174,15 +179,14 @@ class LocalLoginTests(
         user = userRepository.save(user)
 
         // Try to log in with local credentials
-        TODO("Implement SRP logic")
-        val loginParams = mapOf<String, String>()
+        val loginStartParams = LoginStartParams(user.email)
         mockMvc
             .perform(
                 MockMvcRequestBuilders
-                    .post("/api/auth/login")
+                    .post("/api/auth/login/start")
                     .contentType(MediaType.APPLICATION_JSON_VALUE)
-                    .content(objectMapper.writeValueAsString(loginParams)),
-            ).andExpect(MockMvcResultMatchers.status().isBadRequest)
+                    .content(objectMapper.writeValueAsString(loginStartParams)),
+            ).andExpect(status().isForbidden)
 
         // Assert no session was created
         assertEquals(0, sessionRepository.count())

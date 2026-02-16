@@ -3,12 +3,7 @@ package app.cliq.backend.support
 import app.cliq.backend.auth.jwt.TokenPair
 import app.cliq.backend.auth.params.RegistrationParams
 import app.cliq.backend.auth.service.JwtService
-import app.cliq.backend.auth.service.SrpService
-import app.cliq.backend.constants.DEFAULT_DATA_ENCRYPTION_KEY
-import app.cliq.backend.constants.DEFAULT_EMAIL
-import app.cliq.backend.constants.DEFAULT_SRP_SALT
-import app.cliq.backend.constants.DEFAULT_SRP_VERIFIER
-import app.cliq.backend.constants.DEFAULT_USERNAME
+import app.cliq.backend.support.encryption.AuthenticatedEncryptionData
 import app.cliq.backend.support.encryption.EncryptionData
 import app.cliq.backend.support.encryption.EncryptionHelper
 import app.cliq.backend.support.srp.SrpData
@@ -18,7 +13,6 @@ import app.cliq.backend.user.User
 import app.cliq.backend.user.UserRepository
 import app.cliq.backend.user.factory.UserFactory
 import app.cliq.backend.user.service.UserService
-import com.nimbusds.srp6.BigIntegerUtils
 import org.awaitility.kotlin.await
 import org.springframework.boot.test.context.TestComponent
 import java.time.Duration
@@ -30,7 +24,6 @@ class UserCreationHelper(
     private val userFactory: UserFactory,
     private val userRepository: UserRepository,
     private val jwtService: JwtService,
-    private val srpService: SrpService,
     private val srpHelper: SrpHelper,
     private val encryptionHelper: EncryptionHelper,
 ) {
@@ -41,15 +34,11 @@ class UserCreationHelper(
         val encryptionData: EncryptionData,
     )
 
-    fun getDefaultRegistrationParams(): RegistrationParams {
-        return RegistrationParams(
-            email = DEFAULT_EMAIL,
-            username = DEFAULT_USERNAME,
-            dataEncryptionKey = DEFAULT_DATA_ENCRYPTION_KEY,
-            srpSalt = DEFAULT_SRP_SALT,
-            srpVerifier = DEFAULT_SRP_VERIFIER,
-        )
-    }
+    data class AuthenticatedUserData(
+        val tokenPair: TokenPair,
+        val userCreationData: UserCreationData,
+        val authenticatedEncryptionData: AuthenticatedEncryptionData,
+    )
 
     fun createRandomUser(
         email: String = "user${Random.nextInt(0, 9999)}@cliq.test",
@@ -57,9 +46,7 @@ class UserCreationHelper(
         username: String = "CliqUser${Random.nextInt(0, 9999)}!",
         verified: Boolean = true,
         locale: String = DEFAULT_LOCALE,
-    ): UserCreationData {
-        return createUser(email, password, username, verified, locale)
-    }
+    ): UserCreationData = createUser(email, password, username, verified, locale)
 
     fun createRandomAuthenticatedUser(
         email: String = "user${Random.nextInt(0, 9999)}@cliq.test",
@@ -67,10 +54,20 @@ class UserCreationHelper(
         username: String = "CliqUser${Random.nextInt(0, 9999)}!",
         verified: Boolean = true,
         locale: String = DEFAULT_LOCALE,
-    ): TokenPair {
+        sessionName: String? = null,
+    ): AuthenticatedUserData {
         val userCreationData = createRandomUser(email, password, username, verified, locale)
+        val tokenPair = jwtService.generateJwtTokenPair(sessionName, userCreationData.user)
+        val authenticatedEncryptionData =
+            encryptionHelper.createAuthenticatedEncryptionData(
+                userCreationData.encryptionData,
+            )
 
-        return jwtService.generateJwtTokenPair(null, userCreationData.user)
+        return AuthenticatedUserData(
+            tokenPair,
+            userCreationData,
+            authenticatedEncryptionData,
+        )
     }
 
     private fun createUser(
@@ -80,7 +77,9 @@ class UserCreationHelper(
         verified: Boolean = true,
         locale: String = DEFAULT_LOCALE,
     ): UserCreationData {
-        val params = RegistrationParams(email, password, username, locale)
+        val srpData = srpHelper.createSrpData(email, password)
+        val params =
+            RegistrationParams(email, password, username, srpData.salt.encoded, srpData.verifier.encoded, locale)
         var user = userFactory.createFromRegistrationParams(params)
 
         await.atMost(Duration.ofSeconds(5)).untilAsserted {
@@ -102,23 +101,13 @@ class UserCreationHelper(
             user = userRepository.saveAndFlush(user)
         }
 
-        val salt = srpHelper.generateRandomSalt()
-        val umk = srpHelper.generateRandomUMK(password.toByteArray(), salt)
-
-        val srpSaltBigInteger = BigIntegerUtils.bigIntegerFromBytes(salt)
-        val srpVerifier =
-            srpService.verifierGen.generateVerifier(srpSaltBigInteger, email, password)
-        val srpVerifierString = BigIntegerUtils.toHex(srpVerifier)
-        val srpSaltString = BigIntegerUtils.toHex(srpSaltBigInteger)
-
-        val srpData = SrpData(
-            salt = Salt(salt, srpSaltString),
-            verifier = Verifier(srpVerifier, srpVerifierString),
-        )
+        val encryptionData = encryptionHelper.createEncryptionData(password, srpData.salt.salt)
 
         return UserCreationData(
             user,
-            Umk(umk)
+            password,
+            srpData,
+            encryptionData,
         )
     }
 }

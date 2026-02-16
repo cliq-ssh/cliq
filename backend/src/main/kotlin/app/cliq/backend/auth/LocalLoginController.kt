@@ -12,6 +12,7 @@ import app.cliq.backend.config.properties.AuthProperties
 import app.cliq.backend.exception.EmailNotVerifiedException
 import app.cliq.backend.exception.InvalidEmailException
 import app.cliq.backend.exception.LocalLoginDisabledException
+import app.cliq.backend.exception.TriedLocalLoginWithOidcUserException
 import app.cliq.backend.user.UserRepository
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.media.Content
@@ -54,7 +55,7 @@ class LocalLoginController(
             ),
             ApiResponse(
                 responseCode = "403",
-                description = "Login with local authentication has been disabled.",
+                description = "Login with local authentication has been disabled or OIDC User tried.",
                 content = [Content()],
             ),
         ],
@@ -68,6 +69,7 @@ class LocalLoginController(
 
         val user = userRepository.findByEmail(loginStartParams.email) ?: throw InvalidEmailException()
         if (!user.isUsable()) throw EmailNotVerifiedException()
+        if (user.isOidcUser()) throw TriedLocalLoginWithOidcUserException()
 
         val view = srpService.startAuthenticationProcess(user, loginStartParams)
 

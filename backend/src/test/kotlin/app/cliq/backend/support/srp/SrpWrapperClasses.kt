@@ -15,5 +15,5 @@ data class Salt(
 
 data class Verifier(
     val verifier: BigInteger,
-    val encoded: String
+    val encoded: String,
 )

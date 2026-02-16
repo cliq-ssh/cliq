@@ -52,13 +52,15 @@ class LocalLoginDisabledTests(
         assertEquals(ErrorCode.LOCAL_LOGIN_DISABLED, startErrorResponse.errorCode)
 
         val loginFinishParams = LoginFinishParams("", "", "")
-        val loginFinishResult = mockMvc.perform(
-            MockMvcRequestBuilders
-                .post("/api/auth/login/finish")
-                .contentType(MediaType.APPLICATION_JSON_VALUE)
-                .content(objectMapper.writeValueAsString(loginFinishParams)),
-        ).andExpect(MockMvcResultMatchers.status().isForbidden)
-            .andReturn()
+        val loginFinishResult =
+            mockMvc
+                .perform(
+                    MockMvcRequestBuilders
+                        .post("/api/auth/login/finish")
+                        .contentType(MediaType.APPLICATION_JSON_VALUE)
+                        .content(objectMapper.writeValueAsString(loginFinishParams)),
+                ).andExpect(MockMvcResultMatchers.status().isForbidden)
+                .andReturn()
 
         val finishContent = loginFinishResult.response.contentAsString
         assertNotNull(finishContent)

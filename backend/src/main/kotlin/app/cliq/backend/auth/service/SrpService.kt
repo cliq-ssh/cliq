@@ -8,7 +8,6 @@ import app.cliq.backend.user.User
 import app.cliq.backend.utils.TokenGenerator
 import com.nimbusds.srp6.BigIntegerUtils
 import com.nimbusds.srp6.SRP6CryptoParams
-import com.nimbusds.srp6.SRP6Exception
 import com.nimbusds.srp6.SRP6Routines
 import com.nimbusds.srp6.SRP6VerifierGenerator
 import org.slf4j.LoggerFactory
@@ -61,7 +60,7 @@ class SrpService(
         val publicM2: BigInteger
         try {
             publicM2 = session.step2(publicABgInteger, publicM1BgInteger)
-        } catch (exception: SRP6Exception) {
+        } catch (exception: Exception) {
             logger.debug(
                 "SRP authentication step 2 failed",
                 exception,

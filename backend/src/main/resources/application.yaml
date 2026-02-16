@@ -22,14 +22,20 @@ app:
     access-token-expires-minutes: \${JWT_ACCESS_TOKEN_EXPIRES_MINUTES:10}
     refresh-token-expires-days: \${JWT_REFRESH_TOKEN_EXPIRES_DAYS:30}
   rate-limits:
-    - name: login
-      url: /api/auth/login
-      target: IP
-      requests-per-minute: 5
-    - name: refresh
-      url: /api/auth/refresh
-      target: IP
-      requests-per-minute: 10
+    enabled: \${RATE_LIMITS_ENABLED:true}
+    routes:
+      - name: login
+        url: /api/auth/login/start
+        target: IP
+        requests-per-minute: 5
+      - name: login
+        url: /api/auth/login/finish
+        target: IP
+        requests-per-minute: 5
+      - name: refresh
+        url: /api/auth/refresh
+        target: IP
+        requests-per-minute: 10
 
 logging:
   level:

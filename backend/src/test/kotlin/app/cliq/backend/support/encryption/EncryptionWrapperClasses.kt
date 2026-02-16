@@ -5,13 +5,22 @@ data class EncryptionData(
     val dataEncryptionKey: DataEncryptionKey,
 )
 
-data class EncryptedDEK(
+data class EncryptedKey(
     val nonce: ByteArray,
     val ciphertext: ByteArray,
 )
 
 data class DataEncryptionKey(
     val value: ByteArray,
-    val encryptedDEK: EncryptedDEK,
-    val encryptedAndEncodedDEK: String
+    val encryptedDataEncryptionKey: EncryptedKey,
+    val encryptedAndEncodedDataEncryptionKey: String,
+)
+
+data class AuthenticatedEncryptionData(
+    val deviceEncryptionKey: DeviceEncryptionKey,
+)
+
+data class DeviceEncryptionKey(
+    val keyPair: Pair<ByteArray, ByteArray>,
+    val encryptedDataEncryptionKeyWithDeviceEncryptionKey: DataEncryptionKey,
 )

@@ -3,9 +3,9 @@ package app.cliq.backend.acceptance.auth
 import app.cliq.backend.acceptance.AcceptanceTest
 import app.cliq.backend.acceptance.AcceptanceTester
 import app.cliq.backend.auth.params.RefreshParams
-import app.cliq.backend.auth.service.RefreshTokenService
 import app.cliq.backend.session.SessionRepository
 import app.cliq.backend.support.UserCreationHelper
+import app.cliq.backend.utils.TokenUtils
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpHeaders
@@ -24,13 +24,14 @@ class LogoutTests(
     @Autowired
     private val sessionRepository: SessionRepository,
     @Autowired
-    private val refreshTokenService: RefreshTokenService,
-    @Autowired
     private val userCreationHelper: UserCreationHelper,
+    @Autowired
+    private val tokenUtils: TokenUtils,
 ) : AcceptanceTester() {
     @Test
     fun `test logout`() {
-        val tokenPair = userCreationHelper.createRandomAuthenticatedUser()
+        val authenticatedUserData = userCreationHelper.createRandomAuthenticatedUser()
+        val tokenPair = authenticatedUserData.tokenPair
 
         mockMvc
             .perform(
@@ -45,7 +46,7 @@ class LogoutTests(
                 MockMvcRequestBuilders.get("/api/user/me"),
             ).andExpect(status().isUnauthorized)
 
-        // test refresh token is invalid by trying to refresh the access token
+        // the test refresh token is invalid by trying to refresh the access token
         val refreshParams = RefreshParams(tokenPair.refreshToken)
         mockMvc
             .perform(
@@ -56,7 +57,7 @@ class LogoutTests(
             ).andExpect(status().isBadRequest)
 
         // assert session is deleted
-        val hashedRefreshedToken = refreshTokenService.hashRefreshToken(tokenPair.refreshToken)
+        val hashedRefreshedToken = tokenUtils.hashTokenUsingSha512(tokenPair.refreshToken)
         assert(sessionRepository.findByRefreshToken(hashedRefreshedToken) == null)
     }
 }

@@ -43,7 +43,8 @@ class VaultDataTests(
 
     @Test
     fun `test endpoints can be accessed with authentication`() {
-        val tokenPair = userCreationHelper.createRandomAuthenticatedUser()
+        val authenticatedUserData = userCreationHelper.createRandomAuthenticatedUser()
+        val tokenPair = authenticatedUserData.tokenPair
 
         mockMvc
             .perform(
@@ -69,7 +70,8 @@ class VaultDataTests(
 
     @Test
     fun `test create and retrieve user configuration`() {
-        val tokenPair = userCreationHelper.createRandomAuthenticatedUser()
+        val authenticatedUserData = userCreationHelper.createRandomAuthenticatedUser()
+        val tokenPair = authenticatedUserData.tokenPair
 
         val params = VaultParams(configuration = "testConfig", version = "1")
 
@@ -98,7 +100,8 @@ class VaultDataTests(
 
     @Test
     fun `test last updated`() {
-        val tokenPair = userCreationHelper.createRandomAuthenticatedUser()
+        val authenticatedUserData = userCreationHelper.createRandomAuthenticatedUser()
+        val tokenPair = authenticatedUserData.tokenPair
 
         val params = VaultParams(configuration = "testConfig", version = "1")
 
@@ -143,7 +146,8 @@ class VaultDataTests(
 
     @Test
     fun `test update user configuration`() {
-        val tokenPair = userCreationHelper.createRandomAuthenticatedUser()
+        val authenticatedUserData = userCreationHelper.createRandomAuthenticatedUser()
+        val tokenPair = authenticatedUserData.tokenPair
 
         val initialParams = VaultParams(configuration = "initialConfig", version = "1")
 

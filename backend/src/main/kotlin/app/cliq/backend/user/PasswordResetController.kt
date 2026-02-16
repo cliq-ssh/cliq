@@ -75,6 +75,11 @@ class PasswordResetController(
     fun resetPassword(
         @Valid @RequestBody params: ResetPasswordParams,
     ): ResponseEntity<UserResponse> {
-        TODO("Implement password reset or maybe remove?")
+        TODO("Implement password reset")
+        /*
+        - replace srp salt & verifier
+        - log out all devices
+        - replace DataEncryptionKey (optional)
+         */
     }
 }

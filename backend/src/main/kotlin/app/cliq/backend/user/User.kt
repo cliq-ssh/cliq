@@ -62,5 +62,7 @@ class User(
 
     fun isUsable(): Boolean = isEmailVerified()
 
+    fun isOidcUser(): Boolean = oidcSub != null
+
     override fun toString(): String = "User(id=$id)"
 }

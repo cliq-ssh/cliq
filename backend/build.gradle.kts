@@ -110,8 +110,7 @@ dependencies {
     // SRP
     implementation("com.nimbusds:srp6a:2.1.0")
 
-    // Local auth
-    implementation("org.springframework.security:spring-security-crypto")
+    // Algorithm Provider & Encryption primitives
     implementation("org.bouncycastle:bcprov-jdk18on:1.83")
 
     // Serialization
