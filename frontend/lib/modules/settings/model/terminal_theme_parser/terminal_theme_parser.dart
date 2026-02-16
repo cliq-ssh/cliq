@@ -7,9 +7,9 @@ enum TerminalThemeParser {
   kitty('conf', KittyTerminalThemeParser());
 
   final String fileExtension;
-  final AbstractTerminalThemeParser abstractParser;
+  final AbstractTerminalThemeParser instance;
 
-  const TerminalThemeParser(this.fileExtension, this.abstractParser);
+  const TerminalThemeParser(this.fileExtension, this.instance);
 
   static AbstractTerminalThemeParser? getParser(
     String fileName,
@@ -23,8 +23,8 @@ enum TerminalThemeParser {
         : TerminalThemeParser.values;
 
     for (final parser in parsers) {
-      if (parser.abstractParser.canParse(content)) {
-        return parser.abstractParser;
+      if (parser.instance.canParse(content)) {
+        return parser.instance;
       }
     }
     return null;

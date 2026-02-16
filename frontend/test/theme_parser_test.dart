@@ -17,14 +17,14 @@ void main() {
   }
 
   for (final parser in TerminalThemeParser.values) {
-    group(parser.abstractParser.runtimeType, () {
+    group(parser.instance.runtimeType, () {
       test(
-        'getParser: Return "${parser.abstractParser.runtimeType}" for valid ${parser.name} theme',
+        'getParser: Return ${parser.instance.runtimeType} for valid ${parser.name} theme',
         () async {
           final (fileName, content) = await readResource(sampleFiles[parser]!);
           final result = TerminalThemeParser.getParser(fileName, content);
           expect(result, isNotNull);
-          expect(result.runtimeType, parser.abstractParser.runtimeType);
+          expect(result.runtimeType, parser.instance.runtimeType);
         },
       );
 
@@ -32,7 +32,7 @@ void main() {
         'canParse: Return true for valid ${parser.name} theme content',
         () async {
           final (fileName, content) = await readResource(sampleFiles[parser]!);
-          final canParse = parser.abstractParser.canParse(content);
+          final canParse = parser.instance.canParse(content);
           expect(canParse, isTrue);
         },
       );
@@ -41,7 +41,7 @@ void main() {
         'tryParse: Successfully parse valid ${parser.name} theme content',
         () async {
           final (fileName, content) = await readResource(sampleFiles[parser]!);
-          final theme = parser.abstractParser.tryParse(fileName, content);
+          final theme = parser.instance.tryParse(fileName, content);
           expect(theme, isNotNull);
         },
       );
