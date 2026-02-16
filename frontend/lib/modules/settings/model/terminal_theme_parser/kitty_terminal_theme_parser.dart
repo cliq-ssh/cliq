@@ -74,11 +74,8 @@ class KittyTerminalThemeParser extends AbstractTerminalThemeParser {
       return false;
     }
     for (final line in lines) {
-      // check if line starts with any of the fields
-      for (final field in fields) {
-        if (line.trim().startsWith('$field #')) {
-          return true;
-        }
+      if (!fields.any((field) => line.trim().startsWith('$field #'))) {
+        return false;
       }
     }
     return true;
