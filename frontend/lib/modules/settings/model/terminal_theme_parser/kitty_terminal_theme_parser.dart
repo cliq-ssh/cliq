@@ -89,8 +89,12 @@ class KittyTerminalThemeParser extends AbstractTerminalThemeParser {
     for (final line in lines) {
       for (final field in fields) {
         if (line.trim().startsWith('$field #')) {
-          final colorValue = line.trim().substring(field.length).trim();
-          colorMap[field] = ColorExtension.fromHex(colorValue)!;
+          final color = ColorExtension.fromHex(
+            line.trim().substring(field.length).trim(),
+          );
+          if (color == null)
+            return null; // simply return if we fail to parse a color, we can assume the whole theme is invalid
+          colorMap[field] = color;
         }
       }
     }
