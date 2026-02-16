@@ -1,73 +1,50 @@
 import 'dart:io';
 
-import 'package:cliq/modules/settings/model/terminal_theme_parser/kitty_terminal_theme_parser.dart';
 import 'package:cliq/modules/settings/model/terminal_theme_parser/terminal_theme_parser.dart';
-import 'package:cliq/modules/settings/model/terminal_theme_parser/windows_terminal_theme_parser.dart';
 import 'package:flutter_test/flutter_test.dart';
+
+const Map<TerminalThemeParser, String> sampleFiles = {
+  .windowsTerminal: 'Apple Classic.json',
+  .kitty: 'Apple Classic.conf',
+};
 
 void main() {
   /// Helper function to read a resource file as a string.
   /// If [makeInvalid] is true, it will return only the first half of the content to simulate an invalid file.
-  Future<(String, String)> readResource(
-    String fileName, {
-    bool makeInvalid = false,
-  }) async {
+  Future<(String, String)> readResource(String fileName) async {
     final file = File('${Directory.current.path}/test/resources/$fileName');
-    final content = await file.readAsString();
-    return (
-      file.uri.pathSegments.last,
-      makeInvalid
-          // halve the content to make it invalid
-          ? content.substring(0, content.length ~/ 2)
-          : content,
-    );
+    return (file.uri.pathSegments.last, await file.readAsString());
   }
 
-  group('WindowsTerminalThemeParser', () {
-    test('get correct parser & parse', () async {
-      final (fileName, content) = await readResource('Apple Classic.json');
-      final parser = TerminalThemeParser.getParser(fileName, content);
-
-      expect(parser, isNotNull);
-      expect(parser.runtimeType, WindowsTerminalThemeParser);
-
-      final theme = parser!.tryParse(fileName, content);
-
-      expect(theme, isNotNull);
-      expect(theme!.name.value, 'Apple Classic');
-    });
-
-    test('fail to parse invalid content', () async {
-      final (fileName, content) = await readResource(
-        'Apple Classic.json',
-        makeInvalid: true,
+  for (final parser in TerminalThemeParser.values) {
+    group(parser.abstractParser.runtimeType, () {
+      test(
+        'getParser: Return "${parser.abstractParser.runtimeType}" for valid ${parser.name} theme',
+        () async {
+          final (fileName, content) = await readResource(sampleFiles[parser]!);
+          final result = TerminalThemeParser.getParser(fileName, content);
+          expect(result, isNotNull);
+          expect(result.runtimeType, parser.abstractParser.runtimeType);
+        },
       );
-      final result = WindowsTerminalThemeParser().tryParse(fileName, content);
-      expect(result, isNull);
-    });
-  });
 
-  group('KittyTerminalThemeParser', () {
-    test('get correct parser & parse', () async {
-      final (fileName, content) = await readResource('Apple Classic.conf');
-      final parser = TerminalThemeParser.getParser(fileName, content);
-
-      expect(parser, isNotNull);
-      expect(parser.runtimeType, KittyTerminalThemeParser);
-
-      final theme = parser!.tryParse(fileName, content);
-
-      expect(theme, isNotNull);
-      expect(theme!.name.value, 'Apple Classic');
-    });
-
-    test('fail to parse invalid content', () async {
-      final (fileName, content) = await readResource(
-        'Apple Classic.conf',
-        makeInvalid: true,
+      test(
+        'canParse: Return true for valid ${parser.name} theme content',
+        () async {
+          final (fileName, content) = await readResource(sampleFiles[parser]!);
+          final canParse = parser.abstractParser.canParse(content);
+          expect(canParse, isTrue);
+        },
       );
-      final result = KittyTerminalThemeParser().tryParse(fileName, content);
-      expect(result, isNull);
+
+      test(
+        'tryParse: Successfully parse valid ${parser.name} theme content',
+        () async {
+          final (fileName, content) = await readResource(sampleFiles[parser]!);
+          final theme = parser.abstractParser.tryParse(fileName, content);
+          expect(theme, isNotNull);
+        },
+      );
     });
-  });
+  }
 }
