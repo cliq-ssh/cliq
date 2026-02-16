@@ -111,7 +111,6 @@ class TerminalThemeSettingsPage extends AbstractSettingsPage {
     }, [selectedColors.value]);
 
     create() => Commons.showResponsiveDialog(
-      context,
       (_) => CreateOrEditTerminalThemeView.create(),
     );
 

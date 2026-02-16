@@ -41,37 +41,15 @@ class TerminalThemeCard extends HookConsumerWidget {
     }
 
     edit() => Commons.showResponsiveDialog(
-      context,
       (_) => CreateOrEditTerminalThemeView.edit(theme),
     ).then((_) => onEdit?.call());
 
-    delete() => showFDialog(
-      context: context,
-      builder: (context, style, animation) => FDialog(
-        style: style,
-        animation: animation,
-        direction: Axis.horizontal,
-        title: const Text('Are you sure?'),
-        body: Text(
-          'Are you sure you want to delete ${theme.name}? This action cannot be undone.',
-        ),
-        actions: [
-          FButton(
-            variant: .outline,
-            child: const Text('Cancel'),
-            onPress: () => Navigator.of(context).pop(),
-          ),
-          FButton(
-            variant: .destructive,
-            child: const Text('Delete'),
-            onPress: () {
-              CliqDatabase.customTerminalThemeService.deleteById(theme.id);
-              Navigator.of(context).pop();
-              onDelete?.call();
-            },
-          ),
-        ],
-      ),
+    delete() => Commons.showDeleteDialog(
+      entity: theme.name,
+      onDelete: () {
+        CliqDatabase.customTerminalThemeService.deleteById(theme.id);
+        onDelete?.call();
+      },
     );
 
     buildPopoverMenu({
