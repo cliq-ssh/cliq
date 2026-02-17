@@ -193,9 +193,9 @@ class TerminalThemeCard extends HookConsumerWidget {
                   crossAxisAlignment: .start,
                   children: [
                     Text(theme.name),
-                    if (theme.id == -1 || theme.author != null)
+                    if (theme.id == -1)
                       Text(
-                        theme.id == -1 ? 'built-in' : theme.author!,
+                        'built-in',
                         style: context.theme.typography.xs.copyWith(
                           color: context.theme.colors.mutedForeground,
                           fontWeight: .normal,
