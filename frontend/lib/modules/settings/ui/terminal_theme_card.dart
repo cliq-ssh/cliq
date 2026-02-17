@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:cliq/modules/settings/view/create_or_edit_terminal_theme_view.dart';
 import 'package:cliq/shared/data/database.dart';
 import 'package:cliq/shared/ui/context_menu.dart';
+import 'package:drift/drift.dart' hide Column;
 import 'package:flutter/material.dart';
 import 'package:forui/forui.dart';
 import 'package:forui_hooks/forui_hooks.dart';
@@ -40,17 +41,64 @@ class TerminalThemeCard extends HookConsumerWidget {
       return Container(width: 8, height: 16, color: color);
     }
 
-    edit() => Commons.showResponsiveDialog(
-      (_) => CreateOrEditTerminalThemeView.edit(theme),
-    ).then((_) => onEdit?.call());
+    duplicate() async {
+      await primaryPopoverController.hide();
+      await secondaryPopoverController.hide();
 
-    delete() => Commons.showDeleteDialog(
-      entity: theme.name,
-      onDelete: () {
-        CliqDatabase.customTerminalThemeService.deleteById(theme.id);
-        onDelete?.call();
-      },
-    );
+      final copyInsert = CustomTerminalThemesCompanion.insert(
+        name: '${theme.name} - Copy',
+        blackColor: theme.blackColor,
+        redColor: theme.redColor,
+        greenColor: theme.greenColor,
+        yellowColor: theme.yellowColor,
+        blueColor: theme.blueColor,
+        purpleColor: theme.purpleColor,
+        cyanColor: theme.cyanColor,
+        whiteColor: theme.whiteColor,
+        brightBlackColor: theme.brightBlackColor,
+        brightRedColor: theme.brightRedColor,
+        brightGreenColor: theme.brightGreenColor,
+        brightYellowColor: theme.brightYellowColor,
+        brightBlueColor: theme.brightBlueColor,
+        brightPurpleColor: theme.brightPurpleColor,
+        brightCyanColor: theme.brightCyanColor,
+        brightWhiteColor: theme.brightWhiteColor,
+        backgroundColor: theme.backgroundColor,
+        foregroundColor: theme.foregroundColor,
+        cursorColor: theme.cursorColor,
+        selectionBackgroundColor: theme.selectionBackgroundColor,
+        selectionForegroundColor: Value.absentIfNull(
+          theme.selectionForegroundColor,
+        ),
+        cursorTextColor: Value.absentIfNull(theme.cursorTextColor),
+      );
+
+      await CliqDatabase.customTerminalThemeService.createCustomTerminalTheme(
+        copyInsert,
+      );
+    }
+
+    edit() async {
+      await primaryPopoverController.hide();
+      await secondaryPopoverController.hide();
+
+      return Commons.showResponsiveDialog(
+        (_) => CreateOrEditTerminalThemeView.edit(theme),
+      ).then((_) => onEdit?.call());
+    }
+
+    delete() async {
+      await primaryPopoverController.hide();
+      await secondaryPopoverController.hide();
+
+      return Commons.showDeleteDialog(
+        entity: theme.name,
+        onDelete: () {
+          CliqDatabase.customTerminalThemeService.deleteById(theme.id);
+          onDelete?.call();
+        },
+      );
+    }
 
     buildPopoverMenu({
       required FPopoverController controller,
@@ -62,15 +110,22 @@ class TerminalThemeCard extends HookConsumerWidget {
           FItemGroup(
             children: [
               FItem(
-                prefix: Icon(LucideIcons.pencil),
-                title: Text('Edit'),
-                onPress: edit,
+                prefix: Icon(LucideIcons.copy),
+                title: Text('Duplicate'),
+                onPress: duplicate,
               ),
-              FItem(
-                prefix: Icon(LucideIcons.trash),
-                title: Text('Delete'),
-                onPress: delete,
-              ),
+              if (!isBuiltIn) ...[
+                FItem(
+                  prefix: Icon(LucideIcons.pencil),
+                  title: Text('Edit'),
+                  onPress: edit,
+                ),
+                FItem(
+                  prefix: Icon(LucideIcons.trash),
+                  title: Text('Delete'),
+                  onPress: delete,
+                ),
+              ],
             ],
           ),
         ],
@@ -79,24 +134,25 @@ class TerminalThemeCard extends HookConsumerWidget {
     }
 
     return CustomContextMenu(
-      actions: isBuiltIn
-          ? []
-          : [
-              .new(
-                label: 'Edit',
-                icon: LucideIcons.pencil,
-                onPress: edit,
-                shortcut: ShortcutActionInfo(.keyE),
-              ),
-              .new(
-                label: 'Delete',
-                icon: LucideIcons.trash,
-                onPress: delete,
-                shortcut: Platform.isMacOS
-                    ? ShortcutActionInfo(.backspace, modifiers: {.meta})
-                    : ShortcutActionInfo(.delete),
-              ),
-            ],
+      actions: [
+        .new(label: 'Duplicate', icon: LucideIcons.copy, onPress: duplicate),
+        if (!isBuiltIn) ...[
+          .new(
+            label: 'Edit',
+            icon: LucideIcons.pencil,
+            onPress: edit,
+            shortcut: ShortcutActionInfo(.keyE),
+          ),
+          .new(
+            label: 'Delete',
+            icon: LucideIcons.trash,
+            onPress: delete,
+            shortcut: Platform.isMacOS
+                ? ShortcutActionInfo(.backspace, modifiers: {.meta})
+                : ShortcutActionInfo(.delete),
+          ),
+        ],
+      ],
       popoverController: primaryPopoverController,
       builder: (context) {
         return GestureDetector(
@@ -149,17 +205,16 @@ class TerminalThemeCard extends HookConsumerWidget {
                 ),
                 const Spacer(),
                 if (isSelected) Icon(LucideIcons.check),
-                if (!isBuiltIn)
-                  buildPopoverMenu(
-                    controller: secondaryPopoverController,
-                    child: FButton.icon(
-                      onPress: () {
-                        secondaryPopoverController.toggle();
-                        primaryPopoverController.hide();
-                      },
-                      child: Icon(LucideIcons.ellipsis),
-                    ),
+                buildPopoverMenu(
+                  controller: secondaryPopoverController,
+                  child: FButton.icon(
+                    onPress: () {
+                      secondaryPopoverController.toggle();
+                      primaryPopoverController.hide();
+                    },
+                    child: Icon(LucideIcons.ellipsis),
                   ),
+                ),
               ],
             ),
           ),
