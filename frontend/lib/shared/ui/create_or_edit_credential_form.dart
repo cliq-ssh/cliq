@@ -179,23 +179,7 @@ class CreateOrEditCredentialsFormState
               (e) => e.type == credential.type,
             );
 
-            return Row(
-              spacing: 8,
-              mainAxisAlignment: .spaceBetween,
-              children: [
-                Text(allowedType.label),
-                FButton.icon(
-                  variant: .ghost,
-                  onPress: () {
-                    credential.dispose();
-                    final updated = [...selectedCredentials];
-                    updated.remove(credential);
-                    _selectedCredentials.value = updated;
-                  },
-                  child: const Icon(LucideIcons.trash, size: 16),
-                ),
-              ],
-            );
+            return Text(allowedType.label);
           }
 
           buildFormFields() {
@@ -206,107 +190,137 @@ class CreateOrEditCredentialsFormState
               final allowedType = _AllowedCredentialType.values.firstWhere(
                 (e) => e.type == data.type,
               );
-              children.add(switch (allowedType) {
-                .password => FTextFormField(
-                  control: .managed(controller: data.controller),
-                  focusNode: _focusNode,
-                  label: buildCredentialLabel(data),
-                  minLines: 1,
-                  obscureText: true,
-                  validator: Validators.nonEmpty,
-                  autovalidateMode: .onUserInteraction,
-                ),
-                .key => FAutocomplete.builder(
-                  control: .managed(controller: data.controller),
-                  filter: (query) async {
-                    return keysFuture.on(
-                      onLoading: () => [],
-                      onData: (keys) {
-                        final values = keys.map(
-                          (k) => AutocompleteUtils.toAutocompleteString(
-                            k.id,
-                            k.label,
+              children.add(
+                Row(
+                  spacing: 8,
+                  crossAxisAlignment: .end,
+                  children: [
+                    Expanded(
+                      child: switch (allowedType) {
+                        .password => FTextFormField(
+                          control: .managed(controller: data.controller),
+                          focusNode: _focusNode,
+                          label: buildCredentialLabel(data),
+                          minLines: 1,
+                          obscureText: true,
+                          validator: Validators.nonEmpty,
+                          autovalidateMode: .onUserInteraction,
+                        ),
+                        .key => FAutocomplete.builder(
+                          control: .managed(controller: data.controller),
+                          filter: (query) async {
+                            return keysFuture.on(
+                              onLoading: () => [],
+                              onData: (keys) {
+                                final values = keys.map(
+                                  (k) => AutocompleteUtils.toAutocompleteString(
+                                    k.id,
+                                    k.label,
+                                  ),
+                                );
+                                if (query.isEmpty) {
+                                  return values;
+                                }
+                                return values.where(
+                                  (v) => v.toLowerCase().contains(
+                                    query.toLowerCase(),
+                                  ),
+                                );
+                              },
+                            );
+                          },
+                          contentEmptyBuilder: (_, _) => GestureDetector(
+                            onTap: () async {
+                              final result = await Commons.showResponsiveDialog(
+                                context,
+                                (_) => CreateOrEditKeyView.create(
+                                  initialLabel: data.controller.text.isEmpty
+                                      ? null
+                                      : data.controller.text.trim(),
+                                ),
+                              );
+                              if (result != null) {
+                                _focusNode.unfocus();
+                                final newText =
+                                    AutocompleteUtils.toAutocompleteString(
+                                      result.$1,
+                                      result.$2,
+                                    );
+                                data.controller.text = newText;
+                              }
+                            },
+                            child: Padding(
+                              padding: const .symmetric(
+                                horizontal: 8,
+                                vertical: 14,
+                              ),
+                              child: Row(
+                                spacing: 4,
+                                mainAxisAlignment: .center,
+                                children: [
+                                  Icon(
+                                    LucideIcons.plus,
+                                    size: 16,
+                                    color: context.theme.colors.foreground,
+                                  ),
+                                  data.controller.text.isEmpty
+                                      ? Text('Create Key')
+                                      : Text(
+                                          'Create Key "${data.controller.text}"',
+                                        ),
+                                ],
+                              ),
+                            ),
                           ),
-                        );
-                        if (query.isEmpty) {
-                          return values;
-                        }
-                        return values.where(
-                          (v) => v.toLowerCase().contains(query.toLowerCase()),
-                        );
+                          contentBuilder: (context, text, suggestions) => [
+                            for (final suggestion in suggestions)
+                              FAutocompleteItem(
+                                prefix: Icon(LucideIcons.keyRound),
+                                title: Text(
+                                  AutocompleteUtils.fromAutocompleteString(
+                                        suggestion,
+                                      ).$2 ??
+                                      suggestion,
+                                ),
+                                value: suggestion,
+                              ),
+                          ],
+                          focusNode: _focusNode,
+                          label: buildCredentialLabel(data),
+                          minLines: 1,
+                          validator: (s) {
+                            final empty = Validators.nonEmpty(s);
+                            if (empty != null) {
+                              return empty;
+                            }
+                            final (
+                              id,
+                              label,
+                            ) = AutocompleteUtils.fromAutocompleteString(
+                              s ?? '',
+                            );
+                            if (id == null ||
+                                (keysFuture.hasData &&
+                                    !keysFuture.data!.any((k) => k.id == id))) {
+                              return 'Please select a valid key.';
+                            }
+                            return null;
+                          },
+                          autovalidateMode: .onUserInteraction,
+                        ),
                       },
-                    );
-                  },
-                  contentEmptyBuilder: (_, _) => GestureDetector(
-                    onTap: () async {
-                      final result = await Commons.showResponsiveDialog(
-                        context,
-                        (_) => CreateOrEditKeyView.create(
-                          initialLabel: data.controller.text.isEmpty
-                              ? null
-                              : data.controller.text.trim(),
-                        ),
-                      );
-                      if (result != null) {
-                        _focusNode.unfocus();
-                        final newText = AutocompleteUtils.toAutocompleteString(
-                          result.$1,
-                          result.$2,
-                        );
-                        data.controller.text = newText;
-                      }
-                    },
-                    child: Padding(
-                      padding: const .symmetric(horizontal: 8, vertical: 14),
-                      child: Row(
-                        spacing: 4,
-                        mainAxisAlignment: .center,
-                        children: [
-                          Icon(
-                            LucideIcons.plus,
-                            size: 16,
-                            color: context.theme.colors.foreground,
-                          ),
-                          data.controller.text.isEmpty
-                              ? Text('Create Key')
-                              : Text('Create Key "${data.controller.text}"'),
-                        ],
-                      ),
                     ),
-                  ),
-                  contentBuilder: (context, text, suggestions) => [
-                    for (final suggestion in suggestions)
-                      FAutocompleteItem(
-                        prefix: Icon(LucideIcons.keyRound),
-                        title: Text(
-                          AutocompleteUtils.fromAutocompleteString(
-                                suggestion,
-                              ).$2 ??
-                              suggestion,
-                        ),
-                        value: suggestion,
-                      ),
+                    FButton.icon(
+                      variant: .destructive,
+                      onPress: () {
+                        final updated = [...selectedCredentials]..removeAt(i);
+                        _selectedCredentials.value = updated;
+                      },
+                      child: const Icon(LucideIcons.trash, size: 16),
+                    ),
                   ],
-                  focusNode: _focusNode,
-                  label: buildCredentialLabel(data),
-                  minLines: 1,
-                  validator: (s) {
-                    final empty = Validators.nonEmpty(s);
-                    if (empty != null) {
-                      return empty;
-                    }
-                    final (id, label) =
-                        AutocompleteUtils.fromAutocompleteString(s ?? '');
-                    if (id == null ||
-                        (keysFuture.hasData &&
-                            !keysFuture.data!.any((k) => k.id == id))) {
-                      return 'Please select a valid key.';
-                    }
-                    return null;
-                  },
-                  autovalidateMode: .onUserInteraction,
                 ),
-              });
+              );
             }
 
             return children;
