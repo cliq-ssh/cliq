@@ -4,6 +4,7 @@ import app.cliq.backend.auth.jwt.JwtClaims
 import app.cliq.backend.auth.jwt.TokenPair
 import app.cliq.backend.auth.service.JwtService
 import app.cliq.backend.auth.service.RefreshTokenService
+import app.cliq.backend.oidc.factory.AuthExchangeFactory
 import app.cliq.backend.session.SessionRepository
 import app.cliq.backend.user.User
 import app.cliq.backend.user.service.UserOidcService
@@ -20,6 +21,7 @@ class OidcLoginSuccessHandler(
     private val jwtService: JwtService,
     private val refreshTokenService: RefreshTokenService,
     private val sessionRepository: SessionRepository,
+    private val authExchangeFactory: AuthExchangeFactory,
 ) : AuthenticationSuccessHandler {
     override fun onAuthenticationSuccess(
         request: HttpServletRequest,
@@ -29,9 +31,10 @@ class OidcLoginSuccessHandler(
         val oidcUSer = authentication.principal as OidcUser
         val user = userOidcService.putUserFromJwt(oidcUSer)
         val tokenPair = getTokenPairFromOidcUser(user, oidcUSer)
+        val authExchange = authExchangeFactory.createFromRequestAndSession(request, tokenPair)
 
         response.sendRedirect(
-            "cliq://oauth/callback?jwtAccessToken=${tokenPair.jwt.tokenValue}&refreshToken=${tokenPair.refreshToken}",
+            "cliq://oauth/callback?exchangeCode=${authExchange.exchangeCode}",
         )
     }
 
