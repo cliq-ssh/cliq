@@ -27,6 +27,7 @@ class ServerConfigResponseFactoryTests {
                     registration = true,
                     login = false,
                 ),
+            oidc = mock(),
         )
 
     private val factory =
