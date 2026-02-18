@@ -33,7 +33,8 @@ class AuthExchangeCleanUpTaskTests(
     private val clock: Clock,
 ) : AcceptanceTester() {
     private fun createAuthExchange(expiresAt: OffsetDateTime): AuthExchange {
-        val tokenPair = userCreationHelper.createRandomAuthenticatedUser()
+        val userCreationData = userCreationHelper.createRandomAuthenticatedUser()
+        val tokenPair = userCreationData.tokenPair
         val authExchange =
             authExchangeFactory.create(
                 ipAddress = "127.0.0.1",
