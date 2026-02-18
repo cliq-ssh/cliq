@@ -44,7 +44,7 @@ class LocalAuthController(
                 description = "Invalid input",
                 content = [Content()],
             ),
-            ApiResponse(responseCode = "403", description = "Registration has been disabled"),
+            ApiResponse(responseCode = "403", description = "Registration has been disabled", content = [Content()]),
         ],
     )
     fun register(

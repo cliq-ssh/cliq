@@ -5,6 +5,8 @@ import app.cliq.backend.auth.jwt.TokenPair
 import app.cliq.backend.auth.service.JwtService
 import app.cliq.backend.auth.service.RefreshTokenService
 import app.cliq.backend.config.security.oidc.OidcLoginSuccessHandler
+import app.cliq.backend.oidc.AuthExchange
+import app.cliq.backend.oidc.factory.AuthExchangeFactory
 import app.cliq.backend.session.Session
 import app.cliq.backend.session.SessionRepository
 import app.cliq.backend.user.User
@@ -14,13 +16,12 @@ import jakarta.servlet.http.HttpServletResponse
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
+import org.mockito.kotlin.argumentCaptor
 import org.mockito.kotlin.eq
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.never
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
-import org.springframework.mock.web.MockHttpServletRequest
-import org.springframework.mock.web.MockHttpServletResponse
 import org.springframework.security.core.Authentication
 import org.springframework.security.oauth2.core.oidc.OidcIdToken
 import org.springframework.security.oauth2.core.oidc.user.DefaultOidcUser
@@ -34,6 +35,7 @@ class OidcLoginSuccessHandlerTests {
     private val jwtService: JwtService = mock()
     private val refreshTokenService: RefreshTokenService = mock()
     private val sessionRepository: SessionRepository = mock()
+    private val authExchangeFactory: AuthExchangeFactory = mock()
 
     private val handler =
         OidcLoginSuccessHandler(
@@ -41,6 +43,7 @@ class OidcLoginSuccessHandlerTests {
             jwtService = jwtService,
             refreshTokenService = refreshTokenService,
             sessionRepository = sessionRepository,
+            authExchangeFactory = authExchangeFactory,
         )
 
     @Test
@@ -64,19 +67,25 @@ class OidcLoginSuccessHandlerTests {
             )
         whenever(jwtService.generateOidcJwtTokenPair(eq(user), eq(sid))).thenReturn(tokenPair)
 
-        val request: HttpServletRequest = MockHttpServletRequest()
-        val response: HttpServletResponse = MockHttpServletResponse()
+        val request: HttpServletRequest = mock()
+        val response: HttpServletResponse = mock()
+
+        val exchange: AuthExchange = mock()
+        whenever(exchange.exchangeCode).thenReturn("exchange-A")
+        whenever(authExchangeFactory.createFromRequestAndSession(eq(request), eq(tokenPair))).thenReturn(exchange)
 
         handler.onAuthenticationSuccess(request, response, authentication)
 
-        val redirectedUrl = (response as MockHttpServletResponse).redirectedUrl
+        val redirectCaptor = argumentCaptor<String>()
+        verify(response).sendRedirect(redirectCaptor.capture())
         assertEquals(
-            "cliq://oauth/callback?jwtAccessToken=access-A&refreshToken=refresh-A",
-            redirectedUrl,
+            "cliq://oauth/callback?exchangeCode=exchange-A",
+            redirectCaptor.firstValue,
         )
 
         verify(sessionRepository).findByOidcSessionId(eq(sid))
         verify(jwtService).generateOidcJwtTokenPair(eq(user), eq(sid))
+        verify(authExchangeFactory).createFromRequestAndSession(eq(request), eq(tokenPair))
         verify(refreshTokenService, never()).rotate(any())
     }
 
@@ -97,19 +106,25 @@ class OidcLoginSuccessHandlerTests {
         val rotated = TokenPair(jwt = jwt, refreshToken = "refresh-B", session = mock())
         whenever(refreshTokenService.rotate(eq(existingSession))).thenReturn(rotated)
 
-        val request: HttpServletRequest = MockHttpServletRequest()
-        val response: HttpServletResponse = MockHttpServletResponse()
+        val request: HttpServletRequest = mock()
+        val response: HttpServletResponse = mock()
+
+        val exchange: AuthExchange = mock()
+        whenever(exchange.exchangeCode).thenReturn("exchange-B")
+        whenever(authExchangeFactory.createFromRequestAndSession(eq(request), eq(rotated))).thenReturn(exchange)
 
         handler.onAuthenticationSuccess(request, response, authentication)
 
-        val redirectedUrl = (response as MockHttpServletResponse).redirectedUrl
+        val redirectCaptor = argumentCaptor<String>()
+        verify(response).sendRedirect(redirectCaptor.capture())
         assertEquals(
-            "cliq://oauth/callback?jwtAccessToken=access-B&refreshToken=refresh-B",
-            redirectedUrl,
+            "cliq://oauth/callback?exchangeCode=exchange-B",
+            redirectCaptor.firstValue,
         )
 
         verify(sessionRepository).findByOidcSessionId(eq(sid))
         verify(refreshTokenService).rotate(eq(existingSession))
+        verify(authExchangeFactory).createFromRequestAndSession(eq(request), eq(rotated))
         verify(jwtService, never()).generateOidcJwtTokenPair(any(), any())
     }
 

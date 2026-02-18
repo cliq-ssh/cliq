@@ -54,8 +54,12 @@ class SecurityConfig(
                     .requestMatchers("/api", "/api/openapi/**")
                     .permitAll()
                     // Auth endpoints
-                    .requestMatchers("/api/auth/login/*", "/api/auth/refresh", "/api/auth/register")
-                    .permitAll()
+                    .requestMatchers(
+                        "/api/auth/login/*",
+                        "/api/auth/refresh",
+                        "/api/auth/register",
+                        "/api/auth/oidc/exchange",
+                    ).permitAll()
                     // User endpoints
                     .requestMatchers("/api/user/password-reset/start", "/api/user/password-reset/reset")
                     .permitAll()
