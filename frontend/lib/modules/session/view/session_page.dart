@@ -3,7 +3,6 @@ import 'package:cliq/modules/connections/provider/connection.provider.dart';
 import 'package:cliq/modules/session/model/session.model.dart';
 import 'package:cliq/modules/settings/extension/custom_terminal_theme.extension.dart';
 import 'package:cliq/modules/settings/provider/terminal_theme.provider.dart';
-import 'package:cliq/shared/data/store.dart';
 import 'package:cliq/shared/provider/store.provider.dart';
 import 'package:cliq/shared/utils/commons.dart';
 import 'package:cliq_ui/cliq_ui.dart'
@@ -48,16 +47,17 @@ class _ShellSessionPageState extends ConsumerState<ShellSessionPage>
     final typography = context.theme.typography;
     final size = MediaQuery.of(context).size;
 
-    final terminalTypography = useStore(StoreKey.defaultTerminalTypography);
-    final terminalTheme = ref.watch(terminalThemeProvider);
+    final defaultTerminalTypography = useStore(.defaultTerminalTypography);
+    final defaultTerminalTheme = useStore(.defaultTerminalThemeId);
+    final themes = ref.watch(terminalThemeProvider);
 
     getEffectiveTerminalTypography() =>
         widget.session.connection.terminalTypographyOverride ??
-        terminalTypography.value;
+        defaultTerminalTypography.value;
 
     getEffectiveTerminalTheme() =>
         widget.session.connection.terminalThemeOverride ??
-        terminalTheme.effectiveActiveDefaultTheme;
+        themes.findById(defaultTerminalTheme.value)!;
 
     buildTerminalController() {
       // TODO: listen for onTitleChange and update tab title
@@ -138,7 +138,7 @@ class _ShellSessionPageState extends ConsumerState<ShellSessionPage>
       terminalController.value!.theme = getEffectiveTerminalTheme()
           .toTerminalTheme();
       return null;
-    }, [terminalTypography.value, terminalTheme]);
+    }, [defaultTerminalTypography.value, defaultTerminalTheme.value]);
 
     buildConnecting() {
       return [

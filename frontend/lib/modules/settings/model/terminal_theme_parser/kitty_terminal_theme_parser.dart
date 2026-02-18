@@ -92,8 +92,9 @@ class KittyTerminalThemeParser extends AbstractTerminalThemeParser {
           final color = ColorExtension.fromHex(
             line.trim().substring(field.length).trim(),
           );
-          if (color == null)
+          if (color == null) {
             return null; // simply return if we fail to parse a color, we can assume the whole theme is invalid
+          }
           colorMap[field] = color;
         }
       }

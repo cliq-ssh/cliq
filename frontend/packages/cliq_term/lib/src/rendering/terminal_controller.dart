@@ -212,10 +212,10 @@ class TerminalController extends ChangeNotifier {
   void startCursorBlink() {
     _cursorTimer?.cancel();
     cursorVisible = true;
-    _cursorTimer = Timer.periodic(cursorBlinkInterval, (_) {
-      cursorVisible = !cursorVisible;
-      notifyListeners();
-    });
+    //_cursorTimer = Timer.periodic(cursorBlinkInterval, (_) {
+    //  cursorVisible = !cursorVisible;
+    //  notifyListeners();
+    //});
   }
 
   /// Stops the cursor blinking timer.

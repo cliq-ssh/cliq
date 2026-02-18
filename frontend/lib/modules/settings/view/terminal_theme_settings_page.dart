@@ -5,7 +5,6 @@ import 'package:cliq/shared/ui/terminal_font_size_slider.dart';
 import 'package:cliq/modules/settings/ui/terminal_theme_card.dart';
 import 'package:cliq/modules/settings/view/abstract_settings_page.dart';
 import 'package:cliq/modules/settings/view/settings_page.dart';
-import 'package:cliq/shared/data/database.dart';
 import 'package:cliq/shared/data/store.dart';
 import 'package:cliq/shared/utils/commons.dart';
 import 'package:cliq_term/cliq_term.dart';
@@ -71,16 +70,18 @@ class TerminalThemeSettingsPage extends AbstractSettingsPage {
           TerminalFontFamilySelect.fonts.first,
     );
     final selectedFontSize = useState<int>(
-      StoreKey.defaultTerminalTypography.readSync()?.fontSize ?? 16,
+      StoreKey.defaultTerminalTypography.readSync()!.fontSize,
     );
-    final selectedColors = useState<CustomTerminalTheme>(
-      terminalThemes.effectiveActiveDefaultTheme,
+    final selectedThemeId = useState<int>(
+      StoreKey.defaultTerminalThemeId.readSync()!,
     );
+
+    getSelectedTheme() => terminalThemes.findById(selectedThemeId.value)!;
 
     // init controller
     useEffect(() {
       terminalController.value = TerminalController(
-        theme: selectedColors.value.toTerminalTheme(),
+        theme: getSelectedTheme().toTerminalTheme(),
         typography: TerminalTypography(
           fontFamily: selectedFontFamily.value,
           fontSize: selectedFontSize.value,
@@ -105,10 +106,10 @@ class TerminalThemeSettingsPage extends AbstractSettingsPage {
     // update colors on theme change
     useEffect(() {
       if (terminalController.value == null) return null;
-      terminalController.value!.theme = selectedColors.value.toTerminalTheme();
-      StoreKey.defaultTerminalThemeId.write(selectedColors.value.id);
+      terminalController.value!.theme = getSelectedTheme().toTerminalTheme();
+      StoreKey.defaultTerminalThemeId.write(selectedThemeId.value);
       return null;
-    }, [selectedColors.value]);
+    }, [selectedThemeId.value]);
 
     create() => Commons.showResponsiveDialog(
       (_) => CreateOrEditTerminalThemeView.create(),
@@ -129,7 +130,7 @@ class TerminalThemeSettingsPage extends AbstractSettingsPage {
                         width: double.infinity,
                         height: 200,
                         padding: const .all(8),
-                        color: selectedColors.value.backgroundColor,
+                        color: getSelectedTheme().backgroundColor,
                         child: LayoutBuilder(
                           builder: (_, constraints) {
                             WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -214,18 +215,18 @@ class TerminalThemeSettingsPage extends AbstractSettingsPage {
                             ...terminalThemes.entities,
                           ])
                             TerminalThemeCard(
-                              onTap: () => selectedColors.value = theme,
-                              isSelected: selectedColors.value.id == theme.id,
+                              onTap: () => selectedThemeId.value = theme.id,
+                              isSelected: selectedThemeId.value == theme.id,
                               theme: theme,
                               onEdit: () {
-                                if (selectedColors.value.id == theme.id) {
-                                  selectedColors.value = theme;
+                                if (selectedThemeId.value == theme.id) {
+                                  selectedThemeId.value = theme.id;
                                 }
                               },
                               onDelete: () {
-                                if (selectedColors.value.id == theme.id) {
-                                  selectedColors.value =
-                                      defaultTerminalColorTheme;
+                                if (selectedThemeId.value == theme.id) {
+                                  selectedThemeId.value =
+                                      defaultTerminalColorTheme.id;
                                 }
                               },
                             ),
