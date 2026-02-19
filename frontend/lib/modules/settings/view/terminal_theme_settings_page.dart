@@ -98,7 +98,7 @@ class TerminalThemeSettingsPage extends AbstractSettingsPage {
         fontFamily: selectedFontFamily.value,
         fontSize: selectedFontSize.value,
       );
-      terminalController.value!.typography = typography;
+      terminalController.value!.setTerminalTypography(typography);
       StoreKey.defaultTerminalTypography.write(typography);
       return null;
     }, [selectedFontFamily.value, selectedFontSize.value]);
@@ -106,7 +106,7 @@ class TerminalThemeSettingsPage extends AbstractSettingsPage {
     // update colors on theme change
     useEffect(() {
       if (terminalController.value == null) return null;
-      terminalController.value!.theme = getSelectedTheme().toTerminalTheme();
+      terminalController.value!.setTerminalTheme(getSelectedTheme().toTerminalTheme());
       StoreKey.defaultTerminalThemeId.write(selectedThemeId.value);
       return null;
     }, [selectedThemeId.value]);

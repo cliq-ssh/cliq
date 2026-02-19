@@ -21,8 +21,8 @@ class TerminalController extends ChangeNotifier {
   final void Function(String)? onTitleChange;
   final void Function()? onBell;
   void Function(String)? onInput;
-  TerminalTypography typography;
-  TerminalTheme theme;
+  TerminalTypography _typography;
+  TerminalTheme _theme;
 
   late TerminalBuffer front = TerminalBuffer(
     rows: rows,
@@ -52,8 +52,8 @@ class TerminalController extends ChangeNotifier {
   Timer? _cursorTimer;
 
   TerminalController({
-    required this.typography,
-    required this.theme,
+    required TerminalTypography typography,
+    required TerminalTheme theme,
     this.cursorBlinkInterval = const Duration(milliseconds: 600),
     this.maxScrollbackLines = 1000,
     this.debugLogging = false,
@@ -63,8 +63,11 @@ class TerminalController extends ChangeNotifier {
     this.onBell,
     this.rows = 0,
     this.cols = 0,
-  });
+  }) : _typography = typography,
+       _theme = theme;
 
+  TerminalTheme get theme => _theme;
+  TerminalTypography get typography => _typography;
   TerminalBuffer get activeBuffer => backBufferActive ? back : front;
   int get totalRows => front.currentScrollback + rows;
 
@@ -148,6 +151,16 @@ class TerminalController extends ChangeNotifier {
       front.restoreCursor();
     }
 
+    notifyListeners();
+  }
+
+  void setTerminalTheme(TerminalTheme theme) {
+    _theme = theme;
+    notifyListeners();
+  }
+
+  void setTerminalTypography(TerminalTypography newTypography) {
+    _typography = newTypography;
     notifyListeners();
   }
 
