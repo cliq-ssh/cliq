@@ -25,45 +25,36 @@ class ConnectionCard extends HookConsumerWidget {
     final primaryPopoverController = useFPopoverController();
     final secondaryPopoverController = useFPopoverController();
 
-    connect() => ref
-        .read(sessionProvider.notifier)
-        .createAndGo(NavigationShell.of(context), connection);
+    connect() async {
+      await primaryPopoverController.hide();
+      await secondaryPopoverController.hide();
+      if (!context.mounted) return;
+      return ref
+          .read(sessionProvider.notifier)
+          .createAndGo(NavigationShell.of(context), connection);
+    }
 
-    edit() => Commons.showResponsiveDialog(
-      context,
-      (_) => CreateOrEditConnectionView.edit(connection),
-    );
+    edit() async {
+      await primaryPopoverController.hide();
+      await secondaryPopoverController.hide();
+      return Commons.showResponsiveDialog(
+        (_) => CreateOrEditConnectionView.edit(connection),
+      );
+    }
 
-    delete() => showFDialog(
-      context: context,
-      builder: (context, style, animation) => FDialog(
-        style: style,
-        animation: animation,
-        direction: Axis.horizontal,
-        title: const Text('Are you sure?'),
-        body: Text(
-          'Are you sure you want to delete ${connection.label}? This action cannot be undone.',
-        ),
-        actions: [
-          FButton(
-            variant: .outline,
-            child: const Text('Cancel'),
-            onPress: () => Navigator.of(context).pop(),
-          ),
-          FButton(
-            variant: .destructive,
-            child: const Text('Delete'),
-            onPress: () {
-              CliqDatabase.connectionService.deleteById(
-                connection.id,
-                connection.credentialIds,
-              );
-              Navigator.of(context).pop();
-            },
-          ),
-        ],
-      ),
-    );
+    delete() async {
+      await primaryPopoverController.hide();
+      await secondaryPopoverController.hide();
+      return Commons.showDeleteDialog(
+        entity: connection.label,
+        onDelete: () {
+          CliqDatabase.connectionService.deleteById(
+            connection.id,
+            connection.credentialIds,
+          );
+        },
+      );
+    }
 
     buildPopoverMenu({
       required FPopoverController controller,

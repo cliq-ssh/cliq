@@ -92,6 +92,7 @@ class CreateOrEditConnectionView extends HookConsumerWidget {
     final usernameFocusNode = useFocusNode();
 
     final defaultTerminalTypography = useStore(.defaultTerminalTypography);
+    final defaultTerminalThemeId = useStore(.defaultTerminalThemeId);
     final identities = ref.watch(identityProvider);
     final terminalThemes = ref.watch(terminalThemeProvider);
     final expandedAccordionItem = useState<int?>(null);
@@ -445,18 +446,16 @@ class CreateOrEditConnectionView extends HookConsumerWidget {
                 control: .managed(
                   initial:
                       selectedTerminalThemeId.value ??
-                      terminalThemes.activeDefaultThemeId,
+                      defaultTerminalThemeId.value,
+                  onChange: (selected) {
+                    if (selected == defaultTerminalThemeId.value) {
+                      selected = null;
+                    }
+
+                    selectedTerminalThemeId.value = selected;
+                  },
                 ),
                 label: Text('Terminal Theme'),
-                onSaved: (selected) {
-                  // if selected is default, set to null
-                  if (selected == terminalThemes.activeDefaultThemeId) {
-                    selected = null;
-                    return;
-                  }
-
-                  selectedTerminalThemeId.value = selected;
-                },
                 children: [
                   for (final theme in [
                     defaultTerminalColorTheme,
@@ -496,7 +495,7 @@ class CreateOrEditConnectionView extends HookConsumerWidget {
 
     return FScaffold(
       child: SingleChildScrollView(
-        padding: const .only(left: 32, right: 32, top: 16),
+        padding: const .symmetric(horizontal: 32, vertical: 20),
         child: Column(
           children: [
             Row(
@@ -647,7 +646,7 @@ class CreateOrEditConnectionView extends HookConsumerWidget {
               ),
             ),
 
-            const SizedBox(height: 12),
+            const SizedBox(height: 40),
 
             SizedBox(
               width: double.infinity,

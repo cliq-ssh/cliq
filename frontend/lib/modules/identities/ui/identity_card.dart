@@ -4,6 +4,7 @@ import 'package:cliq/shared/data/database.dart';
 import 'package:cliq/shared/utils/commons.dart';
 import 'package:flutter/material.dart';
 import 'package:forui/forui.dart';
+import 'package:forui_hooks/forui_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lucide_flutter/lucide_flutter.dart';
 
@@ -14,6 +15,28 @@ class IdentityCard extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final popoverController = useFPopoverController();
+
+    edit() async {
+      await popoverController.hide();
+      return Commons.showResponsiveDialog(
+        (_) => CreateOrEditIdentityView.edit(identity),
+      );
+    }
+
+    delete() async {
+      await popoverController.hide();
+      return Commons.showDeleteDialog(
+        entity: identity.label,
+        onDelete: () {
+          CliqDatabase.identityService.deleteById(
+            identity.id,
+            identity.credentialIds,
+          );
+        },
+      );
+    }
+
     return FCard(
       title: Row(
         spacing: 8,
@@ -63,50 +86,19 @@ class IdentityCard extends HookConsumerWidget {
             ),
           ),
           FPopoverMenu(
+            control: .managed(controller: popoverController),
             menu: [
               FItemGroup(
                 children: [
                   FItem(
                     prefix: Icon(LucideIcons.pencil),
                     title: Text('Edit'),
-                    onPress: () => Commons.showResponsiveDialog(
-                      context,
-                      (_) => CreateOrEditIdentityView.edit(identity),
-                    ),
+                    onPress: edit,
                   ),
                   FItem(
                     prefix: Icon(LucideIcons.trash),
                     title: Text('Delete'),
-                    onPress: () => showFDialog(
-                      context: context,
-                      builder: (context, style, animation) => FDialog(
-                        style: style,
-                        animation: animation,
-                        direction: Axis.horizontal,
-                        title: const Text('Are you sure?'),
-                        body: Text(
-                          'Are you sure you want to delete ${identity.label}? This action cannot be undone.',
-                        ),
-                        actions: [
-                          FButton(
-                            variant: .outline,
-                            child: const Text('Cancel'),
-                            onPress: () => Navigator.of(context).pop(),
-                          ),
-                          FButton(
-                            variant: .destructive,
-                            child: const Text('Delete'),
-                            onPress: () {
-                              CliqDatabase.identityService.deleteById(
-                                identity.id,
-                                identity.credentialIds,
-                              );
-                              Navigator.of(context).pop();
-                            },
-                          ),
-                        ],
-                      ),
-                    ),
+                    onPress: delete,
                   ),
                 ],
               ),

@@ -45,12 +45,13 @@ class NavigationShellState extends ConsumerState<NavigationShell>
   Widget build(BuildContext context) {
     final breakpoint = useBreakpoint();
     final prefDesktopNavPosition = useStore(.desktopNavigationPosition);
+    final defaultTerminalTheme = useStore(.defaultTerminalThemeId);
     final navPosition = useState<NavigationPosition>(
       breakpoint >= .lg ? prefDesktopNavPosition.value : .top,
     );
     final connections = ref.watch(connectionProvider);
     final sessions = ref.watch(sessionProvider);
-    final terminalTheme = ref.watch(terminalThemeProvider);
+    final terminalThemes = ref.watch(terminalThemeProvider);
     final selectedSession = useState(sessions.selectedSession);
     final showTabs = useState(false);
 
@@ -73,7 +74,7 @@ class NavigationShellState extends ConsumerState<NavigationShell>
           selectedSession.value!.isConnected) {
         final hsl = HSLColor.fromColor(
           (selectedSession.value!.connection.terminalThemeOverride ??
-                  terminalTheme.effectiveActiveDefaultTheme)
+                  terminalThemes.findById(defaultTerminalTheme.value)!)
               .backgroundColor,
         );
         return hsl
@@ -366,6 +367,8 @@ class NavigationShellState extends ConsumerState<NavigationShell>
     bool isTop = false,
     bool noPadding = false,
   }) {
+    // TODO: if color of session tab page is too similar, add border
+
     Widget child = FSidebarItem(
       style: .delta(
         backgroundColor: .delta([

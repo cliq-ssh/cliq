@@ -38,7 +38,7 @@ class CustomContextMenu extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final managedPopoverController = useFPopoverController();
 
-    if (PlatformUtils.isMobile) {
+    if (PlatformUtils.isMobile || actions.isEmpty) {
       return builder(context);
     }
 
