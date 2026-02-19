@@ -11,6 +11,7 @@ import app.cliq.backend.session.Session
 import app.cliq.backend.session.SessionRepository
 import app.cliq.backend.user.User
 import app.cliq.backend.user.service.UserOidcService
+import app.cliq.backend.utils.CliqUrlUtils
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -44,6 +45,7 @@ class OidcLoginSuccessHandlerTests {
             refreshTokenService = refreshTokenService,
             sessionRepository = sessionRepository,
             authExchangeFactory = authExchangeFactory,
+            cliqUrlUtils = CliqUrlUtils(),
         )
 
     @Test
