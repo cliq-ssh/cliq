@@ -4,7 +4,7 @@ services:
     command:
       - start-dev
       - --import-realm
-    image: 'quay.io/keycloak/keycloak:26.5.3'
+    image: 'quay.io/keycloak/keycloak:26.5.4'
     init: true
     extra_hosts:
       - "host.docker.internal:host-gateway"
