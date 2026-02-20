@@ -6,6 +6,7 @@ import org.springframework.stereotype.Service
 
 const val RATE_LIMIT_CACHE_NAME = "rate-limit-buckets"
 
+@RateLimiterFeature
 @Service
 class RateLimiter(
     private val bucketService: BucketService,

@@ -2,10 +2,11 @@ package app.cliq.backend.acceptance.auth.local
 
 import app.cliq.backend.acceptance.AcceptanceTest
 import app.cliq.backend.acceptance.AcceptanceTester
-import app.cliq.backend.auth.params.LoginParams
 import app.cliq.backend.auth.params.RegistrationParams
+import app.cliq.backend.constants.DEFAULT_DATA_ENCRYPTION_KEY
+import app.cliq.backend.constants.DEFAULT_SRP_SALT
+import app.cliq.backend.constants.DEFAULT_SRP_VERIFIER
 import app.cliq.backend.constants.EXAMPLE_EMAIL
-import app.cliq.backend.constants.EXAMPLE_PASSWORD
 import app.cliq.backend.constants.EXAMPLE_USERNAME
 import app.cliq.backend.user.UserRepository
 import app.cliq.backend.user.view.UserResponse
@@ -33,14 +34,15 @@ class LocalRegistrationTests(
     @Test
     fun `test normal registration flow`() {
         val email = EXAMPLE_EMAIL
-        val password = EXAMPLE_PASSWORD
         val username = EXAMPLE_USERNAME
 
         val registrationParams =
             RegistrationParams(
                 email = email,
-                password = password,
                 username = username,
+                DEFAULT_DATA_ENCRYPTION_KEY,
+                DEFAULT_SRP_SALT,
+                DEFAULT_SRP_VERIFIER,
             )
 
         val result =
@@ -75,56 +77,17 @@ class LocalRegistrationTests(
     }
 
     @Test
-    fun `test user can login after registration`() {
-        val email = EXAMPLE_EMAIL
-        val password = EXAMPLE_PASSWORD
-        val username = EXAMPLE_USERNAME
-
-        val registrationParams =
-            RegistrationParams(
-                email = email,
-                password = password,
-                username = username,
-            )
-
-        mockMvc
-            .perform(
-                MockMvcRequestBuilders
-                    .post("/api/auth/register")
-                    .contentType(MediaType.APPLICATION_JSON_VALUE)
-                    .content(objectMapper.writeValueAsString(registrationParams)),
-            ).andExpect(MockMvcResultMatchers.status().isCreated)
-
-        // Login
-
-        val sessionName = "Test Session"
-        val loginParams =
-            LoginParams(
-                email = EXAMPLE_EMAIL,
-                password = EXAMPLE_PASSWORD,
-                name = sessionName,
-            )
-
-        mockMvc
-            .perform(
-                MockMvcRequestBuilders
-                    .post("/api/auth/login")
-                    .contentType(MediaType.APPLICATION_JSON_VALUE)
-                    .content(objectMapper.writeValueAsString(loginParams)),
-            ).andExpect(MockMvcResultMatchers.status().isOk)
-    }
-
-    @Test
     fun `test registration with existing email`() {
         val email = EXAMPLE_EMAIL
-        val password = EXAMPLE_PASSWORD
         val username = EXAMPLE_USERNAME
 
         val registrationParams =
             RegistrationParams(
                 email = email,
-                password = password,
                 username = username,
+                DEFAULT_DATA_ENCRYPTION_KEY,
+                DEFAULT_SRP_SALT,
+                DEFAULT_SRP_VERIFIER,
             )
 
         // First registration should succeed
