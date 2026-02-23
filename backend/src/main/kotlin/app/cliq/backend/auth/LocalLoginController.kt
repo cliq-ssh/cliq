@@ -113,7 +113,7 @@ class LocalLoginController(
 
         val tokenPair = jwtService.generateJwtTokenPair(loginFinishParams, user)
         val tokenResponse = TokenResponse.fromTokenPair(tokenPair)
-        val loginResponse = LoginFinishResponse(publicM2, tokenResponse)
+        val loginResponse = LoginFinishResponse(publicM2, tokenResponse, user.dataEncryptionKey)
 
         return ResponseEntity.ok(loginResponse)
     }

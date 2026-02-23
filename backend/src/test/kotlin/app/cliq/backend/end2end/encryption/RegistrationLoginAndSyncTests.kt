@@ -1,4 +1,4 @@
-package app.cliq.backend.end2end
+package app.cliq.backend.end2end.encryption
 
 import app.cliq.backend.auth.params.RefreshParams
 import app.cliq.backend.auth.params.RegistrationParams
@@ -11,6 +11,8 @@ import app.cliq.backend.auth.view.login.LoginStartResponse
 import app.cliq.backend.constants.DEFAULT_PASSWORD
 import app.cliq.backend.constants.EXAMPLE_EMAIL
 import app.cliq.backend.constants.EXAMPLE_USERNAME
+import app.cliq.backend.end2end.End2EndTest
+import app.cliq.backend.end2end.End2EndTester
 import app.cliq.backend.support.encryption.EncryptionHelper
 import app.cliq.backend.support.encryption.KeyAndHashHelper
 import app.cliq.backend.user.view.UserResponse
@@ -64,8 +66,8 @@ class RegistrationLoginAndSyncTests(
 
         // Encrypt DEK with UMK
         val encryptedDek =
-            encryptionHelper.encryptDeviceEncryptionKeyWithUserMasterKey(dataEncryptionKey, userMasterKey)
-        val encryptedDekString = Base64.getEncoder().encodeToString(encryptedDek.ciphertext)
+            encryptionHelper.encryptDataWithKey(dataEncryptionKey, userMasterKey)
+        val encryptedDekString = Base64.getEncoder().encodeToString(encryptedDek)
 
         // umk should be "dropped" here, only salt should be saved for later use in login
 
@@ -79,7 +81,7 @@ class RegistrationLoginAndSyncTests(
                 deviceKeyPair,
             )
         val encryptedDekWithDeviceKeyPairString =
-            Base64.getEncoder().encodeToString(encryptedDekWithDeviceKeyPair.ciphertext)
+            Base64.getEncoder().encodeToString(encryptedDekWithDeviceKeyPair)
 
         val srpSaltBigInteger = BigIntegerUtils.bigIntegerFromBytes(salt)
         // Generate SRP Verifier

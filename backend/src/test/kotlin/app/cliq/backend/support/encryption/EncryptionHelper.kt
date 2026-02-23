@@ -17,19 +17,16 @@ class EncryptionHelper(
     ): EncryptionData {
         val userMasterKey = keyAndHashHelper.generateUserMasterKey(password, salt)
 
-        val deviceKeyPair = keyAndHashHelper.generateX25519KeyPair()
-
         val dataEncryptionKey = keyAndHashHelper.generateDataEncryptionKey()
-
-        val encryptedDek = encryptDataEncryptionKeyWithDeviceEncryptionKeyPair(dataEncryptionKey, deviceKeyPair)
-        val encryptedAndEncodedDek = Base64.getEncoder().encodeToString(encryptedDek.ciphertext)
+        val encryptedDataEncryptionKey = encryptDataWithKey(dataEncryptionKey, userMasterKey)
+        val encryptedAndEncodedDataEncryptionKey = Base64.getEncoder().encodeToString(encryptedDataEncryptionKey)
 
         return EncryptionData(
             userMasterKey,
             DataEncryptionKey(
                 dataEncryptionKey,
-                encryptedDek,
-                encryptedAndEncodedDek,
+                encryptedDataEncryptionKey,
+                encryptedAndEncodedDataEncryptionKey,
             ),
         )
     }
@@ -42,7 +39,7 @@ class EncryptionHelper(
                 deviceEncryptionKeyPair,
             )
         val encryptedAndEncodedDataEncryptionKey =
-            Base64.getEncoder().encodeToString(encryptedDataEncryptionKey.ciphertext)
+            Base64.getEncoder().encodeToString(encryptedDataEncryptionKey)
         val deviceEncryptionKey =
             DeviceEncryptionKey(
                 deviceEncryptionKeyPair,
@@ -58,10 +55,27 @@ class EncryptionHelper(
         )
     }
 
-    fun encryptDeviceEncryptionKeyWithUserMasterKey(
+    fun decryptDataWithKey(
+        encryptedDek: ByteArray,
+        userMasterKey: ByteArray,
+    ): ByteArray {
+        val cipher = Cipher.getInstance("AES/GCM/NoPadding")
+
+        val nonce = encryptedDek.copyOfRange(0, 12)
+        val ciphertext = encryptedDek.copyOfRange(12, encryptedDek.size)
+
+        val keySpec = SecretKeySpec(userMasterKey, "AES")
+        val gcmSpec = GCMParameterSpec(128, nonce)
+
+        cipher.init(Cipher.DECRYPT_MODE, keySpec, gcmSpec)
+
+        return cipher.doFinal(ciphertext)
+    }
+
+    fun encryptDataWithKey(
         dek: ByteArray,
         umk: ByteArray,
-    ): EncryptedKey {
+    ): ByteArray {
         val cipher = Cipher.getInstance("AES/GCM/NoPadding")
 
         val nonce = ByteArray(12)
@@ -74,14 +88,13 @@ class EncryptionHelper(
 
         val ciphertext = cipher.doFinal(dek)
 
-        return EncryptedKey(
-            nonce = nonce,
-            ciphertext = ciphertext,
-        )
+        val encryptedData = nonce + ciphertext
+
+        return encryptedData
     }
 
     fun encryptDataEncryptionKeyWithDeviceEncryptionKeyPair(
         dataEncryptionKey: ByteArray,
         deviceKeyPair: Pair<ByteArray, ByteArray>,
-    ): EncryptedKey = encryptDeviceEncryptionKeyWithUserMasterKey(dataEncryptionKey, deviceKeyPair.second)
+    ): ByteArray = encryptDataWithKey(dataEncryptionKey, deviceKeyPair.second)
 }

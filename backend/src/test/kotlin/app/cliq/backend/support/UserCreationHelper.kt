@@ -100,8 +100,16 @@ class UserCreationHelper(
         locale: String = DEFAULT_LOCALE,
     ): UserCreationData {
         val srpData = srpHelper.createSrpData(email, password)
+        val encryptionData = encryptionHelper.createEncryptionData(password, srpData.salt.salt)
         val params =
-            RegistrationParams(email, password, username, srpData.salt.encoded, srpData.verifier.encoded, locale)
+            RegistrationParams(
+                email,
+                username,
+                encryptionData.dataEncryptionKey.encryptedAndEncodedDataEncryptionKey,
+                srpData.salt.encoded,
+                srpData.verifier.encoded,
+                locale,
+            )
         var user = userFactory.createFromRegistrationParams(params)
 
         await.atMost(Duration.ofSeconds(5)).untilAsserted {
@@ -127,8 +135,6 @@ class UserCreationHelper(
             user.emailVerifiedAt = null
             user = userRepository.saveAndFlush(user)
         }
-
-        val encryptionData = encryptionHelper.createEncryptionData(password, srpData.salt.salt)
 
         return UserCreationData(
             user,

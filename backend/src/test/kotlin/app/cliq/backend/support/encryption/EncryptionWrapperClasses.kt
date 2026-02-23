@@ -5,14 +5,9 @@ data class EncryptionData(
     val dataEncryptionKey: DataEncryptionKey,
 )
 
-data class EncryptedKey(
-    val nonce: ByteArray,
-    val ciphertext: ByteArray,
-)
-
 data class DataEncryptionKey(
     val value: ByteArray,
-    val encryptedDataEncryptionKey: EncryptedKey,
+    val encryptedDataEncryptionKey: ByteArray,
     val encryptedAndEncodedDataEncryptionKey: String,
 )
 
