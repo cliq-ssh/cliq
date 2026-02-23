@@ -1,9 +1,9 @@
-package app.cliq.backend.oidc.factory
+package app.cliq.backend.auth.factory
 
+import app.cliq.backend.auth.AuthExchange
+import app.cliq.backend.auth.AuthExchangeRepository
 import app.cliq.backend.auth.jwt.TokenPair
 import app.cliq.backend.config.properties.AuthProperties
-import app.cliq.backend.oidc.AuthExchange
-import app.cliq.backend.oidc.AuthExchangeRepository
 import app.cliq.backend.session.Session
 import app.cliq.backend.utils.TokenGenerator
 import jakarta.servlet.http.HttpServletRequest
@@ -34,7 +34,7 @@ class AuthExchangeFactory(
         val token = tokenGenerator.generateAuthExchangeCode()
         val inetAddress = InetAddress.ofLiteral(ipAddress)
         val now = OffsetDateTime.now(clock)
-        val expiresAt = now.plusSeconds(authProperties.oidc.authExchangeDurationSeconds)
+        val expiresAt = now.plusSeconds(authProperties.authExchangeDurationSeconds)
 
         val exchange =
             AuthExchange(

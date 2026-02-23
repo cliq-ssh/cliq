@@ -1,6 +1,6 @@
-package app.cliq.backend.oidc.tasks
+package app.cliq.backend.auth.tasks
 
-import app.cliq.backend.oidc.AuthExchangeRepository
+import app.cliq.backend.auth.AuthExchangeRepository
 import app.cliq.backend.session.SessionRepository
 import org.slf4j.LoggerFactory
 import org.springframework.scheduling.annotation.Scheduled

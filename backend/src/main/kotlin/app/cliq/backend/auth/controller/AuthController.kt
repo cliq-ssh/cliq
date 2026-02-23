@@ -1,4 +1,4 @@
-package app.cliq.backend.auth
+package app.cliq.backend.auth.controller
 
 import app.cliq.backend.auth.annotation.AuthController
 import app.cliq.backend.session.Session

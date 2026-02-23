@@ -1,4 +1,4 @@
-package app.cliq.backend.oidc
+package app.cliq.backend.auth
 
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.data.jpa.repository.Query

@@ -2,10 +2,10 @@ package app.cliq.backend.acceptance.oidc
 
 import app.cliq.backend.acceptance.AcceptanceTest
 import app.cliq.backend.acceptance.AcceptanceTester
-import app.cliq.backend.oidc.AuthExchange
-import app.cliq.backend.oidc.AuthExchangeRepository
-import app.cliq.backend.oidc.factory.AuthExchangeFactory
-import app.cliq.backend.oidc.tasks.AuthExchangeCleanUpTask
+import app.cliq.backend.auth.AuthExchange
+import app.cliq.backend.auth.AuthExchangeRepository
+import app.cliq.backend.auth.factory.AuthExchangeFactory
+import app.cliq.backend.auth.tasks.AuthExchangeCleanUpTask
 import app.cliq.backend.session.SessionRepository
 import app.cliq.backend.support.UserCreationHelper
 import org.assertj.core.api.Assertions

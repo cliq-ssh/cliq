@@ -1,4 +1,4 @@
-package app.cliq.backend.oidc
+package app.cliq.backend.auth
 
 import app.cliq.backend.session.Session
 import jakarta.persistence.Column
@@ -7,6 +7,7 @@ import jakarta.persistence.FetchType
 import jakarta.persistence.GeneratedValue
 import jakarta.persistence.GenerationType
 import jakarta.persistence.Id
+import jakarta.persistence.Index
 import jakarta.persistence.JoinColumn
 import jakarta.persistence.OneToOne
 import jakarta.persistence.Table
@@ -14,7 +15,12 @@ import java.net.InetAddress
 import java.time.OffsetDateTime
 
 @Entity
-@Table(name = "oidc_auth_exchanges")
+@Table(
+    name = "auth_exchanges",
+    indexes = [
+        Index(name = "idx_auth_exchanges_exchange_code", columnList = "exchange_code"),
+    ],
+)
 class AuthExchange(
     @OneToOne(fetch = FetchType.EAGER)
     @JoinColumn(nullable = false, unique = true)

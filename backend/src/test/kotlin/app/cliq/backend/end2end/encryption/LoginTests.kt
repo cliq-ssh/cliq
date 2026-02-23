@@ -97,7 +97,7 @@ class LoginTests(
 
         // Verify Server Response
         val step3BigInteger = BigIntegerUtils.fromHex(loginFinishResponse.publicM2)
-        // If it throws the Server is not trust worthy
+        // If it throws, the Server is not trustworthy
         assertDoesNotThrow { srpClientSession.step3(step3BigInteger) }
 
         // Authentication successfully

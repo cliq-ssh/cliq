@@ -9,11 +9,10 @@ app:
     from-address: \${MAIL_FROM:null}
     from-name: \${MAIL_FROM_NAME:null}
   auth:
+    auth-exchange-duration-seconds: \${OIDC_AUTH_EXCHANGE_DURATION_SECONDS:60}
     local:
       registration: \${ENABLE_LOCAL_REGISTRATION:true}
       login: \${ENABLE_LOCAL_LOGIN:true}
-    oidc:
-      auth-exchange-duration-seconds: \${OIDC_AUTH_EXCHANGE_DURATION_SECONDS:60}
   oidc:
     issuer-uri: \${OIDC_ISSUER_URI:}
     client-id: \${OIDC_CLIENT_ID:}
@@ -26,12 +25,16 @@ app:
   rate-limits:
     enabled: \${RATE_LIMITS_ENABLED:true}
     routes:
-      - name: login
+      - name: login-start
         url: /api/auth/login/start
         target: IP
         requests-per-minute: 5
-      - name: login
+      - name: login-finish
         url: /api/auth/login/finish
+        target: IP
+        requests-per-minute: 5
+      - name: exchange
+        url: /api/auth/exchange
         target: IP
         requests-per-minute: 5
       - name: refresh

@@ -41,7 +41,7 @@ CREATE INDEX idx_sessions_user_id ON sessions (user_id);
 CREATE INDEX idx_sessions_oidc_session_id ON sessions (oidc_session_id);
 CREATE INDEX idx_sessions_refresh_token ON sessions (refresh_token);
 
-CREATE TABLE oidc_auth_exchanges
+CREATE TABLE auth_exchanges
 (
     "id"            BIGINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
     "session_id"    BIGINT REFERENCES sessions (id) ON DELETE CASCADE NOT NULL UNIQUE,
@@ -52,6 +52,8 @@ CREATE TABLE oidc_auth_exchanges
     "created_at"    timestamp with time zone                          NOT NULL,
     "expires_at"    timestamp with time zone                          NOT NULL
 );
+
+CREATE INDEX idx_auth_exchanges_exchange_code ON auth_exchanges (exchange_code);
 
 -- ############################################################
 -- #                                                          #

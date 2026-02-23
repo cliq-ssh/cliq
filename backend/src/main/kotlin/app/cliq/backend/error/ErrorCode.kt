@@ -33,7 +33,7 @@ data class ErrorCode private constructor(
         val REFRESH_TOKEN_EXPIRED = of(2103U, "Refresh token is expired")
         val INVALID_CREDENTIALS = of(2104U, "Invalid credentials")
         val TRIED_LOCAL_LOGIN_WITH_OIDC_USER = of(2105U, "OIDC Users cannot use local login to authenticate.")
-        val INVALID_OIDC_AUTH_EXCHANGE_CODE = of(2106U, "Invalid OIDC auth exchange code")
+        val INVALID_AUTH_EXCHANGE_CODE = of(2106U, "Invalid auth exchange code")
         val INVALID_IP_ADDRESS = of(2107U, "Invalid IP address")
 
         // Rate limiting

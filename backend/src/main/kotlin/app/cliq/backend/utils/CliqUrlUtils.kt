@@ -7,7 +7,7 @@ import java.net.URI
 @Service
 class CliqUrlUtils {
     /**
-     * Builds and encode the callback url that redirects the User to the App after successfull OIDC authentication.
+     * Builds and encode the callback url that redirects the User to the App after successful OIDC authentication.
      */
     fun buildOidcAppRedirectUrl(exchangeCode: String): URI =
         UriComponentsBuilder

@@ -1,10 +1,10 @@
-package app.cliq.backend.oidc.service
+package app.cliq.backend.auth.service
 
+import app.cliq.backend.auth.AuthExchange
+import app.cliq.backend.auth.AuthExchangeRepository
 import app.cliq.backend.auth.view.TokenResponse
+import app.cliq.backend.exception.InvalidAuthExchangeCodeException
 import app.cliq.backend.exception.InvalidIPAddressException
-import app.cliq.backend.exception.InvalidOidcAuthExchangeCodeException
-import app.cliq.backend.oidc.AuthExchange
-import app.cliq.backend.oidc.AuthExchangeRepository
 import jakarta.servlet.http.HttpServletRequest
 import org.springframework.stereotype.Service
 import java.time.Clock
@@ -21,10 +21,10 @@ class AuthExchangeService(
     ): AuthExchange {
         val authExchange =
             authExchangeRepository.findByExchangeCode(code)
-                ?: throw InvalidOidcAuthExchangeCodeException()
+                ?: throw InvalidAuthExchangeCodeException()
 
         val now = OffsetDateTime.now(clock)
-        if (authExchange.isExpired(now)) throw InvalidOidcAuthExchangeCodeException()
+        if (authExchange.isExpired(now)) throw InvalidAuthExchangeCodeException()
 
         val expectedIpAddress = authExchange.ipAddress.hostAddress
         if (expectedIpAddress != request.remoteAddr) {
@@ -36,7 +36,7 @@ class AuthExchangeService(
 
     fun consumeToTokenResponse(authExchange: AuthExchange): TokenResponse {
         val response =
-            TokenResponse.fromTokensAndSession(
+            TokenResponse.Companion.fromTokensAndSession(
                 authExchange.jwtToken,
                 authExchange.refreshToken,
                 authExchange.session,

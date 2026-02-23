@@ -1,6 +1,6 @@
 package app.cliq.backend.unit.oidc
 
-import app.cliq.backend.oidc.AuthExchange
+import app.cliq.backend.auth.AuthExchange
 import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
