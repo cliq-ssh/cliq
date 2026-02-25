@@ -57,6 +57,9 @@ class TerminalThemeSettingsPage extends AbstractSettingsPage {
   const TerminalThemeSettingsPage({super.key});
 
   @override
+  String get title => 'Terminal Theme';
+
+  @override
   Widget buildBody(BuildContext context, WidgetRef ref) {
     final terminalThemes = ref.watch(terminalThemeProvider);
     final terminalController = useState<TerminalController?>(null);
@@ -110,7 +113,6 @@ class TerminalThemeSettingsPage extends AbstractSettingsPage {
           CliqGridRow(
             children: [
               CliqGridColumn(
-                sizes: {.sm: 12, .md: 8},
                 child: Column(
                   spacing: 20,
                   children: [
@@ -145,31 +147,45 @@ class TerminalThemeSettingsPage extends AbstractSettingsPage {
                       onChange: (selected) =>
                           selectedFontFamily.value = selected,
                     ),
-                    Row(
-                      mainAxisAlignment: .spaceBetween,
-                      children: [
-                        Text('Theme'),
-                        FButton(
-                          variant: .ghost,
-                          prefix: Icon(LucideIcons.folderOpen),
-                          onPress: null,
-                          child: Text('Import'),
-                        ),
-                      ],
-                    ),
-                    Column(
-                      spacing: 12,
-                      children: [
-                        for (final theme in [
-                          defaultTerminalColorTheme,
-                          ...terminalThemes.entities,
-                        ])
-                          TerminalThemeCard(
-                            onTap: () => selectedColors.value = theme,
-                            isSelected: selectedColors.value.id == theme.id,
-                            theme: theme,
+                    FLabel(
+                      label: Row(
+                        mainAxisAlignment: .spaceBetween,
+                        crossAxisAlignment: .end,
+                        children: [
+                          Text('Theme'),
+                          Row(
+                            children: [
+                              FButton(
+                                variant: .ghost,
+                                prefix: Icon(LucideIcons.swatchBook),
+                                onPress: null,
+                                child: Text('Browse'),
+                              ),
+                              FButton(
+                                variant: .ghost,
+                                prefix: Icon(LucideIcons.folderOpen),
+                                onPress: null,
+                                child: Text('Import'),
+                              ),
+                            ],
                           ),
-                      ],
+                        ],
+                      ),
+                      axis: .vertical,
+                      child: Column(
+                        spacing: 12,
+                        children: [
+                          for (final theme in [
+                            defaultTerminalColorTheme,
+                            ...terminalThemes.entities,
+                          ])
+                            TerminalThemeCard(
+                              onTap: () => selectedColors.value = theme,
+                              isSelected: selectedColors.value.id == theme.id,
+                              theme: theme,
+                            ),
+                        ],
+                      ),
                     ),
                   ],
                 ),

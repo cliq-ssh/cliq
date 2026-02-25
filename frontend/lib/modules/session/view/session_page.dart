@@ -53,7 +53,7 @@ class _ShellSessionPageState extends ConsumerState<ShellSessionPage>
 
     getEffectiveTerminalTypography() =>
         widget.session.connection.terminalTypographyOverride ??
-        terminalTypography.value!;
+        terminalTypography.value;
 
     getEffectiveTerminalTheme() =>
         widget.session.connection.terminalThemeOverride ??
@@ -75,7 +75,7 @@ class _ShellSessionPageState extends ConsumerState<ShellSessionPage>
     closeSession() {
       ref
           .read(sessionProvider.notifier)
-          .closeSession(NavigationShell.of(context), widget.session.id);
+          .closeAnyMaybeGo(NavigationShell.of(context), widget.session.id);
     }
 
     retrySession({bool skipHostKeyVerification = false}) {
@@ -164,6 +164,7 @@ class _ShellSessionPageState extends ConsumerState<ShellSessionPage>
         Icon(LucideIcons.fingerprintPattern, size: 48),
         const SizedBox(height: 8),
         Text.rich(
+          textAlign: .center,
           TextSpan(
             children: [
               session.knownHostError!.knownHost != null
@@ -204,7 +205,7 @@ class _ShellSessionPageState extends ConsumerState<ShellSessionPage>
               ),
             ],
           ),
-          child: Text(session.knownHostError!.sha256Fingerprint),
+          child: SelectableText(session.knownHostError!.sha256Fingerprint),
         ),
         const SizedBox(height: 8),
         Row(
@@ -284,29 +285,26 @@ class _ShellSessionPageState extends ConsumerState<ShellSessionPage>
       );
     }
 
-    return FScaffold(
-      child: CliqGridContainer(
-        alignment: .center,
-        children: [
-          CliqGridRow(
-            children: [
-              CliqGridColumn(
-                sizes: {.sm: 12, .md: 8},
-                child: Column(
-                  children: [
-                    if (session.knownHostError != null)
-                      ...buildKnownHostWarning()
-                    else if (session.connectionError != null)
-                      ...buildError()
-                    else if (session.isLikelyLoading)
-                      ...buildConnecting(),
-                  ],
-                ),
+    return CliqGridContainer(
+      alignment: .center,
+      children: [
+        CliqGridRow(
+          children: [
+            CliqGridColumn(
+              child: Column(
+                children: [
+                  if (session.knownHostError != null)
+                    ...buildKnownHostWarning()
+                  else if (session.connectionError != null)
+                    ...buildError()
+                  else if (session.isLikelyLoading)
+                    ...buildConnecting(),
+                ],
               ),
-            ],
-          ),
-        ],
-      ),
+            ),
+          ],
+        ),
+      ],
     );
   }
 }

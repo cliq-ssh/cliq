@@ -30,7 +30,7 @@ class ShellSessionNotifier extends Notifier<SSHSessionState> {
     );
     final updatedSessions = [...state.activeSessions, newSession];
     final pageIndexes = _generatePageIndex(updatedSessions);
-    shellState.goToBranch(1);
+    shellState.goToSessionBranch();
 
     state = state.copyWith(
       activeSessions: updatedSessions,
@@ -39,16 +39,21 @@ class ShellSessionNotifier extends Notifier<SSHSessionState> {
     );
   }
 
-  /// Sets the current session and navigates to the session branch if a session is selected,
-  /// or to the default branch (dashboard) if no session is selected.
-  void setSelectedSession(NavigationShellState shellState, String? sessionId) {
-    shellState.goToBranch(sessionId == null ? 0 : 1);
+  /// Sets the current session to the session with the given [sessionId].
+  /// If [sessionId] is not null, navigates to the session branch.
+  void setSelectedAndMaybeGo(
+    NavigationShellState shellState,
+    String? sessionId,
+  ) {
+    if (sessionId != null) {
+      shellState.goToSessionBranch();
+    }
     state = state.copyWith(selectedSessionId: sessionId ?? '');
   }
 
   /// Closes the session with the given [sessionId].
   /// If the closed session was the selected one, selects the last session in the list or navigates to the default branch if no sessions remain.
-  void closeSession(NavigationShellState shellState, String sessionId) {
+  void closeAnyMaybeGo(NavigationShellState shellState, String sessionId) {
     final updatedSessions = state.activeSessions
         .where((s) => s.id != sessionId)
         .toList();
@@ -61,7 +66,8 @@ class ShellSessionNotifier extends Notifier<SSHSessionState> {
         newSelectedSessionId = updatedSessions.last.id;
       } else {
         newSelectedSessionId = null;
-        shellState.goToBranch(0); // Go to default branch if no sessions left.
+        shellState
+            .goToDashboardBranch(); // Go to dashboard branch if no sessions left.
       }
     }
 

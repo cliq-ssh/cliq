@@ -7,11 +7,11 @@ import 'package:cliq/modules/settings/view/known_hosts_settings.dart';
 import 'package:cliq/modules/settings/view/license_page.dart';
 import 'package:cliq/modules/settings/view/settings_page.dart';
 import 'package:cliq/modules/settings/view/terminal_theme_settings_page.dart';
-import 'package:cliq/modules/settings/view/theme_settings_page.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
+import '../../modules/settings/view/appearance_settings_page.dart';
 import '../ui/navigation_shell.dart';
 
 class Router {
@@ -30,20 +30,9 @@ class Router {
     initialLocation: '/',
     navigatorKey: rootNavigatorKey,
     routes: [
-      ..._noShellRoutes(),
       StatefulShellRoute.indexedStack(
         builder: (_, _, shell) => NavigationShell(shell: shell),
         branches: [
-          StatefulShellBranch(
-            navigatorKey: shellNavigatorKey,
-            routes: [
-              GoRoute(
-                path: ConnectionsPage.pagePath.path,
-                pageBuilder: _fade(const ConnectionsPage()),
-              ),
-              ..._shellRoutes(),
-            ],
-          ),
           StatefulShellBranch(
             routes: [
               GoRoute(
@@ -52,53 +41,57 @@ class Router {
               ),
             ],
           ),
+          StatefulShellBranch(
+            navigatorKey: shellNavigatorKey,
+            routes: [
+              GoRoute(
+                path: ConnectionsPage.pagePath.path,
+                pageBuilder: _fade(const ConnectionsPage()),
+              ),
+            ],
+          ),
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: SettingsPage.pagePath.path,
+                pageBuilder: _fade(const SettingsPage()),
+                routes: [
+                  GoRoute(
+                    path: DebugSettingsPage.pagePath.path,
+                    pageBuilder: _swipe(const DebugSettingsPage()),
+                  ),
+                  GoRoute(
+                    path: IdentitiesSettingsPage.pagePath.path,
+                    pageBuilder: _swipe(const IdentitiesSettingsPage()),
+                  ),
+                  GoRoute(
+                    path: KeysSettingsPage.pagePath.path,
+                    pageBuilder: _swipe(const KeysSettingsPage()),
+                  ),
+                  GoRoute(
+                    path: KnownHostsSettingsPage.pagePath.path,
+                    pageBuilder: _swipe(const KnownHostsSettingsPage()),
+                  ),
+                  GoRoute(
+                    path: LicenseSettingsPage.pagePath.path,
+                    pageBuilder: _swipe(const LicenseSettingsPage()),
+                  ),
+                  GoRoute(
+                    path: TerminalThemeSettingsPage.pagePath.path,
+                    pageBuilder: _swipe(const TerminalThemeSettingsPage()),
+                  ),
+                  GoRoute(
+                    path: AppearanceSettingsPage.pagePath.path,
+                    pageBuilder: _swipe(const AppearanceSettingsPage()),
+                  ),
+                ],
+              ),
+            ],
+          ),
         ],
       ),
     ],
   );
-
-  List<GoRoute> _noShellRoutes() {
-    return [
-      GoRoute(
-        path: SettingsPage.pagePath.path,
-        pageBuilder: _swipe(const SettingsPage()),
-        routes: [
-          GoRoute(
-            path: DebugSettingsPage.pagePath.path,
-            pageBuilder: _swipe(const DebugSettingsPage()),
-          ),
-          GoRoute(
-            path: IdentitiesSettingsPage.pagePath.path,
-            pageBuilder: _swipe(const IdentitiesSettingsPage()),
-          ),
-          GoRoute(
-            path: KeysSettingsPage.pagePath.path,
-            pageBuilder: _swipe(const KeysSettingsPage()),
-          ),
-          GoRoute(
-            path: KnownHostsSettingsPage.pagePath.path,
-            pageBuilder: _swipe(const KnownHostsSettingsPage()),
-          ),
-          GoRoute(
-            path: LicenseSettingsPage.pagePath.path,
-            pageBuilder: _swipe(const LicenseSettingsPage()),
-          ),
-          GoRoute(
-            path: TerminalThemeSettingsPage.pagePath.path,
-            pageBuilder: _swipe(const TerminalThemeSettingsPage()),
-          ),
-          GoRoute(
-            path: ThemeSettingsPage.pagePath.path,
-            pageBuilder: _swipe(const ThemeSettingsPage()),
-          ),
-        ],
-      ),
-    ];
-  }
-
-  static List<GoRoute> _shellRoutes() {
-    return [];
-  }
 
   static Page<T> Function(BuildContext, GoRouterState) _swipe<T>(Widget child) {
     return (_, _) => CupertinoPage(child: child);

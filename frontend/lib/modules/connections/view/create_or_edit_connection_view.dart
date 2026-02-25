@@ -189,11 +189,11 @@ class CreateOrEditConnectionView extends HookConsumerWidget {
         fontSize:
             fontSize ??
             selectedTypographyOverride.value?.fontSize ??
-            defaultTerminalTypography.value!.fontSize,
+            defaultTerminalTypography.value.fontSize,
         fontFamily:
             fontFamily ??
             selectedTypographyOverride.value?.fontFamily ??
-            defaultTerminalTypography.value!.fontFamily,
+            defaultTerminalTypography.value.fontFamily,
       );
 
       if (typography == defaultTerminalTypography.value) {
@@ -395,7 +395,7 @@ class CreateOrEditConnectionView extends HookConsumerWidget {
                               tipBuilder: (_, _) => Text(icon.name),
                               child: FButton.icon(
                                 variant: icon == selectedIcon.value
-                                    ? null // TODO: primary?
+                                    ? null
                                     : .ghost,
                                 onPress: () => selectedIcon.value = icon,
                                 child: Icon(icon.iconData),
@@ -424,14 +424,14 @@ class CreateOrEditConnectionView extends HookConsumerWidget {
               TerminalFontSizeSlider(
                 selectedFontSize:
                     selectedTypographyOverride.value?.fontSize ??
-                    defaultTerminalTypography.value!.fontSize,
+                    defaultTerminalTypography.value.fontSize,
                 onEnd: (value) => selectedTypographyOverride.value =
                     getEffectiveTypography(value, null),
               ),
               TerminalFontFamilySelect(
                 selectedFontFamily:
                     selectedTypographyOverride.value?.fontFamily ??
-                    defaultTerminalTypography.value!.fontFamily,
+                    defaultTerminalTypography.value.fontFamily,
                 onChange: (selected) => selectedTypographyOverride.value =
                     getEffectiveTypography(null, selected),
               ),
@@ -496,17 +496,16 @@ class CreateOrEditConnectionView extends HookConsumerWidget {
 
     return FScaffold(
       child: SingleChildScrollView(
-        padding: const .symmetric(horizontal: 32),
+        padding: const .only(left: 32, right: 32, top: 16),
         child: Column(
           children: [
             Row(
               mainAxisAlignment: MainAxisAlignment.end,
               children: [
-                FButton(
-                  variant: .ghost,
-                  prefix: const Icon(LucideIcons.x),
+                FButton.icon(
+                  variant: .outline,
                   onPress: () => context.pop(),
-                  child: const Text('Close'),
+                  child: const Icon(LucideIcons.x),
                 ),
               ],
             ),

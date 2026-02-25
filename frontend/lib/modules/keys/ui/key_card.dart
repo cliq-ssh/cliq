@@ -15,7 +15,7 @@ class KeyCard extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     return FCard(
       title: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        spacing: 8,
         children: [
           Flexible(
             child: Row(
@@ -30,7 +30,19 @@ class KeyCard extends HookConsumerWidget {
                   ),
                   child: Icon(LucideIcons.keyRound, size: 28),
                 ),
-                Text(keyEntity.label),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        keyEntity.label,
+                        overflow: .fade,
+                        softWrap: false,
+                        style: context.theme.typography.lg,
+                      ),
+                    ],
+                  ),
+                ),
               ],
             ),
           ),

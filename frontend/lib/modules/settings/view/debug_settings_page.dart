@@ -19,6 +19,9 @@ class DebugSettingsPage extends AbstractSettingsPage {
   const DebugSettingsPage({super.key});
 
   @override
+  String get title => 'Debug';
+
+  @override
   Widget buildBody(BuildContext context, WidgetRef ref) {
     return SingleChildScrollView(
       child: CliqGridContainer(
@@ -26,7 +29,6 @@ class DebugSettingsPage extends AbstractSettingsPage {
           CliqGridRow(
             children: [
               CliqGridColumn(
-                sizes: {.sm: 12, .md: 8},
                 child: Column(
                   mainAxisAlignment: .center,
                   spacing: 20,

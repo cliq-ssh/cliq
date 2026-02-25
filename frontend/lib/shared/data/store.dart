@@ -1,21 +1,16 @@
 import 'dart:async';
 
+import 'package:cliq/shared/ui/entity_card_view.dart';
 import 'package:cliq_term/cliq_term.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../../modules/settings/model/navigation_position.model.dart';
 import '../../modules/settings/model/theme.model.dart';
 
+// TODO: replace key name with id to avoid potential issues with renaming keys in the future
+
 enum StoreKey<T> {
-  syncHostUrl<String>('sync_host_url', type: String),
-  // TODO: put this in secure storage
-  syncToken<String>('sync_token', type: String),
-
-  // TODO: temporary, remove this once backend implements proper token expiration handling
-  syncEmail<String>('sync_email', type: String),
-  // TODO: put this in secure storage
-  syncPassword<String>('sync_password', type: String),
-
   theme<CliqTheme>(
     'theme',
     type: CliqTheme,
@@ -42,6 +37,42 @@ enum StoreKey<T> {
     'default_terminal_theme',
     type: int,
     defaultValue: -1,
+  ),
+  desktopNavigationPosition<NavigationPosition>(
+    'desktop_navigation_position',
+    type: NavigationPosition,
+    defaultValue: NavigationPosition.left,
+    fromValue: _desktopNavigationPositionFromValue,
+    toValue: _enumToValue,
+  ),
+
+  knownHostsCardViewType<EntityCardViewType>(
+    'known_hosts_card_view_type',
+    type: EntityCardViewType,
+    defaultValue: .list,
+    fromValue: _entityCardViewTypeFromValue,
+    toValue: _enumToValue,
+  ),
+  identitiesCardViewType<EntityCardViewType>(
+    'identities_card_view_type',
+    type: EntityCardViewType,
+    defaultValue: .list,
+    fromValue: _entityCardViewTypeFromValue,
+    toValue: _enumToValue,
+  ),
+  connectionsCardViewType<EntityCardViewType>(
+    'connections_card_view_type',
+    type: EntityCardViewType,
+    defaultValue: .list,
+    fromValue: _entityCardViewTypeFromValue,
+    toValue: _enumToValue,
+  ),
+  keysCardViewType<EntityCardViewType>(
+    'keys_card_view_type',
+    type: EntityCardViewType,
+    defaultValue: .list,
+    fromValue: _entityCardViewTypeFromValue,
+    toValue: _enumToValue,
   );
 
   final String key;
@@ -80,6 +111,11 @@ enum StoreKey<T> {
       _enumFromValue(value, CliqTheme.values);
   static ThemeMode? _themeModeFromValue(String? value) =>
       _enumFromValue(value, ThemeMode.values);
+  static NavigationPosition? _desktopNavigationPositionFromValue(
+    String? value,
+  ) => _enumFromValue(value, NavigationPosition.values);
+  static EntityCardViewType? _entityCardViewTypeFromValue(String? value) =>
+      _enumFromValue(value, EntityCardViewType.values);
 
   static String? _typographyToValue(TerminalTypography? value) {
     if (value == null) return null;
@@ -101,10 +137,8 @@ enum StoreKey<T> {
 class StoreChange {
   final String key;
   final dynamic value;
-  final bool deleted;
 
-  StoreChange.changed(this.key, {required this.value}) : deleted = false;
-  StoreChange.deleted(this.key) : value = null, deleted = true;
+  StoreChange(this.key, {required this.value});
 }
 
 /// A simple key-value store that uses SharedPreferences and FlutterSecureStorage to store data.
@@ -143,7 +177,7 @@ class KeyValueStore {
   }
 
   /// A stream of all changes made to the store.
-  Stream<T?> streamForKey<T>(StoreKey<T> key) async* {
+  Stream<T> streamForKey<T>(StoreKey<T> key) async* {
     _checkInitialized();
     // yield current cached value first
     yield readSync<T>(key);
@@ -151,20 +185,16 @@ class KeyValueStore {
     // yield updates
     await for (final StoreChange change in changes) {
       if (change.key == key.key) {
-        if (change.deleted) {
-          yield null;
-        } else {
-          yield change.value as T?;
-        }
+        yield change.value ?? key.defaultValue!;
       }
     }
   }
 
   /// Reads the value of the key from the local cache.
   /// If the key does not exist in the cache, it will return null.
-  T? readSync<T>(StoreKey<T> key) {
+  T readSync<T>(StoreKey<T> key) {
     _checkInitialized();
-    return _localCache[key.key];
+    return _fromStringOrValue<T>(_localCache[key.key], key);
   }
 
   /// Reads the value of the key from the local cache and converts it to a string,
@@ -193,14 +223,23 @@ class KeyValueStore {
     StoreKey<T> key,
     T value, {
     bool storeLocal = true,
+    bool triggerChange = true,
   }) async {
     _checkInitialized();
     // simplify enums to strings
     if (storeLocal) {
       _localCache[key.key] = value;
     }
+    if (triggerChange) {
+      _changesController.add(StoreChange(key.key, value: value));
+    }
     if (value is Enum) {
-      return await write(key, value.name, storeLocal: false);
+      return await write(
+        key,
+        value.name,
+        storeLocal: false,
+        triggerChange: false,
+      );
     }
     final dynamic effectiveValue = _toStringOrValue<T?>(value, key);
     await switch (effectiveValue) {
@@ -212,15 +251,19 @@ class KeyValueStore {
         'Invalid value for key ${key.key}! Got: ${effectiveValue.runtimeType}, Expected either String, int, bool or double',
       ),
     };
-    _changesController.add(StoreChange.changed(key.key, value: value));
   }
 
   /// Deletes the key from the local cache and the storage.
+  /// If the key has a default value, it will be reset to that value instead.
   Future<void> delete<T>(StoreKey<T> key) async {
     _checkInitialized();
-    _localCache.remove(key.key);
-    _preferences.remove(key.key);
-    _changesController.add(StoreChange.deleted(key.key));
+    if (key.defaultValue == null) {
+      _localCache.remove(key.key);
+      _preferences.remove(key.key);
+      _changesController.add(StoreChange(key.key, value: null));
+    } else {
+      write(key, key.defaultValue);
+    }
   }
 
   FutureOr<T>? _readOrInitSharedPrefsKey<T>(StoreKey<T> key) {
@@ -257,7 +300,10 @@ class KeyValueStore {
     return d;
   }
 
-  static T? _fromStringOrValue<T>(dynamic value, StoreKey<T> key) {
-    return key.fromValue?.call(value) ?? value as T?;
+  static T _fromStringOrValue<T>(dynamic value, StoreKey<T> key) {
+    if (value is T) {
+      return value;
+    }
+    return (key.fromValue?.call(value) ?? key.defaultValue) as T;
   }
 }
