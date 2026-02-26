@@ -14,7 +14,7 @@ plugins {
 
     // Linter and Formatter
     id("org.jlleitschuh.gradle.ktlint") version "14.0.1"
-    id("com.autonomousapps.dependency-analysis") version "3.5.1"
+    id("com.autonomousapps.dependency-analysis") version "3.6.0"
 }
 
 group = "app.cliq"
