@@ -160,8 +160,8 @@ dependencies {
     testImplementation("org.apache.commons:commons-email2-jakarta:2.0.0-M1")
 
     // Mockito
-    testImplementation("org.mockito:mockito-core:5.21.0")
-    testImplementation("org.mockito:mockito-junit-jupiter:5.21.0")
+    testImplementation("org.mockito:mockito-core:5.22.0")
+    testImplementation("org.mockito:mockito-junit-jupiter:5.22.0")
     testImplementation("org.mockito.kotlin:mockito-kotlin:6.2.3")
 
     // AssertJ
