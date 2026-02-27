@@ -1,9 +1,13 @@
 package app.cliq.backend.support
 
 import app.cliq.backend.auth.jwt.TokenPair
-import app.cliq.backend.auth.params.LoginParams
 import app.cliq.backend.auth.params.RegistrationParams
 import app.cliq.backend.auth.service.JwtService
+import app.cliq.backend.support.encryption.AuthenticatedEncryptionData
+import app.cliq.backend.support.encryption.EncryptionData
+import app.cliq.backend.support.encryption.EncryptionHelper
+import app.cliq.backend.support.srp.SrpData
+import app.cliq.backend.support.srp.SrpHelper
 import app.cliq.backend.user.DEFAULT_LOCALE
 import app.cliq.backend.user.User
 import app.cliq.backend.user.UserRepository
@@ -20,10 +24,20 @@ class UserCreationHelper(
     private val userFactory: UserFactory,
     private val userRepository: UserRepository,
     private val jwtService: JwtService,
+    private val srpHelper: SrpHelper,
+    private val encryptionHelper: EncryptionHelper,
 ) {
     data class UserCreationData(
         val user: User,
         val password: String,
+        val srpData: SrpData,
+        val encryptionData: EncryptionData,
+    )
+
+    data class AuthenticatedUserData(
+        val tokenPair: TokenPair,
+        val userCreationData: UserCreationData,
+        val authenticatedEncryptionData: AuthenticatedEncryptionData,
     )
 
     fun createRandomUser(
@@ -32,11 +46,7 @@ class UserCreationHelper(
         username: String = "CliqUser${Random.nextInt(0, 9999)}!",
         verified: Boolean = true,
         locale: String = DEFAULT_LOCALE,
-    ): UserCreationData {
-        val user = createUser(email, password, username, verified, locale = locale)
-
-        return UserCreationData(user, password)
-    }
+    ): UserCreationData = createUser(email, password, username, verified, locale = locale)
 
     fun createRandomOidcUser(
         email: String = "user${Random.nextInt(0, 9999)}@cliq.test",
@@ -44,11 +54,7 @@ class UserCreationHelper(
         username: String = "CliqUser${Random.nextInt(0, 9999)}!",
         oidcSub: String = "oidc${Random.nextInt(0, 9999)}",
         locale: String = DEFAULT_LOCALE,
-    ): UserCreationData {
-        val user = createUser(email, password, username, locale = locale, oidcSub = oidcSub)
-
-        return UserCreationData(user, password)
-    }
+    ): UserCreationData = createUser(email, password, username, locale = locale, oidcSub = oidcSub)
 
     fun createRandomAuthenticatedUser(
         email: String = "user${Random.nextInt(0, 9999)}@cliq.test",
@@ -56,16 +62,20 @@ class UserCreationHelper(
         username: String = "CliqUser${Random.nextInt(0, 9999)}!",
         verified: Boolean = true,
         locale: String = DEFAULT_LOCALE,
-    ): TokenPair {
+        sessionName: String? = null,
+    ): AuthenticatedUserData {
         val userCreationData = createRandomUser(email, password, username, verified, locale = locale)
-
-        val loginParams =
-            LoginParams(
-                email,
-                password,
+        val tokenPair = jwtService.generateJwtTokenPair(sessionName, userCreationData.user)
+        val authenticatedEncryptionData =
+            encryptionHelper.createAuthenticatedEncryptionData(
+                userCreationData.encryptionData,
             )
 
-        return jwtService.generateJwtTokenPair(loginParams, userCreationData.user)
+        return AuthenticatedUserData(
+            tokenPair,
+            userCreationData,
+            authenticatedEncryptionData,
+        )
     }
 
     fun createRandomOidcAuthenticatedUser(
@@ -88,8 +98,18 @@ class UserCreationHelper(
         verified: Boolean = true,
         oidcSub: String? = null,
         locale: String = DEFAULT_LOCALE,
-    ): User {
-        val params = RegistrationParams(email, password, username, locale)
+    ): UserCreationData {
+        val srpData = srpHelper.createSrpData(email, password)
+        val encryptionData = encryptionHelper.createEncryptionData(password, srpData.salt.salt)
+        val params =
+            RegistrationParams(
+                email,
+                username,
+                encryptionData.dataEncryptionKey.encryptedAndEncodedDataEncryptionKey,
+                srpData.salt.encoded,
+                srpData.verifier.encoded,
+                locale,
+            )
         var user = userFactory.createFromRegistrationParams(params)
 
         await.atMost(Duration.ofSeconds(5)).untilAsserted {
@@ -113,9 +133,14 @@ class UserCreationHelper(
         }
         if (!verified && user.isEmailVerified()) {
             user.emailVerifiedAt = null
-            return userRepository.saveAndFlush(user)
+            user = userRepository.saveAndFlush(user)
         }
 
-        return user
+        return UserCreationData(
+            user,
+            password,
+            srpData,
+            encryptionData,
+        )
     }
 }

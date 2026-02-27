@@ -2,9 +2,10 @@ package app.cliq.backend.config.properties
 
 import org.springframework.boot.context.properties.ConfigurationProperties
 
-@ConfigurationProperties(prefix = "app")
+@ConfigurationProperties(prefix = "app.rate-limits")
 data class RateLimiterProperties(
-    val rateLimits: List<RateLimit> = emptyList(),
+    val enabled: Boolean = true,
+    val routes: List<RateLimit> = emptyList(),
 ) {
     data class RateLimit(
         val name: String,

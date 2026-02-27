@@ -12,6 +12,7 @@ import org.springframework.web.filter.OncePerRequestFilter
 import java.time.Duration
 import kotlin.time.Duration.Companion.nanoseconds
 
+@RateLimiterFeature
 @Component
 class RateLimiterFilter(
     private val rateLimiterProperties: RateLimiterProperties,
@@ -44,7 +45,7 @@ class RateLimiterFilter(
     }
 
     private fun findRule(request: HttpServletRequest): RateLimiterProperties.RateLimit? =
-        rateLimiterProperties.rateLimits.firstOrNull {
+        rateLimiterProperties.routes.firstOrNull {
             matches(it.url, request)
         }
 

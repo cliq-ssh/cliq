@@ -2,11 +2,11 @@ package app.cliq.backend.acceptance.auth.oidc
 
 import app.cliq.backend.acceptance.AcceptanceTest
 import app.cliq.backend.acceptance.AcceptanceTester
-import app.cliq.backend.auth.params.OidcAuthExchangeParams
+import app.cliq.backend.auth.AuthExchangeRepository
+import app.cliq.backend.auth.factory.AuthExchangeFactory
+import app.cliq.backend.auth.params.AuthExchangeParams
 import app.cliq.backend.auth.view.TokenResponse
 import app.cliq.backend.error.ErrorCode
-import app.cliq.backend.oidc.AuthExchangeRepository
-import app.cliq.backend.oidc.factory.AuthExchangeFactory
 import app.cliq.backend.support.ErrorResponseClient
 import app.cliq.backend.support.UserCreationHelper
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -48,7 +48,7 @@ class AuthExchangeTests(
                 refreshToken = tokenPair.refreshToken,
             )
 
-        val exchangeParams = OidcAuthExchangeParams(authExchange.exchangeCode)
+        val exchangeParams = AuthExchangeParams(authExchange.exchangeCode)
         val result =
             mockMvc
                 .perform(
@@ -89,7 +89,7 @@ class AuthExchangeTests(
                 refreshToken = tokenPair.refreshToken,
             )
 
-        val exchangeParams = OidcAuthExchangeParams(authExchange.exchangeCode)
+        val exchangeParams = AuthExchangeParams(authExchange.exchangeCode)
         val result =
             mockMvc
                 .perform(
@@ -115,7 +115,7 @@ class AuthExchangeTests(
 
     @Test
     fun `test cannot exchange with invalid code`() {
-        val exchangeParams = OidcAuthExchangeParams("invalid")
+        val exchangeParams = AuthExchangeParams("invalid")
         val result =
             mockMvc
                 .perform(
@@ -129,7 +129,7 @@ class AuthExchangeTests(
         val content = result.response.contentAsString
         assert(content.isNotEmpty())
         val response = objectMapper.readValue(content, ErrorResponseClient::class.java)
-        assertEquals(ErrorCode.INVALID_OIDC_AUTH_EXCHANGE_CODE, response.errorCode)
+        assertEquals(ErrorCode.INVALID_AUTH_EXCHANGE_CODE, response.errorCode)
     }
 
     @Test
@@ -146,7 +146,7 @@ class AuthExchangeTests(
         authExchange.expiresAt = OffsetDateTime.now(clock).minusSeconds(1)
         authExchangeRepository.saveAndFlush(authExchange)
 
-        val exchangeParams = OidcAuthExchangeParams(authExchange.exchangeCode)
+        val exchangeParams = AuthExchangeParams(authExchange.exchangeCode)
         val result =
             mockMvc
                 .perform(
@@ -164,7 +164,7 @@ class AuthExchangeTests(
         val content = result.response.contentAsString
         assert(content.isNotEmpty())
         val response = objectMapper.readValue(content, ErrorResponseClient::class.java)
-        assertEquals(ErrorCode.INVALID_OIDC_AUTH_EXCHANGE_CODE, response.errorCode)
+        assertEquals(ErrorCode.INVALID_AUTH_EXCHANGE_CODE, response.errorCode)
 
         val cont = authExchangeRepository.count()
         assertEquals(1, cont)

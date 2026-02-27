@@ -2,7 +2,8 @@ package app.cliq.backend.acceptance.auth.local
 
 import app.cliq.backend.acceptance.AcceptanceTest
 import app.cliq.backend.acceptance.AcceptanceTester
-import app.cliq.backend.auth.params.LoginParams
+import app.cliq.backend.auth.params.login.LoginFinishParams
+import app.cliq.backend.auth.params.login.LoginStartParams
 import app.cliq.backend.error.ErrorCode
 import app.cliq.backend.session.SessionRepository
 import app.cliq.backend.support.ErrorResponseClient
@@ -34,22 +35,37 @@ class LocalLoginDisabledTests(
         val creationData = userCreationHelper.createRandomUser()
         val user = creationData.user
 
-        val loginParams = LoginParams(user.email, creationData.password)
-        val result =
+        val loginStartParams = LoginStartParams(user.email)
+        val startResult =
             mockMvc
                 .perform(
                     MockMvcRequestBuilders
-                        .post("/api/auth/login")
+                        .post("/api/auth/login/start")
                         .contentType(MediaType.APPLICATION_JSON_VALUE)
-                        .content(objectMapper.writeValueAsString(loginParams)),
+                        .content(objectMapper.writeValueAsString(loginStartParams)),
                 ).andExpect(MockMvcResultMatchers.status().isForbidden)
                 .andReturn()
 
-        val content = result.response.contentAsString
-        assertNotNull(content)
-        val errorResponse = objectMapper.readValue(content, ErrorResponseClient::class.java)
+        val startContent = startResult.response.contentAsString
+        assertNotNull(startContent)
+        val startErrorResponse = objectMapper.readValue(startContent, ErrorResponseClient::class.java)
+        assertEquals(ErrorCode.LOCAL_LOGIN_DISABLED, startErrorResponse.errorCode)
 
-        assertEquals(ErrorCode.LOCAL_LOGIN_DISABLED, errorResponse.errorCode)
+        val loginFinishParams = LoginFinishParams("", "", "")
+        val loginFinishResult =
+            mockMvc
+                .perform(
+                    MockMvcRequestBuilders
+                        .post("/api/auth/login/finish")
+                        .contentType(MediaType.APPLICATION_JSON_VALUE)
+                        .content(objectMapper.writeValueAsString(loginFinishParams)),
+                ).andExpect(MockMvcResultMatchers.status().isForbidden)
+                .andReturn()
+
+        val finishContent = loginFinishResult.response.contentAsString
+        assertNotNull(finishContent)
+        val finishErrorResponse = objectMapper.readValue(finishContent, ErrorResponseClient::class.java)
+        assertEquals(ErrorCode.LOCAL_LOGIN_DISABLED, finishErrorResponse.errorCode)
 
         val newSessionCount = sessionRepository.count()
         assertEquals(sessionCount, newSessionCount)

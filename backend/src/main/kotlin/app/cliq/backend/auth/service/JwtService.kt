@@ -2,7 +2,7 @@ package app.cliq.backend.auth.service
 
 import app.cliq.backend.auth.factory.JwtFactory
 import app.cliq.backend.auth.jwt.TokenPair
-import app.cliq.backend.auth.params.LoginParams
+import app.cliq.backend.auth.params.login.LoginFinishParams
 import app.cliq.backend.user.User
 import org.springframework.stereotype.Service
 import java.time.Clock
@@ -15,9 +15,9 @@ class JwtService(
     private val clock: Clock,
 ) {
     fun generateJwtTokenPair(
-        loginParams: LoginParams,
+        loginFinishParams: LoginFinishParams,
         user: User,
-    ): TokenPair = generateJwtTokenPair(loginParams.name, user)
+    ): TokenPair = generateJwtTokenPair(loginFinishParams.sessionName, user)
 
     fun generateJwtTokenPair(
         sessionName: String?,

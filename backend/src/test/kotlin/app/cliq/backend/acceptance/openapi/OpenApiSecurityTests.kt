@@ -36,7 +36,8 @@ class OpenApiSecurityTests(
 
     @Test
     fun `test openapi endpoints are available for logged in users`() {
-        val tokenPair = userCreationHelper.createRandomAuthenticatedUser()
+        val authenticatedUserData = userCreationHelper.createRandomAuthenticatedUser()
+        val tokenPair = authenticatedUserData.tokenPair
 
         successfulOpenApiEndpoints.forEach { url ->
             mockMvc

@@ -1,10 +1,10 @@
 package app.cliq.backend.config.security.oidc
 
+import app.cliq.backend.auth.factory.AuthExchangeFactory
 import app.cliq.backend.auth.jwt.JwtClaims
 import app.cliq.backend.auth.jwt.TokenPair
 import app.cliq.backend.auth.service.JwtService
 import app.cliq.backend.auth.service.RefreshTokenService
-import app.cliq.backend.oidc.factory.AuthExchangeFactory
 import app.cliq.backend.session.SessionRepository
 import app.cliq.backend.user.User
 import app.cliq.backend.user.service.UserOidcService
