@@ -11,7 +11,7 @@ class UserOidcService(
     private val userRepository: UserRepository,
     private val userFactory: UserFactory,
 ) {
-    fun putUserFromJwt(oidcUser: OidcUser): User {
+    fun putUserFromOidcUser(oidcUser: OidcUser): User {
         val sub = oidcUser.subject
         var user = userRepository.findByOidcSub(sub)
         user =

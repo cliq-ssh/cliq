@@ -5,6 +5,7 @@ import app.cliq.backend.auth.AuthExchangeRepository
 import app.cliq.backend.auth.jwt.TokenPair
 import app.cliq.backend.config.properties.AuthProperties
 import app.cliq.backend.session.Session
+import app.cliq.backend.user.User
 import app.cliq.backend.utils.TokenGenerator
 import jakarta.servlet.http.HttpServletRequest
 import org.springframework.stereotype.Service
@@ -19,17 +20,17 @@ class AuthExchangeFactory(
     private val clock: Clock,
     private val authProperties: AuthProperties,
 ) {
-    fun createFromRequestAndSession(
+    fun createFromRequestAndUser(
         httpServletRequest: HttpServletRequest,
-        tokenPair: TokenPair,
+        user: User,
+        oidcSessionId: String? = null,
     ): AuthExchange =
-        create(httpServletRequest.remoteAddr, tokenPair.session, tokenPair.jwt.tokenValue, tokenPair.refreshToken)
+        create(httpServletRequest.remoteAddr, user, oidcSessionId)
 
     fun create(
         ipAddress: String,
-        session: Session,
-        jwtToken: String,
-        refreshToken: String,
+        user: User,
+        oidcSessionId: String? = null,
     ): AuthExchange {
         val token = tokenGenerator.generateAuthExchangeCode()
         val inetAddress = InetAddress.ofLiteral(ipAddress)
@@ -38,11 +39,10 @@ class AuthExchangeFactory(
 
         val exchange =
             AuthExchange(
-                session = session,
+                user = user,
+                oidcSessionId = oidcSessionId,
                 exchangeCode = token,
                 ipAddress = inetAddress,
-                jwtToken = jwtToken,
-                refreshToken = refreshToken,
                 createdAt = now,
                 expiresAt = expiresAt,
             )

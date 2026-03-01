@@ -1,7 +1,7 @@
 package app.cliq.backend.auth.controller
 
 import app.cliq.backend.auth.annotation.AuthController
-import app.cliq.backend.auth.params.AuthExchangeParams
+import app.cliq.backend.auth.params.DeviceRegistrationParams
 import app.cliq.backend.auth.params.RefreshParams
 import app.cliq.backend.auth.service.AuthExchangeService
 import app.cliq.backend.auth.service.JwtResolver
@@ -66,13 +66,13 @@ class TokenController(
         return ResponseEntity.ok(TokenResponse.fromTokenPair(tokenPair))
     }
 
-    @PostMapping("/exchange")
-    @Operation(summary = "Exchanges an auth code for a JWT Access token.")
+    @PostMapping("/device/register")
+    @Operation(summary = "Registers a device and exchange auth code for JWT Access token.")
     @ApiResponses(
         value = [
             ApiResponse(
                 responseCode = "200",
-                description = "Auth code successfully exchanged for JWT Access token",
+                description = "Device successfully registered.",
                 content = [
                     Content(
                         mediaType = MediaType.APPLICATION_JSON_VALUE,
@@ -91,10 +91,10 @@ class TokenController(
     private fun exchange(
         @RequestBody
         @Valid
-        authExchangeParams: AuthExchangeParams,
+        deviceRegistrationParams: DeviceRegistrationParams,
         request: HttpServletRequest,
     ): ResponseEntity<TokenResponse> {
-        val authExchange = authExchangeService.getValidAuthExchangeByCode(authExchangeParams.code, request)
+        val authExchange = authExchangeService.getValidAuthExchangeByCode(deviceRegistrationParams.authCode, request)
         val tokenResponse = authExchangeService.consumeToTokenResponse(authExchange)
 
         return ResponseEntity.ok(tokenResponse)

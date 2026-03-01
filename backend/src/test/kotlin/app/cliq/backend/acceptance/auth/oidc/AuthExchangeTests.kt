@@ -4,7 +4,7 @@ import app.cliq.backend.acceptance.AcceptanceTest
 import app.cliq.backend.acceptance.AcceptanceTester
 import app.cliq.backend.auth.AuthExchangeRepository
 import app.cliq.backend.auth.factory.AuthExchangeFactory
-import app.cliq.backend.auth.params.AuthExchangeParams
+import app.cliq.backend.auth.params.DeviceRegistrationParams
 import app.cliq.backend.auth.view.TokenResponse
 import app.cliq.backend.error.ErrorCode
 import app.cliq.backend.support.ErrorResponseClient
@@ -48,7 +48,7 @@ class AuthExchangeTests(
                 refreshToken = tokenPair.refreshToken,
             )
 
-        val exchangeParams = AuthExchangeParams(authExchange.exchangeCode)
+        val exchangeParams = DeviceRegistrationParams(authExchange.exchangeCode)
         val result =
             mockMvc
                 .perform(
@@ -89,7 +89,7 @@ class AuthExchangeTests(
                 refreshToken = tokenPair.refreshToken,
             )
 
-        val exchangeParams = AuthExchangeParams(authExchange.exchangeCode)
+        val exchangeParams = DeviceRegistrationParams(authExchange.exchangeCode)
         val result =
             mockMvc
                 .perform(
@@ -115,7 +115,7 @@ class AuthExchangeTests(
 
     @Test
     fun `test cannot exchange with invalid code`() {
-        val exchangeParams = AuthExchangeParams("invalid")
+        val exchangeParams = DeviceRegistrationParams("invalid")
         val result =
             mockMvc
                 .perform(
@@ -146,7 +146,7 @@ class AuthExchangeTests(
         authExchange.expiresAt = OffsetDateTime.now(clock).minusSeconds(1)
         authExchangeRepository.saveAndFlush(authExchange)
 
-        val exchangeParams = AuthExchangeParams(authExchange.exchangeCode)
+        val exchangeParams = DeviceRegistrationParams(authExchange.exchangeCode)
         val result =
             mockMvc
                 .perform(

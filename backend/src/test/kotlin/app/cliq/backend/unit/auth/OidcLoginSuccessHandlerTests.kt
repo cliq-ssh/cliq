@@ -55,7 +55,7 @@ class OidcLoginSuccessHandlerTests {
         val authentication = authenticationWithPrincipal(oidcUser)
 
         val user: User = mock()
-        whenever(userOidcService.putUserFromJwt(eq(oidcUser))).thenReturn(user)
+        whenever(userOidcService.putUserFromOidcUser(eq(oidcUser))).thenReturn(user)
 
         whenever(sessionRepository.findByOidcSessionId(eq(sid))).thenReturn(null)
 
@@ -74,7 +74,7 @@ class OidcLoginSuccessHandlerTests {
 
         val exchange: AuthExchange = mock()
         whenever(exchange.exchangeCode).thenReturn("exchange-A")
-        whenever(authExchangeFactory.createFromRequestAndSession(eq(request), eq(tokenPair))).thenReturn(exchange)
+        whenever(authExchangeFactory.createFromRequestAndUser(eq(request), eq(tokenPair))).thenReturn(exchange)
 
         handler.onAuthenticationSuccess(request, response, authentication)
 
@@ -87,7 +87,7 @@ class OidcLoginSuccessHandlerTests {
 
         verify(sessionRepository).findByOidcSessionId(eq(sid))
         verify(jwtService).generateOidcJwtTokenPair(eq(user), eq(sid))
-        verify(authExchangeFactory).createFromRequestAndSession(eq(request), eq(tokenPair))
+        verify(authExchangeFactory).createFromRequestAndUser(eq(request), eq(tokenPair))
         verify(refreshTokenService, never()).rotate(any())
     }
 
@@ -98,7 +98,7 @@ class OidcLoginSuccessHandlerTests {
         val authentication = authenticationWithPrincipal(oidcUser)
 
         val user: User = mock()
-        whenever(userOidcService.putUserFromJwt(eq(oidcUser))).thenReturn(user)
+        whenever(userOidcService.putUserFromOidcUser(eq(oidcUser))).thenReturn(user)
 
         val existingSession: Session = mock()
         whenever(sessionRepository.findByOidcSessionId(eq(sid))).thenReturn(existingSession)
@@ -113,7 +113,7 @@ class OidcLoginSuccessHandlerTests {
 
         val exchange: AuthExchange = mock()
         whenever(exchange.exchangeCode).thenReturn("exchange-B")
-        whenever(authExchangeFactory.createFromRequestAndSession(eq(request), eq(rotated))).thenReturn(exchange)
+        whenever(authExchangeFactory.createFromRequestAndUser(eq(request), eq(rotated))).thenReturn(exchange)
 
         handler.onAuthenticationSuccess(request, response, authentication)
 
@@ -126,7 +126,7 @@ class OidcLoginSuccessHandlerTests {
 
         verify(sessionRepository).findByOidcSessionId(eq(sid))
         verify(refreshTokenService).rotate(eq(existingSession))
-        verify(authExchangeFactory).createFromRequestAndSession(eq(request), eq(rotated))
+        verify(authExchangeFactory).createFromRequestAndUser(eq(request), eq(rotated))
         verify(jwtService, never()).generateOidcJwtTokenPair(any(), any())
     }
 

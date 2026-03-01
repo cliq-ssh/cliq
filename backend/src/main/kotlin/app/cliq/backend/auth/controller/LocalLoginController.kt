@@ -1,11 +1,10 @@
 package app.cliq.backend.auth.controller
 
 import app.cliq.backend.auth.annotation.AuthController
+import app.cliq.backend.auth.factory.AuthExchangeFactory
 import app.cliq.backend.auth.params.login.LoginFinishParams
 import app.cliq.backend.auth.params.login.LoginStartParams
-import app.cliq.backend.auth.service.JwtService
 import app.cliq.backend.auth.service.SrpService
-import app.cliq.backend.auth.view.TokenResponse
 import app.cliq.backend.auth.view.login.LoginFinishResponse
 import app.cliq.backend.auth.view.login.LoginStartResponse
 import app.cliq.backend.config.properties.AuthProperties
@@ -19,6 +18,7 @@ import io.swagger.v3.oas.annotations.media.Content
 import io.swagger.v3.oas.annotations.media.Schema
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.responses.ApiResponses
+import jakarta.servlet.http.HttpServletRequest
 import jakarta.validation.Valid
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
@@ -32,7 +32,7 @@ class LocalLoginController(
     private val authProperties: AuthProperties,
     private val srpService: SrpService,
     private val userRepository: UserRepository,
-    private val jwtService: JwtService,
+    private val authExchangeFactory: AuthExchangeFactory,
 ) {
     @PostMapping("/start")
     @Operation(summary = "Starts the login process")
@@ -103,6 +103,7 @@ class LocalLoginController(
     )
     fun finishLogin(
         @Valid @RequestBody loginFinishParams: LoginFinishParams,
+        httpRequest: HttpServletRequest,
     ): ResponseEntity<LoginFinishResponse> {
         if (!authProperties.local.login) {
             throw LocalLoginDisabledException()
@@ -111,9 +112,8 @@ class LocalLoginController(
         val (email, publicM2) = srpService.finishAuthenticationProcess(loginFinishParams)
         val user = userRepository.findByEmail(email) ?: throw InvalidEmailException()
 
-        val tokenPair = jwtService.generateJwtTokenPair(loginFinishParams, user)
-        val tokenResponse = TokenResponse.fromTokenPair(tokenPair)
-        val loginResponse = LoginFinishResponse(publicM2, tokenResponse, user.dataEncryptionKey)
+        val authExchange = authExchangeFactory.createFromRequestAndUser(httpRequest, user)
+        val loginResponse = LoginFinishResponse(publicM2, authExchange.exchangeCode, user.dataEncryptionKey)
 
         return ResponseEntity.ok(loginResponse)
     }

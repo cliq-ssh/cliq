@@ -1,14 +1,13 @@
 package app.cliq.backend.auth.view.login
 
-import app.cliq.backend.auth.view.TokenResponse
 import io.swagger.v3.oas.annotations.media.Schema
 
 @Schema
 data class LoginFinishResponse(
     // SRP
     val publicM2: String,
-    // JWT
-    val session: TokenResponse,
+    // Auth Exchange
+    val authExchangeCode: String,
     // Keys
     val dataEncryptionKeyUmkWrapper: String?,
 )

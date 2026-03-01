@@ -1,6 +1,6 @@
 package app.cliq.backend.auth
 
-import app.cliq.backend.session.Session
+import app.cliq.backend.user.User
 import jakarta.persistence.Column
 import jakarta.persistence.Entity
 import jakarta.persistence.FetchType
@@ -24,15 +24,13 @@ import java.time.OffsetDateTime
 class AuthExchange(
     @OneToOne(fetch = FetchType.EAGER)
     @JoinColumn(nullable = false, unique = true)
-    val session: Session,
+    val user: User,
+    @Column(nullable = true)
+    val oidcSessionId: String?,
     @Column(nullable = false)
     val exchangeCode: String,
     @Column(nullable = false)
     val ipAddress: InetAddress,
-    @Column(nullable = false)
-    val jwtToken: String,
-    @Column(nullable = false)
-    val refreshToken: String,
     @Column(nullable = false)
     val createdAt: OffsetDateTime,
     @Column(nullable = false)
