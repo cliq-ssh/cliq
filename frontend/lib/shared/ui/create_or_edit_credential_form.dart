@@ -232,7 +232,6 @@ class CreateOrEditCredentialsFormState
                           contentEmptyBuilder: (_, _) => GestureDetector(
                             onTap: () async {
                               final result = await Commons.showResponsiveDialog(
-                                context,
                                 (_) => CreateOrEditKeyView.create(
                                   initialLabel: data.controller.text.isEmpty
                                       ? null

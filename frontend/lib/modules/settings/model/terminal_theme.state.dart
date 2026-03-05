@@ -1,33 +1,21 @@
-import 'package:cliq/shared/data/store.dart';
-
 import '../../../shared/data/database.dart';
 import '../../../shared/provider/abstract_entity.state.dart';
 import '../provider/terminal_theme.provider.dart';
 
 class CustomTerminalThemeState
     extends AbstractEntityState<CustomTerminalTheme, CustomTerminalThemeState> {
-  final int activeDefaultThemeId;
+  const CustomTerminalThemeState({super.entities = const []});
 
-  const CustomTerminalThemeState({
-    required this.activeDefaultThemeId,
-    super.entities = const [],
-  });
+  CustomTerminalThemeState.initial() : super.initial();
 
-  CustomTerminalThemeState.initial()
-    : activeDefaultThemeId = StoreKey.defaultTerminalThemeId.readSync()!,
-      super.initial();
+  CustomTerminalTheme? findById(int id) {
+    if (id == defaultTerminalColorTheme.id) {
+      return defaultTerminalColorTheme;
+    }
+    return entities.firstWhere((theme) => theme.id == id);
+  }
 
-  CustomTerminalTheme get effectiveActiveDefaultTheme =>
-      entities.where((t) => t.id == activeDefaultThemeId).firstOrNull ??
-      defaultTerminalColorTheme;
-
-  CustomTerminalThemeState copyWith({
-    int? activeDefaultThemeId,
-    List<CustomTerminalTheme>? entities,
-  }) {
-    return CustomTerminalThemeState(
-      activeDefaultThemeId: activeDefaultThemeId ?? this.activeDefaultThemeId,
-      entities: entities ?? this.entities,
-    );
+  CustomTerminalThemeState copyWith({List<CustomTerminalTheme>? entities}) {
+    return CustomTerminalThemeState(entities: entities ?? this.entities);
   }
 }
