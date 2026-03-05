@@ -59,7 +59,7 @@ jobs:
         uses: docker/setup-qemu-action@v4
 
       - name: Set up Buildx
-        uses: docker/setup-buildx-action@v3
+        uses: docker/setup-buildx-action@v4
 
       - name: Meta (labels only)
         id: meta
@@ -124,7 +124,7 @@ jobs:
           merge-multiple: true
 
       - name: Set up Buildx
-        uses: docker/setup-buildx-action@v3
+        uses: docker/setup-buildx-action@v4
 
       - name: Docker meta
         id: meta
