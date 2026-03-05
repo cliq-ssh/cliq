@@ -7,6 +7,7 @@ import java.util.Locale.getDefault
 import java.util.random.RandomGenerator
 
 const val JWT_REFRESH_TOKEN_LENGTH: UShort = 128U
+const val AUTHENTICATION_TOKEN_LENGTH: UShort = 128U
 const val AUTH_EXCHANGE_CODE_LENGTH: UShort = 128U
 const val EMAIL_VERIFICATION_TOKEN_LENGTH: UShort = 8U
 const val RESET_PASSWORD_TOKEN_LENGTH: UShort = 8U
@@ -18,6 +19,8 @@ class TokenGenerator(
 ) {
     fun generateJwtRefreshToken(): String = generateToken(JWT_REFRESH_TOKEN_LENGTH)
 
+    fun generateAuthenticationToken(): String = generateToken(AUTHENTICATION_TOKEN_LENGTH)
+
     fun generateAuthExchangeCode(): String = generateToken(AUTH_EXCHANGE_CODE_LENGTH)
 
     fun generateEmailVerificationToken(): String =
@@ -25,7 +28,7 @@ class TokenGenerator(
 
     fun generatePasswordResetToken(): String = generateToken(RESET_PASSWORD_TOKEN_LENGTH).uppercase(getDefault())
 
-    private fun generateToken(length: UShort): String {
+    fun generateToken(length: UShort): String {
         val randomBytes = ByteArray(length.toInt())
         secureRandomGenerator.nextBytes(randomBytes)
 
