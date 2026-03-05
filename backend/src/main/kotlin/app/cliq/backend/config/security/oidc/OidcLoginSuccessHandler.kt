@@ -4,9 +4,11 @@ import app.cliq.backend.auth.jwt.JwtClaims
 import app.cliq.backend.auth.jwt.TokenPair
 import app.cliq.backend.auth.service.JwtService
 import app.cliq.backend.auth.service.RefreshTokenService
+import app.cliq.backend.oidc.factory.AuthExchangeFactory
 import app.cliq.backend.session.SessionRepository
 import app.cliq.backend.user.User
 import app.cliq.backend.user.service.UserOidcService
+import app.cliq.backend.utils.CliqUrlUtils
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
 import org.springframework.security.core.Authentication
@@ -20,6 +22,8 @@ class OidcLoginSuccessHandler(
     private val jwtService: JwtService,
     private val refreshTokenService: RefreshTokenService,
     private val sessionRepository: SessionRepository,
+    private val authExchangeFactory: AuthExchangeFactory,
+    private val cliqUrlUtils: CliqUrlUtils,
 ) : AuthenticationSuccessHandler {
     override fun onAuthenticationSuccess(
         request: HttpServletRequest,
@@ -29,10 +33,10 @@ class OidcLoginSuccessHandler(
         val oidcUSer = authentication.principal as OidcUser
         val user = userOidcService.putUserFromJwt(oidcUSer)
         val tokenPair = getTokenPairFromOidcUser(user, oidcUSer)
+        val authExchange = authExchangeFactory.createFromRequestAndSession(request, tokenPair)
+        val uri = cliqUrlUtils.buildOidcAppRedirectUrl(authExchange.exchangeCode)
 
-        response.sendRedirect(
-            "cliq://oauth/callback?jwtAccessToken=${tokenPair.jwt.tokenValue}&refreshToken=${tokenPair.refreshToken}",
-        )
+        response.sendRedirect(uri.toString())
     }
 
     private fun getTokenPairFromOidcUser(

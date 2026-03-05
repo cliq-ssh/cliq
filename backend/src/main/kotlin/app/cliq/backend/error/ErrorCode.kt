@@ -31,6 +31,8 @@ data class ErrorCode private constructor(
         val INVALID_JWT_ACCESS_TOKEN = of(2101U, "Invalid authentication token")
         val INVALID_REFRESH_TOKEN = of(2102U, "Invalid refresh token")
         val REFRESH_TOKEN_EXPIRED = of(2103U, "Refresh token is expired")
+        val INVALID_OIDC_AUTH_EXCHANGE_CODE = of(2104U, "Invalid OIDC auth exchange code")
+        val INVALID_IP_ADDRESS = of(2105U, "Invalid IP address")
 
         // Rate limiting
         val RATE_LIMIT_EXCEEDED = of(2200U, "Rate limit exceeded")

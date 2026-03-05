@@ -1,6 +1,7 @@
 package app.cliq.backend.auth.view
 
 import app.cliq.backend.auth.jwt.TokenPair
+import app.cliq.backend.session.Session
 import app.cliq.backend.session.view.SessionResponse
 import io.swagger.v3.oas.annotations.media.Schema
 import java.time.OffsetDateTime
@@ -18,19 +19,22 @@ class TokenResponse(
     createdAt: OffsetDateTime,
 ) : SessionResponse(id, name, lastUsedAt, expiresAt, createdAt) {
     companion object {
-        fun fromTokenPair(tokenPair: TokenPair): TokenResponse {
-            val jwt = tokenPair.jwt
-            val session = tokenPair.session
+        fun fromTokenPair(tokenPair: TokenPair): TokenResponse =
+            fromTokensAndSession(tokenPair.jwt.tokenValue, tokenPair.refreshToken, tokenPair.session)
 
-            return TokenResponse(
-                accessToken = jwt.tokenValue,
-                refreshToken = tokenPair.refreshToken,
+        fun fromTokensAndSession(
+            accessToken: String,
+            refreshToken: String,
+            session: Session,
+        ): TokenResponse =
+            TokenResponse(
+                accessToken = accessToken,
+                refreshToken = refreshToken,
                 id = session.id!!,
                 name = session.name,
                 lastUsedAt = session.lastUsedAt,
                 expiresAt = session.expiresAt,
                 createdAt = session.createdAt,
             )
-        }
     }
 }
