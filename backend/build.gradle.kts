@@ -6,15 +6,15 @@ plugins {
     kotlin("plugin.allopen") version "2.3.10"
 
     // Spring / Spring Boot
-    id("org.springframework.boot") version "4.0.2"
+    id("org.springframework.boot") version "4.0.3"
     id("io.spring.dependency-management") version "1.1.7"
 
     // Database Migrations
-    id("org.flywaydb.flyway") version "12.0.1"
+    id("org.flywaydb.flyway") version "12.0.3"
 
     // Linter and Formatter
     id("org.jlleitschuh.gradle.ktlint") version "14.0.1"
-    id("com.autonomousapps.dependency-analysis") version "3.5.1"
+    id("com.autonomousapps.dependency-analysis") version "3.6.1"
 }
 
 group = "app.cliq"
@@ -76,7 +76,7 @@ repositories {
 
 buildscript {
     dependencies {
-        classpath("org.flywaydb:flyway-database-postgresql:12.0.1")
+        classpath("org.flywaydb:flyway-database-postgresql:12.0.3")
     }
 }
 
@@ -98,7 +98,7 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-data-jpa")
     runtimeOnly("org.postgresql:postgresql")
     // Flyway
-    val flywayVersion = "12.0.1"
+    val flywayVersion = "12.0.3"
     implementation("org.springframework.boot:spring-boot-starter-flyway")
     implementation("org.flywaydb:flyway-core:$flywayVersion")
     implementation("org.flywaydb:flyway-database-postgresql:$flywayVersion")
@@ -124,7 +124,7 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-validation")
 
     // OpenAPI
-    val springdocVersion = "3.0.1"
+    val springdocVersion = "3.0.2"
     implementation("org.springdoc:springdoc-openapi-starter-webmvc-api:$springdocVersion")
     implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:$springdocVersion")
     implementation("org.springdoc:springdoc-openapi-starter-webmvc-scalar:$springdocVersion")
@@ -160,8 +160,8 @@ dependencies {
     testImplementation("org.apache.commons:commons-email2-jakarta:2.0.0-M1")
 
     // Mockito
-    testImplementation("org.mockito:mockito-core:5.21.0")
-    testImplementation("org.mockito:mockito-junit-jupiter:5.21.0")
+    testImplementation("org.mockito:mockito-core:5.22.0")
+    testImplementation("org.mockito:mockito-junit-jupiter:5.22.0")
     testImplementation("org.mockito.kotlin:mockito-kotlin:6.2.3")
 
     // AssertJ

@@ -12,6 +12,8 @@ app:
     local:
       registration: \${ENABLE_LOCAL_REGISTRATION:true}
       login: \${ENABLE_LOCAL_LOGIN:true}
+    oidc:
+      auth-exchange-duration-seconds: \${OIDC_AUTH_EXCHANGE_DURATION_SECONDS:60}
   oidc:
     issuer-uri: \${OIDC_ISSUER_URI:}
     client-id: \${OIDC_CLIENT_ID:}
