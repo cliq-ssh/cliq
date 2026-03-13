@@ -13,7 +13,7 @@ plugins {
     id("org.flywaydb.flyway") version "12.1.0"
 
     // Linter and Formatter
-    id("org.jlleitschuh.gradle.ktlint") version "14.1.0"
+    id("org.jlleitschuh.gradle.ktlint") version "14.2.0"
     id("com.autonomousapps.dependency-analysis") version "3.6.1"
 }
 
