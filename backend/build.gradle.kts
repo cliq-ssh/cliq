@@ -10,10 +10,10 @@ plugins {
     id("io.spring.dependency-management") version "1.1.7"
 
     // Database Migrations
-    id("org.flywaydb.flyway") version "12.0.3"
+    id("org.flywaydb.flyway") version "12.1.0"
 
     // Linter and Formatter
-    id("org.jlleitschuh.gradle.ktlint") version "14.0.1"
+    id("org.jlleitschuh.gradle.ktlint") version "14.2.0"
     id("com.autonomousapps.dependency-analysis") version "3.6.1"
 }
 
@@ -76,7 +76,7 @@ repositories {
 
 buildscript {
     dependencies {
-        classpath("org.flywaydb:flyway-database-postgresql:12.0.3")
+        classpath("org.flywaydb:flyway-database-postgresql:12.1.0")
     }
 }
 
@@ -86,7 +86,7 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-actuator")
 
     // Rate limiting
-    val bucket4JVersion = "8.16.1"
+    val bucket4JVersion = "8.17.0"
     implementation("com.bucket4j:bucket4j_jdk17-core:$bucket4JVersion")
     implementation("com.bucket4j:bucket4j_jdk17-caffeine:$bucket4JVersion")
 
@@ -98,7 +98,7 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-data-jpa")
     runtimeOnly("org.postgresql:postgresql")
     // Flyway
-    val flywayVersion = "12.0.3"
+    val flywayVersion = "12.1.0"
     implementation("org.springframework.boot:spring-boot-starter-flyway")
     implementation("org.flywaydb:flyway-core:$flywayVersion")
     implementation("org.flywaydb:flyway-database-postgresql:$flywayVersion")
@@ -160,8 +160,8 @@ dependencies {
     testImplementation("org.apache.commons:commons-email2-jakarta:2.0.0-M1")
 
     // Mockito
-    testImplementation("org.mockito:mockito-core:5.22.0")
-    testImplementation("org.mockito:mockito-junit-jupiter:5.22.0")
+    testImplementation("org.mockito:mockito-core:5.23.0")
+    testImplementation("org.mockito:mockito-junit-jupiter:5.23.0")
     testImplementation("org.mockito.kotlin:mockito-kotlin:6.2.3")
 
     // AssertJ
