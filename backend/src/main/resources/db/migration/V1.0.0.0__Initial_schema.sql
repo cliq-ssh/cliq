@@ -27,16 +27,26 @@ CREATE TABLE users
 
 CREATE TABLE auth_exchanges
 (
-    "id"              BIGINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
-    "user_id"         BIGINT REFERENCES users (id) ON DELETE CASCADE NOT NULL UNIQUE,
-    "oidc_session_id" TEXT UNIQUE,
-    "exchange_code"   TEXT                                           NOT NULL,
-    "ip_address"      inet                                           NOT NULL,
-    "created_at"      timestamp with time zone                       NOT NULL,
-    "expires_at"      timestamp with time zone                       NOT NULL
+    "id"            BIGINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
+    "user_id"       BIGINT REFERENCES users (id) ON DELETE CASCADE NOT NULL,
+    "exchange_code" TEXT                                           NOT NULL UNIQUE,
+    "ip_address"    inet                                           NOT NULL,
+    "created_at"    timestamp with time zone                       NOT NULL,
+    "expires_at"    timestamp with time zone                       NOT NULL
 );
 
 CREATE INDEX idx_auth_exchanges_exchange_code ON auth_exchanges (exchange_code);
+
+CREATE TABLE oidc_callback_token
+(
+    "id"               BIGINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
+    "auth_exchange_id" BIGINT REFERENCES auth_exchanges (id) ON DELETE CASCADE NOT NULL UNIQUE,
+    "oidc_session_id"  TEXT UNIQUE,
+    "token"            TEXT                                                    NOT NULL UNIQUE,
+    "created_at"       timestamp with time zone                                NOT NULL
+);
+
+CREATE INDEX idx_oidc_callback_token_token ON oidc_callback_token (token);
 
 CREATE TABLE sessions
 (

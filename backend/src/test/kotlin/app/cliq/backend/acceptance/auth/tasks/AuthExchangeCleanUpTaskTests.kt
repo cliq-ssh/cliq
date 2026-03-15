@@ -1,4 +1,4 @@
-package app.cliq.backend.acceptance.oidc
+package app.cliq.backend.acceptance.auth.tasks
 
 import app.cliq.backend.acceptance.AcceptanceTest
 import app.cliq.backend.acceptance.AcceptanceTester
@@ -6,7 +6,6 @@ import app.cliq.backend.auth.AuthExchange
 import app.cliq.backend.auth.AuthExchangeRepository
 import app.cliq.backend.auth.factory.AuthExchangeFactory
 import app.cliq.backend.auth.tasks.AuthExchangeCleanUpTask
-import app.cliq.backend.session.SessionRepository
 import app.cliq.backend.support.UserCreationHelper
 import org.assertj.core.api.Assertions
 import org.junit.jupiter.api.Test
@@ -14,7 +13,6 @@ import org.junit.jupiter.api.assertNotNull
 import org.springframework.beans.factory.annotation.Autowired
 import java.time.Clock
 import java.time.OffsetDateTime
-import java.util.Optional
 import kotlin.test.assertEquals
 
 @AcceptanceTest
@@ -26,21 +24,16 @@ class AuthExchangeCleanUpTaskTests(
     @Autowired
     private val authExchangeFactory: AuthExchangeFactory,
     @Autowired
-    private val sessionRepository: SessionRepository,
-    @Autowired
     private val userCreationHelper: UserCreationHelper,
     @Autowired
     private val clock: Clock,
 ) : AcceptanceTester() {
     private fun createAuthExchange(expiresAt: OffsetDateTime): AuthExchange {
-        val userCreationData = userCreationHelper.createRandomAuthenticatedUser()
-        val tokenPair = userCreationData.tokenPair
+        val userCreationData = userCreationHelper.createRandomUser()
         val authExchange =
             authExchangeFactory.create(
                 ipAddress = "127.0.0.1",
-                session = tokenPair.session,
-                jwtToken = tokenPair.jwt.tokenValue,
-                refreshToken = tokenPair.refreshToken,
+                user = userCreationData.user,
             )
         authExchange.expiresAt = expiresAt
 
@@ -48,33 +41,16 @@ class AuthExchangeCleanUpTaskTests(
     }
 
     @Test
-    fun `cleanUpExpiredAuthExchanges should delete expired auth exchanges and their sessions`() {
-        // Given
-        val now = OffsetDateTime.now(clock)
-        val expiredAuthExchange = createAuthExchange(expiresAt = now.minusMinutes(1))
-        val expiredSessionId = expiredAuthExchange.session.id
-
-        // When
-        authExchangeCleanUpTask.cleanUpExpiredAuthExchanges()
-
-        // Then
-        assertEquals(Optional.empty(), authExchangeRepository.findById(expiredAuthExchange.id!!))
-        assertEquals(Optional.empty(), sessionRepository.findById(expiredSessionId!!))
-    }
-
-    @Test
     fun `cleanUpExpiredAuthExchanges should not delete non-expired auth exchanges`() {
         // Given
         val now = OffsetDateTime.now(clock)
         val validAuthExchange = createAuthExchange(expiresAt = now.plusMinutes(5))
-        val validSessionId = validAuthExchange.session.id
 
         // When
         authExchangeCleanUpTask.cleanUpExpiredAuthExchanges()
 
         // Then
         assertNotNull(authExchangeRepository.findById(validAuthExchange.id!!))
-        assertNotNull(sessionRepository.findById(validSessionId!!))
     }
 
     @Test
@@ -86,14 +62,12 @@ class AuthExchangeCleanUpTaskTests(
         createAuthExchange(expiresAt = now.minusSeconds(1))
 
         assertEquals(3, authExchangeRepository.count())
-        assertEquals(3, sessionRepository.count())
 
         // When
         authExchangeCleanUpTask.cleanUpExpiredAuthExchanges()
 
         // Then
         assertEquals(0, authExchangeRepository.count())
-        assertEquals(0, sessionRepository.count())
     }
 
     @Test
@@ -106,17 +80,14 @@ class AuthExchangeCleanUpTaskTests(
         val validAuthExchange2 = createAuthExchange(expiresAt = now.plusHours(1))
 
         assertEquals(4, authExchangeRepository.count())
-        assertEquals(4, sessionRepository.count())
 
         // When
         authExchangeCleanUpTask.cleanUpExpiredAuthExchanges()
 
         // Then
         val remainingAuthExchanges = authExchangeRepository.findAll()
-        val remainingSessions = sessionRepository.findAll()
 
         assertEquals(2, remainingAuthExchanges.size)
-        assertEquals(2, remainingSessions.size)
 
         Assertions.assertThat(remainingAuthExchanges.map { it.id }).containsExactlyInAnyOrder(
             validAuthExchange1.id,
@@ -133,7 +104,6 @@ class AuthExchangeCleanUpTaskTests(
 
         // Then
         assertEquals(0, authExchangeRepository.count())
-        assertEquals(0, sessionRepository.count())
     }
 
     @Test

@@ -5,7 +5,7 @@ import app.cliq.backend.auth.factory.AuthExchangeFactory
 import app.cliq.backend.auth.params.login.LoginFinishParams
 import app.cliq.backend.auth.params.login.LoginStartParams
 import app.cliq.backend.auth.service.SrpService
-import app.cliq.backend.auth.view.login.LoginFinishResponse
+import app.cliq.backend.auth.view.login.LocalLoginFinishResponse
 import app.cliq.backend.auth.view.login.LoginStartResponse
 import app.cliq.backend.config.properties.AuthProperties
 import app.cliq.backend.exception.EmailNotVerifiedException
@@ -86,6 +86,7 @@ class LocalLoginController(
                 content = [
                     Content(
                         mediaType = MediaType.APPLICATION_JSON_VALUE,
+                        schema = Schema(LocalLoginFinishResponse::class),
                     ),
                 ],
             ),
@@ -104,7 +105,7 @@ class LocalLoginController(
     fun finishLogin(
         @Valid @RequestBody loginFinishParams: LoginFinishParams,
         httpRequest: HttpServletRequest,
-    ): ResponseEntity<LoginFinishResponse> {
+    ): ResponseEntity<LocalLoginFinishResponse> {
         if (!authProperties.local.login) {
             throw LocalLoginDisabledException()
         }
@@ -113,7 +114,7 @@ class LocalLoginController(
         val user = userRepository.findByEmail(email) ?: throw InvalidEmailException()
 
         val authExchange = authExchangeFactory.createFromRequestAndUser(httpRequest, user)
-        val loginResponse = LoginFinishResponse(publicM2, authExchange.exchangeCode, user.dataEncryptionKey)
+        val loginResponse = LocalLoginFinishResponse(publicM2, authExchange.exchangeCode, user.dataEncryptionKey)
 
         return ResponseEntity.ok(loginResponse)
     }

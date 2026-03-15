@@ -2,9 +2,7 @@ package app.cliq.backend.auth.factory
 
 import app.cliq.backend.auth.AuthExchange
 import app.cliq.backend.auth.AuthExchangeRepository
-import app.cliq.backend.auth.jwt.TokenPair
 import app.cliq.backend.config.properties.AuthProperties
-import app.cliq.backend.session.Session
 import app.cliq.backend.user.User
 import app.cliq.backend.utils.TokenGenerator
 import jakarta.servlet.http.HttpServletRequest
@@ -23,14 +21,11 @@ class AuthExchangeFactory(
     fun createFromRequestAndUser(
         httpServletRequest: HttpServletRequest,
         user: User,
-        oidcSessionId: String? = null,
-    ): AuthExchange =
-        create(httpServletRequest.remoteAddr, user, oidcSessionId)
+    ): AuthExchange = create(httpServletRequest.remoteAddr, user)
 
     fun create(
         ipAddress: String,
         user: User,
-        oidcSessionId: String? = null,
     ): AuthExchange {
         val token = tokenGenerator.generateAuthExchangeCode()
         val inetAddress = InetAddress.ofLiteral(ipAddress)
@@ -40,7 +35,7 @@ class AuthExchangeFactory(
         val exchange =
             AuthExchange(
                 user = user,
-                oidcSessionId = oidcSessionId,
+                oidcCallbackToken = null,
                 exchangeCode = token,
                 ipAddress = inetAddress,
                 createdAt = now,

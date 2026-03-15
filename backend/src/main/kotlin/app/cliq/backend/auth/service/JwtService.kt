@@ -1,11 +1,11 @@
 package app.cliq.backend.auth.service
 
 import app.cliq.backend.auth.AuthExchange
+import app.cliq.backend.auth.AuthExchangeRepository
 import app.cliq.backend.auth.factory.JwtFactory
 import app.cliq.backend.auth.jwt.TokenPair
-import app.cliq.backend.auth.params.login.LoginFinishParams
+import app.cliq.backend.auth.oidc.OidcCallbackToken
 import app.cliq.backend.session.SessionRepository
-import app.cliq.backend.user.User
 import org.springframework.stereotype.Service
 import java.time.Clock
 import java.time.OffsetDateTime
@@ -15,48 +15,43 @@ class JwtService(
     private val jwtFactory: JwtFactory,
     private val refreshTokenService: RefreshTokenService,
     private val sessionRepository: SessionRepository,
+    private val authExchangeRepository: AuthExchangeRepository,
     private val clock: Clock,
 ) {
-    fun generateJwtTokenPair(
-        loginFinishParams: LoginFinishParams,
-        user: User,
-    ): TokenPair = generateJwtTokenPair(loginFinishParams.sessionName, user)
-
-    fun generateJwtTokenPair(
-        sessionName: String?,
-        user: User,
-    ): TokenPair {
-        val now = OffsetDateTime.now(clock)
-        val issuedRefreshToken = refreshTokenService.issue(sessionName, user)
-
-        val jwt = jwtFactory.generateJwtAccessToken(issuedRefreshToken.session, now)
-
-        return TokenPair(jwt, issuedRefreshToken.tokenValue, issuedRefreshToken.session)
-    }
-
-    fun generateOidcJwtTokenPair(
-        user: User,
-        oidcSessionId: String?,
-    ): TokenPair {
-        val now = OffsetDateTime.now(clock)
-        val issuedRefreshToken = refreshTokenService.issueForOidcUser(user, oidcSessionId)
-
-        val jwt = jwtFactory.generateJwtAccessToken(issuedRefreshToken.session, now)
-
-        return TokenPair(jwt, issuedRefreshToken.tokenValue, issuedRefreshToken.session)
-    }
-
-    fun getOrGenerateTokenPairForOidcUser(
+    fun generateTokenPairFromAuthExchange(
         authExchange: AuthExchange,
+        sessionName: String?,
     ): TokenPair {
-        val existingSession =
-            authExchange.oidcSessionId?.let {
-                sessionRepository.findByOidcSessionId(it)
-            }
-        if (existingSession == null) {
-            return generateOidcJwtTokenPair(authExchange.user, authExchange.oidcSessionId)
+        if (authExchange.oidcCallbackToken != null) {
+            return generateTokenPairForOidcUser(authExchange.oidcCallbackToken!!)
         }
 
-        return refreshTokenService.rotate(existingSession)
+        val now = OffsetDateTime.now(clock)
+        val issuedRefreshToken = refreshTokenService.issue(sessionName, authExchange.user)
+
+        val jwt = jwtFactory.generateJwtAccessToken(issuedRefreshToken.session, now)
+        authExchangeRepository.delete(authExchange)
+
+        return TokenPair(jwt, issuedRefreshToken.tokenValue, issuedRefreshToken.session)
+    }
+
+    private fun generateTokenPairForOidcUser(oidcCallbackToken: OidcCallbackToken): TokenPair {
+        if (oidcCallbackToken.oidcSessionId != null) {
+            val existingSession = sessionRepository.findByOidcSessionId(oidcCallbackToken.oidcSessionId!!)
+            if (existingSession != null) {
+                authExchangeRepository.delete(oidcCallbackToken.authExchange)
+
+                return refreshTokenService.rotate(existingSession)
+            }
+        }
+
+        val now = OffsetDateTime.now(clock)
+        val issuedRefreshToken =
+            refreshTokenService.issueForOidcUser(oidcCallbackToken.authExchange.user, oidcCallbackToken.oidcSessionId)
+
+        val jwt = jwtFactory.generateJwtAccessToken(issuedRefreshToken.session, now)
+        authExchangeRepository.delete(oidcCallbackToken.authExchange)
+
+        return TokenPair(jwt, issuedRefreshToken.tokenValue, issuedRefreshToken.session)
     }
 }

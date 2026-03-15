@@ -1,9 +1,11 @@
 package app.cliq.backend.end2end.encryption
 
+import app.cliq.backend.auth.params.DeviceRegistrationParams
 import app.cliq.backend.auth.params.login.LoginFinishParams
 import app.cliq.backend.auth.params.login.LoginStartParams
 import app.cliq.backend.auth.service.SrpService
-import app.cliq.backend.auth.view.login.LoginFinishResponse
+import app.cliq.backend.auth.view.TokenResponse
+import app.cliq.backend.auth.view.login.LocalLoginFinishResponse
 import app.cliq.backend.auth.view.login.LoginStartResponse
 import app.cliq.backend.end2end.End2EndTest
 import app.cliq.backend.end2end.End2EndTester
@@ -16,9 +18,10 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertDoesNotThrow
 import org.junit.jupiter.api.assertNotNull
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.http.MediaType
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders
-import org.springframework.test.web.servlet.result.MockMvcResultMatchers
+import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 import tools.jackson.databind.ObjectMapper
 import java.util.Base64
 import kotlin.test.assertContentEquals
@@ -58,7 +61,7 @@ class LoginTests(
                         .post("/api/auth/login/start")
                         .contentType("application/json")
                         .content(objectMapper.writeValueAsString(loginStartParams)),
-                ).andExpect(MockMvcResultMatchers.status().isOk)
+                ).andExpect(status().isOk)
                 .andReturn()
         val loginStartContent = loginStartResult.response.contentAsString
         val loginStartResponse = objectMapper.readValue(loginStartContent, LoginStartResponse::class.java)
@@ -83,12 +86,12 @@ class LoginTests(
                         .post("/api/auth/login/finish")
                         .contentType("application/json")
                         .content(objectMapper.writeValueAsString(loginFinishParams)),
-                ).andExpect(MockMvcResultMatchers.status().isOk)
+                ).andExpect(status().isOk)
                 .andReturn()
         val loginFinishContent = loginFinishResult.response.contentAsString
-        val loginFinishResponse = objectMapper.readValue(loginFinishContent, LoginFinishResponse::class.java)
+        val loginFinishResponse = objectMapper.readValue(loginFinishContent, LocalLoginFinishResponse::class.java)
 
-        val encryptedAndEncodedDataEncryptionKey = loginFinishResponse.dataEncryptionKeyUmkWrapper
+        val encryptedAndEncodedDataEncryptionKey = loginFinishResponse.dataEncryptionKeyUmkWrapped
         assertNotNull(encryptedAndEncodedDataEncryptionKey)
         assertEquals(
             creationData.encryptionData.dataEncryptionKey.encryptedAndEncodedDataEncryptionKey,
@@ -119,13 +122,33 @@ class LoginTests(
 
         // Generate Device Encryption Pair
         val deviceEncryptionPair = keyAndHelper.generateX25519KeyPair()
-        val decryptedDataEncryptionKey =
+        val encryptedDataEncryptionKey =
             assertDoesNotThrow {
                 encryptionHelper.encryptDataEncryptionKeyWithDeviceEncryptionKeyPair(
                     dataEncryptionKey,
                     deviceEncryptionPair,
                 )
             }
-        println(dataEncryptionKey)
+        val encodedAndEncryptedDataEncryptionKey = Base64.getEncoder().encodeToString(encryptedDataEncryptionKey)
+        val encodedDevicePublicKey = Base64.getEncoder().encodeToString(deviceEncryptionPair.first)
+
+        val deviceRegistrationParams =
+            DeviceRegistrationParams(
+                loginFinishResponse.authExchangeCode,
+                encodedDevicePublicKey,
+                encodedAndEncryptedDataEncryptionKey,
+            )
+        val registrationResult =
+            mockMvc
+                .perform(
+                    MockMvcRequestBuilders
+                        .post("/api/auth/device/register")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(deviceRegistrationParams)),
+                ).andExpect(status().isOk)
+                .andReturn()
+        val registrationResultContent = registrationResult.response.contentAsString
+        val tokenResponse = objectMapper.readValue(registrationResultContent, TokenResponse::class.java)
+        println(tokenResponse)
     }
 }

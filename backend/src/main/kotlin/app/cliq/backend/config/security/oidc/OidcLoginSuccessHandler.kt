@@ -1,6 +1,6 @@
 package app.cliq.backend.config.security.oidc
 
-import app.cliq.backend.auth.factory.AuthExchangeFactory
+import app.cliq.backend.auth.factory.OidcCallbackTokenFactory
 import app.cliq.backend.auth.jwt.JwtClaims
 import app.cliq.backend.user.service.UserOidcService
 import app.cliq.backend.utils.CliqUrlUtils
@@ -14,8 +14,8 @@ import org.springframework.stereotype.Component
 @Component
 class OidcLoginSuccessHandler(
     private val userOidcService: UserOidcService,
-    private val authExchangeFactory: AuthExchangeFactory,
     private val cliqUrlUtils: CliqUrlUtils,
+    private val oidcCallbackTokenFactory: OidcCallbackTokenFactory,
 ) : AuthenticationSuccessHandler {
     override fun onAuthenticationSuccess(
         request: HttpServletRequest,
@@ -25,8 +25,8 @@ class OidcLoginSuccessHandler(
         val oidcUser = authentication.principal as OidcUser
         val user = userOidcService.putUserFromOidcUser(oidcUser)
         val oidcSessionId = extractSessionId(oidcUser)
-        val authExchange = authExchangeFactory.createFromRequestAndUser(request, user, oidcSessionId)
-        val uri = cliqUrlUtils.buildOidcAppRedirectUrl(authExchange.exchangeCode)
+        val oidcCallbackToken = oidcCallbackTokenFactory.createFromRequestAndUser(request, user, oidcSessionId)
+        val uri = cliqUrlUtils.buildOidcAppRedirectUrl(oidcCallbackToken.token)
 
         response.sendRedirect(uri.toString())
     }

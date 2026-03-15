@@ -17,13 +17,12 @@ class AuthExchangeTests {
         now: OffsetDateTime,
     ): AuthExchange =
         AuthExchange(
-            session = mock(),
             exchangeCode = "exchange-code",
             ipAddress = InetAddress.getByName("127.0.0.1"),
-            jwtToken = "jwt-token",
-            refreshToken = "refresh-token",
             createdAt = now.minusMinutes(5),
             expiresAt = expiresAt,
+            user = mock(),
+            oidcCallbackToken = null,
         )
 
     @Test

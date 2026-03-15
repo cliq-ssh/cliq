@@ -1,6 +1,8 @@
 package app.cliq.backend.auth
 
+import app.cliq.backend.auth.oidc.OidcCallbackToken
 import app.cliq.backend.user.User
+import jakarta.persistence.CascadeType
 import jakarta.persistence.Column
 import jakarta.persistence.Entity
 import jakarta.persistence.FetchType
@@ -23,11 +25,17 @@ import java.time.OffsetDateTime
 )
 class AuthExchange(
     @OneToOne(fetch = FetchType.EAGER)
-    @JoinColumn(nullable = false, unique = true)
+    @JoinColumn(nullable = false)
     val user: User,
-    @Column(nullable = true)
-    val oidcSessionId: String?,
-    @Column(nullable = false)
+    @OneToOne(
+        mappedBy = "authExchange",
+        cascade = [CascadeType.PERSIST, CascadeType.REMOVE],
+        orphanRemoval = true,
+        fetch = FetchType.EAGER,
+        optional = true,
+    )
+    val oidcCallbackToken: OidcCallbackToken?,
+    @Column(nullable = false, unique = true)
     val exchangeCode: String,
     @Column(nullable = false)
     val ipAddress: InetAddress,

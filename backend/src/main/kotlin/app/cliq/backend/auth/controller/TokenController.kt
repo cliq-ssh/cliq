@@ -94,9 +94,11 @@ class TokenController(
         deviceRegistrationParams: DeviceRegistrationParams,
         request: HttpServletRequest,
     ): ResponseEntity<TokenResponse> {
-        val authExchange = authExchangeService.getValidAuthExchangeByCode(deviceRegistrationParams.authCode, request)
-        val tokenResponse = authExchangeService.consumeToTokenResponse(authExchange)
+        val authExchange =
+            authExchangeService.getValidAuthExchangeByCode(deviceRegistrationParams.exchangeCode, request)
+        val tokenPair = authExchangeService.exchange(authExchange, deviceRegistrationParams.sessionName)
+        val response = TokenResponse.fromTokenPair(tokenPair)
 
-        return ResponseEntity.ok(tokenResponse)
+        return ResponseEntity.ok(response)
     }
 }

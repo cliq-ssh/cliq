@@ -3,10 +3,12 @@ package app.cliq.backend.acceptance.auth.local
 import app.cliq.backend.acceptance.AcceptanceTest
 import app.cliq.backend.acceptance.AcceptanceTester
 import app.cliq.backend.auth.jwt.JwtClaims
+import app.cliq.backend.auth.params.DeviceRegistrationParams
 import app.cliq.backend.auth.params.login.LoginFinishParams
 import app.cliq.backend.auth.params.login.LoginStartParams
 import app.cliq.backend.auth.service.SrpService
-import app.cliq.backend.auth.view.login.LoginFinishResponse
+import app.cliq.backend.auth.view.TokenResponse
+import app.cliq.backend.auth.view.login.LocalLoginFinishResponse
 import app.cliq.backend.auth.view.login.LoginStartResponse
 import app.cliq.backend.config.properties.JwtProperties
 import app.cliq.backend.constants.DEFAULT_EMAIL
@@ -83,36 +85,55 @@ class LocalLoginTests(
         val publicA = BigIntegerUtils.toHex(credentials.A)
         val publicM1 = BigIntegerUtils.toHex(credentials.M1)
         val loginFinishParams =
-            LoginFinishParams(startResponse.authenticationSessionToken, publicA, publicM1, sessionName)
+            LoginFinishParams(startResponse.authenticationSessionToken, publicA, publicM1)
 
         val finishResult =
             mockMvc
                 .perform(
                     MockMvcRequestBuilders
                         .post("/api/auth/login/finish")
-                        .contentType("application/json")
+                        .contentType(MediaType.APPLICATION_JSON_VALUE)
                         .content(objectMapper.writeValueAsString(loginFinishParams)),
                 ).andExpect(status().isOk)
                 .andReturn()
         val finishContent = finishResult.response.contentAsString
-        val finishResponse = objectMapper.readValue(finishContent, LoginFinishResponse::class.java)
+        val finishResponse = objectMapper.readValue(finishContent, LocalLoginFinishResponse::class.java)
 
         // Verify Server Response
         val step3BigInteger = BigIntegerUtils.fromHex(finishResponse.publicM2)
         assertDoesNotThrow { srpClientSession.step3(step3BigInteger) }
 
+        // Register device
+        val deviceRegistrationParams =
+            DeviceRegistrationParams(
+                finishResponse.authExchangeCode,
+                "",
+                "",
+                sessionName,
+            )
+        val deviceRegistrationResult =
+            mockMvc
+                .perform(
+                    MockMvcRequestBuilders
+                        .post("/api/auth/device/register")
+                        .contentType(MediaType.APPLICATION_JSON_VALUE)
+                        .content(objectMapper.writeValueAsString(deviceRegistrationParams)),
+                ).andExpect(status().isOk)
+                .andReturn()
+        val deviceRegistrationContent = deviceRegistrationResult.response.contentAsString
+        val tokenResponse = objectMapper.readValue(deviceRegistrationContent, TokenResponse::class.java)
+
         // Session assertions
-        val sessionResponse = finishResponse.session
-        val sessionOpt = sessionRepository.findById(sessionResponse.id)
+        val sessionOpt = sessionRepository.findById(tokenResponse.id)
         Assertions.assertTrue(sessionOpt.isPresent)
 
         // Decode jwt
-        val jwt = jwtDecoder.decode(sessionResponse.accessToken)
+        val jwt = jwtDecoder.decode(tokenResponse.accessToken)
         val sub = jwt.subject
         val sid = jwt.getClaim<Long>(JwtClaims.SID)
         val issuer = jwt.getClaim<String>(JwtClaims.ISS)
         assertEquals(user.id.toString(), sub)
-        assertEquals(sessionResponse.id, sid)
+        assertEquals(tokenResponse.id, sid)
         assertEquals(jwtProperties.issuer, issuer.toString())
         assertNotNull(jwt.expiresAt)
         Assertions.assertTrue(jwt.expiresAt!! > jwt.issuedAt)

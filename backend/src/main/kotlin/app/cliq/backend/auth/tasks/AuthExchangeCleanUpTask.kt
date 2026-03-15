@@ -1,7 +1,6 @@
 package app.cliq.backend.auth.tasks
 
 import app.cliq.backend.auth.AuthExchangeRepository
-import app.cliq.backend.session.SessionRepository
 import org.slf4j.LoggerFactory
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Component
@@ -12,7 +11,6 @@ import java.time.OffsetDateTime
 @Component
 class AuthExchangeCleanUpTask(
     private val authExchangeRepository: AuthExchangeRepository,
-    private val sessionRepository: SessionRepository,
     private val clock: Clock,
 ) {
     private val logger = LoggerFactory.getLogger(this::class.java)
@@ -23,12 +21,10 @@ class AuthExchangeCleanUpTask(
     @Scheduled(cron = "0 */5 * * * *")
     @Transactional
     fun cleanUpExpiredAuthExchanges() {
-        val expiredAuthExchanges = authExchangeRepository.getExpiredAuthExchanges(OffsetDateTime.now(clock))
-        for (authExchange in expiredAuthExchanges) {
-            authExchangeRepository.delete(authExchange)
-            sessionRepository.delete(authExchange.session)
+        val now = OffsetDateTime.now(clock)
+        val deletedCount = authExchangeRepository.deleteExpiredAuthExchanges(now)
+        if (deletedCount > 0) {
+            logger.info("Deleted $deletedCount expired auth exchanges")
         }
-
-        logger.info("Found ${expiredAuthExchanges.size} expired auth exchanges")
     }
 }

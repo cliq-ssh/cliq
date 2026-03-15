@@ -12,3 +12,4 @@ const val DEFAULT_SRP_VERIFIER = "9e260c24c6bd974cb8f7a4c6d79ec74e72ddef775bfc9b
 
 // Login/Session
 const val DEFAULT_SESSION_NAME = "Test Session"
+const val DEFAULT_IP_ADDRESS = "10.10.10.10"

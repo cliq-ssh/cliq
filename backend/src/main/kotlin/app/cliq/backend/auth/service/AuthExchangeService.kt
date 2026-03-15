@@ -2,7 +2,7 @@ package app.cliq.backend.auth.service
 
 import app.cliq.backend.auth.AuthExchange
 import app.cliq.backend.auth.AuthExchangeRepository
-import app.cliq.backend.auth.view.TokenResponse
+import app.cliq.backend.auth.jwt.TokenPair
 import app.cliq.backend.exception.InvalidAuthExchangeCodeException
 import app.cliq.backend.exception.InvalidIPAddressException
 import jakarta.servlet.http.HttpServletRequest
@@ -14,6 +14,7 @@ import java.time.OffsetDateTime
 class AuthExchangeService(
     private val authExchangeRepository: AuthExchangeRepository,
     private val clock: Clock,
+    private val jwtService: JwtService,
 ) {
     fun getValidAuthExchangeByCode(
         code: String,
@@ -23,6 +24,15 @@ class AuthExchangeService(
             authExchangeRepository.findByExchangeCode(code)
                 ?: throw InvalidAuthExchangeCodeException()
 
+        validOrThrowAuthExchange(authExchange, request)
+
+        return authExchange
+    }
+
+    fun validOrThrowAuthExchange(
+        authExchange: AuthExchange,
+        request: HttpServletRequest,
+    ) {
         val now = OffsetDateTime.now(clock)
         if (authExchange.isExpired(now)) throw InvalidAuthExchangeCodeException()
 
@@ -30,19 +40,10 @@ class AuthExchangeService(
         if (expectedIpAddress != request.remoteAddr) {
             throw InvalidIPAddressException()
         }
-
-        return authExchange
     }
 
-    fun consumeToTokenResponse(authExchange: AuthExchange): TokenResponse {
-        val response =
-            TokenResponse.Companion.fromTokensAndSession(
-                authExchange.jwtToken,
-                authExchange.refreshToken,
-                authExchange.session,
-            )
-        authExchangeRepository.delete(authExchange)
-
-        return response
-    }
+    fun exchange(
+        authExchange: AuthExchange,
+        sessionName: String?,
+    ): TokenPair = jwtService.generateTokenPairFromAuthExchange(authExchange, sessionName)
 }

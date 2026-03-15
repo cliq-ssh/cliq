@@ -1,5 +1,6 @@
 package app.cliq.backend.session
 
+import app.cliq.backend.auth.AuthExchange
 import app.cliq.backend.auth.jwt.RefreshToken
 import app.cliq.backend.user.User
 import org.springframework.stereotype.Service

@@ -58,7 +58,8 @@ class SecurityConfig(
                         "/api/auth/login/*",
                         "/api/auth/refresh",
                         "/api/auth/register",
-                        "/api/auth/oidc/exchange",
+                        "/api/auth/oidc/callback",
+                        "/api/auth/device/register",
                     ).permitAll()
                     // User endpoints
                     .requestMatchers("/api/user/password-reset/start", "/api/user/password-reset/reset")

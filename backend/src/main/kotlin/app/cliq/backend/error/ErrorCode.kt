@@ -35,6 +35,7 @@ data class ErrorCode private constructor(
         val TRIED_LOCAL_LOGIN_WITH_OIDC_USER = of(2105U, "OIDC Users cannot use local login to authenticate.")
         val INVALID_AUTH_EXCHANGE_CODE = of(2106U, "Invalid auth exchange code")
         val INVALID_IP_ADDRESS = of(2107U, "Invalid IP address")
+        val INVALID_OIDC_CALLBACK_TOKEN = of(2108U, "Invalid oidc callback token")
 
         // Rate limiting
         val RATE_LIMIT_EXCEEDED = of(2200U, "Rate limit exceeded")

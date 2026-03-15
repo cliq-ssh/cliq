@@ -9,10 +9,10 @@ class CliqUrlUtils {
     /**
      * Builds and encode the callback url that redirects the User to the App after successful OIDC authentication.
      */
-    fun buildOidcAppRedirectUrl(exchangeCode: String): URI =
+    fun buildOidcAppRedirectUrl(oidcCallbackToken: String): URI =
         UriComponentsBuilder
             .fromUriString("cliq://oauth/callback")
-            .queryParam("exchangeCode", exchangeCode)
+            .queryParam("callbackToken", oidcCallbackToken)
             .build()
             .encode()
             .toUri()

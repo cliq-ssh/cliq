@@ -1,12 +1,13 @@
 package app.cliq.backend.end2end.encryption
 
+import app.cliq.backend.auth.params.DeviceRegistrationParams
 import app.cliq.backend.auth.params.RefreshParams
 import app.cliq.backend.auth.params.RegistrationParams
 import app.cliq.backend.auth.params.login.LoginFinishParams
 import app.cliq.backend.auth.params.login.LoginStartParams
 import app.cliq.backend.auth.service.SrpService
 import app.cliq.backend.auth.view.TokenResponse
-import app.cliq.backend.auth.view.login.LoginFinishResponse
+import app.cliq.backend.auth.view.login.LocalLoginFinishResponse
 import app.cliq.backend.auth.view.login.LoginStartResponse
 import app.cliq.backend.constants.DEFAULT_PASSWORD
 import app.cliq.backend.constants.EXAMPLE_EMAIL
@@ -26,6 +27,7 @@ import org.springframework.http.MediaType
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers
+import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 import tools.jackson.databind.ObjectMapper
 import java.security.SecureRandom
 import java.util.Base64
@@ -73,6 +75,7 @@ class RegistrationLoginAndSyncTests(
 
         // Generate DeviceKeyPair
         val deviceKeyPair = keyAndHashHelper.generateX25519KeyPair()
+        val encodedDevicePublicKey = Base64.getEncoder().encodeToString(deviceKeyPair.first)
 
         // Encrypt DEK with DeviceKeyPair
         val encryptedDekWithDeviceKeyPair =
@@ -155,23 +158,41 @@ class RegistrationLoginAndSyncTests(
                 ).andExpect(MockMvcResultMatchers.status().isOk)
                 .andReturn()
         val loginFinishContent = loginFinishResult.response.contentAsString
-        val loginFinishResponse = objectMapper.readValue(loginFinishContent, LoginFinishResponse::class.java)
+        val loginFinishResponse = objectMapper.readValue(loginFinishContent, LocalLoginFinishResponse::class.java)
 
         // Verify Server Response
         val step3BigInteger = BigIntegerUtils.fromHex(loginFinishResponse.publicM2)
-        // If it throws the Server is not trust worthy
+        // If it throws, the Server is not trustworthy
         assertDoesNotThrow { srpClientSession.step3(step3BigInteger) }
 
         // Authentication successfully
 
+        // Register Device
+        val deviceRegistrationParams =
+            DeviceRegistrationParams(
+                loginFinishResponse.authExchangeCode,
+                encodedDevicePublicKey,
+                encryptedDekWithDeviceKeyPairString,
+            )
+        val deviceRegistrationResult =
+            mockMvc
+                .perform(
+                    MockMvcRequestBuilders
+                        .post("/api/auth/device/register")
+                        .contentType(MediaType.APPLICATION_JSON_VALUE)
+                        .content(objectMapper.writeValueAsString(deviceRegistrationParams)),
+                ).andExpect(status().isOk)
+                .andReturn()
+        val deviceRegistrationContent = deviceRegistrationResult.response.contentAsString
+        val tokenResponse = objectMapper.readValue(deviceRegistrationContent, TokenResponse::class.java)
+
         // Test login with the new access token by getting self the user information
-        val tokenResponse = loginFinishResponse.session
         mockMvc
             .perform(
                 MockMvcRequestBuilders
                     .get("/api/user/me")
                     .header(HttpHeaders.AUTHORIZATION, "Bearer ${tokenResponse.accessToken}"),
-            ).andExpect(MockMvcResultMatchers.status().isOk)
+            ).andExpect(status().isOk)
 
         // Refresh
         val refreshParams = RefreshParams(tokenResponse.refreshToken)
@@ -182,7 +203,7 @@ class RegistrationLoginAndSyncTests(
                         .post("/api/auth/refresh")
                         .contentType(MediaType.APPLICATION_JSON_VALUE)
                         .content(objectMapper.writeValueAsString(refreshParams)),
-                ).andExpect(MockMvcResultMatchers.status().isOk)
+                ).andExpect(status().isOk)
                 .andReturn()
         val refreshContent = refreshResult.response.contentAsString
         val refreshResponse = objectMapper.readValue(refreshContent, TokenResponse::class.java)
