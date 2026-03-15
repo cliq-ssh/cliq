@@ -17,6 +17,7 @@ import app.cliq.backend.end2end.End2EndTester
 import app.cliq.backend.support.encryption.EncryptionHelper
 import app.cliq.backend.support.encryption.KeyAndHashHelper
 import app.cliq.backend.user.view.UserResponse
+import app.cliq.backend.vault.params.VaultParams
 import com.nimbusds.srp6.BigIntegerUtils
 import com.nimbusds.srp6.SRP6ClientSession
 import org.junit.jupiter.api.Test
@@ -26,11 +27,11 @@ import org.springframework.http.HttpHeaders
 import org.springframework.http.MediaType
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders
-import org.springframework.test.web.servlet.result.MockMvcResultMatchers
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 import tools.jackson.databind.ObjectMapper
 import java.security.SecureRandom
 import java.util.Base64
+import kotlin.test.assertEquals
 
 @End2EndTest
 class RegistrationLoginAndSyncTests(
@@ -109,11 +110,11 @@ class RegistrationLoginAndSyncTests(
                         .post("/api/auth/register")
                         .contentType("application/json")
                         .content(objectMapper.writeValueAsString(registrationParams)),
-                ).andExpect(MockMvcResultMatchers.status().isCreated)
+                ).andExpect(status().isCreated)
                 .andReturn()
 
         val content = result.response.contentAsString
-        val response = objectMapper.readValue(content, UserResponse::class.java)
+        assertDoesNotThrow { objectMapper.readValue(content, UserResponse::class.java) }
 
         // Login //
 
@@ -130,7 +131,7 @@ class RegistrationLoginAndSyncTests(
                         .post("/api/auth/login/start")
                         .contentType("application/json")
                         .content(objectMapper.writeValueAsString(loginStartParams)),
-                ).andExpect(MockMvcResultMatchers.status().isOk)
+                ).andExpect(status().isOk)
                 .andReturn()
         val loginStartContent = loginStartResult.response.contentAsString
         val loginStartResponse = objectMapper.readValue(loginStartContent, LoginStartResponse::class.java)
@@ -155,7 +156,7 @@ class RegistrationLoginAndSyncTests(
                         .post("/api/auth/login/finish")
                         .contentType("application/json")
                         .content(objectMapper.writeValueAsString(loginFinishParams)),
-                ).andExpect(MockMvcResultMatchers.status().isOk)
+                ).andExpect(status().isOk)
                 .andReturn()
         val loginFinishContent = loginFinishResult.response.contentAsString
         val loginFinishResponse = objectMapper.readValue(loginFinishContent, LocalLoginFinishResponse::class.java)
@@ -214,7 +215,46 @@ class RegistrationLoginAndSyncTests(
                 MockMvcRequestBuilders
                     .get("/api/user/me")
                     .header(HttpHeaders.AUTHORIZATION, "Bearer ${refreshResponse.accessToken}"),
-            ).andExpect(MockMvcResultMatchers.status().isOk)
+            ).andExpect(status().isOk)
+
+        // Assert empty vault
+        val lastUpdatedResult =
+            mockMvc
+                .perform(
+                    MockMvcRequestBuilders
+                        .get("/api/vault/last-updated")
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer ${refreshResponse.accessToken}"),
+                ).andExpect(status().isOk)
+                .andReturn()
+        val lastUpdatedContent = lastUpdatedResult.response.contentAsString
+        assertEquals("null", lastUpdatedContent)
+
+        // Push config
+        val config =
+            mapOf(
+                "configKey" to "configValue",
+            )
+        val configString = objectMapper.writeValueAsString(config)
+        val encryptedConfig =
+            encryptionHelper.encryptDataWithKey(
+                configString.toByteArray(),
+                userMasterKey,
+            )
+        val encryptedConfigString = Base64.getEncoder().encodeToString(encryptedConfig)
+        val vaultParams =
+            VaultParams(
+                configuration = encryptedConfigString,
+                version = "1",
+            )
+
+        mockMvc
+            .perform(
+                MockMvcRequestBuilders
+                    .put("/api/vault")
+                    .header(HttpHeaders.AUTHORIZATION, "Bearer ${refreshResponse.accessToken}")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(objectMapper.writeValueAsString(vaultParams)),
+            ).andExpect(status().isOk)
 
         // logout
         mockMvc
@@ -224,6 +264,6 @@ class RegistrationLoginAndSyncTests(
                     .header(HttpHeaders.AUTHORIZATION, "Bearer ${refreshResponse.accessToken}")
                     .contentType(MediaType.APPLICATION_JSON_VALUE)
                     .content(objectMapper.writeValueAsString(refreshParams)),
-            ).andExpect(MockMvcResultMatchers.status().isNoContent)
+            ).andExpect(status().isNoContent)
     }
 }

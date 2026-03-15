@@ -149,6 +149,12 @@ class LoginTests(
                 .andReturn()
         val registrationResultContent = registrationResult.response.contentAsString
         val tokenResponse = objectMapper.readValue(registrationResultContent, TokenResponse::class.java)
-        println(tokenResponse)
+
+        mockMvc
+            .perform(
+                MockMvcRequestBuilders
+                    .get("/api/user/me")
+                    .header("Authorization", "Bearer ${tokenResponse.accessToken}"),
+            ).andExpect(status().isOk)
     }
 }
