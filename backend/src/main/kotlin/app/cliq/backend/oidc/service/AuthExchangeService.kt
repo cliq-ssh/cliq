@@ -11,14 +11,8 @@ import java.time.Clock
 import java.time.OffsetDateTime
 
 @Service
-class AuthExchangeService(
-    private val authExchangeRepository: AuthExchangeRepository,
-    private val clock: Clock,
-) {
-    fun getValidAuthExchangeByCode(
-        code: String,
-        request: HttpServletRequest,
-    ): AuthExchange {
+class AuthExchangeService(private val authExchangeRepository: AuthExchangeRepository, private val clock: Clock) {
+    fun getValidAuthExchangeByCode(code: String, request: HttpServletRequest): AuthExchange {
         val authExchange = authExchangeRepository.findByExchangeCode(code)
 
         val now = OffsetDateTime.now(clock)

@@ -26,10 +26,7 @@ import org.springframework.web.bind.annotation.RequestMapping
 
 @UserController
 @RequestMapping("/api/user/verification")
-class UserVerificationController(
-    private val userRepository: UserRepository,
-    private val userService: UserService,
-) {
+class UserVerificationController(private val userRepository: UserRepository, private val userService: UserService) {
     private val logger = LoggerFactory.getLogger(this::class.java)
 
     @PostMapping
@@ -62,9 +59,7 @@ class UserVerificationController(
             ),
         ],
     )
-    fun verify(
-        @Valid @RequestBody verifyParams: VerifyParams,
-    ): ResponseEntity<UserResponse> {
+    fun verify(@Valid @RequestBody verifyParams: VerifyParams): ResponseEntity<UserResponse> {
         val user =
             userRepository.findByEmail(verifyParams.email) ?: throw InvalidVerifyParamsException()
 
@@ -106,14 +101,14 @@ class UserVerificationController(
             ),
         ],
     )
-    fun resendVerificationEmail(
-        @Valid @RequestBody params: ResendVerificationEmailParams,
-    ): ResponseEntity<Void> {
+    fun resendVerificationEmail(@Valid @RequestBody params: ResendVerificationEmailParams): ResponseEntity<Void> {
         val user = userRepository.findByEmail(params.email)
 
         return when {
             user == null -> ResponseEntity.badRequest().build()
+
             user.isEmailVerified() -> ResponseEntity.badRequest().build()
+
             else -> {
                 userService.sendVerificationEmail(user)
                 ResponseEntity.noContent().build()

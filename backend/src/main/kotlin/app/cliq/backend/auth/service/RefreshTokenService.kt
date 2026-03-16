@@ -26,10 +26,7 @@ class RefreshTokenService(
     private val jwtFactory: JwtFactory,
     private val clock: Clock,
 ) {
-    fun issueForOidcUser(
-        user: User,
-        oidcSessionId: String?,
-    ): IssuedRefreshToken {
+    fun issueForOidcUser(user: User, oidcSessionId: String?): IssuedRefreshToken {
         val now = OffsetDateTime.now(clock)
         val refreshToken = refreshTokenFactory.generateJwtRefreshToken(now)
         val refreshTokenHash = hashRefreshToken(refreshToken.tokenValue)
@@ -43,10 +40,7 @@ class RefreshTokenService(
         return IssuedRefreshToken(refreshToken.tokenValue, session)
     }
 
-    fun issue(
-        sessionName: String?,
-        user: User,
-    ): IssuedRefreshToken {
+    fun issue(sessionName: String?, user: User): IssuedRefreshToken {
         val now = OffsetDateTime.now(clock)
         val refreshToken = refreshTokenFactory.generateJwtRefreshToken(now)
         val refreshTokenHash = hashRefreshToken(refreshToken.tokenValue)

@@ -1,5 +1,3 @@
 package app.cliq.backend.user.event
 
-class UserCreatedEvent(
-    val userId: Long,
-)
+class UserCreatedEvent(val userId: Long)

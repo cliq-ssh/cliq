@@ -37,16 +37,15 @@ class SecurityConfig(
         http: HttpSecurity,
         oidcLoginSuccessHandler: OidcLoginSuccessHandler,
         oidcLogoutHandler: OidcLogoutHandler,
-    ): SecurityFilterChain =
-        http
-            .securityMatcher("/oauth2/**", "/login/oauth2/**", "/logout/connect/back-channel/**")
-            .oauth2Login {
-                it.successHandler(oidcLoginSuccessHandler)
-            }.oidcLogout {
-                it.backChannel {
-                    it.logoutHandler(oidcLogoutHandler)
-                }
-            }.build()
+    ): SecurityFilterChain = http
+        .securityMatcher("/oauth2/**", "/login/oauth2/**", "/logout/connect/back-channel/**")
+        .oauth2Login {
+            it.successHandler(oidcLoginSuccessHandler)
+        }.oidcLogout {
+            it.backChannel {
+                it.logoutHandler(oidcLogoutHandler)
+            }
+        }.build()
 
     @Bean
     fun securityFilterChain(http: HttpSecurity): SecurityFilterChain {

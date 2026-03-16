@@ -55,7 +55,7 @@ configurations {
 detekt {
     buildUponDefaultConfig = true
     allRules = false
-    autoCorrect = true
+    autoCorrect = false // For CI/CD. Locally use the `--auto-correct` flag
     config.setFrom("$projectDir/config/detekt.yaml")
 // Following lines should be used when customization is needed for detekt
 //    baseline = file("$projectDir/config/baseline.xml")
@@ -160,6 +160,11 @@ dependencies {
 
     // Kotlin specifics
     testImplementation("org.awaitility:awaitility-kotlin:4.3.0")
+
+    // Linting
+
+    // Detekt
+    detektPlugins("dev.detekt:detekt-rules-ktlint-wrapper:2.0.0-alpha.2")
 }
 
 kotlin {

@@ -16,16 +16,24 @@ import org.springframework.http.MediaType
     SecurityRequirement(name = OIDC_SECURITY_SCHEME_NAME),
 )
 @ApiResponse(
-    responseCode = "401", description = "Unauthorized", content = [Content(
-        mediaType = MediaType.APPLICATION_JSON_VALUE,
-        schema = Schema(implementation = ApiException::class)
-    )]
+    responseCode = "401",
+    description = "Unauthorized",
+    content = [
+        Content(
+            mediaType = MediaType.APPLICATION_JSON_VALUE,
+            schema = Schema(implementation = ApiException::class),
+        ),
+    ],
 )
 @ApiResponse(
-    responseCode = "403", description = "Forbidden", content = [Content(
-        mediaType = MediaType.APPLICATION_JSON_VALUE,
-        schema = Schema(implementation = ApiException::class)
-    )]
+    responseCode = "403",
+    description = "Forbidden",
+    content = [
+        Content(
+            mediaType = MediaType.APPLICATION_JSON_VALUE,
+            schema = Schema(implementation = ApiException::class),
+        ),
+    ],
 )
 // Annotation config
 @Target(AnnotationTarget.FUNCTION, AnnotationTarget.CLASS)

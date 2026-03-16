@@ -11,10 +11,7 @@ import java.time.Clock
 import java.time.OffsetDateTime
 
 @Component
-class UserCleanUpTasks(
-    private val userRepository: UserRepository,
-    private val clock: Clock,
-) {
+class UserCleanUpTasks(private val userRepository: UserRepository, private val clock: Clock) {
     private val logger = LoggerFactory.getLogger(this::class.java)
 
     /**

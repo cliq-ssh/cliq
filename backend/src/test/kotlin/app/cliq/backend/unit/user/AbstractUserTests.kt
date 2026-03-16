@@ -13,18 +13,17 @@ abstract class AbstractUserTests {
         emailVerifiedAt: OffsetDateTime? = null,
         resetToken: String? = null,
         resetSentAt: OffsetDateTime? = null,
-    ): User =
-        User(
-            id = 1L,
-            email = EXAMPLE_EMAIL,
-            name = EXAMPLE_USERNAME,
-            password = EXAMPLE_PASSWORD,
-            emailVerifiedAt = emailVerifiedAt,
-            emailVerificationToken = emailVerificationToken,
-            emailVerificationSentAt = emailVerificationSentAt,
-            resetToken = resetToken,
-            resetSentAt = resetSentAt,
-            createdAt = OffsetDateTime.now(),
-            updatedAt = OffsetDateTime.now(),
-        )
+    ): User = User(
+        id = 1L,
+        email = EXAMPLE_EMAIL,
+        name = EXAMPLE_USERNAME,
+        password = EXAMPLE_PASSWORD,
+        emailVerifiedAt = emailVerifiedAt,
+        emailVerificationToken = emailVerificationToken,
+        emailVerificationSentAt = emailVerificationSentAt,
+        resetToken = resetToken,
+        resetSentAt = resetSentAt,
+        createdAt = OffsetDateTime.now(),
+        updatedAt = OffsetDateTime.now(),
+    )
 }

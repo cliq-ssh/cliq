@@ -12,9 +12,7 @@ import java.util.Locale
 import kotlin.reflect.full.findAnnotation
 
 @TestComponent
-class DatabaseCleanupService(
-    private val entityManager: EntityManager,
-) : InitializingBean {
+class DatabaseCleanupService(private val entityManager: EntityManager) : InitializingBean {
     private lateinit var joinedTableNames: String
     private val toSnakeRegex = "(?<=[a-zA-Z])[A-Z]".toRegex()
 
@@ -51,22 +49,17 @@ class DatabaseCleanupService(
 
     // Either get the name defined in the annotation and otherwise convert the java type to the default naming strategy
     // (snake case)
-    private fun getTableName(
-        annotationName: String,
-        javaTypeName: String,
-    ): String =
-        if (annotationName == "") {
-            camelToSnakeCase(javaTypeName)
-        } else {
-            annotationName
-        }
+    private fun getTableName(annotationName: String, javaTypeName: String): String = if (annotationName == "") {
+        camelToSnakeCase(javaTypeName)
+    } else {
+        annotationName
+    }
 
     // Inspired from: https://stackoverflow.com/a/60010299
-    private fun camelToSnakeCase(camelString: String): String =
-        toSnakeRegex
-            .replace(camelString) {
-                "_${it.value}"
-            }.lowercase(Locale.getDefault())
+    private fun camelToSnakeCase(camelString: String): String = toSnakeRegex
+        .replace(camelString) {
+            "_${it.value}"
+        }.lowercase(Locale.getDefault())
 
     @Transactional
     fun truncate() {

@@ -11,17 +11,11 @@ import org.springframework.security.web.authentication.logout.LogoutHandler
 import org.springframework.stereotype.Component
 
 @Component
-class OidcLogoutHandler(
-    private val sessionRepository: SessionRepository,
-    private val userRepository: UserRepository,
-) : LogoutHandler {
+class OidcLogoutHandler(private val sessionRepository: SessionRepository, private val userRepository: UserRepository) :
+    LogoutHandler {
     private val logger = LoggerFactory.getLogger(this::class.java)
 
-    override fun logout(
-        request: HttpServletRequest,
-        response: HttpServletResponse,
-        authentication: Authentication?,
-    ) {
+    override fun logout(request: HttpServletRequest, response: HttpServletResponse, authentication: Authentication?) {
         if (authentication == null) {
             logger.error("No authentication found for logout request")
             return

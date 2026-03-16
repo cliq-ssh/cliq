@@ -18,9 +18,7 @@ const val OIDC_SECURITY_SCHEME_NAME = "oidc"
     bearerFormat = "JWT",
     scheme = "Bearer",
 )
-class OpenApiConfig(
-    private val infoProperties: InfoProperties,
-) {
+class OpenApiConfig(private val infoProperties: InfoProperties) {
     @Bean
     fun apiDocConfig(): OpenAPI {
         val openApi =

@@ -8,10 +8,7 @@ import java.time.OffsetDateTime
 import java.time.temporal.ChronoUnit
 
 @Service
-class RefreshTokenFactory(
-    private val jwtProperties: JwtProperties,
-    private val tokenGenerator: TokenGenerator,
-) {
+class RefreshTokenFactory(private val jwtProperties: JwtProperties, private val tokenGenerator: TokenGenerator) {
     fun generateJwtRefreshToken(now: OffsetDateTime): RefreshToken {
         val expiresAt = now.plus(jwtProperties.refreshTokenExpiresDays, ChronoUnit.DAYS)
         val token = tokenGenerator.generateJwtRefreshToken()

@@ -39,10 +39,7 @@ class OidcLoginSuccessHandler(
         response.sendRedirect(uri.toString())
     }
 
-    private fun getTokenPairFromOidcUser(
-        user: User,
-        oidcUser: OidcUser,
-    ): TokenPair {
+    private fun getTokenPairFromOidcUser(user: User, oidcUser: OidcUser): TokenPair {
         val oidcSessionId = extractSessionId(oidcUser)
         val existingSession =
             oidcSessionId?.let {

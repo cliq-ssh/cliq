@@ -9,10 +9,7 @@ import java.time.Clock
 import java.time.OffsetDateTime
 
 @Component
-class SessionUsedListener(
-    private val sessionRepository: SessionRepository,
-    private val clock: Clock,
-) {
+class SessionUsedListener(private val sessionRepository: SessionRepository, private val clock: Clock) {
     private val logger = LoggerFactory.getLogger(SessionUsedListener::class.java)
 
     @EventListener(SessionUsedEvent::class)

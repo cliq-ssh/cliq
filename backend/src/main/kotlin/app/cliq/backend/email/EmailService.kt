@@ -39,13 +39,7 @@ class EmailService(
      * @param context Map of variables to be passed to the template
      * @param templateName Name of the Template (without extension/without .html or .txt)
      */
-    fun sendEmail(
-        to: String,
-        subject: String,
-        context: Map<String, Any>,
-        locale: Locale,
-        templateName: String,
-    ) {
+    fun sendEmail(to: String, subject: String, context: Map<String, Any>, locale: Locale, templateName: String) {
         if (!isEnabled()) {
             logger.warn("Email service is disabled. Not sending email to $to with subject '$subject'.")
             return

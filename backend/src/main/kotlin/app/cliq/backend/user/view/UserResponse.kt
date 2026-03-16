@@ -22,13 +22,12 @@ class UserResponse(
     val updatedAt: OffsetDateTime? = null,
 ) {
     companion object {
-        fun fromUser(user: User): UserResponse =
-            UserResponse(
-                id = user.id!!,
-                email = user.email,
-                username = user.name,
-                createdAt = user.createdAt,
-                updatedAt = user.updatedAt,
-            )
+        fun fromUser(user: User): UserResponse = UserResponse(
+            id = user.id!!,
+            email = user.email,
+            username = user.name,
+            createdAt = user.createdAt,
+            updatedAt = user.updatedAt,
+        )
     }
 }

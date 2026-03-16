@@ -11,9 +11,7 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 import kotlin.test.assertContains
 
 @AcceptanceTest
-class RateLimiterTests(
-    @Autowired private val mockMvc: MockMvc,
-) : AcceptanceTester() {
+class RateLimiterTests(@Autowired private val mockMvc: MockMvc) : AcceptanceTester() {
     @Test
     fun `allows up to configured number of requests per minute`() {
         repeat(5) {

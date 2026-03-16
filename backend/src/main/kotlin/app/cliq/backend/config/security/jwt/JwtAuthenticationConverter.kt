@@ -8,9 +8,8 @@ import org.springframework.security.web.authentication.AuthenticationConverter
 
 const val BEARER_PREFIX = "Bearer "
 
-class JwtAuthenticationConverter(
-    private val jwtAuthenticationFactory: JwtAuthenticationFactory,
-) : AuthenticationConverter {
+class JwtAuthenticationConverter(private val jwtAuthenticationFactory: JwtAuthenticationFactory) :
+    AuthenticationConverter {
     override fun convert(request: HttpServletRequest): Authentication? {
         val authHeaderValue = request.getHeader(HttpHeaders.AUTHORIZATION)
 

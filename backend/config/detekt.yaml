@@ -1,3 +1,6 @@
+ktlint:
+  active: true
+
 complexity:
   LongMethod:
     excludes:

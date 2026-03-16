@@ -7,9 +7,7 @@ import java.time.Clock
 import java.time.OffsetDateTime
 
 @Component
-class UserEntityListener(
-    private val clock: Clock,
-) {
+class UserEntityListener(private val clock: Clock) {
     @PreUpdate
     private fun updateUpdatedAt(user: User) {
         user.updatedAt = OffsetDateTime.now(clock)

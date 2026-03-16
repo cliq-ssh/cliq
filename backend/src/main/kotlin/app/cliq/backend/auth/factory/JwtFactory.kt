@@ -18,10 +18,7 @@ class JwtFactory(
     private val jwtEncoder: JwtEncoder,
     private val clock: Clock,
 ) {
-    fun generateJwtAccessToken(
-        session: Session,
-        now: OffsetDateTime,
-    ): Jwt {
+    fun generateJwtAccessToken(session: Session, now: OffsetDateTime): Jwt {
         val user = session.user
         if (session.id == null) throw IllegalArgumentException("Session must have an ID")
         if (user.id == null) throw IllegalArgumentException("User must have an ID")
