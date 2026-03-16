@@ -8,26 +8,15 @@ import java.time.Clock
 import java.time.OffsetDateTime
 
 @Service
-class SessionFactory(
-    private val sessionRepository: SessionRepository,
-    private val clock: Clock,
-) {
-    fun createWithSessionName(
-        sessionName: String?,
-        user: User,
-        refreshToken: RefreshToken,
-    ): Session =
-        createSession(
-            user = user,
-            refreshToken = refreshToken,
-            name = sessionName,
-        )
+class SessionFactory(private val sessionRepository: SessionRepository, private val clock: Clock) {
+    fun createWithSessionName(sessionName: String?, user: User, refreshToken: RefreshToken): Session = createSession(
+        user = user,
+        refreshToken = refreshToken,
+        name = sessionName,
+    )
 
-    fun createFromOidcUser(
-        user: User,
-        oidcSessionId: String?,
-        refreshToken: RefreshToken,
-    ): Session = createSession(user, refreshToken, oidcSessionId = oidcSessionId)
+    fun createFromOidcUser(user: User, oidcSessionId: String?, refreshToken: RefreshToken): Session =
+        createSession(user, refreshToken, oidcSessionId = oidcSessionId)
 
     private fun createSession(
         user: User,

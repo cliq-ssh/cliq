@@ -4,17 +4,17 @@ on:
     branches:
       - main
     paths:
-      - 'backend/**'
+      - "backend/**"
   pull_request:
     branches:
       - main
     paths:
-      - 'backend/**'
+      - "backend/**"
 
 # Sets a default working directory
 defaults:
   run:
-    working-directory: ./backend  # Change the working directory to /backend
+    working-directory: ./backend # Change the working directory to /backend
 
 jobs:
   test:
@@ -26,11 +26,11 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v6
-      - name: Set up Java 24
+      - name: Set up Java
         uses: actions/setup-java@v5
         with:
-          java-version: '24'
-          distribution: 'temurin'
+          java-version: "25"
+          distribution: "temurin"
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v5
       - name: Install project
@@ -44,7 +44,7 @@ jobs:
       # Publish Test Results are summary
       - name: Publish Test Results
         uses: dorny/test-reporter@v2
-        if: ${{ !cancelled() }}       # run this step even if the previous step failed
+        if: ${{ !cancelled() }} # run this step even if the previous step failed
         with:
           name: Backend Tests
           path: backend/**/build/test-results/test/TEST-*.xml
@@ -58,12 +58,17 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v6
-      - name: Set up Java 24
+      - name: Set up Java
         uses: actions/setup-java@v5
         with:
-          java-version: '24'
-          distribution: 'temurin'
+          java-version: "25"
+          distribution: "temurin"
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v5
-      - name: Run ktlint
-        run: ./gradlew ktlintCheck
+      - name: Run detekt
+        run: ./gradlew detekt
+      - name: Upload SARIF file
+        uses: github/codeql-action/upload-sarif@v4
+        with:
+          sarif_file: backend/build/reports/detekt/detekt.sarif
+          category: "Detekt"

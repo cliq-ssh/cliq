@@ -1,20 +1,32 @@
+import dev.detekt.gradle.Detekt
+import dev.detekt.gradle.DetektCreateBaselineTask
+
 plugins {
+    val kotlinVersion = "2.3.20"
     // Kotlin
-    kotlin("jvm") version "2.3.10"
-    kotlin("plugin.spring") version "2.3.10"
-    kotlin("plugin.jpa") version "2.3.10"
-    kotlin("plugin.allopen") version "2.3.10"
+    kotlin("jvm") version kotlinVersion
+    kotlin("plugin.spring") version kotlinVersion
+    kotlin("plugin.jpa") version kotlinVersion
+    kotlin("plugin.allopen") version kotlinVersion
 
     // Spring / Spring Boot
     id("org.springframework.boot") version "4.0.3"
     id("io.spring.dependency-management") version "1.1.7"
 
-    // Database Migrations
-    id("org.flywaydb.flyway") version "12.1.0"
-
     // Linter and Formatter
-    id("org.jlleitschuh.gradle.ktlint") version "14.2.0"
-    id("com.autonomousapps.dependency-analysis") version "3.6.1"
+    id("dev.detekt") version "2.0.0-alpha.2"
+}
+
+// Fixes: https://github.com/detekt/detekt/issues/6198
+// Run detekt with the latest supported kotlin version
+dependencyManagement {
+    configurations.matching { it.name == "detekt" }.all {
+        resolutionStrategy.eachDependency {
+            if (requested.group == "org.jetbrains.kotlin") {
+                useVersion(dev.detekt.gradle.plugin.getSupportedKotlinVersion())
+            }
+        }
+    }
 }
 
 group = "app.cliq"
@@ -40,34 +52,13 @@ configurations {
     }
 }
 
-flyway {
-    url = "jdbc:postgresql://localhost:5432/cliq"
-    user = "cliq"
-    password = "cliq"
-}
-
-ktlint {
-    version.set("1.8.0")
-    android.set(false)
-    ignoreFailures.set(false)
-    reporters {
-        reporter(org.jlleitschuh.gradle.ktlint.reporter.ReporterType.PLAIN)
-        reporter(org.jlleitschuh.gradle.ktlint.reporter.ReporterType.CHECKSTYLE)
-    }
-    filter {
-        exclude("**/generated/**")
-        include("**/kotlin/**")
-    }
-}
-
-dependencyAnalysis {
-    issues {
-        all {
-            onAny {
-                severity("fail")
-            }
-        }
-    }
+detekt {
+    buildUponDefaultConfig = true
+    allRules = false
+    autoCorrect = false // For CI/CD. Locally use the `--auto-correct` flag
+    config.setFrom("$projectDir/config/detekt.yaml")
+// Following lines should be used when customization is needed for detekt
+//    baseline = file("$projectDir/config/baseline.xml")
 }
 
 repositories {
@@ -170,6 +161,11 @@ dependencies {
 
     // Kotlin specifics
     testImplementation("org.awaitility:awaitility-kotlin:4.3.0")
+
+    // Linting
+
+    // Detekt
+    detektPlugins("dev.detekt:detekt-rules-ktlint-wrapper:2.0.0-alpha.2")
 }
 
 kotlin {
@@ -208,6 +204,22 @@ tasks.withType<JavaCompile> {
 
 tasks.withType<Test> {
     systemProperty("file.encoding", "UTF-8")
+}
+
+tasks.withType<Detekt>().configureEach {
+    reports {
+        html.required.set(true) // observe findings in your browser with structure and code snippets
+        sarif.required.set(true) // standardized SARIF format (https://sarifweb.azurewebsites.net/) to support integrations with GitHub Code Scanning
+        markdown.required.set(true) // simple Markdown format
+    }
+}
+
+tasks.withType<Detekt>().configureEach {
+    jvmTarget = targetJvmVersion.toString()
+}
+
+tasks.withType<DetektCreateBaselineTask>().configureEach {
+    jvmTarget = targetJvmVersion.toString()
 }
 
 // tasks.withType<ProcessResources> {

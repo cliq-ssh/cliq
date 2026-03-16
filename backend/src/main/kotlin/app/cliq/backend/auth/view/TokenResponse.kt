@@ -22,11 +22,7 @@ class TokenResponse(
         fun fromTokenPair(tokenPair: TokenPair): TokenResponse =
             fromTokensAndSession(tokenPair.jwt.tokenValue, tokenPair.refreshToken, tokenPair.session)
 
-        fun fromTokensAndSession(
-            accessToken: String,
-            refreshToken: String,
-            session: Session,
-        ): TokenResponse =
+        fun fromTokensAndSession(accessToken: String, refreshToken: String, session: Session): TokenResponse =
             TokenResponse(
                 accessToken = accessToken,
                 refreshToken = refreshToken,

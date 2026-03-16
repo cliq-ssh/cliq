@@ -10,9 +10,7 @@ import org.springframework.security.web.AuthenticationEntryPoint
 import org.springframework.stereotype.Component
 
 @Component
-class ApplicationAuthenticationEntryPoint(
-    private val httpUtils: HttpUtils,
-) : AuthenticationEntryPoint {
+class ApplicationAuthenticationEntryPoint(private val httpUtils: HttpUtils) : AuthenticationEntryPoint {
     private val logger = LoggerFactory.getLogger(this::class.java)
 
     override fun commence(

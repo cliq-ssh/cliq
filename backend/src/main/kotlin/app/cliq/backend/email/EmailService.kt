@@ -4,6 +4,7 @@ import app.cliq.backend.config.properties.EmailProperties
 import io.pebbletemplates.pebble.PebbleEngine
 import jakarta.mail.internet.InternetAddress
 import org.slf4j.LoggerFactory
+import org.springframework.mail.MailException
 import org.springframework.mail.javamail.JavaMailSender
 import org.springframework.mail.javamail.MimeMessageHelper
 import org.springframework.stereotype.Service
@@ -38,13 +39,7 @@ class EmailService(
      * @param context Map of variables to be passed to the template
      * @param templateName Name of the Template (without extension/without .html or .txt)
      */
-    fun sendEmail(
-        to: String,
-        subject: String,
-        context: Map<String, Any>,
-        locale: Locale,
-        templateName: String,
-    ) {
+    fun sendEmail(to: String, subject: String, context: Map<String, Any>, locale: Locale, templateName: String) {
         if (!isEnabled()) {
             logger.warn("Email service is disabled. Not sending email to $to with subject '$subject'.")
             return
@@ -91,7 +86,7 @@ class EmailService(
             mailSender.send(message)
 
             logger.info("Email sent to $to with subject '$subject'")
-        } catch (e: Exception) {
+        } catch (e: MailException) {
             logger.error("Failed to send email to $to with subject '$subject'", e)
 
             throw e

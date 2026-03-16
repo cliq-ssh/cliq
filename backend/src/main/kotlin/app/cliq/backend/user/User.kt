@@ -48,17 +48,15 @@ class User(
 
     fun isEmailVerificationTokenValid(): Boolean = emailVerificationToken != null && !isEmailVerificationTokenExpired()
 
-    fun isEmailVerificationTokenExpired(): Boolean =
-        !(
-            emailVerificationSentAt != null &&
-                emailVerificationSentAt!!.isAfter(
-                    OffsetDateTime.now().minusMinutes(UNVERIFIED_USER_INTERVAL_MINUTES),
-                )
+    fun isEmailVerificationTokenExpired(): Boolean = !(
+        emailVerificationSentAt != null &&
+            emailVerificationSentAt!!.isAfter(
+                OffsetDateTime.now().minusMinutes(UNVERIFIED_USER_INTERVAL_MINUTES),
+            )
         )
 
-    fun isPasswordResetTokenExpired(): Boolean =
-        resetToken != null && resetSentAt != null &&
-            resetSentAt!!.isAfter(OffsetDateTime.now().minusMinutes(PASSWORD_RESET_TOKEN_INTERVAL_MINUTES))
+    fun isPasswordResetTokenExpired(): Boolean = resetToken != null && resetSentAt != null &&
+        resetSentAt!!.isAfter(OffsetDateTime.now().minusMinutes(PASSWORD_RESET_TOKEN_INTERVAL_MINUTES))
 
     fun isUsable(): Boolean = isEmailVerified()
 

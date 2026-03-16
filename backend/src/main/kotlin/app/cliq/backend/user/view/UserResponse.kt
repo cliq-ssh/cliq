@@ -6,7 +6,6 @@ import app.cliq.backend.constants.EXAMPLE_USERNAME
 import app.cliq.backend.constants.EXAMPLE_USER_ID
 import app.cliq.backend.user.User
 import io.swagger.v3.oas.annotations.media.Schema
-import java.io.Serializable
 import java.time.OffsetDateTime
 
 @Schema
@@ -21,15 +20,14 @@ class UserResponse(
     val createdAt: OffsetDateTime,
     @field:Schema(example = EXAMPLE_DATETIME)
     val updatedAt: OffsetDateTime? = null,
-) : Serializable {
+) {
     companion object {
-        fun fromUser(user: User): UserResponse =
-            UserResponse(
-                id = user.id!!,
-                email = user.email,
-                username = user.name,
-                createdAt = user.createdAt,
-                updatedAt = user.updatedAt,
-            )
+        fun fromUser(user: User): UserResponse = UserResponse(
+            id = user.id!!,
+            email = user.email,
+            username = user.name,
+            createdAt = user.createdAt,
+            updatedAt = user.updatedAt,
+        )
     }
 }

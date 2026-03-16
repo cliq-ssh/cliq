@@ -44,9 +44,6 @@ data class ErrorCode private constructor(
         val LOCAL_LOGIN_DISABLED = of(3000U, "Local login is disabled")
         val LOCAL_REGISTRATION_DISABLED = of(3001U, "Local registration is disabled")
 
-        private fun of(
-            code: UShort,
-            description: String,
-        ): ErrorCode = ErrorCode(code, description)
+        private fun of(code: UShort, description: String): ErrorCode = ErrorCode(code, description)
     }
 }

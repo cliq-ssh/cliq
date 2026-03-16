@@ -53,9 +53,7 @@ class TokenController(
             ),
         ],
     )
-    private fun refreshToken(
-        @RequestBody @Valid refreshParams: RefreshParams,
-    ): ResponseEntity<TokenResponse> {
+    private fun refreshToken(@RequestBody @Valid refreshParams: RefreshParams): ResponseEntity<TokenResponse> {
         val session =
             jwtResolver.resolveSessionFromRefreshToken(refreshParams.refreshToken)
                 ?: throw InvalidRefreshTokenException()

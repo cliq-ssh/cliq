@@ -31,9 +31,7 @@ annotation class AcceptanceTest
 abstract class AcceptanceTester {
     @BeforeAll
     @AfterEach
-    fun clearDatabase(
-        @Autowired cleaner: DatabaseCleanupService,
-    ) {
+    fun clearDatabase(@Autowired cleaner: DatabaseCleanupService) {
         cleaner.truncate()
     }
 }

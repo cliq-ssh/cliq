@@ -6,9 +6,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler
 import org.springframework.web.bind.annotation.RestControllerAdvice
 
 @RestControllerAdvice
-class GlobalExceptionHandler(
-    private val errorResponseFactory: ErrorResponseFactory,
-) {
+class GlobalExceptionHandler(private val errorResponseFactory: ErrorResponseFactory) {
     @ExceptionHandler(ApiException::class)
     fun handleApiException(apiException: ApiException): ResponseEntity<ErrorResponse> =
         errorResponseFactory.handleApiException(apiException)
