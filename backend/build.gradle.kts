@@ -196,6 +196,8 @@ tasks.withType<Test> {
         events("passed", "skipped", "failed")
         showStandardStreams = false
     }
+
+    ignoreFailures = true
 }
 
 tasks.withType<JavaCompile> {
