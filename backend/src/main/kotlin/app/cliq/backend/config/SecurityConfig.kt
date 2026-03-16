@@ -42,7 +42,7 @@ class SecurityConfig(
             .securityMatcher("/oauth2/**", "/login/oauth2/**", "/logout/connect/back-channel/**")
             .oauth2Login {
                 it.successHandler(oidcLoginSuccessHandler)
-            }.oidcLogout { it ->
+            }.oidcLogout {
                 it.backChannel {
                     it.logoutHandler(oidcLogoutHandler)
                 }

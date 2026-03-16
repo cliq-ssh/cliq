@@ -19,12 +19,12 @@ class AuthExchangeService(
         code: String,
         request: HttpServletRequest,
     ): AuthExchange {
-        val authExchange =
-            authExchangeRepository.findByExchangeCode(code)
-                ?: throw InvalidOidcAuthExchangeCodeException()
+        val authExchange = authExchangeRepository.findByExchangeCode(code)
 
         val now = OffsetDateTime.now(clock)
-        if (authExchange.isExpired(now)) throw InvalidOidcAuthExchangeCodeException()
+        if (authExchange == null || authExchange.isExpired(now)) {
+            throw InvalidOidcAuthExchangeCodeException()
+        }
 
         val expectedIpAddress = authExchange.ipAddress.hostAddress
         if (expectedIpAddress != request.remoteAddr) {

@@ -12,12 +12,15 @@ class JwtAuthenticationConverter(
     private val jwtAuthenticationFactory: JwtAuthenticationFactory,
 ) : AuthenticationConverter {
     override fun convert(request: HttpServletRequest): Authentication? {
-        val authHeaderValue = request.getHeader(HttpHeaders.AUTHORIZATION) ?: return null
-        val jwtAccessToken = authHeaderValue.removePrefix(BEARER_PREFIX).trim()
-        if (jwtAccessToken.isBlank() || jwtAccessToken == authHeaderValue) {
-            return null
-        }
+        val authHeaderValue = request.getHeader(HttpHeaders.AUTHORIZATION)
 
-        return jwtAuthenticationFactory.createUnauthenticated(jwtAccessToken)
+        val jwtAccessToken =
+            authHeaderValue
+                ?.takeIf { it.startsWith(BEARER_PREFIX) }
+                ?.removePrefix(BEARER_PREFIX)
+                ?.trim()
+                ?.takeIf { it.isNotBlank() }
+
+        return jwtAccessToken?.let(jwtAuthenticationFactory::createUnauthenticated)
     }
 }

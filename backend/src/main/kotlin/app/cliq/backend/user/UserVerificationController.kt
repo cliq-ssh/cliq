@@ -109,16 +109,15 @@ class UserVerificationController(
     fun resendVerificationEmail(
         @Valid @RequestBody params: ResendVerificationEmailParams,
     ): ResponseEntity<Void> {
-        userRepository.findByEmail(params.email)?.let {
-            if (it.isEmailVerified()) {
-                return ResponseEntity.status(HttpStatus.BAD_REQUEST).build()
+        val user = userRepository.findByEmail(params.email)
+
+        return when {
+            user == null -> ResponseEntity.badRequest().build()
+            user.isEmailVerified() -> ResponseEntity.badRequest().build()
+            else -> {
+                userService.sendVerificationEmail(user)
+                ResponseEntity.noContent().build()
             }
-
-            userService.sendVerificationEmail(it)
-
-            return ResponseEntity.noContent().build()
         }
-
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).build()
     }
 }

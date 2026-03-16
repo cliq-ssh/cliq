@@ -4,6 +4,7 @@ import app.cliq.backend.config.properties.EmailProperties
 import io.pebbletemplates.pebble.PebbleEngine
 import jakarta.mail.internet.InternetAddress
 import org.slf4j.LoggerFactory
+import org.springframework.mail.MailException
 import org.springframework.mail.javamail.JavaMailSender
 import org.springframework.mail.javamail.MimeMessageHelper
 import org.springframework.stereotype.Service
@@ -91,7 +92,7 @@ class EmailService(
             mailSender.send(message)
 
             logger.info("Email sent to $to with subject '$subject'")
-        } catch (e: Exception) {
+        } catch (e: MailException) {
             logger.error("Failed to send email to $to with subject '$subject'", e)
 
             throw e

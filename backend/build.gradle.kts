@@ -56,8 +56,8 @@ detekt {
     buildUponDefaultConfig = true
     allRules = false
     autoCorrect = true
+    config.setFrom("$projectDir/config/detekt.yaml")
 // Following lines should be used when customization is needed for detekt
-//    config.setFrom("$projectDir/config/detekt.yml")
 //    baseline = file("$projectDir/config/baseline.xml")
 }
 
@@ -211,6 +211,7 @@ tasks.withType<Detekt>().configureEach {
 tasks.withType<Detekt>().configureEach {
     jvmTarget = targetJvmVersion.toString()
 }
+
 tasks.withType<DetektCreateBaselineTask>().configureEach {
     jvmTarget = targetJvmVersion.toString()
 }

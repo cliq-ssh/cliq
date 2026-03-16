@@ -41,7 +41,7 @@ class DatabaseCleanupService(
             }
     }
 
-    // Get name from managed type
+    // Get name from a managed type
     // @Table is optional, @Entity is a mandatory annotation for every defined entity (hence the !!)
     private fun getAnnotationName(managedType: ManagedType<*>): String {
         val kotlinClass = managedType.javaType.kotlin
@@ -49,7 +49,8 @@ class DatabaseCleanupService(
             ?: kotlinClass.findAnnotation<Entity>()!!.name
     }
 
-    // Either get the name defined in the annotation and otherwise convert the java type to the default naming strategy (snake case)
+    // Either get the name defined in the annotation and otherwise convert the java type to the default naming strategy
+    // (snake case)
     private fun getTableName(
         annotationName: String,
         javaTypeName: String,
