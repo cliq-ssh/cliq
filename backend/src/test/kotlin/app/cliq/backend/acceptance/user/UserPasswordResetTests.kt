@@ -284,7 +284,11 @@ class UserPasswordResetTests(
 //            ).andExpect(MockMvcResultMatchers.status().isBadRequest)
 //
 //        // reset password with new token
-//        val resetPasswordParamsNewToken = ResetPasswordParams(updatedUser.email, updatedUser.resetToken!!, newPassword)
+//        val resetPasswordParamsNewToken = ResetPasswordParams(
+        //        updatedUser.email,
+        //        updatedUser.resetToken!!,
+        //        newPassword
+//        )
 //
 //        mockMvc
 //            .perform(

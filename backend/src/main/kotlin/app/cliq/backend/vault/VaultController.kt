@@ -24,10 +24,7 @@ import java.time.OffsetDateTime
 @RestController
 @RequestMapping("/api/vault")
 @Tag(name = "Vault", description = "Vault management")
-class VaultController(
-    private val vaultFactory: VaultFactory,
-    private val repository: VaultRepository,
-) {
+class VaultController(private val vaultFactory: VaultFactory, private val repository: VaultRepository) {
     @Authenticated
     @PutMapping
     @Operation(summary = "Insert or update vault")
@@ -39,10 +36,7 @@ class VaultController(
             ),
         ],
     )
-    fun put(
-        @AuthenticationPrincipal session: Session,
-        @RequestBody vaultParams: VaultParams,
-    ): ResponseEntity<Void> {
+    fun put(@AuthenticationPrincipal session: Session, @RequestBody vaultParams: VaultParams): ResponseEntity<Void> {
         val user = session.user
         val existingConfig = repository.getByUser(user)
 
@@ -81,9 +75,7 @@ class VaultController(
             ),
         ],
     )
-    fun get(
-        @AuthenticationPrincipal session: Session,
-    ): ResponseEntity<VaultView> {
+    fun get(@AuthenticationPrincipal session: Session): ResponseEntity<VaultView> {
         val user = session.user
         val vault = repository.getByUser(user) ?: return ResponseEntity.notFound().build()
 
@@ -109,9 +101,7 @@ class VaultController(
             ),
         ],
     )
-    fun getUpdatedAt(
-        @AuthenticationPrincipal session: Session,
-    ): ResponseEntity<String> {
+    fun getUpdatedAt(@AuthenticationPrincipal session: Session): ResponseEntity<String> {
         val user = session.user
         val updatedAt = repository.getUpdatedAtByUser(user)
 

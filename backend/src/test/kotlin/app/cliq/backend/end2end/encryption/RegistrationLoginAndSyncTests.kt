@@ -49,7 +49,8 @@ class RegistrationLoginAndSyncTests(
     private val secureRandom: SecureRandom = SecureRandom.getInstanceStrong()
 
     /**
-     * This test should test the whole registration and login flow, including actions that are being done by the frontend.
+     * This test should test the whole registration and login flow, including actions that are being done by the
+     * frontend.
      */
     @Test
     fun `test registration with keys creation`() {

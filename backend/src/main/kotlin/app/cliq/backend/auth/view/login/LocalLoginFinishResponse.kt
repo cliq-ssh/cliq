@@ -11,6 +11,6 @@ class LocalLoginFinishResponse(
     // Keys
     dataEncryptionKeyUmkWrapped: String?,
 ) : LoginFinishResponse(
-        authExchangeCode,
-        dataEncryptionKeyUmkWrapped,
-    )
+    authExchangeCode,
+    dataEncryptionKeyUmkWrapped,
+)

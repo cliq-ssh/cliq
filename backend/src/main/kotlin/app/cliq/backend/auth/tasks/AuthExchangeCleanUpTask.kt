@@ -9,10 +9,7 @@ import java.time.Clock
 import java.time.OffsetDateTime
 
 @Component
-class AuthExchangeCleanUpTask(
-    private val authExchangeRepository: AuthExchangeRepository,
-    private val clock: Clock,
-) {
+class AuthExchangeCleanUpTask(private val authExchangeRepository: AuthExchangeRepository, private val clock: Clock) {
     private val logger = LoggerFactory.getLogger(this::class.java)
 
     /**

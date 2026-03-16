@@ -22,11 +22,7 @@ class OidcCallbackTokenFactory(
         oidcSessionId: String?,
     ): OidcCallbackToken = create(httpServletRequest.remoteAddr, user, oidcSessionId)
 
-    fun create(
-        ipAddress: String,
-        user: User,
-        oidcSessionId: String?,
-    ): OidcCallbackToken {
+    fun create(ipAddress: String, user: User, oidcSessionId: String?): OidcCallbackToken {
         val exchangeCode = authExchangeFactory.create(ipAddress, user)
         val token = tokenGenerator.generateOidcCallbackToken()
         val now = OffsetDateTime.now(clock)

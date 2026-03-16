@@ -26,9 +26,7 @@ annotation class End2EndTest
 abstract class End2EndTester {
     @BeforeAll
     @AfterEach
-    fun clearDatabase(
-        @Autowired cleaner: DatabaseCleanupService,
-    ) {
+    fun clearDatabase(@Autowired cleaner: DatabaseCleanupService) {
         cleaner.truncate()
     }
 }

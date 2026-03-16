@@ -16,11 +16,7 @@ class SrpHelper(
     private val keyAndHashHelper: KeyAndHashHelper,
     private val secureRandom: SecureRandom = SecureRandom.getInstanceStrong(),
 ) {
-    fun createSrpData(
-        email: String,
-        password: String,
-        salt: ByteArray = generateRandomSalt(),
-    ): SrpData {
+    fun createSrpData(email: String, password: String, salt: ByteArray = generateRandomSalt()): SrpData {
         val salt = createSrpSalt(salt)
         val verifier = createSrpVerifier(salt.asBigInteger, email, password)
 
@@ -34,10 +30,7 @@ class SrpHelper(
         return salt
     }
 
-    fun generateRandomUMK(
-        password: ByteArray,
-        salt: ByteArray,
-    ): ByteArray {
+    fun generateRandomUMK(password: ByteArray, salt: ByteArray): ByteArray {
         val umk = ByteArray(UMK_LENGTH)
         val argon2Generator = keyAndHashHelper.buildArgon2BytesGenerator(salt)
         argon2Generator.generateBytes(password, umk)
@@ -52,11 +45,7 @@ class SrpHelper(
         return Salt(salt, srpSaltBigInteger, srpSaltString)
     }
 
-    private fun createSrpVerifier(
-        salt: BigInteger,
-        email: String,
-        password: String,
-    ): Verifier {
+    private fun createSrpVerifier(salt: BigInteger, email: String, password: String): Verifier {
         val srpVerifier =
             srpService.verifierGen.generateVerifier(salt, email, password)
         val srpVerifierString = BigIntegerUtils.toHex(srpVerifier)

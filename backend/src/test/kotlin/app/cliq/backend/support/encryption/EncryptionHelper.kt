@@ -8,13 +8,8 @@ import javax.crypto.spec.GCMParameterSpec
 import javax.crypto.spec.SecretKeySpec
 
 @TestComponent
-class EncryptionHelper(
-    private val keyAndHashHelper: KeyAndHashHelper,
-) {
-    fun createEncryptionData(
-        password: String,
-        salt: ByteArray,
-    ): EncryptionData {
+class EncryptionHelper(private val keyAndHashHelper: KeyAndHashHelper) {
+    fun createEncryptionData(password: String, salt: ByteArray): EncryptionData {
         val userMasterKey = keyAndHashHelper.generateUserMasterKey(password, salt)
 
         val dataEncryptionKey = keyAndHashHelper.generateDataEncryptionKey()
@@ -55,10 +50,7 @@ class EncryptionHelper(
         )
     }
 
-    fun decryptDataWithKey(
-        encryptedDek: ByteArray,
-        userMasterKey: ByteArray,
-    ): ByteArray {
+    fun decryptDataWithKey(encryptedDek: ByteArray, userMasterKey: ByteArray): ByteArray {
         val cipher = Cipher.getInstance("AES/GCM/NoPadding")
 
         val nonce = encryptedDek.copyOfRange(0, 12)
@@ -72,10 +64,7 @@ class EncryptionHelper(
         return cipher.doFinal(ciphertext)
     }
 
-    fun encryptDataWithKey(
-        dek: ByteArray,
-        umk: ByteArray,
-    ): ByteArray {
+    fun encryptDataWithKey(dek: ByteArray, umk: ByteArray): ByteArray {
         val cipher = Cipher.getInstance("AES/GCM/NoPadding")
 
         val nonce = ByteArray(12)

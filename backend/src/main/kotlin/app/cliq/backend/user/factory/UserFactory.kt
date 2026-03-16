@@ -16,28 +16,22 @@ class UserFactory(
     private val eventPublisher: ApplicationEventPublisher,
     private val userRepository: UserRepository,
 ) {
-    fun createOidcUser(
-        email: String,
-        sub: String,
-        name: String,
-    ): User =
-        createUser(
-            sub = sub,
-            email = email,
-            name = name,
-            srpSalt = null,
-            srpVerifier = null,
-        )
+    fun createOidcUser(email: String, sub: String, name: String): User = createUser(
+        sub = sub,
+        email = email,
+        name = name,
+        srpSalt = null,
+        srpVerifier = null,
+    )
 
-    fun createFromRegistrationParams(registrationParams: RegistrationParams): User =
-        createUser(
-            email = registrationParams.email,
-            name = registrationParams.username,
-            locale = registrationParams.locale,
-            dataEncryptionKey = registrationParams.dataEncryptionKey,
-            srpSalt = registrationParams.srpSalt,
-            srpVerifier = registrationParams.srpVerifier,
-        )
+    fun createFromRegistrationParams(registrationParams: RegistrationParams): User = createUser(
+        email = registrationParams.email,
+        name = registrationParams.username,
+        locale = registrationParams.locale,
+        dataEncryptionKey = registrationParams.dataEncryptionKey,
+        srpSalt = registrationParams.srpSalt,
+        srpVerifier = registrationParams.srpVerifier,
+    )
 
     private fun createUser(
         email: String,

@@ -21,10 +21,7 @@ import org.springframework.web.bind.annotation.RequestMapping
 
 @AuthController
 @RequestMapping("/api/auth")
-class LocalAuthController(
-    private val userFactory: UserFactory,
-    private val authProperties: AuthProperties,
-) {
+class LocalAuthController(private val userFactory: UserFactory, private val authProperties: AuthProperties) {
     @PostMapping("/register")
     @Operation(summary = "Registers a new User for local authentication.")
     @ApiResponses(
@@ -47,9 +44,7 @@ class LocalAuthController(
             ApiResponse(responseCode = "403", description = "Registration has been disabled", content = [Content()]),
         ],
     )
-    fun register(
-        @Valid @RequestBody registrationParams: RegistrationParams,
-    ): ResponseEntity<UserResponse> {
+    fun register(@Valid @RequestBody registrationParams: RegistrationParams): ResponseEntity<UserResponse> {
         if (!authProperties.local.registration) {
             throw LocalRegistrationDisabledException()
         }

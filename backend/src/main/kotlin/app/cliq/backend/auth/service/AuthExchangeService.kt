@@ -16,10 +16,7 @@ class AuthExchangeService(
     private val clock: Clock,
     private val jwtService: JwtService,
 ) {
-    fun getValidAuthExchangeByCode(
-        code: String,
-        request: HttpServletRequest,
-    ): AuthExchange {
+    fun getValidAuthExchangeByCode(code: String, request: HttpServletRequest): AuthExchange {
         val authExchange =
             authExchangeRepository.findByExchangeCode(code)
                 ?: throw InvalidAuthExchangeCodeException()
@@ -29,10 +26,7 @@ class AuthExchangeService(
         return authExchange
     }
 
-    fun validOrThrowAuthExchange(
-        authExchange: AuthExchange,
-        request: HttpServletRequest,
-    ) {
+    fun validOrThrowAuthExchange(authExchange: AuthExchange, request: HttpServletRequest) {
         val now = OffsetDateTime.now(clock)
         if (authExchange.isExpired(now)) throw InvalidAuthExchangeCodeException()
 
@@ -42,8 +36,6 @@ class AuthExchangeService(
         }
     }
 
-    fun exchange(
-        authExchange: AuthExchange,
-        sessionName: String?,
-    ): TokenPair = jwtService.generateTokenPairFromAuthExchange(authExchange, sessionName)
+    fun exchange(authExchange: AuthExchange, sessionName: String?): TokenPair =
+        jwtService.generateTokenPairFromAuthExchange(authExchange, sessionName)
 }

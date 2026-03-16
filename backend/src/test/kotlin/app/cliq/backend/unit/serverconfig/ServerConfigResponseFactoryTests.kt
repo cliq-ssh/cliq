@@ -23,10 +23,10 @@ class ServerConfigResponseFactoryTests {
     private val authProperties =
         AuthProperties(
             local =
-                AuthProperties.LocalAuthProperties(
-                    registration = true,
-                    login = false,
-                ),
+            AuthProperties.LocalAuthProperties(
+                registration = true,
+                login = false,
+            ),
             authExchangeDurationSeconds = 60,
         )
 

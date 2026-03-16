@@ -18,10 +18,7 @@ class JwtService(
     private val authExchangeRepository: AuthExchangeRepository,
     private val clock: Clock,
 ) {
-    fun generateTokenPairFromAuthExchange(
-        authExchange: AuthExchange,
-        sessionName: String?,
-    ): TokenPair {
+    fun generateTokenPairFromAuthExchange(authExchange: AuthExchange, sessionName: String?): TokenPair {
         if (authExchange.oidcCallbackToken != null) {
             return generateTokenPairForOidcUser(authExchange.oidcCallbackToken!!)
         }

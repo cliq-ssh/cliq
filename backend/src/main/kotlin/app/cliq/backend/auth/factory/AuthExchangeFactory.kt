@@ -18,15 +18,10 @@ class AuthExchangeFactory(
     private val clock: Clock,
     private val authProperties: AuthProperties,
 ) {
-    fun createFromRequestAndUser(
-        httpServletRequest: HttpServletRequest,
-        user: User,
-    ): AuthExchange = create(httpServletRequest.remoteAddr, user)
+    fun createFromRequestAndUser(httpServletRequest: HttpServletRequest, user: User): AuthExchange =
+        create(httpServletRequest.remoteAddr, user)
 
-    fun create(
-        ipAddress: String,
-        user: User,
-    ): AuthExchange {
+    fun create(ipAddress: String, user: User): AuthExchange {
         val token = tokenGenerator.generateAuthExchangeCode()
         val inetAddress = InetAddress.ofLiteral(ipAddress)
         val now = OffsetDateTime.now(clock)

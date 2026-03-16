@@ -1,8 +1,6 @@
 package app.cliq.backend.user
 
 import app.cliq.backend.exception.EmailNotFoundOrValidException
-import app.cliq.backend.exception.InvalidResetParamsException
-import app.cliq.backend.exception.PasswordResetTokenExpired
 import app.cliq.backend.user.annotation.UserController
 import app.cliq.backend.user.factory.UserFactory
 import app.cliq.backend.user.params.ResetPasswordParams
@@ -14,7 +12,6 @@ import io.swagger.v3.oas.annotations.media.Content
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.responses.ApiResponses
 import jakarta.validation.Valid
-import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
@@ -42,9 +39,7 @@ class PasswordResetController(
             ),
         ],
     )
-    fun startResetPasswordProcess(
-        @Valid @RequestBody params: StartResetPasswordProcessParams,
-    ): ResponseEntity<Void> {
+    fun startResetPasswordProcess(@Valid @RequestBody params: StartResetPasswordProcessParams): ResponseEntity<Void> {
         // Returning 204 even if the user does not exist is intentional to not leak
         val user = userRepository.findByEmail(params.email) ?: return ResponseEntity.noContent().build()
 
@@ -72,9 +67,7 @@ class PasswordResetController(
             ),
         ],
     )
-    fun resetPassword(
-        @Valid @RequestBody params: ResetPasswordParams,
-    ): ResponseEntity<UserResponse> {
+    fun resetPassword(@Valid @RequestBody ignored: ResetPasswordParams): ResponseEntity<UserResponse> {
         TODO("Implement password reset")
         /*
         - replace srp salt & verifier

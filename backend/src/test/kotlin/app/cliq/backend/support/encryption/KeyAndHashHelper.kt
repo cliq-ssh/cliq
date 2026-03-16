@@ -11,9 +11,7 @@ import org.springframework.boot.test.context.TestComponent
 import java.security.SecureRandom
 
 @TestComponent
-class KeyAndHashHelper(
-    private val secureRandom: SecureRandom = SecureRandom.getInstanceStrong(),
-) {
+class KeyAndHashHelper(private val secureRandom: SecureRandom = SecureRandom.getInstanceStrong()) {
     fun buildArgon2BytesGenerator(salt: ByteArray): Argon2BytesGenerator {
         val builder =
             Argon2Parameters
@@ -31,10 +29,7 @@ class KeyAndHashHelper(
         return generator
     }
 
-    fun generateUserMasterKey(
-        password: String,
-        salt: ByteArray,
-    ): ByteArray {
+    fun generateUserMasterKey(password: String, salt: ByteArray): ByteArray {
         val argon2Generator = buildArgon2BytesGenerator(salt)
         val userMasterKey = ByteArray(32)
         argon2Generator.generateBytes(password.toByteArray(), userMasterKey)

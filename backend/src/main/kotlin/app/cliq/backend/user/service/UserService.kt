@@ -1,15 +1,12 @@
 package app.cliq.backend.user.service
 
 import app.cliq.backend.email.EmailService
-import app.cliq.backend.exception.EmailNotVerifiedException
-import app.cliq.backend.exception.InvalidEmailOrPasswordException
 import app.cliq.backend.user.User
 import app.cliq.backend.user.UserRepository
 import app.cliq.backend.utils.TokenGenerator
 import org.slf4j.LoggerFactory
 import org.springframework.context.MessageSource
 import org.springframework.mail.MailException
-import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.stereotype.Service
 import java.time.Clock
 import java.time.OffsetDateTime
@@ -22,7 +19,6 @@ class UserService(
     private val tokenGenerator: TokenGenerator,
     private val emailService: EmailService,
     private val messageSource: MessageSource,
-    private val passwordEncoder: PasswordEncoder,
 ) {
     private val logger = LoggerFactory.getLogger(this::class.java)
 
@@ -104,19 +100,5 @@ class UserService(
 
             throw e
         }
-    }
-
-    fun login(user: User, password: String): User {
-        if (!user.isUsable()) throw EmailNotVerifiedException()
-
-        if (!passwordEncoder.matches(
-                password,
-                user.password,
-            )
-        ) {
-            throw InvalidEmailOrPasswordException()
-        }
-
-        return user
     }
 }

@@ -13,9 +13,7 @@ import kotlin.test.assertContains
 
 @AcceptanceTest
 @TestPropertySource(properties = ["app.rate-limits.enabled=true"])
-class RateLimiterTests(
-    @Autowired private val mockMvc: MockMvc,
-) : AcceptanceTester() {
+class RateLimiterTests(@Autowired private val mockMvc: MockMvc) : AcceptanceTester() {
     @Test
     fun `allows up to configured number of requests per minute`() {
         repeat(5) {

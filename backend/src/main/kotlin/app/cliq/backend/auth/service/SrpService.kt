@@ -8,6 +8,7 @@ import app.cliq.backend.user.User
 import app.cliq.backend.utils.TokenGenerator
 import com.nimbusds.srp6.BigIntegerUtils
 import com.nimbusds.srp6.SRP6CryptoParams
+import com.nimbusds.srp6.SRP6Exception
 import com.nimbusds.srp6.SRP6Routines
 import com.nimbusds.srp6.SRP6VerifierGenerator
 import org.slf4j.LoggerFactory
@@ -30,10 +31,7 @@ class SrpService(
 ) {
     private val logger = LoggerFactory.getLogger(this::class.java)
 
-    fun startAuthenticationProcess(
-        user: User,
-        loginStartParams: LoginStartParams,
-    ): LoginStartResponse {
+    fun startAuthenticationProcess(user: User, loginStartParams: LoginStartParams): LoginStartResponse {
         val authenticationToken = tokenGenerator.generateAuthenticationToken()
         val session = srpSessionService.getOrCreateAuthenticationSession(authenticationToken, params)
 
@@ -60,7 +58,7 @@ class SrpService(
         val publicM2: BigInteger
         try {
             publicM2 = session.step2(publicABgInteger, publicM1BgInteger)
-        } catch (exception: Exception) {
+        } catch (exception: SRP6Exception) {
             logger.debug(
                 "SRP authentication step 2 failed",
                 exception,

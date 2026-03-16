@@ -1,9 +1,6 @@
 package app.cliq.backend.support.encryption
 
-data class EncryptionData(
-    val userMasterKey: ByteArray,
-    val dataEncryptionKey: DataEncryptionKey,
-)
+data class EncryptionData(val userMasterKey: ByteArray, val dataEncryptionKey: DataEncryptionKey)
 
 data class DataEncryptionKey(
     val value: ByteArray,
@@ -11,9 +8,7 @@ data class DataEncryptionKey(
     val encryptedAndEncodedDataEncryptionKey: String,
 )
 
-data class AuthenticatedEncryptionData(
-    val deviceEncryptionKey: DeviceEncryptionKey,
-)
+data class AuthenticatedEncryptionData(val deviceEncryptionKey: DeviceEncryptionKey)
 
 data class DeviceEncryptionKey(
     val keyPair: Pair<ByteArray, ByteArray>,

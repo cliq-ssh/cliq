@@ -60,9 +60,7 @@ class LocalLoginController(
             ),
         ],
     )
-    fun startLogin(
-        @Valid @RequestBody loginStartParams: LoginStartParams,
-    ): ResponseEntity<LoginStartResponse> {
+    fun startLogin(@Valid @RequestBody loginStartParams: LoginStartParams): ResponseEntity<LoginStartResponse> {
         if (!authProperties.local.login) {
             throw LocalLoginDisabledException()
         }
