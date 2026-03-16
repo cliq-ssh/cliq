@@ -1,5 +1,3 @@
 package app.cliq.backend.user
 
-class PasswordResetEvent(
-    val userId: Long,
-)
+class PasswordResetEvent(val userId: Long)

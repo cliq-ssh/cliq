@@ -38,15 +38,14 @@ class SessionTests {
         assertTrue(session.isExpired(now))
     }
 
-    private fun createSessionWithExpiresAt(expiresAt: OffsetDateTime): Session =
-        Session(
-            id = null,
-            oidcSessionId = null,
-            user = user,
-            refreshToken = "refresh-token",
-            name = null,
-            lastUsedAt = null,
-            expiresAt = expiresAt,
-            createdAt = OffsetDateTime.now(),
-        )
+    private fun createSessionWithExpiresAt(expiresAt: OffsetDateTime): Session = Session(
+        id = null,
+        oidcSessionId = null,
+        user = user,
+        refreshToken = "refresh-token",
+        name = null,
+        lastUsedAt = null,
+        expiresAt = expiresAt,
+        createdAt = OffsetDateTime.now(),
+    )
 }

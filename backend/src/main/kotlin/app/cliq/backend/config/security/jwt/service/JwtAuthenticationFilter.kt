@@ -10,9 +10,9 @@ class JwtAuthenticationFilter(
     jwtAuthenticationConverter: JwtAuthenticationConverter,
     private val authenticationEntryPoint: AuthenticationEntryPoint,
 ) : AuthenticationFilter(
-        authenticationManager,
-        jwtAuthenticationConverter,
-    ) {
+    authenticationManager,
+    jwtAuthenticationConverter,
+) {
     init {
         // We do this because the default success handler makes a redirect to '/'
         successHandler = { _, _, _ -> }

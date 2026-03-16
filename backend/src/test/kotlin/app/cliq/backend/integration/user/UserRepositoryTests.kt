@@ -34,27 +34,26 @@ class UserRepositoryTests(
         emailVerificationSentAt: OffsetDateTime = OffsetDateTime.now(),
         createdAt: OffsetDateTime = OffsetDateTime.now(),
         updatedAt: OffsetDateTime = OffsetDateTime.now(),
-    ): User =
-        User(
-            email = email,
-            name = name,
-            locale = Locale.ENGLISH.toLanguageTag(),
-            password = "hashed_password",
-            resetToken = null,
-            resetSentAt = null,
-            emailVerifiedAt = emailVerifiedAt,
-            emailVerificationToken =
-                if (emailVerifiedAt ==
-                    null
-                ) {
-                    "verification_token_${email.substringBefore('@')}"
-                } else {
-                    null
-                },
-            emailVerificationSentAt = emailVerificationSentAt,
-            createdAt = createdAt,
-            updatedAt = updatedAt,
-        )
+    ): User = User(
+        email = email,
+        name = name,
+        locale = Locale.ENGLISH.toLanguageTag(),
+        password = "hashed_password",
+        resetToken = null,
+        resetSentAt = null,
+        emailVerifiedAt = emailVerifiedAt,
+        emailVerificationToken =
+        if (emailVerifiedAt ==
+            null
+        ) {
+            "verification_token_${email.substringBefore('@')}"
+        } else {
+            null
+        },
+        emailVerificationSentAt = emailVerificationSentAt,
+        createdAt = createdAt,
+        updatedAt = updatedAt,
+    )
 
     @Test
     fun `deleteUnverifiedUsersOlderThan should delete old unverified users`() {

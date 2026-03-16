@@ -19,9 +19,7 @@ import org.springframework.web.bind.annotation.RequestMapping
 
 @AuthController
 @RequestMapping("/api/auth/oidc")
-class OidcAuthController(
-    private val authExchangeService: AuthExchangeService,
-) {
+class OidcAuthController(private val authExchangeService: AuthExchangeService) {
     @PostMapping("/exchange")
     @Operation(summary = "Exchanges an OIDC auth code for a JWT Access token.")
     @ApiResponses(

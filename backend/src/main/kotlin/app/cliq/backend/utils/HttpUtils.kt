@@ -9,13 +9,8 @@ const val CONTENT_TYPE_JSON = "application/json"
 const val UTF8_ENCODING = "UTF-8"
 
 @Service
-class HttpUtils(
-    private val objectMapper: ObjectMapper,
-) {
-    fun setErrorResponse(
-        response: HttpServletResponse,
-        errorResponse: ErrorResponse,
-    ) {
+class HttpUtils(private val objectMapper: ObjectMapper) {
+    fun setErrorResponse(response: HttpServletResponse, errorResponse: ErrorResponse) {
         response.status = errorResponse.statusCode.value()
         response.contentType = CONTENT_TYPE_JSON
         response.characterEncoding = UTF8_ENCODING

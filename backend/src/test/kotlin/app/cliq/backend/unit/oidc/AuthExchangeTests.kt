@@ -12,19 +12,15 @@ import java.time.OffsetDateTime
 
 @ExtendWith(MockitoExtension::class)
 class AuthExchangeTests {
-    private fun buildAuthExchange(
-        expiresAt: OffsetDateTime,
-        now: OffsetDateTime,
-    ): AuthExchange =
-        AuthExchange(
-            session = mock(),
-            exchangeCode = "exchange-code",
-            ipAddress = InetAddress.getByName("127.0.0.1"),
-            jwtToken = "jwt-token",
-            refreshToken = "refresh-token",
-            createdAt = now.minusMinutes(5),
-            expiresAt = expiresAt,
-        )
+    private fun buildAuthExchange(expiresAt: OffsetDateTime, now: OffsetDateTime): AuthExchange = AuthExchange(
+        session = mock(),
+        exchangeCode = "exchange-code",
+        ipAddress = InetAddress.getByName("127.0.0.1"),
+        jwtToken = "jwt-token",
+        refreshToken = "refresh-token",
+        createdAt = now.minusMinutes(5),
+        expiresAt = expiresAt,
+    )
 
     @Test
     fun `isExpired returns false when now is before expiresAt`() {

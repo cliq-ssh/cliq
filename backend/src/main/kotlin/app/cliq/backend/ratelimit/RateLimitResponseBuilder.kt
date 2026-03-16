@@ -9,13 +9,8 @@ import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Service
 
 @Service
-class RateLimitResponseBuilder(
-    private val httpUtils: HttpUtils,
-) {
-    fun buildResponse(
-        response: HttpServletResponse,
-        retryAfterSeconds: Long,
-    ) {
+class RateLimitResponseBuilder(private val httpUtils: HttpUtils) {
+    fun buildResponse(response: HttpServletResponse, retryAfterSeconds: Long) {
         val errorResponse =
             ErrorResponse(
                 statusCode = HttpStatus.TOO_MANY_REQUESTS,

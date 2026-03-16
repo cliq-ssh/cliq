@@ -42,9 +42,7 @@ class PasswordResetController(
             ),
         ],
     )
-    fun startResetPasswordProcess(
-        @Valid @RequestBody params: StartResetPasswordProcessParams,
-    ): ResponseEntity<Void> {
+    fun startResetPasswordProcess(@Valid @RequestBody params: StartResetPasswordProcessParams): ResponseEntity<Void> {
         // Returning 204 even if the user does not exist is intentional to not leak
         val user = userRepository.findByEmail(params.email) ?: return ResponseEntity.noContent().build()
 
@@ -72,9 +70,7 @@ class PasswordResetController(
             ),
         ],
     )
-    fun resetPassword(
-        @Valid @RequestBody params: ResetPasswordParams,
-    ): ResponseEntity<UserResponse> {
+    fun resetPassword(@Valid @RequestBody params: ResetPasswordParams): ResponseEntity<UserResponse> {
         val user =
             userRepository.findByResetTokenAndEmail(params.resetToken, params.email)
                 ?: throw InvalidResetParamsException()

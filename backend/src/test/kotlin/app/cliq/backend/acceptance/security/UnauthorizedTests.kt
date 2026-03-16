@@ -13,10 +13,8 @@ import tools.jackson.databind.ObjectMapper
 import kotlin.test.assertEquals
 
 @AcceptanceTest
-class UnauthorizedTests(
-    @Autowired private val mockMvc: MockMvc,
-    @Autowired private val objectMapper: ObjectMapper,
-) : AcceptanceTester() {
+class UnauthorizedTests(@Autowired private val mockMvc: MockMvc, @Autowired private val objectMapper: ObjectMapper) :
+    AcceptanceTester() {
     @Test
     fun `test correct unauthorized response`() {
         val result =

@@ -29,7 +29,6 @@ class UserController {
             ),
         ],
     )
-    fun me(
-        @AuthenticationPrincipal session: Session,
-    ): ResponseEntity<UserResponse> = ResponseEntity.ok().body(UserResponse.fromUser(session.user))
+    fun me(@AuthenticationPrincipal session: Session): ResponseEntity<UserResponse> =
+        ResponseEntity.ok().body(UserResponse.fromUser(session.user))
 }
