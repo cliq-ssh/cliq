@@ -52,7 +52,7 @@ jobs:
           cd packages/${{ matrix.package }}
           flutter test --file-reporter=json:reports/test-results.json
       - name: Publish Test Results
-        uses: dorny/test-reporter@v2
+        uses: dorny/test-reporter@v3
         if: ${{ !cancelled() }}
         with:
           name: Frontend Tests (${{ matrix.package }})
