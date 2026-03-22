@@ -43,7 +43,7 @@ jobs:
         run: ./gradlew test
       # Publish Test Results are summary
       - name: Publish Test Results
-        uses: dorny/test-reporter@v2
+        uses: dorny/test-reporter@v3
         if: ${{ !cancelled() }} # run this step even if the previous step failed
         with:
           name: Backend Tests
