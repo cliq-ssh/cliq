@@ -32,7 +32,7 @@ jobs:
           java-version: "25"
           distribution: "temurin"
       - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@v5
+        uses: gradle/actions/setup-gradle@v6
       - name: Install project
         run: bash ./dev/install
       - name: Start Docker services
@@ -65,7 +65,7 @@ jobs:
           java-version: "25"
           distribution: "temurin"
       - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@v5
+        uses: gradle/actions/setup-gradle@v6
       - name: Run detekt
         run: ./gradlew detekt
       - name: Upload SARIF file
