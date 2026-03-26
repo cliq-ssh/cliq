@@ -11,3 +11,6 @@ style:
     active: true
   ThrowsCount:
     active: false
+  MaxLineLength:
+    # This should be kept in sync with .editorconfig
+    maxLineLength: 120

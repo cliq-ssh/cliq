@@ -11,7 +11,7 @@ const val AUTHENTICATION_TOKEN_LENGTH: UShort = 128U
 const val AUTH_EXCHANGE_CODE_LENGTH: UShort = 128U
 const val OIDC_CALLBACK_TOKEN_LENGTH: UShort = 128U
 const val EMAIL_VERIFICATION_TOKEN_LENGTH: UShort = 8U
-const val RESET_PASSWORD_TOKEN_LENGTH: UShort = 8U
+const val KEY_ROTATION_TOKEN_LENGTH: UShort = 8U
 
 @Service
 class TokenGenerator(
@@ -29,7 +29,7 @@ class TokenGenerator(
     fun generateEmailVerificationToken(): String =
         generateToken(EMAIL_VERIFICATION_TOKEN_LENGTH).uppercase(getDefault())
 
-    fun generatePasswordResetToken(): String = generateToken(RESET_PASSWORD_TOKEN_LENGTH).uppercase(getDefault())
+    fun generateKeyRotationToken(): String = generateToken(KEY_ROTATION_TOKEN_LENGTH).uppercase(getDefault())
 
     fun generateToken(length: UShort): String {
         val randomBytes = ByteArray(length.toInt())

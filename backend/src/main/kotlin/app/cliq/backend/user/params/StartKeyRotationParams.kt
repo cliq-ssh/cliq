@@ -6,6 +6,6 @@ import jakarta.validation.constraints.Email
 import jakarta.validation.constraints.NotEmpty
 
 @Schema
-data class StartResetPasswordProcessParams(
+data class StartKeyRotationParams(
     @field:Schema(example = EXAMPLE_EMAIL) @field:Email @field:NotEmpty val email: String,
 )

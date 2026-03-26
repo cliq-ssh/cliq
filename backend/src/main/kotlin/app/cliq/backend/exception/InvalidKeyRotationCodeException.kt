@@ -4,4 +4,4 @@ import app.cliq.backend.error.ApiException
 import app.cliq.backend.error.ErrorCode
 import org.springframework.http.HttpStatus
 
-class PasswordResetTokenExpired : ApiException(HttpStatus.BAD_REQUEST, ErrorCode.PASSWORD_RESET_TOKEN_EXPIRED)
+class InvalidKeyRotationCodeException : ApiException(HttpStatus.BAD_REQUEST, ErrorCode.INVALID_KEY_ROTATION_PARAMS)

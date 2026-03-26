@@ -68,37 +68,4 @@ class UserService(
             throw e
         }
     }
-
-    @Suppress("TooGenericExceptionCaught")
-    fun sendResetPasswordEmail(user: User) {
-        val token = tokenGenerator.generatePasswordResetToken()
-        user.resetToken = token
-        user.resetSentAt = OffsetDateTime.now(clock)
-
-        userRepository.save(user)
-
-        val locale = Locale.forLanguageTag(user.locale)
-        val context =
-            mapOf<String, Any>(
-                "name" to user.name,
-                "resetToken" to token,
-            )
-
-        try {
-            emailService.sendEmail(
-                user.email,
-                messageSource.getMessage("email.password_reset.subject", null, locale),
-                context,
-                locale,
-                "passwordResetMail",
-            )
-        } catch (e: Throwable) {
-            user.resetSentAt = null
-            userRepository.save(user)
-
-            logger.error("Failed to send password reset email to user ${user.id} (${user.email})", e)
-
-            throw e
-        }
-    }
 }

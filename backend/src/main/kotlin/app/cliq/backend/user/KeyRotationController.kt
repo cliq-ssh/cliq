@@ -2,11 +2,9 @@ package app.cliq.backend.user
 
 import app.cliq.backend.exception.EmailNotFoundOrValidException
 import app.cliq.backend.user.annotation.UserController
-import app.cliq.backend.user.factory.UserFactory
-import app.cliq.backend.user.params.ResetPasswordParams
-import app.cliq.backend.user.params.StartResetPasswordProcessParams
-import app.cliq.backend.user.service.UserService
-import app.cliq.backend.user.view.UserResponse
+import app.cliq.backend.user.params.StartKeyRotationParams
+import app.cliq.backend.user.params.VerifyKeyRotationParams
+import app.cliq.backend.user.service.KeyRotationService
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.media.Content
 import io.swagger.v3.oas.annotations.responses.ApiResponse
@@ -18,19 +16,18 @@ import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 
 @UserController
-@RequestMapping("/api/user/password-reset")
-class PasswordResetController(
+@RequestMapping("/api/user/key-rotation")
+class KeyRotationController(
     private val userRepository: UserRepository,
-    private val userService: UserService,
-    private val userFactory: UserFactory,
+    private val keyRotationService: KeyRotationService,
 ) {
     @PostMapping("/start")
-    @Operation(summary = "Start the reset password process")
+    @Operation(summary = "Start the key rotation process by sending a code to the user's email")
     @ApiResponses(
         value = [
             ApiResponse(
                 responseCode = "204",
-                description = "Reset password email successfully sent",
+                description = "Key rotation code successfully sent",
             ),
             ApiResponse(
                 responseCode = "400",
@@ -39,7 +36,7 @@ class PasswordResetController(
             ),
         ],
     )
-    fun startResetPasswordProcess(@Valid @RequestBody params: StartResetPasswordProcessParams): ResponseEntity<Void> {
+    fun startKeyRotation(@Valid @RequestBody params: StartKeyRotationParams): ResponseEntity<Void> {
         // Returning 204 even if the user does not exist is intentional to not leak
         val user = userRepository.findByEmail(params.email) ?: return ResponseEntity.noContent().build()
 
@@ -47,32 +44,40 @@ class PasswordResetController(
             throw EmailNotFoundOrValidException()
         }
 
-        userService.sendResetPasswordEmail(user)
+        keyRotationService.sendKeyRotationEmail(user)
 
         return ResponseEntity.noContent().build()
     }
 
-    @PostMapping("/reset")
-    @Operation(summary = "Reset a users password")
+    @PostMapping("/verify")
+    @Operation(summary = "Verify the key rotation code and apply new encryption key and SRP parameters")
     @ApiResponses(
         value = [
             ApiResponse(
                 responseCode = "200",
-                description = "Password successfully reset",
+                description = "Key rotation successfully completed",
+                content = [Content()],
             ),
             ApiResponse(
                 responseCode = "400",
-                description = "Invalid reset token or password",
+                description = "Invalid code, expired code, or invalid parameters",
                 content = [Content()],
             ),
         ],
     )
-    fun resetPassword(@Valid @RequestBody ignored: ResetPasswordParams): ResponseEntity<UserResponse> {
-        TODO("Implement password reset")
-        /*
-        - replace srp salt & verifier
-        - log out all devices
-        - replace DataEncryptionKey (optional)
-         */
+    fun verifyKeyRotation(@Valid @RequestBody params: VerifyKeyRotationParams): ResponseEntity<Void> {
+        val user = userRepository.findByEmail(params.email)
+            ?: throw EmailNotFoundOrValidException()
+
+        keyRotationService.verifyKeyRotationCode(
+            user,
+            params.code,
+            params.dataEncryptionKey,
+            params.srpSalt,
+            params.srpVerifier,
+            params.vault,
+        )
+
+        return ResponseEntity.noContent().build()
     }
 }

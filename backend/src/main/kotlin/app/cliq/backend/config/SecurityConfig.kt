@@ -65,6 +65,8 @@ class SecurityConfig(
                     .permitAll()
                     .requestMatchers("/api/user/verification", "/api/user/verification/resend-email")
                     .permitAll()
+                    .requestMatchers("/api/user/key-rotation/start", "/api/user/key-rotation/verify")
+                    .permitAll()
                     // Server Configuration
                     .requestMatchers("/api/server/configuration")
                     .permitAll()

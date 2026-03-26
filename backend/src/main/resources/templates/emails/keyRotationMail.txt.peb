@@ -1,0 +1,16 @@
+{# @pebvariable name="name" type="String" #}
+{# @pebvariable name="rotationCode" type="String" #}
+
+{{ message('email.key_rotation.header') }}
+
+{{ message('email.key_rotation.greeting', name) }}
+
+{{ message('email.key_rotation.message') }}
+
+==============================================
+
+{{ rotationCode }}
+
+==============================================
+
+{{ message('email.common.signature') }}

@@ -10,8 +10,8 @@ abstract class AbstractUserTests {
         emailVerificationToken: String? = null,
         emailVerificationSentAt: OffsetDateTime? = null,
         emailVerifiedAt: OffsetDateTime? = null,
-        resetToken: String? = null,
-        resetSentAt: OffsetDateTime? = null,
+        keyRotationToken: String? = null,
+        keyRotationSentAt: OffsetDateTime? = null,
         oidcSub: String? = null,
     ): User = User(
         id = 1L,
@@ -21,8 +21,8 @@ abstract class AbstractUserTests {
         emailVerifiedAt = emailVerifiedAt,
         emailVerificationToken = emailVerificationToken,
         emailVerificationSentAt = emailVerificationSentAt,
-        resetToken = resetToken,
-        resetSentAt = resetSentAt,
+        keyRotationToken = keyRotationToken,
+        keyRotationSentAt = keyRotationSentAt,
         createdAt = OffsetDateTime.now(),
         updatedAt = OffsetDateTime.now(),
     )

@@ -1,11 +1,16 @@
 package app.cliq.backend.acceptance
 
+import app.cliq.backend.support.MailpitForwarder
 import com.icegreen.greenmail.configuration.GreenMailConfiguration
 import com.icegreen.greenmail.junit5.GreenMailExtension
 import com.icegreen.greenmail.util.ServerSetupTest
+import org.junit.jupiter.api.AfterEach
+import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.extension.RegisterExtension
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 
+// Greenmail configuration
 const val EMAIL = "cliq@localhost"
 const val EMAIL_PWD = "cliq"
 const val SMTP_HOST = "127.0.0.1"
@@ -26,6 +31,7 @@ const val SMTP_PORT = 3025
         "app.email.from-address=$EMAIL",
     ],
 )
+@Tag("email")
 annotation class EmailAcceptanceTest
 
 @EmailAcceptanceTest
@@ -33,12 +39,16 @@ abstract class EmailAcceptanceTester : AcceptanceTester() {
     companion object {
         @JvmField
         @RegisterExtension
-        val greenMail: GreenMailExtension =
-            GreenMailExtension(ServerSetupTest.SMTP_IMAP)
-                .withConfiguration(
-                    GreenMailConfiguration
-                        .aConfig()
-                        .withUser(EMAIL, EMAIL_PWD),
-                )
+        val greenMail: GreenMailExtension = GreenMailExtension(ServerSetupTest.SMTP_IMAP).withConfiguration(
+            GreenMailConfiguration.aConfig().withUser(EMAIL, EMAIL_PWD),
+        )
+    }
+
+    @AfterEach
+    fun forwardMailsToMailpit(
+        @Autowired
+        mailpitForwarder: MailpitForwarder,
+    ) {
+        mailpitForwarder.forwardMailsToMailpit(greenMail)
     }
 }

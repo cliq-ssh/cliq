@@ -14,15 +14,15 @@ CREATE TABLE users
     "email"                      TEXT                     NOT NULL UNIQUE,
     "name"                       TEXT                     NOT NULL,
     "locale"                     TEXT                     NOT NULL,
-    "reset_token"                TEXT,
-    "reset_sent_at"              timestamp with time zone,
+    "key_rotation_token"                TEXT,
+    "key_rotation_sent_at"              timestamp with time zone,
     "email_verification_token"   TEXT,
     "email_verification_sent_at" timestamp with time zone,
     "email_verified_at"          timestamp with time zone,
     "created_at"                 timestamp with time zone NOT NULL,
     "updated_at"                 timestamp with time zone NOT NULL,
     UNIQUE ("email", "email_verification_token"),
-    UNIQUE ("email", "reset_token")
+    UNIQUE ("email", "key_rotation_token")
 );
 
 CREATE TABLE auth_exchanges
