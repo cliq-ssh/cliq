@@ -61,7 +61,7 @@ class NavigationShellState extends ConsumerState<NavigationShell>
                     children: [
                       FButton.icon(
                         variant: widget.shell.currentIndex == 0
-                            ? null // TODO: primary?
+                            ? .primary
                             : .outline,
                         onPress: () => ref
                             .read(sessionProvider.notifier)
