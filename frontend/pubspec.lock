@@ -370,26 +370,26 @@ packages:
     dependency: "direct main"
     description:
       name: forui
-      sha256: "68e35cc6e989d960bcc4d31e49f22464e80f4c1f2d40c7ad63c1ba74386c209c"
+      sha256: "2a151e90ca6ca10cd5ae55f3e6fb9a971830863d9c82ad607b5fd6eecb553ec5"
       url: "https://pub.dev"
     source: hosted
-    version: "0.19.0"
+    version: "0.20.3"
   forui_assets:
     dependency: transitive
     description:
       name: forui_assets
-      sha256: ba80eeee720f517468bc06974a83905a183fa148ab34ea080b8fe7909806218c
+      sha256: "503378699c4cd77c5a5d66c86af8376b0bced0c1335d805b7af65c11008d5345"
       url: "https://pub.dev"
     source: hosted
-    version: "0.19.0"
+    version: "0.20.1"
   forui_hooks:
     dependency: "direct main"
     description:
       name: forui_hooks
-      sha256: f1edc96d263c4c1c0312a57e0b703095350ee3f46bcbf8fa3f5bcf6e574b0375
+      sha256: "0d8a1be339271ae6de2c2b61081c5b778f4e546eb1fb5280a3d8a9d93095281e"
       url: "https://pub.dev"
     source: hosted
-    version: "0.19.0"
+    version: "0.20.0"
   frontend_server_client:
     dependency: transitive
     description:
