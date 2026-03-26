@@ -19,6 +19,9 @@ class LicenseSettingsPage extends AbstractSettingsPage {
   const LicenseSettingsPage({super.key});
 
   @override
+  String get title => 'Licenses';
+
+  @override
   Widget buildBody(BuildContext context, WidgetRef ref) {
     return FutureWrapper(
       future: LicenseRegistry.licenses.toList(),
