@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:forui/forui.dart';
@@ -14,7 +16,7 @@ enum CliqTheme {
   violet;
 
   ({FThemeData dark, FThemeData light}) get themeData {
-    return switch (this) {
+    final themeData = switch (this) {
       CliqTheme.zinc => FThemes.zinc,
       CliqTheme.slate => FThemes.slate,
       CliqTheme.red => FThemes.red,
@@ -25,6 +27,9 @@ enum CliqTheme {
       CliqTheme.yellow => FThemes.yellow,
       CliqTheme.violet => FThemes.violet,
     };
+    return Platform.isIOS || Platform.isAndroid
+        ? (dark: themeData.dark.touch, light: themeData.light.touch)
+        : (dark: themeData.dark.desktop, light: themeData.light.desktop);
   }
 
   FThemeData getThemeWithMode(ThemeMode mode) {
