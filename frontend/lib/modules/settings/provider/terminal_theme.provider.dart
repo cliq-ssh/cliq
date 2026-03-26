@@ -1,10 +1,13 @@
 import 'dart:ui';
 
 import 'package:cliq/shared/data/database.dart';
+import 'package:file_selector/file_selector.dart';
+import 'package:logging/logging.dart';
 import 'package:riverpod/riverpod.dart';
 
 import '../../../shared/provider/abstract_entity.notifier.dart';
 import '../model/terminal_theme.state.dart';
+import '../model/terminal_theme_parser/terminal_theme_parser.dart';
 
 final terminalThemeProvider = NotifierProvider(CustomTerminalThemeNotifier.new);
 
@@ -37,7 +40,38 @@ const CustomTerminalTheme defaultTerminalColorTheme = .new(
 class CustomTerminalThemeNotifier
     extends
         AbstractEntityNotifier<CustomTerminalTheme, CustomTerminalThemeState> {
-  // TODO: import
+  static final logger = Logger('CustomTerminalThemeNotifier');
+
+  /// Attempts to import the given [file] as a [CustomTerminalTheme]
+  /// If the file is null, not parsable, or fails to import for any reason, this method the i18n key of the error message.
+  Future<String?> tryImportCustomTerminalTheme(XFile? file) async {
+    if (file == null) {
+      return 'customTerminalTheme.import.error.noFileSelected';
+    }
+    final content = await file.readAsString();
+    final parser = TerminalThemeParser.getParser(file.name, content);
+    if (parser == null) {
+      return 'customTerminalTheme.import.error.unrecognizedFormat';
+    }
+    final theme = parser.tryParse(file.name, content);
+    if (theme == null) {
+      return 'customTerminalTheme.import.error.parsingFailed';
+    }
+
+    try {
+      await CliqDatabase.customTerminalThemeService.createCustomTerminalTheme(
+        theme,
+      );
+    } catch (e) {
+      logger.warning('Failed to import terminal theme (${file.name}): $e');
+      return 'customTerminalTheme.import.error.importFailed';
+    }
+
+    logger.info(
+      'Successfully imported terminal theme ${theme.name} from file ${file.name}',
+    );
+    return null;
+  }
 
   @override
   CustomTerminalThemeState buildInitialState() => .initial();

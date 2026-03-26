@@ -6,28 +6,32 @@ import '../provider/terminal_theme.provider.dart';
 
 class CustomTerminalThemeState
     extends AbstractEntityState<CustomTerminalTheme, CustomTerminalThemeState> {
-  final int activeDefaultThemeId;
+  const CustomTerminalThemeState({super.entities = const []});
 
-  const CustomTerminalThemeState({
-    required this.activeDefaultThemeId,
-    super.entities = const [],
-  });
+  CustomTerminalThemeState.initial() : super.initial();
 
-  CustomTerminalThemeState.initial()
-    : activeDefaultThemeId = StoreKey.defaultTerminalThemeId.readSync()!,
-      super.initial();
+  CustomTerminalTheme? findById(int id, {bool isDefaultTheme = false}) {
+    if (id == defaultTerminalColorTheme.id) {
+      return defaultTerminalColorTheme;
+    }
 
-  CustomTerminalTheme get effectiveActiveDefaultTheme =>
-      entities.where((t) => t.id == activeDefaultThemeId).firstOrNull ??
-      defaultTerminalColorTheme;
+    for (final entity in entities) {
+      if (entity.id == id) {
+        return entity;
+      }
+    }
 
-  CustomTerminalThemeState copyWith({
-    int? activeDefaultThemeId,
-    List<CustomTerminalTheme>? entities,
-  }) {
-    return CustomTerminalThemeState(
-      activeDefaultThemeId: activeDefaultThemeId ?? this.activeDefaultThemeId,
-      entities: entities ?? this.entities,
-    );
+    // if not found AND this is searching for the user specified default theme, reset the default theme in store
+    // (since it doesnt seem to be valid)
+    if (isDefaultTheme) {
+      StoreKey.defaultTerminalThemeId.delete();
+    }
+
+    // return built-in theme as fallback
+    return defaultTerminalColorTheme;
+  }
+
+  CustomTerminalThemeState copyWith({List<CustomTerminalTheme>? entities}) {
+    return CustomTerminalThemeState(entities: entities ?? this.entities);
   }
 }

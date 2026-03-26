@@ -3,6 +3,19 @@ import 'dart:io';
 final class Validators {
   const Validators._();
 
+  static String? chain(
+    List<String? Function(Object?)> validators,
+    Object? value,
+  ) {
+    for (final validator in validators) {
+      String? error = validator(value);
+      if (error != null) {
+        return error;
+      }
+    }
+    return null;
+  }
+
   static String? address(Object? value) {
     String? nonEmptyError = nonEmpty(value);
     if (nonEmptyError != null) {
@@ -73,6 +86,22 @@ final class Validators {
       }
     } else if (value! is int) {
       return 'Value is not a valid integer';
+    }
+    return null;
+  }
+
+  static String? hexColor(Object? value) {
+    if (value is String) {
+      if (value.isEmpty) {
+        return null;
+      }
+
+      final hexColorRegex = RegExp(r'^#?([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$');
+      if (!hexColorRegex.hasMatch(value)) {
+        return 'Value is not a valid hex color';
+      }
+    } else {
+      return 'Value is not a valid hex color';
     }
     return null;
   }

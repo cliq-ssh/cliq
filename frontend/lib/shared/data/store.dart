@@ -97,7 +97,7 @@ enum StoreKey<T> {
   Future<String?> readAsStringAsync() =>
       KeyValueStore._instance.readAsStringAsync(this);
   void write(T value) => KeyValueStore._instance.write(this, value);
-  Future<void> delete() => KeyValueStore._instance.delete(this);
+  FutureOr<void> delete() => KeyValueStore._instance.delete(this);
 
   // Enums
   static T? _enumFromValue<T extends Enum>(String? value, List<T> values) =>
@@ -255,7 +255,7 @@ class KeyValueStore {
 
   /// Deletes the key from the local cache and the storage.
   /// If the key has a default value, it will be reset to that value instead.
-  Future<void> delete<T>(StoreKey<T> key) async {
+  FutureOr<void> delete<T>(StoreKey<T> key) {
     _checkInitialized();
     if (key.defaultValue == null) {
       _localCache.remove(key.key);

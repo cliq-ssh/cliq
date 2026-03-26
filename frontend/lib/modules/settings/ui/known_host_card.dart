@@ -1,8 +1,11 @@
 import 'package:cliq/shared/data/database.dart';
 import 'package:flutter/material.dart';
 import 'package:forui/forui.dart';
+import 'package:forui_hooks/forui_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lucide_flutter/lucide_flutter.dart';
+
+import '../../../shared/utils/commons.dart';
 
 class KnownHostCard extends HookConsumerWidget {
   final KnownHost knownHost;
@@ -11,6 +14,16 @@ class KnownHostCard extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final popoverController = useFPopoverController();
+
+    delete() async {
+      await popoverController.hide();
+      return Commons.showDeleteDialog(
+        entity: knownHost.host,
+        onDelete: () => CliqDatabase.knownHostService.deleteById(knownHost.id),
+      );
+    }
+
     return FCard(
       title: Row(
         spacing: 8,
@@ -46,41 +59,14 @@ class KnownHostCard extends HookConsumerWidget {
             ),
           ),
           FPopoverMenu(
+            control: .managed(controller: popoverController),
             menu: [
               FItemGroup(
                 children: [
                   FItem(
                     prefix: Icon(LucideIcons.trash),
                     title: Text('Delete'),
-                    onPress: () => showFDialog(
-                      context: context,
-                      builder: (context, style, animation) => FDialog(
-                        style: style,
-                        animation: animation,
-                        direction: Axis.horizontal,
-                        title: const Text('Are you sure?'),
-                        body: Text(
-                          'Are you sure you want to delete the fingerprint of ${knownHost.host}? This action cannot be undone.',
-                        ),
-                        actions: [
-                          FButton(
-                            variant: .outline,
-                            child: const Text('Cancel'),
-                            onPress: () => Navigator.of(context).pop(),
-                          ),
-                          FButton(
-                            variant: .destructive,
-                            child: const Text('Delete'),
-                            onPress: () {
-                              CliqDatabase.knownHostService.deleteById(
-                                knownHost.id,
-                              );
-                              Navigator.of(context).pop();
-                            },
-                          ),
-                        ],
-                      ),
-                    ),
+                    onPress: delete,
                   ),
                 ],
               ),

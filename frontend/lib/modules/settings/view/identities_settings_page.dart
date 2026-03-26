@@ -34,7 +34,6 @@ class IdentitiesSettingsPage extends AbstractSettingsPage {
           'Add your first identity by clicking the button below.',
       addEntityTitle: 'Add Identity',
       onAddEntity: () => Commons.showResponsiveDialog(
-        context,
         (_) => CreateOrEditIdentityView.create(),
       ),
       filterableFields: (i) => [i.label, i.username],

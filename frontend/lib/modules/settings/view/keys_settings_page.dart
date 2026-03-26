@@ -45,10 +45,8 @@ class KeysSettingsPage extends AbstractSettingsPage {
               'Add your first key by clicking the button below.',
           addEntityTitle: 'Add Key',
           filterableFields: (k) => [k.label],
-          onAddEntity: () => Commons.showResponsiveDialog(
-            context,
-            (_) => CreateOrEditKeyView.create(),
-          ),
+          onAddEntity: () =>
+              Commons.showResponsiveDialog((_) => CreateOrEditKeyView.create()),
         );
       },
     );
