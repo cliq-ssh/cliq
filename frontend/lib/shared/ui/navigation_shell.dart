@@ -74,7 +74,10 @@ class NavigationShellState extends ConsumerState<NavigationShell>
           selectedSession.value!.isConnected) {
         final hsl = HSLColor.fromColor(
           (selectedSession.value!.connection.terminalThemeOverride ??
-                  terminalThemes.findById(defaultTerminalTheme.value, isDefaultTheme: true)!)
+                  terminalThemes.findById(
+                    defaultTerminalTheme.value,
+                    isDefaultTheme: true,
+                  )!)
               .backgroundColor,
         );
         return hsl
