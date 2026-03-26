@@ -57,7 +57,7 @@ class _ShellSessionPageState extends ConsumerState<ShellSessionPage>
 
     getEffectiveTerminalTheme() =>
         widget.session.connection.terminalThemeOverride ??
-        themes.findById(defaultTerminalTheme.value)!;
+        themes.findById(defaultTerminalTheme.value, isDefaultTheme: true)!;
 
     buildTerminalController() {
       // TODO: listen for onTitleChange and update tab title
