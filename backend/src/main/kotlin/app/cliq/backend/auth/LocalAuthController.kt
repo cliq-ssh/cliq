@@ -6,12 +6,12 @@ import app.cliq.backend.auth.params.RegistrationParams
 import app.cliq.backend.auth.service.JwtService
 import app.cliq.backend.auth.view.TokenResponse
 import app.cliq.backend.config.properties.AuthProperties
-import app.cliq.backend.exception.EmailNotVerifiedException
 import app.cliq.backend.exception.InvalidEmailOrPasswordException
 import app.cliq.backend.exception.LocalLoginDisabledException
 import app.cliq.backend.exception.LocalRegistrationDisabledException
 import app.cliq.backend.user.UserRepository
 import app.cliq.backend.user.factory.UserFactory
+import app.cliq.backend.user.service.UserService
 import app.cliq.backend.user.view.UserResponse
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.media.Content
@@ -22,7 +22,6 @@ import jakarta.validation.Valid
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
-import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
@@ -32,9 +31,9 @@ import org.springframework.web.bind.annotation.RequestMapping
 class LocalAuthController(
     private val userRepository: UserRepository,
     private val userFactory: UserFactory,
-    private val passwordEncoder: PasswordEncoder,
     private val jwtService: JwtService,
     private val authProperties: AuthProperties,
+    private val userService: UserService,
 ) {
     @PostMapping("/register")
     @Operation(summary = "Registers a new User for local authentication.")
@@ -58,9 +57,7 @@ class LocalAuthController(
             ApiResponse(responseCode = "403", description = "Registration has been disabled", content = [Content()]),
         ],
     )
-    fun register(
-        @Valid @RequestBody registrationParams: RegistrationParams,
-    ): ResponseEntity<UserResponse> {
+    fun register(@Valid @RequestBody registrationParams: RegistrationParams): ResponseEntity<UserResponse> {
         if (!authProperties.local.registration) {
             throw LocalRegistrationDisabledException()
         }
@@ -96,24 +93,13 @@ class LocalAuthController(
             ),
         ],
     )
-    private fun login(
-        @Valid @RequestBody loginParams: LoginParams,
-    ): ResponseEntity<TokenResponse> {
+    private fun login(@Valid @RequestBody loginParams: LoginParams): ResponseEntity<TokenResponse> {
         if (!authProperties.local.login) {
             throw LocalLoginDisabledException()
         }
 
-        val user = userRepository.findByEmail(loginParams.email) ?: throw InvalidEmailOrPasswordException()
-
-        if (!user.isUsable()) throw EmailNotVerifiedException()
-
-        if (!passwordEncoder.matches(
-                loginParams.password,
-                user.password,
-            )
-        ) {
-            throw InvalidEmailOrPasswordException()
-        }
+        var user = userRepository.findByEmail(loginParams.email) ?: throw InvalidEmailOrPasswordException()
+        user = userService.login(user, loginParams.password)
 
         val tokenPair = jwtService.generateJwtTokenPair(loginParams, user)
         val response = TokenResponse.fromTokenPair(tokenPair)

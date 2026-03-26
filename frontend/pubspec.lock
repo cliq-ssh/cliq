@@ -262,18 +262,18 @@ packages:
     dependency: "direct main"
     description:
       name: drift
-      sha256: "61f876c0291b194980bafd203f48e85d5fb04e4a7334367d1a89f44004dbcb83"
+      sha256: "055c249d1f91be5a47fe447f88afc24c4ca6f4cd6c5ed66767b4797d48acc2e5"
       url: "https://pub.dev"
     source: hosted
-    version: "2.32.0"
+    version: "2.32.1"
   drift_dev:
     dependency: "direct dev"
     description:
       name: drift_dev
-      sha256: d687e955cc4b1706ad49b3860fcc1045c09bbf1d84c3c7383615f7f9c3320aa2
+      sha256: "88a9de3af8571518148a6d8a513b57779fd1e60a026d3ab8a481a878fba01d91"
       url: "https://pub.dev"
     source: hosted
-    version: "2.32.0"
+    version: "2.32.1"
   drift_flutter:
     dependency: "direct main"
     description:
@@ -442,26 +442,26 @@ packages:
     dependency: "direct main"
     description:
       name: forui
-      sha256: "68e35cc6e989d960bcc4d31e49f22464e80f4c1f2d40c7ad63c1ba74386c209c"
+      sha256: "2a151e90ca6ca10cd5ae55f3e6fb9a971830863d9c82ad607b5fd6eecb553ec5"
       url: "https://pub.dev"
     source: hosted
-    version: "0.19.0"
+    version: "0.20.3"
   forui_assets:
     dependency: transitive
     description:
       name: forui_assets
-      sha256: ba80eeee720f517468bc06974a83905a183fa148ab34ea080b8fe7909806218c
+      sha256: "503378699c4cd77c5a5d66c86af8376b0bced0c1335d805b7af65c11008d5345"
       url: "https://pub.dev"
     source: hosted
-    version: "0.19.0"
+    version: "0.20.1"
   forui_hooks:
     dependency: "direct main"
     description:
       name: forui_hooks
-      sha256: f1edc96d263c4c1c0312a57e0b703095350ee3f46bcbf8fa3f5bcf6e574b0375
+      sha256: "0d8a1be339271ae6de2c2b61081c5b778f4e546eb1fb5280a3d8a9d93095281e"
       url: "https://pub.dev"
     source: hosted
-    version: "0.19.0"
+    version: "0.20.0"
   frontend_server_client:
     dependency: transitive
     description:
@@ -626,10 +626,10 @@ packages:
     dependency: "direct main"
     description:
       name: lucide_flutter
-      sha256: "9ebd70fc26ad2021a3b311c70ab7b578a9427048841fe47f8e187fe2d875386b"
+      sha256: "8527d7c9d3bb74c0640defb21c5fbff6673f63b41f0f47db6194c54f1186e3c2"
       url: "https://pub.dev"
     source: hosted
-    version: "0.575.0"
+    version: "1.6.0"
   matcher:
     dependency: transitive
     description:
@@ -850,10 +850,10 @@ packages:
     dependency: "direct main"
     description:
       name: shared_preferences
-      sha256: "2939ae520c9024cb197fc20dee269cd8cdbf564c8b5746374ec6cacdc5169e64"
+      sha256: c3025c5534b01739267eb7d76959bbc25a6d10f6988e1c2a3036940133dd10bf
       url: "https://pub.dev"
     source: hosted
-    version: "2.5.4"
+    version: "2.5.5"
   shared_preferences_android:
     dependency: transitive
     description:

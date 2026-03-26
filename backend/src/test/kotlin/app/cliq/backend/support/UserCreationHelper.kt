@@ -21,10 +21,7 @@ class UserCreationHelper(
     private val userRepository: UserRepository,
     private val jwtService: JwtService,
 ) {
-    data class UserCreationData(
-        val user: User,
-        val password: String,
-    )
+    data class UserCreationData(val user: User, val password: String)
 
     fun createRandomUser(
         email: String = "user${Random.nextInt(0, 9999)}@cliq.test",

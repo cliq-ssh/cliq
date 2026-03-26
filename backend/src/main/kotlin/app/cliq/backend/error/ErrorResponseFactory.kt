@@ -32,10 +32,10 @@ class ErrorResponseFactory {
             statusCode = HttpStatus.BAD_REQUEST,
             errorCode = ErrorCode.VALIDATION_ERROR,
             details =
-                mapOf(
-                    "validationErrors" to fieldErrors,
-                    "totalErrors" to exception.bindingResult.errorCount,
-                ),
+            mapOf(
+                "validationErrors" to fieldErrors,
+                "totalErrors" to exception.bindingResult.errorCount,
+            ),
         )
     }
 

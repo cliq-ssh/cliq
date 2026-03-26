@@ -21,11 +21,7 @@ class UserFactory(
     private val eventPublisher: ApplicationEventPublisher,
     private val userRepository: UserRepository,
 ) {
-    fun createOidcUser(
-        email: String,
-        sub: String,
-        name: String,
-    ): User {
+    fun createOidcUser(email: String, sub: String, name: String): User {
         val hashedPassword = passwordEncoder.encode(OIDC_PASSWORD)
 
         return createUser(
@@ -36,10 +32,7 @@ class UserFactory(
         )
     }
 
-    fun updateUserPassword(
-        user: User,
-        newPassword: String,
-    ): User {
+    fun updateUserPassword(user: User, newPassword: String): User {
         val hashedPassword = passwordEncoder.encode(newPassword)
 
         user.resetToken = null

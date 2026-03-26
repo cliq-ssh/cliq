@@ -31,7 +31,6 @@ class SessionController {
     )
     @GetMapping("/current")
     @Authenticated
-    fun current(
-        @AuthenticationPrincipal session: Session,
-    ): ResponseEntity<SessionResponse> = ResponseEntity.ok(SessionResponse.fromSession(session))
+    fun current(@AuthenticationPrincipal session: Session): ResponseEntity<SessionResponse> =
+        ResponseEntity.ok(SessionResponse.fromSession(session))
 }

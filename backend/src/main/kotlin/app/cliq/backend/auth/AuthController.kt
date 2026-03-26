@@ -14,9 +14,7 @@ import org.springframework.web.bind.annotation.RequestMapping
 
 @AuthController
 @RequestMapping("/api/auth")
-class AuthController(
-    private val sessionRepository: SessionRepository,
-) {
+class AuthController(private val sessionRepository: SessionRepository) {
     @PostMapping("/logout")
     @Operation(summary = "Logs out the authenticated user and deletes the current session.")
     @ApiResponses(
@@ -33,9 +31,7 @@ class AuthController(
             ),
         ],
     )
-    private fun logout(
-        @AuthenticationPrincipal session: Session,
-    ): ResponseEntity<Void> {
+    private fun logout(@AuthenticationPrincipal session: Session): ResponseEntity<Void> {
         sessionRepository.delete(session)
 
         return ResponseEntity.noContent().build()

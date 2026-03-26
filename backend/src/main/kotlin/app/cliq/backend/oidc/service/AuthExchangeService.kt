@@ -11,20 +11,14 @@ import java.time.Clock
 import java.time.OffsetDateTime
 
 @Service
-class AuthExchangeService(
-    private val authExchangeRepository: AuthExchangeRepository,
-    private val clock: Clock,
-) {
-    fun getValidAuthExchangeByCode(
-        code: String,
-        request: HttpServletRequest,
-    ): AuthExchange {
-        val authExchange =
-            authExchangeRepository.findByExchangeCode(code)
-                ?: throw InvalidOidcAuthExchangeCodeException()
+class AuthExchangeService(private val authExchangeRepository: AuthExchangeRepository, private val clock: Clock) {
+    fun getValidAuthExchangeByCode(code: String, request: HttpServletRequest): AuthExchange {
+        val authExchange = authExchangeRepository.findByExchangeCode(code)
 
         val now = OffsetDateTime.now(clock)
-        if (authExchange.isExpired(now)) throw InvalidOidcAuthExchangeCodeException()
+        if (authExchange == null || authExchange.isExpired(now)) {
+            throw InvalidOidcAuthExchangeCodeException()
+        }
 
         val expectedIpAddress = authExchange.ipAddress.hostAddress
         if (expectedIpAddress != request.remoteAddr) {

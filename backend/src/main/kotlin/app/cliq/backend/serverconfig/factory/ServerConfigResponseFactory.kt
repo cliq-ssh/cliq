@@ -22,10 +22,9 @@ class ServerConfigResponseFactory(
         return createResponse()
     }
 
-    private fun createResponse(oidcUrl: String? = null): ServerConfigResponse =
-        ServerConfigResponse(
-            serverVersion = infoProperties.version,
-            oidcUrl = oidcUrl,
-            localAuthProperties = authProperties.local,
-        )
+    private fun createResponse(oidcUrl: String? = null): ServerConfigResponse = ServerConfigResponse(
+        serverVersion = infoProperties.version,
+        oidcUrl = oidcUrl,
+        localAuthProperties = authProperties.local,
+    )
 }

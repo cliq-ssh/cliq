@@ -396,7 +396,7 @@ class CreateOrEditConnectionView extends HookConsumerWidget {
                               tipBuilder: (_, _) => Text(icon.name),
                               child: FButton.icon(
                                 variant: icon == selectedIcon.value
-                                    ? null
+                                    ? .primary
                                     : .ghost,
                                 onPress: () => selectedIcon.value = icon,
                                 child: Icon(icon.iconData),

@@ -1,0 +1,13 @@
+ktlint:
+  active: true
+
+complexity:
+  LongMethod:
+    excludes:
+      - '**/test/**'
+
+style:
+  UnusedImport:
+    active: true
+  ThrowsCount:
+    active: false

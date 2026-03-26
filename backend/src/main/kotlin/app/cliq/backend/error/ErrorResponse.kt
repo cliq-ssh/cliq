@@ -17,12 +17,11 @@ data class ErrorResponse(
     val details: Any? = null,
 ) {
     companion object {
-        fun fromApiException(apiException: ApiException): ErrorResponse =
-            ErrorResponse(
-                statusCode = apiException.statusCode,
-                errorCode = apiException.errorCode,
-                details = apiException.details,
-            )
+        fun fromApiException(apiException: ApiException): ErrorResponse = ErrorResponse(
+            statusCode = apiException.statusCode,
+            errorCode = apiException.errorCode,
+            details = apiException.details,
+        )
 
         fun fromAuthenticationException(authException: AuthenticationException): ErrorResponse {
             if (authException.authenticationRequest is AnonymousAuthenticationToken) {
@@ -32,18 +31,16 @@ data class ErrorResponse(
             return buildInvalidJwtAccessTokenResponse(authException.message)
         }
 
-        private fun buildInvalidJwtAccessTokenResponse(message: String?): ErrorResponse =
-            ErrorResponse(
-                statusCode = HttpStatus.UNAUTHORIZED,
-                errorCode = ErrorCode.INVALID_JWT_ACCESS_TOKEN,
-                details = message,
-            )
+        private fun buildInvalidJwtAccessTokenResponse(message: String?): ErrorResponse = ErrorResponse(
+            statusCode = HttpStatus.UNAUTHORIZED,
+            errorCode = ErrorCode.INVALID_JWT_ACCESS_TOKEN,
+            details = message,
+        )
 
-        private fun buildMissingAuthenticationTokenResponse(message: String?): ErrorResponse =
-            ErrorResponse(
-                statusCode = HttpStatus.UNAUTHORIZED,
-                errorCode = ErrorCode.MISSING_AUTHENTICATION_TOKEN,
-                details = message,
-            )
+        private fun buildMissingAuthenticationTokenResponse(message: String?): ErrorResponse = ErrorResponse(
+            statusCode = HttpStatus.UNAUTHORIZED,
+            errorCode = ErrorCode.MISSING_AUTHENTICATION_TOKEN,
+            details = message,
+        )
     }
 }
