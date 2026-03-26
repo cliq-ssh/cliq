@@ -2905,6 +2905,18 @@ class Connections extends Table with TableInfo<Connections, Connection> {
         $customConstraints:
             'REFERENCES custom_terminal_themes(id)ON DELETE SET NULL',
       );
+  static const VerificationMeta _usesDefaultThemeOverrideMeta =
+      const VerificationMeta('usesDefaultThemeOverride');
+  late final GeneratedColumn<bool> usesDefaultThemeOverride =
+      GeneratedColumn<bool>(
+        'uses_default_theme_override',
+        aliasedName,
+        false,
+        type: DriftSqlType.bool,
+        requiredDuringInsert: false,
+        $customConstraints: 'NOT NULL DEFAULT FALSE',
+        defaultValue: const CustomExpression('FALSE'),
+      );
   @override
   List<GeneratedColumn> get $columns => [
     id,
@@ -2920,6 +2932,7 @@ class Connections extends Table with TableInfo<Connections, Connection> {
     isIconAutoDetect,
     terminalTypographyOverride,
     terminalThemeOverrideId,
+    usesDefaultThemeOverride,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -2996,6 +3009,15 @@ class Connections extends Table with TableInfo<Connections, Connection> {
         ),
       );
     }
+    if (data.containsKey('uses_default_theme_override')) {
+      context.handle(
+        _usesDefaultThemeOverrideMeta,
+        usesDefaultThemeOverride.isAcceptableOrUnknown(
+          data['uses_default_theme_override']!,
+          _usesDefaultThemeOverrideMeta,
+        ),
+      );
+    }
     return context;
   }
 
@@ -3067,6 +3089,10 @@ class Connections extends Table with TableInfo<Connections, Connection> {
         DriftSqlType.int,
         data['${effectivePrefix}terminal_theme_override_id'],
       ),
+      usesDefaultThemeOverride: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}uses_default_theme_override'],
+      )!,
     );
   }
 
@@ -3108,6 +3134,7 @@ class Connection extends DataClass implements Insertable<Connection> {
   final bool isIconAutoDetect;
   final TerminalTypography? terminalTypographyOverride;
   final int? terminalThemeOverrideId;
+  final bool usesDefaultThemeOverride;
   const Connection({
     required this.id,
     required this.label,
@@ -3122,6 +3149,7 @@ class Connection extends DataClass implements Insertable<Connection> {
     required this.isIconAutoDetect,
     this.terminalTypographyOverride,
     this.terminalThemeOverrideId,
+    required this.usesDefaultThemeOverride,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -3165,6 +3193,9 @@ class Connection extends DataClass implements Insertable<Connection> {
         terminalThemeOverrideId,
       );
     }
+    map['uses_default_theme_override'] = Variable<bool>(
+      usesDefaultThemeOverride,
+    );
     return map;
   }
 
@@ -3194,6 +3225,7 @@ class Connection extends DataClass implements Insertable<Connection> {
       terminalThemeOverrideId: terminalThemeOverrideId == null && nullToAbsent
           ? const Value.absent()
           : Value(terminalThemeOverrideId),
+      usesDefaultThemeOverride: Value(usesDefaultThemeOverride),
     );
   }
 
@@ -3224,6 +3256,9 @@ class Connection extends DataClass implements Insertable<Connection> {
       terminalThemeOverrideId: serializer.fromJson<int?>(
         json['terminal_theme_override_id'],
       ),
+      usesDefaultThemeOverride: serializer.fromJson<bool>(
+        json['uses_default_theme_override'],
+      ),
     );
   }
   @override
@@ -3247,6 +3282,9 @@ class Connection extends DataClass implements Insertable<Connection> {
       'terminal_theme_override_id': serializer.toJson<int?>(
         terminalThemeOverrideId,
       ),
+      'uses_default_theme_override': serializer.toJson<bool>(
+        usesDefaultThemeOverride,
+      ),
     };
   }
 
@@ -3265,6 +3303,7 @@ class Connection extends DataClass implements Insertable<Connection> {
     Value<TerminalTypography?> terminalTypographyOverride =
         const Value.absent(),
     Value<int?> terminalThemeOverrideId = const Value.absent(),
+    bool? usesDefaultThemeOverride,
   }) => Connection(
     id: id ?? this.id,
     label: label ?? this.label,
@@ -3283,6 +3322,8 @@ class Connection extends DataClass implements Insertable<Connection> {
     terminalThemeOverrideId: terminalThemeOverrideId.present
         ? terminalThemeOverrideId.value
         : this.terminalThemeOverrideId,
+    usesDefaultThemeOverride:
+        usesDefaultThemeOverride ?? this.usesDefaultThemeOverride,
   );
   Connection copyWithCompanion(ConnectionsCompanion data) {
     return Connection(
@@ -3309,6 +3350,9 @@ class Connection extends DataClass implements Insertable<Connection> {
       terminalThemeOverrideId: data.terminalThemeOverrideId.present
           ? data.terminalThemeOverrideId.value
           : this.terminalThemeOverrideId,
+      usesDefaultThemeOverride: data.usesDefaultThemeOverride.present
+          ? data.usesDefaultThemeOverride.value
+          : this.usesDefaultThemeOverride,
     );
   }
 
@@ -3327,7 +3371,8 @@ class Connection extends DataClass implements Insertable<Connection> {
           ..write('iconBackgroundColor: $iconBackgroundColor, ')
           ..write('isIconAutoDetect: $isIconAutoDetect, ')
           ..write('terminalTypographyOverride: $terminalTypographyOverride, ')
-          ..write('terminalThemeOverrideId: $terminalThemeOverrideId')
+          ..write('terminalThemeOverrideId: $terminalThemeOverrideId, ')
+          ..write('usesDefaultThemeOverride: $usesDefaultThemeOverride')
           ..write(')'))
         .toString();
   }
@@ -3347,6 +3392,7 @@ class Connection extends DataClass implements Insertable<Connection> {
     isIconAutoDetect,
     terminalTypographyOverride,
     terminalThemeOverrideId,
+    usesDefaultThemeOverride,
   );
   @override
   bool operator ==(Object other) =>
@@ -3364,7 +3410,8 @@ class Connection extends DataClass implements Insertable<Connection> {
           other.iconBackgroundColor == this.iconBackgroundColor &&
           other.isIconAutoDetect == this.isIconAutoDetect &&
           other.terminalTypographyOverride == this.terminalTypographyOverride &&
-          other.terminalThemeOverrideId == this.terminalThemeOverrideId);
+          other.terminalThemeOverrideId == this.terminalThemeOverrideId &&
+          other.usesDefaultThemeOverride == this.usesDefaultThemeOverride);
 }
 
 class ConnectionsCompanion extends UpdateCompanion<Connection> {
@@ -3381,6 +3428,7 @@ class ConnectionsCompanion extends UpdateCompanion<Connection> {
   final Value<bool> isIconAutoDetect;
   final Value<TerminalTypography?> terminalTypographyOverride;
   final Value<int?> terminalThemeOverrideId;
+  final Value<bool> usesDefaultThemeOverride;
   const ConnectionsCompanion({
     this.id = const Value.absent(),
     this.label = const Value.absent(),
@@ -3395,6 +3443,7 @@ class ConnectionsCompanion extends UpdateCompanion<Connection> {
     this.isIconAutoDetect = const Value.absent(),
     this.terminalTypographyOverride = const Value.absent(),
     this.terminalThemeOverrideId = const Value.absent(),
+    this.usesDefaultThemeOverride = const Value.absent(),
   });
   ConnectionsCompanion.insert({
     this.id = const Value.absent(),
@@ -3410,6 +3459,7 @@ class ConnectionsCompanion extends UpdateCompanion<Connection> {
     this.isIconAutoDetect = const Value.absent(),
     this.terminalTypographyOverride = const Value.absent(),
     this.terminalThemeOverrideId = const Value.absent(),
+    this.usesDefaultThemeOverride = const Value.absent(),
   }) : label = Value(label),
        address = Value(address),
        port = Value(port),
@@ -3429,6 +3479,7 @@ class ConnectionsCompanion extends UpdateCompanion<Connection> {
     Expression<bool>? isIconAutoDetect,
     Expression<String>? terminalTypographyOverride,
     Expression<int>? terminalThemeOverrideId,
+    Expression<bool>? usesDefaultThemeOverride,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
@@ -3447,6 +3498,8 @@ class ConnectionsCompanion extends UpdateCompanion<Connection> {
         'terminal_typography_override': terminalTypographyOverride,
       if (terminalThemeOverrideId != null)
         'terminal_theme_override_id': terminalThemeOverrideId,
+      if (usesDefaultThemeOverride != null)
+        'uses_default_theme_override': usesDefaultThemeOverride,
     });
   }
 
@@ -3464,6 +3517,7 @@ class ConnectionsCompanion extends UpdateCompanion<Connection> {
     Value<bool>? isIconAutoDetect,
     Value<TerminalTypography?>? terminalTypographyOverride,
     Value<int?>? terminalThemeOverrideId,
+    Value<bool>? usesDefaultThemeOverride,
   }) {
     return ConnectionsCompanion(
       id: id ?? this.id,
@@ -3481,6 +3535,8 @@ class ConnectionsCompanion extends UpdateCompanion<Connection> {
           terminalTypographyOverride ?? this.terminalTypographyOverride,
       terminalThemeOverrideId:
           terminalThemeOverrideId ?? this.terminalThemeOverrideId,
+      usesDefaultThemeOverride:
+          usesDefaultThemeOverride ?? this.usesDefaultThemeOverride,
     );
   }
 
@@ -3538,6 +3594,11 @@ class ConnectionsCompanion extends UpdateCompanion<Connection> {
         terminalThemeOverrideId.value,
       );
     }
+    if (usesDefaultThemeOverride.present) {
+      map['uses_default_theme_override'] = Variable<bool>(
+        usesDefaultThemeOverride.value,
+      );
+    }
     return map;
   }
 
@@ -3556,7 +3617,8 @@ class ConnectionsCompanion extends UpdateCompanion<Connection> {
           ..write('iconBackgroundColor: $iconBackgroundColor, ')
           ..write('isIconAutoDetect: $isIconAutoDetect, ')
           ..write('terminalTypographyOverride: $terminalTypographyOverride, ')
-          ..write('terminalThemeOverrideId: $terminalThemeOverrideId')
+          ..write('terminalThemeOverrideId: $terminalThemeOverrideId, ')
+          ..write('usesDefaultThemeOverride: $usesDefaultThemeOverride')
           ..write(')'))
         .toString();
   }
@@ -3885,7 +3947,7 @@ abstract class _$CliqDatabase extends GeneratedDatabase {
 
   Selectable<FindAllConnectionFullResult> findAllConnectionFull() {
     return customSelect(
-      'SELECT"c"."id" AS "nested_0.id", "c"."label" AS "nested_0.label", "c"."address" AS "nested_0.address", "c"."port" AS "nested_0.port", "c"."identity_id" AS "nested_0.identity_id", "c"."username" AS "nested_0.username", "c"."group_name" AS "nested_0.group_name", "c"."icon" AS "nested_0.icon", "c"."icon_color" AS "nested_0.icon_color", "c"."icon_background_color" AS "nested_0.icon_background_color", "c"."is_icon_auto_detect" AS "nested_0.is_icon_auto_detect", "c"."terminal_typography_override" AS "nested_0.terminal_typography_override", "c"."terminal_theme_override_id" AS "nested_0.terminal_theme_override_id","i"."id" AS "nested_1.id", "i"."label" AS "nested_1.label", "i"."username" AS "nested_1.username","t"."id" AS "nested_2.id", "t"."name" AS "nested_2.name", "t"."black_color" AS "nested_2.black_color", "t"."red_color" AS "nested_2.red_color", "t"."green_color" AS "nested_2.green_color", "t"."yellow_color" AS "nested_2.yellow_color", "t"."blue_color" AS "nested_2.blue_color", "t"."purple_color" AS "nested_2.purple_color", "t"."cyan_color" AS "nested_2.cyan_color", "t"."white_color" AS "nested_2.white_color", "t"."bright_black_color" AS "nested_2.bright_black_color", "t"."bright_red_color" AS "nested_2.bright_red_color", "t"."bright_green_color" AS "nested_2.bright_green_color", "t"."bright_yellow_color" AS "nested_2.bright_yellow_color", "t"."bright_blue_color" AS "nested_2.bright_blue_color", "t"."bright_purple_color" AS "nested_2.bright_purple_color", "t"."bright_cyan_color" AS "nested_2.bright_cyan_color", "t"."bright_white_color" AS "nested_2.bright_white_color", "t"."background_color" AS "nested_2.background_color", "t"."foreground_color" AS "nested_2.foreground_color", "t"."cursor_color" AS "nested_2.cursor_color", "t"."selection_background_color" AS "nested_2.selection_background_color", "t"."selection_foreground_color" AS "nested_2.selection_foreground_color", "t"."cursor_text_color" AS "nested_2.cursor_text_color", c.id AS "\$n_0", i.id AS "\$n_1" FROM connections AS c LEFT JOIN identities AS i ON c.identity_id = i.id LEFT JOIN custom_terminal_themes AS t ON c.terminal_theme_override_id = t.id',
+      'SELECT"c"."id" AS "nested_0.id", "c"."label" AS "nested_0.label", "c"."address" AS "nested_0.address", "c"."port" AS "nested_0.port", "c"."identity_id" AS "nested_0.identity_id", "c"."username" AS "nested_0.username", "c"."group_name" AS "nested_0.group_name", "c"."icon" AS "nested_0.icon", "c"."icon_color" AS "nested_0.icon_color", "c"."icon_background_color" AS "nested_0.icon_background_color", "c"."is_icon_auto_detect" AS "nested_0.is_icon_auto_detect", "c"."terminal_typography_override" AS "nested_0.terminal_typography_override", "c"."terminal_theme_override_id" AS "nested_0.terminal_theme_override_id", "c"."uses_default_theme_override" AS "nested_0.uses_default_theme_override","i"."id" AS "nested_1.id", "i"."label" AS "nested_1.label", "i"."username" AS "nested_1.username","t"."id" AS "nested_2.id", "t"."name" AS "nested_2.name", "t"."black_color" AS "nested_2.black_color", "t"."red_color" AS "nested_2.red_color", "t"."green_color" AS "nested_2.green_color", "t"."yellow_color" AS "nested_2.yellow_color", "t"."blue_color" AS "nested_2.blue_color", "t"."purple_color" AS "nested_2.purple_color", "t"."cyan_color" AS "nested_2.cyan_color", "t"."white_color" AS "nested_2.white_color", "t"."bright_black_color" AS "nested_2.bright_black_color", "t"."bright_red_color" AS "nested_2.bright_red_color", "t"."bright_green_color" AS "nested_2.bright_green_color", "t"."bright_yellow_color" AS "nested_2.bright_yellow_color", "t"."bright_blue_color" AS "nested_2.bright_blue_color", "t"."bright_purple_color" AS "nested_2.bright_purple_color", "t"."bright_cyan_color" AS "nested_2.bright_cyan_color", "t"."bright_white_color" AS "nested_2.bright_white_color", "t"."background_color" AS "nested_2.background_color", "t"."foreground_color" AS "nested_2.foreground_color", "t"."cursor_color" AS "nested_2.cursor_color", "t"."selection_background_color" AS "nested_2.selection_background_color", "t"."selection_foreground_color" AS "nested_2.selection_foreground_color", "t"."cursor_text_color" AS "nested_2.cursor_text_color", c.id AS "\$n_0", i.id AS "\$n_1" FROM connections AS c LEFT JOIN identities AS i ON c.identity_id = i.id LEFT JOIN custom_terminal_themes AS t ON c.terminal_theme_override_id = t.id',
       variables: [],
       readsFrom: {
         credentials,
@@ -6413,6 +6475,7 @@ typedef $ConnectionsCreateCompanionBuilder =
       Value<bool> isIconAutoDetect,
       Value<TerminalTypography?> terminalTypographyOverride,
       Value<int?> terminalThemeOverrideId,
+      Value<bool> usesDefaultThemeOverride,
     });
 typedef $ConnectionsUpdateCompanionBuilder =
     ConnectionsCompanion Function({
@@ -6429,6 +6492,7 @@ typedef $ConnectionsUpdateCompanionBuilder =
       Value<bool> isIconAutoDetect,
       Value<TerminalTypography?> terminalTypographyOverride,
       Value<int?> terminalThemeOverrideId,
+      Value<bool> usesDefaultThemeOverride,
     });
 
 final class $ConnectionsReferences
@@ -6575,6 +6639,11 @@ class $ConnectionsFilterComposer extends Composer<_$CliqDatabase, Connections> {
     builder: (column) => ColumnWithTypeConverterFilters(column),
   );
 
+  ColumnFilters<bool> get usesDefaultThemeOverride => $composableBuilder(
+    column: $table.usesDefaultThemeOverride,
+    builder: (column) => ColumnFilters(column),
+  );
+
   $IdentitiesFilterComposer get identityId {
     final $IdentitiesFilterComposer composer = $composerBuilder(
       composer: this,
@@ -6711,6 +6780,11 @@ class $ConnectionsOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<bool> get usesDefaultThemeOverride => $composableBuilder(
+    column: $table.usesDefaultThemeOverride,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   $IdentitiesOrderingComposer get identityId {
     final $IdentitiesOrderingComposer composer = $composerBuilder(
       composer: this,
@@ -6805,6 +6879,11 @@ class $ConnectionsAnnotationComposer
   GeneratedColumnWithTypeConverter<TerminalTypography?, String>
   get terminalTypographyOverride => $composableBuilder(
     column: $table.terminalTypographyOverride,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<bool> get usesDefaultThemeOverride => $composableBuilder(
+    column: $table.usesDefaultThemeOverride,
     builder: (column) => column,
   );
 
@@ -6926,6 +7005,7 @@ class $ConnectionsTableManager
                 Value<TerminalTypography?> terminalTypographyOverride =
                     const Value.absent(),
                 Value<int?> terminalThemeOverrideId = const Value.absent(),
+                Value<bool> usesDefaultThemeOverride = const Value.absent(),
               }) => ConnectionsCompanion(
                 id: id,
                 label: label,
@@ -6940,6 +7020,7 @@ class $ConnectionsTableManager
                 isIconAutoDetect: isIconAutoDetect,
                 terminalTypographyOverride: terminalTypographyOverride,
                 terminalThemeOverrideId: terminalThemeOverrideId,
+                usesDefaultThemeOverride: usesDefaultThemeOverride,
               ),
           createCompanionCallback:
               ({
@@ -6957,6 +7038,7 @@ class $ConnectionsTableManager
                 Value<TerminalTypography?> terminalTypographyOverride =
                     const Value.absent(),
                 Value<int?> terminalThemeOverrideId = const Value.absent(),
+                Value<bool> usesDefaultThemeOverride = const Value.absent(),
               }) => ConnectionsCompanion.insert(
                 id: id,
                 label: label,
@@ -6971,6 +7053,7 @@ class $ConnectionsTableManager
                 isIconAutoDetect: isIconAutoDetect,
                 terminalTypographyOverride: terminalTypographyOverride,
                 terminalThemeOverrideId: terminalThemeOverrideId,
+                usesDefaultThemeOverride: usesDefaultThemeOverride,
               ),
           withReferenceMapper: (p0) => p0
               .map(

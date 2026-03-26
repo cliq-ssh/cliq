@@ -1,6 +1,7 @@
 import 'dart:ui';
 
 import 'package:cliq/modules/connections/data/connection_credentials_repository.dart';
+import 'package:cliq/modules/settings/provider/terminal_theme.provider.dart';
 import 'package:cliq/shared/data/database.dart';
 import 'package:cliq/shared/extensions/value.extension.dart';
 import 'package:cliq_term/cliq_term.dart';
@@ -50,6 +51,10 @@ final class ConnectionService {
     required int? terminalThemeOverrideId,
     required List<int> credentialIds,
   }) async {
+    final usesDefaultThemeOverride =
+        terminalThemeOverrideId == defaultTerminalColorTheme.id;
+    if (usesDefaultThemeOverride) terminalThemeOverrideId = null;
+
     final connectionId = await _connectionRepository.insert(
       ConnectionsCompanion.insert(
         label: (label ?? address).trim(),
@@ -67,6 +72,7 @@ final class ConnectionService {
           terminalTypographyOverride,
         ),
         terminalThemeOverrideId: Value.absentIfNull(terminalThemeOverrideId),
+        usesDefaultThemeOverride: Value(usesDefaultThemeOverride),
       ),
     );
     await _credentialService.insertAllWithRelation(
@@ -96,6 +102,10 @@ final class ConnectionService {
     List<int>? newCredentialIds,
     ConnectionsCompanion? compareTo,
   }) async {
+    final usesDefaultThemeOverride =
+        terminalThemeOverrideId == defaultTerminalColorTheme.id;
+    if (usesDefaultThemeOverride) terminalThemeOverrideId = null;
+
     await _connectionRepository.updateById(
       connectionId,
       ConnectionsCompanion(
@@ -132,6 +142,7 @@ final class ConnectionService {
           terminalThemeOverrideId,
           compareTo?.terminalThemeOverrideId.value,
         ),
+        usesDefaultThemeOverride: Value(usesDefaultThemeOverride),
       ),
     );
 

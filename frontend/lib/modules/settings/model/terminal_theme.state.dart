@@ -12,7 +12,7 @@ class CustomTerminalThemeState
     if (id == defaultTerminalColorTheme.id) {
       return defaultTerminalColorTheme;
     }
-    return entities.firstWhere((theme) => theme.id == id);
+    return entities.firstWhere((theme) => theme.id == id, orElse: () => defaultTerminalColorTheme);
   }
 
   CustomTerminalThemeState copyWith({List<CustomTerminalTheme>? entities}) {

@@ -1,3 +1,5 @@
+import 'package:cliq/modules/settings/provider/terminal_theme.provider.dart';
+
 import '../../../shared/data/database.dart';
 import '../../identities/model/identity_full.model.dart';
 
@@ -26,9 +28,10 @@ class ConnectionFull extends Connection {
          label: connection.label,
          username: connection.username,
          identityId: connection.identityId,
-         terminalThemeOverrideId: connection.terminalThemeOverrideId,
-         terminalTypographyOverride: connection.terminalTypographyOverride,
          isIconAutoDetect: connection.isIconAutoDetect,
+         terminalTypographyOverride: connection.terminalTypographyOverride,
+         terminalThemeOverrideId: connection.terminalThemeOverrideId,
+         usesDefaultThemeOverride: connection.usesDefaultThemeOverride,
        );
 
   factory ConnectionFull.fromFindAllResult(FindAllConnectionFullResult result) {
@@ -43,7 +46,12 @@ class ConnectionFull extends Connection {
     return .fromConnection(
       result.connection,
       identity: identityFull,
-      terminalThemeOverride: result.terminalThemeOverride,
+      // we need this check in order to correctly apply when the default "built-in" theme is used as an override
+      // (when another theme is specified as the default)
+      // otherwise we would fail since we dont have a db relation for the default terminal theme
+      terminalThemeOverride: result.connection.usesDefaultThemeOverride
+          ? defaultTerminalColorTheme
+          : result.terminalThemeOverride,
       credentialIds: result.connectionCredentials,
     );
   }
