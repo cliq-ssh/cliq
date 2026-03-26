@@ -21,13 +21,12 @@ open class SessionResponse(
     val createdAt: OffsetDateTime,
 ) {
     companion object {
-        fun fromSession(session: Session): SessionResponse =
-            SessionResponse(
-                id = session.id!!,
-                name = session.name,
-                lastUsedAt = session.lastUsedAt,
-                expiresAt = session.expiresAt,
-                createdAt = session.createdAt,
-            )
+        fun fromSession(session: Session): SessionResponse = SessionResponse(
+            id = session.id!!,
+            name = session.name,
+            lastUsedAt = session.lastUsedAt,
+            expiresAt = session.expiresAt,
+            createdAt = session.createdAt,
+        )
     }
 }

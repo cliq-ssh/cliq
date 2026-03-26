@@ -56,7 +56,7 @@ RUN jlink \
     --output /cliq-jre
 
 # Stage 3: Final minimal runtime image
-FROM debian:13.3-slim
+FROM debian:13.4-slim
 
 # User creation
 ARG UID=1000

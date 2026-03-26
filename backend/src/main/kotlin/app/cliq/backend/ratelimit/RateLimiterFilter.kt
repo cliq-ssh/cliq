@@ -48,19 +48,13 @@ class RateLimiterFilter(
             matches(it.url, request)
         }
 
-    private fun matches(
-        url: String,
-        request: HttpServletRequest,
-    ): Boolean {
+    private fun matches(url: String, request: HttpServletRequest): Boolean {
         val matcher = PathPatternRequestMatcher.pathPattern(url)
 
         return matcher.matches(request)
     }
 
-    private fun buildKey(
-        rule: RateLimiterProperties.RateLimit,
-        request: HttpServletRequest,
-    ): String {
+    private fun buildKey(rule: RateLimiterProperties.RateLimit, request: HttpServletRequest): String {
         val subject =
             when (rule.target) {
                 RateLimiterProperties.Target.IP -> request.remoteAddr

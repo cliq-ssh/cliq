@@ -9,10 +9,7 @@ import java.time.Clock
 import java.time.OffsetDateTime
 
 @Component
-class DeleteExpiredSessionTask(
-    private val sessionRepository: SessionRepository,
-    private val clock: Clock,
-) {
+class DeleteExpiredSessionTask(private val sessionRepository: SessionRepository, private val clock: Clock) {
     private val logger = LoggerFactory.getLogger(this::class.java)
 
     /**

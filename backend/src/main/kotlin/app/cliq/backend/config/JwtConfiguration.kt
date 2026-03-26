@@ -10,9 +10,7 @@ import org.springframework.security.oauth2.jwt.NimbusJwtEncoder
 import javax.crypto.spec.SecretKeySpec
 
 @Configuration
-class JwtConfiguration(
-    jwtProperties: JwtProperties,
-) {
+class JwtConfiguration(jwtProperties: JwtProperties) {
     private val secretKey = SecretKeySpec(jwtProperties.secret.toByteArray(), jwtProperties.algorithm)
 
     @Bean

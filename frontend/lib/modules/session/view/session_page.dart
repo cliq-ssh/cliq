@@ -182,7 +182,7 @@ class _ShellSessionPageState extends ConsumerState<ShellSessionPage>
         if (session.knownHostError!.knownHost != null)
           Text(
             'The host is known, but the saved fingerprint does not match.',
-            style: typography.base.copyWith(
+            style: typography.md.copyWith(
               color: context.theme.colors.mutedForeground,
             ),
             textAlign: .center,
@@ -257,7 +257,7 @@ class _ShellSessionPageState extends ConsumerState<ShellSessionPage>
           FCard(
             subtitle: Text(
               session.connectionError!,
-              style: typography.base,
+              style: typography.md,
               textAlign: TextAlign.center,
             ),
           ),

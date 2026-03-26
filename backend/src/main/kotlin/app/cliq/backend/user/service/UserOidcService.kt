@@ -7,10 +7,7 @@ import org.springframework.security.oauth2.core.oidc.user.OidcUser
 import org.springframework.stereotype.Service
 
 @Service
-class UserOidcService(
-    private val userRepository: UserRepository,
-    private val userFactory: UserFactory,
-) {
+class UserOidcService(private val userRepository: UserRepository, private val userFactory: UserFactory) {
     fun putUserFromJwt(oidcUser: OidcUser): User {
         val sub = oidcUser.subject
         var user = userRepository.findByOidcSub(sub)
@@ -23,10 +20,7 @@ class UserOidcService(
         return userRepository.save(user)
     }
 
-    private fun updateUser(
-        user: User,
-        oidcUser: OidcUser,
-    ): User {
+    private fun updateUser(user: User, oidcUser: OidcUser): User {
         user.name = oidcUser.preferredUsername
         user.email = oidcUser.email
 
@@ -45,17 +39,13 @@ class UserOidcService(
             }
         }
 
-    private fun linkUser(
-        oidcUser: OidcUser,
-        user: User,
-    ) {
+    private fun linkUser(oidcUser: OidcUser, user: User) {
         user.oidcSub = oidcUser.subject
     }
 
-    private fun createOidcUser(oidcUser: OidcUser): User =
-        userFactory.createOidcUser(
-            email = oidcUser.email,
-            sub = oidcUser.subject,
-            name = oidcUser.preferredUsername,
-        )
+    private fun createOidcUser(oidcUser: OidcUser): User = userFactory.createOidcUser(
+        email = oidcUser.email,
+        sub = oidcUser.subject,
+        name = oidcUser.preferredUsername,
+    )
 }

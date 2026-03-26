@@ -16,9 +16,7 @@ import org.springframework.web.bind.annotation.RestController
 @RestController
 @RequestMapping("/api/server/configuration")
 @Tag(name = "Server Configuration", description = "Server configuration related endpoints")
-class ServerConfigController(
-    private val serverConfigResponseFactory: ServerConfigResponseFactory,
-) {
+class ServerConfigController(private val serverConfigResponseFactory: ServerConfigResponseFactory) {
     @GetMapping
     @Operation(summary = "Get server configuration")
     @ApiResponse(

@@ -10,6 +10,7 @@ import 'package:lucide_flutter/lucide_flutter.dart';
 import 'package:cliq_ui/cliq_ui.dart';
 import 'package:flutter/material.dart' hide LicensePage;
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:simple_icons/simple_icons.dart';
 
 import 'appearance_settings_page.dart';
 import 'debug_settings_page.dart';
@@ -125,7 +126,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                             ),
                           ),
                           FTile(
-                            prefix: Icon(LucideIcons.github),
+                            prefix: Icon(SimpleIcons.github),
                             suffix: Icon(LucideIcons.externalLink),
                             title: Text('GitHub'),
                             onPress: () => Commons.launchGitHubUrl(),

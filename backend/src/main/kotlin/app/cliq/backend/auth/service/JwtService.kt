@@ -14,15 +14,10 @@ class JwtService(
     private val refreshTokenService: RefreshTokenService,
     private val clock: Clock,
 ) {
-    fun generateJwtTokenPair(
-        loginParams: LoginParams,
-        user: User,
-    ): TokenPair = generateJwtTokenPair(loginParams.name, user)
+    fun generateJwtTokenPair(loginParams: LoginParams, user: User): TokenPair =
+        generateJwtTokenPair(loginParams.name, user)
 
-    fun generateJwtTokenPair(
-        sessionName: String?,
-        user: User,
-    ): TokenPair {
+    fun generateJwtTokenPair(sessionName: String?, user: User): TokenPair {
         val now = OffsetDateTime.now(clock)
         val issuedRefreshToken = refreshTokenService.issue(sessionName, user)
 
@@ -31,10 +26,7 @@ class JwtService(
         return TokenPair(jwt, issuedRefreshToken.tokenValue, issuedRefreshToken.session)
     }
 
-    fun generateOidcJwtTokenPair(
-        user: User,
-        oidcSessionId: String?,
-    ): TokenPair {
+    fun generateOidcJwtTokenPair(user: User, oidcSessionId: String?): TokenPair {
         val now = OffsetDateTime.now(clock)
         val issuedRefreshToken = refreshTokenService.issueForOidcUser(user, oidcSessionId)
 

@@ -81,9 +81,7 @@ class UserConfigurationController(
             ),
         ],
     )
-    fun get(
-        @AuthenticationPrincipal session: Session,
-    ): ResponseEntity<ConfigurationView> {
+    fun get(@AuthenticationPrincipal session: Session): ResponseEntity<ConfigurationView> {
         val user = session.user
         val config = repository.getByUser(user) ?: return ResponseEntity.notFound().build()
 
@@ -109,9 +107,7 @@ class UserConfigurationController(
             ),
         ],
     )
-    fun getUpdatedAt(
-        @AuthenticationPrincipal session: Session,
-    ): ResponseEntity<String> {
+    fun getUpdatedAt(@AuthenticationPrincipal session: Session): ResponseEntity<String> {
         val user = session.user
         val updatedAt = repository.getUpdatedAtByUser(user)
 
