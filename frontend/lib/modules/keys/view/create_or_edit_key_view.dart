@@ -67,17 +67,16 @@ class CreateOrEditKeyView extends HookConsumerWidget {
 
     return FScaffold(
       child: SingleChildScrollView(
-        padding: const .symmetric(horizontal: 32),
+        padding: const .symmetric(horizontal: 32, vertical: 20),
         child: Column(
           children: [
             Row(
               mainAxisAlignment: MainAxisAlignment.end,
               children: [
-                FButton(
-                  variant: .ghost,
-                  prefix: const Icon(LucideIcons.x),
+                FButton.icon(
+                  variant: .outline,
                   onPress: () => context.pop(),
-                  child: const Text('Close'),
+                  child: const Icon(LucideIcons.x),
                 ),
               ],
             ),
@@ -114,7 +113,7 @@ class CreateOrEditKeyView extends HookConsumerWidget {
               ),
             ),
 
-            const SizedBox(height: 12),
+            const SizedBox(height: 40),
 
             SizedBox(
               width: double.infinity,

@@ -1,14 +1,16 @@
 import 'package:cliq/modules/settings/extension/custom_terminal_theme.extension.dart';
+import 'package:cliq/modules/settings/view/create_or_edit_terminal_theme_view.dart';
 import 'package:cliq/shared/ui/terminal_font_family_select.dart';
 import 'package:cliq/shared/ui/terminal_font_size_slider.dart';
 import 'package:cliq/modules/settings/ui/terminal_theme_card.dart';
 import 'package:cliq/modules/settings/view/abstract_settings_page.dart';
 import 'package:cliq/modules/settings/view/settings_page.dart';
-import 'package:cliq/shared/data/database.dart';
 import 'package:cliq/shared/data/store.dart';
+import 'package:cliq/shared/utils/commons.dart';
 import 'package:cliq_term/cliq_term.dart';
 import 'package:cliq_ui/cliq_ui.dart'
     show CliqGridColumn, CliqGridContainer, CliqGridRow;
+import 'package:file_selector/file_selector.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:forui/forui.dart';
@@ -57,6 +59,9 @@ class TerminalThemeSettingsPage extends AbstractSettingsPage {
   const TerminalThemeSettingsPage({super.key});
 
   @override
+  String get title => 'Terminal Theme';
+
+  @override
   Widget buildBody(BuildContext context, WidgetRef ref) {
     final terminalThemes = ref.watch(terminalThemeProvider);
     final terminalController = useState<TerminalController?>(null);
@@ -65,16 +70,18 @@ class TerminalThemeSettingsPage extends AbstractSettingsPage {
           TerminalFontFamilySelect.fonts.first,
     );
     final selectedFontSize = useState<int>(
-      StoreKey.defaultTerminalTypography.readSync()?.fontSize ?? 16,
+      StoreKey.defaultTerminalTypography.readSync()!.fontSize,
     );
-    final selectedColors = useState<CustomTerminalTheme>(
-      terminalThemes.effectiveActiveDefaultTheme,
+    final selectedThemeId = useState<int>(
+      StoreKey.defaultTerminalThemeId.readSync()!,
     );
+
+    getSelectedTheme() => terminalThemes.findById(selectedThemeId.value)!;
 
     // init controller
     useEffect(() {
       terminalController.value = TerminalController(
-        theme: selectedColors.value.toTerminalTheme(),
+        theme: getSelectedTheme().toTerminalTheme(),
         typography: TerminalTypography(
           fontFamily: selectedFontFamily.value,
           fontSize: selectedFontSize.value,
@@ -91,7 +98,7 @@ class TerminalThemeSettingsPage extends AbstractSettingsPage {
         fontFamily: selectedFontFamily.value,
         fontSize: selectedFontSize.value,
       );
-      terminalController.value!.typography = typography;
+      terminalController.value!.setTerminalTypography(typography);
       StoreKey.defaultTerminalTypography.write(typography);
       return null;
     }, [selectedFontFamily.value, selectedFontSize.value]);
@@ -99,18 +106,24 @@ class TerminalThemeSettingsPage extends AbstractSettingsPage {
     // update colors on theme change
     useEffect(() {
       if (terminalController.value == null) return null;
-      terminalController.value!.theme = selectedColors.value.toTerminalTheme();
-      StoreKey.defaultTerminalThemeId.write(selectedColors.value.id);
+      terminalController.value!.setTerminalTheme(
+        getSelectedTheme().toTerminalTheme(),
+      );
+      StoreKey.defaultTerminalThemeId.write(selectedThemeId.value);
       return null;
-    }, [selectedColors.value]);
+    }, [selectedThemeId.value]);
+
+    create() => Commons.showResponsiveDialog(
+      (_) => CreateOrEditTerminalThemeView.create(),
+    );
 
     return SingleChildScrollView(
+      padding: const EdgeInsets.only(bottom: 60),
       child: CliqGridContainer(
         children: [
           CliqGridRow(
             children: [
               CliqGridColumn(
-                sizes: {.sm: 12, .md: 8},
                 child: Column(
                   spacing: 20,
                   children: [
@@ -119,7 +132,7 @@ class TerminalThemeSettingsPage extends AbstractSettingsPage {
                         width: double.infinity,
                         height: 200,
                         padding: const .all(8),
-                        color: selectedColors.value.backgroundColor,
+                        color: getSelectedTheme().backgroundColor,
                         child: LayoutBuilder(
                           builder: (_, constraints) {
                             WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -145,31 +158,82 @@ class TerminalThemeSettingsPage extends AbstractSettingsPage {
                       onChange: (selected) =>
                           selectedFontFamily.value = selected,
                     ),
-                    Row(
-                      mainAxisAlignment: .spaceBetween,
-                      children: [
-                        Text('Theme'),
-                        FButton(
-                          variant: .ghost,
-                          prefix: Icon(LucideIcons.folderOpen),
-                          onPress: null,
-                          child: Text('Import'),
-                        ),
-                      ],
-                    ),
-                    Column(
-                      spacing: 12,
-                      children: [
-                        for (final theme in [
-                          defaultTerminalColorTheme,
-                          ...terminalThemes.entities,
-                        ])
-                          TerminalThemeCard(
-                            onTap: () => selectedColors.value = theme,
-                            isSelected: selectedColors.value.id == theme.id,
-                            theme: theme,
+                    FLabel(
+                      label: Row(
+                        mainAxisAlignment: .spaceBetween,
+                        crossAxisAlignment: .end,
+                        children: [
+                          Text('Theme'),
+                          Row(
+                            children: [
+                              FButton(
+                                variant: .ghost,
+                                prefix: Icon(LucideIcons.plus),
+                                onPress: create,
+                                child: Text('Add Theme'),
+                              ),
+                              FButton(
+                                variant: .ghost,
+                                prefix: Icon(LucideIcons.folderOpen),
+                                onPress: () async {
+                                  final error = await ref
+                                      .read(terminalThemeProvider.notifier)
+                                      .tryImportCustomTerminalTheme(
+                                        await openFile(
+                                          acceptedTypeGroups: [
+                                            Commons.customTerminalThemeGroup,
+                                          ],
+                                        ),
+                                      );
+
+                                  if (!context.mounted) return;
+                                  if (error != null) {
+                                    showFToast(
+                                      context: context,
+                                      icon: Icon(LucideIcons.circleX),
+                                      title: Text('Failed to import theme'),
+                                      description: Text(error),
+                                    );
+                                    return;
+                                  }
+                                  showFToast(
+                                    context: context,
+                                    icon: Icon(LucideIcons.circleCheck),
+                                    title: Text('Theme imported successfully'),
+                                  );
+                                },
+                                child: Text('Import'),
+                              ),
+                            ],
                           ),
-                      ],
+                        ],
+                      ),
+                      axis: .vertical,
+                      child: Column(
+                        spacing: 12,
+                        children: [
+                          for (final theme in [
+                            defaultTerminalColorTheme,
+                            ...terminalThemes.entities,
+                          ])
+                            TerminalThemeCard(
+                              onTap: () => selectedThemeId.value = theme.id,
+                              isSelected: selectedThemeId.value == theme.id,
+                              theme: theme,
+                              onEdit: () {
+                                if (selectedThemeId.value == theme.id) {
+                                  selectedThemeId.value = theme.id;
+                                }
+                              },
+                              onDelete: () {
+                                if (selectedThemeId.value == theme.id) {
+                                  selectedThemeId.value =
+                                      defaultTerminalColorTheme.id;
+                                }
+                              },
+                            ),
+                        ],
+                      ),
                     ),
                   ],
                 ),

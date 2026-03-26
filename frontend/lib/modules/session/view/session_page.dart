@@ -3,7 +3,6 @@ import 'package:cliq/modules/connections/provider/connection.provider.dart';
 import 'package:cliq/modules/session/model/session.model.dart';
 import 'package:cliq/modules/settings/extension/custom_terminal_theme.extension.dart';
 import 'package:cliq/modules/settings/provider/terminal_theme.provider.dart';
-import 'package:cliq/shared/data/store.dart';
 import 'package:cliq/shared/provider/store.provider.dart';
 import 'package:cliq/shared/utils/commons.dart';
 import 'package:cliq_ui/cliq_ui.dart'
@@ -48,16 +47,17 @@ class _ShellSessionPageState extends ConsumerState<ShellSessionPage>
     final typography = context.theme.typography;
     final size = MediaQuery.of(context).size;
 
-    final terminalTypography = useStore(StoreKey.defaultTerminalTypography);
-    final terminalTheme = ref.watch(terminalThemeProvider);
+    final defaultTerminalTypography = useStore(.defaultTerminalTypography);
+    final defaultTerminalTheme = useStore(.defaultTerminalThemeId);
+    final themes = ref.watch(terminalThemeProvider);
 
     getEffectiveTerminalTypography() =>
         widget.session.connection.terminalTypographyOverride ??
-        terminalTypography.value!;
+        defaultTerminalTypography.value;
 
     getEffectiveTerminalTheme() =>
         widget.session.connection.terminalThemeOverride ??
-        terminalTheme.effectiveActiveDefaultTheme;
+        themes.findById(defaultTerminalTheme.value, isDefaultTheme: true)!;
 
     buildTerminalController() {
       // TODO: listen for onTitleChange and update tab title
@@ -75,7 +75,7 @@ class _ShellSessionPageState extends ConsumerState<ShellSessionPage>
     closeSession() {
       ref
           .read(sessionProvider.notifier)
-          .closeSession(NavigationShell.of(context), widget.session.id);
+          .closeAnyMaybeGo(NavigationShell.of(context), widget.session.id);
     }
 
     retrySession({bool skipHostKeyVerification = false}) {
@@ -134,11 +134,14 @@ class _ShellSessionPageState extends ConsumerState<ShellSessionPage>
     // update terminal controller when typography or theme changes
     useEffect(() {
       if (terminalController.value == null) return null;
-      terminalController.value!.typography = getEffectiveTerminalTypography();
-      terminalController.value!.theme = getEffectiveTerminalTheme()
-          .toTerminalTheme();
+      terminalController.value!.setTerminalTypography(
+        getEffectiveTerminalTypography(),
+      );
+      terminalController.value!.setTerminalTheme(
+        getEffectiveTerminalTheme().toTerminalTheme(),
+      );
       return null;
-    }, [terminalTypography.value, terminalTheme]);
+    }, [defaultTerminalTypography.value, defaultTerminalTheme.value]);
 
     buildConnecting() {
       return [
@@ -164,6 +167,7 @@ class _ShellSessionPageState extends ConsumerState<ShellSessionPage>
         Icon(LucideIcons.fingerprintPattern, size: 48),
         const SizedBox(height: 8),
         Text.rich(
+          textAlign: .center,
           TextSpan(
             children: [
               session.knownHostError!.knownHost != null
@@ -181,7 +185,7 @@ class _ShellSessionPageState extends ConsumerState<ShellSessionPage>
         if (session.knownHostError!.knownHost != null)
           Text(
             'The host is known, but the saved fingerprint does not match.',
-            style: typography.base.copyWith(
+            style: typography.md.copyWith(
               color: context.theme.colors.mutedForeground,
             ),
             textAlign: .center,
@@ -204,7 +208,7 @@ class _ShellSessionPageState extends ConsumerState<ShellSessionPage>
               ),
             ],
           ),
-          child: Text(session.knownHostError!.sha256Fingerprint),
+          child: SelectableText(session.knownHostError!.sha256Fingerprint),
         ),
         const SizedBox(height: 8),
         Row(
@@ -256,7 +260,7 @@ class _ShellSessionPageState extends ConsumerState<ShellSessionPage>
           FCard(
             subtitle: Text(
               session.connectionError!,
-              style: typography.base,
+              style: typography.md,
               textAlign: TextAlign.center,
             ),
           ),
@@ -284,29 +288,26 @@ class _ShellSessionPageState extends ConsumerState<ShellSessionPage>
       );
     }
 
-    return FScaffold(
-      child: CliqGridContainer(
-        alignment: .center,
-        children: [
-          CliqGridRow(
-            children: [
-              CliqGridColumn(
-                sizes: {.sm: 12, .md: 8},
-                child: Column(
-                  children: [
-                    if (session.knownHostError != null)
-                      ...buildKnownHostWarning()
-                    else if (session.connectionError != null)
-                      ...buildError()
-                    else if (session.isLikelyLoading)
-                      ...buildConnecting(),
-                  ],
-                ),
+    return CliqGridContainer(
+      alignment: .center,
+      children: [
+        CliqGridRow(
+          children: [
+            CliqGridColumn(
+              child: Column(
+                children: [
+                  if (session.knownHostError != null)
+                    ...buildKnownHostWarning()
+                  else if (session.connectionError != null)
+                    ...buildError()
+                  else if (session.isLikelyLoading)
+                    ...buildConnecting(),
+                ],
               ),
-            ],
-          ),
-        ],
-      ),
+            ),
+          ],
+        ),
+      ],
     );
   }
 }

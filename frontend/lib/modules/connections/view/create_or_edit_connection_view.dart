@@ -92,6 +92,7 @@ class CreateOrEditConnectionView extends HookConsumerWidget {
     final usernameFocusNode = useFocusNode();
 
     final defaultTerminalTypography = useStore(.defaultTerminalTypography);
+    final defaultTerminalThemeId = useStore(.defaultTerminalThemeId);
     final identities = ref.watch(identityProvider);
     final terminalThemes = ref.watch(terminalThemeProvider);
     final expandedAccordionItem = useState<int?>(null);
@@ -189,11 +190,11 @@ class CreateOrEditConnectionView extends HookConsumerWidget {
         fontSize:
             fontSize ??
             selectedTypographyOverride.value?.fontSize ??
-            defaultTerminalTypography.value!.fontSize,
+            defaultTerminalTypography.value.fontSize,
         fontFamily:
             fontFamily ??
             selectedTypographyOverride.value?.fontFamily ??
-            defaultTerminalTypography.value!.fontFamily,
+            defaultTerminalTypography.value.fontFamily,
       );
 
       if (typography == defaultTerminalTypography.value) {
@@ -395,7 +396,7 @@ class CreateOrEditConnectionView extends HookConsumerWidget {
                               tipBuilder: (_, _) => Text(icon.name),
                               child: FButton.icon(
                                 variant: icon == selectedIcon.value
-                                    ? null // TODO: primary?
+                                    ? .primary
                                     : .ghost,
                                 onPress: () => selectedIcon.value = icon,
                                 child: Icon(icon.iconData),
@@ -424,14 +425,14 @@ class CreateOrEditConnectionView extends HookConsumerWidget {
               TerminalFontSizeSlider(
                 selectedFontSize:
                     selectedTypographyOverride.value?.fontSize ??
-                    defaultTerminalTypography.value!.fontSize,
+                    defaultTerminalTypography.value.fontSize,
                 onEnd: (value) => selectedTypographyOverride.value =
                     getEffectiveTypography(value, null),
               ),
               TerminalFontFamilySelect(
                 selectedFontFamily:
                     selectedTypographyOverride.value?.fontFamily ??
-                    defaultTerminalTypography.value!.fontFamily,
+                    defaultTerminalTypography.value.fontFamily,
                 onChange: (selected) => selectedTypographyOverride.value =
                     getEffectiveTypography(null, selected),
               ),
@@ -445,18 +446,16 @@ class CreateOrEditConnectionView extends HookConsumerWidget {
                 control: .managed(
                   initial:
                       selectedTerminalThemeId.value ??
-                      terminalThemes.activeDefaultThemeId,
+                      defaultTerminalThemeId.value,
+                  onChange: (selected) {
+                    if (selected == defaultTerminalThemeId.value) {
+                      selected = null;
+                    }
+
+                    selectedTerminalThemeId.value = selected;
+                  },
                 ),
                 label: Text('Terminal Theme'),
-                onSaved: (selected) {
-                  // if selected is default, set to null
-                  if (selected == terminalThemes.activeDefaultThemeId) {
-                    selected = null;
-                    return;
-                  }
-
-                  selectedTerminalThemeId.value = selected;
-                },
                 children: [
                   for (final theme in [
                     defaultTerminalColorTheme,
@@ -496,17 +495,16 @@ class CreateOrEditConnectionView extends HookConsumerWidget {
 
     return FScaffold(
       child: SingleChildScrollView(
-        padding: const .symmetric(horizontal: 32),
+        padding: const .symmetric(horizontal: 32, vertical: 20),
         child: Column(
           children: [
             Row(
               mainAxisAlignment: MainAxisAlignment.end,
               children: [
-                FButton(
-                  variant: .ghost,
-                  prefix: const Icon(LucideIcons.x),
+                FButton.icon(
+                  variant: .outline,
                   onPress: () => context.pop(),
-                  child: const Text('Close'),
+                  child: const Icon(LucideIcons.x),
                 ),
               ],
             ),
@@ -648,7 +646,7 @@ class CreateOrEditConnectionView extends HookConsumerWidget {
               ),
             ),
 
-            const SizedBox(height: 12),
+            const SizedBox(height: 40),
 
             SizedBox(
               width: double.infinity,

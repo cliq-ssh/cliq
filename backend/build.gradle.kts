@@ -10,7 +10,7 @@ plugins {
     kotlin("plugin.allopen") version kotlinVersion
 
     // Spring / Spring Boot
-    id("org.springframework.boot") version "4.0.4"
+    id("org.springframework.boot") version "4.0.5"
     id("io.spring.dependency-management") version "1.1.7"
 
     // Linter and Formatter
@@ -67,7 +67,7 @@ repositories {
 
 buildscript {
     dependencies {
-        classpath("org.flywaydb:flyway-database-postgresql:12.1.1")
+        classpath("org.flywaydb:flyway-database-postgresql:12.2.0")
     }
 }
 
@@ -89,7 +89,7 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-data-jpa")
     runtimeOnly("org.postgresql:postgresql")
     // Flyway
-    val flywayVersion = "12.1.1"
+    val flywayVersion = "12.2.0"
     implementation("org.springframework.boot:spring-boot-starter-flyway")
     implementation("org.flywaydb:flyway-core:$flywayVersion")
     implementation("org.flywaydb:flyway-database-postgresql:$flywayVersion")
