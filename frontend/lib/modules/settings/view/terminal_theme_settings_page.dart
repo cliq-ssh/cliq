@@ -106,7 +106,9 @@ class TerminalThemeSettingsPage extends AbstractSettingsPage {
     // update colors on theme change
     useEffect(() {
       if (terminalController.value == null) return null;
-      terminalController.value!.setTerminalTheme(getSelectedTheme().toTerminalTheme());
+      terminalController.value!.setTerminalTheme(
+        getSelectedTheme().toTerminalTheme(),
+      );
       StoreKey.defaultTerminalThemeId.write(selectedThemeId.value);
       return null;
     }, [selectedThemeId.value]);

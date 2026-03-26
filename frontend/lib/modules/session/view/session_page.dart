@@ -134,8 +134,12 @@ class _ShellSessionPageState extends ConsumerState<ShellSessionPage>
     // update terminal controller when typography or theme changes
     useEffect(() {
       if (terminalController.value == null) return null;
-      terminalController.value!.setTerminalTypography(getEffectiveTerminalTypography());
-      terminalController.value!.setTerminalTheme(getEffectiveTerminalTheme().toTerminalTheme());
+      terminalController.value!.setTerminalTypography(
+        getEffectiveTerminalTypography(),
+      );
+      terminalController.value!.setTerminalTheme(
+        getEffectiveTerminalTheme().toTerminalTheme(),
+      );
       return null;
     }, [defaultTerminalTypography.value, defaultTerminalTheme.value]);
 

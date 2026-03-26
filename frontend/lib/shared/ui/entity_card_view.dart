@@ -165,7 +165,8 @@ class EntityCardView<E> extends HookConsumerWidget {
                                     prefixBuilder: (_, _, _) => IconTheme(
                                       data: context
                                           .theme
-                                          .textFieldStyle
+                                          .textFieldStyles
+                                          .md
                                           .iconStyle
                                           .base,
                                       child: Padding(
