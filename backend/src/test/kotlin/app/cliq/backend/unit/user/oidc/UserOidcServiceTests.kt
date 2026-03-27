@@ -62,7 +62,7 @@ class UserOidcServiceTests : AbstractUserTests() {
         given(userRepository.findByOidcSub(OIDC_SUB)).willReturn(existingUser)
         given(userRepository.save(existingUser)).willReturn(existingUser)
 
-        val result = classUnderTest.putUserFromJwt(oidcUser)
+        val result = classUnderTest.putUserFromOidcUser(oidcUser)
 
         assertSame(existingUser, result)
         verify(userRepository, times(1)).findByOidcSub(OIDC_SUB)
@@ -79,7 +79,7 @@ class UserOidcServiceTests : AbstractUserTests() {
         given(userRepository.findByEmail(EXAMPLE_EMAIL)).willReturn(existingUserWithoutSub)
         given(userRepository.save(existingUserWithoutSub)).willReturn(existingUserWithoutSub)
 
-        val result = classUnderTest.putUserFromJwt(oidcUser)
+        val result = classUnderTest.putUserFromOidcUser(oidcUser)
 
         assertSame(existingUserWithoutSub, result)
         assertEquals(OIDC_SUB, existingUserWithoutSub.oidcSub)
@@ -105,7 +105,7 @@ class UserOidcServiceTests : AbstractUserTests() {
         ).willReturn(createdUser)
         given(userRepository.save(createdUser)).willReturn(createdUser)
 
-        val result = classUnderTest.putUserFromJwt(oidcUser)
+        val result = classUnderTest.putUserFromOidcUser(oidcUser)
 
         assertSame(createdUser, result)
         verify(userRepository, times(1)).findByOidcSub(OIDC_SUB)
@@ -136,7 +136,7 @@ class UserOidcServiceTests : AbstractUserTests() {
         given(userRepository.findByOidcSub(OIDC_SUB)).willReturn(existingUser)
         given(userRepository.save(existingUser)).willReturn(existingUser)
 
-        val result = classUnderTest.putUserFromJwt(oidcUser)
+        val result = classUnderTest.putUserFromOidcUser(oidcUser)
 
         assertSame(existingUser, result)
         assertEquals(OIDC_SUB, existingUser.oidcSub)

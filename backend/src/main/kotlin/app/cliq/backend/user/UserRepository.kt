@@ -11,15 +11,13 @@ interface UserRepository : JpaRepository<User, Long> {
 
     fun findByEmail(email: String): User?
 
-    fun findByResetTokenAndEmail(resetToken: String, email: String): User?
-
     @Modifying
     @Query("DELETE FROM User u WHERE u.emailVerifiedAt IS NULL AND u.emailVerificationSentAt < :cutoffTime")
     fun deleteUnverifiedUsersOlderThan(@Param("cutoffTime") cutoffTime: OffsetDateTime): Int
 
     @Modifying
-    @Query("DELETE FROM User u WHERE u.resetSentAt < :cutoffTime")
-    fun deleteExpiredPasswordResetTokensOlderThan(cutoffTime: OffsetDateTime): Int
+    @Query("DELETE FROM User u WHERE u.keyRotationSentAt < :cutoffTime")
+    fun deleteExpiredKeyRotationTokensOlderThan(cutoffTime: OffsetDateTime): Int
 
     fun findByOidcSub(oidcSub: String): User?
 }

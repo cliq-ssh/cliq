@@ -30,7 +30,8 @@ class CurrentSessionTests(
 
     @Test
     fun `test current session endpoint returns current session`() {
-        val tokenPair = userCreationHelper.createRandomAuthenticatedUser()
+        val authenticatedUserData = userCreationHelper.createRandomAuthenticatedUser()
+        val tokenPair = authenticatedUserData.tokenPair
 
         val result =
             mockMvc

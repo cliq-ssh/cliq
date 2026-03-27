@@ -5,19 +5,21 @@ import app.cliq.backend.acceptance.AcceptanceTester
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpHeaders
+import org.springframework.test.context.TestPropertySource
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 import kotlin.test.assertContains
 
 @AcceptanceTest
+@TestPropertySource(properties = ["app.rate-limits.enabled=true"])
 class RateLimiterTests(@Autowired private val mockMvc: MockMvc) : AcceptanceTester() {
     @Test
     fun `allows up to configured number of requests per minute`() {
         repeat(5) {
             mockMvc
                 .perform(
-                    MockMvcRequestBuilders.post("/api/auth/login").with {
+                    MockMvcRequestBuilders.post("/api/auth/login/start").with {
                         it.remoteAddr = "1.2.3.4"
                         it
                     },
@@ -30,7 +32,7 @@ class RateLimiterTests(@Autowired private val mockMvc: MockMvc) : AcceptanceTest
         repeat(5) {
             mockMvc
                 .perform(
-                    MockMvcRequestBuilders.post("/api/auth/login").with {
+                    MockMvcRequestBuilders.post("/api/auth/login/start").with {
                         it.remoteAddr = "5.6.7.8"
                         it
                     },
@@ -40,7 +42,7 @@ class RateLimiterTests(@Autowired private val mockMvc: MockMvc) : AcceptanceTest
         val result =
             mockMvc
                 .perform(
-                    MockMvcRequestBuilders.post("/api/auth/login").with {
+                    MockMvcRequestBuilders.post("/api/auth/login/start").with {
                         it.remoteAddr = "5.6.7.8"
                         it
                     },
@@ -55,7 +57,7 @@ class RateLimiterTests(@Autowired private val mockMvc: MockMvc) : AcceptanceTest
         repeat(5) {
             mockMvc
                 .perform(
-                    MockMvcRequestBuilders.post("/api/auth/login").with {
+                    MockMvcRequestBuilders.post("/api/auth/login/start").with {
                         it.remoteAddr = "10.0.0.1"
                         it
                     },
@@ -65,7 +67,7 @@ class RateLimiterTests(@Autowired private val mockMvc: MockMvc) : AcceptanceTest
         repeat(5) {
             mockMvc
                 .perform(
-                    MockMvcRequestBuilders.post("/api/auth/login").with {
+                    MockMvcRequestBuilders.post("/api/auth/login/start").with {
                         it.remoteAddr = "10.0.0.2"
                         it
                     },

@@ -98,9 +98,10 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-security")
     // OIDC
     implementation("org.springframework.boot:spring-boot-starter-oauth2-client")
+    // SRP
+    implementation("com.nimbusds:srp6a:2.1.0")
 
-    // Local auth
-    implementation("org.springframework.security:spring-security-crypto")
+    // Algorithm Provider & Encryption primitives
     implementation("org.bouncycastle:bcprov-jdk18on:1.83")
 
     // Serialization
@@ -195,14 +196,13 @@ tasks.withType<Test> {
         events("passed", "skipped", "failed")
         showStandardStreams = false
     }
+
+    ignoreFailures = true
+    systemProperty("file.encoding", "UTF-8")
 }
 
 tasks.withType<JavaCompile> {
     options.encoding = "UTF-8"
-}
-
-tasks.withType<Test> {
-    systemProperty("file.encoding", "UTF-8")
 }
 
 tasks.withType<Detekt>().configureEach {

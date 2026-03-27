@@ -9,14 +9,11 @@ import app.cliq.backend.session.Session
 import app.cliq.backend.session.SessionFactory
 import app.cliq.backend.session.SessionRepository
 import app.cliq.backend.user.User
+import app.cliq.backend.utils.TokenUtils
 import jakarta.transaction.Transactional
 import org.springframework.stereotype.Service
-import java.security.MessageDigest
 import java.time.Clock
 import java.time.OffsetDateTime
-import java.util.HexFormat
-
-const val TOKEN_HASH_ALGORITHM = "SHA-512"
 
 @Service
 class RefreshTokenService(
@@ -25,16 +22,17 @@ class RefreshTokenService(
     private val sessionRepository: SessionRepository,
     private val jwtFactory: JwtFactory,
     private val clock: Clock,
+    private val tokenUtils: TokenUtils,
 ) {
     fun issueForOidcUser(user: User, oidcSessionId: String?): IssuedRefreshToken {
         val now = OffsetDateTime.now(clock)
         val refreshToken = refreshTokenFactory.generateJwtRefreshToken(now)
-        val refreshTokenHash = hashRefreshToken(refreshToken.tokenValue)
+        val hashedRefreshToken = tokenUtils.hashTokenUsingSha512(refreshToken.tokenValue)
         val session =
             sessionFactory.createFromOidcUser(
                 user,
                 oidcSessionId,
-                RefreshToken(refreshTokenHash, refreshToken.expiresAt),
+                RefreshToken(hashedRefreshToken, refreshToken.expiresAt),
             )
 
         return IssuedRefreshToken(refreshToken.tokenValue, session)
@@ -43,12 +41,12 @@ class RefreshTokenService(
     fun issue(sessionName: String?, user: User): IssuedRefreshToken {
         val now = OffsetDateTime.now(clock)
         val refreshToken = refreshTokenFactory.generateJwtRefreshToken(now)
-        val refreshTokenHash = hashRefreshToken(refreshToken.tokenValue)
+        val hashedRefreshToken = tokenUtils.hashTokenUsingSha512(refreshToken.tokenValue)
         val session =
             sessionFactory.createWithSessionName(
                 sessionName,
                 user,
-                RefreshToken(refreshTokenHash, refreshToken.expiresAt),
+                RefreshToken(hashedRefreshToken, refreshToken.expiresAt),
             )
 
         return IssuedRefreshToken(refreshToken.tokenValue, session)
@@ -63,13 +61,5 @@ class RefreshTokenService(
         sessionRepository.delete(session)
 
         return tokenPair
-    }
-
-    fun hashRefreshToken(token: String): String {
-        val md = MessageDigest.getInstance(TOKEN_HASH_ALGORITHM)
-        val digest = md.digest(token.toByteArray())
-        val hashedToken = HexFormat.of().formatHex(digest)
-
-        return hashedToken
     }
 }

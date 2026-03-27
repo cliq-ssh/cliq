@@ -1,9 +1,17 @@
 package app.cliq.backend.support
 
+import app.cliq.backend.auth.AuthExchangeRepository
+import app.cliq.backend.auth.factory.AuthExchangeFactory
+import app.cliq.backend.auth.factory.OidcCallbackTokenFactory
 import app.cliq.backend.auth.jwt.TokenPair
-import app.cliq.backend.auth.params.LoginParams
 import app.cliq.backend.auth.params.RegistrationParams
 import app.cliq.backend.auth.service.JwtService
+import app.cliq.backend.constants.DEFAULT_IP_ADDRESS
+import app.cliq.backend.support.encryption.AuthenticatedEncryptionData
+import app.cliq.backend.support.encryption.EncryptionData
+import app.cliq.backend.support.encryption.EncryptionHelper
+import app.cliq.backend.support.srp.SrpData
+import app.cliq.backend.support.srp.SrpHelper
 import app.cliq.backend.user.DEFAULT_LOCALE
 import app.cliq.backend.user.User
 import app.cliq.backend.user.UserRepository
@@ -20,8 +28,24 @@ class UserCreationHelper(
     private val userFactory: UserFactory,
     private val userRepository: UserRepository,
     private val jwtService: JwtService,
+    private val srpHelper: SrpHelper,
+    private val encryptionHelper: EncryptionHelper,
+    private val authExchangeFactory: AuthExchangeFactory,
+    private val oidcCallbackTokenFactory: OidcCallbackTokenFactory,
+    private val authExchangeRepository: AuthExchangeRepository,
 ) {
-    data class UserCreationData(val user: User, val password: String)
+    data class UserCreationData(
+        val user: User,
+        val password: String,
+        val srpData: SrpData,
+        val encryptionData: EncryptionData,
+    )
+
+    data class AuthenticatedUserData(
+        val tokenPair: TokenPair,
+        val userCreationData: UserCreationData,
+        val authenticatedEncryptionData: AuthenticatedEncryptionData,
+    )
 
     fun createRandomUser(
         email: String = "user${Random.nextInt(0, 9999)}@cliq.test",
@@ -29,11 +53,7 @@ class UserCreationHelper(
         username: String = "CliqUser${Random.nextInt(0, 9999)}!",
         verified: Boolean = true,
         locale: String = DEFAULT_LOCALE,
-    ): UserCreationData {
-        val user = createUser(email, password, username, verified, locale = locale)
-
-        return UserCreationData(user, password)
-    }
+    ): UserCreationData = createUser(email, password, username, verified, locale = locale)
 
     fun createRandomOidcUser(
         email: String = "user${Random.nextInt(0, 9999)}@cliq.test",
@@ -41,11 +61,7 @@ class UserCreationHelper(
         username: String = "CliqUser${Random.nextInt(0, 9999)}!",
         oidcSub: String = "oidc${Random.nextInt(0, 9999)}",
         locale: String = DEFAULT_LOCALE,
-    ): UserCreationData {
-        val user = createUser(email, password, username, locale = locale, oidcSub = oidcSub)
-
-        return UserCreationData(user, password)
-    }
+    ): UserCreationData = createUser(email, password, username, locale = locale, oidcSub = oidcSub)
 
     fun createRandomAuthenticatedUser(
         email: String = "user${Random.nextInt(0, 9999)}@cliq.test",
@@ -53,16 +69,22 @@ class UserCreationHelper(
         username: String = "CliqUser${Random.nextInt(0, 9999)}!",
         verified: Boolean = true,
         locale: String = DEFAULT_LOCALE,
-    ): TokenPair {
+        sessionName: String? = null,
+        ipAddress: String = DEFAULT_IP_ADDRESS,
+    ): AuthenticatedUserData {
         val userCreationData = createRandomUser(email, password, username, verified, locale = locale)
-
-        val loginParams =
-            LoginParams(
-                email,
-                password,
+        val authExchange = authExchangeFactory.create(ipAddress, userCreationData.user)
+        val tokenPair = jwtService.generateTokenPairFromAuthExchange(authExchange, sessionName)
+        val authenticatedEncryptionData =
+            encryptionHelper.createAuthenticatedEncryptionData(
+                userCreationData.encryptionData,
             )
 
-        return jwtService.generateJwtTokenPair(loginParams, userCreationData.user)
+        return AuthenticatedUserData(
+            tokenPair,
+            userCreationData,
+            authenticatedEncryptionData,
+        )
     }
 
     fun createRandomOidcAuthenticatedUser(
@@ -72,10 +94,13 @@ class UserCreationHelper(
         oidcSub: String = "oidc${Random.nextInt(0, 9999)}",
         oidcSessionId: String = "oidc-session-id-${Random.nextInt(0, 9999)}",
         locale: String = DEFAULT_LOCALE,
+        ipAddress: String = DEFAULT_IP_ADDRESS,
     ): TokenPair {
         val userCreationData = createRandomOidcUser(email, password, username, oidcSub, locale = locale)
+        val oidcCallbackToken = oidcCallbackTokenFactory.create(ipAddress, userCreationData.user, oidcSessionId)
+        val authExchange = authExchangeRepository.findById(oidcCallbackToken.authExchange.id!!).orElseThrow()
 
-        return jwtService.generateOidcJwtTokenPair(userCreationData.user, oidcSessionId)
+        return jwtService.generateTokenPairFromAuthExchange(authExchange, oidcSessionId)
     }
 
     private fun createUser(
@@ -85,8 +110,18 @@ class UserCreationHelper(
         verified: Boolean = true,
         oidcSub: String? = null,
         locale: String = DEFAULT_LOCALE,
-    ): User {
-        val params = RegistrationParams(email, password, username, locale)
+    ): UserCreationData {
+        val srpData = srpHelper.createSrpData(email, password)
+        val encryptionData = encryptionHelper.createEncryptionData(password, srpData.salt.salt)
+        val params =
+            RegistrationParams(
+                email,
+                username,
+                encryptionData.dataEncryptionKey.encryptedAndEncodedDataEncryptionKey,
+                srpData.salt.encoded,
+                srpData.verifier.encoded,
+                locale,
+            )
         var user = userFactory.createFromRegistrationParams(params)
 
         await.atMost(Duration.ofSeconds(5)).untilAsserted {
@@ -110,9 +145,14 @@ class UserCreationHelper(
         }
         if (!verified && user.isEmailVerified()) {
             user.emailVerifiedAt = null
-            return userRepository.saveAndFlush(user)
+            user = userRepository.saveAndFlush(user)
         }
 
-        return user
+        return UserCreationData(
+            user,
+            password,
+            srpData,
+            encryptionData,
+        )
     }
 }

@@ -1,0 +1,36 @@
+{# @pebvariable name="name" type="String" #}
+{# @pebvariable name="rotationCode" type="String" #}
+{% extends "emails/mail.html" %}
+
+{% block head %}
+    <style>
+        .rotation-code {
+            color: #007bff;
+            border: 2px solid #007bff;
+            background-color: #f0f4ff;
+        }
+    </style>
+{% endblock %}
+
+{% block body %}
+<div class="container">
+    <div class="header">
+        <h1>{{ message('email.key_rotation.header') }}</h1>
+    </div>
+    <div class="content">
+        <p class="mb-20">
+            {{ message('email.key_rotation.greeting', name) }}
+            <br>
+            {{ message('email.key_rotation.message')|nl2br|raw }}
+        </p>
+        <div class="text-center">
+            <div class="token rotation-code mb-20">
+                {{ rotationCode }}
+            </div>
+        </div>
+        <p>
+            {{ message('email.common.signature')|nl2br|raw }}
+        </p>
+    </div>
+</div>
+{% endblock %}

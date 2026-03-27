@@ -5,6 +5,7 @@ import io.github.bucket4j.BucketConfiguration
 import org.springframework.cache.annotation.Cacheable
 import org.springframework.stereotype.Service
 
+@RateLimiterFeature
 @Service
 class BucketService {
     // Detect things that `key` is unused when it really is not

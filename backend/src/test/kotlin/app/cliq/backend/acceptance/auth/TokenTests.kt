@@ -37,7 +37,8 @@ class TokenTests(
 ) : AcceptanceTester() {
     @Test
     fun `test token refresh`() {
-        val tokenPair = userCreationHelper.createRandomAuthenticatedUser()
+        val authenticatedUserData = userCreationHelper.createRandomAuthenticatedUser()
+        val tokenPair = authenticatedUserData.tokenPair
 
         // refresh
         val refreshParams = RefreshParams(tokenPair.refreshToken)
@@ -78,7 +79,9 @@ class TokenTests(
 
     @Test
     fun `cannot refresh with old token`() {
-        val tokenPair = userCreationHelper.createRandomAuthenticatedUser()
+        val authenticatedUserData = userCreationHelper.createRandomAuthenticatedUser()
+        val tokenPair = authenticatedUserData.tokenPair
+
         val refreshParams = RefreshParams(tokenPair.refreshToken)
 
         mockMvc
@@ -113,7 +116,9 @@ class TokenTests(
 
     @Test
     fun `cannot refresh with expired token`() {
-        val tokenPair = userCreationHelper.createRandomAuthenticatedUser()
+        val authenticatedUserData = userCreationHelper.createRandomAuthenticatedUser()
+        val tokenPair = authenticatedUserData.tokenPair
+
         val refreshParams = RefreshParams(tokenPair.refreshToken)
 
         val session = jwtResolver.resolveSessionFromRefreshToken(refreshParams.refreshToken)

@@ -10,8 +10,6 @@ interface SessionRepository : JpaRepository<Session, Long> {
 
     fun findByOidcSessionId(oidcSessionId: String): Session?
 
-    fun findByUserId(userId: Long): MutableList<Session>
-
     @Modifying
     @Transactional
     fun deleteAllByUserId(userId: Long): Int

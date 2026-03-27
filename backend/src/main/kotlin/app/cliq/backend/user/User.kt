@@ -11,23 +11,22 @@ import java.time.OffsetDateTime
 
 const val DEFAULT_LOCALE = "en"
 const val UNVERIFIED_USER_INTERVAL_MINUTES = 60L * 24L // 1 day
-const val PASSWORD_RESET_TOKEN_INTERVAL_MINUTES = 30L // 30 minutes
+const val KEY_ROTATION_TOKEN_INTERVAL_MINUTES = 30L // 30 minutes
 
 @Entity
 @Table(
     name = "users",
     uniqueConstraints = [
         UniqueConstraint(columnNames = ["email", "email_verification_token"]),
-        UniqueConstraint(columnNames = ["email", "reset_token"]),
+        UniqueConstraint(columnNames = ["email", "key_rotation_token"]),
     ],
 )
 class User(
     @Column(nullable = false, unique = true) var email: String,
     @Column(nullable = false) var name: String,
     @Column(nullable = false) var locale: String = DEFAULT_LOCALE,
-    @Column(nullable = false) var password: String,
-    var resetToken: String? = null,
-    var resetSentAt: OffsetDateTime? = null,
+    var keyRotationToken: String? = null,
+    var keyRotationSentAt: OffsetDateTime? = null,
     var emailVerificationToken: String? = null,
     var emailVerificationSentAt: OffsetDateTime? = null,
     var emailVerifiedAt: OffsetDateTime? = null,
@@ -38,6 +37,12 @@ class User(
     var id: Long? = null,
     @Column(nullable = true, unique = true)
     var oidcSub: String? = null,
+    @Column(nullable = true)
+    var srpSalt: String? = null,
+    @Column(nullable = true)
+    var srpVerifier: String? = null,
+    @Column(nullable = true)
+    var dataEncryptionKey: String? = null,
 ) {
     fun isEmailVerified(): Boolean = null != emailVerifiedAt
 
@@ -50,10 +55,12 @@ class User(
             )
         )
 
-    fun isPasswordResetTokenExpired(): Boolean = resetToken != null && resetSentAt != null &&
-        resetSentAt!!.isAfter(OffsetDateTime.now().minusMinutes(PASSWORD_RESET_TOKEN_INTERVAL_MINUTES))
+    fun isKeyRotationTokenExpired(): Boolean = keyRotationToken != null && keyRotationSentAt != null &&
+        keyRotationSentAt!!.isAfter(OffsetDateTime.now().minusMinutes(KEY_ROTATION_TOKEN_INTERVAL_MINUTES))
 
     fun isUsable(): Boolean = isEmailVerified()
+
+    fun isOidcUser(): Boolean = oidcSub != null
 
     override fun toString(): String = "User(id=$id)"
 }

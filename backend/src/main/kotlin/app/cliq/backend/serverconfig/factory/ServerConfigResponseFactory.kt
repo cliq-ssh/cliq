@@ -26,5 +26,6 @@ class ServerConfigResponseFactory(
         serverVersion = infoProperties.version,
         oidcUrl = oidcUrl,
         localAuthProperties = authProperties.local,
+        authExchangeDurationSeconds = authProperties.authExchangeDurationSeconds,
     )
 }

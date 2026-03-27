@@ -19,20 +19,23 @@ data class ErrorCode private constructor(
         val USER_WITH_EMAIL_NOT_FOUND = of(2001U, "User with email not found")
         val EMAIL_NOT_VERIFIED = of(2002U, "Email not verified")
         val EMAIL_NOT_FOUND_OR_VALID = of(2003U, "Email not found or valid")
-        val PASSWORD_RESET_TOKEN_EXPIRED = of(2005U, "Password reset token is expired")
+        val KEY_ROTATION_TOKEN_EXPIRED = of(2005U, "Key rotation token is expired")
         val INVALID_VERIFY_PARAMS = of(2006U, "Invalid email or verification token")
         val EMAIL_VERIFICATION_TOKEN_NOT_FOUND = of(2007U, "Email verification token not found")
         val EMAIL_VERIFICATION_TOKEN_EXPIRED = of(2008U, "Email verification token is expired")
         val EMAIL_ALREADY_VERIFIED = of(2009U, "Email is already verified")
-        val INVALID_RESET_PARAMS = of(2010U, "Invalid email or reset token")
+        val INVALID_KEY_ROTATION_PARAMS = of(2010U, "Invalid email or key rotation token")
 
         // ### Authentication errors ###
         val MISSING_AUTHENTICATION_TOKEN = of(2100U, "Missing authentication token")
         val INVALID_JWT_ACCESS_TOKEN = of(2101U, "Invalid authentication token")
         val INVALID_REFRESH_TOKEN = of(2102U, "Invalid refresh token")
         val REFRESH_TOKEN_EXPIRED = of(2103U, "Refresh token is expired")
-        val INVALID_OIDC_AUTH_EXCHANGE_CODE = of(2104U, "Invalid OIDC auth exchange code")
-        val INVALID_IP_ADDRESS = of(2105U, "Invalid IP address")
+        val INVALID_CREDENTIALS = of(2104U, "Invalid credentials")
+        val TRIED_LOCAL_LOGIN_WITH_OIDC_USER = of(2105U, "OIDC Users cannot use local login to authenticate.")
+        val INVALID_AUTH_EXCHANGE_CODE = of(2106U, "Invalid auth exchange code")
+        val INVALID_IP_ADDRESS = of(2107U, "Invalid IP address")
+        val INVALID_OIDC_CALLBACK_TOKEN = of(2108U, "Invalid oidc callback token")
 
         // Rate limiting
         val RATE_LIMIT_EXCEEDED = of(2200U, "Rate limit exceeded")
