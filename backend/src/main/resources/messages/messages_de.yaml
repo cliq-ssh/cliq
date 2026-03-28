@@ -1,0 +1,22 @@
+email:
+  verification:
+    subject: "E-Mail-Adresse bestätigen"
+    header: "E-Mail-Verifizierung erforderlich"
+    greeting: "Hallo {0},"
+    token:
+      message: "Um Ihre Kontoregistrierung abzuschließen, verwenden Sie bitte den unten stehenden Verifizierungstoken:"
+      label: "Verifizierungstoken"
+      instructions: "Geben Sie diesen Token in das Verifizierungsformular ein, um Ihr Konto zu aktivieren. Dieser Token läuft in 24 Stunden ab."
+    message: "Um Ihre Kontoanmeldung abzuschließen, müssen Sie den untenstehenden Verifizierungscode eingeben.\nDieser Code ist 24 Stunden gültig. Wenn Sie kein Konto registriert haben, ignorieren Sie bitte diese E-Mail.\n\nIhr Verifizierungscode:"
+  password_reset:
+    subject: "Ihr Passwort-Zurücksetzungsanfrage"
+    header: "Passwort zurücksetzen"
+    greeting: "Hallo {0},"
+    message: "Für Ihr Konto wurde eine Passwort-Zurücksetzung angefordert.\nDieser Token läuft in 24 Stunden ab. Wenn Sie diese Zurücksetzung nicht angefordert haben, ignorieren Sie bitte diese E-Mail.\n\nIhr Anforderungscode:"
+  key_rotation:
+    subject: "Schlüsselrotation erforderlich"
+    header: "Verschlüsselungsschlüssel-Rotation"
+    greeting: "Hallo {0},"
+    message: "Für Ihr Konto wurde eine Schlüsselrotation angefordert.\nDieser Code ist 30 Minuten gültig. Wenn Sie diese Rotation nicht angefordert haben, ignorieren Sie bitte diese E-Mail.\n\nIhr Rotationscode:"
+  common:
+    signature: "Vielen Dank"

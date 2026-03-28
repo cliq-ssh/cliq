@@ -65,12 +65,6 @@ repositories {
     mavenCentral()
 }
 
-buildscript {
-    dependencies {
-        classpath("org.flywaydb:flyway-database-postgresql:12.2.0")
-    }
-}
-
 dependencies {
     // Web Framework
     implementation("org.springframework.boot:spring-boot-starter-webmvc")
@@ -126,6 +120,9 @@ dependencies {
 
     // Kotlin specifics
     implementation("org.jetbrains.kotlin:kotlin-reflect")
+
+    // IO-Utils
+    implementation("commons-io:commons-io:2.21.0")
 
     // Testing //
 
