@@ -225,13 +225,20 @@ tasks.withType<DetektCreateBaselineTask>().configureEach {
 // }
 
 tasks.processResources {
+    // We don't pass all project properties to compatible with gradles configuration cache
+    val expandProps = mapOf(
+        "rootProject" to mapOf("name" to rootProject.name),
+        "version" to project.version.toString(),
+        "description" to (project.description)
+    )
+
     // work around IDEA-296490
     // use above when fixed
     duplicatesStrategy = DuplicatesStrategy.INCLUDE
     with(
         copySpec {
             from("src/main/resources/application.yaml") {
-                expand(project.properties)
+                expand(expandProps)
             }
         },
     )
