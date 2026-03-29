@@ -8,7 +8,9 @@ import 'package:forui/forui.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lucide_flutter/lucide_flutter.dart';
 
+import '../../../shared/data/database.dart';
 import '../../../shared/model/page_path.model.dart';
+import '../../../shared/utils/commons.dart' show Commons;
 
 class DebugSettingsPage extends AbstractSettingsPage {
   static const PagePathBuilder pagePath = PagePathBuilder.child(
@@ -31,8 +33,24 @@ class DebugSettingsPage extends AbstractSettingsPage {
               CliqGridColumn(
                 child: Column(
                   mainAxisAlignment: .center,
-                  spacing: 20,
+                  spacing: 16,
                   children: [
+                    FTileGroup(
+                      children: [
+                        // TODO move to commons?
+                        FTile(
+                          variant: .destructive,
+                          prefix: Icon(LucideIcons.databaseBackup),
+                          title: Text('Reset Database Tables'),
+                          onPress: () => Commons.showDeleteDialog(
+                              entity: 'ALL DATABASE TABLES',
+                              onDelete: () => CliqDatabase.instance.deleteAllTables(),
+                              canInstantDelete: false,
+                              mayNeedAppRestart: true
+                          ),
+                        ),
+                      ],
+                    ),
                     FCard(
                       child: Column(
                         spacing: 16,

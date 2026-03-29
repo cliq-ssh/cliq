@@ -39,6 +39,7 @@ final class Commons {
     required VoidCallback onDelete,
     BuildContext? context,
     bool canInstantDelete = true,
+    bool mayNeedAppRestart = false
   }) {
     if (PlatformUtils.isDesktop &&
         canInstantDelete &&
@@ -76,6 +77,9 @@ final class Commons {
                   ),
                   TextSpan(text: ' to skip this dialog', style: subtitleStyle),
                 ],
+                if (mayNeedAppRestart) ...[
+                  TextSpan(text: '\n\nNOTE: You may need to restart the app after doing this.', style: subtitleStyle),
+                ]
               ],
             ),
           ),
@@ -110,6 +114,7 @@ final class Commons {
   }
 
   static Future<void> launchGitHubUrl() => _launchUrl(Constants.githubUrl);
+  static Future<void> launchGitHubCreateIssueUrl() => _launchUrl(Constants.githubCreateIssueUrl);
 
   static Future<void> _launchUrl(String url) async {
     if (!await launchUrl(Uri.parse(url))) {

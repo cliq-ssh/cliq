@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'dart:ui';
 
 import 'package:cliq/modules/connections/data/connection_service.dart';
@@ -8,6 +9,7 @@ import 'package:cliq/modules/settings/data/known_host_service.dart';
 import 'package:cliq_term/cliq_term.dart';
 import 'package:drift/drift.dart';
 import 'package:drift_flutter/drift_flutter.dart';
+import 'package:logging/logging.dart';
 import 'package:path_provider/path_provider.dart';
 
 import '../../modules/connections/data/connection_credentials_repository.dart';
@@ -38,6 +40,10 @@ part 'database.g.dart';
   },
 )
 final class CliqDatabase extends _$CliqDatabase {
+  final Logger _logger = Logger('CliqDatabase');
+
+  static late CliqDatabase instance;
+
   static late KeyService keysService;
   static late CredentialService credentialService;
   static late IdentityService identityService;
@@ -62,6 +68,8 @@ final class CliqDatabase extends _$CliqDatabase {
 
   static void init() {
     final db = CliqDatabase();
+
+    instance = db;
 
     final keysRepository = KeyRepository(db);
     final credentialsRepository = CredentialsRepository(db);
@@ -93,7 +101,7 @@ final class CliqDatabase extends _$CliqDatabase {
     knownHostService = KnownHostService(knownHostsRepository);
   }
 
-  Future<void> deleteAll() async {
+  Future<void> deleteAllTables() async {
     await customStatement('PRAGMA foreign_keys = OFF');
     for (final table in allTables) {
       await delete(table).go();
