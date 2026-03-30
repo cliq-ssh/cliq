@@ -238,10 +238,10 @@ packages:
     description:
       path: "."
       ref: master
-      resolved-ref: "5bc40d5d887cea53846d255202f26f9d7e74e1cf"
+      resolved-ref: c91df6789d313b5a1cd6086b57b972e84be36720
       url: "https://github.com/cliq-ssh/dartssh2.git"
     source: git
-    version: "2.13.0"
+    version: "2.17.0"
   dio:
     dependency: transitive
     description:
@@ -566,14 +566,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.0.5"
-  js:
-    dependency: transitive
-    description:
-      name: js
-      sha256: "53385261521cc4a0c4658fd0ad07a7d14591cf8fc33abbceae306ddb974888dc"
-      url: "https://pub.dev"
-    source: hosted
-    version: "0.7.2"
   json_annotation:
     dependency: transitive
     description:
@@ -794,10 +786,10 @@ packages:
     dependency: transitive
     description:
       name: pointycastle
-      sha256: "4be0097fcf3fd3e8449e53730c631200ebc7b88016acecab2b0da2f0149222fe"
+      sha256: "92aa3841d083cc4b0f4709b5c74fd6409a3e6ba833ffc7dc6a8fee096366acf5"
       url: "https://pub.dev"
     source: hosted
-    version: "3.9.1"
+    version: "4.0.0"
   pool:
     dependency: transitive
     description:
