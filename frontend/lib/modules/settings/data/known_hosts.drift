@@ -1,9 +1,20 @@
+import '../../vaults/data/vaults.drift';
+
 CREATE TABLE known_hosts (
     id          INTEGER PRIMARY KEY AUTOINCREMENT,
+    vault_id    INTEGER NOT NULL REFERENCES vaults(id),
     host        TEXT NOT NULL,
     hostKey     BLOB NOT NULL,
     created_at  DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
+
+findAllKnownHostsFull:
+  SELECT
+    k.** AS knownHost,
+    v.** AS vault
+
+  FROM known_hosts k
+    INNER JOIN vaults v ON k.vault_id = v.id;
 
 findKnownHostByHost:
     SELECT * FROM known_hosts WHERE host = ?;

@@ -49,6 +49,7 @@ class _ConnectionsPageState extends ConsumerState<ConnectionsPage> {
         noEntitiesSubtitle: 'Add your first host by clicking the button below.',
         addEntityTitle: 'Add Host',
         filterableFields: (c) => [
+          c.vault.label,
           c.label,
           c.effectiveUsername,
           c.port.toString(),

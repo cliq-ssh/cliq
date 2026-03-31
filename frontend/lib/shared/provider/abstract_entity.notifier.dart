@@ -8,16 +8,19 @@ import 'abstract_entity.state.dart';
 abstract class AbstractEntityNotifier<E, S extends AbstractEntityState<E, S>>
     extends Notifier<S> {
   Logger get _log => Logger('Notifier[$E]');
-  StreamSubscription<List<E>>? _sub;
+
+  final Completer<void> _initialized = Completer();
+  Future<void> get initialized => _initialized.future;
 
   @override
   S build() {
-    _sub = entityStream.listen((e) {
+    final sub = entityStream.listen((e) {
+      if (!_initialized.isCompleted) _initialized.complete();
       _log.finest('Received ${e.length} entities');
       state = buildStateFromEntities(e);
     });
 
-    ref.onDispose(() => _sub?.cancel());
+    ref.onDispose(sub.cancel);
     return buildInitialState();
   }
 

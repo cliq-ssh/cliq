@@ -172,19 +172,24 @@ class ShellSessionNotifier extends Notifier<SSHSessionState> {
     }
   }
 
-  Future<int> acceptFingerprint(String sessionId, KnownHostError error) {
+  Future<int> acceptFingerprint(
+    int vaultId,
+    String sessionId,
+    KnownHostError error,
+  ) {
     if (error.knownHost != null) {
       return ref
           .read(knownHostServiceProvider)
           .update(
             error.knownHost!.id.value,
+            vaultId: vaultId,
             hostKey: error.hostKey,
             compareTo: error.knownHost,
           );
     }
     return ref
         .read(knownHostServiceProvider)
-        .createKey(host: error.host, hostKey: error.hostKey);
+        .createKey(vaultId: vaultId, host: error.host, hostKey: error.hostKey);
   }
 
   void _modifySession(

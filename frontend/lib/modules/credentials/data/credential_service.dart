@@ -1,6 +1,7 @@
 import 'package:cliq/modules/credentials/model/credential_full.model.dart';
 import 'package:cliq/modules/credentials/model/credential_type.dart';
 import 'package:cliq/shared/data/repository.dart';
+import 'package:cliq/shared/extensions/value.extension.dart';
 import 'package:dartssh2/dartssh2.dart';
 import 'package:drift/drift.dart';
 import 'package:logging/logging.dart';
@@ -65,10 +66,15 @@ final class CredentialService {
         .get();
   }
 
-  Future<int> create(CredentialType type, String data) async {
+  Future<int> create({
+    required int vaultId,
+    required CredentialType type,
+    required String data,
+  }) async {
     final (password, keyId) = extractCredentialData(type, data);
     return await _credentialRepository.insert(
       CredentialsCompanion.insert(
+        vaultId: vaultId,
         type: type,
         keyId: Value.absentIfNull(keyId),
         password: Value.absentIfNull(password),
@@ -88,23 +94,37 @@ final class CredentialService {
     return credentialIds;
   }
 
-  Future<int> update(int id, CredentialType type, String data) async {
+  Future<int> update(
+    int credentialId, {
+    required int? vaultId,
+    required CredentialType? type,
+    required String? data,
+    CredentialsCompanion? compareTo,
+  }) async {
     final (password, keyId) = extractCredentialData(type, data);
     await _credentialRepository.updateById(
-      id,
+      credentialId,
       CredentialsCompanion(
-        password: Value.absentIfNull(password),
-        keyId: Value.absentIfNull(keyId),
+        vaultId: ValueExtension.absentIfNullOrSame(vaultId, compareTo?.vaultId),
+        password: ValueExtension.absentIfNullOrSame(
+          password,
+          compareTo?.password,
+        ),
+        keyId: ValueExtension.absentIfNullOrSame(keyId, compareTo?.keyId),
       ),
     );
 
-    return id;
+    return credentialId;
   }
 
   Future<void> deleteByIds(List<int> ids) =>
       _credentialRepository.deleteByIds(ids);
 
-  (String?, int?) extractCredentialData(CredentialType type, String data) {
+  (String?, int?) extractCredentialData(CredentialType? type, String? data) {
+    if (type == null || data == null) {
+      return (null, null);
+    }
+
     return switch (type) {
       .password => (data, null),
       .key => (null, int.parse(data)),

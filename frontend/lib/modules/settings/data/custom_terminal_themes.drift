@@ -1,7 +1,9 @@
 import '../../../shared/data/converters/color_converter.dart';
+import '../../vaults/data/vaults.drift';
 
 CREATE TABLE custom_terminal_themes (
     id                          INTEGER PRIMARY KEY AUTOINCREMENT,
+    vault_id                    INTEGER NOT NULL REFERENCES vaults(id),
     name                        TEXT NOT NULL,
 
     black_color                 INTEGER NOT NULL MAPPED BY `const ColorConverter()`,

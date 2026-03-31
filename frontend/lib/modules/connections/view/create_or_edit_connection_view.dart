@@ -5,6 +5,7 @@ import 'package:cliq/modules/connections/model/connection_icon.dart';
 import 'package:cliq/modules/identities/provider/identity.provider.dart';
 import 'package:cliq/shared/extensions/text_controller.extension.dart';
 import 'package:cliq/shared/ui/create_or_edit_credential_form.dart';
+import 'package:cliq/shared/ui/create_or_edit_entity_view.dart';
 import 'package:cliq/shared/ui/terminal_font_family_select.dart';
 import 'package:cliq/shared/ui/terminal_font_size_slider.dart';
 import 'package:cliq/shared/extensions/async_snapshot.extension.dart';
@@ -59,6 +60,7 @@ class CreateOrEditConnectionView extends HookConsumerWidget {
   CreateOrEditConnectionView.edit(ConnectionFull connection, {super.key})
     : current = ConnectionsCompanion(
         id: Value(connection.id),
+        vaultId: Value(connection.vaultId),
         label: Value(connection.label),
         icon: Value(connection.icon),
         iconColor: Value(connection.iconColor),
@@ -92,6 +94,7 @@ class CreateOrEditConnectionView extends HookConsumerWidget {
       () => GlobalKey<CreateOrEditCredentialsFormState>(),
     );
     final usernameFocusNode = useFocusNode();
+    final selectedVaultId = useState<int?>(current?.vaultId.value);
 
     final defaultTerminalTypography = useStore(.defaultTerminalTypography);
     final defaultTerminalThemeId = useStore(.defaultTerminalThemeId);
@@ -139,7 +142,7 @@ class CreateOrEditConnectionView extends HookConsumerWidget {
       return await connectionService.findAllGroupNamesDistinct();
     }, []);
 
-    Future<void> onSave() async {
+    Future<void> onSave(int? vaultId) async {
       if (!(formKey.currentState?.validate() ?? false)) return;
       final newCredentialIds = await credentialsKey.currentState?.save();
       // null is only returned when validation fails
@@ -148,6 +151,7 @@ class CreateOrEditConnectionView extends HookConsumerWidget {
       final connectionId = isEdit
           ? await connectionService.update(
               current!.id.value,
+              vaultId: vaultId,
               address: addressCtrl.textOrNull,
               iconColor: selectedIconColor.value,
               iconBackgroundColor: selectedIconBackgroundColor.value,
@@ -163,6 +167,7 @@ class CreateOrEditConnectionView extends HookConsumerWidget {
               compareTo: current,
             )
           : await connectionService.createConnection(
+              vaultId: vaultId!,
               address: addressCtrl.text.trim(),
               iconColor: selectedIconColor.value,
               iconBackgroundColor: selectedIconBackgroundColor.value,
@@ -495,167 +500,142 @@ class CreateOrEditConnectionView extends HookConsumerWidget {
       );
     }
 
-    return FScaffold(
-      child: SingleChildScrollView(
-        padding: const .symmetric(horizontal: 32, vertical: 20),
+    return CreateOrEditEntityView(
+      onSave: onSave,
+      onVaultSelected: (vaultId) => selectedVaultId.value = vaultId,
+      isEdit: isEdit,
+      child: Form(
+        key: formKey,
         child: Column(
+          spacing: 16,
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
+            FTextFormField(
+              control: .managed(controller: labelCtrl),
+              label: const Text('Label'),
+              hint: labelCtrl.text.isEmpty ? addressCtrl.text : null,
+            ),
+
+            FAutocomplete(
+              control: .managed(controller: groupCtrl),
+              label: const Text('Group'),
+              clearable: (value) => value.text.isNotEmpty,
+              contentEmptyBuilder: (_, _) => Padding(
+                padding: const EdgeInsets.symmetric(vertical: 12),
+                child: groupCtrl.text.isEmpty
+                    ? const Text('No groups')
+                    : Text('Create group "${groupCtrl.text}"'),
+              ),
+              contentErrorBuilder: (_, _, _) => Padding(
+                padding: const EdgeInsets.symmetric(vertical: 12),
+                child: Text('Create group "${groupCtrl.text}"'),
+              ),
+              items: groups.on(onData: (v) => v, onLoading: () => []),
+            ),
             Row(
-              mainAxisAlignment: MainAxisAlignment.end,
+              spacing: 8,
+              crossAxisAlignment: .start,
               children: [
-                FButton.icon(
-                  variant: .outline,
-                  onPress: () => context.pop(),
-                  child: const Icon(LucideIcons.x),
+                Expanded(
+                  flex: 4,
+                  child: buildTextField(
+                    controller: addressCtrl,
+                    label: 'Address',
+                    hint: '127.0.0.1',
+                    validator: Validators.address,
+                  ),
+                ),
+                Expanded(
+                  flex: 2,
+                  child: buildTextField(
+                    controller: portCtrl,
+                    label: 'Port',
+                    hint: '22',
+                    validator: Validators.port,
+                  ),
                 ),
               ],
             ),
-            const SizedBox(height: 8),
-            Form(
-              key: formKey,
-              child: Column(
-                spacing: 16,
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  FTextFormField(
-                    control: .managed(controller: labelCtrl),
-                    label: const Text('Label'),
-                    hint: labelCtrl.text.isEmpty ? addressCtrl.text : null,
-                  ),
 
-                  FAutocomplete(
-                    control: .managed(controller: groupCtrl),
-                    label: const Text('Group'),
-                    clearable: (value) => value.text.isNotEmpty,
-                    contentEmptyBuilder: (_, _) => Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 12),
-                      child: groupCtrl.text.isEmpty
-                          ? const Text('No groups')
-                          : Text('Create group "${groupCtrl.text}"'),
-                    ),
-                    contentErrorBuilder: (_, _, _) => Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 12),
-                      child: Text('Create group "${groupCtrl.text}"'),
-                    ),
-                    items: groups.on(onData: (v) => v, onLoading: () => []),
-                  ),
-                  Row(
-                    spacing: 8,
-                    crossAxisAlignment: .start,
-                    children: [
-                      Expanded(
-                        flex: 4,
-                        child: buildTextField(
-                          controller: addressCtrl,
-                          label: 'Address',
-                          hint: '127.0.0.1',
-                          validator: Validators.address,
+            Row(
+              children: [
+                Expanded(
+                  child: FAutocomplete.builder(
+                    control: .managed(controller: usernameCtrl),
+                    filter: (query) {
+                      final values = identities.entities.map(
+                        (i) => AutocompleteUtils.toAutocompleteString(
+                          i.id,
+                          i.label,
                         ),
-                      ),
-                      Expanded(
-                        flex: 2,
-                        child: buildTextField(
-                          controller: portCtrl,
-                          label: 'Port',
-                          hint: '22',
-                          validator: Validators.port,
-                        ),
-                      ),
-                    ],
-                  ),
-
-                  Row(
-                    children: [
-                      Expanded(
-                        child: FAutocomplete.builder(
-                          control: .managed(controller: usernameCtrl),
-                          filter: (query) {
-                            final values = identities.entities.map(
-                              (i) => AutocompleteUtils.toAutocompleteString(
-                                i.id,
-                                i.label,
-                              ),
-                            );
-                            if (query.isEmpty) {
-                              return values;
-                            }
-                            return values.where(
-                              (v) =>
-                                  v.toLowerCase().contains(query.toLowerCase()),
-                            );
-                          },
-                          contentBuilder: (context, text, suggestions) => [
-                            for (final suggestion in suggestions)
-                              FAutocompleteItem(
-                                prefix: Icon(LucideIcons.users),
-                                title: Text(
-                                  AutocompleteUtils.fromAutocompleteString(
-                                        suggestion,
-                                      ).$2 ??
-                                      suggestion,
-                                ),
-                                value: suggestion,
-                              ),
-                          ],
-                          contentEmptyBuilder: (_, _) => SizedBox.shrink(),
-                          focusNode: usernameFocusNode,
-                          label: Text(
-                            selectedIdentityId.value == null
-                                ? 'Username'
-                                : 'Identity',
+                      );
+                      if (query.isEmpty) {
+                        return values;
+                      }
+                      return values.where(
+                        (v) => v.toLowerCase().contains(query.toLowerCase()),
+                      );
+                    },
+                    contentBuilder: (context, text, suggestions) => [
+                      for (final suggestion in suggestions)
+                        FAutocompleteItem(
+                          prefix: Icon(LucideIcons.users),
+                          title: Text(
+                            AutocompleteUtils.fromAutocompleteString(
+                                  suggestion,
+                                ).$2 ??
+                                suggestion,
                           ),
-                          minLines: 1,
-                          validator: (s) {
-                            // workaround as onChange does not trigger when selecting an autocomplete item
-                            WidgetsBinding.instance.addPostFrameCallback((_) {
-                              selectedIdentityId.value =
-                                  AutocompleteUtils.fromAutocompleteString(
-                                    s!,
-                                  ).$1;
-                            });
-
-                            final empty = Validators.nonEmpty(s);
-                            if (empty != null) return empty;
-
-                            return null;
-                          },
-                          autovalidateMode: .onUserInteraction,
+                          value: suggestion,
                         ),
-                      ),
                     ],
-                  ),
-
-                  if (selectedIdentityId.value == null)
-                    isEdit
-                        ? CreateOrEditCredentialsForm.edit(
-                            key: credentialsKey,
-                            currentCredentialIds,
-                          )
-                        : CreateOrEditCredentialsForm.create(
-                            key: credentialsKey,
-                          ),
-
-                  FAccordion(
-                    control: .lifted(
-                      expanded: (i) => expandedAccordionItem.value == i,
-                      onChange: (i, expanded) {
-                        expandedAccordionItem.value = expanded ? i : null;
-                      },
+                    contentEmptyBuilder: (_, _) => SizedBox.shrink(),
+                    focusNode: usernameFocusNode,
+                    label: Text(
+                      selectedIdentityId.value == null
+                          ? 'Username'
+                          : 'Identity',
                     ),
-                    children: [buildIconItem(), buildThemeItem()],
+                    minLines: 1,
+                    validator: (s) {
+                      // workaround as onChange does not trigger when selecting an autocomplete item
+                      WidgetsBinding.instance.addPostFrameCallback((_) {
+                        selectedIdentityId.value =
+                            AutocompleteUtils.fromAutocompleteString(s!).$1;
+                      });
+
+                      final empty = Validators.nonEmpty(s);
+                      if (empty != null) return empty;
+
+                      return null;
+                    },
+                    autovalidateMode: .onUserInteraction,
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
 
-            const SizedBox(height: 40),
+            if (selectedIdentityId.value == null &&
+                selectedVaultId.value != null)
+              isEdit
+                  ? CreateOrEditCredentialsForm.edit(
+                      key: credentialsKey,
+                      vaultId: selectedVaultId.value!,
+                      currentCredentialIds,
+                    )
+                  : CreateOrEditCredentialsForm.create(
+                      key: credentialsKey,
+                      vaultId: selectedVaultId.value!,
+                    ),
 
-            SizedBox(
-              width: double.infinity,
-              child: FButton(
-                onPress: onSave,
-                child: Text(isEdit ? 'Edit' : 'Save'),
+            FAccordion(
+              control: .lifted(
+                expanded: (i) => expandedAccordionItem.value == i,
+                onChange: (i, expanded) {
+                  expandedAccordionItem.value = expanded ? i : null;
+                },
               ),
+              children: [buildIconItem(), buildThemeItem()],
             ),
           ],
         ),

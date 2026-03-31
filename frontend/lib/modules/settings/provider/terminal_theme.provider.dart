@@ -15,6 +15,7 @@ final terminalThemeProvider = NotifierProvider(CustomTerminalThemeNotifier.new);
 // TODO: replace this with custom "cliq" theme or other open source terminal theme
 const CustomTerminalTheme defaultTerminalColorTheme = .new(
   id: -1,
+  vaultId: -1,
   name: 'Darcula',
   blackColor: Color(0xFF21222C),
   redColor: Color(0xFFFF5555),
@@ -45,7 +46,10 @@ class CustomTerminalThemeNotifier
 
   /// Attempts to import the given [file] as a [CustomTerminalTheme]
   /// If the file is null, not parsable, or fails to import for any reason, this method the i18n key of the error message.
-  Future<String?> tryImportCustomTerminalTheme(XFile? file) async {
+  Future<String?> tryImportCustomTerminalTheme(
+    XFile? file,
+    int targetVaultId,
+  ) async {
     if (file == null) {
       return 'customTerminalTheme.import.error.noFileSelected';
     }
@@ -54,7 +58,7 @@ class CustomTerminalThemeNotifier
     if (parser == null) {
       return 'customTerminalTheme.import.error.unrecognizedFormat';
     }
-    final theme = parser.tryParse(file.name, content);
+    final theme = parser.tryParse(file.name, content, targetVaultId);
     if (theme == null) {
       return 'customTerminalTheme.import.error.parsingFailed';
     }

@@ -57,14 +57,18 @@ final class _CredentialData {
 
 class CreateOrEditCredentialsForm extends StatefulHookConsumerWidget {
   final List<int>? current;
+  final int vaultId;
   final bool isEdit;
 
-  const CreateOrEditCredentialsForm.create({super.key})
+  const CreateOrEditCredentialsForm.create({super.key, required this.vaultId})
     : current = null,
       isEdit = false;
 
-  const CreateOrEditCredentialsForm.edit(this.current, {super.key})
-    : isEdit = true;
+  const CreateOrEditCredentialsForm.edit(
+    this.current, {
+    super.key,
+    required this.vaultId,
+  }) : isEdit = true;
 
   @override
   ConsumerState<CreateOrEditCredentialsForm> createState() =>
@@ -105,11 +109,20 @@ class CreateOrEditCredentialsFormState
 
       if (data.id != null) {
         modifiedIds.add(
-          await credentialService.update(data.id!, data.type, controllerData),
+          await credentialService.update(
+            data.id!,
+            vaultId: widget.vaultId,
+            type: data.type,
+            data: controllerData,
+          ),
         );
       } else {
         createdIds.add(
-          await credentialService.create(data.type, controllerData),
+          await credentialService.create(
+            vaultId: widget.vaultId,
+            type: data.type,
+            data: controllerData,
+          ),
         );
       }
     }

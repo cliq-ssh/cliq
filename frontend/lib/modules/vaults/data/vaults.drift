@@ -1,4 +1,5 @@
 CREATE TABLE vaults (
     id          INTEGER PRIMARY KEY AUTOINCREMENT,
-    name        TEXT NOT NULL
+    label        TEXT NOT NULL,
+    is_default  BOOLEAN NOT NULL DEFAULT FALSE
 );

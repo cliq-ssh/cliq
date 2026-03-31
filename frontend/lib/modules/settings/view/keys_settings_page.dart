@@ -1,3 +1,4 @@
+import 'package:cliq/modules/keys/model/key_full.model.dart';
 import 'package:cliq/modules/keys/view/create_or_edit_key_view.dart';
 import 'package:cliq/modules/settings/view/abstract_settings_page.dart';
 import 'package:cliq/modules/settings/view/settings_page.dart';
@@ -8,7 +9,6 @@ import 'package:flutter/cupertino.dart' hide Key;
 import 'package:forui/forui.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
-import '../../../shared/data/database.dart';
 import '../../../shared/extensions/async_snapshot.extension.dart';
 import '../../../shared/model/page_path.model.dart';
 import '../../../shared/utils/commons.dart';
@@ -37,7 +37,7 @@ class KeysSettingsPage extends AbstractSettingsPage {
     return keysFuture.on(
       onLoading: () => Center(child: FCircularProgress()),
       onData: (keys) {
-        return EntityCardView<Key>(
+        return EntityCardView<KeyFull>(
           entities: keys,
           entityCardBuilder: (key) => KeyCard(keyEntity: key),
           viewTypeKey: .keysCardViewType,
@@ -45,7 +45,7 @@ class KeysSettingsPage extends AbstractSettingsPage {
           noEntitiesSubtitle:
               'Add your first key by clicking the button below.',
           addEntityTitle: 'Add Key',
-          filterableFields: (k) => [k.label],
+          filterableFields: (k) => [k.vault.label, k.label],
           onAddEntity: () =>
               Commons.showResponsiveDialog((_) => CreateOrEditKeyView.create()),
         );

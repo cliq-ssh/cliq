@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:cliq/shared/ui/create_or_edit_entity_view.dart';
 import 'package:cliq/shared/utils/input_formatters.dart';
 import 'package:cliq/shared/utils/validators.dart';
 import 'package:drift/drift.dart' hide Column;
@@ -8,7 +9,6 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:forui/forui.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:lucide_flutter/lucide_flutter.dart';
 
 import '../../../shared/data/database.dart';
 import '../../../shared/extensions/color.extension.dart';
@@ -28,6 +28,7 @@ class CreateOrEditTerminalThemeView extends HookConsumerWidget {
     super.key,
   }) : current = CustomTerminalThemesCompanion(
          id: Value(themeEntity.id),
+         vaultId: Value(themeEntity.vaultId),
          name: Value(themeEntity.name),
          blackColor: Value(themeEntity.blackColor),
          redColor: Value(themeEntity.redColor),
@@ -127,7 +128,7 @@ class CreateOrEditTerminalThemeView extends HookConsumerWidget {
     );
 
     /// Handles the save action for the form.
-    Future<void> onSave() async {
+    Future<void> onSave(int? vaultId) async {
       if (!(formKey.currentState?.validate() ?? false)) return;
 
       final Color? blackColor = ColorExtension.fromHex(blackColorCtrl.text);
@@ -183,6 +184,7 @@ class CreateOrEditTerminalThemeView extends HookConsumerWidget {
       final themeId = isEdit
           ? await terminalThemeService.update(
               current!.id.value,
+              vaultId: vaultId,
               name: nameCtrl.textOrNull,
               black: blackColor,
               red: redColor,
@@ -210,6 +212,7 @@ class CreateOrEditTerminalThemeView extends HookConsumerWidget {
             )
           : await terminalThemeService.createCustomTerminalTheme(
               CustomTerminalThemesCompanion.insert(
+                vaultId: vaultId!,
                 name: nameCtrl.text.trim(),
                 blackColor: blackColor!,
                 redColor: redColor!,
@@ -298,98 +301,66 @@ class CreateOrEditTerminalThemeView extends HookConsumerWidget {
       );
     }
 
-    return FScaffold(
-      child: SingleChildScrollView(
-        padding: const .symmetric(horizontal: 32, vertical: 20),
+    return CreateOrEditEntityView(
+      onSave: onSave,
+      isEdit: isEdit,
+      child: Form(
+        key: formKey,
         child: Column(
+          spacing: 16,
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.end,
+            FTextFormField(
+              control: .managed(controller: nameCtrl),
+              label: const Text('Name'),
+              hint: 'My Theme',
+              validator: Validators.nonEmpty,
+            ),
+            Wrap(
+              spacing: 16,
+              runSpacing: 16,
               children: [
-                FButton.icon(
-                  variant: .outline,
-                  onPress: () => context.pop(),
-                  child: const Icon(LucideIcons.x),
+                buildHexColorField('Black', blackColorCtrl),
+                buildHexColorField('Red', redColorCtrl),
+                buildHexColorField('Green', greenColorCtrl),
+                buildHexColorField('Yellow', yellowColorCtrl),
+                buildHexColorField('Blue', blueColorCtrl),
+                buildHexColorField('Purple', purpleColorCtrl),
+                buildHexColorField('Cyan', cyanColorCtrl),
+                buildHexColorField('White', whiteColorCtrl),
+                buildHexColorField('Bright Black', brightBlackColorCtrl),
+                buildHexColorField('Bright Red', brightRedColorCtrl),
+                buildHexColorField('Bright Green', brightGreenColorCtrl),
+                buildHexColorField('Bright Yellow', brightYellowColorCtrl),
+                buildHexColorField('Bright Blue', brightBlueColorCtrl),
+                buildHexColorField('Bright Purple', brightPurpleColorCtrl),
+                buildHexColorField('Bright Cyan', brightCyanColorCtrl),
+                buildHexColorField('Bright White', brightWhiteColorCtrl),
+                buildHexColorField('Foreground', foregroundColorCtrl),
+                buildHexColorField('Background', backgroundColorCtrl),
+                buildHexColorField('Cursor', cursorColorCtrl),
+                buildHexColorField(
+                  'Selection Background',
+                  selectionBackgroundColorCtrl,
                 ),
               ],
             ),
-            const SizedBox(height: 8),
-            Form(
-              key: formKey,
-              child: Column(
-                spacing: 16,
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  FTextFormField(
-                    control: .managed(controller: nameCtrl),
-                    label: const Text('Name'),
-                    hint: 'My Theme',
-                    validator: Validators.nonEmpty,
-                  ),
-                  Wrap(
-                    spacing: 16,
-                    runSpacing: 16,
-                    children: [
-                      buildHexColorField('Black', blackColorCtrl),
-                      buildHexColorField('Red', redColorCtrl),
-                      buildHexColorField('Green', greenColorCtrl),
-                      buildHexColorField('Yellow', yellowColorCtrl),
-                      buildHexColorField('Blue', blueColorCtrl),
-                      buildHexColorField('Purple', purpleColorCtrl),
-                      buildHexColorField('Cyan', cyanColorCtrl),
-                      buildHexColorField('White', whiteColorCtrl),
-                      buildHexColorField('Bright Black', brightBlackColorCtrl),
-                      buildHexColorField('Bright Red', brightRedColorCtrl),
-                      buildHexColorField('Bright Green', brightGreenColorCtrl),
-                      buildHexColorField(
-                        'Bright Yellow',
-                        brightYellowColorCtrl,
-                      ),
-                      buildHexColorField('Bright Blue', brightBlueColorCtrl),
-                      buildHexColorField(
-                        'Bright Purple',
-                        brightPurpleColorCtrl,
-                      ),
-                      buildHexColorField('Bright Cyan', brightCyanColorCtrl),
-                      buildHexColorField('Bright White', brightWhiteColorCtrl),
-                      buildHexColorField('Foreground', foregroundColorCtrl),
-                      buildHexColorField('Background', backgroundColorCtrl),
-                      buildHexColorField('Cursor', cursorColorCtrl),
-                      buildHexColorField(
-                        'Selection Background',
-                        selectionBackgroundColorCtrl,
-                      ),
-                    ],
-                  ),
-                  const FDivider(),
-                  Wrap(
-                    spacing: 16,
-                    runSpacing: 16,
-                    children: [
-                      buildHexColorField(
-                        'Selection Foreground',
-                        selectionForegroundColorCtrl,
-                        required: false,
-                      ),
-                      buildHexColorField(
-                        'Cursor Text Color',
-                        cursorTextColorCtrl,
-                        required: false,
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-
-            const SizedBox(height: 40),
-
-            SizedBox(
-              width: double.infinity,
-              child: FButton(
-                onPress: onSave,
-                child: Text(isEdit ? 'Edit' : 'Save'),
-              ),
+            const FDivider(),
+            Wrap(
+              spacing: 16,
+              runSpacing: 16,
+              children: [
+                buildHexColorField(
+                  'Selection Foreground',
+                  selectionForegroundColorCtrl,
+                  required: false,
+                ),
+                buildHexColorField(
+                  'Cursor Text Color',
+                  cursorTextColorCtrl,
+                  required: false,
+                ),
+              ],
             ),
           ],
         ),

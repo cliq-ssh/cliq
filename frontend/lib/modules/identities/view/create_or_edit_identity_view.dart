@@ -9,10 +9,10 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:forui/forui.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:lucide_flutter/lucide_flutter.dart';
 
 import '../../../shared/data/database.dart';
 import '../../../shared/ui/create_or_edit_credential_form.dart';
+import '../../../shared/ui/create_or_edit_entity_view.dart';
 import '../provider/identity_service.provider.dart';
 
 class CreateOrEditIdentityView extends HookConsumerWidget {
@@ -30,6 +30,7 @@ class CreateOrEditIdentityView extends HookConsumerWidget {
     : initialLabel = null,
       current = IdentitiesCompanion(
         id: Value(identity.id),
+        vaultId: Value(identity.vaultId),
         label: Value(identity.label),
         username: Value(identity.username),
       ),
@@ -42,6 +43,7 @@ class CreateOrEditIdentityView extends HookConsumerWidget {
     final credentialsKey = useMemoized(
       () => GlobalKey<CreateOrEditCredentialsFormState>(),
     );
+    final selectedVaultId = useState<int?>(current?.vaultId.value);
 
     final labelCtrl = useTextEditingController(
       text: initialLabel ?? current?.label.value,
@@ -53,7 +55,7 @@ class CreateOrEditIdentityView extends HookConsumerWidget {
     /// Handles the save action for the form.
     /// Validates the form, inserts any additional credentials, and either updates
     /// or creates a new connection based on the [isEdit] flag.
-    Future<void> onSave() async {
+    Future<void> onSave(int? vaultId) async {
       if (!(formKey.currentState?.validate() ?? false)) return;
       final newCredentialIds = await credentialsKey.currentState?.save();
       // null is only returned when validation fails
@@ -63,12 +65,14 @@ class CreateOrEditIdentityView extends HookConsumerWidget {
       final identityId = isEdit
           ? identityService.update(
               current!.id.value,
+              vaultId: vaultId,
               label: labelCtrl.textOrNull,
               username: usernameCtrl.textOrNull,
               newCredentialIds: newCredentialIds,
               compareTo: current,
             )
           : identityService.createIdentity(
+              vaultId: vaultId!,
               label: labelCtrl.text,
               username: usernameCtrl.text,
               credentialIds: newCredentialIds,
@@ -78,61 +82,41 @@ class CreateOrEditIdentityView extends HookConsumerWidget {
       context.pop((identityId, labelCtrl.text));
     }
 
-    return FScaffold(
-      child: SingleChildScrollView(
-        padding: const .symmetric(horizontal: 32, vertical: 20),
+    return CreateOrEditEntityView(
+      onSave: onSave,
+      onVaultSelected: (vaultId) => selectedVaultId.value = vaultId,
+      isEdit: isEdit,
+      child: Form(
+        key: formKey,
         child: Column(
+          spacing: 16,
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: [
-                FButton.icon(
-                  variant: .outline,
-                  onPress: () => context.pop(),
-                  child: const Icon(LucideIcons.x),
-                ),
-              ],
-            ),
-            const SizedBox(height: 8),
-            Form(
-              key: formKey,
-              child: Column(
-                spacing: 16,
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  FTextFormField(
-                    control: .managed(controller: labelCtrl),
-                    label: const Text('Label'),
-                    hint: 'My Server',
-                    validator: Validators.nonEmpty,
-                  ),
-
-                  FTextFormField(
-                    control: .managed(controller: usernameCtrl),
-                    label: const Text('Username'),
-                    hint: 'root',
-                    validator: Validators.nonEmpty,
-                  ),
-
-                  isEdit
-                      ? CreateOrEditCredentialsForm.edit(
-                          key: credentialsKey,
-                          currentCredentialIds,
-                        )
-                      : CreateOrEditCredentialsForm.create(key: credentialsKey),
-                ],
-              ),
+            FTextFormField(
+              control: .managed(controller: labelCtrl),
+              label: const Text('Label'),
+              hint: 'My Server',
+              validator: Validators.nonEmpty,
             ),
 
-            const SizedBox(height: 40),
-
-            SizedBox(
-              width: double.infinity,
-              child: FButton(
-                onPress: onSave,
-                child: Text(isEdit ? 'Edit' : 'Save'),
-              ),
+            FTextFormField(
+              control: .managed(controller: usernameCtrl),
+              label: const Text('Username'),
+              hint: 'root',
+              validator: Validators.nonEmpty,
             ),
+
+            if (selectedVaultId.value != null)
+              isEdit
+                  ? CreateOrEditCredentialsForm.edit(
+                      key: credentialsKey,
+                      vaultId: selectedVaultId.value!,
+                      currentCredentialIds,
+                    )
+                  : CreateOrEditCredentialsForm.create(
+                      key: credentialsKey,
+                      vaultId: selectedVaultId.value!,
+                    ),
           ],
         ),
       ),

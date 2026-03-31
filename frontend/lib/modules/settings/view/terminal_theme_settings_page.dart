@@ -184,6 +184,7 @@ class TerminalThemeSettingsPage extends AbstractSettingsPage {
                                             Commons.customTerminalThemeGroup,
                                           ],
                                         ),
+                                        1, // TODO: target vault id
                                       );
 
                                   if (!context.mounted) return;
