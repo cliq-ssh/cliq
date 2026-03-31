@@ -147,6 +147,7 @@ class CreateOrEditCredentialsFormState
     final keysFuture = useMemoizedFuture(() async {
       return await CliqDatabase.keysService.findByIds(keyIds.entities);
     }, [keyIds]);
+
     useEffect(() {
       if (widget.current != null) {
         CliqDatabase.credentialService.findByIds(widget.current!).then((creds) {
@@ -165,7 +166,6 @@ class CreateOrEditCredentialsFormState
           }).toList();
         });
       }
-
       return null;
     }, []);
 

@@ -1,28 +1,75 @@
+import 'dart:async';
+
 import 'package:cliq/shared/data/store.dart';
+import 'package:cliq/shared/model/router.model.dart';
 import 'package:cliq/shared/provider/router.provider.dart';
 import 'package:cliq/shared/provider/store.provider.dart';
+import 'package:cliq/shared/ui/error_view.dart';
+import 'package:cliq/shared/utils/commons.dart';
 import 'package:flutter/foundation.dart';
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' hide Router;
 import 'package:flutter/services.dart';
 import 'package:forui/forui.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:logging/logging.dart';
+import 'package:lucide_flutter/lucide_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'shared/data/database.dart';
 
 void main() async {
-  WidgetsFlutterBinding.ensureInitialized();
+  runZonedGuarded(() async {
+    WidgetsFlutterBinding.ensureInitialized();
 
-  if (kDebugMode) {
-    _initLogger();
+    if (kDebugMode) {
+      _initLogger();
+    }
+
+    FlutterError.onError = (details) {
+      FlutterError.presentError(details);
+      _handleError(details.exception, details.stack ?? StackTrace.empty);
+    };
+
+    CliqDatabase.init();
+    SharedPreferences.setPrefix('cliq.');
+    await KeyValueStore.init();
+
+    runApp(const ProviderScope(child: CliqApp()));
+  }, _handleError);
+}
+
+void _handleError(Object error, StackTrace stackTrace) {
+  debugPrint(stackTrace.toString());
+
+  String errorMessage = error.toString();
+  if (errorMessage.length > 150) {
+    errorMessage = '${errorMessage.substring(0, 150)}...';
   }
 
-  CliqDatabase.init();
-  SharedPreferences.setPrefix('cliq.');
-  await KeyValueStore.init();
-
-  runApp(const ProviderScope(child: CliqApp()));
+  showFToast(
+    context: Router.rootNavigatorKey.currentContext!,
+    variant: .destructive,
+    title: Text(errorMessage),
+    suffixBuilder: (context, entry) {
+      return FTooltip(
+        tipBuilder: (_, _) => Text('View error details'),
+        child: GestureDetector(
+          onTap: () {
+            entry.dismiss();
+            Commons.showResponsiveDialog(
+              (_) => ErrorView(error: error, stackTrace: stackTrace),
+            );
+          },
+          child: Icon(
+            LucideIcons.squareArrowOutUpRight,
+            color: context.theme.colors.destructive,
+            size: 20,
+          ),
+        ),
+      );
+    },
+    duration: null,
+  );
 }
 
 void _initLogger() {
