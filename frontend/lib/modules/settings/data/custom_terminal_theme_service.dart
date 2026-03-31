@@ -22,7 +22,6 @@ final class CustomTerminalThemeService {
 
   Future<int> update(
     int themeId, {
-    required int? vaultId,
     required String? name,
     required Color? black,
     required Color? red,
@@ -51,7 +50,6 @@ final class CustomTerminalThemeService {
     await _customTerminalThemesRepository.updateById(
       themeId,
       CustomTerminalThemesCompanion(
-        vaultId: ValueExtension.absentIfNullOrSame(vaultId, compareTo?.vaultId),
         name: ValueExtension.absentIfNullOrSame(name, compareTo?.name),
         blackColor: ValueExtension.absentIfNullOrSame(
           black,

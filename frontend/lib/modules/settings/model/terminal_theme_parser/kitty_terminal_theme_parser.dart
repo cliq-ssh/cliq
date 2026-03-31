@@ -82,11 +82,7 @@ class KittyTerminalThemeParser extends AbstractTerminalThemeParser {
   }
 
   @override
-  CustomTerminalThemesCompanion? tryParse(
-    String fileName,
-    String content,
-    int vaultId,
-  ) {
+  CustomTerminalThemesCompanion? tryParse(String fileName, String content) {
     final lines = _getEffectiveLines(content);
 
     final Map<String, Color> colorMap = {};
@@ -116,7 +112,6 @@ class KittyTerminalThemeParser extends AbstractTerminalThemeParser {
 
     try {
       return CustomTerminalThemesCompanion.insert(
-        vaultId: vaultId,
         name: themeName,
         blackColor: colorMap['color0']!,
         redColor: colorMap['color1']!,

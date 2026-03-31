@@ -41,7 +41,7 @@ void main() {
         'tryParse: Successfully parse valid ${parser.name} theme content',
         () async {
           final (fileName, content) = await readResource(sampleFiles[parser]!);
-          final theme = parser.instance.tryParse(fileName, content, 1);
+          final theme = parser.instance.tryParse(fileName, content);
           expect(theme, isNotNull);
         },
       );

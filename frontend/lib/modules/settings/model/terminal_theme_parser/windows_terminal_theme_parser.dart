@@ -79,18 +79,13 @@ class WindowsTerminalThemeParser extends AbstractTerminalThemeParser {
   }
 
   @override
-  CustomTerminalThemesCompanion? tryParse(
-    String fileName,
-    String content,
-    int vaultId,
-  ) {
+  CustomTerminalThemesCompanion? tryParse(String fileName, String content) {
     try {
       final json = jsonDecode(content);
       if (json is! Map<String, dynamic>) {
         return null;
       }
       return CustomTerminalThemesCompanion.insert(
-        vaultId: vaultId,
         name: json['name'] as String,
         blackColor: ColorExtension.fromHex(json['black'] as String)!,
         redColor: ColorExtension.fromHex(json['red'] as String)!,

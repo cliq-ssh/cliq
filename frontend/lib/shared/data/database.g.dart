@@ -607,17 +607,6 @@ class CustomTerminalThemes extends Table
     requiredDuringInsert: false,
     $customConstraints: 'PRIMARY KEY AUTOINCREMENT',
   );
-  static const VerificationMeta _vaultIdMeta = const VerificationMeta(
-    'vaultId',
-  );
-  late final GeneratedColumn<int> vaultId = GeneratedColumn<int>(
-    'vault_id',
-    aliasedName,
-    false,
-    type: DriftSqlType.int,
-    requiredDuringInsert: true,
-    $customConstraints: 'NOT NULL REFERENCES vaults(id)',
-  );
   static const VerificationMeta _nameMeta = const VerificationMeta('name');
   late final GeneratedColumn<String> name = GeneratedColumn<String>(
     'name',
@@ -834,7 +823,6 @@ class CustomTerminalThemes extends Table
   @override
   List<GeneratedColumn> get $columns => [
     id,
-    vaultId,
     name,
     blackColor,
     redColor,
@@ -874,14 +862,6 @@ class CustomTerminalThemes extends Table
     if (data.containsKey('id')) {
       context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
     }
-    if (data.containsKey('vault_id')) {
-      context.handle(
-        _vaultIdMeta,
-        vaultId.isAcceptableOrUnknown(data['vault_id']!, _vaultIdMeta),
-      );
-    } else if (isInserting) {
-      context.missing(_vaultIdMeta);
-    }
     if (data.containsKey('name')) {
       context.handle(
         _nameMeta,
@@ -902,10 +882,6 @@ class CustomTerminalThemes extends Table
       id: attachedDatabase.typeMapping.read(
         DriftSqlType.int,
         data['${effectivePrefix}id'],
-      )!,
-      vaultId: attachedDatabase.typeMapping.read(
-        DriftSqlType.int,
-        data['${effectivePrefix}vault_id'],
       )!,
       name: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
@@ -1109,7 +1085,6 @@ class CustomTerminalThemes extends Table
 class CustomTerminalTheme extends DataClass
     implements Insertable<CustomTerminalTheme> {
   final int id;
-  final int vaultId;
   final String name;
   final Color blackColor;
   final Color redColor;
@@ -1135,7 +1110,6 @@ class CustomTerminalTheme extends DataClass
   final Color? cursorTextColor;
   const CustomTerminalTheme({
     required this.id,
-    required this.vaultId,
     required this.name,
     required this.blackColor,
     required this.redColor,
@@ -1164,7 +1138,6 @@ class CustomTerminalTheme extends DataClass
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
     map['id'] = Variable<int>(id);
-    map['vault_id'] = Variable<int>(vaultId);
     map['name'] = Variable<String>(name);
     {
       map['black_color'] = Variable<int>(
@@ -1290,7 +1263,6 @@ class CustomTerminalTheme extends DataClass
   CustomTerminalThemesCompanion toCompanion(bool nullToAbsent) {
     return CustomTerminalThemesCompanion(
       id: Value(id),
-      vaultId: Value(vaultId),
       name: Value(name),
       blackColor: Value(blackColor),
       redColor: Value(redColor),
@@ -1328,7 +1300,6 @@ class CustomTerminalTheme extends DataClass
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return CustomTerminalTheme(
       id: serializer.fromJson<int>(json['id']),
-      vaultId: serializer.fromJson<int>(json['vault_id']),
       name: serializer.fromJson<String>(json['name']),
       blackColor: serializer.fromJson<Color>(json['black_color']),
       redColor: serializer.fromJson<Color>(json['red_color']),
@@ -1367,7 +1338,6 @@ class CustomTerminalTheme extends DataClass
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return <String, dynamic>{
       'id': serializer.toJson<int>(id),
-      'vault_id': serializer.toJson<int>(vaultId),
       'name': serializer.toJson<String>(name),
       'black_color': serializer.toJson<Color>(blackColor),
       'red_color': serializer.toJson<Color>(redColor),
@@ -1400,7 +1370,6 @@ class CustomTerminalTheme extends DataClass
 
   CustomTerminalTheme copyWith({
     int? id,
-    int? vaultId,
     String? name,
     Color? blackColor,
     Color? redColor,
@@ -1426,7 +1395,6 @@ class CustomTerminalTheme extends DataClass
     Value<Color?> cursorTextColor = const Value.absent(),
   }) => CustomTerminalTheme(
     id: id ?? this.id,
-    vaultId: vaultId ?? this.vaultId,
     name: name ?? this.name,
     blackColor: blackColor ?? this.blackColor,
     redColor: redColor ?? this.redColor,
@@ -1459,7 +1427,6 @@ class CustomTerminalTheme extends DataClass
   CustomTerminalTheme copyWithCompanion(CustomTerminalThemesCompanion data) {
     return CustomTerminalTheme(
       id: data.id.present ? data.id.value : this.id,
-      vaultId: data.vaultId.present ? data.vaultId.value : this.vaultId,
       name: data.name.present ? data.name.value : this.name,
       blackColor: data.blackColor.present
           ? data.blackColor.value
@@ -1528,7 +1495,6 @@ class CustomTerminalTheme extends DataClass
   String toString() {
     return (StringBuffer('CustomTerminalTheme(')
           ..write('id: $id, ')
-          ..write('vaultId: $vaultId, ')
           ..write('name: $name, ')
           ..write('blackColor: $blackColor, ')
           ..write('redColor: $redColor, ')
@@ -1559,7 +1525,6 @@ class CustomTerminalTheme extends DataClass
   @override
   int get hashCode => Object.hashAll([
     id,
-    vaultId,
     name,
     blackColor,
     redColor,
@@ -1589,7 +1554,6 @@ class CustomTerminalTheme extends DataClass
       identical(this, other) ||
       (other is CustomTerminalTheme &&
           other.id == this.id &&
-          other.vaultId == this.vaultId &&
           other.name == this.name &&
           other.blackColor == this.blackColor &&
           other.redColor == this.redColor &&
@@ -1618,7 +1582,6 @@ class CustomTerminalTheme extends DataClass
 class CustomTerminalThemesCompanion
     extends UpdateCompanion<CustomTerminalTheme> {
   final Value<int> id;
-  final Value<int> vaultId;
   final Value<String> name;
   final Value<Color> blackColor;
   final Value<Color> redColor;
@@ -1644,7 +1607,6 @@ class CustomTerminalThemesCompanion
   final Value<Color?> cursorTextColor;
   const CustomTerminalThemesCompanion({
     this.id = const Value.absent(),
-    this.vaultId = const Value.absent(),
     this.name = const Value.absent(),
     this.blackColor = const Value.absent(),
     this.redColor = const Value.absent(),
@@ -1671,7 +1633,6 @@ class CustomTerminalThemesCompanion
   });
   CustomTerminalThemesCompanion.insert({
     this.id = const Value.absent(),
-    required int vaultId,
     required String name,
     required Color blackColor,
     required Color redColor,
@@ -1695,8 +1656,7 @@ class CustomTerminalThemesCompanion
     required Color selectionBackgroundColor,
     this.selectionForegroundColor = const Value.absent(),
     this.cursorTextColor = const Value.absent(),
-  }) : vaultId = Value(vaultId),
-       name = Value(name),
+  }) : name = Value(name),
        blackColor = Value(blackColor),
        redColor = Value(redColor),
        greenColor = Value(greenColor),
@@ -1719,7 +1679,6 @@ class CustomTerminalThemesCompanion
        selectionBackgroundColor = Value(selectionBackgroundColor);
   static Insertable<CustomTerminalTheme> custom({
     Expression<int>? id,
-    Expression<int>? vaultId,
     Expression<String>? name,
     Expression<int>? blackColor,
     Expression<int>? redColor,
@@ -1746,7 +1705,6 @@ class CustomTerminalThemesCompanion
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
-      if (vaultId != null) 'vault_id': vaultId,
       if (name != null) 'name': name,
       if (blackColor != null) 'black_color': blackColor,
       if (redColor != null) 'red_color': redColor,
@@ -1777,7 +1735,6 @@ class CustomTerminalThemesCompanion
 
   CustomTerminalThemesCompanion copyWith({
     Value<int>? id,
-    Value<int>? vaultId,
     Value<String>? name,
     Value<Color>? blackColor,
     Value<Color>? redColor,
@@ -1804,7 +1761,6 @@ class CustomTerminalThemesCompanion
   }) {
     return CustomTerminalThemesCompanion(
       id: id ?? this.id,
-      vaultId: vaultId ?? this.vaultId,
       name: name ?? this.name,
       blackColor: blackColor ?? this.blackColor,
       redColor: redColor ?? this.redColor,
@@ -1838,9 +1794,6 @@ class CustomTerminalThemesCompanion
     final map = <String, Expression>{};
     if (id.present) {
       map['id'] = Variable<int>(id.value);
-    }
-    if (vaultId.present) {
-      map['vault_id'] = Variable<int>(vaultId.value);
     }
     if (name.present) {
       map['name'] = Variable<String>(name.value);
@@ -1988,7 +1941,6 @@ class CustomTerminalThemesCompanion
   String toString() {
     return (StringBuffer('CustomTerminalThemesCompanion(')
           ..write('id: $id, ')
-          ..write('vaultId: $vaultId, ')
           ..write('name: $name, ')
           ..write('blackColor: $blackColor, ')
           ..write('redColor: $redColor, ')
@@ -4500,7 +4452,7 @@ abstract class _$CliqDatabase extends GeneratedDatabase {
 
   Selectable<FindAllConnectionFullResult> findAllConnectionFull() {
     return customSelect(
-      'SELECT"c"."id" AS "nested_0.id", "c"."vault_id" AS "nested_0.vault_id", "c"."label" AS "nested_0.label", "c"."address" AS "nested_0.address", "c"."port" AS "nested_0.port", "c"."identity_id" AS "nested_0.identity_id", "c"."username" AS "nested_0.username", "c"."group_name" AS "nested_0.group_name", "c"."icon" AS "nested_0.icon", "c"."icon_color" AS "nested_0.icon_color", "c"."icon_background_color" AS "nested_0.icon_background_color", "c"."is_icon_auto_detect" AS "nested_0.is_icon_auto_detect", "c"."terminal_typography_override" AS "nested_0.terminal_typography_override", "c"."terminal_theme_override_id" AS "nested_0.terminal_theme_override_id", "c"."uses_default_theme_override" AS "nested_0.uses_default_theme_override","v"."id" AS "nested_1.id", "v"."label" AS "nested_1.label", "v"."is_default" AS "nested_1.is_default","i"."id" AS "nested_2.id", "i"."vault_id" AS "nested_2.vault_id", "i"."label" AS "nested_2.label", "i"."username" AS "nested_2.username","iv"."id" AS "nested_3.id", "iv"."label" AS "nested_3.label", "iv"."is_default" AS "nested_3.is_default","t"."id" AS "nested_4.id", "t"."vault_id" AS "nested_4.vault_id", "t"."name" AS "nested_4.name", "t"."black_color" AS "nested_4.black_color", "t"."red_color" AS "nested_4.red_color", "t"."green_color" AS "nested_4.green_color", "t"."yellow_color" AS "nested_4.yellow_color", "t"."blue_color" AS "nested_4.blue_color", "t"."purple_color" AS "nested_4.purple_color", "t"."cyan_color" AS "nested_4.cyan_color", "t"."white_color" AS "nested_4.white_color", "t"."bright_black_color" AS "nested_4.bright_black_color", "t"."bright_red_color" AS "nested_4.bright_red_color", "t"."bright_green_color" AS "nested_4.bright_green_color", "t"."bright_yellow_color" AS "nested_4.bright_yellow_color", "t"."bright_blue_color" AS "nested_4.bright_blue_color", "t"."bright_purple_color" AS "nested_4.bright_purple_color", "t"."bright_cyan_color" AS "nested_4.bright_cyan_color", "t"."bright_white_color" AS "nested_4.bright_white_color", "t"."background_color" AS "nested_4.background_color", "t"."foreground_color" AS "nested_4.foreground_color", "t"."cursor_color" AS "nested_4.cursor_color", "t"."selection_background_color" AS "nested_4.selection_background_color", "t"."selection_foreground_color" AS "nested_4.selection_foreground_color", "t"."cursor_text_color" AS "nested_4.cursor_text_color", c.id AS "\$n_0", i.id AS "\$n_1" FROM connections AS c INNER JOIN vaults AS v ON c.vault_id = v.id LEFT JOIN identities AS i ON c.identity_id = i.id LEFT JOIN vaults AS iv ON i.vault_id = iv.id LEFT JOIN custom_terminal_themes AS t ON c.terminal_theme_override_id = t.id',
+      'SELECT"c"."id" AS "nested_0.id", "c"."vault_id" AS "nested_0.vault_id", "c"."label" AS "nested_0.label", "c"."address" AS "nested_0.address", "c"."port" AS "nested_0.port", "c"."identity_id" AS "nested_0.identity_id", "c"."username" AS "nested_0.username", "c"."group_name" AS "nested_0.group_name", "c"."icon" AS "nested_0.icon", "c"."icon_color" AS "nested_0.icon_color", "c"."icon_background_color" AS "nested_0.icon_background_color", "c"."is_icon_auto_detect" AS "nested_0.is_icon_auto_detect", "c"."terminal_typography_override" AS "nested_0.terminal_typography_override", "c"."terminal_theme_override_id" AS "nested_0.terminal_theme_override_id", "c"."uses_default_theme_override" AS "nested_0.uses_default_theme_override","v"."id" AS "nested_1.id", "v"."label" AS "nested_1.label", "v"."is_default" AS "nested_1.is_default","i"."id" AS "nested_2.id", "i"."vault_id" AS "nested_2.vault_id", "i"."label" AS "nested_2.label", "i"."username" AS "nested_2.username","iv"."id" AS "nested_3.id", "iv"."label" AS "nested_3.label", "iv"."is_default" AS "nested_3.is_default","t"."id" AS "nested_4.id", "t"."name" AS "nested_4.name", "t"."black_color" AS "nested_4.black_color", "t"."red_color" AS "nested_4.red_color", "t"."green_color" AS "nested_4.green_color", "t"."yellow_color" AS "nested_4.yellow_color", "t"."blue_color" AS "nested_4.blue_color", "t"."purple_color" AS "nested_4.purple_color", "t"."cyan_color" AS "nested_4.cyan_color", "t"."white_color" AS "nested_4.white_color", "t"."bright_black_color" AS "nested_4.bright_black_color", "t"."bright_red_color" AS "nested_4.bright_red_color", "t"."bright_green_color" AS "nested_4.bright_green_color", "t"."bright_yellow_color" AS "nested_4.bright_yellow_color", "t"."bright_blue_color" AS "nested_4.bright_blue_color", "t"."bright_purple_color" AS "nested_4.bright_purple_color", "t"."bright_cyan_color" AS "nested_4.bright_cyan_color", "t"."bright_white_color" AS "nested_4.bright_white_color", "t"."background_color" AS "nested_4.background_color", "t"."foreground_color" AS "nested_4.foreground_color", "t"."cursor_color" AS "nested_4.cursor_color", "t"."selection_background_color" AS "nested_4.selection_background_color", "t"."selection_foreground_color" AS "nested_4.selection_foreground_color", "t"."cursor_text_color" AS "nested_4.cursor_text_color", c.id AS "\$n_0", i.id AS "\$n_1" FROM connections AS c INNER JOIN vaults AS v ON c.vault_id = v.id LEFT JOIN identities AS i ON c.identity_id = i.id LEFT JOIN vaults AS iv ON i.vault_id = iv.id LEFT JOIN custom_terminal_themes AS t ON c.terminal_theme_override_id = t.id',
       variables: [],
       readsFrom: {
         credentials,
@@ -4654,30 +4606,6 @@ final class $VaultsReferences
     );
   }
 
-  static MultiTypedResultKey<CustomTerminalThemes, List<CustomTerminalTheme>>
-  _customTerminalThemesRefsTable(_$CliqDatabase db) =>
-      MultiTypedResultKey.fromTable(
-        db.customTerminalThemes,
-        aliasName: $_aliasNameGenerator(
-          db.vaults.id,
-          db.customTerminalThemes.vaultId,
-        ),
-      );
-
-  $CustomTerminalThemesProcessedTableManager get customTerminalThemesRefs {
-    final manager = $CustomTerminalThemesTableManager(
-      $_db,
-      $_db.customTerminalThemes,
-    ).filter((f) => f.vaultId.id.sqlEquals($_itemColumn<int>('id')!));
-
-    final cache = $_typedResult.readTableOrNull(
-      _customTerminalThemesRefsTable($_db),
-    );
-    return ProcessedTableManager(
-      manager.$state.copyWith(prefetchedData: cache),
-    );
-  }
-
   static MultiTypedResultKey<Keys, List<Key>> _keysRefsTable(
     _$CliqDatabase db,
   ) => MultiTypedResultKey.fromTable(
@@ -4792,31 +4720,6 @@ class $VaultsFilterComposer extends Composer<_$CliqDatabase, Vaults> {
           }) => $KnownHostsFilterComposer(
             $db: $db,
             $table: $db.knownHosts,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
-    return f(composer);
-  }
-
-  Expression<bool> customTerminalThemesRefs(
-    Expression<bool> Function($CustomTerminalThemesFilterComposer f) f,
-  ) {
-    final $CustomTerminalThemesFilterComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.id,
-      referencedTable: $db.customTerminalThemes,
-      getReferencedColumn: (t) => t.vaultId,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $CustomTerminalThemesFilterComposer(
-            $db: $db,
-            $table: $db.customTerminalThemes,
             $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
             joinBuilder: joinBuilder,
             $removeJoinBuilderFromRootComposer:
@@ -4993,31 +4896,6 @@ class $VaultsAnnotationComposer extends Composer<_$CliqDatabase, Vaults> {
     return f(composer);
   }
 
-  Expression<T> customTerminalThemesRefs<T extends Object>(
-    Expression<T> Function($CustomTerminalThemesAnnotationComposer a) f,
-  ) {
-    final $CustomTerminalThemesAnnotationComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.id,
-      referencedTable: $db.customTerminalThemes,
-      getReferencedColumn: (t) => t.vaultId,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $CustomTerminalThemesAnnotationComposer(
-            $db: $db,
-            $table: $db.customTerminalThemes,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
-    return f(composer);
-  }
-
   Expression<T> keysRefs<T extends Object>(
     Expression<T> Function($KeysAnnotationComposer a) f,
   ) {
@@ -5134,7 +5012,6 @@ class $VaultsTableManager
           Vault,
           PrefetchHooks Function({
             bool knownHostsRefs,
-            bool customTerminalThemesRefs,
             bool keysRefs,
             bool identitiesRefs,
             bool credentialsRefs,
@@ -5174,7 +5051,6 @@ class $VaultsTableManager
           prefetchHooksCallback:
               ({
                 knownHostsRefs = false,
-                customTerminalThemesRefs = false,
                 keysRefs = false,
                 identitiesRefs = false,
                 credentialsRefs = false,
@@ -5184,7 +5060,6 @@ class $VaultsTableManager
                   db: db,
                   explicitlyWatchedTables: [
                     if (knownHostsRefs) db.knownHosts,
-                    if (customTerminalThemesRefs) db.customTerminalThemes,
                     if (keysRefs) db.keys,
                     if (identitiesRefs) db.identities,
                     if (credentialsRefs) db.credentials,
@@ -5200,26 +5075,6 @@ class $VaultsTableManager
                               ._knownHostsRefsTable(db),
                           managerFromTypedResult: (p0) =>
                               $VaultsReferences(db, table, p0).knownHostsRefs,
-                          referencedItemsForCurrentItem:
-                              (item, referencedItems) => referencedItems.where(
-                                (e) => e.vaultId == item.id,
-                              ),
-                          typedResults: items,
-                        ),
-                      if (customTerminalThemesRefs)
-                        await $_getPrefetchedData<
-                          Vault,
-                          Vaults,
-                          CustomTerminalTheme
-                        >(
-                          currentTable: table,
-                          referencedTable: $VaultsReferences
-                              ._customTerminalThemesRefsTable(db),
-                          managerFromTypedResult: (p0) => $VaultsReferences(
-                            db,
-                            table,
-                            p0,
-                          ).customTerminalThemesRefs,
                           referencedItemsForCurrentItem:
                               (item, referencedItems) => referencedItems.where(
                                 (e) => e.vaultId == item.id,
@@ -5299,7 +5154,6 @@ typedef $VaultsProcessedTableManager =
       Vault,
       PrefetchHooks Function({
         bool knownHostsRefs,
-        bool customTerminalThemesRefs,
         bool keysRefs,
         bool identitiesRefs,
         bool credentialsRefs,
@@ -5617,7 +5471,6 @@ typedef $KnownHostsProcessedTableManager =
 typedef $CustomTerminalThemesCreateCompanionBuilder =
     CustomTerminalThemesCompanion Function({
       Value<int> id,
-      required int vaultId,
       required String name,
       required Color blackColor,
       required Color redColor,
@@ -5645,7 +5498,6 @@ typedef $CustomTerminalThemesCreateCompanionBuilder =
 typedef $CustomTerminalThemesUpdateCompanionBuilder =
     CustomTerminalThemesCompanion Function({
       Value<int> id,
-      Value<int> vaultId,
       Value<String> name,
       Value<Color> blackColor,
       Value<Color> redColor,
@@ -5683,24 +5535,6 @@ final class $CustomTerminalThemesReferences
     super.$_table,
     super.$_typedResult,
   );
-
-  static Vaults _vaultIdTable(_$CliqDatabase db) => db.vaults.createAlias(
-    $_aliasNameGenerator(db.customTerminalThemes.vaultId, db.vaults.id),
-  );
-
-  $VaultsProcessedTableManager get vaultId {
-    final $_column = $_itemColumn<int>('vault_id')!;
-
-    final manager = $VaultsTableManager(
-      $_db,
-      $_db.vaults,
-    ).filter((f) => f.id.sqlEquals($_column));
-    final item = $_typedResult.readTableOrNull(_vaultIdTable($_db));
-    if (item == null) return manager;
-    return ProcessedTableManager(
-      manager.$state.copyWith(prefetchedData: [item]),
-    );
-  }
 
   static MultiTypedResultKey<Connections, List<Connection>>
   _connectionsRefsTable(_$CliqDatabase db) => MultiTypedResultKey.fromTable(
@@ -5874,29 +5708,6 @@ class $CustomTerminalThemesFilterComposer
         builder: (column) => ColumnWithTypeConverterFilters(column),
       );
 
-  $VaultsFilterComposer get vaultId {
-    final $VaultsFilterComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.vaultId,
-      referencedTable: $db.vaults,
-      getReferencedColumn: (t) => t.id,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $VaultsFilterComposer(
-            $db: $db,
-            $table: $db.vaults,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
-    return composer;
-  }
-
   Expression<bool> connectionsRefs(
     Expression<bool> Function($ConnectionsFilterComposer f) f,
   ) {
@@ -6051,29 +5862,6 @@ class $CustomTerminalThemesOrderingComposer
     column: $table.cursorTextColor,
     builder: (column) => ColumnOrderings(column),
   );
-
-  $VaultsOrderingComposer get vaultId {
-    final $VaultsOrderingComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.vaultId,
-      referencedTable: $db.vaults,
-      getReferencedColumn: (t) => t.id,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $VaultsOrderingComposer(
-            $db: $db,
-            $table: $db.vaults,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
-    return composer;
-  }
 }
 
 class $CustomTerminalThemesAnnotationComposer
@@ -6214,29 +6002,6 @@ class $CustomTerminalThemesAnnotationComposer
         builder: (column) => column,
       );
 
-  $VaultsAnnotationComposer get vaultId {
-    final $VaultsAnnotationComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.vaultId,
-      referencedTable: $db.vaults,
-      getReferencedColumn: (t) => t.id,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $VaultsAnnotationComposer(
-            $db: $db,
-            $table: $db.vaults,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
-    return composer;
-  }
-
   Expression<T> connectionsRefs<T extends Object>(
     Expression<T> Function($ConnectionsAnnotationComposer a) f,
   ) {
@@ -6276,7 +6041,7 @@ class $CustomTerminalThemesTableManager
           $CustomTerminalThemesUpdateCompanionBuilder,
           (CustomTerminalTheme, $CustomTerminalThemesReferences),
           CustomTerminalTheme,
-          PrefetchHooks Function({bool vaultId, bool connectionsRefs})
+          PrefetchHooks Function({bool connectionsRefs})
         > {
   $CustomTerminalThemesTableManager(
     _$CliqDatabase db,
@@ -6294,7 +6059,6 @@ class $CustomTerminalThemesTableManager
           updateCompanionCallback:
               ({
                 Value<int> id = const Value.absent(),
-                Value<int> vaultId = const Value.absent(),
                 Value<String> name = const Value.absent(),
                 Value<Color> blackColor = const Value.absent(),
                 Value<Color> redColor = const Value.absent(),
@@ -6320,7 +6084,6 @@ class $CustomTerminalThemesTableManager
                 Value<Color?> cursorTextColor = const Value.absent(),
               }) => CustomTerminalThemesCompanion(
                 id: id,
-                vaultId: vaultId,
                 name: name,
                 blackColor: blackColor,
                 redColor: redColor,
@@ -6348,7 +6111,6 @@ class $CustomTerminalThemesTableManager
           createCompanionCallback:
               ({
                 Value<int> id = const Value.absent(),
-                required int vaultId,
                 required String name,
                 required Color blackColor,
                 required Color redColor,
@@ -6374,7 +6136,6 @@ class $CustomTerminalThemesTableManager
                 Value<Color?> cursorTextColor = const Value.absent(),
               }) => CustomTerminalThemesCompanion.insert(
                 id: id,
-                vaultId: vaultId,
                 name: name,
                 blackColor: blackColor,
                 redColor: redColor,
@@ -6407,43 +6168,11 @@ class $CustomTerminalThemesTableManager
                 ),
               )
               .toList(),
-          prefetchHooksCallback: ({vaultId = false, connectionsRefs = false}) {
+          prefetchHooksCallback: ({connectionsRefs = false}) {
             return PrefetchHooks(
               db: db,
               explicitlyWatchedTables: [if (connectionsRefs) db.connections],
-              addJoins:
-                  <
-                    T extends TableManagerState<
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic
-                    >
-                  >(state) {
-                    if (vaultId) {
-                      state =
-                          state.withJoin(
-                                currentTable: table,
-                                currentColumn: table.vaultId,
-                                referencedTable: $CustomTerminalThemesReferences
-                                    ._vaultIdTable(db),
-                                referencedColumn:
-                                    $CustomTerminalThemesReferences
-                                        ._vaultIdTable(db)
-                                        .id,
-                              )
-                              as T;
-                    }
-
-                    return state;
-                  },
+              addJoins: null,
               getPrefetchedDataCallback: (items) async {
                 return [
                   if (connectionsRefs)
@@ -6487,7 +6216,7 @@ typedef $CustomTerminalThemesProcessedTableManager =
       $CustomTerminalThemesUpdateCompanionBuilder,
       (CustomTerminalTheme, $CustomTerminalThemesReferences),
       CustomTerminalTheme,
-      PrefetchHooks Function({bool vaultId, bool connectionsRefs})
+      PrefetchHooks Function({bool connectionsRefs})
     >;
 typedef $KeysCreateCompanionBuilder =
     KeysCompanion Function({

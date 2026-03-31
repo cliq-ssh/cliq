@@ -47,7 +47,6 @@ class TerminalThemeCard extends HookConsumerWidget {
       await secondaryPopoverController.hide();
 
       final copyInsert = CustomTerminalThemesCompanion.insert(
-        vaultId: theme.vaultId,
         name: '${theme.name} - Copy',
         blackColor: theme.blackColor,
         redColor: theme.redColor,

@@ -35,9 +35,5 @@ abstract class AbstractTerminalThemeParser {
   const AbstractTerminalThemeParser();
 
   bool canParse(String content);
-  CustomTerminalThemesCompanion? tryParse(
-    String fileName,
-    String content,
-    int vaultId,
-  );
+  CustomTerminalThemesCompanion? tryParse(String fileName, String content);
 }

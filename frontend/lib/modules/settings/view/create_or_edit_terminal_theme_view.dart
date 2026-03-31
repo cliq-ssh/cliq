@@ -28,7 +28,6 @@ class CreateOrEditTerminalThemeView extends HookConsumerWidget {
     super.key,
   }) : current = CustomTerminalThemesCompanion(
          id: Value(themeEntity.id),
-         vaultId: Value(themeEntity.vaultId),
          name: Value(themeEntity.name),
          blackColor: Value(themeEntity.blackColor),
          redColor: Value(themeEntity.redColor),
@@ -128,7 +127,7 @@ class CreateOrEditTerminalThemeView extends HookConsumerWidget {
     );
 
     /// Handles the save action for the form.
-    Future<void> onSave(int? vaultId) async {
+    Future<void> onSave() async {
       if (!(formKey.currentState?.validate() ?? false)) return;
 
       final Color? blackColor = ColorExtension.fromHex(blackColorCtrl.text);
@@ -184,7 +183,6 @@ class CreateOrEditTerminalThemeView extends HookConsumerWidget {
       final themeId = isEdit
           ? await terminalThemeService.update(
               current!.id.value,
-              vaultId: vaultId,
               name: nameCtrl.textOrNull,
               black: blackColor,
               red: redColor,
@@ -212,7 +210,6 @@ class CreateOrEditTerminalThemeView extends HookConsumerWidget {
             )
           : await terminalThemeService.createCustomTerminalTheme(
               CustomTerminalThemesCompanion.insert(
-                vaultId: vaultId!,
                 name: nameCtrl.text.trim(),
                 blackColor: blackColor!,
                 redColor: redColor!,
@@ -302,8 +299,9 @@ class CreateOrEditTerminalThemeView extends HookConsumerWidget {
     }
 
     return CreateOrEditEntityView(
-      onSave: onSave,
+      onSave: (_) => onSave(),
       isEdit: isEdit,
+      withVaultSelector: false,
       child: Form(
         key: formKey,
         child: Column(
