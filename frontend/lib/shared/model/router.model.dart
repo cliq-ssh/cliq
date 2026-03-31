@@ -1,6 +1,6 @@
 import 'package:cliq/modules/connections/view/connections_page.dart';
 import 'package:cliq/modules/session/view/session_page_wrapper.dart';
-import 'package:cliq/modules/settings/view/debug_settings_page.dart';
+import 'package:cliq/modules/settings/view/developer_settings_page.dart';
 import 'package:cliq/modules/settings/view/identities_settings_page.dart';
 import 'package:cliq/modules/settings/view/keys_settings_page.dart';
 import 'package:cliq/modules/settings/view/known_hosts_settings.dart';
@@ -57,8 +57,8 @@ class Router {
                 pageBuilder: _fade(const SettingsPage()),
                 routes: [
                   GoRoute(
-                    path: DebugSettingsPage.pagePath.path,
-                    pageBuilder: _swipe(const DebugSettingsPage()),
+                    path: DeveloperSettingsPage.pagePath.path,
+                    pageBuilder: _swipe(const DeveloperSettingsPage()),
                   ),
                   GoRoute(
                     path: IdentitiesSettingsPage.pagePath.path,

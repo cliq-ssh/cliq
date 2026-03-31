@@ -13,7 +13,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:simple_icons/simple_icons.dart';
 
 import 'appearance_settings_page.dart';
-import 'debug_settings_page.dart';
+import 'developer_settings_page.dart';
 import 'license_page.dart';
 import '../../../shared/model/page_path.model.dart';
 
@@ -104,11 +104,11 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                           ),
                           if (kDebugMode)
                             FTile(
-                              prefix: Icon(LucideIcons.bug),
+                              prefix: Icon(LucideIcons.hammer),
                               suffix: Icon(LucideIcons.chevronRight),
-                              title: Text('Debug'),
+                              title: Text('Developer'),
                               onPress: () => context.pushPath(
-                                DebugSettingsPage.pagePath.build(),
+                                DeveloperSettingsPage.pagePath.build(),
                               ),
                             ),
                         ],
