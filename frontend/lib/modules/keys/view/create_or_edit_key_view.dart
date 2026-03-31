@@ -11,6 +11,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lucide_flutter/lucide_flutter.dart';
 
 import '../../../shared/data/database.dart';
+import '../provider/key_service.provider.dart';
 
 class CreateOrEditKeyView extends HookConsumerWidget {
   final KeysCompanion? current;
@@ -47,15 +48,16 @@ class CreateOrEditKeyView extends HookConsumerWidget {
     Future<void> onSave() async {
       if (!(formKey.currentState?.validate() ?? false)) return;
 
+      final keyService = ref.read(keyServiceProvider);
       final keyId = isEdit
-          ? await CliqDatabase.keysService.update(
+          ? await keyService.update(
               current!.id.value,
               label: labelCtrl.textOrNull,
               privatePem: pemCtrl.textOrNull,
               passphrase: passCtrl.textOrNull,
               compareTo: current,
             )
-          : await CliqDatabase.keysService.createKey(
+          : await keyService.createKey(
               label: labelCtrl.text,
               privatePem: pemCtrl.text,
               passphrase: passCtrl.text,

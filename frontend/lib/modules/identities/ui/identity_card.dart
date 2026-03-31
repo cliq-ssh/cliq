@@ -1,6 +1,6 @@
 import 'package:cliq/modules/identities/model/identity_full.model.dart';
+import 'package:cliq/modules/identities/provider/identity_service.provider.dart';
 import 'package:cliq/modules/identities/view/create_or_edit_identity_view.dart';
-import 'package:cliq/shared/data/database.dart';
 import 'package:cliq/shared/utils/commons.dart';
 import 'package:flutter/material.dart';
 import 'package:forui/forui.dart';
@@ -29,10 +29,9 @@ class IdentityCard extends HookConsumerWidget {
       return Commons.showDeleteDialog(
         entity: identity.label,
         onDelete: () {
-          CliqDatabase.identityService.deleteById(
-            identity.id,
-            identity.credentialIds,
-          );
+          ref
+              .read(identityServiceProvider)
+              .deleteById(identity.id, identity.credentialIds);
         },
       );
     }

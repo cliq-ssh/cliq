@@ -27,6 +27,7 @@ import 'package:lucide_flutter/lucide_flutter.dart';
 import '../../../shared/data/database.dart';
 import '../../credentials/model/credential_type.dart';
 import '../../settings/provider/terminal_theme.provider.dart';
+import '../provider/connection_service.provider.dart';
 
 class CreateOrEditConnectionView extends HookConsumerWidget {
   static const List<(CredentialType, String, IconData)> allowedCredentialTypes =
@@ -85,6 +86,7 @@ class CreateOrEditConnectionView extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final connectionService = ref.read(connectionServiceProvider);
     final formKey = useMemoized(() => GlobalKey<FormState>());
     final credentialsKey = useMemoized(
       () => GlobalKey<CreateOrEditCredentialsFormState>(),
@@ -134,7 +136,7 @@ class CreateOrEditConnectionView extends HookConsumerWidget {
     final selectedIdentityId = useState<int?>(current?.identityId.value);
 
     final groups = useMemoizedFuture(() async {
-      return await CliqDatabase.connectionService.findAllGroupNamesDistinct();
+      return await connectionService.findAllGroupNamesDistinct();
     }, []);
 
     Future<void> onSave() async {
@@ -144,7 +146,7 @@ class CreateOrEditConnectionView extends HookConsumerWidget {
       if (selectedIdentityId.value == null && newCredentialIds == null) return;
 
       final connectionId = isEdit
-          ? await CliqDatabase.connectionService.update(
+          ? await connectionService.update(
               current!.id.value,
               address: addressCtrl.textOrNull,
               iconColor: selectedIconColor.value,
@@ -160,7 +162,7 @@ class CreateOrEditConnectionView extends HookConsumerWidget {
               newCredentialIds: newCredentialIds,
               compareTo: current,
             )
-          : await CliqDatabase.connectionService.createConnection(
+          : await connectionService.createConnection(
               address: addressCtrl.text.trim(),
               iconColor: selectedIconColor.value,
               iconBackgroundColor: selectedIconBackgroundColor.value,

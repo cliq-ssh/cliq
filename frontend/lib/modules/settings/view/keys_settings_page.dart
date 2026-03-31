@@ -13,6 +13,7 @@ import '../../../shared/extensions/async_snapshot.extension.dart';
 import '../../../shared/model/page_path.model.dart';
 import '../../../shared/utils/commons.dart';
 import '../../keys/provider/key.provider.dart';
+import '../../keys/provider/key_service.provider.dart';
 import '../../keys/ui/key_card.dart';
 
 class KeysSettingsPage extends AbstractSettingsPage {
@@ -30,7 +31,7 @@ class KeysSettingsPage extends AbstractSettingsPage {
   Widget buildBody(BuildContext context, WidgetRef ref) {
     final keyIds = ref.watch(keyIdProvider);
     final keysFuture = useMemoizedFuture(() async {
-      return await CliqDatabase.keysService.findByIds(keyIds.entities);
+      return await ref.read(keyServiceProvider).findByIds(keyIds.entities);
     }, [keyIds]);
 
     return keysFuture.on(

@@ -9,7 +9,8 @@ import 'package:dartssh2/dartssh2.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:uuid/v4.dart';
 
-import '../../../shared/data/database.dart';
+import '../../credentials/provider/credential_service.provider.dart';
+import '../../settings/provider/known_host_service.provider.dart';
 import '../model/session.model.dart';
 
 final sessionProvider = NotifierProvider(ShellSessionNotifier.new);
@@ -99,9 +100,11 @@ class ShellSessionNotifier extends Notifier<SSHSessionState> {
     ConnectionFull connection,
   ) async {
     final (password, keys) = CredentialService.collectAuthenticationMethods(
-      await CliqDatabase.credentialService.findByIds(
-        connection.identity?.credentialIds ?? connection.credentialIds,
-      ),
+      await ref
+          .read(credentialServiceProvider)
+          .findByIds(
+            connection.identity?.credentialIds ?? connection.credentialIds,
+          ),
     );
 
     final socket = await SSHSocket.connect(connection.address, connection.port);
@@ -115,7 +118,8 @@ class ShellSessionNotifier extends Notifier<SSHSessionState> {
         }
 
         // check db whether host is known
-        final (knownHost, isKeyMatch) = await CliqDatabase.knownHostService
+        final (knownHost, isKeyMatch) = await ref
+            .read(knownHostServiceProvider)
             .isHostKnown(connection.addressAndPort, hostKey);
 
         if (knownHost != null && isKeyMatch) return true;
@@ -170,16 +174,17 @@ class ShellSessionNotifier extends Notifier<SSHSessionState> {
 
   Future<int> acceptFingerprint(String sessionId, KnownHostError error) {
     if (error.knownHost != null) {
-      return CliqDatabase.knownHostService.update(
-        error.knownHost!.id.value,
-        hostKey: error.hostKey,
-        compareTo: error.knownHost,
-      );
+      return ref
+          .read(knownHostServiceProvider)
+          .update(
+            error.knownHost!.id.value,
+            hostKey: error.hostKey,
+            compareTo: error.knownHost,
+          );
     }
-    return CliqDatabase.knownHostService.createKey(
-      host: error.host,
-      hostKey: error.hostKey,
-    );
+    return ref
+        .read(knownHostServiceProvider)
+        .createKey(host: error.host, hostKey: error.hostKey);
   }
 
   void _modifySession(

@@ -3,6 +3,190 @@
 part of 'database.dart';
 
 // ignore_for_file: type=lint
+class Vaults extends Table with TableInfo<Vaults, Vault> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  Vaults(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  late final GeneratedColumn<int> id = GeneratedColumn<int>(
+    'id',
+    aliasedName,
+    false,
+    hasAutoIncrement: true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    $customConstraints: 'PRIMARY KEY AUTOINCREMENT',
+  );
+  static const VerificationMeta _nameMeta = const VerificationMeta('name');
+  late final GeneratedColumn<String> name = GeneratedColumn<String>(
+    'name',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    $customConstraints: 'NOT NULL',
+  );
+  @override
+  List<GeneratedColumn> get $columns => [id, name];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'vaults';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<Vault> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
+    if (data.containsKey('name')) {
+      context.handle(
+        _nameMeta,
+        name.isAcceptableOrUnknown(data['name']!, _nameMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_nameMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  Vault map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return Vault(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}id'],
+      )!,
+      name: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}name'],
+      )!,
+    );
+  }
+
+  @override
+  Vaults createAlias(String alias) {
+    return Vaults(attachedDatabase, alias);
+  }
+
+  @override
+  bool get dontWriteConstraints => true;
+}
+
+class Vault extends DataClass implements Insertable<Vault> {
+  final int id;
+  final String name;
+  const Vault({required this.id, required this.name});
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<int>(id);
+    map['name'] = Variable<String>(name);
+    return map;
+  }
+
+  VaultsCompanion toCompanion(bool nullToAbsent) {
+    return VaultsCompanion(id: Value(id), name: Value(name));
+  }
+
+  factory Vault.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return Vault(
+      id: serializer.fromJson<int>(json['id']),
+      name: serializer.fromJson<String>(json['name']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<int>(id),
+      'name': serializer.toJson<String>(name),
+    };
+  }
+
+  Vault copyWith({int? id, String? name}) =>
+      Vault(id: id ?? this.id, name: name ?? this.name);
+  Vault copyWithCompanion(VaultsCompanion data) {
+    return Vault(
+      id: data.id.present ? data.id.value : this.id,
+      name: data.name.present ? data.name.value : this.name,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('Vault(')
+          ..write('id: $id, ')
+          ..write('name: $name')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(id, name);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is Vault && other.id == this.id && other.name == this.name);
+}
+
+class VaultsCompanion extends UpdateCompanion<Vault> {
+  final Value<int> id;
+  final Value<String> name;
+  const VaultsCompanion({
+    this.id = const Value.absent(),
+    this.name = const Value.absent(),
+  });
+  VaultsCompanion.insert({this.id = const Value.absent(), required String name})
+    : name = Value(name);
+  static Insertable<Vault> custom({
+    Expression<int>? id,
+    Expression<String>? name,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (name != null) 'name': name,
+    });
+  }
+
+  VaultsCompanion copyWith({Value<int>? id, Value<String>? name}) {
+    return VaultsCompanion(id: id ?? this.id, name: name ?? this.name);
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<int>(id.value);
+    }
+    if (name.present) {
+      map['name'] = Variable<String>(name.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('VaultsCompanion(')
+          ..write('id: $id, ')
+          ..write('name: $name')
+          ..write(')'))
+        .toString();
+  }
+}
+
 class KnownHosts extends Table with TableInfo<KnownHosts, KnownHost> {
   @override
   final GeneratedDatabase attachedDatabase;
@@ -3867,6 +4051,7 @@ class ConnectionCredentialsCompanion
 abstract class _$CliqDatabase extends GeneratedDatabase {
   _$CliqDatabase(QueryExecutor e) : super(e);
   $CliqDatabaseManager get managers => $CliqDatabaseManager(this);
+  late final Vaults vaults = Vaults(this);
   late final KnownHosts knownHosts = KnownHosts(this);
   late final CustomTerminalThemes customTerminalThemes = CustomTerminalThemes(
     this,
@@ -3995,6 +4180,7 @@ abstract class _$CliqDatabase extends GeneratedDatabase {
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
   @override
   List<DatabaseSchemaEntity> get allSchemaEntities => [
+    vaults,
     knownHosts,
     customTerminalThemes,
     keys,
@@ -4058,6 +4244,120 @@ abstract class _$CliqDatabase extends GeneratedDatabase {
   ]);
 }
 
+typedef $VaultsCreateCompanionBuilder =
+    VaultsCompanion Function({Value<int> id, required String name});
+typedef $VaultsUpdateCompanionBuilder =
+    VaultsCompanion Function({Value<int> id, Value<String> name});
+
+class $VaultsFilterComposer extends Composer<_$CliqDatabase, Vaults> {
+  $VaultsFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get name => $composableBuilder(
+    column: $table.name,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $VaultsOrderingComposer extends Composer<_$CliqDatabase, Vaults> {
+  $VaultsOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get name => $composableBuilder(
+    column: $table.name,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $VaultsAnnotationComposer extends Composer<_$CliqDatabase, Vaults> {
+  $VaultsAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<int> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get name =>
+      $composableBuilder(column: $table.name, builder: (column) => column);
+}
+
+class $VaultsTableManager
+    extends
+        RootTableManager<
+          _$CliqDatabase,
+          Vaults,
+          Vault,
+          $VaultsFilterComposer,
+          $VaultsOrderingComposer,
+          $VaultsAnnotationComposer,
+          $VaultsCreateCompanionBuilder,
+          $VaultsUpdateCompanionBuilder,
+          (Vault, BaseReferences<_$CliqDatabase, Vaults, Vault>),
+          Vault,
+          PrefetchHooks Function()
+        > {
+  $VaultsTableManager(_$CliqDatabase db, Vaults table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $VaultsFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $VaultsOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $VaultsAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                Value<String> name = const Value.absent(),
+              }) => VaultsCompanion(id: id, name: name),
+          createCompanionCallback:
+              ({Value<int> id = const Value.absent(), required String name}) =>
+                  VaultsCompanion.insert(id: id, name: name),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $VaultsProcessedTableManager =
+    ProcessedTableManager<
+      _$CliqDatabase,
+      Vaults,
+      Vault,
+      $VaultsFilterComposer,
+      $VaultsOrderingComposer,
+      $VaultsAnnotationComposer,
+      $VaultsCreateCompanionBuilder,
+      $VaultsUpdateCompanionBuilder,
+      (Vault, BaseReferences<_$CliqDatabase, Vaults, Vault>),
+      Vault,
+      PrefetchHooks Function()
+    >;
 typedef $KnownHostsCreateCompanionBuilder =
     KnownHostsCompanion Function({
       Value<int> id,
@@ -7543,6 +7843,7 @@ typedef $ConnectionCredentialsProcessedTableManager =
 class $CliqDatabaseManager {
   final _$CliqDatabase _db;
   $CliqDatabaseManager(this._db);
+  $VaultsTableManager get vaults => $VaultsTableManager(_db, _db.vaults);
   $KnownHostsTableManager get knownHosts =>
       $KnownHostsTableManager(_db, _db.knownHosts);
   $CustomTerminalThemesTableManager get customTerminalThemes =>

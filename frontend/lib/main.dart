@@ -15,8 +15,6 @@ import 'package:logging/logging.dart';
 import 'package:lucide_flutter/lucide_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import 'shared/data/database.dart';
-
 void main() async {
   runZonedGuarded(() async {
     WidgetsFlutterBinding.ensureInitialized();
@@ -30,7 +28,6 @@ void main() async {
       _handleError(details.exception, details.stack ?? StackTrace.empty);
     };
 
-    CliqDatabase.init();
     SharedPreferences.setPrefix('cliq.');
     await KeyValueStore.init();
 

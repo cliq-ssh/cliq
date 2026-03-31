@@ -13,6 +13,7 @@ import 'package:lucide_flutter/lucide_flutter.dart';
 
 import '../../../shared/data/database.dart';
 import '../../../shared/ui/create_or_edit_credential_form.dart';
+import '../provider/identity_service.provider.dart';
 
 class CreateOrEditIdentityView extends HookConsumerWidget {
   final String? initialLabel;
@@ -58,15 +59,16 @@ class CreateOrEditIdentityView extends HookConsumerWidget {
       // null is only returned when validation fails
       if (newCredentialIds == null) return;
 
+      final identityService = ref.read(identityServiceProvider);
       final identityId = isEdit
-          ? await CliqDatabase.identityService.update(
+          ? identityService.update(
               current!.id.value,
               label: labelCtrl.textOrNull,
               username: usernameCtrl.textOrNull,
               newCredentialIds: newCredentialIds,
               compareTo: current,
             )
-          : await CliqDatabase.identityService.createIdentity(
+          : identityService.createIdentity(
               label: labelCtrl.text,
               username: usernameCtrl.text,
               credentialIds: newCredentialIds,

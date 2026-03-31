@@ -1,7 +1,6 @@
 import 'dart:io';
 
 import 'package:cliq/modules/connections/model/connection_full.model.dart';
-import 'package:cliq/shared/data/database.dart';
 import 'package:cliq/shared/ui/context_menu.dart';
 import 'package:cliq/shared/utils/commons.dart';
 import 'package:flutter/material.dart';
@@ -13,6 +12,7 @@ import 'package:lucide_flutter/lucide_flutter.dart';
 import '../../../shared/ui/navigation_shell.dart';
 import '../../../shared/ui/shortcut_info.dart';
 import '../../session/provider/session.provider.dart';
+import '../provider/connection_service.provider.dart';
 import '../view/create_or_edit_connection_view.dart';
 
 class ConnectionCard extends HookConsumerWidget {
@@ -48,10 +48,9 @@ class ConnectionCard extends HookConsumerWidget {
       return Commons.showDeleteDialog(
         entity: connection.label,
         onDelete: () {
-          CliqDatabase.connectionService.deleteById(
-            connection.id,
-            connection.credentialIds,
-          );
+          ref
+              .read(connectionServiceProvider)
+              .deleteById(connection.id, connection.credentialIds);
         },
       );
     }

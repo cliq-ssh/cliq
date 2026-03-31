@@ -13,6 +13,7 @@ import 'package:lucide_flutter/lucide_flutter.dart';
 import '../../../shared/data/database.dart';
 import '../../../shared/extensions/color.extension.dart';
 import '../../../shared/extensions/text_controller.extension.dart';
+import '../provider/terminal_theme_service.provider.dart';
 
 class CreateOrEditTerminalThemeView extends HookConsumerWidget {
   final CustomTerminalThemesCompanion? current;
@@ -178,8 +179,9 @@ class CreateOrEditTerminalThemeView extends HookConsumerWidget {
         cursorTextColorCtrl.text,
       );
 
+      final terminalThemeService = ref.read(terminalThemeServiceProvider);
       final themeId = isEdit
-          ? await CliqDatabase.customTerminalThemeService.update(
+          ? await terminalThemeService.update(
               current!.id.value,
               name: nameCtrl.textOrNull,
               black: blackColor,
@@ -206,34 +208,33 @@ class CreateOrEditTerminalThemeView extends HookConsumerWidget {
               cursorTextColor: cursorTextColor,
               compareTo: current,
             )
-          : await CliqDatabase.customTerminalThemeService
-                .createCustomTerminalTheme(
-                  CustomTerminalThemesCompanion.insert(
-                    name: nameCtrl.text.trim(),
-                    blackColor: blackColor!,
-                    redColor: redColor!,
-                    greenColor: greenColor!,
-                    yellowColor: yellowColor!,
-                    blueColor: blueColor!,
-                    purpleColor: purpleColor!,
-                    cyanColor: cyanColor!,
-                    whiteColor: whiteColor!,
-                    brightBlackColor: brightBlackColor!,
-                    brightRedColor: brightRedColor!,
-                    brightGreenColor: brightGreenColor!,
-                    brightYellowColor: brightYellowColor!,
-                    brightBlueColor: brightBlueColor!,
-                    brightPurpleColor: brightPurpleColor!,
-                    brightCyanColor: brightCyanColor!,
-                    brightWhiteColor: brightWhiteColor!,
-                    foregroundColor: foregroundColor!,
-                    backgroundColor: backgroundColor!,
-                    cursorColor: cursorColor!,
-                    selectionBackgroundColor: selectionBackgroundColor!,
-                    selectionForegroundColor: Value(selectionForegroundColor),
-                    cursorTextColor: Value(cursorTextColor),
-                  ),
-                );
+          : await terminalThemeService.createCustomTerminalTheme(
+              CustomTerminalThemesCompanion.insert(
+                name: nameCtrl.text.trim(),
+                blackColor: blackColor!,
+                redColor: redColor!,
+                greenColor: greenColor!,
+                yellowColor: yellowColor!,
+                blueColor: blueColor!,
+                purpleColor: purpleColor!,
+                cyanColor: cyanColor!,
+                whiteColor: whiteColor!,
+                brightBlackColor: brightBlackColor!,
+                brightRedColor: brightRedColor!,
+                brightGreenColor: brightGreenColor!,
+                brightYellowColor: brightYellowColor!,
+                brightBlueColor: brightBlueColor!,
+                brightPurpleColor: brightPurpleColor!,
+                brightCyanColor: brightCyanColor!,
+                brightWhiteColor: brightWhiteColor!,
+                foregroundColor: foregroundColor!,
+                backgroundColor: backgroundColor!,
+                cursorColor: cursorColor!,
+                selectionBackgroundColor: selectionBackgroundColor!,
+                selectionForegroundColor: Value(selectionForegroundColor),
+                cursorTextColor: Value(cursorTextColor),
+              ),
+            );
 
       if (!context.mounted) return;
       context.pop(themeId);
