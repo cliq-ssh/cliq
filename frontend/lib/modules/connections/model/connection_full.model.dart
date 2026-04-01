@@ -6,6 +6,7 @@ import '../../identities/model/identity_full.model.dart';
 /// Model class that better wraps the [FindFullConnectionByIdResult] class.
 class ConnectionFull extends Connection {
   final List<int> credentialIds;
+  final Vault vault;
   final IdentityFull? identity;
   final CustomTerminalTheme? terminalThemeOverride;
 
@@ -15,10 +16,12 @@ class ConnectionFull extends Connection {
   ConnectionFull.fromConnection(
     Connection connection, {
     required this.credentialIds,
+    required this.vault,
     this.identity,
     this.terminalThemeOverride,
   }) : super(
          id: connection.id,
+         vaultId: connection.vaultId,
          address: connection.address,
          port: connection.port,
          icon: connection.icon,
@@ -40,11 +43,14 @@ class ConnectionFull extends Connection {
       identityFull = IdentityFull.fromIdentity(
         result.identity!,
         credentialIds: result.identityCredentials,
+        // we can be sure this is not null since the identity is not null
+        vault: result.identityVault!,
       );
     }
 
     return .fromConnection(
       result.connection,
+      vault: result.vault,
       identity: identityFull,
       // we need this check in order to correctly apply when the default "built-in" theme is used as an override
       // (when another theme is specified as the default)

@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:cliq/shared/extensions/text_controller.extension.dart';
+import 'package:cliq/shared/ui/create_or_edit_entity_view.dart';
 import 'package:cliq/shared/utils/validators.dart';
 import 'package:drift/drift.dart' hide Column;
 import 'package:flutter/material.dart' hide Key;
@@ -8,9 +9,9 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:forui/forui.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:lucide_flutter/lucide_flutter.dart';
 
 import '../../../shared/data/database.dart';
+import '../provider/key_service.provider.dart';
 
 class CreateOrEditKeyView extends HookConsumerWidget {
   final KeysCompanion? current;
@@ -25,6 +26,7 @@ class CreateOrEditKeyView extends HookConsumerWidget {
     : initialLabel = null,
       current = KeysCompanion(
         id: Value(keyEntity.id),
+        vaultId: Value(keyEntity.vaultId),
         label: Value(keyEntity.label),
         privatePem: Value(keyEntity.privatePem),
         passphrase: Value(keyEntity.passphrase),
@@ -44,18 +46,21 @@ class CreateOrEditKeyView extends HookConsumerWidget {
     /// Handles the save action for the form.
     /// Validates the form, inserts any additional credentials, and either updates
     /// or creates a new connection based on the [isEdit] flag.
-    Future<void> onSave() async {
+    Future<void> onSave(int? vaultId) async {
       if (!(formKey.currentState?.validate() ?? false)) return;
 
+      final keyService = ref.read(keyServiceProvider);
       final keyId = isEdit
-          ? await CliqDatabase.keysService.update(
+          ? await keyService.update(
               current!.id.value,
+              vaultId: vaultId,
               label: labelCtrl.textOrNull,
               privatePem: pemCtrl.textOrNull,
               passphrase: passCtrl.textOrNull,
               compareTo: current,
             )
-          : await CliqDatabase.keysService.createKey(
+          : await keyService.createKey(
+              vaultId: vaultId!,
               label: labelCtrl.text,
               privatePem: pemCtrl.text,
               passphrase: passCtrl.text,
@@ -65,62 +70,36 @@ class CreateOrEditKeyView extends HookConsumerWidget {
       context.pop((keyId, labelCtrl.text));
     }
 
-    return FScaffold(
-      child: SingleChildScrollView(
-        padding: const .symmetric(horizontal: 32, vertical: 20),
+    return CreateOrEditEntityView(
+      onSave: onSave,
+      isEdit: isEdit,
+      child: Form(
+        key: formKey,
         child: Column(
+          spacing: 16,
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: [
-                FButton.icon(
-                  variant: .outline,
-                  onPress: () => context.pop(),
-                  child: const Icon(LucideIcons.x),
-                ),
-              ],
+            FTextFormField(
+              control: .managed(controller: labelCtrl),
+              label: const Text('Label'),
+              hint: 'My Key',
+              validator: Validators.nonEmpty,
             ),
-            const SizedBox(height: 8),
-            Form(
-              key: formKey,
-              child: Column(
-                spacing: 16,
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  FTextFormField(
-                    control: .managed(controller: labelCtrl),
-                    label: const Text('Label'),
-                    hint: 'My Key',
-                    validator: Validators.nonEmpty,
-                  ),
-                  FTextFormField(
-                    control: .managed(controller: pemCtrl),
-                    label: Text('PEM Key'),
-                    hint: '-----BEGIN OPENSSH PRIVATE KEY-----',
-                    minLines: 5,
-                    maxLines: null,
-                    validator: Validators.nonEmpty,
-                    autovalidateMode: .onUserInteraction,
-                  ),
-                  FTextFormField(
-                    control: .managed(controller: passCtrl),
-                    label: Text('PEM Passphrase'),
-                    obscureText: true,
-                    maxLines: 1,
-                    autovalidateMode: .onUserInteraction,
-                  ),
-                ],
-              ),
+            FTextFormField(
+              control: .managed(controller: pemCtrl),
+              label: Text('PEM Key'),
+              hint: '-----BEGIN OPENSSH PRIVATE KEY-----',
+              minLines: 5,
+              maxLines: null,
+              validator: Validators.nonEmpty,
+              autovalidateMode: .onUserInteraction,
             ),
-
-            const SizedBox(height: 40),
-
-            SizedBox(
-              width: double.infinity,
-              child: FButton(
-                onPress: onSave,
-                child: Text(isEdit ? 'Edit' : 'Save'),
-              ),
+            FTextFormField(
+              control: .managed(controller: passCtrl),
+              label: Text('PEM Passphrase'),
+              obscureText: true,
+              maxLines: 1,
+              autovalidateMode: .onUserInteraction,
             ),
           ],
         ),

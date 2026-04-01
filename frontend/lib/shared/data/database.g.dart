@@ -3,6 +3,247 @@
 part of 'database.dart';
 
 // ignore_for_file: type=lint
+class Vaults extends Table with TableInfo<Vaults, Vault> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  Vaults(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  late final GeneratedColumn<int> id = GeneratedColumn<int>(
+    'id',
+    aliasedName,
+    false,
+    hasAutoIncrement: true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    $customConstraints: 'PRIMARY KEY AUTOINCREMENT',
+  );
+  static const VerificationMeta _labelMeta = const VerificationMeta('label');
+  late final GeneratedColumn<String> label = GeneratedColumn<String>(
+    'label',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    $customConstraints: 'NOT NULL',
+  );
+  static const VerificationMeta _isDefaultMeta = const VerificationMeta(
+    'isDefault',
+  );
+  late final GeneratedColumn<bool> isDefault = GeneratedColumn<bool>(
+    'is_default',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    $customConstraints: 'NOT NULL DEFAULT FALSE',
+    defaultValue: const CustomExpression('FALSE'),
+  );
+  @override
+  List<GeneratedColumn> get $columns => [id, label, isDefault];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'vaults';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<Vault> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
+    if (data.containsKey('label')) {
+      context.handle(
+        _labelMeta,
+        label.isAcceptableOrUnknown(data['label']!, _labelMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_labelMeta);
+    }
+    if (data.containsKey('is_default')) {
+      context.handle(
+        _isDefaultMeta,
+        isDefault.isAcceptableOrUnknown(data['is_default']!, _isDefaultMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  Vault map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return Vault(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}id'],
+      )!,
+      label: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}label'],
+      )!,
+      isDefault: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}is_default'],
+      )!,
+    );
+  }
+
+  @override
+  Vaults createAlias(String alias) {
+    return Vaults(attachedDatabase, alias);
+  }
+
+  @override
+  bool get dontWriteConstraints => true;
+}
+
+class Vault extends DataClass implements Insertable<Vault> {
+  final int id;
+  final String label;
+  final bool isDefault;
+  const Vault({required this.id, required this.label, required this.isDefault});
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<int>(id);
+    map['label'] = Variable<String>(label);
+    map['is_default'] = Variable<bool>(isDefault);
+    return map;
+  }
+
+  VaultsCompanion toCompanion(bool nullToAbsent) {
+    return VaultsCompanion(
+      id: Value(id),
+      label: Value(label),
+      isDefault: Value(isDefault),
+    );
+  }
+
+  factory Vault.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return Vault(
+      id: serializer.fromJson<int>(json['id']),
+      label: serializer.fromJson<String>(json['label']),
+      isDefault: serializer.fromJson<bool>(json['is_default']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<int>(id),
+      'label': serializer.toJson<String>(label),
+      'is_default': serializer.toJson<bool>(isDefault),
+    };
+  }
+
+  Vault copyWith({int? id, String? label, bool? isDefault}) => Vault(
+    id: id ?? this.id,
+    label: label ?? this.label,
+    isDefault: isDefault ?? this.isDefault,
+  );
+  Vault copyWithCompanion(VaultsCompanion data) {
+    return Vault(
+      id: data.id.present ? data.id.value : this.id,
+      label: data.label.present ? data.label.value : this.label,
+      isDefault: data.isDefault.present ? data.isDefault.value : this.isDefault,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('Vault(')
+          ..write('id: $id, ')
+          ..write('label: $label, ')
+          ..write('isDefault: $isDefault')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(id, label, isDefault);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is Vault &&
+          other.id == this.id &&
+          other.label == this.label &&
+          other.isDefault == this.isDefault);
+}
+
+class VaultsCompanion extends UpdateCompanion<Vault> {
+  final Value<int> id;
+  final Value<String> label;
+  final Value<bool> isDefault;
+  const VaultsCompanion({
+    this.id = const Value.absent(),
+    this.label = const Value.absent(),
+    this.isDefault = const Value.absent(),
+  });
+  VaultsCompanion.insert({
+    this.id = const Value.absent(),
+    required String label,
+    this.isDefault = const Value.absent(),
+  }) : label = Value(label);
+  static Insertable<Vault> custom({
+    Expression<int>? id,
+    Expression<String>? label,
+    Expression<bool>? isDefault,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (label != null) 'label': label,
+      if (isDefault != null) 'is_default': isDefault,
+    });
+  }
+
+  VaultsCompanion copyWith({
+    Value<int>? id,
+    Value<String>? label,
+    Value<bool>? isDefault,
+  }) {
+    return VaultsCompanion(
+      id: id ?? this.id,
+      label: label ?? this.label,
+      isDefault: isDefault ?? this.isDefault,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<int>(id.value);
+    }
+    if (label.present) {
+      map['label'] = Variable<String>(label.value);
+    }
+    if (isDefault.present) {
+      map['is_default'] = Variable<bool>(isDefault.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('VaultsCompanion(')
+          ..write('id: $id, ')
+          ..write('label: $label, ')
+          ..write('isDefault: $isDefault')
+          ..write(')'))
+        .toString();
+  }
+}
+
 class KnownHosts extends Table with TableInfo<KnownHosts, KnownHost> {
   @override
   final GeneratedDatabase attachedDatabase;
@@ -17,6 +258,17 @@ class KnownHosts extends Table with TableInfo<KnownHosts, KnownHost> {
     type: DriftSqlType.int,
     requiredDuringInsert: false,
     $customConstraints: 'PRIMARY KEY AUTOINCREMENT',
+  );
+  static const VerificationMeta _vaultIdMeta = const VerificationMeta(
+    'vaultId',
+  );
+  late final GeneratedColumn<int> vaultId = GeneratedColumn<int>(
+    'vault_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+    $customConstraints: 'NOT NULL REFERENCES vaults(id)',
   );
   static const VerificationMeta _hostMeta = const VerificationMeta('host');
   late final GeneratedColumn<String> host = GeneratedColumn<String>(
@@ -51,7 +303,7 @@ class KnownHosts extends Table with TableInfo<KnownHosts, KnownHost> {
     defaultValue: const CustomExpression('CURRENT_TIMESTAMP'),
   );
   @override
-  List<GeneratedColumn> get $columns => [id, host, hostKey, createdAt];
+  List<GeneratedColumn> get $columns => [id, vaultId, host, hostKey, createdAt];
   @override
   String get aliasedName => _alias ?? actualTableName;
   @override
@@ -66,6 +318,14 @@ class KnownHosts extends Table with TableInfo<KnownHosts, KnownHost> {
     final data = instance.toColumns(true);
     if (data.containsKey('id')) {
       context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
+    if (data.containsKey('vault_id')) {
+      context.handle(
+        _vaultIdMeta,
+        vaultId.isAcceptableOrUnknown(data['vault_id']!, _vaultIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_vaultIdMeta);
     }
     if (data.containsKey('host')) {
       context.handle(
@@ -102,6 +362,10 @@ class KnownHosts extends Table with TableInfo<KnownHosts, KnownHost> {
         DriftSqlType.int,
         data['${effectivePrefix}id'],
       )!,
+      vaultId: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}vault_id'],
+      )!,
       host: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}host'],
@@ -128,11 +392,13 @@ class KnownHosts extends Table with TableInfo<KnownHosts, KnownHost> {
 
 class KnownHost extends DataClass implements Insertable<KnownHost> {
   final int id;
+  final int vaultId;
   final String host;
   final Uint8List hostKey;
   final DateTime createdAt;
   const KnownHost({
     required this.id,
+    required this.vaultId,
     required this.host,
     required this.hostKey,
     required this.createdAt,
@@ -141,6 +407,7 @@ class KnownHost extends DataClass implements Insertable<KnownHost> {
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
     map['id'] = Variable<int>(id);
+    map['vault_id'] = Variable<int>(vaultId);
     map['host'] = Variable<String>(host);
     map['hostKey'] = Variable<Uint8List>(hostKey);
     map['created_at'] = Variable<DateTime>(createdAt);
@@ -150,6 +417,7 @@ class KnownHost extends DataClass implements Insertable<KnownHost> {
   KnownHostsCompanion toCompanion(bool nullToAbsent) {
     return KnownHostsCompanion(
       id: Value(id),
+      vaultId: Value(vaultId),
       host: Value(host),
       hostKey: Value(hostKey),
       createdAt: Value(createdAt),
@@ -163,6 +431,7 @@ class KnownHost extends DataClass implements Insertable<KnownHost> {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return KnownHost(
       id: serializer.fromJson<int>(json['id']),
+      vaultId: serializer.fromJson<int>(json['vault_id']),
       host: serializer.fromJson<String>(json['host']),
       hostKey: serializer.fromJson<Uint8List>(json['hostKey']),
       createdAt: serializer.fromJson<DateTime>(json['created_at']),
@@ -173,6 +442,7 @@ class KnownHost extends DataClass implements Insertable<KnownHost> {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return <String, dynamic>{
       'id': serializer.toJson<int>(id),
+      'vault_id': serializer.toJson<int>(vaultId),
       'host': serializer.toJson<String>(host),
       'hostKey': serializer.toJson<Uint8List>(hostKey),
       'created_at': serializer.toJson<DateTime>(createdAt),
@@ -181,11 +451,13 @@ class KnownHost extends DataClass implements Insertable<KnownHost> {
 
   KnownHost copyWith({
     int? id,
+    int? vaultId,
     String? host,
     Uint8List? hostKey,
     DateTime? createdAt,
   }) => KnownHost(
     id: id ?? this.id,
+    vaultId: vaultId ?? this.vaultId,
     host: host ?? this.host,
     hostKey: hostKey ?? this.hostKey,
     createdAt: createdAt ?? this.createdAt,
@@ -193,6 +465,7 @@ class KnownHost extends DataClass implements Insertable<KnownHost> {
   KnownHost copyWithCompanion(KnownHostsCompanion data) {
     return KnownHost(
       id: data.id.present ? data.id.value : this.id,
+      vaultId: data.vaultId.present ? data.vaultId.value : this.vaultId,
       host: data.host.present ? data.host.value : this.host,
       hostKey: data.hostKey.present ? data.hostKey.value : this.hostKey,
       createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
@@ -203,6 +476,7 @@ class KnownHost extends DataClass implements Insertable<KnownHost> {
   String toString() {
     return (StringBuffer('KnownHost(')
           ..write('id: $id, ')
+          ..write('vaultId: $vaultId, ')
           ..write('host: $host, ')
           ..write('hostKey: $hostKey, ')
           ..write('createdAt: $createdAt')
@@ -211,13 +485,19 @@ class KnownHost extends DataClass implements Insertable<KnownHost> {
   }
 
   @override
-  int get hashCode =>
-      Object.hash(id, host, $driftBlobEquality.hash(hostKey), createdAt);
+  int get hashCode => Object.hash(
+    id,
+    vaultId,
+    host,
+    $driftBlobEquality.hash(hostKey),
+    createdAt,
+  );
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
       (other is KnownHost &&
           other.id == this.id &&
+          other.vaultId == this.vaultId &&
           other.host == this.host &&
           $driftBlobEquality.equals(other.hostKey, this.hostKey) &&
           other.createdAt == this.createdAt);
@@ -225,30 +505,36 @@ class KnownHost extends DataClass implements Insertable<KnownHost> {
 
 class KnownHostsCompanion extends UpdateCompanion<KnownHost> {
   final Value<int> id;
+  final Value<int> vaultId;
   final Value<String> host;
   final Value<Uint8List> hostKey;
   final Value<DateTime> createdAt;
   const KnownHostsCompanion({
     this.id = const Value.absent(),
+    this.vaultId = const Value.absent(),
     this.host = const Value.absent(),
     this.hostKey = const Value.absent(),
     this.createdAt = const Value.absent(),
   });
   KnownHostsCompanion.insert({
     this.id = const Value.absent(),
+    required int vaultId,
     required String host,
     required Uint8List hostKey,
     this.createdAt = const Value.absent(),
-  }) : host = Value(host),
+  }) : vaultId = Value(vaultId),
+       host = Value(host),
        hostKey = Value(hostKey);
   static Insertable<KnownHost> custom({
     Expression<int>? id,
+    Expression<int>? vaultId,
     Expression<String>? host,
     Expression<Uint8List>? hostKey,
     Expression<DateTime>? createdAt,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
+      if (vaultId != null) 'vault_id': vaultId,
       if (host != null) 'host': host,
       if (hostKey != null) 'hostKey': hostKey,
       if (createdAt != null) 'created_at': createdAt,
@@ -257,12 +543,14 @@ class KnownHostsCompanion extends UpdateCompanion<KnownHost> {
 
   KnownHostsCompanion copyWith({
     Value<int>? id,
+    Value<int>? vaultId,
     Value<String>? host,
     Value<Uint8List>? hostKey,
     Value<DateTime>? createdAt,
   }) {
     return KnownHostsCompanion(
       id: id ?? this.id,
+      vaultId: vaultId ?? this.vaultId,
       host: host ?? this.host,
       hostKey: hostKey ?? this.hostKey,
       createdAt: createdAt ?? this.createdAt,
@@ -274,6 +562,9 @@ class KnownHostsCompanion extends UpdateCompanion<KnownHost> {
     final map = <String, Expression>{};
     if (id.present) {
       map['id'] = Variable<int>(id.value);
+    }
+    if (vaultId.present) {
+      map['vault_id'] = Variable<int>(vaultId.value);
     }
     if (host.present) {
       map['host'] = Variable<String>(host.value);
@@ -291,6 +582,7 @@ class KnownHostsCompanion extends UpdateCompanion<KnownHost> {
   String toString() {
     return (StringBuffer('KnownHostsCompanion(')
           ..write('id: $id, ')
+          ..write('vaultId: $vaultId, ')
           ..write('host: $host, ')
           ..write('hostKey: $hostKey, ')
           ..write('createdAt: $createdAt')
@@ -1692,6 +1984,17 @@ class Keys extends Table with TableInfo<Keys, Key> {
     requiredDuringInsert: false,
     $customConstraints: 'PRIMARY KEY AUTOINCREMENT',
   );
+  static const VerificationMeta _vaultIdMeta = const VerificationMeta(
+    'vaultId',
+  );
+  late final GeneratedColumn<int> vaultId = GeneratedColumn<int>(
+    'vault_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+    $customConstraints: 'NOT NULL REFERENCES vaults(id)',
+  );
   static const VerificationMeta _labelMeta = const VerificationMeta('label');
   late final GeneratedColumn<String> label = GeneratedColumn<String>(
     'label',
@@ -1724,7 +2027,13 @@ class Keys extends Table with TableInfo<Keys, Key> {
     $customConstraints: '',
   );
   @override
-  List<GeneratedColumn> get $columns => [id, label, privatePem, passphrase];
+  List<GeneratedColumn> get $columns => [
+    id,
+    vaultId,
+    label,
+    privatePem,
+    passphrase,
+  ];
   @override
   String get aliasedName => _alias ?? actualTableName;
   @override
@@ -1739,6 +2048,14 @@ class Keys extends Table with TableInfo<Keys, Key> {
     final data = instance.toColumns(true);
     if (data.containsKey('id')) {
       context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
+    if (data.containsKey('vault_id')) {
+      context.handle(
+        _vaultIdMeta,
+        vaultId.isAcceptableOrUnknown(data['vault_id']!, _vaultIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_vaultIdMeta);
     }
     if (data.containsKey('label')) {
       context.handle(
@@ -1775,6 +2092,10 @@ class Keys extends Table with TableInfo<Keys, Key> {
         DriftSqlType.int,
         data['${effectivePrefix}id'],
       )!,
+      vaultId: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}vault_id'],
+      )!,
       label: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}label'],
@@ -1801,11 +2122,13 @@ class Keys extends Table with TableInfo<Keys, Key> {
 
 class Key extends DataClass implements Insertable<Key> {
   final int id;
+  final int vaultId;
   final String label;
   final String privatePem;
   final String? passphrase;
   const Key({
     required this.id,
+    required this.vaultId,
     required this.label,
     required this.privatePem,
     this.passphrase,
@@ -1814,6 +2137,7 @@ class Key extends DataClass implements Insertable<Key> {
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
     map['id'] = Variable<int>(id);
+    map['vault_id'] = Variable<int>(vaultId);
     map['label'] = Variable<String>(label);
     map['private_pem'] = Variable<String>(privatePem);
     if (!nullToAbsent || passphrase != null) {
@@ -1825,6 +2149,7 @@ class Key extends DataClass implements Insertable<Key> {
   KeysCompanion toCompanion(bool nullToAbsent) {
     return KeysCompanion(
       id: Value(id),
+      vaultId: Value(vaultId),
       label: Value(label),
       privatePem: Value(privatePem),
       passphrase: passphrase == null && nullToAbsent
@@ -1840,6 +2165,7 @@ class Key extends DataClass implements Insertable<Key> {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return Key(
       id: serializer.fromJson<int>(json['id']),
+      vaultId: serializer.fromJson<int>(json['vault_id']),
       label: serializer.fromJson<String>(json['label']),
       privatePem: serializer.fromJson<String>(json['private_pem']),
       passphrase: serializer.fromJson<String?>(json['passphrase']),
@@ -1850,6 +2176,7 @@ class Key extends DataClass implements Insertable<Key> {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return <String, dynamic>{
       'id': serializer.toJson<int>(id),
+      'vault_id': serializer.toJson<int>(vaultId),
       'label': serializer.toJson<String>(label),
       'private_pem': serializer.toJson<String>(privatePem),
       'passphrase': serializer.toJson<String?>(passphrase),
@@ -1858,11 +2185,13 @@ class Key extends DataClass implements Insertable<Key> {
 
   Key copyWith({
     int? id,
+    int? vaultId,
     String? label,
     String? privatePem,
     Value<String?> passphrase = const Value.absent(),
   }) => Key(
     id: id ?? this.id,
+    vaultId: vaultId ?? this.vaultId,
     label: label ?? this.label,
     privatePem: privatePem ?? this.privatePem,
     passphrase: passphrase.present ? passphrase.value : this.passphrase,
@@ -1870,6 +2199,7 @@ class Key extends DataClass implements Insertable<Key> {
   Key copyWithCompanion(KeysCompanion data) {
     return Key(
       id: data.id.present ? data.id.value : this.id,
+      vaultId: data.vaultId.present ? data.vaultId.value : this.vaultId,
       label: data.label.present ? data.label.value : this.label,
       privatePem: data.privatePem.present
           ? data.privatePem.value
@@ -1884,6 +2214,7 @@ class Key extends DataClass implements Insertable<Key> {
   String toString() {
     return (StringBuffer('Key(')
           ..write('id: $id, ')
+          ..write('vaultId: $vaultId, ')
           ..write('label: $label, ')
           ..write('privatePem: $privatePem, ')
           ..write('passphrase: $passphrase')
@@ -1892,12 +2223,13 @@ class Key extends DataClass implements Insertable<Key> {
   }
 
   @override
-  int get hashCode => Object.hash(id, label, privatePem, passphrase);
+  int get hashCode => Object.hash(id, vaultId, label, privatePem, passphrase);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
       (other is Key &&
           other.id == this.id &&
+          other.vaultId == this.vaultId &&
           other.label == this.label &&
           other.privatePem == this.privatePem &&
           other.passphrase == this.passphrase);
@@ -1905,30 +2237,36 @@ class Key extends DataClass implements Insertable<Key> {
 
 class KeysCompanion extends UpdateCompanion<Key> {
   final Value<int> id;
+  final Value<int> vaultId;
   final Value<String> label;
   final Value<String> privatePem;
   final Value<String?> passphrase;
   const KeysCompanion({
     this.id = const Value.absent(),
+    this.vaultId = const Value.absent(),
     this.label = const Value.absent(),
     this.privatePem = const Value.absent(),
     this.passphrase = const Value.absent(),
   });
   KeysCompanion.insert({
     this.id = const Value.absent(),
+    required int vaultId,
     required String label,
     required String privatePem,
     this.passphrase = const Value.absent(),
-  }) : label = Value(label),
+  }) : vaultId = Value(vaultId),
+       label = Value(label),
        privatePem = Value(privatePem);
   static Insertable<Key> custom({
     Expression<int>? id,
+    Expression<int>? vaultId,
     Expression<String>? label,
     Expression<String>? privatePem,
     Expression<String>? passphrase,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
+      if (vaultId != null) 'vault_id': vaultId,
       if (label != null) 'label': label,
       if (privatePem != null) 'private_pem': privatePem,
       if (passphrase != null) 'passphrase': passphrase,
@@ -1937,12 +2275,14 @@ class KeysCompanion extends UpdateCompanion<Key> {
 
   KeysCompanion copyWith({
     Value<int>? id,
+    Value<int>? vaultId,
     Value<String>? label,
     Value<String>? privatePem,
     Value<String?>? passphrase,
   }) {
     return KeysCompanion(
       id: id ?? this.id,
+      vaultId: vaultId ?? this.vaultId,
       label: label ?? this.label,
       privatePem: privatePem ?? this.privatePem,
       passphrase: passphrase ?? this.passphrase,
@@ -1954,6 +2294,9 @@ class KeysCompanion extends UpdateCompanion<Key> {
     final map = <String, Expression>{};
     if (id.present) {
       map['id'] = Variable<int>(id.value);
+    }
+    if (vaultId.present) {
+      map['vault_id'] = Variable<int>(vaultId.value);
     }
     if (label.present) {
       map['label'] = Variable<String>(label.value);
@@ -1971,6 +2314,7 @@ class KeysCompanion extends UpdateCompanion<Key> {
   String toString() {
     return (StringBuffer('KeysCompanion(')
           ..write('id: $id, ')
+          ..write('vaultId: $vaultId, ')
           ..write('label: $label, ')
           ..write('privatePem: $privatePem, ')
           ..write('passphrase: $passphrase')
@@ -1994,6 +2338,17 @@ class Identities extends Table with TableInfo<Identities, Identity> {
     requiredDuringInsert: false,
     $customConstraints: 'PRIMARY KEY AUTOINCREMENT',
   );
+  static const VerificationMeta _vaultIdMeta = const VerificationMeta(
+    'vaultId',
+  );
+  late final GeneratedColumn<int> vaultId = GeneratedColumn<int>(
+    'vault_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+    $customConstraints: 'NOT NULL REFERENCES vaults(id)',
+  );
   static const VerificationMeta _labelMeta = const VerificationMeta('label');
   late final GeneratedColumn<String> label = GeneratedColumn<String>(
     'label',
@@ -2015,7 +2370,7 @@ class Identities extends Table with TableInfo<Identities, Identity> {
     $customConstraints: 'NOT NULL',
   );
   @override
-  List<GeneratedColumn> get $columns => [id, label, username];
+  List<GeneratedColumn> get $columns => [id, vaultId, label, username];
   @override
   String get aliasedName => _alias ?? actualTableName;
   @override
@@ -2030,6 +2385,14 @@ class Identities extends Table with TableInfo<Identities, Identity> {
     final data = instance.toColumns(true);
     if (data.containsKey('id')) {
       context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
+    if (data.containsKey('vault_id')) {
+      context.handle(
+        _vaultIdMeta,
+        vaultId.isAcceptableOrUnknown(data['vault_id']!, _vaultIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_vaultIdMeta);
     }
     if (data.containsKey('label')) {
       context.handle(
@@ -2060,6 +2423,10 @@ class Identities extends Table with TableInfo<Identities, Identity> {
         DriftSqlType.int,
         data['${effectivePrefix}id'],
       )!,
+      vaultId: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}vault_id'],
+      )!,
       label: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}label'],
@@ -2082,10 +2449,12 @@ class Identities extends Table with TableInfo<Identities, Identity> {
 
 class Identity extends DataClass implements Insertable<Identity> {
   final int id;
+  final int vaultId;
   final String label;
   final String username;
   const Identity({
     required this.id,
+    required this.vaultId,
     required this.label,
     required this.username,
   });
@@ -2093,6 +2462,7 @@ class Identity extends DataClass implements Insertable<Identity> {
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
     map['id'] = Variable<int>(id);
+    map['vault_id'] = Variable<int>(vaultId);
     map['label'] = Variable<String>(label);
     map['username'] = Variable<String>(username);
     return map;
@@ -2101,6 +2471,7 @@ class Identity extends DataClass implements Insertable<Identity> {
   IdentitiesCompanion toCompanion(bool nullToAbsent) {
     return IdentitiesCompanion(
       id: Value(id),
+      vaultId: Value(vaultId),
       label: Value(label),
       username: Value(username),
     );
@@ -2113,6 +2484,7 @@ class Identity extends DataClass implements Insertable<Identity> {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return Identity(
       id: serializer.fromJson<int>(json['id']),
+      vaultId: serializer.fromJson<int>(json['vault_id']),
       label: serializer.fromJson<String>(json['label']),
       username: serializer.fromJson<String>(json['username']),
     );
@@ -2122,19 +2494,23 @@ class Identity extends DataClass implements Insertable<Identity> {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return <String, dynamic>{
       'id': serializer.toJson<int>(id),
+      'vault_id': serializer.toJson<int>(vaultId),
       'label': serializer.toJson<String>(label),
       'username': serializer.toJson<String>(username),
     };
   }
 
-  Identity copyWith({int? id, String? label, String? username}) => Identity(
-    id: id ?? this.id,
-    label: label ?? this.label,
-    username: username ?? this.username,
-  );
+  Identity copyWith({int? id, int? vaultId, String? label, String? username}) =>
+      Identity(
+        id: id ?? this.id,
+        vaultId: vaultId ?? this.vaultId,
+        label: label ?? this.label,
+        username: username ?? this.username,
+      );
   Identity copyWithCompanion(IdentitiesCompanion data) {
     return Identity(
       id: data.id.present ? data.id.value : this.id,
+      vaultId: data.vaultId.present ? data.vaultId.value : this.vaultId,
       label: data.label.present ? data.label.value : this.label,
       username: data.username.present ? data.username.value : this.username,
     );
@@ -2144,6 +2520,7 @@ class Identity extends DataClass implements Insertable<Identity> {
   String toString() {
     return (StringBuffer('Identity(')
           ..write('id: $id, ')
+          ..write('vaultId: $vaultId, ')
           ..write('label: $label, ')
           ..write('username: $username')
           ..write(')'))
@@ -2151,38 +2528,45 @@ class Identity extends DataClass implements Insertable<Identity> {
   }
 
   @override
-  int get hashCode => Object.hash(id, label, username);
+  int get hashCode => Object.hash(id, vaultId, label, username);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
       (other is Identity &&
           other.id == this.id &&
+          other.vaultId == this.vaultId &&
           other.label == this.label &&
           other.username == this.username);
 }
 
 class IdentitiesCompanion extends UpdateCompanion<Identity> {
   final Value<int> id;
+  final Value<int> vaultId;
   final Value<String> label;
   final Value<String> username;
   const IdentitiesCompanion({
     this.id = const Value.absent(),
+    this.vaultId = const Value.absent(),
     this.label = const Value.absent(),
     this.username = const Value.absent(),
   });
   IdentitiesCompanion.insert({
     this.id = const Value.absent(),
+    required int vaultId,
     required String label,
     required String username,
-  }) : label = Value(label),
+  }) : vaultId = Value(vaultId),
+       label = Value(label),
        username = Value(username);
   static Insertable<Identity> custom({
     Expression<int>? id,
+    Expression<int>? vaultId,
     Expression<String>? label,
     Expression<String>? username,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
+      if (vaultId != null) 'vault_id': vaultId,
       if (label != null) 'label': label,
       if (username != null) 'username': username,
     });
@@ -2190,11 +2574,13 @@ class IdentitiesCompanion extends UpdateCompanion<Identity> {
 
   IdentitiesCompanion copyWith({
     Value<int>? id,
+    Value<int>? vaultId,
     Value<String>? label,
     Value<String>? username,
   }) {
     return IdentitiesCompanion(
       id: id ?? this.id,
+      vaultId: vaultId ?? this.vaultId,
       label: label ?? this.label,
       username: username ?? this.username,
     );
@@ -2205,6 +2591,9 @@ class IdentitiesCompanion extends UpdateCompanion<Identity> {
     final map = <String, Expression>{};
     if (id.present) {
       map['id'] = Variable<int>(id.value);
+    }
+    if (vaultId.present) {
+      map['vault_id'] = Variable<int>(vaultId.value);
     }
     if (label.present) {
       map['label'] = Variable<String>(label.value);
@@ -2219,6 +2608,7 @@ class IdentitiesCompanion extends UpdateCompanion<Identity> {
   String toString() {
     return (StringBuffer('IdentitiesCompanion(')
           ..write('id: $id, ')
+          ..write('vaultId: $vaultId, ')
           ..write('label: $label, ')
           ..write('username: $username')
           ..write(')'))
@@ -2240,6 +2630,17 @@ class Credentials extends Table with TableInfo<Credentials, Credential> {
     type: DriftSqlType.int,
     requiredDuringInsert: false,
     $customConstraints: 'PRIMARY KEY AUTOINCREMENT',
+  );
+  static const VerificationMeta _vaultIdMeta = const VerificationMeta(
+    'vaultId',
+  );
+  late final GeneratedColumn<int> vaultId = GeneratedColumn<int>(
+    'vault_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+    $customConstraints: 'NOT NULL REFERENCES vaults(id)',
   );
   late final GeneratedColumnWithTypeConverter<CredentialType, String> type =
       GeneratedColumn<String>(
@@ -2272,7 +2673,7 @@ class Credentials extends Table with TableInfo<Credentials, Credential> {
         'CONSTRAINT password_or_key_id CHECK ((type = \'password\' AND password IS NOT NULL AND key_id IS NULL)OR(type = \'key\' AND key_id IS NOT NULL AND password IS NULL))',
   );
   @override
-  List<GeneratedColumn> get $columns => [id, type, keyId, password];
+  List<GeneratedColumn> get $columns => [id, vaultId, type, keyId, password];
   @override
   String get aliasedName => _alias ?? actualTableName;
   @override
@@ -2287,6 +2688,14 @@ class Credentials extends Table with TableInfo<Credentials, Credential> {
     final data = instance.toColumns(true);
     if (data.containsKey('id')) {
       context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
+    if (data.containsKey('vault_id')) {
+      context.handle(
+        _vaultIdMeta,
+        vaultId.isAcceptableOrUnknown(data['vault_id']!, _vaultIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_vaultIdMeta);
     }
     if (data.containsKey('key_id')) {
       context.handle(
@@ -2312,6 +2721,10 @@ class Credentials extends Table with TableInfo<Credentials, Credential> {
       id: attachedDatabase.typeMapping.read(
         DriftSqlType.int,
         data['${effectivePrefix}id'],
+      )!,
+      vaultId: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}vault_id'],
       )!,
       type: Credentials.$convertertype.fromSql(
         attachedDatabase.typeMapping.read(
@@ -2343,11 +2756,13 @@ class Credentials extends Table with TableInfo<Credentials, Credential> {
 
 class Credential extends DataClass implements Insertable<Credential> {
   final int id;
+  final int vaultId;
   final CredentialType type;
   final int? keyId;
   final String? password;
   const Credential({
     required this.id,
+    required this.vaultId,
     required this.type,
     this.keyId,
     this.password,
@@ -2356,6 +2771,7 @@ class Credential extends DataClass implements Insertable<Credential> {
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
     map['id'] = Variable<int>(id);
+    map['vault_id'] = Variable<int>(vaultId);
     {
       map['type'] = Variable<String>(Credentials.$convertertype.toSql(type));
     }
@@ -2371,6 +2787,7 @@ class Credential extends DataClass implements Insertable<Credential> {
   CredentialsCompanion toCompanion(bool nullToAbsent) {
     return CredentialsCompanion(
       id: Value(id),
+      vaultId: Value(vaultId),
       type: Value(type),
       keyId: keyId == null && nullToAbsent
           ? const Value.absent()
@@ -2388,6 +2805,7 @@ class Credential extends DataClass implements Insertable<Credential> {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return Credential(
       id: serializer.fromJson<int>(json['id']),
+      vaultId: serializer.fromJson<int>(json['vault_id']),
       type: Credentials.$convertertype.fromJson(
         serializer.fromJson<String>(json['type']),
       ),
@@ -2400,6 +2818,7 @@ class Credential extends DataClass implements Insertable<Credential> {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return <String, dynamic>{
       'id': serializer.toJson<int>(id),
+      'vault_id': serializer.toJson<int>(vaultId),
       'type': serializer.toJson<String>(
         Credentials.$convertertype.toJson(type),
       ),
@@ -2410,11 +2829,13 @@ class Credential extends DataClass implements Insertable<Credential> {
 
   Credential copyWith({
     int? id,
+    int? vaultId,
     CredentialType? type,
     Value<int?> keyId = const Value.absent(),
     Value<String?> password = const Value.absent(),
   }) => Credential(
     id: id ?? this.id,
+    vaultId: vaultId ?? this.vaultId,
     type: type ?? this.type,
     keyId: keyId.present ? keyId.value : this.keyId,
     password: password.present ? password.value : this.password,
@@ -2422,6 +2843,7 @@ class Credential extends DataClass implements Insertable<Credential> {
   Credential copyWithCompanion(CredentialsCompanion data) {
     return Credential(
       id: data.id.present ? data.id.value : this.id,
+      vaultId: data.vaultId.present ? data.vaultId.value : this.vaultId,
       type: data.type.present ? data.type.value : this.type,
       keyId: data.keyId.present ? data.keyId.value : this.keyId,
       password: data.password.present ? data.password.value : this.password,
@@ -2432,6 +2854,7 @@ class Credential extends DataClass implements Insertable<Credential> {
   String toString() {
     return (StringBuffer('Credential(')
           ..write('id: $id, ')
+          ..write('vaultId: $vaultId, ')
           ..write('type: $type, ')
           ..write('keyId: $keyId, ')
           ..write('password: $password')
@@ -2440,12 +2863,13 @@ class Credential extends DataClass implements Insertable<Credential> {
   }
 
   @override
-  int get hashCode => Object.hash(id, type, keyId, password);
+  int get hashCode => Object.hash(id, vaultId, type, keyId, password);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
       (other is Credential &&
           other.id == this.id &&
+          other.vaultId == this.vaultId &&
           other.type == this.type &&
           other.keyId == this.keyId &&
           other.password == this.password);
@@ -2453,29 +2877,35 @@ class Credential extends DataClass implements Insertable<Credential> {
 
 class CredentialsCompanion extends UpdateCompanion<Credential> {
   final Value<int> id;
+  final Value<int> vaultId;
   final Value<CredentialType> type;
   final Value<int?> keyId;
   final Value<String?> password;
   const CredentialsCompanion({
     this.id = const Value.absent(),
+    this.vaultId = const Value.absent(),
     this.type = const Value.absent(),
     this.keyId = const Value.absent(),
     this.password = const Value.absent(),
   });
   CredentialsCompanion.insert({
     this.id = const Value.absent(),
+    required int vaultId,
     required CredentialType type,
     this.keyId = const Value.absent(),
     this.password = const Value.absent(),
-  }) : type = Value(type);
+  }) : vaultId = Value(vaultId),
+       type = Value(type);
   static Insertable<Credential> custom({
     Expression<int>? id,
+    Expression<int>? vaultId,
     Expression<String>? type,
     Expression<int>? keyId,
     Expression<String>? password,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
+      if (vaultId != null) 'vault_id': vaultId,
       if (type != null) 'type': type,
       if (keyId != null) 'key_id': keyId,
       if (password != null) 'password': password,
@@ -2484,12 +2914,14 @@ class CredentialsCompanion extends UpdateCompanion<Credential> {
 
   CredentialsCompanion copyWith({
     Value<int>? id,
+    Value<int>? vaultId,
     Value<CredentialType>? type,
     Value<int?>? keyId,
     Value<String?>? password,
   }) {
     return CredentialsCompanion(
       id: id ?? this.id,
+      vaultId: vaultId ?? this.vaultId,
       type: type ?? this.type,
       keyId: keyId ?? this.keyId,
       password: password ?? this.password,
@@ -2501,6 +2933,9 @@ class CredentialsCompanion extends UpdateCompanion<Credential> {
     final map = <String, Expression>{};
     if (id.present) {
       map['id'] = Variable<int>(id.value);
+    }
+    if (vaultId.present) {
+      map['vault_id'] = Variable<int>(vaultId.value);
     }
     if (type.present) {
       map['type'] = Variable<String>(
@@ -2520,6 +2955,7 @@ class CredentialsCompanion extends UpdateCompanion<Credential> {
   String toString() {
     return (StringBuffer('CredentialsCompanion(')
           ..write('id: $id, ')
+          ..write('vaultId: $vaultId, ')
           ..write('type: $type, ')
           ..write('keyId: $keyId, ')
           ..write('password: $password')
@@ -2779,6 +3215,17 @@ class Connections extends Table with TableInfo<Connections, Connection> {
     requiredDuringInsert: false,
     $customConstraints: 'PRIMARY KEY AUTOINCREMENT',
   );
+  static const VerificationMeta _vaultIdMeta = const VerificationMeta(
+    'vaultId',
+  );
+  late final GeneratedColumn<int> vaultId = GeneratedColumn<int>(
+    'vault_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+    $customConstraints: 'NOT NULL REFERENCES vaults(id)',
+  );
   static const VerificationMeta _labelMeta = const VerificationMeta('label');
   late final GeneratedColumn<String> label = GeneratedColumn<String>(
     'label',
@@ -2920,6 +3367,7 @@ class Connections extends Table with TableInfo<Connections, Connection> {
   @override
   List<GeneratedColumn> get $columns => [
     id,
+    vaultId,
     label,
     address,
     port,
@@ -2948,6 +3396,14 @@ class Connections extends Table with TableInfo<Connections, Connection> {
     final data = instance.toColumns(true);
     if (data.containsKey('id')) {
       context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
+    if (data.containsKey('vault_id')) {
+      context.handle(
+        _vaultIdMeta,
+        vaultId.isAcceptableOrUnknown(data['vault_id']!, _vaultIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_vaultIdMeta);
     }
     if (data.containsKey('label')) {
       context.handle(
@@ -3030,6 +3486,10 @@ class Connections extends Table with TableInfo<Connections, Connection> {
       id: attachedDatabase.typeMapping.read(
         DriftSqlType.int,
         data['${effectivePrefix}id'],
+      )!,
+      vaultId: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}vault_id'],
       )!,
       label: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
@@ -3122,6 +3582,7 @@ class Connections extends Table with TableInfo<Connections, Connection> {
 
 class Connection extends DataClass implements Insertable<Connection> {
   final int id;
+  final int vaultId;
   final String label;
   final String address;
   final int port;
@@ -3137,6 +3598,7 @@ class Connection extends DataClass implements Insertable<Connection> {
   final bool usesDefaultThemeOverride;
   const Connection({
     required this.id,
+    required this.vaultId,
     required this.label,
     required this.address,
     required this.port,
@@ -3155,6 +3617,7 @@ class Connection extends DataClass implements Insertable<Connection> {
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
     map['id'] = Variable<int>(id);
+    map['vault_id'] = Variable<int>(vaultId);
     map['label'] = Variable<String>(label);
     map['address'] = Variable<String>(address);
     map['port'] = Variable<int>(port);
@@ -3202,6 +3665,7 @@ class Connection extends DataClass implements Insertable<Connection> {
   ConnectionsCompanion toCompanion(bool nullToAbsent) {
     return ConnectionsCompanion(
       id: Value(id),
+      vaultId: Value(vaultId),
       label: Value(label),
       address: Value(address),
       port: Value(port),
@@ -3236,6 +3700,7 @@ class Connection extends DataClass implements Insertable<Connection> {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return Connection(
       id: serializer.fromJson<int>(json['id']),
+      vaultId: serializer.fromJson<int>(json['vault_id']),
       label: serializer.fromJson<String>(json['label']),
       address: serializer.fromJson<String>(json['address']),
       port: serializer.fromJson<int>(json['port']),
@@ -3266,6 +3731,7 @@ class Connection extends DataClass implements Insertable<Connection> {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return <String, dynamic>{
       'id': serializer.toJson<int>(id),
+      'vault_id': serializer.toJson<int>(vaultId),
       'label': serializer.toJson<String>(label),
       'address': serializer.toJson<String>(address),
       'port': serializer.toJson<int>(port),
@@ -3290,6 +3756,7 @@ class Connection extends DataClass implements Insertable<Connection> {
 
   Connection copyWith({
     int? id,
+    int? vaultId,
     String? label,
     String? address,
     int? port,
@@ -3306,6 +3773,7 @@ class Connection extends DataClass implements Insertable<Connection> {
     bool? usesDefaultThemeOverride,
   }) => Connection(
     id: id ?? this.id,
+    vaultId: vaultId ?? this.vaultId,
     label: label ?? this.label,
     address: address ?? this.address,
     port: port ?? this.port,
@@ -3328,6 +3796,7 @@ class Connection extends DataClass implements Insertable<Connection> {
   Connection copyWithCompanion(ConnectionsCompanion data) {
     return Connection(
       id: data.id.present ? data.id.value : this.id,
+      vaultId: data.vaultId.present ? data.vaultId.value : this.vaultId,
       label: data.label.present ? data.label.value : this.label,
       address: data.address.present ? data.address.value : this.address,
       port: data.port.present ? data.port.value : this.port,
@@ -3360,6 +3829,7 @@ class Connection extends DataClass implements Insertable<Connection> {
   String toString() {
     return (StringBuffer('Connection(')
           ..write('id: $id, ')
+          ..write('vaultId: $vaultId, ')
           ..write('label: $label, ')
           ..write('address: $address, ')
           ..write('port: $port, ')
@@ -3380,6 +3850,7 @@ class Connection extends DataClass implements Insertable<Connection> {
   @override
   int get hashCode => Object.hash(
     id,
+    vaultId,
     label,
     address,
     port,
@@ -3399,6 +3870,7 @@ class Connection extends DataClass implements Insertable<Connection> {
       identical(this, other) ||
       (other is Connection &&
           other.id == this.id &&
+          other.vaultId == this.vaultId &&
           other.label == this.label &&
           other.address == this.address &&
           other.port == this.port &&
@@ -3416,6 +3888,7 @@ class Connection extends DataClass implements Insertable<Connection> {
 
 class ConnectionsCompanion extends UpdateCompanion<Connection> {
   final Value<int> id;
+  final Value<int> vaultId;
   final Value<String> label;
   final Value<String> address;
   final Value<int> port;
@@ -3431,6 +3904,7 @@ class ConnectionsCompanion extends UpdateCompanion<Connection> {
   final Value<bool> usesDefaultThemeOverride;
   const ConnectionsCompanion({
     this.id = const Value.absent(),
+    this.vaultId = const Value.absent(),
     this.label = const Value.absent(),
     this.address = const Value.absent(),
     this.port = const Value.absent(),
@@ -3447,6 +3921,7 @@ class ConnectionsCompanion extends UpdateCompanion<Connection> {
   });
   ConnectionsCompanion.insert({
     this.id = const Value.absent(),
+    required int vaultId,
     required String label,
     required String address,
     required int port,
@@ -3460,13 +3935,15 @@ class ConnectionsCompanion extends UpdateCompanion<Connection> {
     this.terminalTypographyOverride = const Value.absent(),
     this.terminalThemeOverrideId = const Value.absent(),
     this.usesDefaultThemeOverride = const Value.absent(),
-  }) : label = Value(label),
+  }) : vaultId = Value(vaultId),
+       label = Value(label),
        address = Value(address),
        port = Value(port),
        iconColor = Value(iconColor),
        iconBackgroundColor = Value(iconBackgroundColor);
   static Insertable<Connection> custom({
     Expression<int>? id,
+    Expression<int>? vaultId,
     Expression<String>? label,
     Expression<String>? address,
     Expression<int>? port,
@@ -3483,6 +3960,7 @@ class ConnectionsCompanion extends UpdateCompanion<Connection> {
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
+      if (vaultId != null) 'vault_id': vaultId,
       if (label != null) 'label': label,
       if (address != null) 'address': address,
       if (port != null) 'port': port,
@@ -3505,6 +3983,7 @@ class ConnectionsCompanion extends UpdateCompanion<Connection> {
 
   ConnectionsCompanion copyWith({
     Value<int>? id,
+    Value<int>? vaultId,
     Value<String>? label,
     Value<String>? address,
     Value<int>? port,
@@ -3521,6 +4000,7 @@ class ConnectionsCompanion extends UpdateCompanion<Connection> {
   }) {
     return ConnectionsCompanion(
       id: id ?? this.id,
+      vaultId: vaultId ?? this.vaultId,
       label: label ?? this.label,
       address: address ?? this.address,
       port: port ?? this.port,
@@ -3545,6 +4025,9 @@ class ConnectionsCompanion extends UpdateCompanion<Connection> {
     final map = <String, Expression>{};
     if (id.present) {
       map['id'] = Variable<int>(id.value);
+    }
+    if (vaultId.present) {
+      map['vault_id'] = Variable<int>(vaultId.value);
     }
     if (label.present) {
       map['label'] = Variable<String>(label.value);
@@ -3606,6 +4089,7 @@ class ConnectionsCompanion extends UpdateCompanion<Connection> {
   String toString() {
     return (StringBuffer('ConnectionsCompanion(')
           ..write('id: $id, ')
+          ..write('vaultId: $vaultId, ')
           ..write('label: $label, ')
           ..write('address: $address, ')
           ..write('port: $port, ')
@@ -3867,6 +4351,7 @@ class ConnectionCredentialsCompanion
 abstract class _$CliqDatabase extends GeneratedDatabase {
   _$CliqDatabase(QueryExecutor e) : super(e);
   $CliqDatabaseManager get managers => $CliqDatabaseManager(this);
+  late final Vaults vaults = Vaults(this);
   late final KnownHosts knownHosts = KnownHosts(this);
   late final CustomTerminalThemes customTerminalThemes = CustomTerminalThemes(
     this,
@@ -3880,6 +4365,19 @@ abstract class _$CliqDatabase extends GeneratedDatabase {
   late final Connections connections = Connections(this);
   late final ConnectionCredentials connectionCredentials =
       ConnectionCredentials(this);
+  Selectable<FindAllKnownHostsFullResult> findAllKnownHostsFull() {
+    return customSelect(
+      'SELECT"k"."id" AS "nested_0.id", "k"."vault_id" AS "nested_0.vault_id", "k"."host" AS "nested_0.host", "k"."hostKey" AS "nested_0.hostKey", "k"."created_at" AS "nested_0.created_at","v"."id" AS "nested_1.id", "v"."label" AS "nested_1.label", "v"."is_default" AS "nested_1.is_default" FROM known_hosts AS k INNER JOIN vaults AS v ON k.vault_id = v.id',
+      variables: [],
+      readsFrom: {knownHosts, vaults},
+    ).asyncMap(
+      (QueryRow row) async => FindAllKnownHostsFullResult(
+        knownHost: await knownHosts.mapFromRow(row, tablePrefix: 'nested_0'),
+        vault: await vaults.mapFromRow(row, tablePrefix: 'nested_1'),
+      ),
+    );
+  }
+
   Selectable<KnownHost> findKnownHostByHost(String var1) {
     return customSelect(
       'SELECT * FROM known_hosts WHERE host = ?1',
@@ -3896,25 +4394,31 @@ abstract class _$CliqDatabase extends GeneratedDatabase {
     ).map((QueryRow row) => row.read<int>('id'));
   }
 
-  Selectable<Key> findKeyByIds(List<int> var1) {
+  Selectable<FindAllKeyFullByIdsResult> findAllKeyFullByIds(List<int> var1) {
     var $arrayStartIndex = 1;
     final expandedvar1 = $expandVar($arrayStartIndex, var1.length);
     $arrayStartIndex += var1.length;
     return customSelect(
-      'SELECT * FROM keys WHERE id IN ($expandedvar1)',
+      'SELECT"k"."id" AS "nested_0.id", "k"."vault_id" AS "nested_0.vault_id", "k"."label" AS "nested_0.label", "k"."private_pem" AS "nested_0.private_pem", "k"."passphrase" AS "nested_0.passphrase","v"."id" AS "nested_1.id", "v"."label" AS "nested_1.label", "v"."is_default" AS "nested_1.is_default" FROM keys AS k INNER JOIN vaults AS v ON k.vault_id = v.id WHERE k.id IN ($expandedvar1)',
       variables: [for (var $ in var1) Variable<int>($)],
-      readsFrom: {keys},
-    ).asyncMap(keys.mapFromRow);
+      readsFrom: {keys, vaults},
+    ).asyncMap(
+      (QueryRow row) async => FindAllKeyFullByIdsResult(
+        keyEntity: await keys.mapFromRow(row, tablePrefix: 'nested_0'),
+        vault: await vaults.mapFromRow(row, tablePrefix: 'nested_1'),
+      ),
+    );
   }
 
   Selectable<FindAllIdentityFullResult> findAllIdentityFull() {
     return customSelect(
-      'SELECT"i"."id" AS "nested_0.id", "i"."label" AS "nested_0.label", "i"."username" AS "nested_0.username", i.id AS "\$n_0" FROM identities AS i',
+      'SELECT"i"."id" AS "nested_0.id", "i"."vault_id" AS "nested_0.vault_id", "i"."label" AS "nested_0.label", "i"."username" AS "nested_0.username","v"."id" AS "nested_1.id", "v"."label" AS "nested_1.label", "v"."is_default" AS "nested_1.is_default", i.id AS "\$n_0" FROM identities AS i INNER JOIN vaults AS v ON i.vault_id = v.id',
       variables: [],
-      readsFrom: {credentials, identityCredentials, identities},
+      readsFrom: {credentials, identityCredentials, identities, vaults},
     ).asyncMap(
       (QueryRow row) async => FindAllIdentityFullResult(
         identity: await identities.mapFromRow(row, tablePrefix: 'nested_0'),
+        vault: await vaults.mapFromRow(row, tablePrefix: 'nested_1'),
         identityCredentials: await customSelect(
           'SELECT credentials.id FROM identity_credentials JOIN credentials ON credentials.id = identity_credentials.credential_id WHERE identity_credentials.identity_id = ?1 ORDER BY credentials.id',
           variables: [Variable<int>(row.read('\$n_0'))],
@@ -3931,15 +4435,16 @@ abstract class _$CliqDatabase extends GeneratedDatabase {
     final expandedvar1 = $expandVar($arrayStartIndex, var1.length);
     $arrayStartIndex += var1.length;
     return customSelect(
-      'SELECT"c"."id" AS "nested_0.id", "c"."type" AS "nested_0.type", "c"."key_id" AS "nested_0.key_id", "c"."password" AS "nested_0.password","k"."id" AS "nested_1.id", "k"."label" AS "nested_1.label", "k"."private_pem" AS "nested_1.private_pem", "k"."passphrase" AS "nested_1.passphrase" FROM credentials AS c LEFT JOIN keys AS k ON c.key_id = k.id WHERE c.id IN ($expandedvar1)',
+      'SELECT"c"."id" AS "nested_0.id", "c"."vault_id" AS "nested_0.vault_id", "c"."type" AS "nested_0.type", "c"."key_id" AS "nested_0.key_id", "c"."password" AS "nested_0.password","v"."id" AS "nested_1.id", "v"."label" AS "nested_1.label", "v"."is_default" AS "nested_1.is_default","k"."id" AS "nested_2.id", "k"."vault_id" AS "nested_2.vault_id", "k"."label" AS "nested_2.label", "k"."private_pem" AS "nested_2.private_pem", "k"."passphrase" AS "nested_2.passphrase" FROM credentials AS c INNER JOIN vaults AS v ON c.vault_id = v.id LEFT JOIN keys AS k ON c.key_id = k.id WHERE c.id IN ($expandedvar1)',
       variables: [for (var $ in var1) Variable<int>($)],
-      readsFrom: {credentials, keys},
+      readsFrom: {credentials, vaults, keys},
     ).asyncMap(
       (QueryRow row) async => FindCredentialFullByIdsResult(
         credential: await credentials.mapFromRow(row, tablePrefix: 'nested_0'),
+        vault: await vaults.mapFromRow(row, tablePrefix: 'nested_1'),
         credentialKey: await keys.mapFromRowOrNull(
           row,
-          tablePrefix: 'nested_1',
+          tablePrefix: 'nested_2',
         ),
       ),
     );
@@ -3947,7 +4452,7 @@ abstract class _$CliqDatabase extends GeneratedDatabase {
 
   Selectable<FindAllConnectionFullResult> findAllConnectionFull() {
     return customSelect(
-      'SELECT"c"."id" AS "nested_0.id", "c"."label" AS "nested_0.label", "c"."address" AS "nested_0.address", "c"."port" AS "nested_0.port", "c"."identity_id" AS "nested_0.identity_id", "c"."username" AS "nested_0.username", "c"."group_name" AS "nested_0.group_name", "c"."icon" AS "nested_0.icon", "c"."icon_color" AS "nested_0.icon_color", "c"."icon_background_color" AS "nested_0.icon_background_color", "c"."is_icon_auto_detect" AS "nested_0.is_icon_auto_detect", "c"."terminal_typography_override" AS "nested_0.terminal_typography_override", "c"."terminal_theme_override_id" AS "nested_0.terminal_theme_override_id", "c"."uses_default_theme_override" AS "nested_0.uses_default_theme_override","i"."id" AS "nested_1.id", "i"."label" AS "nested_1.label", "i"."username" AS "nested_1.username","t"."id" AS "nested_2.id", "t"."name" AS "nested_2.name", "t"."black_color" AS "nested_2.black_color", "t"."red_color" AS "nested_2.red_color", "t"."green_color" AS "nested_2.green_color", "t"."yellow_color" AS "nested_2.yellow_color", "t"."blue_color" AS "nested_2.blue_color", "t"."purple_color" AS "nested_2.purple_color", "t"."cyan_color" AS "nested_2.cyan_color", "t"."white_color" AS "nested_2.white_color", "t"."bright_black_color" AS "nested_2.bright_black_color", "t"."bright_red_color" AS "nested_2.bright_red_color", "t"."bright_green_color" AS "nested_2.bright_green_color", "t"."bright_yellow_color" AS "nested_2.bright_yellow_color", "t"."bright_blue_color" AS "nested_2.bright_blue_color", "t"."bright_purple_color" AS "nested_2.bright_purple_color", "t"."bright_cyan_color" AS "nested_2.bright_cyan_color", "t"."bright_white_color" AS "nested_2.bright_white_color", "t"."background_color" AS "nested_2.background_color", "t"."foreground_color" AS "nested_2.foreground_color", "t"."cursor_color" AS "nested_2.cursor_color", "t"."selection_background_color" AS "nested_2.selection_background_color", "t"."selection_foreground_color" AS "nested_2.selection_foreground_color", "t"."cursor_text_color" AS "nested_2.cursor_text_color", c.id AS "\$n_0", i.id AS "\$n_1" FROM connections AS c LEFT JOIN identities AS i ON c.identity_id = i.id LEFT JOIN custom_terminal_themes AS t ON c.terminal_theme_override_id = t.id',
+      'SELECT"c"."id" AS "nested_0.id", "c"."vault_id" AS "nested_0.vault_id", "c"."label" AS "nested_0.label", "c"."address" AS "nested_0.address", "c"."port" AS "nested_0.port", "c"."identity_id" AS "nested_0.identity_id", "c"."username" AS "nested_0.username", "c"."group_name" AS "nested_0.group_name", "c"."icon" AS "nested_0.icon", "c"."icon_color" AS "nested_0.icon_color", "c"."icon_background_color" AS "nested_0.icon_background_color", "c"."is_icon_auto_detect" AS "nested_0.is_icon_auto_detect", "c"."terminal_typography_override" AS "nested_0.terminal_typography_override", "c"."terminal_theme_override_id" AS "nested_0.terminal_theme_override_id", "c"."uses_default_theme_override" AS "nested_0.uses_default_theme_override","v"."id" AS "nested_1.id", "v"."label" AS "nested_1.label", "v"."is_default" AS "nested_1.is_default","i"."id" AS "nested_2.id", "i"."vault_id" AS "nested_2.vault_id", "i"."label" AS "nested_2.label", "i"."username" AS "nested_2.username","iv"."id" AS "nested_3.id", "iv"."label" AS "nested_3.label", "iv"."is_default" AS "nested_3.is_default","t"."id" AS "nested_4.id", "t"."name" AS "nested_4.name", "t"."black_color" AS "nested_4.black_color", "t"."red_color" AS "nested_4.red_color", "t"."green_color" AS "nested_4.green_color", "t"."yellow_color" AS "nested_4.yellow_color", "t"."blue_color" AS "nested_4.blue_color", "t"."purple_color" AS "nested_4.purple_color", "t"."cyan_color" AS "nested_4.cyan_color", "t"."white_color" AS "nested_4.white_color", "t"."bright_black_color" AS "nested_4.bright_black_color", "t"."bright_red_color" AS "nested_4.bright_red_color", "t"."bright_green_color" AS "nested_4.bright_green_color", "t"."bright_yellow_color" AS "nested_4.bright_yellow_color", "t"."bright_blue_color" AS "nested_4.bright_blue_color", "t"."bright_purple_color" AS "nested_4.bright_purple_color", "t"."bright_cyan_color" AS "nested_4.bright_cyan_color", "t"."bright_white_color" AS "nested_4.bright_white_color", "t"."background_color" AS "nested_4.background_color", "t"."foreground_color" AS "nested_4.foreground_color", "t"."cursor_color" AS "nested_4.cursor_color", "t"."selection_background_color" AS "nested_4.selection_background_color", "t"."selection_foreground_color" AS "nested_4.selection_foreground_color", "t"."cursor_text_color" AS "nested_4.cursor_text_color", c.id AS "\$n_0", i.id AS "\$n_1" FROM connections AS c INNER JOIN vaults AS v ON c.vault_id = v.id LEFT JOIN identities AS i ON c.identity_id = i.id LEFT JOIN vaults AS iv ON i.vault_id = iv.id LEFT JOIN custom_terminal_themes AS t ON c.terminal_theme_override_id = t.id',
       variables: [],
       readsFrom: {
         credentials,
@@ -3955,18 +4460,24 @@ abstract class _$CliqDatabase extends GeneratedDatabase {
         connections,
         identityCredentials,
         identities,
+        vaults,
         customTerminalThemes,
       },
     ).asyncMap(
       (QueryRow row) async => FindAllConnectionFullResult(
         connection: await connections.mapFromRow(row, tablePrefix: 'nested_0'),
+        vault: await vaults.mapFromRow(row, tablePrefix: 'nested_1'),
         identity: await identities.mapFromRowOrNull(
           row,
-          tablePrefix: 'nested_1',
+          tablePrefix: 'nested_2',
+        ),
+        identityVault: await vaults.mapFromRowOrNull(
+          row,
+          tablePrefix: 'nested_3',
         ),
         terminalThemeOverride: await customTerminalThemes.mapFromRowOrNull(
           row,
-          tablePrefix: 'nested_2',
+          tablePrefix: 'nested_4',
         ),
         connectionCredentials: await customSelect(
           'SELECT credentials.id FROM connection_credentials JOIN credentials ON credentials.id = connection_credentials.credential_id WHERE connection_credentials.connection_id = ?1 ORDER BY credentials.id',
@@ -3995,6 +4506,7 @@ abstract class _$CliqDatabase extends GeneratedDatabase {
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
   @override
   List<DatabaseSchemaEntity> get allSchemaEntities => [
+    vaults,
     knownHosts,
     customTerminalThemes,
     keys,
@@ -4058,9 +4570,600 @@ abstract class _$CliqDatabase extends GeneratedDatabase {
   ]);
 }
 
+typedef $VaultsCreateCompanionBuilder =
+    VaultsCompanion Function({
+      Value<int> id,
+      required String label,
+      Value<bool> isDefault,
+    });
+typedef $VaultsUpdateCompanionBuilder =
+    VaultsCompanion Function({
+      Value<int> id,
+      Value<String> label,
+      Value<bool> isDefault,
+    });
+
+final class $VaultsReferences
+    extends BaseReferences<_$CliqDatabase, Vaults, Vault> {
+  $VaultsReferences(super.$_db, super.$_table, super.$_typedResult);
+
+  static MultiTypedResultKey<KnownHosts, List<KnownHost>> _knownHostsRefsTable(
+    _$CliqDatabase db,
+  ) => MultiTypedResultKey.fromTable(
+    db.knownHosts,
+    aliasName: $_aliasNameGenerator(db.vaults.id, db.knownHosts.vaultId),
+  );
+
+  $KnownHostsProcessedTableManager get knownHostsRefs {
+    final manager = $KnownHostsTableManager(
+      $_db,
+      $_db.knownHosts,
+    ).filter((f) => f.vaultId.id.sqlEquals($_itemColumn<int>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(_knownHostsRefsTable($_db));
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
+
+  static MultiTypedResultKey<Keys, List<Key>> _keysRefsTable(
+    _$CliqDatabase db,
+  ) => MultiTypedResultKey.fromTable(
+    db.keys,
+    aliasName: $_aliasNameGenerator(db.vaults.id, db.keys.vaultId),
+  );
+
+  $KeysProcessedTableManager get keysRefs {
+    final manager = $KeysTableManager(
+      $_db,
+      $_db.keys,
+    ).filter((f) => f.vaultId.id.sqlEquals($_itemColumn<int>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(_keysRefsTable($_db));
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
+
+  static MultiTypedResultKey<Identities, List<Identity>> _identitiesRefsTable(
+    _$CliqDatabase db,
+  ) => MultiTypedResultKey.fromTable(
+    db.identities,
+    aliasName: $_aliasNameGenerator(db.vaults.id, db.identities.vaultId),
+  );
+
+  $IdentitiesProcessedTableManager get identitiesRefs {
+    final manager = $IdentitiesTableManager(
+      $_db,
+      $_db.identities,
+    ).filter((f) => f.vaultId.id.sqlEquals($_itemColumn<int>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(_identitiesRefsTable($_db));
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
+
+  static MultiTypedResultKey<Credentials, List<Credential>>
+  _credentialsRefsTable(_$CliqDatabase db) => MultiTypedResultKey.fromTable(
+    db.credentials,
+    aliasName: $_aliasNameGenerator(db.vaults.id, db.credentials.vaultId),
+  );
+
+  $CredentialsProcessedTableManager get credentialsRefs {
+    final manager = $CredentialsTableManager(
+      $_db,
+      $_db.credentials,
+    ).filter((f) => f.vaultId.id.sqlEquals($_itemColumn<int>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(_credentialsRefsTable($_db));
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
+
+  static MultiTypedResultKey<Connections, List<Connection>>
+  _connectionsRefsTable(_$CliqDatabase db) => MultiTypedResultKey.fromTable(
+    db.connections,
+    aliasName: $_aliasNameGenerator(db.vaults.id, db.connections.vaultId),
+  );
+
+  $ConnectionsProcessedTableManager get connectionsRefs {
+    final manager = $ConnectionsTableManager(
+      $_db,
+      $_db.connections,
+    ).filter((f) => f.vaultId.id.sqlEquals($_itemColumn<int>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(_connectionsRefsTable($_db));
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
+}
+
+class $VaultsFilterComposer extends Composer<_$CliqDatabase, Vaults> {
+  $VaultsFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get label => $composableBuilder(
+    column: $table.label,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get isDefault => $composableBuilder(
+    column: $table.isDefault,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  Expression<bool> knownHostsRefs(
+    Expression<bool> Function($KnownHostsFilterComposer f) f,
+  ) {
+    final $KnownHostsFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.knownHosts,
+      getReferencedColumn: (t) => t.vaultId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $KnownHostsFilterComposer(
+            $db: $db,
+            $table: $db.knownHosts,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+
+  Expression<bool> keysRefs(
+    Expression<bool> Function($KeysFilterComposer f) f,
+  ) {
+    final $KeysFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.keys,
+      getReferencedColumn: (t) => t.vaultId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $KeysFilterComposer(
+            $db: $db,
+            $table: $db.keys,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+
+  Expression<bool> identitiesRefs(
+    Expression<bool> Function($IdentitiesFilterComposer f) f,
+  ) {
+    final $IdentitiesFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.identities,
+      getReferencedColumn: (t) => t.vaultId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $IdentitiesFilterComposer(
+            $db: $db,
+            $table: $db.identities,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+
+  Expression<bool> credentialsRefs(
+    Expression<bool> Function($CredentialsFilterComposer f) f,
+  ) {
+    final $CredentialsFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.credentials,
+      getReferencedColumn: (t) => t.vaultId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $CredentialsFilterComposer(
+            $db: $db,
+            $table: $db.credentials,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+
+  Expression<bool> connectionsRefs(
+    Expression<bool> Function($ConnectionsFilterComposer f) f,
+  ) {
+    final $ConnectionsFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.connections,
+      getReferencedColumn: (t) => t.vaultId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $ConnectionsFilterComposer(
+            $db: $db,
+            $table: $db.connections,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+}
+
+class $VaultsOrderingComposer extends Composer<_$CliqDatabase, Vaults> {
+  $VaultsOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get label => $composableBuilder(
+    column: $table.label,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<bool> get isDefault => $composableBuilder(
+    column: $table.isDefault,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $VaultsAnnotationComposer extends Composer<_$CliqDatabase, Vaults> {
+  $VaultsAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<int> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get label =>
+      $composableBuilder(column: $table.label, builder: (column) => column);
+
+  GeneratedColumn<bool> get isDefault =>
+      $composableBuilder(column: $table.isDefault, builder: (column) => column);
+
+  Expression<T> knownHostsRefs<T extends Object>(
+    Expression<T> Function($KnownHostsAnnotationComposer a) f,
+  ) {
+    final $KnownHostsAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.knownHosts,
+      getReferencedColumn: (t) => t.vaultId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $KnownHostsAnnotationComposer(
+            $db: $db,
+            $table: $db.knownHosts,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+
+  Expression<T> keysRefs<T extends Object>(
+    Expression<T> Function($KeysAnnotationComposer a) f,
+  ) {
+    final $KeysAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.keys,
+      getReferencedColumn: (t) => t.vaultId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $KeysAnnotationComposer(
+            $db: $db,
+            $table: $db.keys,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+
+  Expression<T> identitiesRefs<T extends Object>(
+    Expression<T> Function($IdentitiesAnnotationComposer a) f,
+  ) {
+    final $IdentitiesAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.identities,
+      getReferencedColumn: (t) => t.vaultId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $IdentitiesAnnotationComposer(
+            $db: $db,
+            $table: $db.identities,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+
+  Expression<T> credentialsRefs<T extends Object>(
+    Expression<T> Function($CredentialsAnnotationComposer a) f,
+  ) {
+    final $CredentialsAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.credentials,
+      getReferencedColumn: (t) => t.vaultId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $CredentialsAnnotationComposer(
+            $db: $db,
+            $table: $db.credentials,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+
+  Expression<T> connectionsRefs<T extends Object>(
+    Expression<T> Function($ConnectionsAnnotationComposer a) f,
+  ) {
+    final $ConnectionsAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.connections,
+      getReferencedColumn: (t) => t.vaultId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $ConnectionsAnnotationComposer(
+            $db: $db,
+            $table: $db.connections,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+}
+
+class $VaultsTableManager
+    extends
+        RootTableManager<
+          _$CliqDatabase,
+          Vaults,
+          Vault,
+          $VaultsFilterComposer,
+          $VaultsOrderingComposer,
+          $VaultsAnnotationComposer,
+          $VaultsCreateCompanionBuilder,
+          $VaultsUpdateCompanionBuilder,
+          (Vault, $VaultsReferences),
+          Vault,
+          PrefetchHooks Function({
+            bool knownHostsRefs,
+            bool keysRefs,
+            bool identitiesRefs,
+            bool credentialsRefs,
+            bool connectionsRefs,
+          })
+        > {
+  $VaultsTableManager(_$CliqDatabase db, Vaults table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $VaultsFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $VaultsOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $VaultsAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                Value<String> label = const Value.absent(),
+                Value<bool> isDefault = const Value.absent(),
+              }) => VaultsCompanion(id: id, label: label, isDefault: isDefault),
+          createCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                required String label,
+                Value<bool> isDefault = const Value.absent(),
+              }) => VaultsCompanion.insert(
+                id: id,
+                label: label,
+                isDefault: isDefault,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), $VaultsReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback:
+              ({
+                knownHostsRefs = false,
+                keysRefs = false,
+                identitiesRefs = false,
+                credentialsRefs = false,
+                connectionsRefs = false,
+              }) {
+                return PrefetchHooks(
+                  db: db,
+                  explicitlyWatchedTables: [
+                    if (knownHostsRefs) db.knownHosts,
+                    if (keysRefs) db.keys,
+                    if (identitiesRefs) db.identities,
+                    if (credentialsRefs) db.credentials,
+                    if (connectionsRefs) db.connections,
+                  ],
+                  addJoins: null,
+                  getPrefetchedDataCallback: (items) async {
+                    return [
+                      if (knownHostsRefs)
+                        await $_getPrefetchedData<Vault, Vaults, KnownHost>(
+                          currentTable: table,
+                          referencedTable: $VaultsReferences
+                              ._knownHostsRefsTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $VaultsReferences(db, table, p0).knownHostsRefs,
+                          referencedItemsForCurrentItem:
+                              (item, referencedItems) => referencedItems.where(
+                                (e) => e.vaultId == item.id,
+                              ),
+                          typedResults: items,
+                        ),
+                      if (keysRefs)
+                        await $_getPrefetchedData<Vault, Vaults, Key>(
+                          currentTable: table,
+                          referencedTable: $VaultsReferences._keysRefsTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $VaultsReferences(db, table, p0).keysRefs,
+                          referencedItemsForCurrentItem:
+                              (item, referencedItems) => referencedItems.where(
+                                (e) => e.vaultId == item.id,
+                              ),
+                          typedResults: items,
+                        ),
+                      if (identitiesRefs)
+                        await $_getPrefetchedData<Vault, Vaults, Identity>(
+                          currentTable: table,
+                          referencedTable: $VaultsReferences
+                              ._identitiesRefsTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $VaultsReferences(db, table, p0).identitiesRefs,
+                          referencedItemsForCurrentItem:
+                              (item, referencedItems) => referencedItems.where(
+                                (e) => e.vaultId == item.id,
+                              ),
+                          typedResults: items,
+                        ),
+                      if (credentialsRefs)
+                        await $_getPrefetchedData<Vault, Vaults, Credential>(
+                          currentTable: table,
+                          referencedTable: $VaultsReferences
+                              ._credentialsRefsTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $VaultsReferences(db, table, p0).credentialsRefs,
+                          referencedItemsForCurrentItem:
+                              (item, referencedItems) => referencedItems.where(
+                                (e) => e.vaultId == item.id,
+                              ),
+                          typedResults: items,
+                        ),
+                      if (connectionsRefs)
+                        await $_getPrefetchedData<Vault, Vaults, Connection>(
+                          currentTable: table,
+                          referencedTable: $VaultsReferences
+                              ._connectionsRefsTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $VaultsReferences(db, table, p0).connectionsRefs,
+                          referencedItemsForCurrentItem:
+                              (item, referencedItems) => referencedItems.where(
+                                (e) => e.vaultId == item.id,
+                              ),
+                          typedResults: items,
+                        ),
+                    ];
+                  },
+                );
+              },
+        ),
+      );
+}
+
+typedef $VaultsProcessedTableManager =
+    ProcessedTableManager<
+      _$CliqDatabase,
+      Vaults,
+      Vault,
+      $VaultsFilterComposer,
+      $VaultsOrderingComposer,
+      $VaultsAnnotationComposer,
+      $VaultsCreateCompanionBuilder,
+      $VaultsUpdateCompanionBuilder,
+      (Vault, $VaultsReferences),
+      Vault,
+      PrefetchHooks Function({
+        bool knownHostsRefs,
+        bool keysRefs,
+        bool identitiesRefs,
+        bool credentialsRefs,
+        bool connectionsRefs,
+      })
+    >;
 typedef $KnownHostsCreateCompanionBuilder =
     KnownHostsCompanion Function({
       Value<int> id,
+      required int vaultId,
       required String host,
       required Uint8List hostKey,
       Value<DateTime> createdAt,
@@ -4068,10 +5171,34 @@ typedef $KnownHostsCreateCompanionBuilder =
 typedef $KnownHostsUpdateCompanionBuilder =
     KnownHostsCompanion Function({
       Value<int> id,
+      Value<int> vaultId,
       Value<String> host,
       Value<Uint8List> hostKey,
       Value<DateTime> createdAt,
     });
+
+final class $KnownHostsReferences
+    extends BaseReferences<_$CliqDatabase, KnownHosts, KnownHost> {
+  $KnownHostsReferences(super.$_db, super.$_table, super.$_typedResult);
+
+  static Vaults _vaultIdTable(_$CliqDatabase db) => db.vaults.createAlias(
+    $_aliasNameGenerator(db.knownHosts.vaultId, db.vaults.id),
+  );
+
+  $VaultsProcessedTableManager get vaultId {
+    final $_column = $_itemColumn<int>('vault_id')!;
+
+    final manager = $VaultsTableManager(
+      $_db,
+      $_db.vaults,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_vaultIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+}
 
 class $KnownHostsFilterComposer extends Composer<_$CliqDatabase, KnownHosts> {
   $KnownHostsFilterComposer({
@@ -4100,6 +5227,29 @@ class $KnownHostsFilterComposer extends Composer<_$CliqDatabase, KnownHosts> {
     column: $table.createdAt,
     builder: (column) => ColumnFilters(column),
   );
+
+  $VaultsFilterComposer get vaultId {
+    final $VaultsFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.vaultId,
+      referencedTable: $db.vaults,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $VaultsFilterComposer(
+            $db: $db,
+            $table: $db.vaults,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
 }
 
 class $KnownHostsOrderingComposer extends Composer<_$CliqDatabase, KnownHosts> {
@@ -4129,6 +5279,29 @@ class $KnownHostsOrderingComposer extends Composer<_$CliqDatabase, KnownHosts> {
     column: $table.createdAt,
     builder: (column) => ColumnOrderings(column),
   );
+
+  $VaultsOrderingComposer get vaultId {
+    final $VaultsOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.vaultId,
+      referencedTable: $db.vaults,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $VaultsOrderingComposer(
+            $db: $db,
+            $table: $db.vaults,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
 }
 
 class $KnownHostsAnnotationComposer
@@ -4151,6 +5324,29 @@ class $KnownHostsAnnotationComposer
 
   GeneratedColumn<DateTime> get createdAt =>
       $composableBuilder(column: $table.createdAt, builder: (column) => column);
+
+  $VaultsAnnotationComposer get vaultId {
+    final $VaultsAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.vaultId,
+      referencedTable: $db.vaults,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $VaultsAnnotationComposer(
+            $db: $db,
+            $table: $db.vaults,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
 }
 
 class $KnownHostsTableManager
@@ -4164,9 +5360,9 @@ class $KnownHostsTableManager
           $KnownHostsAnnotationComposer,
           $KnownHostsCreateCompanionBuilder,
           $KnownHostsUpdateCompanionBuilder,
-          (KnownHost, BaseReferences<_$CliqDatabase, KnownHosts, KnownHost>),
+          (KnownHost, $KnownHostsReferences),
           KnownHost,
-          PrefetchHooks Function()
+          PrefetchHooks Function({bool vaultId})
         > {
   $KnownHostsTableManager(_$CliqDatabase db, KnownHosts table)
     : super(
@@ -4182,11 +5378,13 @@ class $KnownHostsTableManager
           updateCompanionCallback:
               ({
                 Value<int> id = const Value.absent(),
+                Value<int> vaultId = const Value.absent(),
                 Value<String> host = const Value.absent(),
                 Value<Uint8List> hostKey = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
               }) => KnownHostsCompanion(
                 id: id,
+                vaultId: vaultId,
                 host: host,
                 hostKey: hostKey,
                 createdAt: createdAt,
@@ -4194,19 +5392,64 @@ class $KnownHostsTableManager
           createCompanionCallback:
               ({
                 Value<int> id = const Value.absent(),
+                required int vaultId,
                 required String host,
                 required Uint8List hostKey,
                 Value<DateTime> createdAt = const Value.absent(),
               }) => KnownHostsCompanion.insert(
                 id: id,
+                vaultId: vaultId,
                 host: host,
                 hostKey: hostKey,
                 createdAt: createdAt,
               ),
           withReferenceMapper: (p0) => p0
-              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .map(
+                (e) =>
+                    (e.readTable(table), $KnownHostsReferences(db, table, e)),
+              )
               .toList(),
-          prefetchHooksCallback: null,
+          prefetchHooksCallback: ({vaultId = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [],
+              addJoins:
+                  <
+                    T extends TableManagerState<
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic
+                    >
+                  >(state) {
+                    if (vaultId) {
+                      state =
+                          state.withJoin(
+                                currentTable: table,
+                                currentColumn: table.vaultId,
+                                referencedTable: $KnownHostsReferences
+                                    ._vaultIdTable(db),
+                                referencedColumn: $KnownHostsReferences
+                                    ._vaultIdTable(db)
+                                    .id,
+                              )
+                              as T;
+                    }
+
+                    return state;
+                  },
+              getPrefetchedDataCallback: (items) async {
+                return [];
+              },
+            );
+          },
         ),
       );
 }
@@ -4221,9 +5464,9 @@ typedef $KnownHostsProcessedTableManager =
       $KnownHostsAnnotationComposer,
       $KnownHostsCreateCompanionBuilder,
       $KnownHostsUpdateCompanionBuilder,
-      (KnownHost, BaseReferences<_$CliqDatabase, KnownHosts, KnownHost>),
+      (KnownHost, $KnownHostsReferences),
       KnownHost,
-      PrefetchHooks Function()
+      PrefetchHooks Function({bool vaultId})
     >;
 typedef $CustomTerminalThemesCreateCompanionBuilder =
     CustomTerminalThemesCompanion Function({
@@ -4978,6 +6221,7 @@ typedef $CustomTerminalThemesProcessedTableManager =
 typedef $KeysCreateCompanionBuilder =
     KeysCompanion Function({
       Value<int> id,
+      required int vaultId,
       required String label,
       required String privatePem,
       Value<String?> passphrase,
@@ -4985,6 +6229,7 @@ typedef $KeysCreateCompanionBuilder =
 typedef $KeysUpdateCompanionBuilder =
     KeysCompanion Function({
       Value<int> id,
+      Value<int> vaultId,
       Value<String> label,
       Value<String> privatePem,
       Value<String?> passphrase,
@@ -4992,6 +6237,24 @@ typedef $KeysUpdateCompanionBuilder =
 
 final class $KeysReferences extends BaseReferences<_$CliqDatabase, Keys, Key> {
   $KeysReferences(super.$_db, super.$_table, super.$_typedResult);
+
+  static Vaults _vaultIdTable(_$CliqDatabase db) => db.vaults.createAlias(
+    $_aliasNameGenerator(db.keys.vaultId, db.vaults.id),
+  );
+
+  $VaultsProcessedTableManager get vaultId {
+    final $_column = $_itemColumn<int>('vault_id')!;
+
+    final manager = $VaultsTableManager(
+      $_db,
+      $_db.vaults,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_vaultIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
 
   static MultiTypedResultKey<Credentials, List<Credential>>
   _credentialsRefsTable(_$CliqDatabase db) => MultiTypedResultKey.fromTable(
@@ -5039,6 +6302,29 @@ class $KeysFilterComposer extends Composer<_$CliqDatabase, Keys> {
     column: $table.passphrase,
     builder: (column) => ColumnFilters(column),
   );
+
+  $VaultsFilterComposer get vaultId {
+    final $VaultsFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.vaultId,
+      referencedTable: $db.vaults,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $VaultsFilterComposer(
+            $db: $db,
+            $table: $db.vaults,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
 
   Expression<bool> credentialsRefs(
     Expression<bool> Function($CredentialsFilterComposer f) f,
@@ -5093,6 +6379,29 @@ class $KeysOrderingComposer extends Composer<_$CliqDatabase, Keys> {
     column: $table.passphrase,
     builder: (column) => ColumnOrderings(column),
   );
+
+  $VaultsOrderingComposer get vaultId {
+    final $VaultsOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.vaultId,
+      referencedTable: $db.vaults,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $VaultsOrderingComposer(
+            $db: $db,
+            $table: $db.vaults,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
 }
 
 class $KeysAnnotationComposer extends Composer<_$CliqDatabase, Keys> {
@@ -5118,6 +6427,29 @@ class $KeysAnnotationComposer extends Composer<_$CliqDatabase, Keys> {
     column: $table.passphrase,
     builder: (column) => column,
   );
+
+  $VaultsAnnotationComposer get vaultId {
+    final $VaultsAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.vaultId,
+      referencedTable: $db.vaults,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $VaultsAnnotationComposer(
+            $db: $db,
+            $table: $db.vaults,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
 
   Expression<T> credentialsRefs<T extends Object>(
     Expression<T> Function($CredentialsAnnotationComposer a) f,
@@ -5158,7 +6490,7 @@ class $KeysTableManager
           $KeysUpdateCompanionBuilder,
           (Key, $KeysReferences),
           Key,
-          PrefetchHooks Function({bool credentialsRefs})
+          PrefetchHooks Function({bool vaultId, bool credentialsRefs})
         > {
   $KeysTableManager(_$CliqDatabase db, Keys table)
     : super(
@@ -5174,11 +6506,13 @@ class $KeysTableManager
           updateCompanionCallback:
               ({
                 Value<int> id = const Value.absent(),
+                Value<int> vaultId = const Value.absent(),
                 Value<String> label = const Value.absent(),
                 Value<String> privatePem = const Value.absent(),
                 Value<String?> passphrase = const Value.absent(),
               }) => KeysCompanion(
                 id: id,
+                vaultId: vaultId,
                 label: label,
                 privatePem: privatePem,
                 passphrase: passphrase,
@@ -5186,11 +6520,13 @@ class $KeysTableManager
           createCompanionCallback:
               ({
                 Value<int> id = const Value.absent(),
+                required int vaultId,
                 required String label,
                 required String privatePem,
                 Value<String?> passphrase = const Value.absent(),
               }) => KeysCompanion.insert(
                 id: id,
+                vaultId: vaultId,
                 label: label,
                 privatePem: privatePem,
                 passphrase: passphrase,
@@ -5198,11 +6534,43 @@ class $KeysTableManager
           withReferenceMapper: (p0) => p0
               .map((e) => (e.readTable(table), $KeysReferences(db, table, e)))
               .toList(),
-          prefetchHooksCallback: ({credentialsRefs = false}) {
+          prefetchHooksCallback: ({vaultId = false, credentialsRefs = false}) {
             return PrefetchHooks(
               db: db,
               explicitlyWatchedTables: [if (credentialsRefs) db.credentials],
-              addJoins: null,
+              addJoins:
+                  <
+                    T extends TableManagerState<
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic
+                    >
+                  >(state) {
+                    if (vaultId) {
+                      state =
+                          state.withJoin(
+                                currentTable: table,
+                                currentColumn: table.vaultId,
+                                referencedTable: $KeysReferences._vaultIdTable(
+                                  db,
+                                ),
+                                referencedColumn: $KeysReferences
+                                    ._vaultIdTable(db)
+                                    .id,
+                              )
+                              as T;
+                    }
+
+                    return state;
+                  },
               getPrefetchedDataCallback: (items) async {
                 return [
                   if (credentialsRefs)
@@ -5237,17 +6605,19 @@ typedef $KeysProcessedTableManager =
       $KeysUpdateCompanionBuilder,
       (Key, $KeysReferences),
       Key,
-      PrefetchHooks Function({bool credentialsRefs})
+      PrefetchHooks Function({bool vaultId, bool credentialsRefs})
     >;
 typedef $IdentitiesCreateCompanionBuilder =
     IdentitiesCompanion Function({
       Value<int> id,
+      required int vaultId,
       required String label,
       required String username,
     });
 typedef $IdentitiesUpdateCompanionBuilder =
     IdentitiesCompanion Function({
       Value<int> id,
+      Value<int> vaultId,
       Value<String> label,
       Value<String> username,
     });
@@ -5255,6 +6625,24 @@ typedef $IdentitiesUpdateCompanionBuilder =
 final class $IdentitiesReferences
     extends BaseReferences<_$CliqDatabase, Identities, Identity> {
   $IdentitiesReferences(super.$_db, super.$_table, super.$_typedResult);
+
+  static Vaults _vaultIdTable(_$CliqDatabase db) => db.vaults.createAlias(
+    $_aliasNameGenerator(db.identities.vaultId, db.vaults.id),
+  );
+
+  $VaultsProcessedTableManager get vaultId {
+    final $_column = $_itemColumn<int>('vault_id')!;
+
+    final manager = $VaultsTableManager(
+      $_db,
+      $_db.vaults,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_vaultIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
 
   static MultiTypedResultKey<IdentityCredentials, List<IdentityCredential>>
   _identityCredentialsRefsTable(_$CliqDatabase db) =>
@@ -5324,6 +6712,29 @@ class $IdentitiesFilterComposer extends Composer<_$CliqDatabase, Identities> {
     column: $table.username,
     builder: (column) => ColumnFilters(column),
   );
+
+  $VaultsFilterComposer get vaultId {
+    final $VaultsFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.vaultId,
+      referencedTable: $db.vaults,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $VaultsFilterComposer(
+            $db: $db,
+            $table: $db.vaults,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
 
   Expression<bool> identityCredentialsRefs(
     Expression<bool> Function($IdentityCredentialsFilterComposer f) f,
@@ -5398,6 +6809,29 @@ class $IdentitiesOrderingComposer extends Composer<_$CliqDatabase, Identities> {
     column: $table.username,
     builder: (column) => ColumnOrderings(column),
   );
+
+  $VaultsOrderingComposer get vaultId {
+    final $VaultsOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.vaultId,
+      referencedTable: $db.vaults,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $VaultsOrderingComposer(
+            $db: $db,
+            $table: $db.vaults,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
 }
 
 class $IdentitiesAnnotationComposer
@@ -5417,6 +6851,29 @@ class $IdentitiesAnnotationComposer
 
   GeneratedColumn<String> get username =>
       $composableBuilder(column: $table.username, builder: (column) => column);
+
+  $VaultsAnnotationComposer get vaultId {
+    final $VaultsAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.vaultId,
+      referencedTable: $db.vaults,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $VaultsAnnotationComposer(
+            $db: $db,
+            $table: $db.vaults,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
 
   Expression<T> identityCredentialsRefs<T extends Object>(
     Expression<T> Function($IdentityCredentialsAnnotationComposer a) f,
@@ -5483,6 +6940,7 @@ class $IdentitiesTableManager
           (Identity, $IdentitiesReferences),
           Identity,
           PrefetchHooks Function({
+            bool vaultId,
             bool identityCredentialsRefs,
             bool connectionsRefs,
           })
@@ -5501,17 +6959,24 @@ class $IdentitiesTableManager
           updateCompanionCallback:
               ({
                 Value<int> id = const Value.absent(),
+                Value<int> vaultId = const Value.absent(),
                 Value<String> label = const Value.absent(),
                 Value<String> username = const Value.absent(),
-              }) =>
-                  IdentitiesCompanion(id: id, label: label, username: username),
+              }) => IdentitiesCompanion(
+                id: id,
+                vaultId: vaultId,
+                label: label,
+                username: username,
+              ),
           createCompanionCallback:
               ({
                 Value<int> id = const Value.absent(),
+                required int vaultId,
                 required String label,
                 required String username,
               }) => IdentitiesCompanion.insert(
                 id: id,
+                vaultId: vaultId,
                 label: label,
                 username: username,
               ),
@@ -5522,14 +6987,49 @@ class $IdentitiesTableManager
               )
               .toList(),
           prefetchHooksCallback:
-              ({identityCredentialsRefs = false, connectionsRefs = false}) {
+              ({
+                vaultId = false,
+                identityCredentialsRefs = false,
+                connectionsRefs = false,
+              }) {
                 return PrefetchHooks(
                   db: db,
                   explicitlyWatchedTables: [
                     if (identityCredentialsRefs) db.identityCredentials,
                     if (connectionsRefs) db.connections,
                   ],
-                  addJoins: null,
+                  addJoins:
+                      <
+                        T extends TableManagerState<
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic
+                        >
+                      >(state) {
+                        if (vaultId) {
+                          state =
+                              state.withJoin(
+                                    currentTable: table,
+                                    currentColumn: table.vaultId,
+                                    referencedTable: $IdentitiesReferences
+                                        ._vaultIdTable(db),
+                                    referencedColumn: $IdentitiesReferences
+                                        ._vaultIdTable(db)
+                                        .id,
+                                  )
+                                  as T;
+                        }
+
+                        return state;
+                      },
                   getPrefetchedDataCallback: (items) async {
                     return [
                       if (identityCredentialsRefs)
@@ -5593,6 +7093,7 @@ typedef $IdentitiesProcessedTableManager =
       (Identity, $IdentitiesReferences),
       Identity,
       PrefetchHooks Function({
+        bool vaultId,
         bool identityCredentialsRefs,
         bool connectionsRefs,
       })
@@ -5600,6 +7101,7 @@ typedef $IdentitiesProcessedTableManager =
 typedef $CredentialsCreateCompanionBuilder =
     CredentialsCompanion Function({
       Value<int> id,
+      required int vaultId,
       required CredentialType type,
       Value<int?> keyId,
       Value<String?> password,
@@ -5607,6 +7109,7 @@ typedef $CredentialsCreateCompanionBuilder =
 typedef $CredentialsUpdateCompanionBuilder =
     CredentialsCompanion Function({
       Value<int> id,
+      Value<int> vaultId,
       Value<CredentialType> type,
       Value<int?> keyId,
       Value<String?> password,
@@ -5615,6 +7118,24 @@ typedef $CredentialsUpdateCompanionBuilder =
 final class $CredentialsReferences
     extends BaseReferences<_$CliqDatabase, Credentials, Credential> {
   $CredentialsReferences(super.$_db, super.$_table, super.$_typedResult);
+
+  static Vaults _vaultIdTable(_$CliqDatabase db) => db.vaults.createAlias(
+    $_aliasNameGenerator(db.credentials.vaultId, db.vaults.id),
+  );
+
+  $VaultsProcessedTableManager get vaultId {
+    final $_column = $_itemColumn<int>('vault_id')!;
+
+    final manager = $VaultsTableManager(
+      $_db,
+      $_db.vaults,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_vaultIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
 
   static Keys _keyIdTable(_$CliqDatabase db) => db.keys.createAlias(
     $_aliasNameGenerator(db.credentials.keyId, db.keys.id),
@@ -5706,6 +7227,29 @@ class $CredentialsFilterComposer extends Composer<_$CliqDatabase, Credentials> {
     column: $table.password,
     builder: (column) => ColumnFilters(column),
   );
+
+  $VaultsFilterComposer get vaultId {
+    final $VaultsFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.vaultId,
+      referencedTable: $db.vaults,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $VaultsFilterComposer(
+            $db: $db,
+            $table: $db.vaults,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
 
   $KeysFilterComposer get keyId {
     final $KeysFilterComposer composer = $composerBuilder(
@@ -5805,6 +7349,29 @@ class $CredentialsOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  $VaultsOrderingComposer get vaultId {
+    final $VaultsOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.vaultId,
+      referencedTable: $db.vaults,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $VaultsOrderingComposer(
+            $db: $db,
+            $table: $db.vaults,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
   $KeysOrderingComposer get keyId {
     final $KeysOrderingComposer composer = $composerBuilder(
       composer: this,
@@ -5846,6 +7413,29 @@ class $CredentialsAnnotationComposer
 
   GeneratedColumn<String> get password =>
       $composableBuilder(column: $table.password, builder: (column) => column);
+
+  $VaultsAnnotationComposer get vaultId {
+    final $VaultsAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.vaultId,
+      referencedTable: $db.vaults,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $VaultsAnnotationComposer(
+            $db: $db,
+            $table: $db.vaults,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
 
   $KeysAnnotationComposer get keyId {
     final $KeysAnnotationComposer composer = $composerBuilder(
@@ -5935,6 +7525,7 @@ class $CredentialsTableManager
           (Credential, $CredentialsReferences),
           Credential,
           PrefetchHooks Function({
+            bool vaultId,
             bool keyId,
             bool identityCredentialsRefs,
             bool connectionCredentialsRefs,
@@ -5954,11 +7545,13 @@ class $CredentialsTableManager
           updateCompanionCallback:
               ({
                 Value<int> id = const Value.absent(),
+                Value<int> vaultId = const Value.absent(),
                 Value<CredentialType> type = const Value.absent(),
                 Value<int?> keyId = const Value.absent(),
                 Value<String?> password = const Value.absent(),
               }) => CredentialsCompanion(
                 id: id,
+                vaultId: vaultId,
                 type: type,
                 keyId: keyId,
                 password: password,
@@ -5966,11 +7559,13 @@ class $CredentialsTableManager
           createCompanionCallback:
               ({
                 Value<int> id = const Value.absent(),
+                required int vaultId,
                 required CredentialType type,
                 Value<int?> keyId = const Value.absent(),
                 Value<String?> password = const Value.absent(),
               }) => CredentialsCompanion.insert(
                 id: id,
+                vaultId: vaultId,
                 type: type,
                 keyId: keyId,
                 password: password,
@@ -5983,6 +7578,7 @@ class $CredentialsTableManager
               .toList(),
           prefetchHooksCallback:
               ({
+                vaultId = false,
                 keyId = false,
                 identityCredentialsRefs = false,
                 connectionCredentialsRefs = false,
@@ -6009,6 +7605,19 @@ class $CredentialsTableManager
                           dynamic
                         >
                       >(state) {
+                        if (vaultId) {
+                          state =
+                              state.withJoin(
+                                    currentTable: table,
+                                    currentColumn: table.vaultId,
+                                    referencedTable: $CredentialsReferences
+                                        ._vaultIdTable(db),
+                                    referencedColumn: $CredentialsReferences
+                                        ._vaultIdTable(db)
+                                        .id,
+                                  )
+                                  as T;
+                        }
                         if (keyId) {
                           state =
                               state.withJoin(
@@ -6090,6 +7699,7 @@ typedef $CredentialsProcessedTableManager =
       (Credential, $CredentialsReferences),
       Credential,
       PrefetchHooks Function({
+        bool vaultId,
         bool keyId,
         bool identityCredentialsRefs,
         bool connectionCredentialsRefs,
@@ -6463,6 +8073,7 @@ typedef $IdentityCredentialsProcessedTableManager =
 typedef $ConnectionsCreateCompanionBuilder =
     ConnectionsCompanion Function({
       Value<int> id,
+      required int vaultId,
       required String label,
       required String address,
       required int port,
@@ -6480,6 +8091,7 @@ typedef $ConnectionsCreateCompanionBuilder =
 typedef $ConnectionsUpdateCompanionBuilder =
     ConnectionsCompanion Function({
       Value<int> id,
+      Value<int> vaultId,
       Value<String> label,
       Value<String> address,
       Value<int> port,
@@ -6498,6 +8110,24 @@ typedef $ConnectionsUpdateCompanionBuilder =
 final class $ConnectionsReferences
     extends BaseReferences<_$CliqDatabase, Connections, Connection> {
   $ConnectionsReferences(super.$_db, super.$_table, super.$_typedResult);
+
+  static Vaults _vaultIdTable(_$CliqDatabase db) => db.vaults.createAlias(
+    $_aliasNameGenerator(db.connections.vaultId, db.vaults.id),
+  );
+
+  $VaultsProcessedTableManager get vaultId {
+    final $_column = $_itemColumn<int>('vault_id')!;
+
+    final manager = $VaultsTableManager(
+      $_db,
+      $_db.vaults,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_vaultIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
 
   static Identities _identityIdTable(_$CliqDatabase db) =>
       db.identities.createAlias(
@@ -6644,6 +8274,29 @@ class $ConnectionsFilterComposer extends Composer<_$CliqDatabase, Connections> {
     builder: (column) => ColumnFilters(column),
   );
 
+  $VaultsFilterComposer get vaultId {
+    final $VaultsFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.vaultId,
+      referencedTable: $db.vaults,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $VaultsFilterComposer(
+            $db: $db,
+            $table: $db.vaults,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
   $IdentitiesFilterComposer get identityId {
     final $IdentitiesFilterComposer composer = $composerBuilder(
       composer: this,
@@ -6785,6 +8438,29 @@ class $ConnectionsOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  $VaultsOrderingComposer get vaultId {
+    final $VaultsOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.vaultId,
+      referencedTable: $db.vaults,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $VaultsOrderingComposer(
+            $db: $db,
+            $table: $db.vaults,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
   $IdentitiesOrderingComposer get identityId {
     final $IdentitiesOrderingComposer composer = $composerBuilder(
       composer: this,
@@ -6887,6 +8563,29 @@ class $ConnectionsAnnotationComposer
     builder: (column) => column,
   );
 
+  $VaultsAnnotationComposer get vaultId {
+    final $VaultsAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.vaultId,
+      referencedTable: $db.vaults,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $VaultsAnnotationComposer(
+            $db: $db,
+            $table: $db.vaults,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
   $IdentitiesAnnotationComposer get identityId {
     final $IdentitiesAnnotationComposer composer = $composerBuilder(
       composer: this,
@@ -6973,6 +8672,7 @@ class $ConnectionsTableManager
           (Connection, $ConnectionsReferences),
           Connection,
           PrefetchHooks Function({
+            bool vaultId,
             bool identityId,
             bool terminalThemeOverrideId,
             bool connectionCredentialsRefs,
@@ -6992,6 +8692,7 @@ class $ConnectionsTableManager
           updateCompanionCallback:
               ({
                 Value<int> id = const Value.absent(),
+                Value<int> vaultId = const Value.absent(),
                 Value<String> label = const Value.absent(),
                 Value<String> address = const Value.absent(),
                 Value<int> port = const Value.absent(),
@@ -7008,6 +8709,7 @@ class $ConnectionsTableManager
                 Value<bool> usesDefaultThemeOverride = const Value.absent(),
               }) => ConnectionsCompanion(
                 id: id,
+                vaultId: vaultId,
                 label: label,
                 address: address,
                 port: port,
@@ -7025,6 +8727,7 @@ class $ConnectionsTableManager
           createCompanionCallback:
               ({
                 Value<int> id = const Value.absent(),
+                required int vaultId,
                 required String label,
                 required String address,
                 required int port,
@@ -7041,6 +8744,7 @@ class $ConnectionsTableManager
                 Value<bool> usesDefaultThemeOverride = const Value.absent(),
               }) => ConnectionsCompanion.insert(
                 id: id,
+                vaultId: vaultId,
                 label: label,
                 address: address,
                 port: port,
@@ -7063,6 +8767,7 @@ class $ConnectionsTableManager
               .toList(),
           prefetchHooksCallback:
               ({
+                vaultId = false,
                 identityId = false,
                 terminalThemeOverrideId = false,
                 connectionCredentialsRefs = false,
@@ -7088,6 +8793,19 @@ class $ConnectionsTableManager
                           dynamic
                         >
                       >(state) {
+                        if (vaultId) {
+                          state =
+                              state.withJoin(
+                                    currentTable: table,
+                                    currentColumn: table.vaultId,
+                                    referencedTable: $ConnectionsReferences
+                                        ._vaultIdTable(db),
+                                    referencedColumn: $ConnectionsReferences
+                                        ._vaultIdTable(db)
+                                        .id,
+                                  )
+                                  as T;
+                        }
                         if (identityId) {
                           state =
                               state.withJoin(
@@ -7162,6 +8880,7 @@ typedef $ConnectionsProcessedTableManager =
       (Connection, $ConnectionsReferences),
       Connection,
       PrefetchHooks Function({
+        bool vaultId,
         bool identityId,
         bool terminalThemeOverrideId,
         bool connectionCredentialsRefs,
@@ -7543,6 +9262,7 @@ typedef $ConnectionCredentialsProcessedTableManager =
 class $CliqDatabaseManager {
   final _$CliqDatabase _db;
   $CliqDatabaseManager(this._db);
+  $VaultsTableManager get vaults => $VaultsTableManager(_db, _db.vaults);
   $KnownHostsTableManager get knownHosts =>
       $KnownHostsTableManager(_db, _db.knownHosts);
   $CustomTerminalThemesTableManager get customTerminalThemes =>
@@ -7560,30 +9280,53 @@ class $CliqDatabaseManager {
       $ConnectionCredentialsTableManager(_db, _db.connectionCredentials);
 }
 
+class FindAllKnownHostsFullResult {
+  final KnownHost knownHost;
+  final Vault vault;
+  FindAllKnownHostsFullResult({required this.knownHost, required this.vault});
+}
+
+class FindAllKeyFullByIdsResult {
+  final Key keyEntity;
+  final Vault vault;
+  FindAllKeyFullByIdsResult({required this.keyEntity, required this.vault});
+}
+
 class FindAllIdentityFullResult {
   final Identity identity;
+  final Vault vault;
   final List<int> identityCredentials;
   FindAllIdentityFullResult({
     required this.identity,
+    required this.vault,
     required this.identityCredentials,
   });
 }
 
 class FindCredentialFullByIdsResult {
   final Credential credential;
+  final Vault vault;
   final Key? credentialKey;
-  FindCredentialFullByIdsResult({required this.credential, this.credentialKey});
+  FindCredentialFullByIdsResult({
+    required this.credential,
+    required this.vault,
+    this.credentialKey,
+  });
 }
 
 class FindAllConnectionFullResult {
   final Connection connection;
+  final Vault vault;
   final Identity? identity;
+  final Vault? identityVault;
   final CustomTerminalTheme? terminalThemeOverride;
   final List<int> connectionCredentials;
   final List<int> identityCredentials;
   FindAllConnectionFullResult({
     required this.connection,
+    required this.vault,
     this.identity,
+    this.identityVault,
     this.terminalThemeOverride,
     required this.connectionCredentials,
     required this.identityCredentials,

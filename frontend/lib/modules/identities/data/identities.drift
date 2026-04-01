@@ -1,7 +1,9 @@
 import '../../credentials/data/credentials.drift';
+import '../../vaults/data/vaults.drift';
 
 CREATE TABLE identities (
     id              INTEGER PRIMARY KEY AUTOINCREMENT,
+    vault_id        INTEGER NOT NULL REFERENCES vaults(id),
     label           TEXT NOT NULL,
     username        TEXT NOT NULL
 );
@@ -15,6 +17,7 @@ CREATE TABLE identity_credentials (
 findAllIdentityFull:
   SELECT
     i.** AS identity,
+    v.** AS vault,
 
     LIST(
       SELECT
@@ -24,4 +27,6 @@ findAllIdentityFull:
       WHERE identity_credentials.identity_id = i.id
       ORDER BY credentials.id
     ) AS identityCredentials
-  FROM identities i;
+
+  FROM identities i
+    INNER JOIN vaults v ON i.vault_id = v.id;

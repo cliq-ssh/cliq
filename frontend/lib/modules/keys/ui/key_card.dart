@@ -7,6 +7,8 @@ import 'package:forui_hooks/forui_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lucide_flutter/lucide_flutter.dart';
 
+import '../provider/key_service.provider.dart';
+
 class KeyCard extends HookConsumerWidget {
   final Key keyEntity;
 
@@ -27,7 +29,7 @@ class KeyCard extends HookConsumerWidget {
       await popoverController.hide();
       return Commons.showDeleteDialog(
         entity: keyEntity.label,
-        onDelete: () => CliqDatabase.keysService.deleteById(keyEntity.id),
+        onDelete: () => ref.read(keyServiceProvider).deleteById(keyEntity.id),
       );
     }
 

@@ -25,12 +25,14 @@ final class IdentityService {
   }
 
   Future<int> createIdentity({
+    required int vaultId,
     required String label,
     required String username,
     required List<int> credentialIds,
   }) async {
     final identityId = await _identityRepository.insert(
       IdentitiesCompanion.insert(
+        vaultId: vaultId,
         label: label.trim(),
         username: username.trim(),
       ),
@@ -50,6 +52,7 @@ final class IdentityService {
 
   Future<int> update(
     int identityId, {
+    required int? vaultId,
     required String? label,
     required String? username,
     List<int>? newCredentialIds,
@@ -58,6 +61,7 @@ final class IdentityService {
     await _identityRepository.updateById(
       identityId,
       IdentitiesCompanion(
+        vaultId: ValueExtension.absentIfNullOrSame(vaultId, compareTo?.vaultId),
         label: ValueExtension.absentIfNullOrSame(label, compareTo?.label),
         username: ValueExtension.absentIfNullOrSame(
           username,

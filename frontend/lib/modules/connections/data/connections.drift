@@ -1,12 +1,14 @@
 import '../../identities/data/identities.drift';
 import '../../credentials/data/credentials.drift';
 import '../../connections/model/connection_icon.dart';
+import '../../vaults/data/vaults.drift';
 import '../../settings/data/custom_terminal_themes.drift';
 import '../../../shared/data/converters/color_converter.dart';
 import '../../../shared/data/converters/terminal_typography_converter.dart';
 
 CREATE TABLE connections (
     id                              INTEGER PRIMARY KEY AUTOINCREMENT,
+    vault_id                        INTEGER NOT NULL REFERENCES vaults(id),
     label                           TEXT NOT NULL,
     address                         TEXT NOT NULL,
     port                            INTEGER NOT NULL,
@@ -36,7 +38,9 @@ CREATE TABLE connection_credentials (
 findAllConnectionFull:
   SELECT
     c.** AS connection,
+    v.** AS vault,
     i.** AS identity,
+    iv.** AS identityVault,
     t.** AS terminalThemeOverride,
 
     LIST(
@@ -58,7 +62,9 @@ findAllConnectionFull:
     ) AS identityCredentials
 
   FROM connections c
+    INNER JOIN vaults v ON c.vault_id = v.id
     LEFT JOIN identities i ON c.identity_id = i.id
+    LEFT JOIN vaults iv ON i.vault_id = iv.id
     LEFT JOIN custom_terminal_themes t ON c.terminal_theme_override_id = t.id;
 
 findAllConnectionGroupNames:

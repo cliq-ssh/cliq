@@ -6,6 +6,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lucide_flutter/lucide_flutter.dart';
 
 import '../../../shared/utils/commons.dart';
+import '../provider/known_host_service.provider.dart';
 
 class KnownHostCard extends HookConsumerWidget {
   final KnownHost knownHost;
@@ -20,7 +21,8 @@ class KnownHostCard extends HookConsumerWidget {
       await popoverController.hide();
       return Commons.showDeleteDialog(
         entity: knownHost.host,
-        onDelete: () => CliqDatabase.knownHostService.deleteById(knownHost.id),
+        onDelete: () =>
+            ref.read(knownHostServiceProvider).deleteById(knownHost.id),
       );
     }
 

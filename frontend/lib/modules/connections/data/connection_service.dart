@@ -38,6 +38,7 @@ final class ConnectionService {
   }
 
   Future<int> createConnection({
+    required int vaultId,
     required String address,
     required Color iconColor,
     required Color iconBackgroundColor,
@@ -57,6 +58,7 @@ final class ConnectionService {
 
     final connectionId = await _connectionRepository.insert(
       ConnectionsCompanion.insert(
+        vaultId: vaultId,
         label: (label ?? address).trim(),
         address: address.trim(),
         port: port ?? 22,
@@ -88,6 +90,7 @@ final class ConnectionService {
 
   Future<int> update(
     int connectionId, {
+    required int? vaultId,
     required String? address,
     required Color? iconColor,
     required Color? iconBackgroundColor,
@@ -109,6 +112,7 @@ final class ConnectionService {
     await _connectionRepository.updateById(
       connectionId,
       ConnectionsCompanion(
+        vaultId: ValueExtension.absentIfNullOrSame(vaultId, compareTo?.vaultId),
         label: label != null
             ? ValueExtension.absentIfNullOrSame(label, compareTo?.label)
             : ValueExtension.absentIfNullOrSame(address, compareTo?.label),

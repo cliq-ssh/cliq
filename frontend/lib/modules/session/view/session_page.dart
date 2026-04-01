@@ -229,7 +229,11 @@ class _ShellSessionPageState extends ConsumerState<ShellSessionPage>
               onPress: () async {
                 await ref
                     .read(sessionProvider.notifier)
-                    .acceptFingerprint(session.id, session.knownHostError!);
+                    .acceptFingerprint(
+                      session.connection.vaultId,
+                      session.id,
+                      session.knownHostError!,
+                    );
                 retrySession();
               },
               child: Text('Save & Accept'),

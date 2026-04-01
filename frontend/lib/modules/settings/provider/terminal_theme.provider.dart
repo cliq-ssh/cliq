@@ -1,5 +1,6 @@
 import 'dart:ui';
 
+import 'package:cliq/modules/settings/provider/terminal_theme_service.provider.dart';
 import 'package:cliq/shared/data/database.dart';
 import 'package:file_selector/file_selector.dart';
 import 'package:logging/logging.dart';
@@ -59,9 +60,9 @@ class CustomTerminalThemeNotifier
     }
 
     try {
-      await CliqDatabase.customTerminalThemeService.createCustomTerminalTheme(
-        theme,
-      );
+      await ref
+          .read(terminalThemeServiceProvider)
+          .createCustomTerminalTheme(theme);
     } catch (e) {
       logger.warning('Failed to import terminal theme (${file.name}): $e');
       return 'customTerminalTheme.import.error.importFailed';
@@ -77,7 +78,7 @@ class CustomTerminalThemeNotifier
   CustomTerminalThemeState buildInitialState() => .initial();
   @override
   Stream<List<CustomTerminalTheme>> get entityStream =>
-      CliqDatabase.customTerminalThemeService.watchAll();
+      ref.read(terminalThemeServiceProvider).watchAll();
 
   @override
   CustomTerminalThemeState buildStateFromEntities(

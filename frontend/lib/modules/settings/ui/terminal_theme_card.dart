@@ -12,6 +12,7 @@ import 'package:lucide_flutter/lucide_flutter.dart';
 
 import '../../../shared/ui/shortcut_info.dart';
 import '../../../shared/utils/commons.dart';
+import '../provider/terminal_theme_service.provider.dart';
 
 class TerminalThemeCard extends HookConsumerWidget {
   final CustomTerminalTheme theme;
@@ -73,9 +74,9 @@ class TerminalThemeCard extends HookConsumerWidget {
         cursorTextColor: Value.absentIfNull(theme.cursorTextColor),
       );
 
-      await CliqDatabase.customTerminalThemeService.createCustomTerminalTheme(
-        copyInsert,
-      );
+      await ref
+          .read(terminalThemeServiceProvider)
+          .createCustomTerminalTheme(copyInsert);
     }
 
     edit() async {
@@ -94,7 +95,7 @@ class TerminalThemeCard extends HookConsumerWidget {
       return Commons.showDeleteDialog(
         entity: theme.name,
         onDelete: () {
-          CliqDatabase.customTerminalThemeService.deleteById(theme.id);
+          ref.read(terminalThemeServiceProvider).deleteById(theme.id);
           onDelete?.call();
         },
       );

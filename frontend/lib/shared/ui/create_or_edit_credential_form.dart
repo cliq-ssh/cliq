@@ -1,5 +1,4 @@
 import 'package:cliq/modules/keys/provider/key.provider.dart';
-import 'package:cliq/shared/data/database.dart';
 import 'package:cliq/shared/extensions/async_snapshot.extension.dart';
 import 'package:cliq_ui/cliq_ui.dart' show useMemoizedFuture;
 import 'package:flutter/cupertino.dart';
@@ -10,6 +9,8 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lucide_flutter/lucide_flutter.dart';
 
 import '../../modules/credentials/model/credential_type.dart';
+import '../../modules/credentials/provider/credential_service.provider.dart';
+import '../../modules/keys/provider/key_service.provider.dart';
 import '../../modules/keys/view/create_or_edit_key_view.dart';
 import '../utils/autocomplete_utils.dart';
 import '../utils/commons.dart';
@@ -56,14 +57,18 @@ final class _CredentialData {
 
 class CreateOrEditCredentialsForm extends StatefulHookConsumerWidget {
   final List<int>? current;
+  final int vaultId;
   final bool isEdit;
 
-  const CreateOrEditCredentialsForm.create({super.key})
+  const CreateOrEditCredentialsForm.create({super.key, required this.vaultId})
     : current = null,
       isEdit = false;
 
-  const CreateOrEditCredentialsForm.edit(this.current, {super.key})
-    : isEdit = true;
+  const CreateOrEditCredentialsForm.edit(
+    this.current, {
+    super.key,
+    required this.vaultId,
+  }) : isEdit = true;
 
   @override
   ConsumerState<CreateOrEditCredentialsForm> createState() =>
@@ -90,6 +95,8 @@ class CreateOrEditCredentialsFormState
       return null;
     }
 
+    final credentialService = ref.read(credentialServiceProvider);
+
     final createdIds = <int>[];
     final modifiedIds = <int>[];
     for (final data in _selectedCredentials.value) {
@@ -102,17 +109,19 @@ class CreateOrEditCredentialsFormState
 
       if (data.id != null) {
         modifiedIds.add(
-          await CliqDatabase.credentialService.update(
+          await credentialService.update(
             data.id!,
-            data.type,
-            controllerData,
+            vaultId: widget.vaultId,
+            type: data.type,
+            data: controllerData,
           ),
         );
       } else {
         createdIds.add(
-          await CliqDatabase.credentialService.create(
-            data.type,
-            controllerData,
+          await credentialService.create(
+            vaultId: widget.vaultId,
+            type: data.type,
+            data: controllerData,
           ),
         );
       }
@@ -124,7 +133,7 @@ class CreateOrEditCredentialsFormState
           .where((id) => ![...createdIds, ...modifiedIds].contains(id))
           .toList();
       if (remaining.isNotEmpty) {
-        await CliqDatabase.credentialService.deleteByIds(remaining);
+        await credentialService.deleteByIds(remaining);
       }
     }
 
@@ -145,12 +154,14 @@ class CreateOrEditCredentialsFormState
     final popoverController = useFPopoverController();
     final keyIds = ref.watch(keyIdProvider);
     final keysFuture = useMemoizedFuture(() async {
-      return await CliqDatabase.keysService.findByIds(keyIds.entities);
+      return await ref.read(keyServiceProvider).findByIds(keyIds.entities);
     }, [keyIds]);
 
     useEffect(() {
       if (widget.current != null) {
-        CliqDatabase.credentialService.findByIds(widget.current!).then((creds) {
+        ref.read(credentialServiceProvider).findByIds(widget.current!).then((
+          creds,
+        ) {
           _selectedCredentials.value = creds.map((c) {
             return _CredentialData(
               id: c.id,
