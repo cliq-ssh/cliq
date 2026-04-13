@@ -1,9 +1,11 @@
 import 'dart:io';
 
-import 'package:cliq/modules/settings/model/import/settings_import.dart';
+import 'package:cliq/modules/settings/model/import/app_settings.model.dart';
+import 'package:cliq/modules/settings/model/import/cliq_settings_importer.dart';
 import 'package:cliq/modules/settings/model/import/ssh_config_settings_importer.dart';
 
 enum SettingsImporter {
+  cliq(CliqSettingsImporter(), fileExtension: 'json'),
   sshConfig(SSHConfigSettingsImporter());
 
   final AbstractSettingsImporter instance;
@@ -35,5 +37,5 @@ abstract class AbstractSettingsImporter {
   const AbstractSettingsImporter();
 
   bool canParse(File file);
-  SettingsImport? tryParse(File file);
+  AppSettings? tryParse(File file);
 }

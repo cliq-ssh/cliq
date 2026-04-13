@@ -1,6 +1,6 @@
 import 'dart:io';
 
-import 'package:cliq/modules/settings/model/import/settings_import.dart';
+import 'package:cliq/modules/settings/model/import/app_settings.model.dart';
 import 'package:cliq/modules/settings/model/import/settings_importer.dart';
 import 'package:cliq/shared/data/database.dart';
 import 'package:drift/drift.dart';
@@ -25,7 +25,7 @@ class SSHConfigSettingsImporter extends AbstractSettingsImporter {
   }
 
   @override
-  SettingsImport? tryParse(File file) {
+  AppSettings? tryParse(File file) {
     final content = _resolveTotalContentFromIncludes(file);
 
     final Map<String, Map<OpenSSHConfigOption, Iterable<String>>> hosts = {};
@@ -56,7 +56,7 @@ class SSHConfigSettingsImporter extends AbstractSettingsImporter {
       hosts.remove('*');
     }
 
-    return SettingsImport(
+    return AppSettings(
       connections: _parseConnections(hosts),
       credentials: [],
       keys: [], // TODO: implement keys & credentials parsing

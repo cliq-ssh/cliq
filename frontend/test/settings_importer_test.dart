@@ -5,7 +5,10 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'util/test_utils.dart';
 
-const Map<SettingsImporter, String> sampleFiles = {.sshConfig: 'config'};
+const Map<SettingsImporter, String> sampleFiles = {
+  .cliq: 'cliq_settings_export.json',
+  .sshConfig: 'config'
+};
 
 void main() {
   for (final parser in SettingsImporter.values) {

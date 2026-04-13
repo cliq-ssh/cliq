@@ -208,7 +208,7 @@ class TerminalThemeSettingsPage extends AbstractSettingsPage {
                           ),
                         ],
                       ),
-                      axis: .vertical,
+                      layout: .vertical,
                       child: Column(
                         spacing: 12,
                         children: [

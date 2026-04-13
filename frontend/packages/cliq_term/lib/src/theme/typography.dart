@@ -6,6 +6,13 @@ class TerminalTypography {
 
   const TerminalTypography({required this.fontFamily, required this.fontSize});
 
+  factory TerminalTypography.fromJson(Map<String, dynamic> json) {
+    return TerminalTypography(
+      fontFamily: json['fontFamily'] as String,
+      fontSize: json['fontSize'] as int,
+    );
+  }
+
   TextStyle toTextStyle() {
     return TextStyle(
       fontFamily: fontFamily,
@@ -33,4 +40,9 @@ class TerminalTypography {
 
   @override
   int get hashCode => fontFamily.hashCode ^ fontSize.hashCode;
+
+  Map<String, dynamic> toJson() => {
+    'fontFamily': fontFamily,
+    'fontSize': fontSize,
+  };
 }
