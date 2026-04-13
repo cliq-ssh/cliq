@@ -2,6 +2,9 @@ import 'dart:io';
 
 import 'package:cliq/modules/settings/model/import/settings_import.dart';
 import 'package:cliq/modules/settings/model/import/settings_importer.dart';
+import 'package:cliq/shared/data/database.dart';
+import 'package:drift/drift.dart';
+import 'package:flutter/material.dart';
 
 enum OpenSSHConfigOption { include, host, hostName, identityFile, port, user }
 
@@ -25,7 +28,7 @@ class SSHConfigSettingsImporter extends AbstractSettingsImporter {
   SettingsImport? tryParse(File file) {
     final content = _resolveTotalContentFromIncludes(file);
 
-    final Map<String, List<(OpenSSHConfigOption, Iterable<String>)>> hosts = {};
+    final Map<String, Map<OpenSSHConfigOption, Iterable<String>>> hosts = {};
     String? currentHost;
 
     for (final line in content.split('\n')) {
@@ -34,18 +37,32 @@ class SSHConfigSettingsImporter extends AbstractSettingsImporter {
         continue;
       }
 
-      if (option.$1 == OpenSSHConfigOption.host) {
-        currentHost = option.$2.join(' ').trim();
-        hosts[currentHost] = [];
+      if (option.key == OpenSSHConfigOption.host) {
+        currentHost = option.value.join(' ').trim();
+        hosts[currentHost] = {};
       } else if (currentHost != null) {
-        hosts[currentHost]!.add(option);
+        hosts[currentHost]!.putIfAbsent(option.key, () => option.value);
       }
     }
 
-    print(hosts);
+    // Apply wildcard '*' options to all hosts
+    if (hosts.containsKey('*')) {
+      final wildcardOptions = hosts['*']!;
+      for (final host in hosts.keys) {
+        if (host != '*') {
+          hosts[host]!.addAll(wildcardOptions);
+        }
+      }
+      hosts.remove('*');
+    }
 
-    // TODO:
-    return null;
+    return SettingsImport(
+      connections: _parseConnections(hosts),
+      credentials: [],
+      keys: [], // TODO: implement keys & credentials parsing
+      identities: [],
+      knownHosts: [],
+    );
   }
 
   /// Recursively resolves the content of the config file, including any files specified by Include directives.
@@ -55,11 +72,12 @@ class SSHConfigSettingsImporter extends AbstractSettingsImporter {
 
     for (final line in lines) {
       final option = _readOptionByLine(line);
-      if (option != null && option.$1 == OpenSSHConfigOption.include) {
-        // resolve included file and add its content to totalContent
-        final includedFilePath = option.$2.join(' ').trim();
-        final includedFile = File(includedFilePath);
-
+      if (option != null && option.key == OpenSSHConfigOption.include) {
+        final includedFilePath = option.value.join(' ').trim();
+        // included file path is relative to the current file
+        final includedFile = File(
+          file.parent.path + Platform.pathSeparator + includedFilePath,
+        );
         if (includedFile.existsSync()) {
           totalContent.writeln(_resolveTotalContentFromIncludes(includedFile));
         } else {
@@ -73,11 +91,41 @@ class SSHConfigSettingsImporter extends AbstractSettingsImporter {
     return totalContent.toString();
   }
 
-  (OpenSSHConfigOption, Iterable<String>)? _readOptionByLine(String line) {
-    final split = line.split(' ');
+  List<ConnectionsCompanion> _parseConnections(
+    Map<String, Map<OpenSSHConfigOption, Iterable<String>>> hosts,
+  ) {
+    final List<ConnectionsCompanion> connections = [];
+
+    for (final host in hosts.keys) {
+      final options = hosts[host]!;
+      final hostName = options[OpenSSHConfigOption.hostName]?.first ?? host;
+      final port =
+          int.tryParse(options[OpenSSHConfigOption.port]?.first ?? '') ?? 22;
+      final username = options[OpenSSHConfigOption.user]?.first ?? '';
+
+      connections.add(
+        ConnectionsCompanion.insert(
+          vaultId: 1, // TODO: move param into parse method
+          label: hostName,
+          address: hostName,
+          port: port,
+          username: Value(username),
+          iconBackgroundColor: Colors.white,
+          iconColor: Colors.black,
+        ),
+      );
+    }
+
+    return connections;
+  }
+
+  MapEntry<OpenSSHConfigOption, Iterable<String>>? _readOptionByLine(
+    String line,
+  ) {
+    final split = line.trim().split(' ');
     for (OpenSSHConfigOption o in OpenSSHConfigOption.values) {
       if (split.first.toLowerCase() == o.name.toLowerCase()) {
-        return (o, split.skip(1));
+        return MapEntry(o, split.skip(1));
       }
     }
     return null;

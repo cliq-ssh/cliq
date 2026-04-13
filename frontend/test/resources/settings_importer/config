@@ -2,3 +2,11 @@ Include another_config
 
 Host *
   UseKeychain yes
+  Port 20022
+
+Host myserver2
+  HostName myserver2.example.com
+  Port 22
+  User johndoe
+  PreferredAuthentications publickey
+  IdentityFile ~/.ssh/id_rsa

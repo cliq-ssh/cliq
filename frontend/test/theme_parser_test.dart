@@ -10,14 +10,22 @@ const Map<TerminalThemeParser, String> sampleFiles = {
 
 void main() {
   for (final parser in TerminalThemeParser.values) {
+    late String fileName;
+    late String content;
+
+    setUp(() async {
+      final (f, c) = await TestUtils.readResource(
+        sampleFiles[parser]!,
+        'theme_parser',
+      );
+      fileName = f;
+      content = c;
+    });
+
     group(parser.instance.runtimeType, () {
       test(
         'getParser: Return ${parser.instance.runtimeType} for valid ${parser.name} theme',
         () async {
-          final (fileName, content) = await TestUtils.readResource(
-            sampleFiles[parser]!,
-            'theme_parser',
-          );
           final result = TerminalThemeParser.getParser(fileName, content);
           expect(result, isNotNull);
           expect(result.runtimeType, parser.instance.runtimeType);
@@ -27,10 +35,6 @@ void main() {
       test(
         'canParse: Return true for valid ${parser.name} theme content',
         () async {
-          final (fileName, content) = await TestUtils.readResource(
-            sampleFiles[parser]!,
-            'theme_parser',
-          );
           final canParse = parser.instance.canParse(content);
           expect(canParse, isTrue);
         },
@@ -39,10 +43,6 @@ void main() {
       test(
         'tryParse: Successfully parse valid ${parser.name} theme content',
         () async {
-          final (fileName, content) = await TestUtils.readResource(
-            sampleFiles[parser]!,
-            'theme_parser',
-          );
           final theme = parser.instance.tryParse(fileName, content);
           expect(theme, isNotNull);
         },
