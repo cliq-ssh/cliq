@@ -1,0 +1,4 @@
+Include another_config
+
+Host *
+  UseKeychain yes
