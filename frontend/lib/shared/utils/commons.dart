@@ -1,4 +1,4 @@
-import 'package:cliq/modules/settings/model/terminal_theme_parser/terminal_theme_parser.dart';
+import 'package:cliq/modules/settings/model/theme_parser/terminal_theme_parser.dart';
 import 'package:cliq/shared/ui/responsive_dialog.dart';
 import 'package:cliq/shared/ui/shortcut_info.dart';
 import 'package:cliq/shared/utils/constants.dart';

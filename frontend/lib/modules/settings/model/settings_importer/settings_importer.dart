@@ -1,8 +1,8 @@
 import 'dart:io';
 
-import 'package:cliq/modules/settings/model/import/app_settings.model.dart';
-import 'package:cliq/modules/settings/model/import/cliq_settings_importer.dart';
-import 'package:cliq/modules/settings/model/import/ssh_config_settings_importer.dart';
+import 'package:cliq/modules/settings/model/settings_importer/app_settings.model.dart';
+import 'package:cliq/modules/settings/model/settings_importer/cliq_settings_importer.dart';
+import 'package:cliq/modules/settings/model/settings_importer/ssh_config_settings_importer.dart';
 
 enum SettingsImporter {
   cliq(CliqSettingsImporter(), fileExtension: 'json'),

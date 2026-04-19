@@ -8,7 +8,7 @@ import 'package:riverpod/riverpod.dart';
 
 import '../../../shared/provider/abstract_entity.notifier.dart';
 import '../model/terminal_theme.state.dart';
-import '../model/terminal_theme_parser/terminal_theme_parser.dart';
+import '../model/theme_parser/terminal_theme_parser.dart';
 
 final terminalThemeProvider = NotifierProvider(CustomTerminalThemeNotifier.new);
 

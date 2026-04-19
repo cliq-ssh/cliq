@@ -1,10 +1,11 @@
 import 'dart:io';
 
-import 'package:cliq/modules/settings/model/import/app_settings.model.dart';
-import 'package:cliq/modules/settings/model/import/settings_importer.dart';
+import 'package:cliq/modules/settings/model/settings_importer/settings_importer.dart';
 import 'package:cliq/shared/data/database.dart';
 import 'package:drift/drift.dart';
 import 'package:flutter/material.dart';
+
+import 'app_settings.model.dart';
 
 enum OpenSSHConfigOption { include, host, hostName, identityFile, port, user }
 
@@ -104,14 +105,13 @@ class SSHConfigSettingsImporter extends AbstractSettingsImporter {
       final username = options[OpenSSHConfigOption.user]?.first ?? '';
 
       connections.add(
-        ConnectionsCompanion.insert(
-          vaultId: 1, // TODO: move param into parse method
-          label: hostName,
-          address: hostName,
-          port: port,
+        ConnectionsCompanion(
+          label: Value(hostName),
+          address: Value(hostName),
+          port: Value(port),
           username: Value(username),
-          iconBackgroundColor: Colors.white,
-          iconColor: Colors.black,
+          iconBackgroundColor: Value(Colors.white),
+          iconColor: Value(Colors.black),
         ),
       );
     }

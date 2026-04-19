@@ -1,6 +1,6 @@
 import 'dart:convert';
 
-import 'package:cliq/modules/settings/model/terminal_theme_parser/terminal_theme_parser.dart';
+import 'package:cliq/modules/settings/model/theme_parser/terminal_theme_parser.dart';
 import 'package:cliq/shared/data/database.dart';
 import 'package:cliq/shared/extensions/color.extension.dart';
 import 'package:logging/logging.dart';

@@ -1,8 +1,8 @@
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:cliq/modules/settings/model/import/app_settings.model.dart';
-import 'package:cliq/modules/settings/model/import/settings_importer.dart';
+import 'package:cliq/modules/settings/model/settings_importer/app_settings.model.dart';
+import 'package:cliq/modules/settings/model/settings_importer/settings_importer.dart';
 
 /// Parser for the cliq settings export file. See [AppSettings} for details.
 class CliqSettingsImporter extends AbstractSettingsImporter {

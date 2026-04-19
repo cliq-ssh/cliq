@@ -1,4 +1,4 @@
-import 'package:cliq/modules/settings/model/terminal_theme_parser/terminal_theme_parser.dart';
+import 'package:cliq/modules/settings/model/theme_parser/terminal_theme_parser.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'util/test_utils.dart';
