@@ -7,7 +7,7 @@ import 'util/test_utils.dart';
 
 const Map<SettingsImporter, String> sampleFiles = {
   .cliq: 'cliq_settings_export.json',
-  .sshConfig: 'config'
+  .sshConfig: 'config',
 };
 
 void main() {
