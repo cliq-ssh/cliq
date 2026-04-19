@@ -83,7 +83,7 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-data-jpa")
     runtimeOnly("org.postgresql:postgresql")
     // Flyway
-    val flywayVersion = "12.3.0"
+    val flywayVersion = "12.4.0"
     implementation("org.springframework.boot:spring-boot-starter-flyway")
     implementation("org.flywaydb:flyway-core:$flywayVersion")
     implementation("org.flywaydb:flyway-database-postgresql:$flywayVersion")
@@ -96,7 +96,7 @@ dependencies {
     implementation("com.nimbusds:srp6a:2.1.0")
 
     // Algorithm Provider & Encryption primitives
-    implementation("org.bouncycastle:bcprov-jdk18on:1.83")
+    implementation("org.bouncycastle:bcprov-jdk18on:1.84")
 
     // Serialization
     implementation("org.springframework.boot:spring-boot-starter-jackson")
