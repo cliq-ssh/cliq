@@ -1,3 +1,4 @@
+import 'package:cliq/modules/settings/model/settings_importer/settings_importer.dart';
 import 'package:cliq/modules/settings/model/theme_parser/terminal_theme_parser.dart';
 import 'package:cliq/shared/ui/responsive_dialog.dart';
 import 'package:cliq/shared/ui/shortcut_info.dart';
@@ -17,6 +18,13 @@ final class Commons {
     label: 'Terminal Theme',
     extensions: TerminalThemeParser.values
         .map((e) => e.fileExtension)
+        .toList(growable: false),
+  );
+
+  static XTypeGroup get settingsGroup => XTypeGroup(
+    label: 'Settings Export',
+    extensions: SettingsImporter.values
+        .map((e) => e.fileExtension ?? '')
         .toList(growable: false),
   );
 
@@ -115,6 +123,34 @@ final class Commons {
         title: Text('Successfully copied to clipboard!'),
       );
     }
+  }
+
+  /// Saves the given text to a file. Returns true if the file was saved successfully, false otherwise.
+  static Future<bool> saveTextToFile(
+    String text,
+    String suggestedFileName, {
+    List<String>? allowedExtensions,
+    String mimeType = 'text/plain',
+  }) async {
+    final FileSaveLocation? result = await getSaveLocation(
+      acceptedTypeGroups: allowedExtensions != null
+          ? [XTypeGroup(label: 'Allowed', extensions: allowedExtensions)]
+          : [],
+      suggestedName: suggestedFileName,
+    );
+
+    if (result == null) {
+      return false;
+    }
+
+    final file = XFile.fromData(
+      Uint8List.fromList(text.codeUnits),
+      mimeType: mimeType,
+      name: suggestedFileName,
+    );
+
+    await file.saveTo(result.path);
+    return true;
   }
 
   static Future<void> launchGitHubUrl() => _launchUrl(Constants.githubUrl);

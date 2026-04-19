@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:cliq/shared/data/store.dart';
+import 'package:cliq/shared/model/localized_exception.dart';
 import 'package:cliq/shared/model/router.model.dart';
 import 'package:cliq/shared/provider/router.provider.dart';
 import 'package:cliq/shared/provider/store.provider.dart';
@@ -38,7 +39,9 @@ void main() async {
 void _handleError(Object error, StackTrace stackTrace) {
   debugPrint(stackTrace.toString());
 
-  String errorMessage = error.toString();
+  String errorMessage = error is LocalizedException
+      ? (error).localize(Router.rootNavigatorKey.currentContext!)
+      : error.toString();
   if (errorMessage.length > 150) {
     errorMessage = '${errorMessage.substring(0, 150)}...';
   }

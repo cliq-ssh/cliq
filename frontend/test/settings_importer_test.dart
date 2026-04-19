@@ -1,5 +1,3 @@
-import 'dart:io';
-
 import 'package:cliq/modules/settings/model/settings_importer/settings_importer.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -12,20 +10,23 @@ const Map<SettingsImporter, String> sampleFiles = {
 
 void main() {
   for (final parser in SettingsImporter.values) {
-    late File file;
+    late String path;
+    late String content;
 
     setUp(() async {
-      file = await TestUtils.readFile(
+      final file = await TestUtils.readFile(
         sampleFiles[parser]!,
         'settings_importer',
       );
+      path = file.path;
+      content = await file.readAsString();
     });
 
     group(parser.instance.runtimeType, () {
       test(
         'getParser: Return ${parser.instance.runtimeType} for valid ${parser.name} file',
         () async {
-          final result = SettingsImporter.getParser(file);
+          final result = SettingsImporter.getParser(path, content);
 
           expect(result, isNotNull);
           expect(result.runtimeType, parser.instance.runtimeType);
@@ -35,7 +36,7 @@ void main() {
       test(
         'canParse: Return true for valid ${parser.name} file content',
         () async {
-          final canParse = parser.instance.canParse(file);
+          final canParse = parser.instance.canParse(path, content);
           expect(canParse, isTrue);
         },
       );
@@ -43,7 +44,7 @@ void main() {
       test(
         'tryParse: Successfully parse valid ${parser.name} file content',
         () async {
-          final theme = parser.instance.tryParse(file);
+          final theme = parser.instance.tryParse(path, content);
           expect(theme, isNotNull);
         },
       );

@@ -15,10 +15,9 @@ class SSHConfigSettingsImporter extends AbstractSettingsImporter {
   const SSHConfigSettingsImporter();
 
   @override
-  bool canParse(File file) {
+  bool canParse(String path, String content, {String? password}) {
     // check if file has Include or Host directives
     try {
-      final content = file.readAsStringSync();
       return content.contains(RegExp(r'^\s*(Include|Host)\b', multiLine: true));
     } catch (e) {
       return false;
@@ -26,7 +25,8 @@ class SSHConfigSettingsImporter extends AbstractSettingsImporter {
   }
 
   @override
-  AppSettings? tryParse(File file) {
+  AppSettings? tryParse(String path, String content, {String? password}) {
+    final file = File(path);
     final content = _resolveTotalContentFromIncludes(file);
 
     final Map<String, Map<OpenSSHConfigOption, Iterable<String>>> hosts = {};

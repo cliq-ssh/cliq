@@ -48,10 +48,8 @@ extension ConnectionsCompanionExtension on ConnectionsCompanion {
       username: Value(json['username'] as String?),
       groupName: Value(json['groupName'] as String?),
       identityId: Value(json['identityId'] as int?),
-      terminalTypographyOverride: Value(
-        TerminalTypography.fromJson(
-          json['terminalTypographyOverride'] as Map<String, dynamic>,
-        ),
+      terminalTypographyOverride: Value.absentIfNull(
+        TerminalTypography.fromJson(json['terminalTypographyOverride']),
       ),
       terminalThemeOverrideId: Value(json['terminalThemeOverrideId'] as int?),
       usesDefaultThemeOverride: Value(json['usesDefaultThemeOverride'] as bool),

@@ -5,7 +5,7 @@ import 'package:cliq/modules/settings/model/settings_importer/cliq_settings_impo
 import 'package:cliq/modules/settings/model/settings_importer/ssh_config_settings_importer.dart';
 
 enum SettingsImporter {
-  cliq(CliqSettingsImporter(), fileExtension: 'json'),
+  cliq(CliqSettingsImporter(), fileExtension: 'txt'),
   sshConfig(SSHConfigSettingsImporter());
 
   final AbstractSettingsImporter instance;
@@ -13,19 +13,26 @@ enum SettingsImporter {
 
   const SettingsImporter(this.instance, {this.fileExtension});
 
-  static AbstractSettingsImporter? getParser(File file) {
-    final lastSegment = file.uri.pathSegments.last;
+  static AbstractSettingsImporter? getParser(
+    String path,
+    String content, {
+    String? password,
+  }) {
+    final lastSegment = path.split(Platform.pathSeparator).last;
 
     final fileExtension = lastSegment.split('.').last;
-    final parsers =
-        lastSegment.contains('.') // check if there is an extension
-        ? SettingsImporter.values.where(
-            (p) => p.fileExtension == null || p.fileExtension == fileExtension,
-          )
-        : SettingsImporter.values;
+    final parsers = SettingsImporter.values.where(
+      (p) => p.fileExtension == fileExtension,
+    );
 
     for (final parser in parsers) {
-      if (parser.instance.canParse(file)) {
+      if (parser.instance is CliqSettingsImporter &&
+              (parser.instance as CliqSettingsImporter).canParse(
+                path,
+                content,
+                password: password,
+              ) ||
+          parser.instance.canParse(path, content)) {
         return parser.instance;
       }
     }
@@ -36,6 +43,6 @@ enum SettingsImporter {
 abstract class AbstractSettingsImporter {
   const AbstractSettingsImporter();
 
-  bool canParse(File file);
-  AppSettings? tryParse(File file);
+  bool canParse(String path, String content);
+  AppSettings? tryParse(String path, String content);
 }

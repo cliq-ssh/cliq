@@ -1,6 +1,8 @@
+import 'package:cliq/modules/settings/provider/sync.provider.dart';
 import 'package:cliq/modules/settings/view/identities_settings_page.dart';
 import 'package:cliq/modules/settings/view/keys_settings_page.dart';
 import 'package:cliq/modules/settings/view/known_hosts_settings.dart';
+import 'package:cliq/modules/settings/view/sync_settings_page.dart';
 import 'package:cliq/modules/settings/view/terminal_theme_settings_page.dart';
 import 'package:cliq/shared/extensions/router.extension.dart';
 import 'package:cliq/shared/utils/commons.dart';
@@ -29,6 +31,8 @@ class SettingsPage extends StatefulHookConsumerWidget {
 class _SettingsPageState extends ConsumerState<SettingsPage> {
   @override
   Widget build(BuildContext context) {
+    final sync = ref.watch(syncProvider);
+
     return SingleChildScrollView(
       child: CliqGridContainer(
         children: [
@@ -48,8 +52,14 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                             prefix: Icon(LucideIcons.refreshCcw),
                             suffix: Icon(LucideIcons.chevronRight),
                             title: Text('Sync'),
-                            subtitle: Text('Not connected'),
-                            onPress: null,
+                            subtitle: sync.isConnected
+                                ? Text(
+                                    'Last sync: ${sync.lastSync?.toIso8601String() ?? 'N/A'}',
+                                  )
+                                : Text('Not connected'),
+                            onPress: () => context.pushPath(
+                              SyncSettingsPage.pagePath.build(),
+                            ),
                           ),
                           FTile(
                             prefix: Icon(LucideIcons.users),

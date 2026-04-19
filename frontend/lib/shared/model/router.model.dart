@@ -6,6 +6,7 @@ import 'package:cliq/modules/settings/view/keys_settings_page.dart';
 import 'package:cliq/modules/settings/view/known_hosts_settings.dart';
 import 'package:cliq/modules/settings/view/license_page.dart';
 import 'package:cliq/modules/settings/view/settings_page.dart';
+import 'package:cliq/modules/settings/view/sync_settings_page.dart';
 import 'package:cliq/modules/settings/view/terminal_theme_settings_page.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:go_router/go_router.dart';
@@ -79,6 +80,10 @@ class Router {
                   GoRoute(
                     path: TerminalThemeSettingsPage.pagePath.path,
                     pageBuilder: _swipe(const TerminalThemeSettingsPage()),
+                  ),
+                  GoRoute(
+                    path: SyncSettingsPage.pagePath.path,
+                    pageBuilder: _swipe(const SyncSettingsPage()),
                   ),
                   GoRoute(
                     path: AppearanceSettingsPage.pagePath.path,

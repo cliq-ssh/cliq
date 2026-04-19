@@ -8,11 +8,11 @@ import '../../extension/known_hosts_companion.extension.dart';
 
 /// Data class representing the app settings for import/export operations and synchronization.
 class AppSettings {
-  final List<ConnectionsCompanion> connections;
-  final List<IdentitiesCompanion> identities;
-  final List<KnownHostsCompanion> knownHosts;
-  final List<CredentialsCompanion> credentials;
-  final List<KeysCompanion> keys;
+  final List<ConnectionsCompanion>? connections;
+  final List<IdentitiesCompanion>? identities;
+  final List<KnownHostsCompanion>? knownHosts;
+  final List<CredentialsCompanion>? credentials;
+  final List<KeysCompanion>? keys;
 
   const AppSettings({
     required this.connections,
@@ -21,6 +21,13 @@ class AppSettings {
     required this.credentials,
     required this.keys,
   });
+
+  const AppSettings.empty()
+    : connections = null,
+      identities = null,
+      knownHosts = null,
+      credentials = null,
+      keys = null;
 
   static AppSettings? tryFromJson(Map<String, dynamic> json) {
     parse<T>(T? Function(Map<String, dynamic>?) parser, String key) {
@@ -50,14 +57,6 @@ class AppSettings {
     );
     final keys = parse(KeysCompanionExtension.tryFromJson, 'keys');
 
-    if (connections == null ||
-        identities == null ||
-        knownHosts == null ||
-        credentials == null ||
-        keys == null) {
-      return null;
-    }
-
     return AppSettings(
       connections: connections,
       identities: identities,
@@ -69,11 +68,15 @@ class AppSettings {
 
   Map<String, dynamic> toJson() {
     return {
-      'connections': connections.map((c) => c.toJson()).toList(),
-      'identities': identities.map((i) => i.toJson()).toList(),
-      'knownHosts': knownHosts.map((k) => k.toJson()).toList(),
-      'credentials': credentials.map((c) => c.toJson()).toList(),
-      'keys': keys.map((k) => k.toJson()).toList(),
+      if (connections != null)
+        'connections': connections!.map((c) => c.toJson()).toList(),
+      if (identities != null)
+        'identities': identities!.map((i) => i.toJson()).toList(),
+      if (knownHosts != null)
+        'knownHosts': knownHosts!.map((k) => k.toJson()).toList(),
+      if (credentials != null)
+        'credentials': credentials!.map((c) => c.toJson()).toList(),
+      if (keys != null) 'keys': keys!.map((k) => k.toJson()).toList(),
     };
   }
 }

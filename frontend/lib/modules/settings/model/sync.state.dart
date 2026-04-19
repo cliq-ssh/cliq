@@ -8,6 +8,8 @@ class SyncState {
 
   SyncState.initial() : api = null, lastSync = null;
 
+  bool get isConnected => api != null;
+
   SyncState copyWith({CliqClient? api, DateTime? lastSync}) {
     return SyncState(api: api ?? this.api, lastSync: lastSync ?? this.lastSync);
   }

@@ -6,7 +6,12 @@ class TerminalTypography {
 
   const TerminalTypography({required this.fontFamily, required this.fontSize});
 
-  factory TerminalTypography.fromJson(Map<String, dynamic> json) {
+  static TerminalTypography? fromJson(Map<String, dynamic>? json) {
+    if (json == null ||
+        json['fontFamily'] == null ||
+        json['fontSize'] == null) {
+      return null;
+    }
     return TerminalTypography(
       fontFamily: json['fontFamily'] as String,
       fontSize: json['fontSize'] as int,

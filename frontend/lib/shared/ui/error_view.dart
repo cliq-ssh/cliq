@@ -1,4 +1,5 @@
 import 'package:cliq/shared/data/database.dart';
+import 'package:cliq/shared/model/localized_exception.dart';
 import 'package:cliq_ui/cliq_ui.dart' show CliqFontFamily;
 import 'package:flutter/widgets.dart';
 import 'package:forui/forui.dart';
@@ -17,6 +18,10 @@ class ErrorView extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final effectiveError = error is LocalizedException
+        ? (error as LocalizedException).localize(context)
+        : error.toString();
+
     buildErrorDetailsCard(String content) {
       return Row(
         children: [
@@ -65,7 +70,7 @@ class ErrorView extends ConsumerWidget {
             Column(
               spacing: 16,
               children: [
-                buildErrorDetailsCard(error.toString()),
+                buildErrorDetailsCard(effectiveError),
                 if (stackTrace != null && stackTrace != StackTrace.empty)
                   FAccordion(
                     children: [
