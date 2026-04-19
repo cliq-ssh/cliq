@@ -9,7 +9,6 @@ extension ConnectionsCompanionExtension on ConnectionsCompanion {
   static ConnectionsCompanion? tryFromJson(Map<String, dynamic>? json) {
     if (json == null ||
         json['id'] == null ||
-        json['vaultId'] == null ||
         json['label'] == null ||
         json['address'] == null ||
         json['port'] == null ||
@@ -32,7 +31,6 @@ extension ConnectionsCompanionExtension on ConnectionsCompanion {
 
     return ConnectionsCompanion(
       id: Value(json['id'] as int),
-      vaultId: Value(json['vaultId'] as int),
       label: Value(json['label'] as String),
       address: Value(json['address'] as String),
       port: Value(json['port'] as int),
@@ -59,7 +57,6 @@ extension ConnectionsCompanionExtension on ConnectionsCompanion {
   Map<String, dynamic> toJson() {
     return {
       'id': id.value,
-      'vaultId': vaultId.value,
       'label': label.value,
       'address': address.value,
       'port': port.value,

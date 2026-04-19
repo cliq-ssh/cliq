@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:cliq/modules/connections/provider/connection.provider.dart';
+import 'package:cliq/modules/connections/provider/connection_service.provider.dart';
 import 'package:cliq/modules/identities/provider/identity.provider.dart';
 import 'package:cliq/modules/settings/model/settings_importer/app_settings.model.dart';
 import 'package:cliq/modules/settings/provider/known_host.provider.dart';
@@ -16,6 +17,8 @@ import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
 import '../../../shared/data/database.dart';
+import '../../identities/provider/identity_service.provider.dart';
+import '../provider/known_host_service.provider.dart';
 
 class ImportOrExportSettingsView extends StatefulHookConsumerWidget {
   final AppSettings? current;
@@ -27,8 +30,6 @@ class ImportOrExportSettingsView extends StatefulHookConsumerWidget {
 
   const ImportOrExportSettingsView.import({super.key, required this.current})
     : isImport = true;
-
-  bool get isExport => !isImport;
 
   @override
   ConsumerState<ConsumerStatefulWidget> createState() =>
@@ -47,6 +48,7 @@ class _ImportOrExportSettingsViewState
     final knownHostsTileController = useFMultiValueNotifier<int>();
 
     final passwordController = useTextEditingController();
+    final error = useState<String?>(null);
 
     useEffect(() {
       if (widget.isImport) return;
@@ -73,13 +75,15 @@ class _ImportOrExportSettingsViewState
       return null;
     }, [widget.isImport]);
 
-    onSave() async {
+    onSave(int vaultId) async {
       // check if at least one is selected
       if (connectionsTileController.value.isEmpty &&
           identitiesTileController.value.isEmpty &&
           knownHostsTileController.value.isEmpty) {
+        error.value = 'settings.sync.import-export.selectAtLeastOneEntity';
         return;
       }
+      error.value = null;
 
       final selected = AppSettings(
         connections: settings.value?.connections
@@ -95,7 +99,50 @@ class _ImportOrExportSettingsViewState
         keys: null, // TODO
       );
 
-      if (widget.isExport) {
+      if (widget.isImport) {
+        // insert selected settings to database
+        final connectionService = ref.read(connectionServiceProvider);
+        final identityService = ref.read(identityServiceProvider);
+        final knownHostService = ref.read(knownHostServiceProvider);
+
+        for (final identity in selected.identities ?? <IdentitiesCompanion>[]) {
+          await identityService.createIdentity(
+            vaultId: vaultId,
+            label: identity.label.value,
+            username: identity.username.value,
+            credentialIds: [],
+          );
+        }
+
+        for (final connection
+            in selected.connections ?? <ConnectionsCompanion>[]) {
+          await connectionService.createConnection(
+            vaultId: vaultId,
+            address: connection.address.value,
+            iconColor: connection.iconColor.value,
+            iconBackgroundColor: connection.iconBackgroundColor.value,
+            label: connection.label.value,
+            groupName: connection.groupName.value,
+            port: connection.port.value,
+            username: connection.username.value,
+            icon: connection.icon.value,
+            identityId: connection.identityId.value,
+            terminalTypographyOverride:
+                connection.terminalTypographyOverride.value,
+            terminalThemeOverrideId: connection.terminalThemeOverrideId.value,
+            credentialIds: [],
+          );
+        }
+
+        for (final knownHost
+            in selected.knownHosts ?? <KnownHostsCompanion>[]) {
+          await knownHostService.createKnownHost(
+            vaultId: vaultId,
+            host: knownHost.host.value,
+            hostKey: knownHost.hostKey.value,
+          );
+        }
+      } else {
         final password = passwordController.text.trim();
         final encrypt = password.isNotEmpty;
 
@@ -174,7 +221,7 @@ class _ImportOrExportSettingsViewState
     }
 
     return CreateOrEditEntityView(
-      onSave: (_) => onSave(),
+      onSave: (v) => onSave(v!),
       isEdit: widget.isImport,
       editLabel: 'Import',
       createLabel: 'Export...',
@@ -186,7 +233,7 @@ class _ImportOrExportSettingsViewState
           children: settings.value == null
               ? [Center(child: FCircularProgress())]
               : [
-                  if (widget.isExport)
+                  if (!widget.isImport)
                     FTextFormField.password(
                       control: .managed(controller: passwordController),
                       label: Text('Password (recommended)'),
@@ -196,30 +243,44 @@ class _ImportOrExportSettingsViewState
                       inputFormatters: InputFormatters.password(),
                     ),
 
-                  buildEntityTiles<ConnectionsCompanion>(
-                    connectionsTileController,
-                    'Connections',
-                    settings.value!.connections,
-                    (c) => c.id.value,
-                    (c) => c.label.value,
-                    subtitleBuilder: (c) =>
-                        '${c.address.value}:${c.port.value}',
-                  ),
-                  buildEntityTiles<IdentitiesCompanion>(
-                    identitiesTileController,
-                    'Identities',
-                    settings.value!.identities,
-                    (i) => i.id.value,
-                    (i) => i.label.value,
-                    subtitleBuilder: (i) => i.username.value,
-                  ),
-                  buildEntityTiles<KnownHostsCompanion>(
-                    knownHostsTileController,
-                    'Known Hosts',
-                    settings.value!.knownHosts,
-                    (k) => k.id.value,
-                    (k) => k.host.value,
-                  ),
+                  if (settings.value!.connections != null &&
+                      settings.value!.connections!.isNotEmpty)
+                    buildEntityTiles<ConnectionsCompanion>(
+                      connectionsTileController,
+                      'Connections',
+                      settings.value!.connections,
+                      (c) => c.id.value,
+                      (c) => c.label.value,
+                      subtitleBuilder: (c) =>
+                          '${c.address.value}:${c.port.value}',
+                    ),
+                  if (settings.value!.identities != null &&
+                      settings.value!.identities!.isNotEmpty)
+                    buildEntityTiles<IdentitiesCompanion>(
+                      identitiesTileController,
+                      'Identities',
+                      settings.value!.identities,
+                      (i) => i.id.value,
+                      (i) => i.label.value,
+                      subtitleBuilder: (i) => i.username.value,
+                    ),
+                  if (settings.value!.knownHosts != null &&
+                      settings.value!.knownHosts!.isNotEmpty)
+                    buildEntityTiles<KnownHostsCompanion>(
+                      knownHostsTileController,
+                      'Known Hosts',
+                      settings.value!.knownHosts,
+                      (k) => k.id.value,
+                      (k) => k.host.value,
+                    ),
+
+                  if (error.value != null)
+                    Text(
+                      error.value!,
+                      style: context.theme.typography.sm.copyWith(
+                        color: context.theme.colors.error,
+                      ),
+                    ),
                 ],
         ),
       ),

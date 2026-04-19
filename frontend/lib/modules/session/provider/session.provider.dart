@@ -189,7 +189,11 @@ class ShellSessionNotifier extends Notifier<SSHSessionState> {
     }
     return ref
         .read(knownHostServiceProvider)
-        .createKey(vaultId: vaultId, host: error.host, hostKey: error.hostKey);
+        .createKnownHost(
+          vaultId: vaultId,
+          host: error.host,
+          hostKey: error.hostKey,
+        );
   }
 
   void _modifySession(

@@ -115,6 +115,21 @@ final class Commons {
     );
   }
 
+  static Future<void> showToast(String message, {Widget? prefix}) async {
+    final context = Router.rootNavigatorKey.currentContext;
+    if (context != null) {
+      showFToast(
+        variant: .primary,
+        context: context,
+        title: Row(
+          spacing: 8,
+          mainAxisSize: .min,
+          children: [?prefix, Text(message)],
+        ),
+      );
+    }
+  }
+
   static Future<void> copyToClipboard(BuildContext context, String text) async {
     await Clipboard.setData(ClipboardData(text: text));
     if (context.mounted) {

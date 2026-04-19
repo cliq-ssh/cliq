@@ -66,6 +66,13 @@ class AppSettings {
     );
   }
 
+  bool get isEmpty =>
+      (connections == null || connections!.isEmpty) &&
+      (identities == null || identities!.isEmpty) &&
+      (knownHosts == null || knownHosts!.isEmpty) &&
+      (credentials == null || credentials!.isEmpty) &&
+      (keys == null || keys!.isEmpty);
+
   Map<String, dynamic> toJson() {
     return {
       if (connections != null)
