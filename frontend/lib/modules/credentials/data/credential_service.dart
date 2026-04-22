@@ -59,6 +59,12 @@ final class CredentialService {
     return (password, keys);
   }
 
+  Future<List<CredentialFull>> findAll() {
+    return _credentialRepository.db.findAllCredentialIds().get().then(
+      (ids) => findByIds(ids),
+    );
+  }
+
   Future<List<CredentialFull>> findByIds(List<int> ids) {
     return _credentialRepository.db
         .findCredentialFullByIds(ids)
@@ -66,7 +72,7 @@ final class CredentialService {
         .get();
   }
 
-  Future<int> create({
+  Future<int> createCredential({
     required int vaultId,
     required CredentialType type,
     required String data,

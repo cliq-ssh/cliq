@@ -14,12 +14,17 @@ class AppSettings {
   final List<CredentialsCompanion>? credentials;
   final List<KeysCompanion>? keys;
 
+  final Map<int, List<int>>? connectionsCredentialIds;
+  final Map<int, List<int>>? identitiesCredentialIds;
+
   const AppSettings({
     required this.connections,
     required this.identities,
     required this.knownHosts,
     required this.credentials,
     required this.keys,
+    required this.connectionsCredentialIds,
+    required this.identitiesCredentialIds,
   });
 
   const AppSettings.empty()
@@ -27,7 +32,9 @@ class AppSettings {
       identities = null,
       knownHosts = null,
       credentials = null,
-      keys = null;
+      keys = null,
+      connectionsCredentialIds = null,
+      identitiesCredentialIds = null;
 
   static AppSettings? tryFromJson(Map<String, dynamic> json) {
     parse<T>(T? Function(Map<String, dynamic>?) parser, String key) {
@@ -39,30 +46,31 @@ class AppSettings {
           : null;
     }
 
-    final connections = parse(
-      ConnectionsCompanionExtension.tryFromJson,
-      'connections',
-    );
-    final identities = parse(
-      IdentitiesCompanionExtension.tryFromJson,
-      'identities',
-    );
-    final knownHosts = parse(
-      KnownHostsCompanionExtension.tryFromJson,
-      'knownHosts',
-    );
-    final credentials = parse(
-      CredentialsCompanionExtension.tryFromJson,
-      'credentials',
-    );
-    final keys = parse(KeysCompanionExtension.tryFromJson, 'keys');
+    parseCredentialIds(String key) {
+      return json[key] is Map<String, dynamic>
+          ? (json[key] as Map<String, dynamic>).map(
+              (k, v) => MapEntry(
+                int.tryParse(k) ?? -1,
+                (v as List).map((e) => e as int).toList(),
+              ),
+            )
+          : null;
+    }
 
     return AppSettings(
-      connections: connections,
-      identities: identities,
-      knownHosts: knownHosts,
-      credentials: credentials,
-      keys: keys,
+      connections: parse(
+        ConnectionsCompanionExtension.tryFromJson,
+        'connections',
+      ),
+      identities: parse(IdentitiesCompanionExtension.tryFromJson, 'identities'),
+      knownHosts: parse(KnownHostsCompanionExtension.tryFromJson, 'knownHosts'),
+      credentials: parse(
+        CredentialsCompanionExtension.tryFromJson,
+        'credentials',
+      ),
+      keys: parse(KeysCompanionExtension.tryFromJson, 'keys'),
+      connectionsCredentialIds: parseCredentialIds('connectionCredentialIds'),
+      identitiesCredentialIds: parseCredentialIds('identityCredentialIds'),
     );
   }
 
@@ -77,8 +85,14 @@ class AppSettings {
     return {
       if (connections != null)
         'connections': connections!.map((c) => c.toJson()).toList(),
+      if (connectionsCredentialIds != null)
+        'connectionCredentialIds': connectionsCredentialIds,
+
       if (identities != null)
         'identities': identities!.map((i) => i.toJson()).toList(),
+      if (identitiesCredentialIds != null)
+        'identityCredentialIds': identitiesCredentialIds,
+
       if (knownHosts != null)
         'knownHosts': knownHosts!.map((k) => k.toJson()).toList(),
       if (credentials != null)

@@ -63,6 +63,8 @@ class SSHConfigSettingsImporter extends AbstractSettingsImporter {
       keys: [], // TODO: implement keys & credentials parsing
       identities: [],
       knownHosts: [],
+      identitiesCredentialIds: {},
+      connectionsCredentialIds: {},
     );
   }
 

@@ -12,6 +12,12 @@ final class KeyService {
 
   Stream<List<int>> watchAll() => _keyRepository.db.findAllKeyIds().watch();
 
+  Future<List<KeyFull>> findAll() {
+    return _keyRepository.db.findAllKeyIds().get().then(
+      (ids) => findByIds(ids),
+    );
+  }
+
   Future<List<KeyFull>> findByIds(List<int> ids) {
     return _keyRepository.db
         .findAllKeyFullByIds(ids)

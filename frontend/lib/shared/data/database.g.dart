@@ -4428,6 +4428,14 @@ abstract class _$CliqDatabase extends GeneratedDatabase {
     );
   }
 
+  Selectable<int> findAllCredentialIds() {
+    return customSelect(
+      'SELECT id FROM credentials',
+      variables: [],
+      readsFrom: {credentials},
+    ).map((QueryRow row) => row.read<int>('id'));
+  }
+
   Selectable<FindCredentialFullByIdsResult> findCredentialFullByIds(
     List<int> var1,
   ) {

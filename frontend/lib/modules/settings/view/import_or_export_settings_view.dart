@@ -1,10 +1,10 @@
 import 'dart:convert';
 
 import 'package:cliq/modules/connections/provider/connection.provider.dart';
-import 'package:cliq/modules/connections/provider/connection_service.provider.dart';
 import 'package:cliq/modules/identities/provider/identity.provider.dart';
 import 'package:cliq/modules/settings/model/settings_importer/app_settings.model.dart';
 import 'package:cliq/modules/settings/provider/known_host.provider.dart';
+import 'package:cliq/modules/settings/provider/sync.provider.dart';
 import 'package:cliq/shared/ui/create_or_edit_entity_view.dart';
 import 'package:cliq/shared/utils/commons.dart';
 import 'package:cliq/shared/utils/input_formatters.dart';
@@ -17,8 +17,8 @@ import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
 import '../../../shared/data/database.dart';
-import '../../identities/provider/identity_service.provider.dart';
-import '../provider/known_host_service.provider.dart';
+import '../../credentials/provider/credential_service.provider.dart';
+import '../../keys/provider/key_service.provider.dart';
 
 class ImportOrExportSettingsView extends StatefulHookConsumerWidget {
   final AppSettings? current;
@@ -43,9 +43,11 @@ class _ImportOrExportSettingsViewState
     final formKey = useMemoized(() => GlobalKey<FormState>());
     final settings = useState<AppSettings?>(widget.current);
 
-    final connectionsTileController = useFMultiValueNotifier<int>();
-    final identitiesTileController = useFMultiValueNotifier<int>();
+    final connectionsTileController =
+        useFMultiValueNotifier<(int, List<int>)>();
+    final identitiesTileController = useFMultiValueNotifier<(int, List<int>)>();
     final knownHostsTileController = useFMultiValueNotifier<int>();
+    final keysTileController = useFMultiValueNotifier<int>();
 
     final passwordController = useTextEditingController();
     final error = useState<String?>(null);
@@ -54,23 +56,37 @@ class _ImportOrExportSettingsViewState
       if (widget.isImport) return;
 
       // populate [settings] with current app settings for export
-      final connectionSettings = ref.read(connectionProvider);
-      final identitySettings = ref.read(identityProvider);
-      final knownHostSettings = ref.read(knownHostProvider);
+      final connections = ref.read(connectionProvider);
+      final identities = ref.read(identityProvider);
+      final knownHosts = ref.read(knownHostProvider);
 
-      settings.value = AppSettings(
-        connections: connectionSettings.entities
-            .map((e) => e.toCompanion(true))
-            .toList(),
-        identities: identitySettings.entities
-            .map((e) => e.toCompanion(true))
-            .toList(),
-        knownHosts: knownHostSettings.entities
-            .map((e) => e.toCompanion(true))
-            .toList(),
-        credentials: null, // TODO
-        keys: null, // TODO
-      );
+      final credentials = ref.read(credentialServiceProvider).findAll();
+      final keys = ref.read(keyServiceProvider).findAll();
+
+      Future.wait([credentials, keys]).then((values) {
+        final credentials = values[0] as List<Credential>;
+        final keys = values[1] as List<Key>;
+
+        settings.value = AppSettings(
+          connections: connections.entities
+              .map((e) => e.toCompanion(true))
+              .toList(),
+          identities: identities.entities
+              .map((e) => e.toCompanion(true))
+              .toList(),
+          knownHosts: knownHosts.entities
+              .map((e) => e.toCompanion(true))
+              .toList(),
+          credentials: credentials.map((e) => e.toCompanion(true)).toList(),
+          keys: keys.map((e) => e.toCompanion(true)).toList(),
+          identitiesCredentialIds: identities.entities.asMap().map(
+            (_, entity) => MapEntry(entity.id, entity.credentialIds),
+          ),
+          connectionsCredentialIds: connections.entities.asMap().map(
+            (_, entity) => MapEntry(entity.id, entity.credentialIds),
+          ),
+        );
+      });
 
       return null;
     }, [widget.isImport]);
@@ -79,69 +95,67 @@ class _ImportOrExportSettingsViewState
       // check if at least one is selected
       if (connectionsTileController.value.isEmpty &&
           identitiesTileController.value.isEmpty &&
-          knownHostsTileController.value.isEmpty) {
-        error.value = 'settings.sync.import-export.selectAtLeastOneEntity';
+          knownHostsTileController.value.isEmpty &&
+          keysTileController.value.isEmpty) {
+        error.value = 'settings.sync.import.selectAtLeastOneEntity';
+        return;
+      }
+
+      final connections = settings.value?.connections
+          ?.where(
+            (c) => connectionsTileController.value.any(
+              (id) => id.$1 == c.id.value,
+            ),
+          )
+          .toList();
+
+      final identities = settings.value?.identities
+          ?.where(
+            (i) =>
+                identitiesTileController.value.any((id) => id.$1 == i.id.value),
+          )
+          .toList();
+
+      getCredentialIds(Set<(int, List<int>)> selectedEntities) {
+        final Map<int, List<int>> credentialIds = {};
+        for (final entity in selectedEntities) {
+          final id = entity.$1;
+          final creds = entity.$2;
+          credentialIds[id] = creds;
+        }
+        return credentialIds;
+      }
+
+      final selected = AppSettings(
+        connections: connections,
+        identities: identities,
+        knownHosts: settings.value?.knownHosts
+            ?.where((k) => knownHostsTileController.value.contains(k.id.value))
+            .toList(),
+        credentials: settings.value?.credentials,
+        keys: settings.value?.keys
+            ?.where((k) => keysTileController.value.contains(k.id.value))
+            .toList(),
+        connectionsCredentialIds: getCredentialIds(
+          connectionsTileController.value,
+        ),
+        identitiesCredentialIds: getCredentialIds(
+          identitiesTileController.value,
+        ),
+      );
+
+      // validate settings
+      final validationError = ref
+          .read(syncProvider.notifier)
+          .validateSettings(selected);
+      if (validationError != null) {
+        error.value = validationError;
         return;
       }
       error.value = null;
 
-      final selected = AppSettings(
-        connections: settings.value?.connections
-            ?.where((c) => connectionsTileController.value.contains(c.id.value))
-            .toList(),
-        identities: settings.value?.identities
-            ?.where((i) => identitiesTileController.value.contains(i.id.value))
-            .toList(),
-        knownHosts: settings.value?.knownHosts
-            ?.where((k) => knownHostsTileController.value.contains(k.id.value))
-            .toList(),
-        credentials: null, // TODO
-        keys: null, // TODO
-      );
-
       if (widget.isImport) {
-        // insert selected settings to database
-        final connectionService = ref.read(connectionServiceProvider);
-        final identityService = ref.read(identityServiceProvider);
-        final knownHostService = ref.read(knownHostServiceProvider);
-
-        for (final identity in selected.identities ?? <IdentitiesCompanion>[]) {
-          await identityService.createIdentity(
-            vaultId: vaultId,
-            label: identity.label.value,
-            username: identity.username.value,
-            credentialIds: [],
-          );
-        }
-
-        for (final connection
-            in selected.connections ?? <ConnectionsCompanion>[]) {
-          await connectionService.createConnection(
-            vaultId: vaultId,
-            address: connection.address.value,
-            iconColor: connection.iconColor.value,
-            iconBackgroundColor: connection.iconBackgroundColor.value,
-            label: connection.label.value,
-            groupName: connection.groupName.value,
-            port: connection.port.value,
-            username: connection.username.value,
-            icon: connection.icon.value,
-            identityId: connection.identityId.value,
-            terminalTypographyOverride:
-                connection.terminalTypographyOverride.value,
-            terminalThemeOverrideId: connection.terminalThemeOverrideId.value,
-            credentialIds: [],
-          );
-        }
-
-        for (final knownHost
-            in selected.knownHosts ?? <KnownHostsCompanion>[]) {
-          await knownHostService.createKnownHost(
-            vaultId: vaultId,
-            host: knownHost.host.value,
-            hostKey: knownHost.hostKey.value,
-          );
-        }
+        ref.read(syncProvider.notifier).import(selected, vaultId);
       } else {
         final password = passwordController.text.trim();
         final encrypt = password.isNotEmpty;
@@ -165,11 +179,11 @@ class _ImportOrExportSettingsViewState
       context.pop();
     }
 
-    buildEntityTiles<T>(
-      FMultiValueNotifier<int> controller,
+    buildEntityTiles<T, ID>(
+      FMultiValueNotifier<ID> controller,
       String label,
       List<T>? entities,
-      int Function(T) idSelector,
+      ID Function(T) idSelector,
       String Function(T) titleBuilder, {
       String Function(T)? subtitleBuilder,
     }) {
@@ -245,28 +259,45 @@ class _ImportOrExportSettingsViewState
 
                   if (settings.value!.connections != null &&
                       settings.value!.connections!.isNotEmpty)
-                    buildEntityTiles<ConnectionsCompanion>(
+                    buildEntityTiles<ConnectionsCompanion, (int, List<int>)>(
                       connectionsTileController,
                       'Connections',
                       settings.value!.connections,
-                      (c) => c.id.value,
+                      (c) => (
+                        c.id.value,
+                        settings.value!.connectionsCredentialIds![c.id.value]!,
+                      ),
                       (c) => c.label.value,
                       subtitleBuilder: (c) =>
                           '${c.address.value}:${c.port.value}',
                     ),
                   if (settings.value!.identities != null &&
                       settings.value!.identities!.isNotEmpty)
-                    buildEntityTiles<IdentitiesCompanion>(
+                    buildEntityTiles<IdentitiesCompanion, (int, List<int>)>(
                       identitiesTileController,
                       'Identities',
                       settings.value!.identities,
-                      (i) => i.id.value,
+                      (i) => (
+                        i.id.value,
+                        settings.value!.identitiesCredentialIds![i.id.value]!,
+                      ),
                       (i) => i.label.value,
                       subtitleBuilder: (i) => i.username.value,
                     ),
+
+                  if (settings.value!.keys != null &&
+                      settings.value!.keys!.isNotEmpty)
+                    buildEntityTiles<KeysCompanion, int>(
+                      keysTileController,
+                      'Keys',
+                      settings.value!.keys,
+                      (k) => k.id.value,
+                      (k) => k.label.value,
+                    ),
+
                   if (settings.value!.knownHosts != null &&
                       settings.value!.knownHosts!.isNotEmpty)
-                    buildEntityTiles<KnownHostsCompanion>(
+                    buildEntityTiles<KnownHostsCompanion, int>(
                       knownHostsTileController,
                       'Known Hosts',
                       settings.value!.knownHosts,
