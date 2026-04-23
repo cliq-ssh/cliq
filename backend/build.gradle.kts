@@ -2,7 +2,7 @@ import dev.detekt.gradle.Detekt
 import dev.detekt.gradle.DetektCreateBaselineTask
 
 plugins {
-    val kotlinVersion = "2.3.20"
+    val kotlinVersion = "2.3.21"
     // Kotlin
     kotlin("jvm") version kotlinVersion
     kotlin("plugin.spring") version kotlinVersion
