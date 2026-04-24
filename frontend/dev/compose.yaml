@@ -1,0 +1,17 @@
+# openssh server for testing
+services:
+  ssh-server:
+    image: linuxserver/openssh-server:latest
+    container_name: openssh-server
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Etc/UTC
+      - USER_NAME=cliq
+      - USER_PASSWORD=cliq123
+      - PASSWORD_ACCESS=true
+      - SUDO_ACCESS=true
+      - PUBLIC_KEY=ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIB0YH0uWFAqml2MxL0tI0AR5N5ttoDCilJsEObKTnU+/ cliq@localhost
+    ports:
+      - "2222:2222"
+    restart: unless-stopped
