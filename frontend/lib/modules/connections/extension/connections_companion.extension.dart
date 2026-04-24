@@ -15,7 +15,6 @@ extension ConnectionsCompanionExtension on ConnectionsCompanion {
         json['iconColor'] == null ||
         json['iconBackgroundColor'] == null ||
         json['icon'] == null ||
-        json['isIconAutoDetect'] == null ||
         json['usesDefaultThemeOverride'] == null) {
       return null;
     }

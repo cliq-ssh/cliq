@@ -105,7 +105,11 @@ class SyncProviderNotifier extends Notifier<SyncState> {
         vaultId: vaultId,
         label: identity.label.value,
         username: identity.username.value,
-        credentialIds: [],
+        credentialIds:
+            settings.identitiesCredentialIds?[identity.id.value]
+                ?.map((oldId) => newCredentialIds[oldId]!)
+                .toList() ??
+            [],
       );
       newIdentityIds[identity.id.value] = newId;
     }
@@ -126,7 +130,11 @@ class SyncProviderNotifier extends Notifier<SyncState> {
             : null,
         terminalTypographyOverride: connection.terminalTypographyOverride.value,
         terminalThemeOverrideId: connection.terminalThemeOverrideId.value,
-        credentialIds: [],
+        credentialIds:
+            settings.connectionsCredentialIds?[connection.id.value]
+                ?.map((oldId) => newCredentialIds[oldId]!)
+                .toList() ??
+            [],
       );
     }
 

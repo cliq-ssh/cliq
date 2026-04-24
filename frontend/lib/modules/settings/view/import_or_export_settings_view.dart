@@ -120,6 +120,19 @@ class _ImportOrExportSettingsViewState
       }
       showExportWarning.value = false;
 
+      Map<int, List<int>>? mapCredentialIds(
+        Map<int, List<int>>? credentialIds,
+        FMultiValueNotifier<int> controller,
+      ) {
+        return credentialIds?.map((id, credentialIds) {
+          if (controller.value.contains(id)) {
+            return MapEntry(id, credentialIds);
+          } else {
+            return MapEntry(id, []);
+          }
+        });
+      }
+
       final selected = AppSettings(
         connections: settings.value?.connections
             ?.where((c) => connectionsTileController.value.contains(c.id.value))
@@ -134,8 +147,14 @@ class _ImportOrExportSettingsViewState
         keys: settings.value?.keys
             ?.where((k) => keysTileController.value.contains(k.id.value))
             .toList(),
-        connectionsCredentialIds: {},
-        identitiesCredentialIds: {},
+        connectionsCredentialIds: mapCredentialIds(
+          settings.value?.connectionsCredentialIds,
+          connectionsTileController,
+        ),
+        identitiesCredentialIds: mapCredentialIds(
+          settings.value?.identitiesCredentialIds,
+          identitiesTileController,
+        ),
       );
 
       // validate settings

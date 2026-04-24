@@ -89,12 +89,16 @@ class AppSettings {
       if (connections != null)
         'connections': connections!.map((c) => c.toJson()).toList(),
       if (connectionsCredentialIds != null)
-        'connectionCredentialIds': connectionsCredentialIds,
+        'connectionCredentialIds': connectionsCredentialIds!.map(
+          (k, v) => .new(k.toString(), v),
+        ),
 
       if (identities != null)
         'identities': identities!.map((i) => i.toJson()).toList(),
       if (identitiesCredentialIds != null)
-        'identityCredentialIds': identitiesCredentialIds,
+        'identityCredentialIds': identitiesCredentialIds!.map(
+          (k, v) => .new(k.toString(), v),
+        ),
 
       if (knownHosts != null)
         'knownHosts': knownHosts!.map((k) => k.toJson()).toList(),
