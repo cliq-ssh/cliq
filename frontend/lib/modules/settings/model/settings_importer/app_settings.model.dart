@@ -83,6 +83,9 @@ class AppSettings {
 
   Map<String, dynamic> toJson() {
     return {
+      'version':
+          1, // TODO: implement version handling for future changes to the settings structure
+      'createdAt': DateTime.now().millisecondsSinceEpoch,
       if (connections != null)
         'connections': connections!.map((c) => c.toJson()).toList(),
       if (connectionsCredentialIds != null)

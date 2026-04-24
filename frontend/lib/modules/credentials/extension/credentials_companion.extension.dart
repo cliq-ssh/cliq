@@ -13,8 +13,9 @@ extension CredentialsCompanionExtension on CredentialsCompanion {
       id: Value(json['id'] as int),
       type: Value(
         CredentialType.values.firstWhere(
-          (e) => e.toString() == 'CredentialType.${json['type']}',
-          orElse: () => CredentialType.password,
+          (e) => e.name == json['type'],
+          orElse: () =>
+              throw Exception('Unknown credential type: ${json['type']}'),
         ),
       ),
       keyId: Value(json['keyId'] as int?),
@@ -25,7 +26,7 @@ extension CredentialsCompanionExtension on CredentialsCompanion {
   Map<String, dynamic> toJson() {
     return {
       'id': id.value,
-      'type': type.value,
+      'type': type.value.name,
       if (keyId.value != null) 'keyId': keyId.value,
       if (password.value != null) 'password': password.value,
     };

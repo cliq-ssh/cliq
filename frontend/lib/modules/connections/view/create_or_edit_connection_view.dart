@@ -81,7 +81,6 @@ class CreateOrEditConnectionView extends HookConsumerWidget {
           connection.terminalTypographyOverride,
         ),
         terminalThemeOverrideId: Value(connection.terminalThemeOverrideId),
-        isIconAutoDetect: Value(connection.isIconAutoDetect),
       ),
       currentCredentialIds = connection.credentialIds,
       isEdit = true;

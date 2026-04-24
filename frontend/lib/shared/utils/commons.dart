@@ -115,11 +115,15 @@ final class Commons {
     );
   }
 
-  static Future<void> showToast(String message, {Widget? prefix}) async {
+  static Future<void> showToast(
+    String message, {
+    Widget? prefix,
+    FToastVariant? variant,
+  }) async {
     final context = Router.rootNavigatorKey.currentContext;
     if (context != null) {
       showFToast(
-        variant: .primary,
+        variant: variant ?? .primary,
         context: context,
         title: Row(
           spacing: 8,

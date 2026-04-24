@@ -110,7 +110,7 @@ class ShellSessionNotifier extends Notifier<SSHSessionState> {
     final socket = await SSHSocket.connect(connection.address, connection.port);
     final sshClient = SSHClient(
       socket,
-      username: connection.effectiveUsername,
+      username: connection.effectiveUsername!,
       identities: keys,
       onVerifyHostKey: (algorithm, hostKey) async {
         if (session.skipHostKeyVerification) {

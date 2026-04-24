@@ -29,6 +29,21 @@ class ConnectionCard extends HookConsumerWidget {
       await primaryPopoverController.hide();
       await secondaryPopoverController.hide();
       if (!context.mounted) return;
+
+      if (connection.effectiveUsername == null) {
+        // TODO: https://github.com/cliq-ssh/cliq/issues/446
+        Commons.showToast(
+          'Cannot connect because username is missing',
+          prefix: Icon(
+            LucideIcons.triangleAlert,
+            size: 20,
+            color: context.theme.colors.destructive,
+          ),
+          variant: .destructive,
+        );
+        return;
+      }
+
       return ref
           .read(sessionProvider.notifier)
           .createAndGo(NavigationShell.of(context), connection);
@@ -145,13 +160,14 @@ class ConnectionCard extends HookConsumerWidget {
                               softWrap: false,
                               style: context.theme.typography.lg,
                             ),
-                            Text(
-                              connection.effectiveUsername,
-                              style: context.theme.typography.xs.copyWith(
-                                color: context.theme.colors.mutedForeground,
-                                fontWeight: .normal,
+                            if (connection.effectiveUsername != null)
+                              Text(
+                                connection.effectiveUsername!,
+                                style: context.theme.typography.xs.copyWith(
+                                  color: context.theme.colors.mutedForeground,
+                                  fontWeight: .normal,
+                                ),
                               ),
-                            ),
                           ],
                         ),
                       ),

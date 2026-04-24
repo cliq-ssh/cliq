@@ -15,6 +15,7 @@ import 'package:forui/forui.dart';
 import 'package:forui_hooks/forui_hooks.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:lucide_flutter/lucide_flutter.dart';
 
 import '../../../shared/data/database.dart';
 import '../../credentials/provider/credential_service.provider.dart';
@@ -43,22 +44,25 @@ class _ImportOrExportSettingsViewState
     final formKey = useMemoized(() => GlobalKey<FormState>());
     final settings = useState<AppSettings?>(widget.current);
 
-    final connectionsTileController =
-        useFMultiValueNotifier<(int, List<int>)>();
-    final identitiesTileController = useFMultiValueNotifier<(int, List<int>)>();
+    final connections = ref.read(connectionProvider);
+    final identities = ref.read(identityProvider);
+    final knownHosts = ref.read(knownHostProvider);
+
+    final connectionsTileController = useFMultiValueNotifier<int>();
+    final identitiesTileController = useFMultiValueNotifier<int>();
     final knownHostsTileController = useFMultiValueNotifier<int>();
     final keysTileController = useFMultiValueNotifier<int>();
 
+    final relatedIdentityIds = useState<Set<int>>({});
+    final relatedConnectionKeyIds = useState<Set<int>>({});
+    final relatedIdentityKeyIds = useState<Set<int>>({});
+
     final passwordController = useTextEditingController();
     final error = useState<String?>(null);
+    final showExportWarning = useState<bool>(false);
 
     useEffect(() {
       if (widget.isImport) return;
-
-      // populate [settings] with current app settings for export
-      final connections = ref.read(connectionProvider);
-      final identities = ref.read(identityProvider);
-      final knownHosts = ref.read(knownHostProvider);
 
       final credentials = ref.read(credentialServiceProvider).findAll();
       final keys = ref.read(keyServiceProvider).findAll();
@@ -101,34 +105,28 @@ class _ImportOrExportSettingsViewState
         return;
       }
 
-      final connections = settings.value?.connections
-          ?.where(
-            (c) => connectionsTileController.value.any(
-              (id) => id.$1 == c.id.value,
-            ),
-          )
-          .toList();
+      if (!showExportWarning.value &&
+          !widget.isImport &&
+          (passwordController.text.trim().isEmpty)) {
+        final hasSensitiveData =
+            (settings.value?.connections?.isNotEmpty == true) ||
+            (settings.value?.identities?.isNotEmpty == true) ||
+            (settings.value?.keys?.isNotEmpty == true);
 
-      final identities = settings.value?.identities
-          ?.where(
-            (i) =>
-                identitiesTileController.value.any((id) => id.$1 == i.id.value),
-          )
-          .toList();
-
-      getCredentialIds(Set<(int, List<int>)> selectedEntities) {
-        final Map<int, List<int>> credentialIds = {};
-        for (final entity in selectedEntities) {
-          final id = entity.$1;
-          final creds = entity.$2;
-          credentialIds[id] = creds;
+        if (hasSensitiveData) {
+          showExportWarning.value = true;
+          return;
         }
-        return credentialIds;
       }
+      showExportWarning.value = false;
 
       final selected = AppSettings(
-        connections: connections,
-        identities: identities,
+        connections: settings.value?.connections
+            ?.where((c) => connectionsTileController.value.contains(c.id.value))
+            .toList(),
+        identities: settings.value?.identities
+            ?.where((i) => identitiesTileController.value.contains(i.id.value))
+            .toList(),
         knownHosts: settings.value?.knownHosts
             ?.where((k) => knownHostsTileController.value.contains(k.id.value))
             .toList(),
@@ -136,12 +134,8 @@ class _ImportOrExportSettingsViewState
         keys: settings.value?.keys
             ?.where((k) => keysTileController.value.contains(k.id.value))
             .toList(),
-        connectionsCredentialIds: getCredentialIds(
-          connectionsTileController.value,
-        ),
-        identitiesCredentialIds: getCredentialIds(
-          identitiesTileController.value,
-        ),
+        connectionsCredentialIds: {},
+        identitiesCredentialIds: {},
       );
 
       // validate settings
@@ -179,13 +173,22 @@ class _ImportOrExportSettingsViewState
       context.pop();
     }
 
-    buildEntityTiles<T, ID>(
-      FMultiValueNotifier<ID> controller,
-      String label,
-      List<T>? entities,
-      ID Function(T) idSelector,
-      String Function(T) titleBuilder, {
-      String Function(T)? subtitleBuilder,
+    getConnectionById(int id) {
+      return settings.value?.connections?.firstWhere((c) => c.id.value == id);
+    }
+
+    getCredentialById(int id) {
+      return settings.value?.credentials?.firstWhere((c) => c.id.value == id);
+    }
+
+    buildEntityTiles<T, ID>({
+      required FMultiValueNotifier<ID> controller,
+      required String label,
+      required List<T>? entities,
+      required ID Function(T) idSelector,
+      required String Function(T) titleBuilder,
+      bool Function(T)? isRelated,
+      void Function(Set<ID>)? onChange,
     }) {
       final toolbarTextStyle = context.theme.typography.xs.copyWith(
         fontWeight: .normal,
@@ -220,15 +223,16 @@ class _ImportOrExportSettingsViewState
             ),
           ],
         ),
-        control: .managed(controller: controller),
+        control: .managed(controller: controller, onChange: onChange),
         children: [
           for (final entity in entities ?? <T>[])
             FSelectTile(
               title: Text(titleBuilder(entity)),
-              subtitle: subtitleBuilder != null
-                  ? Text(subtitleBuilder(entity))
-                  : null,
               value: idSelector(entity),
+              checkedIcon: isRelated?.call(entity) != true
+                  ? const Icon(LucideIcons.check)
+                  : const Icon(LucideIcons.link),
+              enabled: isRelated?.call(entity) != true,
             ),
         ],
       );
@@ -257,52 +261,105 @@ class _ImportOrExportSettingsViewState
                       inputFormatters: InputFormatters.password(),
                     ),
 
-                  if (settings.value!.connections != null &&
-                      settings.value!.connections!.isNotEmpty)
-                    buildEntityTiles<ConnectionsCompanion, (int, List<int>)>(
-                      connectionsTileController,
-                      'Connections',
-                      settings.value!.connections,
-                      (c) => (
-                        c.id.value,
-                        settings.value!.connectionsCredentialIds![c.id.value]!,
-                      ),
-                      (c) => c.label.value,
-                      subtitleBuilder: (c) =>
-                          '${c.address.value}:${c.port.value}',
-                    ),
-                  if (settings.value!.identities != null &&
-                      settings.value!.identities!.isNotEmpty)
-                    buildEntityTiles<IdentitiesCompanion, (int, List<int>)>(
-                      identitiesTileController,
-                      'Identities',
-                      settings.value!.identities,
-                      (i) => (
-                        i.id.value,
-                        settings.value!.identitiesCredentialIds![i.id.value]!,
-                      ),
-                      (i) => i.label.value,
-                      subtitleBuilder: (i) => i.username.value,
+                  if (settings.value!.connections?.isNotEmpty == true)
+                    buildEntityTiles<ConnectionsCompanion, int>(
+                      controller: connectionsTileController,
+                      label: 'Connections',
+                      entities: settings.value!.connections,
+                      idSelector: (c) => c.id.value,
+                      titleBuilder: (c) => c.label.value,
+                      onChange: (selectedIds) {
+                        final newRelatedIdentityIds = <int>{};
+                        final newRelatedKeyIds = <int>{};
+
+                        for (final id in selectedIds) {
+                          final connection = getConnectionById(id);
+                          if (connection == null) continue;
+
+                          // if connection has an identity, select it as well
+                          if (connection.identityId.value != null) {
+                            identitiesTileController.update(
+                              connection.identityId.value!,
+                              add: true,
+                            );
+                            newRelatedIdentityIds.add(
+                              connection.identityId.value!,
+                            );
+                          }
+
+                          // also select all credentials
+                          final credentialIds =
+                              settings.value!.connectionsCredentialIds?[id] ??
+                              [];
+                          for (final credentialId in credentialIds) {
+                            final credential = getCredentialById(credentialId);
+                            if (credential == null) continue;
+
+                            final keyId = credential.keyId.value;
+                            if (keyId != null) {
+                              keysTileController.update(keyId, add: true);
+                              newRelatedKeyIds.add(keyId);
+                            }
+                          }
+                        }
+
+                        relatedIdentityIds.value = newRelatedIdentityIds;
+                        relatedConnectionKeyIds.value = newRelatedKeyIds;
+                      },
                     ),
 
-                  if (settings.value!.keys != null &&
-                      settings.value!.keys!.isNotEmpty)
+                  if (settings.value!.identities?.isNotEmpty == true)
+                    buildEntityTiles<IdentitiesCompanion, int>(
+                      controller: identitiesTileController,
+                      label: 'Identities',
+                      entities: settings.value!.identities,
+                      idSelector: (i) => i.id.value,
+                      titleBuilder: (i) => i.label.value,
+                      isRelated: (i) =>
+                          relatedIdentityIds.value.contains(i.id.value),
+                      onChange: (selectedIds) {
+                        final newRelatedKeyIds = <int>{};
+
+                        for (final id in selectedIds) {
+                          // also select all credentials
+                          final credentialIds =
+                              settings.value!.identitiesCredentialIds?[id] ??
+                              [];
+                          for (final credentialId in credentialIds) {
+                            final credential = getCredentialById(credentialId);
+                            if (credential == null) continue;
+
+                            final keyId = credential.keyId.value;
+                            if (keyId != null) {
+                              keysTileController.update(keyId, add: true);
+                              newRelatedKeyIds.add(keyId);
+                            }
+                          }
+                        }
+
+                        relatedIdentityKeyIds.value = newRelatedKeyIds;
+                      },
+                    ),
+
+                  if (settings.value!.keys?.isNotEmpty == true)
                     buildEntityTiles<KeysCompanion, int>(
-                      keysTileController,
-                      'Keys',
-                      settings.value!.keys,
-                      (k) => k.id.value,
-                      (k) => k.label.value,
+                      controller: keysTileController,
+                      label: 'Keys',
+                      entities: settings.value!.keys,
+                      idSelector: (k) => k.id.value,
+                      titleBuilder: (k) => k.label.value,
+                      isRelated: (k) =>
+                          relatedConnectionKeyIds.value.contains(k.id.value) ||
+                          relatedIdentityKeyIds.value.contains(k.id.value),
                     ),
 
-                  if (settings.value!.knownHosts != null &&
-                      settings.value!.knownHosts!.isNotEmpty)
+                  if (settings.value!.knownHosts?.isNotEmpty == true)
                     buildEntityTiles<KnownHostsCompanion, int>(
-                      knownHostsTileController,
-                      'Known Hosts',
-                      settings.value!.knownHosts,
-                      (k) => k.id.value,
-                      (k) => k.host.value,
+                      controller: knownHostsTileController,
+                      label: 'Known Hosts',
+                      entities: settings.value!.knownHosts,
+                      idSelector: (k) => k.id.value,
+                      titleBuilder: (k) => k.host.value,
                     ),
 
                   if (error.value != null)
@@ -310,6 +367,33 @@ class _ImportOrExportSettingsViewState
                       error.value!,
                       style: context.theme.typography.sm.copyWith(
                         color: context.theme.colors.error,
+                      ),
+                    ),
+
+                  if (showExportWarning.value)
+                    FCard(
+                      style: .delta(
+                        decoration: .boxDelta(
+                          color: context.theme.colors.destructive.withValues(
+                            alpha: 0.1,
+                          ),
+                          border: Border.all(
+                            color: context.theme.colors.destructive.withValues(
+                              alpha: 0.2,
+                            ),
+                          ),
+                        ),
+                      ),
+                      child: Row(
+                        spacing: 12,
+                        children: [
+                          Icon(LucideIcons.triangleAlert),
+                          Expanded(
+                            child: Text(
+                              'This export contains sensitive data, such as passwords and/or private keys. Setting an encryption password is highly recommended.',
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                 ],

@@ -51,7 +51,7 @@ class _ConnectionsPageState extends ConsumerState<ConnectionsPage> {
         filterableFields: (c) => [
           c.vault.label,
           c.label,
-          c.effectiveUsername,
+          ?c.effectiveUsername,
           c.port.toString(),
         ],
         onAddEntity: () => Commons.showResponsiveDialog(
