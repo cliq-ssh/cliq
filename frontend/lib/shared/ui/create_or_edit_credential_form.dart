@@ -78,7 +78,6 @@ class CreateOrEditCredentialsForm extends StatefulHookConsumerWidget {
 class CreateOrEditCredentialsFormState
     extends ConsumerState<CreateOrEditCredentialsForm> {
   late final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
-  late final FocusNode _focusNode = FocusNode();
   late final ValueNotifier<List<_CredentialData>> _selectedCredentials;
 
   @override
@@ -210,7 +209,6 @@ class CreateOrEditCredentialsFormState
                       child: switch (allowedType) {
                         .password => FTextFormField(
                           control: .managed(controller: data.controller),
-                          focusNode: _focusNode,
                           label: buildCredentialLabel(data),
                           minLines: 1,
                           obscureText: true,
@@ -250,7 +248,6 @@ class CreateOrEditCredentialsFormState
                                 ),
                               );
                               if (result != null) {
-                                _focusNode.unfocus();
                                 final newText =
                                     AutocompleteUtils.toAutocompleteString(
                                       result.$1,
@@ -295,7 +292,6 @@ class CreateOrEditCredentialsFormState
                                 value: suggestion,
                               ),
                           ],
-                          focusNode: _focusNode,
                           label: buildCredentialLabel(data),
                           minLines: 1,
                           validator: (s) {
