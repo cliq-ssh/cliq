@@ -14,7 +14,7 @@ plugins {
     id("io.spring.dependency-management") version "1.1.7"
 
     // Linter and Formatter
-    id("dev.detekt") version "2.0.0-alpha.2"
+    id("dev.detekt") version "2.0.0-alpha.3"
 }
 
 // Fixes: https://github.com/detekt/detekt/issues/6198
