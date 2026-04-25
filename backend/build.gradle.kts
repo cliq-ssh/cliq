@@ -162,7 +162,7 @@ dependencies {
     // Linting
 
     // Detekt
-    detektPlugins("dev.detekt:detekt-rules-ktlint-wrapper:2.0.0-alpha.2")
+    detektPlugins("dev.detekt:detekt-rules-ktlint-wrapper:2.0.0-alpha.3")
 }
 
 kotlin {
