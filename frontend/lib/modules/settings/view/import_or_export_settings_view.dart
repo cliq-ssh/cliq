@@ -178,7 +178,12 @@ class _ImportOrExportSettingsViewState
         // let user pick save location and export settings to file
         final success = await Commons.saveTextToFile(
           base64Encode(
-            encrypt ? await PasswordCipher.instance.encrypt(text, utf8.encode(password)) : text,
+            encrypt
+                ? await PasswordCipher.instance.encrypt(
+                    text,
+                    utf8.encode(password),
+                  )
+                : text,
           ),
           'cliq-export-${DateTime.now().millisecondsSinceEpoch}.txt',
         );
