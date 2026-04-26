@@ -2,7 +2,7 @@ import dev.detekt.gradle.Detekt
 import dev.detekt.gradle.DetektCreateBaselineTask
 
 plugins {
-    val kotlinVersion = "2.3.20"
+    val kotlinVersion = "2.3.21"
     // Kotlin
     kotlin("jvm") version kotlinVersion
     kotlin("plugin.spring") version kotlinVersion
@@ -10,11 +10,11 @@ plugins {
     kotlin("plugin.allopen") version kotlinVersion
 
     // Spring / Spring Boot
-    id("org.springframework.boot") version "4.0.5"
+    id("org.springframework.boot") version "4.0.6"
     id("io.spring.dependency-management") version "1.1.7"
 
     // Linter and Formatter
-    id("dev.detekt") version "2.0.0-alpha.2"
+    id("dev.detekt") version "2.0.0-alpha.3"
 }
 
 // Fixes: https://github.com/detekt/detekt/issues/6198
@@ -122,7 +122,7 @@ dependencies {
     implementation("org.jetbrains.kotlin:kotlin-reflect")
 
     // IO-Utils
-    implementation("commons-io:commons-io:2.21.0")
+    implementation("commons-io:commons-io:2.22.0")
 
     // Testing //
 
@@ -162,7 +162,7 @@ dependencies {
     // Linting
 
     // Detekt
-    detektPlugins("dev.detekt:detekt-rules-ktlint-wrapper:2.0.0-alpha.2")
+    detektPlugins("dev.detekt:detekt-rules-ktlint-wrapper:2.0.0-alpha.3")
 }
 
 kotlin {
