@@ -173,12 +173,12 @@ class _ImportOrExportSettingsViewState
         final password = passwordController.text.trim();
         final encrypt = password.isNotEmpty;
 
-        final text = jsonEncode(selected.toJson());
+        final text = utf8.encode(jsonEncode(selected.toJson()));
 
         // let user pick save location and export settings to file
         final success = await Commons.saveTextToFile(
           base64Encode(
-            encrypt ? PasswordCipher.encrypt(text, password) : text.codeUnits,
+            encrypt ? await PasswordCipher.instance.encrypt(text, utf8.encode(password)) : text,
           ),
           'cliq-export-${DateTime.now().millisecondsSinceEpoch}.txt',
         );

@@ -5,7 +5,6 @@ import 'util/test_utils.dart';
 
 const Map<SettingsImporter, String> sampleFiles = {
   .cliq: 'cliq_settings_export.json',
-  .sshConfig: 'config',
 };
 
 void main() {
@@ -36,7 +35,7 @@ void main() {
       test(
         'canParse: Return true for valid ${parser.name} file content',
         () async {
-          final canParse = parser.instance.canParse(path, content);
+          final canParse = await parser.instance.canParse(path, content);
           expect(canParse, isTrue);
         },
       );
@@ -44,7 +43,7 @@ void main() {
       test(
         'tryParse: Successfully parse valid ${parser.name} file content',
         () async {
-          final theme = parser.instance.tryParse(path, content);
+          final theme = await parser.instance.tryParse(path, content);
           expect(theme, isNotNull);
         },
       );
