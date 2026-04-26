@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:cliq/modules/settings/model/settings_importer/settings_importer.dart';
 import 'package:cliq/modules/settings/model/theme_parser/terminal_theme_parser.dart';
 import 'package:cliq/shared/ui/responsive_dialog.dart';
@@ -163,7 +165,7 @@ final class Commons {
     }
 
     final file = XFile.fromData(
-      Uint8List.fromList(text.codeUnits),
+      utf8.encode(text),
       mimeType: mimeType,
       name: suggestedFileName,
     );
