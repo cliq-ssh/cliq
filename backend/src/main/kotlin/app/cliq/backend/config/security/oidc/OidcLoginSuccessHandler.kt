@@ -2,6 +2,7 @@ package app.cliq.backend.config.security.oidc
 
 import app.cliq.backend.auth.factory.OidcCallbackTokenFactory
 import app.cliq.backend.auth.jwt.JwtClaims
+import app.cliq.backend.config.feature.oidc.FeatureOidc
 import app.cliq.backend.user.service.UserOidcService
 import app.cliq.backend.utils.CliqUrlUtils
 import jakarta.servlet.http.HttpServletRequest
@@ -11,6 +12,7 @@ import org.springframework.security.oauth2.core.oidc.user.OidcUser
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler
 import org.springframework.stereotype.Component
 
+@FeatureOidc
 @Component
 class OidcLoginSuccessHandler(
     private val userOidcService: UserOidcService,

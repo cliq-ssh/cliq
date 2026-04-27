@@ -1,9 +1,9 @@
 package app.cliq.backend.unit.serverconfig
 
+import app.cliq.backend.config.feature.FeatureUtils
 import app.cliq.backend.config.properties.AuthProperties
 import app.cliq.backend.config.properties.InfoProperties
 import app.cliq.backend.serverconfig.factory.ServerConfigResponseFactory
-import app.cliq.backend.utils.FeatureUtils
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.whenever
@@ -39,7 +39,7 @@ class ServerConfigResponseFactoryTests {
 
     @Test
     fun `factory exposes local auth properties in response`() {
-        whenever(featureUtils.isProfileActive(org.mockito.kotlin.any())).thenReturn(false)
+        whenever(featureUtils.isFeatureActive(org.mockito.kotlin.any())).thenReturn(false)
 
         val response = factory.getResponse()
 

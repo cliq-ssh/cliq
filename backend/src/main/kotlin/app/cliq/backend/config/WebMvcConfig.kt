@@ -11,12 +11,12 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer
 
 @Configuration
 class WebMvcConfig(
-    @Value($$"${scalar.path}")
-    private val scalarPath: String,
+    @Value($$"${springdoc.swagger-ui.path}")
+    private val swaggerUiPath: String,
 ) : WebMvcConfigurer {
     override fun addViewControllers(registry: ViewControllerRegistry) {
         super.addViewControllers(registry)
-        registry.addRedirectViewController("/api", scalarPath).setStatusCode(HttpStatus.PERMANENT_REDIRECT)
+        registry.addRedirectViewController("/api", swaggerUiPath).setStatusCode(HttpStatus.PERMANENT_REDIRECT)
     }
 
     @Bean

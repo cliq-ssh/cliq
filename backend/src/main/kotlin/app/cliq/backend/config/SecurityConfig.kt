@@ -1,13 +1,12 @@
 package app.cliq.backend.config
 
+import app.cliq.backend.config.feature.oidc.FeatureOidc
 import app.cliq.backend.config.security.exception.handler.ApplicationAuthenticationEntryPoint
 import app.cliq.backend.config.security.jwt.JwtAuthenticationConfigurer
 import app.cliq.backend.config.security.oidc.OidcLoginSuccessHandler
 import app.cliq.backend.config.security.oidc.OidcLogoutHandler
-import app.cliq.backend.constants.Features
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
-import org.springframework.context.annotation.Profile
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity
 import org.springframework.security.config.annotation.web.builders.HttpSecurity
 import org.springframework.security.config.http.SessionCreationPolicy
@@ -19,8 +18,8 @@ class SecurityConfig(
     private val jwtAuthenticationConfigurer: JwtAuthenticationConfigurer,
     private val applicationAuthenticationEntryPoint: ApplicationAuthenticationEntryPoint,
 ) {
+    @FeatureOidc
     @Bean
-    @Profile(Features.OIDC)
     fun oidcFilterChain(
         http: HttpSecurity,
         oidcLoginSuccessHandler: OidcLoginSuccessHandler,

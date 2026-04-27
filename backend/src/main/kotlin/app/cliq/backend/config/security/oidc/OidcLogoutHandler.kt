@@ -1,5 +1,6 @@
 package app.cliq.backend.config.security.oidc
 
+import app.cliq.backend.config.feature.oidc.FeatureOidc
 import app.cliq.backend.session.SessionRepository
 import app.cliq.backend.user.UserRepository
 import jakarta.servlet.http.HttpServletRequest
@@ -10,6 +11,7 @@ import org.springframework.security.oauth2.client.oidc.authentication.logout.Oid
 import org.springframework.security.web.authentication.logout.LogoutHandler
 import org.springframework.stereotype.Component
 
+@FeatureOidc
 @Component
 class OidcLogoutHandler(private val sessionRepository: SessionRepository, private val userRepository: UserRepository) :
     LogoutHandler {
