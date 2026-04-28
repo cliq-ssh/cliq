@@ -7,14 +7,15 @@ extension KeysCompanionExtension on KeysCompanion {
     if (json == null ||
         json['id'] == null ||
         json['label'] == null ||
-        json['privatePem'] == null) {
+        json['privateKey'] == null) {
       return null;
     }
 
     return KeysCompanion(
       id: Value(json['id'] as int),
       label: Value(json['label'] as String),
-      privatePem: Value(json['privatePem'] as String),
+      privateKey: Value(json['privateKey'] as String),
+      publicKey: Value(json['publicKey'] as String?),
       passphrase: Value(json['passphrase'] as String?),
     );
   }
@@ -23,7 +24,8 @@ extension KeysCompanionExtension on KeysCompanion {
     return {
       'id': id.value,
       'label': label.value,
-      'privatePem': privatePem.value,
+      'privateKey': privateKey.value,
+      if (publicKey.value != null) 'publicKey': publicKey.value,
       if (passphrase.value != null) 'passphrase': passphrase.value,
     };
   }

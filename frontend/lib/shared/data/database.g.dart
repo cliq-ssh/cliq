@@ -2004,16 +2004,27 @@ class Keys extends Table with TableInfo<Keys, Key> {
     requiredDuringInsert: true,
     $customConstraints: 'NOT NULL',
   );
-  static const VerificationMeta _privatePemMeta = const VerificationMeta(
-    'privatePem',
+  static const VerificationMeta _privateKeyMeta = const VerificationMeta(
+    'privateKey',
   );
-  late final GeneratedColumn<String> privatePem = GeneratedColumn<String>(
-    'private_pem',
+  late final GeneratedColumn<String> privateKey = GeneratedColumn<String>(
+    'private_key',
     aliasedName,
     false,
     type: DriftSqlType.string,
     requiredDuringInsert: true,
     $customConstraints: 'NOT NULL',
+  );
+  static const VerificationMeta _publicKeyMeta = const VerificationMeta(
+    'publicKey',
+  );
+  late final GeneratedColumn<String> publicKey = GeneratedColumn<String>(
+    'public_key',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    $customConstraints: '',
   );
   static const VerificationMeta _passphraseMeta = const VerificationMeta(
     'passphrase',
@@ -2031,7 +2042,8 @@ class Keys extends Table with TableInfo<Keys, Key> {
     id,
     vaultId,
     label,
-    privatePem,
+    privateKey,
+    publicKey,
     passphrase,
   ];
   @override
@@ -2065,13 +2077,19 @@ class Keys extends Table with TableInfo<Keys, Key> {
     } else if (isInserting) {
       context.missing(_labelMeta);
     }
-    if (data.containsKey('private_pem')) {
+    if (data.containsKey('private_key')) {
       context.handle(
-        _privatePemMeta,
-        privatePem.isAcceptableOrUnknown(data['private_pem']!, _privatePemMeta),
+        _privateKeyMeta,
+        privateKey.isAcceptableOrUnknown(data['private_key']!, _privateKeyMeta),
       );
     } else if (isInserting) {
-      context.missing(_privatePemMeta);
+      context.missing(_privateKeyMeta);
+    }
+    if (data.containsKey('public_key')) {
+      context.handle(
+        _publicKeyMeta,
+        publicKey.isAcceptableOrUnknown(data['public_key']!, _publicKeyMeta),
+      );
     }
     if (data.containsKey('passphrase')) {
       context.handle(
@@ -2100,10 +2118,14 @@ class Keys extends Table with TableInfo<Keys, Key> {
         DriftSqlType.string,
         data['${effectivePrefix}label'],
       )!,
-      privatePem: attachedDatabase.typeMapping.read(
+      privateKey: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
-        data['${effectivePrefix}private_pem'],
+        data['${effectivePrefix}private_key'],
       )!,
+      publicKey: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}public_key'],
+      ),
       passphrase: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}passphrase'],
@@ -2124,13 +2146,15 @@ class Key extends DataClass implements Insertable<Key> {
   final int id;
   final int vaultId;
   final String label;
-  final String privatePem;
+  final String privateKey;
+  final String? publicKey;
   final String? passphrase;
   const Key({
     required this.id,
     required this.vaultId,
     required this.label,
-    required this.privatePem,
+    required this.privateKey,
+    this.publicKey,
     this.passphrase,
   });
   @override
@@ -2139,7 +2163,10 @@ class Key extends DataClass implements Insertable<Key> {
     map['id'] = Variable<int>(id);
     map['vault_id'] = Variable<int>(vaultId);
     map['label'] = Variable<String>(label);
-    map['private_pem'] = Variable<String>(privatePem);
+    map['private_key'] = Variable<String>(privateKey);
+    if (!nullToAbsent || publicKey != null) {
+      map['public_key'] = Variable<String>(publicKey);
+    }
     if (!nullToAbsent || passphrase != null) {
       map['passphrase'] = Variable<String>(passphrase);
     }
@@ -2151,7 +2178,10 @@ class Key extends DataClass implements Insertable<Key> {
       id: Value(id),
       vaultId: Value(vaultId),
       label: Value(label),
-      privatePem: Value(privatePem),
+      privateKey: Value(privateKey),
+      publicKey: publicKey == null && nullToAbsent
+          ? const Value.absent()
+          : Value(publicKey),
       passphrase: passphrase == null && nullToAbsent
           ? const Value.absent()
           : Value(passphrase),
@@ -2167,7 +2197,8 @@ class Key extends DataClass implements Insertable<Key> {
       id: serializer.fromJson<int>(json['id']),
       vaultId: serializer.fromJson<int>(json['vault_id']),
       label: serializer.fromJson<String>(json['label']),
-      privatePem: serializer.fromJson<String>(json['private_pem']),
+      privateKey: serializer.fromJson<String>(json['private_key']),
+      publicKey: serializer.fromJson<String?>(json['public_key']),
       passphrase: serializer.fromJson<String?>(json['passphrase']),
     );
   }
@@ -2178,7 +2209,8 @@ class Key extends DataClass implements Insertable<Key> {
       'id': serializer.toJson<int>(id),
       'vault_id': serializer.toJson<int>(vaultId),
       'label': serializer.toJson<String>(label),
-      'private_pem': serializer.toJson<String>(privatePem),
+      'private_key': serializer.toJson<String>(privateKey),
+      'public_key': serializer.toJson<String?>(publicKey),
       'passphrase': serializer.toJson<String?>(passphrase),
     };
   }
@@ -2187,13 +2219,15 @@ class Key extends DataClass implements Insertable<Key> {
     int? id,
     int? vaultId,
     String? label,
-    String? privatePem,
+    String? privateKey,
+    Value<String?> publicKey = const Value.absent(),
     Value<String?> passphrase = const Value.absent(),
   }) => Key(
     id: id ?? this.id,
     vaultId: vaultId ?? this.vaultId,
     label: label ?? this.label,
-    privatePem: privatePem ?? this.privatePem,
+    privateKey: privateKey ?? this.privateKey,
+    publicKey: publicKey.present ? publicKey.value : this.publicKey,
     passphrase: passphrase.present ? passphrase.value : this.passphrase,
   );
   Key copyWithCompanion(KeysCompanion data) {
@@ -2201,9 +2235,10 @@ class Key extends DataClass implements Insertable<Key> {
       id: data.id.present ? data.id.value : this.id,
       vaultId: data.vaultId.present ? data.vaultId.value : this.vaultId,
       label: data.label.present ? data.label.value : this.label,
-      privatePem: data.privatePem.present
-          ? data.privatePem.value
-          : this.privatePem,
+      privateKey: data.privateKey.present
+          ? data.privateKey.value
+          : this.privateKey,
+      publicKey: data.publicKey.present ? data.publicKey.value : this.publicKey,
       passphrase: data.passphrase.present
           ? data.passphrase.value
           : this.passphrase,
@@ -2216,14 +2251,16 @@ class Key extends DataClass implements Insertable<Key> {
           ..write('id: $id, ')
           ..write('vaultId: $vaultId, ')
           ..write('label: $label, ')
-          ..write('privatePem: $privatePem, ')
+          ..write('privateKey: $privateKey, ')
+          ..write('publicKey: $publicKey, ')
           ..write('passphrase: $passphrase')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode => Object.hash(id, vaultId, label, privatePem, passphrase);
+  int get hashCode =>
+      Object.hash(id, vaultId, label, privateKey, publicKey, passphrase);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -2231,7 +2268,8 @@ class Key extends DataClass implements Insertable<Key> {
           other.id == this.id &&
           other.vaultId == this.vaultId &&
           other.label == this.label &&
-          other.privatePem == this.privatePem &&
+          other.privateKey == this.privateKey &&
+          other.publicKey == this.publicKey &&
           other.passphrase == this.passphrase);
 }
 
@@ -2239,36 +2277,41 @@ class KeysCompanion extends UpdateCompanion<Key> {
   final Value<int> id;
   final Value<int> vaultId;
   final Value<String> label;
-  final Value<String> privatePem;
+  final Value<String> privateKey;
+  final Value<String?> publicKey;
   final Value<String?> passphrase;
   const KeysCompanion({
     this.id = const Value.absent(),
     this.vaultId = const Value.absent(),
     this.label = const Value.absent(),
-    this.privatePem = const Value.absent(),
+    this.privateKey = const Value.absent(),
+    this.publicKey = const Value.absent(),
     this.passphrase = const Value.absent(),
   });
   KeysCompanion.insert({
     this.id = const Value.absent(),
     required int vaultId,
     required String label,
-    required String privatePem,
+    required String privateKey,
+    this.publicKey = const Value.absent(),
     this.passphrase = const Value.absent(),
   }) : vaultId = Value(vaultId),
        label = Value(label),
-       privatePem = Value(privatePem);
+       privateKey = Value(privateKey);
   static Insertable<Key> custom({
     Expression<int>? id,
     Expression<int>? vaultId,
     Expression<String>? label,
-    Expression<String>? privatePem,
+    Expression<String>? privateKey,
+    Expression<String>? publicKey,
     Expression<String>? passphrase,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
       if (vaultId != null) 'vault_id': vaultId,
       if (label != null) 'label': label,
-      if (privatePem != null) 'private_pem': privatePem,
+      if (privateKey != null) 'private_key': privateKey,
+      if (publicKey != null) 'public_key': publicKey,
       if (passphrase != null) 'passphrase': passphrase,
     });
   }
@@ -2277,14 +2320,16 @@ class KeysCompanion extends UpdateCompanion<Key> {
     Value<int>? id,
     Value<int>? vaultId,
     Value<String>? label,
-    Value<String>? privatePem,
+    Value<String>? privateKey,
+    Value<String?>? publicKey,
     Value<String?>? passphrase,
   }) {
     return KeysCompanion(
       id: id ?? this.id,
       vaultId: vaultId ?? this.vaultId,
       label: label ?? this.label,
-      privatePem: privatePem ?? this.privatePem,
+      privateKey: privateKey ?? this.privateKey,
+      publicKey: publicKey ?? this.publicKey,
       passphrase: passphrase ?? this.passphrase,
     );
   }
@@ -2301,8 +2346,11 @@ class KeysCompanion extends UpdateCompanion<Key> {
     if (label.present) {
       map['label'] = Variable<String>(label.value);
     }
-    if (privatePem.present) {
-      map['private_pem'] = Variable<String>(privatePem.value);
+    if (privateKey.present) {
+      map['private_key'] = Variable<String>(privateKey.value);
+    }
+    if (publicKey.present) {
+      map['public_key'] = Variable<String>(publicKey.value);
     }
     if (passphrase.present) {
       map['passphrase'] = Variable<String>(passphrase.value);
@@ -2316,7 +2364,8 @@ class KeysCompanion extends UpdateCompanion<Key> {
           ..write('id: $id, ')
           ..write('vaultId: $vaultId, ')
           ..write('label: $label, ')
-          ..write('privatePem: $privatePem, ')
+          ..write('privateKey: $privateKey, ')
+          ..write('publicKey: $publicKey, ')
           ..write('passphrase: $passphrase')
           ..write(')'))
         .toString();
@@ -4344,7 +4393,7 @@ abstract class _$CliqDatabase extends GeneratedDatabase {
     final expandedvar1 = $expandVar($arrayStartIndex, var1.length);
     $arrayStartIndex += var1.length;
     return customSelect(
-      'SELECT"k"."id" AS "nested_0.id", "k"."vault_id" AS "nested_0.vault_id", "k"."label" AS "nested_0.label", "k"."private_pem" AS "nested_0.private_pem", "k"."passphrase" AS "nested_0.passphrase","v"."id" AS "nested_1.id", "v"."label" AS "nested_1.label", "v"."is_default" AS "nested_1.is_default" FROM keys AS k INNER JOIN vaults AS v ON k.vault_id = v.id WHERE k.id IN ($expandedvar1)',
+      'SELECT"k"."id" AS "nested_0.id", "k"."vault_id" AS "nested_0.vault_id", "k"."label" AS "nested_0.label", "k"."private_key" AS "nested_0.private_key", "k"."public_key" AS "nested_0.public_key", "k"."passphrase" AS "nested_0.passphrase","v"."id" AS "nested_1.id", "v"."label" AS "nested_1.label", "v"."is_default" AS "nested_1.is_default" FROM keys AS k INNER JOIN vaults AS v ON k.vault_id = v.id WHERE k.id IN ($expandedvar1)',
       variables: [for (var $ in var1) Variable<int>($)],
       readsFrom: {keys, vaults},
     ).asyncMap(
@@ -4388,7 +4437,7 @@ abstract class _$CliqDatabase extends GeneratedDatabase {
     final expandedvar1 = $expandVar($arrayStartIndex, var1.length);
     $arrayStartIndex += var1.length;
     return customSelect(
-      'SELECT"c"."id" AS "nested_0.id", "c"."vault_id" AS "nested_0.vault_id", "c"."type" AS "nested_0.type", "c"."key_id" AS "nested_0.key_id", "c"."password" AS "nested_0.password","v"."id" AS "nested_1.id", "v"."label" AS "nested_1.label", "v"."is_default" AS "nested_1.is_default","k"."id" AS "nested_2.id", "k"."vault_id" AS "nested_2.vault_id", "k"."label" AS "nested_2.label", "k"."private_pem" AS "nested_2.private_pem", "k"."passphrase" AS "nested_2.passphrase" FROM credentials AS c INNER JOIN vaults AS v ON c.vault_id = v.id LEFT JOIN keys AS k ON c.key_id = k.id WHERE c.id IN ($expandedvar1)',
+      'SELECT"c"."id" AS "nested_0.id", "c"."vault_id" AS "nested_0.vault_id", "c"."type" AS "nested_0.type", "c"."key_id" AS "nested_0.key_id", "c"."password" AS "nested_0.password","v"."id" AS "nested_1.id", "v"."label" AS "nested_1.label", "v"."is_default" AS "nested_1.is_default","k"."id" AS "nested_2.id", "k"."vault_id" AS "nested_2.vault_id", "k"."label" AS "nested_2.label", "k"."private_key" AS "nested_2.private_key", "k"."public_key" AS "nested_2.public_key", "k"."passphrase" AS "nested_2.passphrase" FROM credentials AS c INNER JOIN vaults AS v ON c.vault_id = v.id LEFT JOIN keys AS k ON c.key_id = k.id WHERE c.id IN ($expandedvar1)',
       variables: [for (var $ in var1) Variable<int>($)],
       readsFrom: {credentials, vaults, keys},
     ).asyncMap(
@@ -6176,7 +6225,8 @@ typedef $KeysCreateCompanionBuilder =
       Value<int> id,
       required int vaultId,
       required String label,
-      required String privatePem,
+      required String privateKey,
+      Value<String?> publicKey,
       Value<String?> passphrase,
     });
 typedef $KeysUpdateCompanionBuilder =
@@ -6184,7 +6234,8 @@ typedef $KeysUpdateCompanionBuilder =
       Value<int> id,
       Value<int> vaultId,
       Value<String> label,
-      Value<String> privatePem,
+      Value<String> privateKey,
+      Value<String?> publicKey,
       Value<String?> passphrase,
     });
 
@@ -6246,8 +6297,13 @@ class $KeysFilterComposer extends Composer<_$CliqDatabase, Keys> {
     builder: (column) => ColumnFilters(column),
   );
 
-  ColumnFilters<String> get privatePem => $composableBuilder(
-    column: $table.privatePem,
+  ColumnFilters<String> get privateKey => $composableBuilder(
+    column: $table.privateKey,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get publicKey => $composableBuilder(
+    column: $table.publicKey,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -6323,8 +6379,13 @@ class $KeysOrderingComposer extends Composer<_$CliqDatabase, Keys> {
     builder: (column) => ColumnOrderings(column),
   );
 
-  ColumnOrderings<String> get privatePem => $composableBuilder(
-    column: $table.privatePem,
+  ColumnOrderings<String> get privateKey => $composableBuilder(
+    column: $table.privateKey,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get publicKey => $composableBuilder(
+    column: $table.publicKey,
     builder: (column) => ColumnOrderings(column),
   );
 
@@ -6371,10 +6432,13 @@ class $KeysAnnotationComposer extends Composer<_$CliqDatabase, Keys> {
   GeneratedColumn<String> get label =>
       $composableBuilder(column: $table.label, builder: (column) => column);
 
-  GeneratedColumn<String> get privatePem => $composableBuilder(
-    column: $table.privatePem,
+  GeneratedColumn<String> get privateKey => $composableBuilder(
+    column: $table.privateKey,
     builder: (column) => column,
   );
+
+  GeneratedColumn<String> get publicKey =>
+      $composableBuilder(column: $table.publicKey, builder: (column) => column);
 
   GeneratedColumn<String> get passphrase => $composableBuilder(
     column: $table.passphrase,
@@ -6461,13 +6525,15 @@ class $KeysTableManager
                 Value<int> id = const Value.absent(),
                 Value<int> vaultId = const Value.absent(),
                 Value<String> label = const Value.absent(),
-                Value<String> privatePem = const Value.absent(),
+                Value<String> privateKey = const Value.absent(),
+                Value<String?> publicKey = const Value.absent(),
                 Value<String?> passphrase = const Value.absent(),
               }) => KeysCompanion(
                 id: id,
                 vaultId: vaultId,
                 label: label,
-                privatePem: privatePem,
+                privateKey: privateKey,
+                publicKey: publicKey,
                 passphrase: passphrase,
               ),
           createCompanionCallback:
@@ -6475,13 +6541,15 @@ class $KeysTableManager
                 Value<int> id = const Value.absent(),
                 required int vaultId,
                 required String label,
-                required String privatePem,
+                required String privateKey,
+                Value<String?> publicKey = const Value.absent(),
                 Value<String?> passphrase = const Value.absent(),
               }) => KeysCompanion.insert(
                 id: id,
                 vaultId: vaultId,
                 label: label,
-                privatePem: privatePem,
+                privateKey: privateKey,
+                publicKey: publicKey,
                 passphrase: passphrase,
               ),
           withReferenceMapper: (p0) => p0

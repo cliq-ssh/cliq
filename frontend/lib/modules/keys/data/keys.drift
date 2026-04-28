@@ -4,7 +4,8 @@ CREATE TABLE keys (
     id              INTEGER PRIMARY KEY AUTOINCREMENT,
     vault_id        INTEGER NOT NULL REFERENCES vaults(id),
     label           TEXT NOT NULL,
-    private_pem     TEXT NOT NULL,
+    private_key     TEXT NOT NULL,
+    public_key      TEXT,
     passphrase      TEXT
 );
 

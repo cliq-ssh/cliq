@@ -39,18 +39,18 @@ final class CredentialService {
           if (credential.key == null) {
             throw Exception('Key credential has null key data!');
           }
-          if (SSHKeyPair.isEncryptedPem(credential.key!.privatePem)) {
+          if (SSHKeyPair.isEncryptedPem(credential.key!.privateKey)) {
             if (credential.key!.passphrase == null) {
               throw Exception('Key is encrypted but no passphrase provided');
             }
             keys.addAll(
               SSHKeyPair.fromPem(
-                credential.key!.privatePem,
+                credential.key!.privateKey,
                 credential.key!.passphrase!,
               ),
             );
           } else {
-            keys.addAll(SSHKeyPair.fromPem(credential.key!.privatePem));
+            keys.addAll(SSHKeyPair.fromPem(credential.key!.privateKey));
           }
           break;
       }

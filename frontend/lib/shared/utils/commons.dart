@@ -30,6 +30,9 @@ final class Commons {
         .toList(growable: false),
   );
 
+  static XTypeGroup get keyGroup =>
+      XTypeGroup(label: 'SSH Key', extensions: []);
+
   static Future<T?> showResponsiveDialog<T>(
     WidgetBuilder builder, {
     BuildContext? context,
