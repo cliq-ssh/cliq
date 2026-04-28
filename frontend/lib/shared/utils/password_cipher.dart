@@ -13,7 +13,7 @@ class PasswordCipher {
   static PasswordCipher get instance {
     if (_instance == null) {
       throw Exception(
-        'PasswordCipher is not initialized. Call PasswordCipher.initialize() first.',
+        'PasswordCipher is not initialized. Call PasswordCipher.init() first.',
       );
     }
     return _instance!;
