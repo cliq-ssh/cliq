@@ -28,13 +28,15 @@ final class KeyService {
   Future<int> createKey({
     required int vaultId,
     required String label,
-    required String privatePem,
+    required String privateKey,
+    required String? publicKey,
     required String? passphrase,
   }) => _keyRepository.insert(
     KeysCompanion.insert(
       vaultId: vaultId,
       label: label.trim(),
-      privatePem: privatePem.trim(),
+      privateKey: privateKey.trim(),
+      publicKey: Value.absentIfNull(publicKey?.trim()),
       passphrase: Value.absentIfNull(passphrase),
     ),
   );
@@ -43,7 +45,8 @@ final class KeyService {
     int id, {
     required int? vaultId,
     required String? label,
-    required String? privatePem,
+    required String? privateKey,
+    required String? publicKey,
     required String? passphrase,
     KeysCompanion? compareTo,
   }) => _keyRepository.updateById(
@@ -51,9 +54,13 @@ final class KeyService {
     KeysCompanion(
       vaultId: ValueExtension.absentIfNullOrSame(vaultId, compareTo?.vaultId),
       label: ValueExtension.absentIfNullOrSame(label, compareTo?.label),
-      privatePem: ValueExtension.absentIfNullOrSame(
-        privatePem,
-        compareTo?.privatePem,
+      privateKey: ValueExtension.absentIfNullOrSame(
+        privateKey,
+        compareTo?.privateKey,
+      ),
+      publicKey: ValueExtension.absentIfSame(
+        publicKey,
+        compareTo?.publicKey.value,
       ),
       passphrase: ValueExtension.absentIfSame(
         passphrase,

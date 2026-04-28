@@ -1,16 +1,20 @@
 import 'dart:async';
 
+import 'package:cliq/modules/keys/model/key_importer/key_importer.dart';
 import 'package:cliq/shared/extensions/text_controller.extension.dart';
 import 'package:cliq/shared/ui/create_or_edit_entity_view.dart';
 import 'package:cliq/shared/utils/validators.dart';
 import 'package:drift/drift.dart' hide Column;
-import 'package:flutter/material.dart' hide Key;
+import 'package:file_selector/file_selector.dart';
+import 'package:flutter/material.dart' hide Key, Router;
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:forui/forui.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:lucide_flutter/lucide_flutter.dart';
 
 import '../../../shared/data/database.dart';
+import '../../../shared/utils/commons.dart';
 import '../provider/key_service.provider.dart';
 
 class CreateOrEditKeyView extends HookConsumerWidget {
@@ -28,7 +32,8 @@ class CreateOrEditKeyView extends HookConsumerWidget {
         id: Value(keyEntity.id),
         vaultId: Value(keyEntity.vaultId),
         label: Value(keyEntity.label),
-        privatePem: Value(keyEntity.privatePem),
+        privateKey: Value(keyEntity.privateKey),
+        publicKey: Value(keyEntity.publicKey),
         passphrase: Value(keyEntity.passphrase),
       ),
       isEdit = true;
@@ -40,7 +45,12 @@ class CreateOrEditKeyView extends HookConsumerWidget {
     final labelCtrl = useTextEditingController(
       text: initialLabel ?? current?.label.value,
     );
-    final pemCtrl = useTextEditingController(text: current?.privatePem.value);
+    final privateKeyCtrl = useTextEditingController(
+      text: current?.privateKey.value,
+    );
+    final publicKeyCtrl = useTextEditingController(
+      text: current?.publicKey.value,
+    );
     final passCtrl = useTextEditingController(text: current?.passphrase.value);
 
     /// Handles the save action for the form.
@@ -55,19 +65,72 @@ class CreateOrEditKeyView extends HookConsumerWidget {
               current!.id.value,
               vaultId: vaultId,
               label: labelCtrl.textOrNull,
-              privatePem: pemCtrl.textOrNull,
+              privateKey: privateKeyCtrl.textOrNull,
+              publicKey: publicKeyCtrl.textOrNull,
               passphrase: passCtrl.textOrNull,
               compareTo: current,
             )
           : await keyService.createKey(
               vaultId: vaultId!,
               label: labelCtrl.text,
-              privatePem: pemCtrl.text,
+              privateKey: privateKeyCtrl.text,
+              publicKey: publicKeyCtrl.textOrNull,
               passphrase: passCtrl.text,
             );
 
       if (!context.mounted) return;
       context.pop((keyId, labelCtrl.text));
+    }
+
+    buildImportKeyButton(
+      TextEditingController controller,
+      KeyImporterType filter,
+    ) {
+      return FButton(
+        variant: .ghost,
+        prefix: Icon(LucideIcons.folderOpen),
+        child: const Text('Import'),
+        onPress: () async {
+          final keyFile = await openFile(
+            acceptedTypeGroups: [Commons.keyGroup],
+          );
+          final content = await keyFile?.readAsString();
+
+          final pem = await KeyImporter.parse(content, filter: filter);
+
+          if (!context.mounted) return;
+          if (pem == null) {
+            Commons.showToast(
+              'Unsupported key format.',
+              variant: .destructive,
+              prefix: Icon(
+                LucideIcons.triangleAlert,
+                size: 20,
+                color: context.theme.colors.destructive,
+              ),
+            );
+            return;
+          }
+
+          controller.text = pem;
+          showFToast(
+            context: context,
+            icon: Icon(LucideIcons.circleCheck),
+            title: Text('Key imported successfully'),
+          );
+        },
+      );
+    }
+
+    buildCopyButton(TextEditingController controller) {
+      return FButton(
+        variant: .ghost,
+        prefix: Icon(LucideIcons.copy),
+        child: Text('Copy'),
+        onPress: () {
+          Commons.copyToClipboard(context, controller.text);
+        },
+      );
     }
 
     return CreateOrEditEntityView(
@@ -86,11 +149,33 @@ class CreateOrEditKeyView extends HookConsumerWidget {
               validator: Validators.nonEmpty,
             ),
             FTextFormField(
-              control: .managed(controller: pemCtrl),
-              label: Text('PEM Key'),
-              hint: '-----BEGIN OPENSSH PRIVATE KEY-----',
-              minLines: 5,
-              maxLines: null,
+              control: .managed(controller: publicKeyCtrl),
+              label: Row(
+                crossAxisAlignment: .end,
+                children: [
+                  Text('Public Key (Optional)'),
+                  const Spacer(),
+                  buildImportKeyButton(publicKeyCtrl, .public),
+                  buildCopyButton(publicKeyCtrl),
+                ],
+              ),
+              maxLines: 1,
+              hint: 'ssh-rsa AAAAB3NzaC1yc2EAAAADAQA...',
+            ),
+            FTextFormField(
+              control: .managed(controller: privateKeyCtrl),
+              label: Row(
+                crossAxisAlignment: .end,
+                children: [
+                  Text('Private Key'),
+                  const Spacer(),
+                  buildImportKeyButton(privateKeyCtrl, .private),
+                  buildCopyButton(privateKeyCtrl),
+                ],
+              ),
+              hint: '-----BEGIN OPENSSH PRIVATE KEY--...',
+              minLines: 8,
+              maxLines: 8,
               validator: Validators.nonEmpty,
               autovalidateMode: .onUserInteraction,
             ),

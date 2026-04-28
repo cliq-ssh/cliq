@@ -83,7 +83,8 @@ class SyncProviderNotifier extends Notifier<SyncState> {
       final newId = await keyService.createKey(
         vaultId: vaultId,
         label: key.label.value,
-        privatePem: key.privatePem.value,
+        privateKey: key.privateKey.value,
+        publicKey: key.publicKey.value,
         passphrase: key.passphrase.value,
       );
       newKeyIds[key.id.value] = newId;

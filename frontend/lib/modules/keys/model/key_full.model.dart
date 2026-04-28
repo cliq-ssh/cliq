@@ -9,7 +9,8 @@ class KeyFull extends Key {
     required super.vaultId,
     required super.label,
     required super.passphrase,
-    required super.privatePem,
+    required super.privateKey,
+    required super.publicKey,
   });
 
   KeyFull.fromKey(Key key, {required this.vault})
@@ -18,7 +19,8 @@ class KeyFull extends Key {
         vaultId: key.vaultId,
         label: key.label,
         passphrase: key.passphrase,
-        privatePem: key.privatePem,
+        privateKey: key.privateKey,
+        publicKey: key.publicKey,
       );
 
   factory KeyFull.fromFindAllResult(FindAllKeyFullByIdsResult result) {
