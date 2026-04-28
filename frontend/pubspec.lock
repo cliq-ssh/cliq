@@ -442,10 +442,10 @@ packages:
     dependency: "direct main"
     description:
       name: forui
-      sha256: b900e9851dcb82bed58f43014d5891a874e9bb45cf74070d3b336a96ca305484
+      sha256: "099deb57d345aaafd73b4ee3dc150bfe032e1d583a898461183586cbb0153778"
       url: "https://pub.dev"
     source: hosted
-    version: "0.21.2"
+    version: "0.21.3"
   forui_assets:
     dependency: transitive
     description:
