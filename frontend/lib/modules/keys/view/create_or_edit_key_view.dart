@@ -94,10 +94,9 @@ class CreateOrEditKeyView extends HookConsumerWidget {
               validator: Validators.nonEmpty,
               autovalidateMode: .onUserInteraction,
             ),
-            FTextFormField(
+            FTextFormField.password(
               control: .managed(controller: passCtrl),
               label: Text('PEM Passphrase'),
-              obscureText: true,
               maxLines: 1,
               autovalidateMode: .onUserInteraction,
             ),
