@@ -176,7 +176,7 @@ class CreateOrEditKeyView extends HookConsumerWidget {
               hint: '-----BEGIN OPENSSH PRIVATE KEY--...',
               minLines: 8,
               maxLines: 8,
-              validator: Validators.nonEmpty,
+              validator: Validators.pem,
               autovalidateMode: .onUserInteraction,
             ),
             FTextFormField.password(
