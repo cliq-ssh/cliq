@@ -4,6 +4,7 @@ import 'package:cliq/shared/data/repository.dart';
 import 'package:cliq/shared/extensions/value.extension.dart';
 import 'package:dartssh2/dartssh2.dart';
 import 'package:drift/drift.dart';
+import 'package:flutter/foundation.dart';
 import 'package:logging/logging.dart';
 
 import '../../../shared/data/database.dart';
@@ -16,11 +17,15 @@ final class CredentialService {
 
   const CredentialService(this._credentialRepository);
 
-  static (String?, List<SSHKeyPair>) collectAuthenticationMethods(
+  static Future<(String?, List<SSHKeyPair>)> collectAuthenticationMethods(
     List<CredentialFull> credentials,
-  ) {
+  ) async {
     String? password;
     final List<SSHKeyPair> keys = [];
+
+    decryptKeyPairs(List<String> args) {
+      return SSHKeyPair.fromPem(args[0], args[1]);
+    }
 
     for (final credential in credentials) {
       switch (credential.type) {
@@ -44,13 +49,15 @@ final class CredentialService {
               throw Exception('Key is encrypted but no passphrase provided');
             }
             keys.addAll(
-              SSHKeyPair.fromPem(
+              await compute(decryptKeyPairs, [
                 credential.key!.privateKey,
                 credential.key!.passphrase!,
-              ),
+              ]),
             );
           } else {
-            keys.addAll(SSHKeyPair.fromPem(credential.key!.privateKey));
+            keys.addAll(
+              await compute(decryptKeyPairs, [credential.key!.privateKey]),
+            );
           }
           break;
       }

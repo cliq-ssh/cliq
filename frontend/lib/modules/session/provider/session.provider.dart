@@ -99,7 +99,7 @@ class ShellSessionNotifier extends Notifier<SSHSessionState> {
     ShellSession session,
     ConnectionFull connection,
   ) async {
-    final (password, keys) = CredentialService.collectAuthenticationMethods(
+    final (password, keys) = await CredentialService.collectAuthenticationMethods(
       await ref
           .read(credentialServiceProvider)
           .findByIds(
