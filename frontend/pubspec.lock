@@ -93,10 +93,10 @@ packages:
     dependency: "direct dev"
     description:
       name: build_runner
-      sha256: "1fa74a0583670c736d90bd398dbd45555c1c95f1f34ee5f3d1f16b593205071d"
+      sha256: "521daf8d189deb79ba474e43a696b41c49fb3987818dbacf3308f1e03673a75e"
       url: "https://pub.dev"
     source: hosted
-    version: "2.12.0"
+    version: "2.13.1"
   built_collection:
     dependency: transitive
     description:
@@ -462,6 +462,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "0.21.0"
+  freezed_annotation:
+    dependency: transitive
+    description:
+      name: freezed_annotation
+      sha256: "7294967ff0a6d98638e7acb774aac3af2550777accd8149c90af5b014e6d44d8"
+      url: "https://pub.dev"
+    source: hosted
+    version: "3.1.0"
   frontend_server_client:
     dependency: transitive
     description:
@@ -955,6 +963,14 @@ packages:
     description: flutter
     source: sdk
     version: "0.0.0"
+  sodium:
+    dependency: "direct main"
+    description:
+      name: sodium
+      sha256: "19e3153ef4d1d10087d78d551d78e56909d159047a578ec692814c65ca450dfc"
+      url: "https://pub.dev"
+    source: hosted
+    version: "4.0.2+1"
   source_gen:
     dependency: transitive
     description:

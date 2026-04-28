@@ -1,11 +1,13 @@
 import 'dart:async';
 
 import 'package:cliq/shared/data/store.dart';
+import 'package:cliq/shared/model/localized_exception.dart';
 import 'package:cliq/shared/model/router.model.dart';
 import 'package:cliq/shared/provider/router.provider.dart';
 import 'package:cliq/shared/provider/store.provider.dart';
 import 'package:cliq/shared/ui/error_view.dart';
 import 'package:cliq/shared/utils/commons.dart';
+import 'package:cliq/shared/utils/password_cipher.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart' hide Router;
 import 'package:flutter/services.dart';
@@ -30,6 +32,7 @@ void main() async {
 
     SharedPreferences.setPrefix('cliq.');
     await KeyValueStore.init();
+    await PasswordCipher.init();
 
     runApp(const ProviderScope(child: CliqApp()));
   }, _handleError);
@@ -38,7 +41,9 @@ void main() async {
 void _handleError(Object error, StackTrace stackTrace) {
   debugPrint(stackTrace.toString());
 
-  String errorMessage = error.toString();
+  String errorMessage = error is LocalizedException
+      ? (error).localize(Router.rootNavigatorKey.currentContext!)
+      : error.toString();
   if (errorMessage.length > 150) {
     errorMessage = '${errorMessage.substring(0, 150)}...';
   }

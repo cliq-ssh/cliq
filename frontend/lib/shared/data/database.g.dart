@@ -3316,18 +3316,6 @@ class Connections extends Table with TableInfo<Connections, Connection> {
         requiredDuringInsert: true,
         $customConstraints: 'NOT NULL',
       ).withConverter<Color>(Connections.$convertericonBackgroundColor);
-  static const VerificationMeta _isIconAutoDetectMeta = const VerificationMeta(
-    'isIconAutoDetect',
-  );
-  late final GeneratedColumn<bool> isIconAutoDetect = GeneratedColumn<bool>(
-    'is_icon_auto_detect',
-    aliasedName,
-    false,
-    type: DriftSqlType.bool,
-    requiredDuringInsert: false,
-    $customConstraints: 'NOT NULL DEFAULT TRUE',
-    defaultValue: const CustomExpression('TRUE'),
-  );
   late final GeneratedColumnWithTypeConverter<TerminalTypography?, String>
   terminalTypographyOverride =
       GeneratedColumn<String>(
@@ -3377,7 +3365,6 @@ class Connections extends Table with TableInfo<Connections, Connection> {
     icon,
     iconColor,
     iconBackgroundColor,
-    isIconAutoDetect,
     terminalTypographyOverride,
     terminalThemeOverrideId,
     usesDefaultThemeOverride,
@@ -3445,15 +3432,6 @@ class Connections extends Table with TableInfo<Connections, Connection> {
       context.handle(
         _groupNameMeta,
         groupName.isAcceptableOrUnknown(data['group_name']!, _groupNameMeta),
-      );
-    }
-    if (data.containsKey('is_icon_auto_detect')) {
-      context.handle(
-        _isIconAutoDetectMeta,
-        isIconAutoDetect.isAcceptableOrUnknown(
-          data['is_icon_auto_detect']!,
-          _isIconAutoDetectMeta,
-        ),
       );
     }
     if (data.containsKey('terminal_theme_override_id')) {
@@ -3533,10 +3511,6 @@ class Connections extends Table with TableInfo<Connections, Connection> {
           data['${effectivePrefix}icon_background_color'],
         )!,
       ),
-      isIconAutoDetect: attachedDatabase.typeMapping.read(
-        DriftSqlType.bool,
-        data['${effectivePrefix}is_icon_auto_detect'],
-      )!,
       terminalTypographyOverride: Connections
           .$converterterminalTypographyOverriden
           .fromSql(
@@ -3573,10 +3547,6 @@ class Connections extends Table with TableInfo<Connections, Connection> {
     $converterterminalTypographyOverride,
   );
   @override
-  List<String> get customConstraints => const [
-    'CONSTRAINT username_or_identity_id CHECK((identity_id IS NOT NULL AND username IS NULL)OR(identity_id IS NULL AND username IS NOT NULL))',
-  ];
-  @override
   bool get dontWriteConstraints => true;
 }
 
@@ -3592,7 +3562,6 @@ class Connection extends DataClass implements Insertable<Connection> {
   final ConnectionIcon icon;
   final Color iconColor;
   final Color iconBackgroundColor;
-  final bool isIconAutoDetect;
   final TerminalTypography? terminalTypographyOverride;
   final int? terminalThemeOverrideId;
   final bool usesDefaultThemeOverride;
@@ -3608,7 +3577,6 @@ class Connection extends DataClass implements Insertable<Connection> {
     required this.icon,
     required this.iconColor,
     required this.iconBackgroundColor,
-    required this.isIconAutoDetect,
     this.terminalTypographyOverride,
     this.terminalThemeOverrideId,
     required this.usesDefaultThemeOverride,
@@ -3643,7 +3611,6 @@ class Connection extends DataClass implements Insertable<Connection> {
         Connections.$convertericonBackgroundColor.toSql(iconBackgroundColor),
       );
     }
-    map['is_icon_auto_detect'] = Variable<bool>(isIconAutoDetect);
     if (!nullToAbsent || terminalTypographyOverride != null) {
       map['terminal_typography_override'] = Variable<String>(
         Connections.$converterterminalTypographyOverriden.toSql(
@@ -3681,7 +3648,6 @@ class Connection extends DataClass implements Insertable<Connection> {
       icon: Value(icon),
       iconColor: Value(iconColor),
       iconBackgroundColor: Value(iconBackgroundColor),
-      isIconAutoDetect: Value(isIconAutoDetect),
       terminalTypographyOverride:
           terminalTypographyOverride == null && nullToAbsent
           ? const Value.absent()
@@ -3714,7 +3680,6 @@ class Connection extends DataClass implements Insertable<Connection> {
       iconBackgroundColor: serializer.fromJson<Color>(
         json['icon_background_color'],
       ),
-      isIconAutoDetect: serializer.fromJson<bool>(json['is_icon_auto_detect']),
       terminalTypographyOverride: serializer.fromJson<TerminalTypography?>(
         json['terminal_typography_override'],
       ),
@@ -3741,7 +3706,6 @@ class Connection extends DataClass implements Insertable<Connection> {
       'icon': serializer.toJson<int>(Connections.$convertericon.toJson(icon)),
       'icon_color': serializer.toJson<Color>(iconColor),
       'icon_background_color': serializer.toJson<Color>(iconBackgroundColor),
-      'is_icon_auto_detect': serializer.toJson<bool>(isIconAutoDetect),
       'terminal_typography_override': serializer.toJson<TerminalTypography?>(
         terminalTypographyOverride,
       ),
@@ -3766,7 +3730,6 @@ class Connection extends DataClass implements Insertable<Connection> {
     ConnectionIcon? icon,
     Color? iconColor,
     Color? iconBackgroundColor,
-    bool? isIconAutoDetect,
     Value<TerminalTypography?> terminalTypographyOverride =
         const Value.absent(),
     Value<int?> terminalThemeOverrideId = const Value.absent(),
@@ -3783,7 +3746,6 @@ class Connection extends DataClass implements Insertable<Connection> {
     icon: icon ?? this.icon,
     iconColor: iconColor ?? this.iconColor,
     iconBackgroundColor: iconBackgroundColor ?? this.iconBackgroundColor,
-    isIconAutoDetect: isIconAutoDetect ?? this.isIconAutoDetect,
     terminalTypographyOverride: terminalTypographyOverride.present
         ? terminalTypographyOverride.value
         : this.terminalTypographyOverride,
@@ -3810,9 +3772,6 @@ class Connection extends DataClass implements Insertable<Connection> {
       iconBackgroundColor: data.iconBackgroundColor.present
           ? data.iconBackgroundColor.value
           : this.iconBackgroundColor,
-      isIconAutoDetect: data.isIconAutoDetect.present
-          ? data.isIconAutoDetect.value
-          : this.isIconAutoDetect,
       terminalTypographyOverride: data.terminalTypographyOverride.present
           ? data.terminalTypographyOverride.value
           : this.terminalTypographyOverride,
@@ -3839,7 +3798,6 @@ class Connection extends DataClass implements Insertable<Connection> {
           ..write('icon: $icon, ')
           ..write('iconColor: $iconColor, ')
           ..write('iconBackgroundColor: $iconBackgroundColor, ')
-          ..write('isIconAutoDetect: $isIconAutoDetect, ')
           ..write('terminalTypographyOverride: $terminalTypographyOverride, ')
           ..write('terminalThemeOverrideId: $terminalThemeOverrideId, ')
           ..write('usesDefaultThemeOverride: $usesDefaultThemeOverride')
@@ -3860,7 +3818,6 @@ class Connection extends DataClass implements Insertable<Connection> {
     icon,
     iconColor,
     iconBackgroundColor,
-    isIconAutoDetect,
     terminalTypographyOverride,
     terminalThemeOverrideId,
     usesDefaultThemeOverride,
@@ -3880,7 +3837,6 @@ class Connection extends DataClass implements Insertable<Connection> {
           other.icon == this.icon &&
           other.iconColor == this.iconColor &&
           other.iconBackgroundColor == this.iconBackgroundColor &&
-          other.isIconAutoDetect == this.isIconAutoDetect &&
           other.terminalTypographyOverride == this.terminalTypographyOverride &&
           other.terminalThemeOverrideId == this.terminalThemeOverrideId &&
           other.usesDefaultThemeOverride == this.usesDefaultThemeOverride);
@@ -3898,7 +3854,6 @@ class ConnectionsCompanion extends UpdateCompanion<Connection> {
   final Value<ConnectionIcon> icon;
   final Value<Color> iconColor;
   final Value<Color> iconBackgroundColor;
-  final Value<bool> isIconAutoDetect;
   final Value<TerminalTypography?> terminalTypographyOverride;
   final Value<int?> terminalThemeOverrideId;
   final Value<bool> usesDefaultThemeOverride;
@@ -3914,7 +3869,6 @@ class ConnectionsCompanion extends UpdateCompanion<Connection> {
     this.icon = const Value.absent(),
     this.iconColor = const Value.absent(),
     this.iconBackgroundColor = const Value.absent(),
-    this.isIconAutoDetect = const Value.absent(),
     this.terminalTypographyOverride = const Value.absent(),
     this.terminalThemeOverrideId = const Value.absent(),
     this.usesDefaultThemeOverride = const Value.absent(),
@@ -3931,7 +3885,6 @@ class ConnectionsCompanion extends UpdateCompanion<Connection> {
     this.icon = const Value.absent(),
     required Color iconColor,
     required Color iconBackgroundColor,
-    this.isIconAutoDetect = const Value.absent(),
     this.terminalTypographyOverride = const Value.absent(),
     this.terminalThemeOverrideId = const Value.absent(),
     this.usesDefaultThemeOverride = const Value.absent(),
@@ -3953,7 +3906,6 @@ class ConnectionsCompanion extends UpdateCompanion<Connection> {
     Expression<int>? icon,
     Expression<int>? iconColor,
     Expression<int>? iconBackgroundColor,
-    Expression<bool>? isIconAutoDetect,
     Expression<String>? terminalTypographyOverride,
     Expression<int>? terminalThemeOverrideId,
     Expression<bool>? usesDefaultThemeOverride,
@@ -3971,7 +3923,6 @@ class ConnectionsCompanion extends UpdateCompanion<Connection> {
       if (iconColor != null) 'icon_color': iconColor,
       if (iconBackgroundColor != null)
         'icon_background_color': iconBackgroundColor,
-      if (isIconAutoDetect != null) 'is_icon_auto_detect': isIconAutoDetect,
       if (terminalTypographyOverride != null)
         'terminal_typography_override': terminalTypographyOverride,
       if (terminalThemeOverrideId != null)
@@ -3993,7 +3944,6 @@ class ConnectionsCompanion extends UpdateCompanion<Connection> {
     Value<ConnectionIcon>? icon,
     Value<Color>? iconColor,
     Value<Color>? iconBackgroundColor,
-    Value<bool>? isIconAutoDetect,
     Value<TerminalTypography?>? terminalTypographyOverride,
     Value<int?>? terminalThemeOverrideId,
     Value<bool>? usesDefaultThemeOverride,
@@ -4010,7 +3960,6 @@ class ConnectionsCompanion extends UpdateCompanion<Connection> {
       icon: icon ?? this.icon,
       iconColor: iconColor ?? this.iconColor,
       iconBackgroundColor: iconBackgroundColor ?? this.iconBackgroundColor,
-      isIconAutoDetect: isIconAutoDetect ?? this.isIconAutoDetect,
       terminalTypographyOverride:
           terminalTypographyOverride ?? this.terminalTypographyOverride,
       terminalThemeOverrideId:
@@ -4062,9 +4011,6 @@ class ConnectionsCompanion extends UpdateCompanion<Connection> {
         ),
       );
     }
-    if (isIconAutoDetect.present) {
-      map['is_icon_auto_detect'] = Variable<bool>(isIconAutoDetect.value);
-    }
     if (terminalTypographyOverride.present) {
       map['terminal_typography_override'] = Variable<String>(
         Connections.$converterterminalTypographyOverriden.toSql(
@@ -4099,7 +4045,6 @@ class ConnectionsCompanion extends UpdateCompanion<Connection> {
           ..write('icon: $icon, ')
           ..write('iconColor: $iconColor, ')
           ..write('iconBackgroundColor: $iconBackgroundColor, ')
-          ..write('isIconAutoDetect: $isIconAutoDetect, ')
           ..write('terminalTypographyOverride: $terminalTypographyOverride, ')
           ..write('terminalThemeOverrideId: $terminalThemeOverrideId, ')
           ..write('usesDefaultThemeOverride: $usesDefaultThemeOverride')
@@ -4428,6 +4373,14 @@ abstract class _$CliqDatabase extends GeneratedDatabase {
     );
   }
 
+  Selectable<int> findAllCredentialIds() {
+    return customSelect(
+      'SELECT id FROM credentials',
+      variables: [],
+      readsFrom: {credentials},
+    ).map((QueryRow row) => row.read<int>('id'));
+  }
+
   Selectable<FindCredentialFullByIdsResult> findCredentialFullByIds(
     List<int> var1,
   ) {
@@ -4452,7 +4405,7 @@ abstract class _$CliqDatabase extends GeneratedDatabase {
 
   Selectable<FindAllConnectionFullResult> findAllConnectionFull() {
     return customSelect(
-      'SELECT"c"."id" AS "nested_0.id", "c"."vault_id" AS "nested_0.vault_id", "c"."label" AS "nested_0.label", "c"."address" AS "nested_0.address", "c"."port" AS "nested_0.port", "c"."identity_id" AS "nested_0.identity_id", "c"."username" AS "nested_0.username", "c"."group_name" AS "nested_0.group_name", "c"."icon" AS "nested_0.icon", "c"."icon_color" AS "nested_0.icon_color", "c"."icon_background_color" AS "nested_0.icon_background_color", "c"."is_icon_auto_detect" AS "nested_0.is_icon_auto_detect", "c"."terminal_typography_override" AS "nested_0.terminal_typography_override", "c"."terminal_theme_override_id" AS "nested_0.terminal_theme_override_id", "c"."uses_default_theme_override" AS "nested_0.uses_default_theme_override","v"."id" AS "nested_1.id", "v"."label" AS "nested_1.label", "v"."is_default" AS "nested_1.is_default","i"."id" AS "nested_2.id", "i"."vault_id" AS "nested_2.vault_id", "i"."label" AS "nested_2.label", "i"."username" AS "nested_2.username","iv"."id" AS "nested_3.id", "iv"."label" AS "nested_3.label", "iv"."is_default" AS "nested_3.is_default","t"."id" AS "nested_4.id", "t"."name" AS "nested_4.name", "t"."black_color" AS "nested_4.black_color", "t"."red_color" AS "nested_4.red_color", "t"."green_color" AS "nested_4.green_color", "t"."yellow_color" AS "nested_4.yellow_color", "t"."blue_color" AS "nested_4.blue_color", "t"."purple_color" AS "nested_4.purple_color", "t"."cyan_color" AS "nested_4.cyan_color", "t"."white_color" AS "nested_4.white_color", "t"."bright_black_color" AS "nested_4.bright_black_color", "t"."bright_red_color" AS "nested_4.bright_red_color", "t"."bright_green_color" AS "nested_4.bright_green_color", "t"."bright_yellow_color" AS "nested_4.bright_yellow_color", "t"."bright_blue_color" AS "nested_4.bright_blue_color", "t"."bright_purple_color" AS "nested_4.bright_purple_color", "t"."bright_cyan_color" AS "nested_4.bright_cyan_color", "t"."bright_white_color" AS "nested_4.bright_white_color", "t"."background_color" AS "nested_4.background_color", "t"."foreground_color" AS "nested_4.foreground_color", "t"."cursor_color" AS "nested_4.cursor_color", "t"."selection_background_color" AS "nested_4.selection_background_color", "t"."selection_foreground_color" AS "nested_4.selection_foreground_color", "t"."cursor_text_color" AS "nested_4.cursor_text_color", c.id AS "\$n_0", i.id AS "\$n_1" FROM connections AS c INNER JOIN vaults AS v ON c.vault_id = v.id LEFT JOIN identities AS i ON c.identity_id = i.id LEFT JOIN vaults AS iv ON i.vault_id = iv.id LEFT JOIN custom_terminal_themes AS t ON c.terminal_theme_override_id = t.id',
+      'SELECT"c"."id" AS "nested_0.id", "c"."vault_id" AS "nested_0.vault_id", "c"."label" AS "nested_0.label", "c"."address" AS "nested_0.address", "c"."port" AS "nested_0.port", "c"."identity_id" AS "nested_0.identity_id", "c"."username" AS "nested_0.username", "c"."group_name" AS "nested_0.group_name", "c"."icon" AS "nested_0.icon", "c"."icon_color" AS "nested_0.icon_color", "c"."icon_background_color" AS "nested_0.icon_background_color", "c"."terminal_typography_override" AS "nested_0.terminal_typography_override", "c"."terminal_theme_override_id" AS "nested_0.terminal_theme_override_id", "c"."uses_default_theme_override" AS "nested_0.uses_default_theme_override","v"."id" AS "nested_1.id", "v"."label" AS "nested_1.label", "v"."is_default" AS "nested_1.is_default","i"."id" AS "nested_2.id", "i"."vault_id" AS "nested_2.vault_id", "i"."label" AS "nested_2.label", "i"."username" AS "nested_2.username","iv"."id" AS "nested_3.id", "iv"."label" AS "nested_3.label", "iv"."is_default" AS "nested_3.is_default","t"."id" AS "nested_4.id", "t"."name" AS "nested_4.name", "t"."black_color" AS "nested_4.black_color", "t"."red_color" AS "nested_4.red_color", "t"."green_color" AS "nested_4.green_color", "t"."yellow_color" AS "nested_4.yellow_color", "t"."blue_color" AS "nested_4.blue_color", "t"."purple_color" AS "nested_4.purple_color", "t"."cyan_color" AS "nested_4.cyan_color", "t"."white_color" AS "nested_4.white_color", "t"."bright_black_color" AS "nested_4.bright_black_color", "t"."bright_red_color" AS "nested_4.bright_red_color", "t"."bright_green_color" AS "nested_4.bright_green_color", "t"."bright_yellow_color" AS "nested_4.bright_yellow_color", "t"."bright_blue_color" AS "nested_4.bright_blue_color", "t"."bright_purple_color" AS "nested_4.bright_purple_color", "t"."bright_cyan_color" AS "nested_4.bright_cyan_color", "t"."bright_white_color" AS "nested_4.bright_white_color", "t"."background_color" AS "nested_4.background_color", "t"."foreground_color" AS "nested_4.foreground_color", "t"."cursor_color" AS "nested_4.cursor_color", "t"."selection_background_color" AS "nested_4.selection_background_color", "t"."selection_foreground_color" AS "nested_4.selection_foreground_color", "t"."cursor_text_color" AS "nested_4.cursor_text_color", c.id AS "\$n_0", i.id AS "\$n_1" FROM connections AS c INNER JOIN vaults AS v ON c.vault_id = v.id LEFT JOIN identities AS i ON c.identity_id = i.id LEFT JOIN vaults AS iv ON i.vault_id = iv.id LEFT JOIN custom_terminal_themes AS t ON c.terminal_theme_override_id = t.id',
       variables: [],
       readsFrom: {
         credentials,
@@ -8083,7 +8036,6 @@ typedef $ConnectionsCreateCompanionBuilder =
       Value<ConnectionIcon> icon,
       required Color iconColor,
       required Color iconBackgroundColor,
-      Value<bool> isIconAutoDetect,
       Value<TerminalTypography?> terminalTypographyOverride,
       Value<int?> terminalThemeOverrideId,
       Value<bool> usesDefaultThemeOverride,
@@ -8101,7 +8053,6 @@ typedef $ConnectionsUpdateCompanionBuilder =
       Value<ConnectionIcon> icon,
       Value<Color> iconColor,
       Value<Color> iconBackgroundColor,
-      Value<bool> isIconAutoDetect,
       Value<TerminalTypography?> terminalTypographyOverride,
       Value<int?> terminalThemeOverrideId,
       Value<bool> usesDefaultThemeOverride,
@@ -8253,11 +8204,6 @@ class $ConnectionsFilterComposer extends Composer<_$CliqDatabase, Connections> {
         column: $table.iconBackgroundColor,
         builder: (column) => ColumnWithTypeConverterFilters(column),
       );
-
-  ColumnFilters<bool> get isIconAutoDetect => $composableBuilder(
-    column: $table.isIconAutoDetect,
-    builder: (column) => ColumnFilters(column),
-  );
 
   ColumnWithTypeConverterFilters<
     TerminalTypography?,
@@ -8423,11 +8369,6 @@ class $ConnectionsOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
-  ColumnOrderings<bool> get isIconAutoDetect => $composableBuilder(
-    column: $table.isIconAutoDetect,
-    builder: (column) => ColumnOrderings(column),
-  );
-
   ColumnOrderings<String> get terminalTypographyOverride => $composableBuilder(
     column: $table.terminalTypographyOverride,
     builder: (column) => ColumnOrderings(column),
@@ -8546,11 +8487,6 @@ class $ConnectionsAnnotationComposer
         column: $table.iconBackgroundColor,
         builder: (column) => column,
       );
-
-  GeneratedColumn<bool> get isIconAutoDetect => $composableBuilder(
-    column: $table.isIconAutoDetect,
-    builder: (column) => column,
-  );
 
   GeneratedColumnWithTypeConverter<TerminalTypography?, String>
   get terminalTypographyOverride => $composableBuilder(
@@ -8702,7 +8638,6 @@ class $ConnectionsTableManager
                 Value<ConnectionIcon> icon = const Value.absent(),
                 Value<Color> iconColor = const Value.absent(),
                 Value<Color> iconBackgroundColor = const Value.absent(),
-                Value<bool> isIconAutoDetect = const Value.absent(),
                 Value<TerminalTypography?> terminalTypographyOverride =
                     const Value.absent(),
                 Value<int?> terminalThemeOverrideId = const Value.absent(),
@@ -8719,7 +8654,6 @@ class $ConnectionsTableManager
                 icon: icon,
                 iconColor: iconColor,
                 iconBackgroundColor: iconBackgroundColor,
-                isIconAutoDetect: isIconAutoDetect,
                 terminalTypographyOverride: terminalTypographyOverride,
                 terminalThemeOverrideId: terminalThemeOverrideId,
                 usesDefaultThemeOverride: usesDefaultThemeOverride,
@@ -8737,7 +8671,6 @@ class $ConnectionsTableManager
                 Value<ConnectionIcon> icon = const Value.absent(),
                 required Color iconColor,
                 required Color iconBackgroundColor,
-                Value<bool> isIconAutoDetect = const Value.absent(),
                 Value<TerminalTypography?> terminalTypographyOverride =
                     const Value.absent(),
                 Value<int?> terminalThemeOverrideId = const Value.absent(),
@@ -8754,7 +8687,6 @@ class $ConnectionsTableManager
                 icon: icon,
                 iconColor: iconColor,
                 iconBackgroundColor: iconBackgroundColor,
-                isIconAutoDetect: isIconAutoDetect,
                 terminalTypographyOverride: terminalTypographyOverride,
                 terminalThemeOverrideId: terminalThemeOverrideId,
                 usesDefaultThemeOverride: usesDefaultThemeOverride,

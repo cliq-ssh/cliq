@@ -13,6 +13,8 @@ class CreateOrEditEntityView extends HookConsumerWidget {
   final Function(int?) onSave;
   final bool isEdit;
   final Widget child;
+  final String? editLabel;
+  final String? createLabel;
   final Function(int)? onVaultSelected;
 
   /// Whether to show the vault selector in the form. If this is false, [onSave] will be called with null.
@@ -24,6 +26,8 @@ class CreateOrEditEntityView extends HookConsumerWidget {
     required this.isEdit,
     required this.child,
     this.onVaultSelected,
+    this.editLabel,
+    this.createLabel,
     this.withVaultSelector = true,
   });
 
@@ -106,7 +110,9 @@ class CreateOrEditEntityView extends HookConsumerWidget {
                     withVaultSelector ? vaultSelectController.value! : null,
                   );
                 },
-                child: Text(isEdit ? 'Edit' : 'Save'),
+                child: Text(
+                  isEdit ? (editLabel ?? 'Edit') : (createLabel ?? 'Save'),
+                ),
               ),
             ),
           ],

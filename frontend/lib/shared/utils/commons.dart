@@ -1,4 +1,7 @@
-import 'package:cliq/modules/settings/model/terminal_theme_parser/terminal_theme_parser.dart';
+import 'dart:convert';
+
+import 'package:cliq/modules/settings/model/settings_importer/settings_importer.dart';
+import 'package:cliq/modules/settings/model/theme_parser/terminal_theme_parser.dart';
 import 'package:cliq/shared/ui/responsive_dialog.dart';
 import 'package:cliq/shared/ui/shortcut_info.dart';
 import 'package:cliq/shared/utils/constants.dart';
@@ -17,6 +20,13 @@ final class Commons {
     label: 'Terminal Theme',
     extensions: TerminalThemeParser.values
         .map((e) => e.fileExtension)
+        .toList(growable: false),
+  );
+
+  static XTypeGroup get settingsGroup => XTypeGroup(
+    label: 'Settings Export',
+    extensions: SettingsImporter.values
+        .map((e) => e.fileExtension ?? '')
         .toList(growable: false),
   );
 
@@ -107,6 +117,25 @@ final class Commons {
     );
   }
 
+  static Future<void> showToast(
+    String message, {
+    Widget? prefix,
+    FToastVariant? variant,
+  }) async {
+    final context = Router.rootNavigatorKey.currentContext;
+    if (context != null) {
+      showFToast(
+        variant: variant ?? .primary,
+        context: context,
+        title: Row(
+          spacing: 8,
+          mainAxisSize: .min,
+          children: [?prefix, Text(message)],
+        ),
+      );
+    }
+  }
+
   static Future<void> copyToClipboard(BuildContext context, String text) async {
     await Clipboard.setData(ClipboardData(text: text));
     if (context.mounted) {
@@ -115,6 +144,34 @@ final class Commons {
         title: Text('Successfully copied to clipboard!'),
       );
     }
+  }
+
+  /// Saves the given text to a file. Returns true if the file was saved successfully, false otherwise.
+  static Future<bool> saveTextToFile(
+    String text,
+    String suggestedFileName, {
+    List<String>? allowedExtensions,
+    String mimeType = 'text/plain',
+  }) async {
+    final FileSaveLocation? result = await getSaveLocation(
+      acceptedTypeGroups: allowedExtensions != null
+          ? [XTypeGroup(label: 'Allowed', extensions: allowedExtensions)]
+          : [],
+      suggestedName: suggestedFileName,
+    );
+
+    if (result == null) {
+      return false;
+    }
+
+    final file = XFile.fromData(
+      utf8.encode(text),
+      mimeType: mimeType,
+      name: suggestedFileName,
+    );
+
+    await file.saveTo(result.path);
+    return true;
   }
 
   static Future<void> launchGitHubUrl() => _launchUrl(Constants.githubUrl);

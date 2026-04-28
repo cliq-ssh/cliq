@@ -118,7 +118,7 @@ class CreateOrEditCredentialsFormState
         );
       } else {
         createdIds.add(
-          await credentialService.create(
+          await credentialService.createCredential(
             vaultId: widget.vaultId,
             type: data.type,
             data: controllerData,

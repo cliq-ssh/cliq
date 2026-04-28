@@ -11,7 +11,7 @@ class ConnectionFull extends Connection {
   final CustomTerminalTheme? terminalThemeOverride;
 
   String get addressAndPort => '[$address]:$port';
-  String get effectiveUsername => identity?.username ?? username!;
+  String? get effectiveUsername => identity?.username ?? username;
 
   ConnectionFull.fromConnection(
     Connection connection, {
@@ -31,7 +31,6 @@ class ConnectionFull extends Connection {
          label: connection.label,
          username: connection.username,
          identityId: connection.identityId,
-         isIconAutoDetect: connection.isIconAutoDetect,
          terminalTypographyOverride: connection.terminalTypographyOverride,
          terminalThemeOverrideId: connection.terminalThemeOverrideId,
          usesDefaultThemeOverride: connection.usesDefaultThemeOverride,

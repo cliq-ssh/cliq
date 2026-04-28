@@ -138,7 +138,7 @@ class AppearanceSettingsPage extends AbstractSettingsPage {
                     Align(
                       alignment: .centerLeft,
                       child: FLabel(
-                        axis: .vertical,
+                        layout: .vertical,
                         child: Text(
                           'Color Theme',
                           style: context.theme.typography.md.copyWith(

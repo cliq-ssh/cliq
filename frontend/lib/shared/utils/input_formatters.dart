@@ -14,6 +14,10 @@ final class InputFormatters {
       CaseTextFormatter(),
     ];
   }
+
+  static List<TextInputFormatter> password() {
+    return [FilteringTextInputFormatter.deny(RegExp(r'\s'))];
+  }
 }
 
 class CaseTextFormatter extends TextInputFormatter {

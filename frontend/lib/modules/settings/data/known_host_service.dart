@@ -44,7 +44,7 @@ final class KnownHostService {
     return (null, false);
   }
 
-  Future<int> createKey({
+  Future<int> createKnownHost({
     required int vaultId,
     required String host,
     required Uint8List hostKey,

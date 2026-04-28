@@ -81,7 +81,6 @@ class CreateOrEditConnectionView extends HookConsumerWidget {
           connection.terminalTypographyOverride,
         ),
         terminalThemeOverrideId: Value(connection.terminalThemeOverrideId),
-        isIconAutoDetect: Value(connection.isIconAutoDetect),
       ),
       currentCredentialIds = connection.credentialIds,
       isEdit = true;
@@ -353,7 +352,7 @@ class CreateOrEditConnectionView extends HookConsumerWidget {
             children: [
               FLabel(
                 label: Text('Background Color'),
-                axis: .vertical,
+                layout: .vertical,
                 child: buildColorPicker(
                   color: selectedIconBackgroundColor.value,
                   controller: iconBgColorCtrl,
@@ -368,7 +367,7 @@ class CreateOrEditConnectionView extends HookConsumerWidget {
               ),
               FLabel(
                 label: Text('Icon Color'),
-                axis: .vertical,
+                layout: .vertical,
                 child: buildColorPicker(
                   color: selectedIconColor.value,
                   controller: iconColorCtrl,
@@ -388,7 +387,7 @@ class CreateOrEditConnectionView extends HookConsumerWidget {
               const SizedBox(height: 12),
               FLabel(
                 label: Text('Icon'),
-                axis: .vertical,
+                layout: .vertical,
                 child: Padding(
                   padding: const .symmetric(vertical: 16),
                   child: Column(
