@@ -1,5 +1,6 @@
 import 'package:cliq/modules/session/provider/session.provider.dart';
 import 'package:cliq/modules/session/view/session_page.dart';
+import 'package:cliq/shared/ui/split_view.dart';
 import 'package:flutter/material.dart' hide LicensePage;
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -32,11 +33,33 @@ class _SessionPageState extends ConsumerState<SessionPageWrapper> {
       controller: pageController,
       children: [
         for (final session in session.activeSessions)
-          ShellSessionPage(
-            key: PageStorageKey(
-              'session-${session.connection.label}--${session.id}',
-            ),
-            session: session,
+          SplitView(
+            children: [
+              ShellSessionPage(
+                key: PageStorageKey(
+                  'session-${session.connection.label}--${session.id}',
+                ),
+                session: session,
+              ),
+              ShellSessionPage(
+                key: PageStorageKey(
+                  'session-${session.connection.label}--${session.id}',
+                ),
+                session: session,
+              ),
+              ShellSessionPage(
+                key: PageStorageKey(
+                  'session-${session.connection.label}--${session.id}',
+                ),
+                session: session,
+              ),
+              ShellSessionPage(
+                key: PageStorageKey(
+                  'session-${session.connection.label}--${session.id}',
+                ),
+                session: session,
+              ),
+            ],
           ),
       ],
     );
