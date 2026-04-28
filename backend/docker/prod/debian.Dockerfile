@@ -1,5 +1,5 @@
 ARG JDK_VERSION=25
-ARG JRE_VERSION=25
+ARG JRE_VERSION=26
 
 # Stage 1: Build the application
 FROM eclipse-temurin:${JDK_VERSION}-jdk AS builder

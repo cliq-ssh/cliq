@@ -1,11 +1,11 @@
 package app.cliq.backend.serverconfig.factory
 
+import app.cliq.backend.config.feature.FeatureUtils
+import app.cliq.backend.config.feature.Features
 import app.cliq.backend.config.properties.AuthProperties
 import app.cliq.backend.config.properties.InfoProperties
-import app.cliq.backend.constants.Features
 import app.cliq.backend.constants.Oidc
 import app.cliq.backend.serverconfig.view.ServerConfigResponse
-import app.cliq.backend.utils.FeatureUtils
 import org.springframework.stereotype.Service
 
 @Service
@@ -15,7 +15,7 @@ class ServerConfigResponseFactory(
     private val authProperties: AuthProperties,
 ) {
     fun getResponse(): ServerConfigResponse {
-        if (featureUtils.isProfileActive(Features.OIDC)) {
+        if (featureUtils.isFeatureActive(Features.OIDC)) {
             return createResponse(Oidc.AUTHORIZATION_ENDPOINT)
         }
 

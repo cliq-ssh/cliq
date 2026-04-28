@@ -1,8 +1,8 @@
 {# @pebvariable name="name" type="String" #}
 {# @pebvariable name="rotationCode" type="String" #}
-{% extends "emails/mail.html" %}
+    {% extends "emails/mail.html" %}
 
-{% block head %}
+    {% block head %}
     <style>
         .rotation-code {
             color: #007bff;

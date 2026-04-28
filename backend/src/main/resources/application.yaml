@@ -14,6 +14,7 @@ app:
       registration: \${ENABLE_LOCAL_REGISTRATION:true}
       login: \${ENABLE_LOCAL_LOGIN:true}
   oidc:
+    enabled: \${OIDC_ENABLED:false}
     issuer-uri: \${OIDC_ISSUER_URI:}
     client-id: \${OIDC_CLIENT_ID:}
     client-secret: \${OIDC_CLIENT_SECRET:}
@@ -47,8 +48,6 @@ logging:
     root: \${LOG_LEVEL_ROOT:info}
 
 spring:
-  profiles:
-    active: \${FEATURES:}
   cache:
     cache-names:
       - rate-limit-buckets
@@ -72,6 +71,19 @@ spring:
   application:
     name: \${app.info.name}
     version: \${app.info.version}
+  security:
+    oauth2:
+      client:
+        registration:
+          oidc:
+            client-id: \${app.oidc.client-id}
+            client-secret: \${app.oidc.client-secret}
+            scope: \${app.oidc.scopes}
+            authorization-grant-type: authorization_code
+            redirect-uri: "{baseUrl}/login/oauth2/code/{registrationId}"
+        provider:
+          oidc:
+            issuer-uri: \${app.oidc.issuer-uri}
   mail:
     host: \${MAIL_HOST:localhost}
     port: \${MAIL_PORT:25}
@@ -90,12 +102,16 @@ spring:
   messages:
     basename: classpath:messages/messages
     encoding: UTF-8
+  autoconfigure:
+    exclude:
+      - org.springframework.boot.security.oauth2.client.autoconfigure.servlet.OAuth2ClientWebSecurityAutoConfiguration
+      - org.springframework.boot.security.oauth2.client.autoconfigure.OAuth2ClientAutoConfiguration
 
 springdoc:
   api-docs:
     path: /api/openapi
     version: openapi_3_1
-    enabled: \${ENABLE_OPENAPI:false}
+    enabled: \${OPENAPI_ENABLED:false}
   swagger-ui:
     path: /api/openapi/swagger-ui
     disable-swagger-default-url: true
@@ -109,22 +125,3 @@ management:
   health:
     mail:
       enabled: \${app.email.enabled}
-
----
-spring:
-  config:
-    activate:
-      on-profile: oidc
-  security:
-    oauth2:
-      client:
-        registration:
-          oidc:
-            client-id: \${app.oidc.client-id}
-            client-secret: \${app.oidc.client-secret}
-            scope: \${app.oidc.scopes}
-            authorization-grant-type: authorization_code
-            redirect-uri: "{baseUrl}/login/oauth2/code/{registrationId}"
-        provider:
-          oidc:
-            issuer-uri: \${app.oidc.issuer-uri}

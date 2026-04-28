@@ -1,6 +1,6 @@
 package app.cliq.backend.user.service
 
-import app.cliq.backend.email.EmailService
+import app.cliq.backend.email.EmailSender
 import app.cliq.backend.user.User
 import app.cliq.backend.user.UserRepository
 import app.cliq.backend.utils.TokenGenerator
@@ -17,7 +17,7 @@ class UserService(
     private val userRepository: UserRepository,
     private val clock: Clock,
     private val tokenGenerator: TokenGenerator,
-    private val emailService: EmailService,
+    private val emailSender: EmailSender,
     private val messageSource: MessageSource,
 ) {
     private val logger = LoggerFactory.getLogger(this::class.java)
@@ -52,7 +52,7 @@ class UserService(
             )
 
         try {
-            emailService.sendEmail(
+            emailSender.sendEmail(
                 user.email,
                 messageSource.getMessage("email.verification.subject", null, locale),
                 context,

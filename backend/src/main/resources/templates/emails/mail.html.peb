@@ -4,9 +4,9 @@
 <head>
     <meta charset="utf-8">
     <title>{%- block title -%}
-                {# @pebvariable name="subject" type="String" #}
-                {{ subject }}
-            {%- endblock -%}</title>
+{# @pebvariable name="subject" type="String" #}
+{{ subject }}
+{%- endblock -%}</title>
     <style>
         .body {
             font-family: Arial, sans-serif;
@@ -49,10 +49,10 @@
         }
     </style>
     {% block head %}
-    {% endblock %}
+{% endblock %}
 </head>
 <div class="body">
         {% block body %}
-    {% endblock %}
+{% endblock %}
 </div>
 </html>

@@ -1,0 +1,13 @@
+package app.cliq.backend.config.feature.oidc
+
+import app.cliq.backend.config.feature.FEATURE_OIDC_PROPERTY_NAME
+import org.springframework.boot.autoconfigure.condition.ConditionalOnBooleanProperty
+import org.springframework.boot.security.oauth2.client.autoconfigure.OAuth2ClientAutoConfiguration
+import org.springframework.boot.security.oauth2.client.autoconfigure.servlet.OAuth2ClientWebSecurityAutoConfiguration
+import org.springframework.context.annotation.Configuration
+import org.springframework.context.annotation.Import
+
+@Configuration
+@ConditionalOnBooleanProperty(FEATURE_OIDC_PROPERTY_NAME)
+@Import(OAuth2ClientAutoConfiguration::class, OAuth2ClientWebSecurityAutoConfiguration::class)
+class OidcAutoConfiguration

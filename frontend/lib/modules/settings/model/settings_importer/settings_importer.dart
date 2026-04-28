@@ -2,22 +2,20 @@ import 'dart:io';
 
 import 'package:cliq/modules/settings/model/settings_importer/app_settings.model.dart';
 import 'package:cliq/modules/settings/model/settings_importer/cliq_settings_importer.dart';
-import 'package:cliq/modules/settings/model/settings_importer/ssh_config_settings_importer.dart';
 
 enum SettingsImporter {
-  cliq(CliqSettingsImporter(), fileExtension: 'txt'),
-  sshConfig(SSHConfigSettingsImporter());
+  cliq(CliqSettingsImporter(), fileExtension: 'txt');
 
   final AbstractSettingsImporter instance;
   final String? fileExtension;
 
   const SettingsImporter(this.instance, {this.fileExtension});
 
-  static AbstractSettingsImporter? getParser(
+  static Future<AbstractSettingsImporter?> getParser(
     String path,
     String content, {
     String? password,
-  }) {
+  }) async {
     final lastSegment = path.split(Platform.pathSeparator).last;
 
     final fileExtension = lastSegment.split('.').last;
@@ -27,12 +25,12 @@ enum SettingsImporter {
 
     for (final parser in parsers) {
       if (parser.instance is CliqSettingsImporter &&
-              (parser.instance as CliqSettingsImporter).canParse(
+              await (parser.instance as CliqSettingsImporter).canParse(
                 path,
                 content,
                 password: password,
               ) ||
-          parser.instance.canParse(path, content)) {
+          await parser.instance.canParse(path, content)) {
         return parser.instance;
       }
     }
@@ -43,6 +41,6 @@ enum SettingsImporter {
 abstract class AbstractSettingsImporter {
   const AbstractSettingsImporter();
 
-  bool canParse(String path, String content);
-  AppSettings? tryParse(String path, String content);
+  Future<bool> canParse(String path, String content);
+  Future<AppSettings?> tryParse(String path, String content);
 }

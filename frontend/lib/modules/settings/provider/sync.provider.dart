@@ -28,7 +28,7 @@ class SyncProviderNotifier extends Notifier<SyncState> {
     final path = file.path;
     final content = await file.readAsString();
 
-    final parser = SettingsImporter.getParser(
+    final parser = await SettingsImporter.getParser(
       path,
       content,
       password: password,
@@ -39,9 +39,9 @@ class SyncProviderNotifier extends Notifier<SyncState> {
 
     AppSettings? settings;
     if (parser is CliqSettingsImporter) {
-      settings = parser.tryParse(path, content, password: password);
+      settings = await parser.tryParse(path, content, password: password);
     } else {
-      settings = parser.tryParse(path, content);
+      settings = await parser.tryParse(path, content);
     }
 
     if (settings == null) {

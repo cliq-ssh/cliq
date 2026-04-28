@@ -11,10 +11,12 @@ class CliqSettingsImporter extends AbstractSettingsImporter {
   const CliqSettingsImporter();
 
   @override
-  bool canParse(String path, String content, {String? password}) {
+  Future<bool> canParse(String path, String content, {String? password}) async {
     if (content.length % 4 == 0 &&
         RegExp(r'^[A-Za-z0-9+/=]+$').hasMatch(content)) {
-      content = utf8.decode(decodeAndDecrypt(content, password: password));
+      content = utf8.decode(
+        await _decodeAndDecrypt(content, password: password),
+      );
     } else {
       // if its not valid base64, it cant be a cliq settings file
       return false;
@@ -30,21 +32,31 @@ class CliqSettingsImporter extends AbstractSettingsImporter {
   }
 
   @override
-  AppSettings? tryParse(String path, String content, {String? password}) {
+  Future<AppSettings?> tryParse(
+    String path,
+    String content, {
+    String? password,
+  }) async {
     final json = jsonDecode(
-      utf8.decode(decodeAndDecrypt(content, password: password)),
+      utf8.decode(await _decodeAndDecrypt(content, password: password)),
     );
     return AppSettings.tryFromJson(json);
   }
 
-  Uint8List decodeAndDecrypt(String content, {String? password}) {
+  Future<Uint8List> _decodeAndDecrypt(
+    String content, {
+    String? password,
+  }) async {
     Uint8List decoded = base64Decode(content);
-    if (PasswordCipher.isEncrypted(decoded)) {
+    if (PasswordCipher.instance.isEncrypted(decoded)) {
       if (password == null) {
         throw LocalizedException('settings.import.error.encryptedFile');
       }
       try {
-        decoded = PasswordCipher.decrypt(decoded, password);
+        decoded = await PasswordCipher.instance.decrypt(
+          decoded,
+          utf8.encode(password),
+        );
       } catch (e) {
         throw LocalizedException('settings.import.error.incorrectPassword');
       }
