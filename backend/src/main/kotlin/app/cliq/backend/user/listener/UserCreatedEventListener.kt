@@ -1,6 +1,6 @@
 package app.cliq.backend.user.listener
 
-import app.cliq.backend.email.EmailService
+import app.cliq.backend.email.EmailSender
 import app.cliq.backend.user.UserRepository
 import app.cliq.backend.user.event.UserCreatedEvent
 import app.cliq.backend.user.service.UserService
@@ -11,8 +11,8 @@ import org.springframework.stereotype.Component
 @Component
 class UserCreatedEventListener(
     private val userRepository: UserRepository,
-    private val emailService: EmailService,
     private val userService: UserService,
+    private val emailSender: EmailSender,
 ) {
     private val logger = LoggerFactory.getLogger(this::class.java)
 
@@ -25,7 +25,7 @@ class UserCreatedEventListener(
                 IllegalArgumentException("User not found")
             }
 
-        if (!emailService.isEnabled()) {
+        if (!emailSender.isEnabled()) {
             userService.verifyUserEmail(user)
         } else {
             userService.sendVerificationEmail(user)

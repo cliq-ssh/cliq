@@ -1,5 +1,6 @@
 package app.cliq.backend.email
 
+import app.cliq.backend.config.feature.email.FeatureEmail
 import app.cliq.backend.config.properties.EmailProperties
 import io.pebbletemplates.pebble.PebbleEngine
 import jakarta.mail.internet.InternetAddress
@@ -12,19 +13,16 @@ import java.io.StringWriter
 import java.nio.charset.StandardCharsets
 import java.util.Locale
 
+@FeatureEmail
 @Service
-class EmailService(
+class EmailSenderImpl(
     private val emailProperties: EmailProperties,
     private val pebbleEngine: PebbleEngine,
     private val mailSender: JavaMailSender?,
-) {
+) : EmailSender {
     private val logger = LoggerFactory.getLogger(this::class.java)
 
-    /**
-     * Checks if the email service is enabled and properly configured
-     * @return true if email service is enabled and configured
-     */
-    fun isEnabled(): Boolean {
+    override fun isEnabled(): Boolean {
         if (emailProperties.enabled && mailSender == null) {
             logger.warn("Email is enabled but mailSender is null")
         }
@@ -32,18 +30,17 @@ class EmailService(
         return emailProperties.enabled && mailSender != null
     }
 
-    /**
-     * Sends an email using a Pebble template with both HTML and plain text versions
-     * @param to Recipient email address
-     * @param subject Email subject
-     * @param context Map of variables to be passed to the template
-     * @param templateName Name of the Template (without extension/without .html or .txt)
-     */
-    fun sendEmail(to: String, subject: String, context: Map<String, Any>, locale: Locale, templateName: String) {
+    override fun sendEmail(
+        to: String,
+        subject: String,
+        context: Map<String, Any>,
+        locale: Locale,
+        templateName: String,
+    ) {
         if (!isEnabled()) {
-            logger.warn("Email service is disabled. Not sending email to $to with subject '$subject'.")
-            return
+            throw IllegalStateException("Email service is disabled")
         }
+
         val mutableContext = context.toMutableMap()
 
         mutableContext["lang"] = locale.language
