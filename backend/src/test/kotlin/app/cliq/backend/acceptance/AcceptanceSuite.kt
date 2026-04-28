@@ -1,6 +1,5 @@
 package app.cliq.backend.acceptance
 
-import app.cliq.backend.constants.Features
 import app.cliq.backend.support.DatabaseCleanupService
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeAll
@@ -23,7 +22,7 @@ import org.springframework.test.context.ActiveProfiles
 @ComponentScan(basePackages = ["app.cliq.backend.support"])
 @AutoConfigureMockMvc
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
-@ActiveProfiles(Features.TEST)
+@ActiveProfiles("test")
 @Tag("acceptance")
 annotation class AcceptanceTest
 

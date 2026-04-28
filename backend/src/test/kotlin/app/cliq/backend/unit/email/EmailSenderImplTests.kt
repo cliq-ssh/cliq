@@ -1,11 +1,12 @@
 package app.cliq.backend.unit.email
 
 import app.cliq.backend.config.properties.EmailProperties
-import app.cliq.backend.email.EmailService
+import app.cliq.backend.email.EmailSenderImpl
 import io.pebbletemplates.pebble.PebbleEngine
 import jakarta.mail.internet.MimeMessage
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.api.extension.ExtendWith
 import org.mockito.Mock
 import org.mockito.junit.jupiter.MockitoExtension
@@ -20,7 +21,7 @@ import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
 @ExtendWith(MockitoExtension::class)
-class EmailServiceTests {
+class EmailSenderImplTests {
     @Mock
     private lateinit var emailProperties: EmailProperties
 
@@ -30,11 +31,11 @@ class EmailServiceTests {
     @Mock
     private lateinit var templateEngine: PebbleEngine
 
-    private lateinit var emailService: EmailService
+    private lateinit var emailService: EmailSenderImpl
 
     @BeforeEach
     fun setUp() {
-        emailService = EmailService(emailProperties, templateEngine, mailSender)
+        emailService = EmailSenderImpl(emailProperties, templateEngine, mailSender)
     }
 
     @Test
@@ -53,7 +54,7 @@ class EmailServiceTests {
     fun `isEnabled should return false when mailSender is null`() {
         // Arrange
         whenever(emailProperties.enabled).thenReturn(true)
-        emailService = EmailService(emailProperties, templateEngine, null)
+        emailService = EmailSenderImpl(emailProperties, templateEngine, null)
 
         // Act
         val result = emailService.isEnabled()
@@ -80,13 +81,15 @@ class EmailServiceTests {
         whenever(emailProperties.enabled).thenReturn(false)
 
         // Act
-        emailService.sendEmail(
-            to = "test@example.com",
-            subject = "Test Subject",
-            context = mapOf("key" to "value"),
-            templateName = "test",
-            locale = Locale.ENGLISH,
-        )
+        assertThrows<IllegalStateException> {
+            emailService.sendEmail(
+                to = "test@example.com",
+                subject = "Test Subject",
+                context = mapOf("key" to "value"),
+                templateName = "test",
+                locale = Locale.ENGLISH,
+            )
+        }
 
         // Assert
         verify(mailSender, never()).send(any<MimeMessage>())

@@ -1,6 +1,6 @@
 package app.cliq.backend.unit.user.service
 
-import app.cliq.backend.email.EmailService
+import app.cliq.backend.email.EmailSender
 import app.cliq.backend.exception.ExpiredKeyRotationCodeException
 import app.cliq.backend.exception.InvalidKeyRotationCodeException
 import app.cliq.backend.exception.InvalidKeyRotationParamsException
@@ -52,7 +52,7 @@ class KeyRotationServiceTests {
     private lateinit var tokenGenerator: TokenGenerator
 
     @Mock
-    private lateinit var emailService: EmailService
+    private lateinit var emailSender: EmailSender
 
     @Mock
     private lateinit var messageSource: MessageSource
@@ -81,7 +81,7 @@ class KeyRotationServiceTests {
             userRepository,
             clock,
             tokenGenerator,
-            emailService,
+            emailSender,
             messageSource,
             sessionRepository,
             vaultRepository,
@@ -101,7 +101,7 @@ class KeyRotationServiceTests {
         keyRotationService.sendKeyRotationEmail(testUser)
 
         // Assert
-        verify(emailService).sendEmail(
+        verify(emailSender).sendEmail(
             to = testUser.email,
             subject = "Key Rotation Code",
             context = mapOf("name" to testUser.name, "rotationCode" to generatedCode),
@@ -121,7 +121,7 @@ class KeyRotationServiceTests {
         whenever(tokenGenerator.generateKeyRotationToken()).thenReturn(generatedCode)
         whenever(messageSource.getMessage("email.key_rotation.subject", null, Locale.ENGLISH))
             .thenReturn("Key Rotation Code")
-        whenever(emailService.sendEmail(any(), any(), any(), any(), any()))
+        whenever(emailSender.sendEmail(any(), any(), any(), any(), any()))
             .thenThrow(MailSendException("Email failed"))
 
         // Act & Assert

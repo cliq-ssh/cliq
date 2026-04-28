@@ -1,0 +1,10 @@
+{
+  "properties": [
+    {
+      "name": "app.oidc.enabled",
+      "type": "java.lang.Boolean",
+      "description": "Enables OIDC authentication.",
+      "defaultValue": false
+    }
+  ]
+}
