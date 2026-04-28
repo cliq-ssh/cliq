@@ -1,7 +1,6 @@
 import 'dart:async';
 
 import 'package:cliq/modules/keys/model/key_importer/key_importer.dart';
-import 'package:cliq/modules/keys/ui/generate_key_dialog.dart';
 import 'package:cliq/shared/extensions/text_controller.extension.dart';
 import 'package:cliq/shared/ui/create_or_edit_entity_view.dart';
 import 'package:cliq/shared/utils/validators.dart';
@@ -15,7 +14,6 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lucide_flutter/lucide_flutter.dart';
 
 import '../../../shared/data/database.dart';
-import '../../../shared/model/router.model.dart';
 import '../../../shared/utils/commons.dart';
 import '../provider/key_service.provider.dart';
 
@@ -144,25 +142,6 @@ class CreateOrEditKeyView extends HookConsumerWidget {
           spacing: 16,
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            Row(
-              spacing: 8,
-              mainAxisAlignment: .end,
-              children: [
-                FButton(
-                  variant: .outline,
-                  prefix: Icon(LucideIcons.fileKey),
-                  child: const Text('Generate Key Pair'),
-                  onPress: () async {
-                    final keyPair = await showFDialog(
-                      context:
-                          Router.rootNavigatorKey.currentContext ?? context,
-                      builder: (_, style, animation) =>
-                          GenerateKeyDialog(style: style, animation: animation),
-                    );
-                  },
-                ),
-              ],
-            ),
             FTextFormField(
               control: .managed(controller: labelCtrl),
               label: const Text('Label'),
