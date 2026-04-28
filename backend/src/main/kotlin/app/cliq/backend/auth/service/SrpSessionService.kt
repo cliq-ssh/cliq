@@ -17,5 +17,6 @@ class SrpSessionService {
     // to do anything.
     @Suppress("EmptyFunctionBlock", "UnusedParameter")
     @CacheEvict(cacheNames = [AUTHENTICATION_SESSION_CACHE_NAME], key = "#key")
-    fun evictAuthenticationSession(key: String) {}
+    fun evictAuthenticationSession(key: String) {
+    }
 }

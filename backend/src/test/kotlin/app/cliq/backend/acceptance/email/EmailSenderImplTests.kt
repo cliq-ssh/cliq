@@ -2,7 +2,7 @@ package app.cliq.backend.acceptance.email
 
 import app.cliq.backend.acceptance.EmailAcceptanceTest
 import app.cliq.backend.acceptance.EmailAcceptanceTester
-import app.cliq.backend.email.EmailService
+import app.cliq.backend.email.EmailSenderImpl
 import jakarta.mail.internet.MimeMessage
 import org.apache.commons.mail2.jakarta.util.MimeMessageParser
 import org.junit.jupiter.api.Assertions
@@ -12,15 +12,10 @@ import java.util.Locale
 import kotlin.test.assertTrue
 
 @EmailAcceptanceTest
-class EmailServiceTests(
+class EmailSenderImplTests(
     @Autowired
-    private val emailService: EmailService,
+    private val emailService: EmailSenderImpl,
 ) : EmailAcceptanceTester() {
-    @Test
-    fun `isEnabled should return true`() {
-        assertTrue(emailService.isEnabled())
-    }
-
     @Test
     fun `sendEmail should render templates and send email with proper content`() {
         // Verify email service is enabled

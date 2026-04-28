@@ -1,6 +1,6 @@
 package app.cliq.backend.user.service
 
-import app.cliq.backend.email.EmailService
+import app.cliq.backend.email.EmailSender
 import app.cliq.backend.exception.ExpiredKeyRotationCodeException
 import app.cliq.backend.exception.InvalidKeyRotationCodeException
 import app.cliq.backend.exception.InvalidKeyRotationParamsException
@@ -26,7 +26,7 @@ class KeyRotationService(
     private val userRepository: UserRepository,
     private val clock: Clock,
     private val tokenGenerator: TokenGenerator,
-    private val emailService: EmailService,
+    private val emailSender: EmailSender,
     private val messageSource: MessageSource,
     private val sessionRepository: SessionRepository,
     private val vaultRepository: VaultRepository,
@@ -53,7 +53,7 @@ class KeyRotationService(
             )
 
         try {
-            emailService.sendEmail(
+            emailSender.sendEmail(
                 user.email,
                 messageSource.getMessage("email.key_rotation.subject", null, locale),
                 context,
