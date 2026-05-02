@@ -29,3 +29,4 @@ jobs:
         with:
           cache-disabled: true
           build-root-directory: backend
+          dependency-graph-exclude-configurations: '.*[Tt]est(Compile|Runtime)Classpath'
