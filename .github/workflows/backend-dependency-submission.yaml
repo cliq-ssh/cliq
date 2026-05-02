@@ -5,6 +5,7 @@ on:
       - main
     paths:
       - "backend/**"
+  workflow_dispatch: ~
 
 # Sets a default working directory
 defaults:
