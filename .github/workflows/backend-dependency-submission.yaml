@@ -5,6 +5,7 @@ on:
       - main
     paths:
       - "backend/**"
+  workflow_dispatch: ~
 
 # Sets a default working directory
 defaults:
@@ -29,3 +30,4 @@ jobs:
         with:
           cache-disabled: true
           build-root-directory: backend
+          dependency-graph-exclude-configurations: '.*[Tt]est(Compile|Runtime)Classpath'
