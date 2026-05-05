@@ -107,21 +107,16 @@ class _TerminalViewState extends State<TerminalView> {
 
         return Focus(
           focusNode: _focusNode,
-          autofocus: true,
           onKeyEvent: (node, event) {
             if (widget.readOnly) {
-              return KeyEventResult.ignored;
+              return .ignored;
             }
 
-            if (event is KeyDownEvent) {
-              // handle tab locally so focus doesn't move to other widgets
-              if (event.logicalKey == LogicalKeyboardKey.tab) {
-                widget.controller.handleKey(event);
-                return .handled;
-              }
+            if (event is KeyDownEvent || event is KeyRepeatEvent) {
               widget.controller.handleKey(event);
               return .handled;
             }
+
             return .ignored;
           },
 

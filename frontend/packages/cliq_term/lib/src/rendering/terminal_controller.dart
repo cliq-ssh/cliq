@@ -103,7 +103,9 @@ class TerminalController extends ChangeNotifier {
   /// Handles keyboard input events and translates them into terminal input.
   /// Supports character input and special keys like Enter, Backspace, Tab, and Arrow keys.
   void handleKey(KeyEvent ev) {
-    if (ev is! KeyDownEvent) return;
+    if (ev is! KeyDownEvent && ev is! KeyRepeatEvent) {
+      return;
+    }
 
     final String? ch = ev.character;
     if (ch != null && ch.isNotEmpty) {

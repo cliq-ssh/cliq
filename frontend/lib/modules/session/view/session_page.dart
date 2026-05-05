@@ -22,8 +22,9 @@ import '../provider/session.provider.dart';
 
 class ShellSessionPage extends StatefulHookConsumerWidget {
   final ShellSession session;
+  final FocusNode? focusNode;
 
-  const ShellSessionPage({super.key, required this.session});
+  const ShellSessionPage({super.key, required this.session, this.focusNode});
 
   @override
   ConsumerState<ConsumerStatefulWidget> createState() =>
@@ -287,7 +288,10 @@ class _ShellSessionPageState extends ConsumerState<ShellSessionPage>
         child: Container(
           color: getEffectiveTerminalTheme().backgroundColor,
           padding: const .all(8),
-          child: TerminalView(controller: terminalController.value!),
+          child: TerminalView(
+            controller: terminalController.value!,
+            focusNode: widget.focusNode,
+          ),
         ),
       );
     }

@@ -34,30 +34,13 @@ class _SessionPageState extends ConsumerState<SessionPageWrapper> {
       children: [
         for (final session in session.activeSessions)
           SplitView(
-            children: [
-              ShellSessionPage(
+            itemBuilder: [
+              (_, focus) => ShellSessionPage(
                 key: PageStorageKey(
-                  'session-${session.connection.label}--${session.id}',
+                  'session-${session.connection.label}--${session.id}1',
                 ),
                 session: session,
-              ),
-              ShellSessionPage(
-                key: PageStorageKey(
-                  'session-${session.connection.label}--${session.id}',
-                ),
-                session: session,
-              ),
-              ShellSessionPage(
-                key: PageStorageKey(
-                  'session-${session.connection.label}--${session.id}',
-                ),
-                session: session,
-              ),
-              ShellSessionPage(
-                key: PageStorageKey(
-                  'session-${session.connection.label}--${session.id}',
-                ),
-                session: session,
+                focusNode: focus,
               ),
             ],
           ),
