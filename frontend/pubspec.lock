@@ -433,10 +433,9 @@ packages:
   forui:
     dependency: "direct main"
     description:
-      name: forui
-      sha256: "099deb57d345aaafd73b4ee3dc150bfe032e1d583a898461183586cbb0153778"
-      url: "https://pub.dev"
-    source: hosted
+      path: "../../forui/forui"
+      relative: true
+    source: path
     version: "0.21.3"
   forui_assets:
     dependency: transitive
@@ -449,10 +448,9 @@ packages:
   forui_hooks:
     dependency: "direct main"
     description:
-      name: forui_hooks
-      sha256: "00b9ff5a2cfe063e9ce2f66cfb5b7f955b3de04c936c2684448b5bfaef51caca"
-      url: "https://pub.dev"
-    source: hosted
+      path: "../../forui/forui_hooks"
+      relative: true
+    source: path
     version: "0.21.0"
   freezed_annotation:
     dependency: transitive

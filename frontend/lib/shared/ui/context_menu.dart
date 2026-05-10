@@ -83,6 +83,7 @@ class CustomContextMenu extends HookConsumerWidget {
                       ? Text(action.label)
                       : Row(
                           mainAxisAlignment: .spaceBetween,
+                          spacing: 16,
                           children: [
                             Flexible(child: Text(action.label)),
                             ShortcutInfo(shortcut: action.shortcut!),

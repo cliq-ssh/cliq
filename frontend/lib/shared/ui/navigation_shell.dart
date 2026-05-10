@@ -1,4 +1,5 @@
 import 'package:cliq/modules/connections/provider/connection.provider.dart';
+import 'package:cliq/modules/session/model/session.model.dart';
 import 'package:cliq/shared/provider/store.provider.dart';
 import 'package:cliq/shared/ui/context_menu.dart';
 import 'package:cliq/shared/ui/responsive_sidebar.dart';
@@ -162,7 +163,30 @@ class NavigationShellState extends ConsumerState<NavigationShell>
               ),
             ],
             builder: (_) {
-              return _buildSidebarTab(
+              final icon = Builder(
+                builder: (context) {
+                  Widget child = Container(
+                    decoration: BoxDecoration(
+                      color: session.connection.iconBackgroundColor,
+                      borderRadius: BorderRadius.circular(6),
+                    ),
+                    padding: .all(5),
+                    child: Icon(
+                      session.connection.icon.iconData,
+                      color: session.connection.iconColor,
+                      size: 10,
+                    ),
+                  );
+
+                  if (!isExpanded) {
+                    child = AspectRatio(aspectRatio: 1, child: child);
+                  }
+
+                  return child;
+                },
+              );
+
+              final tab = _buildSidebarTab(
                 isExpanded,
                 label: Row(
                   spacing: 8,
@@ -210,34 +234,38 @@ class NavigationShellState extends ConsumerState<NavigationShell>
                     ),
                   ],
                 ),
-                icon: Builder(
-                  builder: (context) {
-                    Widget child = Container(
-                      decoration: BoxDecoration(
-                        color: session.connection.iconBackgroundColor,
-                        borderRadius: BorderRadius.circular(6),
-                      ),
-                      padding: .all(5),
-                      child: Icon(
-                        session.connection.icon.iconData,
-                        color: session.connection.iconColor,
-                        size: 10,
-                      ),
-                    );
-
-                    if (!isExpanded) {
-                      child = AspectRatio(aspectRatio: 1, child: child);
-                    }
-
-                    return child;
-                  },
-                ),
+                icon: icon,
                 selected: session.id == selectedSession.value?.id,
                 onPress: () => ref
                     .read(sessionProvider.notifier)
                     .setSelectedAndMaybeGo(this, session.id),
                 noPadding: isExpanded,
                 isTop: navPosition.value == .top,
+              );
+
+              return Draggable<ShellSession>(
+                data: session,
+                maxSimultaneousDrags: 1,
+                feedback: SizedBox(
+                  width: 200,
+                  child: Opacity(
+                    opacity: 0.7,
+                    child: _buildSidebarTab(
+                      true,
+                      label: Text(
+                        session.connection.label,
+                        overflow: .fade,
+                        softWrap: false,
+                      ),
+                      icon: icon,
+                      selected: session.id == selectedSession.value?.id,
+                      noPadding: isExpanded,
+                      isTop: navPosition.value == .top,
+                    ),
+                  ),
+                ),
+                childWhenDragging: Opacity(opacity: 0.5, child: tab),
+                child: tab,
               );
             },
           ),
