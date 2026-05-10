@@ -40,7 +40,6 @@ class _ShellSessionPageState extends ConsumerState<ShellSessionPage>
   Widget build(BuildContext context) {
     super.build(context);
 
-    final terminalController = useState<TerminalController?>(null);
     final typography = context.theme.typography;
     final size = MediaQuery.of(context).size;
 
@@ -48,6 +47,10 @@ class _ShellSessionPageState extends ConsumerState<ShellSessionPage>
     final session = sessionState.activeSessions.firstWhere(
       (s) => s.id == widget.sessionId,
       orElse: () => throw Exception('Session not found'),
+    );
+
+    final terminalController = useState<TerminalController?>(
+      session.terminalController,
     );
 
     final defaultTerminalTypography = useStore(.defaultTerminalTypography);
@@ -94,8 +97,9 @@ class _ShellSessionPageState extends ConsumerState<ShellSessionPage>
 
     // initial setup of terminal controller
     useEffect(() {
+      if (terminalController.value != null) return null;
       terminalController.value = buildTerminalController();
-      return () => terminalController.value?.dispose();
+      return null;
     }, []);
 
     // open SSH connection when terminal controller is set
@@ -103,33 +107,47 @@ class _ShellSessionPageState extends ConsumerState<ShellSessionPage>
       if (terminalController.value == null) return null;
 
       Future<void> openSsh(ConnectionFull connection) async {
-        final client = await ref
-            .read(sessionProvider.notifier)
-            .createSSHClient(session, connection);
+        if (terminalController.value == null) return;
 
-        final shell = await ref
-            .read(sessionProvider.notifier)
-            .spawnShell(session.id, client);
+        final client =
+            session.sshClient ??
+            await ref
+                .read(sessionProvider.notifier)
+                .createSSHClient(session, connection);
 
-        terminalController.value?.fitResize(size);
+        final shell =
+            session.sshSession ??
+            await ref
+                .read(sessionProvider.notifier)
+                .spawnShell(session.id, client, terminalController.value!);
 
-        terminalController.value?.onInput = (s) {
+        terminalController.value!.fitResize(size);
+
+        terminalController.value!.onInput = (s) {
           session.sshSession?.stdin.add(Uint8List.fromList(s.codeUnits));
         };
 
-        shell?.stdout.listen((data) {
-          final controller = terminalController.value;
-          if (controller != null) {
-            controller.feed(String.fromCharCodes(data));
-          }
-        });
+        StreamSubscription? stdoutSub =
+            session.stdoutSub ??
+            shell?.stdout.listen((data) {
+              final controller = terminalController.value;
+              if (controller != null) {
+                controller.feed(String.fromCharCodes(data));
+              }
+            });
 
-        shell?.stderr.listen((data) {
-          final controller = terminalController.value;
-          if (controller != null) {
-            controller.feed(String.fromCharCodes(data));
-          }
-        });
+        StreamSubscription? stderrSub =
+            session.stderrSub ??
+            shell?.stderr.listen((data) {
+              final controller = terminalController.value;
+              if (controller != null) {
+                controller.feed(String.fromCharCodes(data));
+              }
+            });
+
+        ref
+            .read(sessionProvider.notifier)
+            .setStreamListeners(session.id, stdoutSub, stderrSub);
       }
 
       final connectionFull = ref
@@ -137,7 +155,10 @@ class _ShellSessionPageState extends ConsumerState<ShellSessionPage>
           .findById(session.connection.id);
 
       if (connectionFull != null) {
-        openSsh(connectionFull);
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (!mounted) return;
+          openSsh(connectionFull);
+        });
       }
 
       return () => session.dispose();
@@ -146,12 +167,18 @@ class _ShellSessionPageState extends ConsumerState<ShellSessionPage>
     // update terminal controller when typography or theme changes
     useEffect(() {
       if (terminalController.value == null) return null;
-      terminalController.value!.setTerminalTypography(
-        getEffectiveTerminalTypography(),
-      );
-      terminalController.value!.setTerminalTheme(
-        getEffectiveTerminalTheme().toTerminalTheme(),
-      );
+
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+
+        terminalController.value!.setTerminalTypography(
+          getEffectiveTerminalTypography(),
+        );
+        terminalController.value!.setTerminalTheme(
+          getEffectiveTerminalTheme().toTerminalTheme(),
+        );
+      });
+
       return null;
     }, [defaultTerminalTypography.value, defaultTerminalTheme.value]);
 

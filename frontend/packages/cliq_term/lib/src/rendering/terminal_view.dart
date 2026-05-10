@@ -61,7 +61,6 @@ class _TerminalViewState extends State<TerminalView> {
       _focusNode.dispose();
     }
     _scrollController.dispose();
-    widget.controller.stopCursorBlink();
     super.dispose();
   }
 

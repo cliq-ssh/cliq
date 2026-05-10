@@ -7,6 +7,7 @@ enum SplitViewDirection { horizontal, vertical }
 
 /// The minimum extent of a split leaf. This is to prevent the leaf from being resized to a size that is too small to be usable.
 const _kMinExtent = 80.0;
+
 /// The thickness of the divider that can be dragged to resize the leaves.
 const _kDividerExtent = 6.0;
 
@@ -240,7 +241,6 @@ class _BranchWidget<T extends Object> extends HookConsumerWidget {
             child: SizedBox(
               width: isH ? constraints.maxWidth : _kDividerExtent,
               height: isH ? _kDividerExtent : constraints.maxHeight,
-              child: ColoredBox(color: context.theme.colors.border),
             ),
           ),
         );

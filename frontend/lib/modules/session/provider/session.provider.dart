@@ -1,9 +1,11 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:cliq/modules/connections/model/connection_full.model.dart';
 import 'package:cliq/modules/credentials/data/credential_service.dart';
 import 'package:cliq/modules/session/model/session.state.dart';
 import 'package:cliq/shared/ui/navigation_shell.dart';
+import 'package:cliq_term/cliq_term.dart';
 import 'package:crypto/crypto.dart';
 import 'package:dartssh2/dartssh2.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -152,7 +154,11 @@ class ShellSessionNotifier extends Notifier<SSHSessionState> {
     return sshClient;
   }
 
-  Future<SSHSession?> spawnShell(String sessionId, SSHClient sshClient) async {
+  Future<SSHSession?> spawnShell(
+    String sessionId,
+    SSHClient sshClient,
+    TerminalController controller,
+  ) async {
     try {
       final sshSession = await sshClient.shell();
       await sshClient.authenticated;
@@ -162,6 +168,7 @@ class ShellSessionNotifier extends Notifier<SSHSessionState> {
           connectedAt: DateTime.now(),
           sshClient: sshClient,
           sshSession: sshSession,
+          terminalController: controller,
         ),
       );
       return sshSession;
@@ -173,6 +180,17 @@ class ShellSessionNotifier extends Notifier<SSHSessionState> {
       );
       return null;
     }
+  }
+
+  void setStreamListeners(
+    String sessionId,
+    StreamSubscription? stdoutSub,
+    StreamSubscription? stderrSub,
+  ) {
+    _modifySession(
+      sessionId,
+      (session) => session.copyWith(stdoutSub: stdoutSub, stderrSub: stderrSub),
+    );
   }
 
   Future<int> acceptFingerprint(
