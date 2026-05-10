@@ -18,44 +18,74 @@ class SessionPageWrapper extends StatefulHookConsumerWidget {
 }
 
 class _SessionPageState extends ConsumerState<SessionPageWrapper> {
+  final Map<String, SplitNode<ShellSession>> _pageMap = {};
+
+  /// Checks if the given session ID is present in the node tree.
+  bool _containsSessionId(SplitNode<ShellSession> node, String id) =>
+      switch (node) {
+        SplitLeaf<ShellSession>(:final value) => value.id == id,
+        SplitBranch<ShellSession>(:final first, :final second) =>
+          _containsSessionId(first, id) || _containsSessionId(second, id),
+      };
+
+  /// Builds a [SplitLeaf] widget for the given [ShellSession].
+  SplitLeaf<ShellSession> _buildLeaf(ShellSession s) => SplitLeaf(
+    value: s,
+    builder: (_, focus) => ShellSessionPage(
+      key: ValueKey('session-${s.id}'),
+      sessionId: s.id,
+      focusNode: focus,
+    ),
+  );
+
+  /// Replaces the target leaf node with the replacement node in the given tree.
+  SplitNode<ShellSession> _replaceLeaf(
+    SplitNode<ShellSession> node,
+    SplitLeaf<ShellSession> target,
+    SplitNode<ShellSession> replacement,
+  ) {
+    if (identical(node, target)) return replacement;
+    if (node is SplitBranch<ShellSession>) {
+      node.first = _replaceLeaf(node.first, target, replacement);
+      node.second = _replaceLeaf(node.second, target, replacement);
+    }
+    return node;
+  }
+
+  /// Synchronizes the page map with the list of active sessions.
+  void _syncPageMap(List<ShellSession> activeSessions) {
+    // add new sessions
+    for (final s in activeSessions) {
+      _pageMap[s.id] ??= _buildLeaf(s);
+    }
+    // remove closed sessions
+    final activeIds = activeSessions.map((s) => s.id).toSet();
+    _pageMap.removeWhere((id, node) {
+      if (!activeIds.contains(id)) {
+        node.dispose();
+        return true;
+      }
+      return false;
+    });
+  }
+
+  @override
+  void dispose() {
+    for (final node in _pageMap.values) {
+      node.dispose();
+    }
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     final session = ref.watch(sessionProvider);
     final pageController = usePageController();
-    final pageMap = useState<Map<int, SplitViewItem<ShellSession>>>({});
 
-    SplitViewItem<ShellSession> buildItem(ShellSession s, int pageIndex) {
-      return SplitViewItem<ShellSession>(
-        builder: (_, focus) => ShellSessionPage(
-          key: PageStorageKey('session-${s.id}'),
-          session: s,
-          focusNode: focus,
-        ),
-        onDrop: (targetItem, droppedSession, direction, topOrLeft) {
-          final newChild = buildItem(droppedSession, pageIndex);
-
-          SplitViewItem<ShellSession> replaceInTree(SplitViewItem<ShellSession> node) {
-            if (identical(node, targetItem)) {
-              return node.copyWith(split: (direction, topOrLeft, newChild));
-            }
-            if (node.split != null) {
-              final replaced = replaceInTree(node.split!.$3);
-              if (!identical(replaced, node.split!.$3)) {
-                return node.copyWith(
-                  split: (node.split!.$1, node.split!.$2, replaced),
-                );
-              }
-            }
-            return node;
-          }
-
-          pageMap.value = {
-            ...pageMap.value,
-            pageIndex: replaceInTree(pageMap.value[pageIndex]!),
-          };
-        },
-      );
-    }
+    useEffect(() {
+      _syncPageMap(session.activeSessions);
+      return null;
+    }, [session.activeSessions]);
 
     useEffect(() {
       if (pageController.hasClients && session.selectedSessionId != null) {
@@ -64,22 +94,31 @@ class _SessionPageState extends ConsumerState<SessionPageWrapper> {
       return null;
     }, [session.selectedSessionId]);
 
-    useEffect(() {
-      final newPageMap = <int, SplitViewItem<ShellSession>>{};
-      for (int i = 0; i < session.activeSessions.length; i++) {
-        // preserve existing split trees for sessions that are still active
-        newPageMap[i] = pageMap.value[i] ?? buildItem(session.activeSessions[i], i);
-      }
-      pageMap.value = newPageMap;
-      return null;
-    }, [session.activeSessions]);
-
     return PageView(
       controller: pageController,
       children: [
-        for (int i = 0; i < session.activeSessions.length; i++)
-          if (pageMap.value.containsKey(i))
-            SplitView<ShellSession>(parent: pageMap.value[i]!),
+        for (final s in session.activeSessions)
+          SplitView<ShellSession>(
+            root: _pageMap[s.id]!,
+            canDrop: (target, dropped) {
+              if (dropped.id == target.value.id) return false;
+              // dont allow adding an existing session to its own tree
+              return !_containsSessionId(_pageMap[s.id]!, dropped.id);
+            },
+            onDrop: (target, dropped, direction, isFirst) {
+              setState(() {
+                _pageMap[s.id] = _replaceLeaf(
+                  _pageMap[s.id]!,
+                  target,
+                  SplitBranch<ShellSession>(
+                    direction: direction,
+                    first: isFirst ? _buildLeaf(dropped) : target,
+                    second: isFirst ? target : _buildLeaf(dropped),
+                  ),
+                );
+              });
+            },
+          ),
       ],
     );
   }

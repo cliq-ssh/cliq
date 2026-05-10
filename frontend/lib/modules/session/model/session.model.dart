@@ -45,8 +45,6 @@ class ShellSession {
   /// Whether to skip host key verification for this session.
   final bool skipHostKeyVerification;
 
-  List<ShellSession> splitSessions = [];
-
   ShellSession({
     required this.id,
     required this.connection,

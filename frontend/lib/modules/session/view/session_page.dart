@@ -1,13 +1,13 @@
+import 'dart:async';
+
 import 'package:cliq/modules/connections/model/connection_full.model.dart';
 import 'package:cliq/modules/connections/provider/connection.provider.dart';
-import 'package:cliq/modules/session/model/session.model.dart';
 import 'package:cliq/modules/settings/extension/custom_terminal_theme.extension.dart';
 import 'package:cliq/modules/settings/provider/terminal_theme.provider.dart';
 import 'package:cliq/shared/provider/store.provider.dart';
 import 'package:cliq/shared/utils/commons.dart';
 import 'package:cliq_ui/cliq_ui.dart'
     show CliqGridColumn, CliqGridContainer, CliqGridRow;
-import 'package:dartssh2/dartssh2.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart' hide LicensePage;
 import 'package:flutter/services.dart';
@@ -21,10 +21,10 @@ import '../../../shared/ui/navigation_shell.dart';
 import '../provider/session.provider.dart';
 
 class ShellSessionPage extends StatefulHookConsumerWidget {
-  final ShellSession session;
+  final String sessionId;
   final FocusNode? focusNode;
 
-  const ShellSessionPage({super.key, required this.session, this.focusNode});
+  const ShellSessionPage({super.key, required this.sessionId, this.focusNode});
 
   @override
   ConsumerState<ConsumerStatefulWidget> createState() =>
@@ -33,10 +33,6 @@ class ShellSessionPage extends StatefulHookConsumerWidget {
 
 class _ShellSessionPageState extends ConsumerState<ShellSessionPage>
     with AutomaticKeepAliveClientMixin {
-  ShellSession get session => widget.session;
-  SSHClient? get sshClient => session.sshClient;
-  SSHSession? get sshSession => session.sshSession;
-
   @override
   bool get wantKeepAlive => true;
 
@@ -48,16 +44,22 @@ class _ShellSessionPageState extends ConsumerState<ShellSessionPage>
     final typography = context.theme.typography;
     final size = MediaQuery.of(context).size;
 
+    final sessionState = ref.watch(sessionProvider);
+    final session = sessionState.activeSessions.firstWhere(
+      (s) => s.id == widget.sessionId,
+      orElse: () => throw Exception('Session not found'),
+    );
+
     final defaultTerminalTypography = useStore(.defaultTerminalTypography);
     final defaultTerminalTheme = useStore(.defaultTerminalThemeId);
     final themes = ref.watch(terminalThemeProvider);
 
     getEffectiveTerminalTypography() =>
-        widget.session.connection.terminalTypographyOverride ??
+        session.connection.terminalTypographyOverride ??
         defaultTerminalTypography.value;
 
     getEffectiveTerminalTheme() =>
-        widget.session.connection.terminalThemeOverride ??
+        session.connection.terminalThemeOverride ??
         themes.findById(defaultTerminalTheme.value, isDefaultTheme: true)!;
 
     buildTerminalController() {
@@ -67,7 +69,7 @@ class _ShellSessionPageState extends ConsumerState<ShellSessionPage>
         typography: getEffectiveTerminalTypography(),
         debugLogging: kDebugMode,
         onResize: (rows, cols) {
-          sshSession?.resizeTerminal(cols, rows);
+          session.sshSession?.resizeTerminal(cols, rows);
           // TODO: resize overlay
         },
       );
@@ -76,7 +78,7 @@ class _ShellSessionPageState extends ConsumerState<ShellSessionPage>
     closeSession() {
       ref
           .read(sessionProvider.notifier)
-          .closeAnyMaybeGo(NavigationShell.of(context), widget.session.id);
+          .closeAnyMaybeGo(NavigationShell.of(context), session.id);
     }
 
     retrySession({bool skipHostKeyVerification = false}) {
@@ -103,33 +105,42 @@ class _ShellSessionPageState extends ConsumerState<ShellSessionPage>
       Future<void> openSsh(ConnectionFull connection) async {
         final client = await ref
             .read(sessionProvider.notifier)
-            .createSSHClient(widget.session, connection);
+            .createSSHClient(session, connection);
 
         final shell = await ref
             .read(sessionProvider.notifier)
-            .spawnShell(widget.session.id, client);
+            .spawnShell(session.id, client);
 
-        terminalController.value!.fitResize(size);
-        terminalController.value!.onInput = (s) {
-          if (sshSession != null) {
-            sshSession!.stdin.add(Uint8List.fromList(s.codeUnits));
-          }
+        terminalController.value?.fitResize(size);
+
+        terminalController.value?.onInput = (s) {
+          session.sshSession?.stdin.add(Uint8List.fromList(s.codeUnits));
         };
 
         shell?.stdout.listen((data) {
-          terminalController.value!.feed(String.fromCharCodes(data));
+          final controller = terminalController.value;
+          if (controller != null) {
+            controller.feed(String.fromCharCodes(data));
+          }
         });
 
         shell?.stderr.listen((data) {
-          terminalController.value!.feed(String.fromCharCodes(data));
+          final controller = terminalController.value;
+          if (controller != null) {
+            controller.feed(String.fromCharCodes(data));
+          }
         });
       }
 
       final connectionFull = ref
           .read(connectionProvider.notifier)
-          .findById(widget.session.connection.id);
-      if (connectionFull != null) openSsh(connectionFull);
-      return () => widget.session.dispose();
+          .findById(session.connection.id);
+
+      if (connectionFull != null) {
+        openSsh(connectionFull);
+      }
+
+      return () => session.dispose();
     }, [terminalController.value]);
 
     // update terminal controller when typography or theme changes
@@ -153,7 +164,7 @@ class _ShellSessionPageState extends ConsumerState<ShellSessionPage>
             children: [
               TextSpan(text: 'Connecting to '),
               TextSpan(
-                text: widget.session.connection.address,
+                text: session.connection.address,
                 style: typography.xl.copyWith(fontWeight: .bold),
               ),
             ],
@@ -283,7 +294,7 @@ class _ShellSessionPageState extends ConsumerState<ShellSessionPage>
       ];
     }
 
-    if (widget.session.isConnected && terminalController.value != null) {
+    if (session.isConnected && terminalController.value != null) {
       return SizedBox.expand(
         child: Container(
           color: getEffectiveTerminalTheme().backgroundColor,
