@@ -51,6 +51,13 @@ class TerminalController extends ChangeNotifier {
   bool cursorVisible = true;
   Timer? _cursorTimer;
 
+  // Selection state (visible coordinates: 0..rows-1)
+  bool selectionActive = false;
+  int? selectionStartRow;
+  int? selectionStartCol;
+  int? selectionEndRow;
+  int? selectionEndCol;
+
   TerminalController({
     required TerminalTypography typography,
     required TerminalTheme theme,
@@ -229,6 +236,51 @@ class TerminalController extends ChangeNotifier {
     //  cursorVisible = !cursorVisible;
     //  notifyListeners();
     //});
+  }
+
+  /// Begin text selection at visible [row],[col]
+  void startSelection(int row, int col) {
+    selectionActive = true;
+    selectionStartRow = row.clamp(0, max(0, rows - 1));
+    selectionStartCol = col.clamp(0, max(0, cols - 1));
+    selectionEndRow = selectionStartRow;
+    selectionEndCol = selectionStartCol;
+    notifyListeners();
+  }
+
+  /// Update the selection end to visible [row],[col]
+  void updateSelection(int row, int col) {
+    if (!selectionActive) return;
+    selectionEndRow = row.clamp(0, max(0, rows - 1));
+    selectionEndCol = col.clamp(0, max(0, cols - 1));
+    notifyListeners();
+  }
+
+  /// Clear the active selection
+  void clearSelection() {
+    selectionActive = false;
+    selectionStartRow = null;
+    selectionStartCol = null;
+    selectionEndRow = null;
+    selectionEndCol = null;
+    notifyListeners();
+  }
+
+  /// Return the selected text (if selection active) using visible coordinates.
+  String? getSelectedText() {
+    if (!selectionActive ||
+        selectionStartRow == null ||
+        selectionStartCol == null ||
+        selectionEndRow == null ||
+        selectionEndCol == null) {
+      return null;
+    }
+    return activeBuffer.exportSelection(
+      selectionStartRow!,
+      selectionStartCol!,
+      selectionEndRow!,
+      selectionEndCol!,
+    );
   }
 
   /// Stops the cursor blinking timer.

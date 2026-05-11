@@ -11,6 +11,7 @@ import 'package:dartssh2/dartssh2.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart' hide LicensePage;
 import 'package:flutter/services.dart';
+import 'dart:convert';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:forui/forui.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -111,7 +112,8 @@ class _ShellSessionPageState extends ConsumerState<ShellSessionPage>
         terminalController.value!.fitResize(size);
         terminalController.value!.onInput = (s) {
           if (sshSession != null) {
-            sshSession!.stdin.add(Uint8List.fromList(s.codeUnits));
+            // Use UTF-8 encoding to preserve Unicode when pasting
+            sshSession!.stdin.add(Uint8List.fromList(utf8.encode(s)));
           }
         };
 

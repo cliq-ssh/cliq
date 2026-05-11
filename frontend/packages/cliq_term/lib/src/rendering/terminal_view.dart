@@ -1,5 +1,8 @@
 import 'package:cliq_term/cliq_term.dart';
 import 'package:cliq_term/src/rendering/terminal_painter.dart';
+import 'package:cliq_term/src/rendering/utils/gesture_selection_handler.dart';
+import 'package:cliq_term/src/rendering/utils/keyboard_helper.dart';
+import 'package:cliq_term/src/rendering/utils/terminal_shortcuts.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -114,11 +117,37 @@ class _TerminalViewState extends State<TerminalView> {
             }
 
             if (event is KeyDownEvent) {
-              // handle tab locally so focus doesn't move to other widgets
-              if (event.logicalKey == LogicalKeyboardKey.tab) {
-                widget.controller.handleKey(event);
+              // Do not clear selection on modifier-only key presses.
+              if (KeyboardHelper.isModifierOnlyKey(event.logicalKey)) {
                 return .handled;
               }
+
+              // Handle paste shortcut (Ctrl+Shift+V or Cmd+Shift+V)
+              if (TerminalShortcuts.isPasteShortcut(event)) {
+                widget.controller.clearSelection();
+                Clipboard.getData(Clipboard.kTextPlain).then((clip) {
+                  var text = clip?.text ?? '';
+                  if (text.isNotEmpty) {
+                    // Strip trailing newlines to prevent auto-execution on multiline paste
+                    text = TerminalShortcuts.stripTrailingNewlines(text);
+                    widget.controller.onInput?.call(text);
+                  }
+                });
+
+                return .handled;
+              }
+
+              // Handle copy shortcut (Ctrl+Shift+C or Cmd+Shift+C)
+              if (TerminalShortcuts.isCopyShortcut(event)) {
+                final sel = widget.controller.getSelectedText();
+                if (sel != null && sel.isNotEmpty) {
+                  Clipboard.setData(ClipboardData(text: sel));
+                }
+
+                return .handled;
+              }
+
+              widget.controller.clearSelection();
               widget.controller.handleKey(event);
               return .handled;
             }
@@ -129,7 +158,47 @@ class _TerminalViewState extends State<TerminalView> {
           child: GestureDetector(
             behavior: HitTestBehavior.translucent,
             // TODO: implement text selection
-            onTap: () => _focusNode.requestFocus(),
+            onTap: () {
+              _focusNode.requestFocus();
+              // clear any existing selection on simple click
+              widget.controller.clearSelection();
+            },
+            onPanStart: (details) {
+              _focusNode.requestFocus();
+              final (
+                visRow,
+                visCol,
+              ) = GestureSelectionHandler.calculateVisibleCoordinates(
+                localPosition: details.localPosition,
+                scrollOffset: _scrollController.offset,
+                cellWidth: cellW,
+                cellHeight: cellH,
+                currentScrollback:
+                    widget.controller.activeBuffer.currentScrollback,
+                maxRows: widget.controller.rows,
+                maxCols: widget.controller.cols,
+              );
+              widget.controller.startSelection(visRow, visCol);
+            },
+            onPanUpdate: (details) {
+              final (
+                visRow,
+                visCol,
+              ) = GestureSelectionHandler.calculateVisibleCoordinates(
+                localPosition: details.localPosition,
+                scrollOffset: _scrollController.offset,
+                cellWidth: cellW,
+                cellHeight: cellH,
+                currentScrollback:
+                    widget.controller.activeBuffer.currentScrollback,
+                maxRows: widget.controller.rows,
+                maxCols: widget.controller.cols,
+              );
+              widget.controller.updateSelection(visRow, visCol);
+            },
+            onPanEnd: (details) {
+              // selection remains active until user clears or starts another selection
+            },
             child: SingleChildScrollView(
               controller: _scrollController,
               scrollDirection: Axis.vertical,

@@ -3,6 +3,7 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 
 import '../../cliq_term.dart';
+import 'utils/selection_helper.dart';
 
 class TerminalPainter extends CustomPainter {
   final TerminalController controller;
@@ -45,6 +46,46 @@ class TerminalPainter extends CustomPainter {
           final rect = Rect.fromLTWH(c * cellW, r * cellH, cellW, cellH);
           final p = Paint()..color = cellBg;
           canvas.drawRect(rect, p);
+        }
+      }
+    }
+
+    // Draw selection overlay if active (selection coordinates are in visible rows)
+    if (controller.selectionActive &&
+        controller.selectionStartRow != null &&
+        controller.selectionStartCol != null &&
+        controller.selectionEndRow != null &&
+        controller.selectionEndCol != null) {
+      // normalize selection using helper
+      final bounds = SelectionHelper.normalize(
+        startRow: controller.selectionStartRow!,
+        startCol: controller.selectionStartCol!,
+        endRow: controller.selectionEndRow!,
+        endCol: controller.selectionEndCol!,
+        maxRows: controller.rows,
+        maxCols: cols,
+      );
+
+      // render selection overlay for each row
+      for (var vr = bounds.startRow; vr <= bounds.endRow; vr++) {
+        final absRow = controller.activeBuffer.currentScrollback + vr;
+        final rowSel = SelectionHelper.getRowSelection(
+          row: vr,
+          bounds: bounds,
+          maxCols: cols,
+        );
+
+        if (!rowSel.isEmpty) {
+          final rect = Rect.fromLTWH(
+            rowSel.start * cellW,
+            absRow * cellH,
+            (rowSel.end - rowSel.start + 1) * cellW,
+            cellH,
+          );
+          canvas.drawRect(
+            rect,
+            Paint()..color = controller.theme.selectionColor,
+          );
         }
       }
     }
