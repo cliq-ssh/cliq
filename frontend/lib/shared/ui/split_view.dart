@@ -168,7 +168,7 @@ class _DropOverlay extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final color = context.theme.colors.primary.withOpacity(0.35);
+    final color = context.theme.colors.primary.withValues(alpha: 0.35);
     final (dir, isFirst) = zone;
     return dir == SplitViewDirection.horizontal
         ? Positioned(

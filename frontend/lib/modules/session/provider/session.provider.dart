@@ -57,6 +57,10 @@ class ShellSessionNotifier extends Notifier<SSHSessionState> {
   /// Closes the session with the given [sessionId].
   /// If the closed session was the selected one, selects the last session in the list or navigates to the default branch if no sessions remain.
   void closeAnyMaybeGo(NavigationShellState shellState, String sessionId) {
+    // dispose session resources
+    final session = state.activeSessions.firstWhere((s) => s.id == sessionId);
+    session.dispose();
+
     final updatedSessions = state.activeSessions
         .where((s) => s.id != sessionId)
         .toList();

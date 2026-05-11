@@ -161,7 +161,7 @@ class _ShellSessionPageState extends ConsumerState<ShellSessionPage>
         });
       }
 
-      return () => session.dispose();
+      return null;
     }, [terminalController.value]);
 
     // update terminal controller when typography or theme changes
