@@ -48,10 +48,10 @@ dependencies:
 
 dependency_overrides:
   forui:
-    path: ../../forui/forui
-
-  forui_hooks:
-    path: ../../forui/forui_hooks
+    git:
+      url: https://github.com/duobaseio/forui.git
+      ref: nightly
+      path: forui
 
 dev_dependencies:
   flutter_test:

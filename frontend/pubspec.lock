@@ -433,9 +433,11 @@ packages:
   forui:
     dependency: "direct main"
     description:
-      path: "../../forui/forui"
-      relative: true
-    source: path
+      path: forui
+      ref: nightly
+      resolved-ref: e29c5e99fde6cabb91bbc1c56aeae95088b8d232
+      url: "https://github.com/duobaseio/forui.git"
+    source: git
     version: "0.21.3"
   forui_assets:
     dependency: transitive
@@ -448,9 +450,10 @@ packages:
   forui_hooks:
     dependency: "direct main"
     description:
-      path: "../../forui/forui_hooks"
-      relative: true
-    source: path
+      name: forui_hooks
+      sha256: "00b9ff5a2cfe063e9ce2f66cfb5b7f955b3de04c936c2684448b5bfaef51caca"
+      url: "https://pub.dev"
+    source: hosted
     version: "0.21.0"
   freezed_annotation:
     dependency: transitive
