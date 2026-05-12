@@ -1,5 +1,7 @@
+import 'package:cliq/modules/session/model/tab.model.dart';
 import 'package:cliq/modules/session/provider/session.provider.dart';
 import 'package:cliq/modules/session/view/session_page.dart';
+import 'package:cliq/shared/ui/navigation_shell.dart';
 import 'package:cliq/shared/ui/split_view.dart';
 import 'package:flutter/material.dart' hide LicensePage;
 import 'package:flutter_hooks/flutter_hooks.dart';
@@ -53,13 +55,13 @@ class _SessionPageState extends ConsumerState<SessionPageWrapper> {
   }
 
   /// Synchronizes the page map with the list of active sessions.
-  void _syncPageMap(List<ShellSession> activeSessions) {
+  void _syncPageMap(List<SessionTab> activeTabs) {
     // add new sessions
-    for (final s in activeSessions) {
-      _pageMap[s.id] ??= _buildLeaf(s);
+    for (final tab in activeTabs) {
+      _pageMap[tab.id] ??= _buildLeaf(tab.root);
     }
     // remove closed sessions
-    final activeIds = activeSessions.map((s) => s.id).toSet();
+    final activeIds = activeTabs.map((s) => s.id).toSet();
     _pageMap.removeWhere((id, node) {
       if (!activeIds.contains(id)) {
         node.dispose();
@@ -83,32 +85,32 @@ class _SessionPageState extends ConsumerState<SessionPageWrapper> {
     final pageController = usePageController();
 
     useEffect(() {
-      _syncPageMap(session.activeSessions);
+      _syncPageMap(session.activeTabs);
       return null;
-    }, [session.activeSessions]);
+    }, [session.activeTabs]);
 
     useEffect(() {
-      if (pageController.hasClients && session.selectedSessionId != null) {
-        pageController.jumpToPage(session.selectedSessionPageIndex!);
+      if (pageController.hasClients && session.selectedTabId != null) {
+        pageController.jumpToPage(session.selectedTabPageIndex!);
       }
       return null;
-    }, [session.selectedSessionId]);
+    }, [session.selectedTabId]);
 
     return PageView(
       controller: pageController,
       children: [
-        for (final s in session.activeSessions)
+        for (final tab in session.activeTabs)
           SplitView<ShellSession>(
-            root: _pageMap[s.id]!,
+            root: _pageMap[tab.id]!,
             canDrop: (target, dropped) {
               if (dropped.id == target.value.id) return false;
               // dont allow adding an existing session to its own tree
-              return !_containsSessionId(_pageMap[s.id]!, dropped.id);
+              return !_containsSessionId(_pageMap[tab.id]!, dropped.id);
             },
             onDrop: (target, dropped, direction, isFirst) {
               setState(() {
-                _pageMap[s.id] = _replaceLeaf(
-                  _pageMap[s.id]!,
+                _pageMap[tab.id] = _replaceLeaf(
+                  _pageMap[tab.id]!,
                   target,
                   SplitBranch<ShellSession>(
                     direction: direction,
@@ -116,6 +118,11 @@ class _SessionPageState extends ConsumerState<SessionPageWrapper> {
                     second: isFirst ? target : _buildLeaf(dropped),
                   ),
                 );
+
+                // add to tab
+                ref
+                    .read(sessionProvider.notifier)
+                    .merge(NavigationShell.of(context), tab.id, dropped);
               });
             },
           ),

@@ -24,7 +24,10 @@ class KnownHostError {
 }
 
 class ShellSession {
+  /// A unique identifier for this session, used for state management and UI tracking.
   final String id;
+
+  /// The connection details associated with this session, including host, port, username, and authentication method.
   final ConnectionFull connection;
 
   /// A potential error that occurred during the connection attempt.

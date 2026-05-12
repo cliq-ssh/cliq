@@ -53,13 +53,13 @@ class NavigationShellState extends ConsumerState<NavigationShell>
     final connections = ref.watch(connectionProvider);
     final sessions = ref.watch(sessionProvider);
     final terminalThemes = ref.watch(terminalThemeProvider);
-    final selectedSession = useState(sessions.selectedSession);
+    final selectedTab = useState(sessions.selectedSession);
     final showTabs = useState(false);
 
     useEffect(() {
-      selectedSession.value = sessions.selectedSession;
+      selectedTab.value = sessions.selectedSession;
       return null;
-    }, [sessions, sessions.selectedSessionId]);
+    }, [sessions, sessions.selectedTabId]);
 
     useEffect(() {
       navPosition.value = breakpoint >= .lg
@@ -71,19 +71,13 @@ class NavigationShellState extends ConsumerState<NavigationShell>
     /// Gets the effective sidebar color based on the selected session and its terminal theme.
     Color getEffectiveSidebarColor() {
       if (widget.shell.currentIndex == _sessionBranchIndex &&
-          selectedSession.value != null &&
-          selectedSession.value!.isConnected) {
-        final hsl = HSLColor.fromColor(
-          (selectedSession.value!.connection.terminalThemeOverride ??
-                  terminalThemes.findById(
-                    defaultTerminalTheme.value,
-                    isDefaultTheme: true,
-                  )!)
-              .backgroundColor,
+          selectedTab.value != null &&
+          selectedTab.value!.isAnyConnected) {
+        return selectedTab.value!.getEffectiveSidebarColor(
+          context,
+          terminalThemes,
+          defaultTerminalTheme.value,
         );
-        return hsl
-            .withLightness((hsl.lightness - 0.02).clamp(0.0, 1.0))
-            .toColor();
       }
       return context.theme.colors.background;
     }
@@ -138,26 +132,27 @@ class NavigationShellState extends ConsumerState<NavigationShell>
 
     buildSessionTabs(bool isExpanded) {
       return [
-        for (final session in sessions.activeSessions)
+        for (final t in sessions.activeTabs)
           CustomContextMenu(
             actions: [
-              .new(
-                label: 'Duplicate',
-                icon: LucideIcons.copy,
-                onPress: () {
-                  ref
-                      .read(sessionProvider.notifier)
-                      .createAndGo(this, session.connection);
-                },
-                shortcut: .new(.keyD, modifiers: {.meta}),
-              ),
+              if (t.sessions.isEmpty)
+                .new(
+                  label: 'Duplicate',
+                  icon: LucideIcons.copy,
+                  onPress: () {
+                    ref
+                        .read(sessionProvider.notifier)
+                        .createAndGo(this, t.root.connection);
+                  },
+                  shortcut: .new(.keyD, modifiers: {.meta}),
+                ),
               .new(
                 label: 'Close',
                 icon: LucideIcons.x,
                 onPress: () {
                   ref
                       .read(sessionProvider.notifier)
-                      .closeAnyMaybeGo(this, session.id);
+                      .closeTabAnyMaybeGo(this, t.id);
                 },
                 shortcut: .new(.keyW, modifiers: {.alt}),
               ),
@@ -167,13 +162,15 @@ class NavigationShellState extends ConsumerState<NavigationShell>
                 builder: (context) {
                   Widget child = Container(
                     decoration: BoxDecoration(
-                      color: session.connection.iconBackgroundColor,
+                      // TODO
+                      color: t.root.connection.iconBackgroundColor,
                       borderRadius: BorderRadius.circular(6),
                     ),
                     padding: .all(5),
                     child: Icon(
-                      session.connection.icon.iconData,
-                      color: session.connection.iconColor,
+                      // TODO
+                      t.root.connection.icon.iconData,
+                      color: t.root.connection.iconColor,
                       size: 10,
                     ),
                   );
@@ -193,7 +190,9 @@ class NavigationShellState extends ConsumerState<NavigationShell>
                   children: [
                     Expanded(
                       child: Text(
-                        session.connection.label,
+                        t.sessions.isEmpty
+                            ? t.root.connection.label
+                            : '${t.sessions.length + 1} sessions',
                         overflow: .fade,
                         softWrap: false,
                       ),
@@ -211,7 +210,7 @@ class NavigationShellState extends ConsumerState<NavigationShell>
                         onPress: () {
                           ref
                               .read(sessionProvider.notifier)
-                              .closeAnyMaybeGo(this, session.id);
+                              .closeTabAnyMaybeGo(this, t.id);
                         },
                         builder: (context, states, child) {
                           final isHovered =
@@ -235,16 +234,20 @@ class NavigationShellState extends ConsumerState<NavigationShell>
                   ],
                 ),
                 icon: icon,
-                selected: session.id == selectedSession.value?.id,
+                selected: t.id == selectedTab.value?.id,
                 onPress: () => ref
                     .read(sessionProvider.notifier)
-                    .setSelectedAndMaybeGo(this, session.id),
+                    .setSelectedAndMaybeGo(this, t.id),
                 noPadding: isExpanded,
                 isTop: navPosition.value == .top,
               );
 
+              if (t.sessions.isNotEmpty) {
+                return tab;
+              }
+
               return Draggable<ShellSession>(
-                data: session,
+                data: t.root,
                 maxSimultaneousDrags: 1,
                 feedback: SizedBox(
                   width: 200,
@@ -253,12 +256,14 @@ class NavigationShellState extends ConsumerState<NavigationShell>
                     child: _buildSidebarTab(
                       true,
                       label: Text(
-                        session.connection.label,
+                        t.sessions.isEmpty
+                            ? t.root.connection.label
+                            : '${t.sessions.length + 1} sessions',
                         overflow: .fade,
                         softWrap: false,
                       ),
                       icon: icon,
-                      selected: session.id == selectedSession.value?.id,
+                      selected: t.id == selectedTab.value?.id,
                       noPadding: isExpanded,
                       isTop: navPosition.value == .top,
                     ),
@@ -300,7 +305,7 @@ class NavigationShellState extends ConsumerState<NavigationShell>
             isTop: navPosition.value == .top,
             noPadding:
                 navPosition.value == .top ||
-                (sessions.activeSessions.isNotEmpty && isExpanded),
+                (sessions.activeTabs.isNotEmpty && isExpanded),
           ),
         ),
       ];
@@ -341,9 +346,9 @@ class NavigationShellState extends ConsumerState<NavigationShell>
           return [
             buildDashboardTab(isExpanded),
             FDivider(style: .delta(color: context.theme.colors.border)),
-            if (!isExpanded || sessions.activeSessions.isEmpty)
+            if (!isExpanded || sessions.activeTabs.isEmpty)
               ...buildSessionTabs(isExpanded)
-            else if (sessions.activeSessions.isNotEmpty)
+            else if (sessions.activeTabs.isNotEmpty)
               FSidebarGroup(
                 label: Text('Sessions'),
                 children: buildSessionTabs(isExpanded),

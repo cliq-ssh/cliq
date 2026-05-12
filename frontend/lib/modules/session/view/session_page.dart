@@ -43,12 +43,9 @@ class _ShellSessionPageState extends ConsumerState<ShellSessionPage>
     final typography = context.theme.typography;
     final size = MediaQuery.of(context).size;
 
-    final sessionState = ref.watch(sessionProvider);
-    final session = sessionState.activeSessions.firstWhere(
-      (s) => s.id == widget.sessionId,
-      orElse: () => throw Exception('Session not found'),
-    );
-
+    final session = ref
+        .watch(sessionProvider.notifier)
+        .getSessionById(widget.sessionId)!;
     final terminalController = useState<TerminalController?>(
       session.terminalController,
     );
@@ -81,7 +78,7 @@ class _ShellSessionPageState extends ConsumerState<ShellSessionPage>
     closeSession() {
       ref
           .read(sessionProvider.notifier)
-          .closeAnyMaybeGo(NavigationShell.of(context), session.id);
+          .closeTabAnyMaybeGo(NavigationShell.of(context), session.id);
     }
 
     retrySession({bool skipHostKeyVerification = false}) {
