@@ -2,6 +2,40 @@ import 'package:flutter/services.dart';
 
 /// Handles terminal keyboard shortcuts (Ctrl+Shift+C/V and Cmd+Shift+C/V on macOS).
 class TerminalShortcuts {
+  static final Map<LogicalKeyboardKey, String> _controlCharacterMap = {
+    LogicalKeyboardKey.keyA: '\x01',
+    LogicalKeyboardKey.keyB: '\x02',
+    LogicalKeyboardKey.keyC: '\x03',
+    LogicalKeyboardKey.keyD: '\x04',
+    LogicalKeyboardKey.keyE: '\x05',
+    LogicalKeyboardKey.keyF: '\x06',
+    LogicalKeyboardKey.keyG: '\x07',
+    LogicalKeyboardKey.keyH: '\x08',
+    LogicalKeyboardKey.keyI: '\x09',
+    LogicalKeyboardKey.keyJ: '\x0A',
+    LogicalKeyboardKey.keyK: '\x0B',
+    LogicalKeyboardKey.keyL: '\x0C',
+    LogicalKeyboardKey.keyM: '\x0D',
+    LogicalKeyboardKey.keyN: '\x0E',
+    LogicalKeyboardKey.keyO: '\x0F',
+    LogicalKeyboardKey.keyP: '\x10',
+    LogicalKeyboardKey.keyQ: '\x11',
+    LogicalKeyboardKey.keyR: '\x12',
+    LogicalKeyboardKey.keyS: '\x13',
+    LogicalKeyboardKey.keyT: '\x14',
+    LogicalKeyboardKey.keyU: '\x15',
+    LogicalKeyboardKey.keyV: '\x16',
+    LogicalKeyboardKey.keyW: '\x17',
+    LogicalKeyboardKey.keyX: '\x18',
+    LogicalKeyboardKey.keyY: '\x19',
+    LogicalKeyboardKey.keyZ: '\x1A',
+  };
+
+  /// Returns the ASCII control character for a letter key, if it exists.
+  static String? controlCharacterForKey(LogicalKeyboardKey key) {
+    return _controlCharacterMap[key];
+  }
+
   /// Check if the keyboard event is Ctrl+Shift+C (copy) or Cmd+Shift+C on macOS.
   static bool isCopyShortcut(KeyEvent event) {
     final isCtrl =
