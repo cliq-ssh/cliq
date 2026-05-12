@@ -1,6 +1,7 @@
 import 'package:cliq/modules/settings/model/navigation_position.model.dart';
 import 'package:cliq/shared/ui/sidebar_tab.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:forui/forui.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lucide_flutter/lucide_flutter.dart';
@@ -41,6 +42,8 @@ class SessionSidebarTab extends HookConsumerWidget {
        tabId = tab.id;
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final isDragging = useState(false);
+
     select() {
       if (tabId != null) {
         ref
@@ -181,12 +184,23 @@ class SessionSidebarTab extends HookConsumerWidget {
         return Draggable<ShellSession>(
           data: root,
           maxSimultaneousDrags: 1,
+          onDragStarted: () => isDragging.value = true,
+          onDragEnd: (_) => isDragging.value = false,
+          onDraggableCanceled: (_, __) => isDragging.value = false,
+          onDragCompleted: () => isDragging.value = false,
+          onDragUpdate: (_) => isDragging.value = true,
           feedback: SizedBox(
             width: 200,
-            child: Opacity(opacity: 0.7, child: child),
+            child: Opacity(
+              opacity: 0.7,
+              child: IgnorePointer(ignoring: true, child: child),
+            ),
           ),
-          childWhenDragging: Opacity(opacity: 0.5, child: child),
-          child: child,
+          childWhenDragging: Opacity(
+            opacity: 0.5,
+            child: IgnorePointer(ignoring: true, child: child),
+          ),
+          child: IgnorePointer(ignoring: isDragging.value, child: child),
         );
       },
     );
