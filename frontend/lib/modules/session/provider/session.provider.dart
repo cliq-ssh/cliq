@@ -55,7 +55,7 @@ class SessionNotifier extends Notifier<SessionState> {
 
   /// Closes the session with the given [tabId].
   /// If the closed session was the selected one, selects the last session in the list or navigates to the default branch if no sessions remain.
-  void closeTabAnyMaybeGo(
+  void closeTabAndMaybeGo(
     NavigationShellState shellState,
     String tabId, {
     bool dispose = true,
@@ -116,7 +116,7 @@ class SessionNotifier extends Notifier<SessionState> {
 
     // if root session is closed, close the entire tab
     if (tab.root.id == sessionId) {
-      closeTabAnyMaybeGo(shellState, tabId, dispose: dispose);
+      closeTabAndMaybeGo(shellState, tabId, dispose: dispose);
     } else {
       // otherwise just remove the session from the tab
       final newSessions = tab.sessions.where((s) => s.id != sessionId).toList();

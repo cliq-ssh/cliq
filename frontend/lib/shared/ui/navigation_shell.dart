@@ -1,9 +1,8 @@
 import 'package:cliq/modules/connections/provider/connection.provider.dart';
-import 'package:cliq/modules/session/model/session.model.dart';
 import 'package:cliq/shared/provider/store.provider.dart';
-import 'package:cliq/shared/ui/context_menu.dart';
 import 'package:cliq/shared/ui/responsive_sidebar.dart';
 import 'package:cliq/shared/ui/shortcut_info.dart';
+import 'package:cliq/shared/ui/sidebar_tab.dart';
 import 'package:cliq_ui/cliq_ui.dart' show useBreakpoint;
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:forui/forui.dart';
@@ -13,6 +12,7 @@ import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
 import '../../modules/session/provider/session.provider.dart';
+import '../../modules/session/ui/session_sidebar_tab.dart';
 import '../../modules/settings/model/navigation_position.model.dart';
 import '../../modules/settings/provider/terminal_theme.provider.dart';
 
@@ -89,10 +89,10 @@ class NavigationShellState extends ConsumerState<NavigationShell>
           'Dashboard',
           shortcut: ShortcutActionInfo(.keyD, modifiers: {.control}),
         ),
-        child: _buildSidebarTab(
-          isExpanded,
+        child: SidebarTab(
+          isExpanded: isExpanded,
           label: Text('Dashboard'),
-          icon: Icon(LucideIcons.house, size: 20),
+          icon: Icon(LucideIcons.house),
           selected: widget.shell.currentIndex == _dashboardBranchIndex,
           onPress: () {
             ref
@@ -113,10 +113,10 @@ class NavigationShellState extends ConsumerState<NavigationShell>
           'Settings',
           shortcut: ShortcutActionInfo(.comma, modifiers: {.control}),
         ),
-        child: _buildSidebarTab(
-          isExpanded,
+        child: SidebarTab(
+          isExpanded: isExpanded,
           label: Text('Settings'),
-          icon: Icon(LucideIcons.settings, size: 20),
+          icon: Icon(LucideIcons.settings),
           selected: widget.shell.currentIndex == _settingsBranchIndex,
           onPress: () {
             ref
@@ -130,149 +130,14 @@ class NavigationShellState extends ConsumerState<NavigationShell>
       );
     }
 
-    buildSessionTabs(bool isExpanded) {
+    buildSessionSidebarTabs(bool isExpanded) {
       return [
-        for (final t in sessions.activeTabs)
-          CustomContextMenu(
-            actions: [
-              if (t.sessions.isEmpty)
-                .new(
-                  label: 'Duplicate',
-                  icon: LucideIcons.copy,
-                  onPress: () {
-                    ref
-                        .read(sessionProvider.notifier)
-                        .createAndGo(this, t.root.connection);
-                  },
-                  shortcut: .new(.keyD, modifiers: {.meta}),
-                ),
-              .new(
-                label: 'Close',
-                icon: LucideIcons.x,
-                onPress: () {
-                  ref
-                      .read(sessionProvider.notifier)
-                      .closeTabAnyMaybeGo(this, t.id);
-                },
-                shortcut: .new(.keyW, modifiers: {.alt}),
-              ),
-            ],
-            builder: (_) {
-              final icon = Builder(
-                builder: (context) {
-                  Widget child = Container(
-                    decoration: BoxDecoration(
-                      // TODO
-                      color: t.root.connection.iconBackgroundColor,
-                      borderRadius: BorderRadius.circular(6),
-                    ),
-                    padding: .all(5),
-                    child: Icon(
-                      // TODO
-                      t.root.connection.icon.iconData,
-                      color: t.root.connection.iconColor,
-                      size: 10,
-                    ),
-                  );
-
-                  if (!isExpanded) {
-                    child = AspectRatio(aspectRatio: 1, child: child);
-                  }
-
-                  return child;
-                },
-              );
-
-              final tab = _buildSidebarTab(
-                isExpanded,
-                label: Row(
-                  spacing: 8,
-                  children: [
-                    Expanded(
-                      child: Text(
-                        t.sessions.isEmpty
-                            ? t.root.connection.label
-                            : '${t.sessions.length + 1} sessions',
-                        overflow: .fade,
-                        softWrap: false,
-                      ),
-                    ),
-                    // TODO: make shortcut functional
-                    FTooltip(
-                      tipBuilder: (_, _) => TextWithShortCutInfo(
-                        'Close',
-                        shortcut: ShortcutActionInfo(
-                          .keyW,
-                          modifiers: {.control},
-                        ),
-                      ),
-                      child: FTappable(
-                        onPress: () {
-                          ref
-                              .read(sessionProvider.notifier)
-                              .closeTabAnyMaybeGo(this, t.id);
-                        },
-                        builder: (context, states, child) {
-                          final isHovered =
-                              states.contains(FTappableVariant.hovered) ||
-                              states.contains(FTappableVariant.pressed);
-
-                          return Container(
-                            decoration: BoxDecoration(
-                              color: isHovered
-                                  ? context.theme.colors.background
-                                  : null,
-                              borderRadius: .circular(8),
-                            ),
-                            padding: const .all(4),
-                            child: child!,
-                          );
-                        },
-                        child: const Icon(LucideIcons.x, size: 16),
-                      ),
-                    ),
-                  ],
-                ),
-                icon: icon,
-                selected: t.id == selectedTab.value?.id,
-                onPress: () => ref
-                    .read(sessionProvider.notifier)
-                    .setSelectedAndMaybeGo(this, t.id),
-                noPadding: isExpanded,
-                isTop: navPosition.value == .top,
-              );
-
-              if (t.sessions.isNotEmpty) {
-                return tab;
-              }
-
-              return Draggable<ShellSession>(
-                data: t.root,
-                maxSimultaneousDrags: 1,
-                feedback: SizedBox(
-                  width: 200,
-                  child: Opacity(
-                    opacity: 0.7,
-                    child: _buildSidebarTab(
-                      true,
-                      label: Text(
-                        t.sessions.isEmpty
-                            ? t.root.connection.label
-                            : '${t.sessions.length + 1} sessions',
-                        overflow: .fade,
-                        softWrap: false,
-                      ),
-                      icon: icon,
-                      selected: t.id == selectedTab.value?.id,
-                      noPadding: isExpanded,
-                      isTop: navPosition.value == .top,
-                    ),
-                  ),
-                ),
-                childWhenDragging: Opacity(opacity: 0.5, child: tab),
-                child: tab,
-              );
-            },
+        for (final tab in sessions.activeTabs)
+          SessionSidebarTab.tab(
+            tab,
+            isExpanded: isExpanded,
+            navPosition: navPosition.value,
+            selected: tab.id == selectedTab.value?.id,
           ),
         FPopoverMenu(
           control: .lifted(
@@ -295,10 +160,10 @@ class NavigationShellState extends ConsumerState<NavigationShell>
               ],
             ),
           ],
-          child: _buildSidebarTab(
-            isExpanded && navPosition.value == .left,
+          child: SidebarTab(
+            isExpanded: isExpanded && navPosition.value == .left,
             label: Text('New Session'),
-            icon: Icon(LucideIcons.plus, size: 20),
+            icon: Icon(LucideIcons.plus),
             onPress: connections.entities.isNotEmpty
                 ? () => showTabs.value = !showTabs.value
                 : null,
@@ -332,7 +197,6 @@ class NavigationShellState extends ConsumerState<NavigationShell>
                         _sidebarController.isExpanded
                             ? LucideIcons.panelLeftClose
                             : LucideIcons.panelLeftOpen,
-                        size: 20,
                       ),
                     ),
                   ],
@@ -347,11 +211,11 @@ class NavigationShellState extends ConsumerState<NavigationShell>
             buildDashboardTab(isExpanded),
             FDivider(style: .delta(color: context.theme.colors.border)),
             if (!isExpanded || sessions.activeTabs.isEmpty)
-              ...buildSessionTabs(isExpanded)
+              ...buildSessionSidebarTabs(isExpanded)
             else if (sessions.activeTabs.isNotEmpty)
               FSidebarGroup(
                 label: Text('Sessions'),
-                children: buildSessionTabs(isExpanded),
+                children: buildSessionSidebarTabs(isExpanded),
               ),
           ];
         },
@@ -380,7 +244,7 @@ class NavigationShellState extends ConsumerState<NavigationShell>
                     spacing: 8,
                     children: [
                       buildDashboardTab(false),
-                      ...buildSessionTabs(true),
+                      ...buildSessionSidebarTabs(true),
                     ],
                   ),
                 ),
@@ -391,43 +255,6 @@ class NavigationShellState extends ConsumerState<NavigationShell>
         ),
       ),
       child: widget.shell,
-    );
-  }
-
-  Widget _buildSidebarTab(
-    bool isExpanded, {
-    Widget? label,
-    Widget? icon,
-    bool? selected,
-    void Function()? onPress,
-    bool isTop = false,
-    bool noPadding = false,
-  }) {
-    // TODO: if color of session tab page is too similar, add border
-
-    Widget child = FSidebarItem(
-      style: .delta(
-        backgroundColor: .delta([
-          FVariantValueDeltaOperation.base(Colors.transparent),
-          FVariantValueDeltaOperation.exact({
-            .hovered,
-            .selected,
-          }, context.theme.colors.card),
-        ]),
-      ),
-      label: !isExpanded && icon != null ? icon : label,
-      icon: isExpanded ? icon : null,
-      selected: selected ?? false,
-      onPress: onPress,
-    );
-
-    if (isTop) {
-      child = IntrinsicWidth(child: child);
-    }
-
-    return Padding(
-      padding: noPadding ? .zero : const .symmetric(horizontal: 16),
-      child: child,
     );
   }
 
