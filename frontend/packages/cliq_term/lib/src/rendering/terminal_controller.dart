@@ -134,6 +134,8 @@ class TerminalController extends ChangeNotifier {
       onInput?.call('\n');
     } else if (key == LogicalKeyboardKey.backspace) {
       onInput?.call('\x7f');
+    } else if (key == LogicalKeyboardKey.delete) {
+      onInput?.call('\x1b[3~');
     } else if (key == LogicalKeyboardKey.tab) {
       onInput?.call('\t');
     } else if (key == LogicalKeyboardKey.arrowUp) {
@@ -144,6 +146,10 @@ class TerminalController extends ChangeNotifier {
       onInput?.call('\x1b[C');
     } else if (key == LogicalKeyboardKey.arrowLeft) {
       onInput?.call('\x1b[D');
+    } else if (key == LogicalKeyboardKey.home) {
+      onInput?.call('\x1b[H');
+    } else if (key == LogicalKeyboardKey.end) {
+      onInput?.call('\x1b[F');
     }
   }
 
