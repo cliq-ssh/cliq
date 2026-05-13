@@ -186,7 +186,7 @@ class SessionSidebarTab extends HookConsumerWidget {
           maxSimultaneousDrags: 1,
           onDragStarted: () => isDragging.value = true,
           onDragEnd: (_) => isDragging.value = false,
-          onDraggableCanceled: (_, __) => isDragging.value = false,
+          onDraggableCanceled: (_, _) => isDragging.value = false,
           onDragCompleted: () => isDragging.value = false,
           onDragUpdate: (_) => isDragging.value = true,
           feedback: SizedBox(
