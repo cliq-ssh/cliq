@@ -157,7 +157,6 @@ class _TerminalViewState extends State<TerminalView> {
           // TODO: focus when selecting tab
           child: GestureDetector(
             behavior: HitTestBehavior.translucent,
-            // TODO: implement text selection
             onTap: () {
               _focusNode.requestFocus();
               // clear any existing selection on simple click
