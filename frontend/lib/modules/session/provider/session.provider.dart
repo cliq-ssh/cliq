@@ -164,7 +164,7 @@ class SessionNotifier extends Notifier<SessionState> {
     state = state.copyWith(activeTabs: newActiveTabs);
   }
 
-  Future<SSHClient> createSSHClient(
+  Future<SSHClient?> createSSHClient(
     ShellSession session,
     ConnectionFull connection,
   ) async {
@@ -179,46 +179,57 @@ class SessionNotifier extends Notifier<SessionState> {
           ),
     );
 
-    final socket = await SSHSocket.connect(connection.address, connection.port);
-    final sshClient = SSHClient(
-      socket,
-      username: connection.effectiveUsername!,
-      identities: keys,
-      onVerifyHostKey: (algorithm, hostKey) async {
-        if (session.skipHostKeyVerification) {
-          return true;
-        }
+    try {
+      final socket = await SSHSocket.connect(
+        connection.address,
+        connection.port,
+      );
+      final sshClient = SSHClient(
+        socket,
+        username: connection.effectiveUsername!,
+        identities: keys,
+        onVerifyHostKey: (algorithm, hostKey) async {
+          if (session.skipHostKeyVerification) {
+            return true;
+          }
 
-        // check db whether host is known
-        final (knownHost, isKeyMatch) = await ref
-            .read(knownHostServiceProvider)
-            .isHostKnown(connection.addressAndPort, hostKey);
+          // check db whether host is known
+          final (knownHost, isKeyMatch) = await ref
+              .read(knownHostServiceProvider)
+              .isHostKnown(connection.addressAndPort, hostKey);
 
-        if (knownHost != null && isKeyMatch) return true;
+          if (knownHost != null && isKeyMatch) return true;
 
-        final sha256Fingerprint =
-            'SHA256:${base64.encode(sha256.convert(hostKey).bytes).replaceAll('=', '')}';
+          final sha256Fingerprint =
+              'SHA256:${base64.encode(sha256.convert(hostKey).bytes).replaceAll('=', '')}';
 
-        _modifySession(
-          session.id,
-          (session) => session.copyWith(
-            knownHostError: KnownHostError(
-              host: connection.addressAndPort,
-              hostKey: hostKey,
-              algorithm: algorithm,
-              sha256Fingerprint: sha256Fingerprint,
-              knownHost: knownHost,
+          _modifySession(
+            session.id,
+            (session) => session.copyWith(
+              knownHostError: KnownHostError(
+                host: connection.addressAndPort,
+                hostKey: hostKey,
+                algorithm: algorithm,
+                sha256Fingerprint: sha256Fingerprint,
+                knownHost: knownHost,
+              ),
             ),
-          ),
-        );
+          );
 
-        // fail the verification for now, try again if the user accepts
-        return false;
-      },
-      onPasswordRequest: password != null ? () => password : null,
-    );
+          // fail the verification for now, try again if the user accepts
+          return false;
+        },
+        onPasswordRequest: password != null ? () => password : null,
+      );
 
-    return sshClient;
+      return sshClient;
+    } catch (e) {
+      _modifySession(
+        session.id,
+        (session) => session.copyWith(connectionError: e.toString()),
+      );
+      return null;
+    }
   }
 
   Future<SSHSession?> spawnShell(

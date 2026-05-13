@@ -7,7 +7,7 @@ import 'package:cliq/modules/settings/provider/terminal_theme.provider.dart';
 import 'package:cliq/shared/provider/store.provider.dart';
 import 'package:cliq/shared/utils/commons.dart';
 import 'package:cliq_ui/cliq_ui.dart'
-    show CliqGridColumn, CliqGridContainer, CliqGridRow;
+    show CliqGridColumn, CliqGridContainer, CliqGridRow, CliqFontFamily;
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart' hide LicensePage;
 import 'package:flutter/services.dart';
@@ -111,6 +111,10 @@ class _ShellSessionPageState extends ConsumerState<ShellSessionPage>
             await ref
                 .read(sessionProvider.notifier)
                 .createSSHClient(session, connection);
+
+        if (client == null) {
+          return;
+        }
 
         final shell =
             session.sshSession ??
@@ -288,7 +292,7 @@ class _ShellSessionPageState extends ConsumerState<ShellSessionPage>
             children: [
               TextSpan(text: 'Failed to connect to '),
               TextSpan(
-                text: '${session.connection.addressAndPort}:',
+                text: session.connection.addressAndPort,
                 style: typography.xl.copyWith(fontWeight: .bold),
               ),
             ],
@@ -298,12 +302,24 @@ class _ShellSessionPageState extends ConsumerState<ShellSessionPage>
         const SizedBox(height: 32),
         if (session.connectionError != null)
           FCard(
-            subtitle: Text(
+            style: .delta(
+              decoration: .boxDelta(
+                color: context.theme.colors.destructive.withValues(alpha: 0.1),
+                border: Border.all(
+                  color: context.theme.colors.destructive.withValues(
+                    alpha: 0.2,
+                  ),
+                ),
+              ),
+            ),
+            child: Text(
               session.connectionError!,
-              style: typography.md,
-              textAlign: TextAlign.center,
+              style: context.theme.typography.xs.copyWith(
+                fontFamily: CliqFontFamily.secondary.fontFamily,
+              ),
             ),
           ),
+        const SizedBox(height: 8),
         Row(
           mainAxisAlignment: .spaceBetween,
           children: [
