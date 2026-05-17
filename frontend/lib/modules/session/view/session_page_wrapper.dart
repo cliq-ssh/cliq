@@ -54,16 +54,52 @@ class _SessionPageState extends ConsumerState<SessionPageWrapper> {
     return node;
   }
 
+  /// Removes leaves whose session ID is no longer active.
+  /// If a branch loses one child, the other side collapses up.
+  SplitNode<ShellSession>? _removeFromTree(
+    SplitNode<ShellSession> node,
+    Set<String> activeIds,
+  ) {
+    if (node is SplitLeaf<ShellSession>) {
+      return activeIds.contains(node.value.id) ? node : null;
+    }
+    if (node is SplitBranch<ShellSession>) {
+      final newFirst = _removeFromTree(node.first, activeIds);
+      final newSecond = _removeFromTree(node.second, activeIds);
+      if (newFirst == null) return newSecond;
+      if (newSecond == null) return newFirst;
+      node.first = newFirst;
+      node.second = newSecond;
+    }
+    return node;
+  }
+
   /// Synchronizes the page map with the list of active sessions.
   void _syncPageMap(List<SessionTab> activeTabs) {
     // add new sessions
     for (final tab in activeTabs) {
       _pageMap[tab.id] ??= _buildLeaf(tab.root);
     }
-    // remove closed sessions
-    final activeIds = activeTabs.map((s) => s.id).toSet();
+
+    // collect every active session ID across all tabs
+    final activeSessionIds = activeTabs
+        .expand((tab) => [...tab.sessions, tab.root].map((s) => s.id))
+        .toSet();
+
+    // prune closed sessions from within split trees
+    for (final tabId in _pageMap.keys.toList()) {
+      final pruned = _removeFromTree(_pageMap[tabId]!, activeSessionIds);
+      if (pruned == null) {
+        _pageMap.remove(tabId);
+      } else {
+        _pageMap[tabId] = pruned;
+      }
+    }
+
+    // remove closed tabs
+    final activeTabIds = activeTabs.map((t) => t.id).toSet();
     _pageMap.removeWhere((id, node) {
-      if (!activeIds.contains(id)) {
+      if (!activeTabIds.contains(id)) {
         node.dispose();
         return true;
       }

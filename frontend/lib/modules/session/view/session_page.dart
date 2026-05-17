@@ -229,7 +229,7 @@ class _ShellSessionPageState extends ConsumerState<ShellSessionPage>
             ),
             textAlign: .center,
           ),
-        const SizedBox(height: 32),
+        const SizedBox(height: 16),
         FCard(
           subtitle: Row(
             mainAxisAlignment: .spaceBetween,
@@ -298,7 +298,7 @@ class _ShellSessionPageState extends ConsumerState<ShellSessionPage>
           ),
           style: typography.xl,
         ),
-        const SizedBox(height: 32),
+        const SizedBox(height: 16),
         if (session.connectionError != null)
           FCard(
             style: .delta(
