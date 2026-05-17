@@ -1,7 +1,9 @@
+import 'dart:async';
 import 'dart:typed_data';
 
 import 'package:cliq/modules/connections/model/connection_full.model.dart';
 import 'package:cliq/shared/data/database.dart';
+import 'package:cliq_term/cliq_term.dart';
 import 'package:dartssh2/dartssh2.dart';
 
 class KnownHostError {
@@ -22,7 +24,10 @@ class KnownHostError {
 }
 
 class ShellSession {
+  /// A unique identifier for this session, used for state management and UI tracking.
   final String id;
+
+  /// The connection details associated with this session, including host, port, username, and authentication method.
   final ConnectionFull connection;
 
   /// A potential error that occurred during the connection attempt.
@@ -38,6 +43,12 @@ class ShellSession {
   /// The SSH session associated with this session, only set if connected.
   final SSHSession? sshSession;
 
+  /// The terminal controller associated with this session, only set if connected.
+  final TerminalController? terminalController;
+
+  final StreamSubscription? stdoutSub;
+  final StreamSubscription? stderrSub;
+
   /// An optional known host error state for this session.
   /// May indicate that the host is unknown or has a mismatched fingerprint.
   final KnownHostError? knownHostError;
@@ -45,18 +56,21 @@ class ShellSession {
   /// Whether to skip host key verification for this session.
   final bool skipHostKeyVerification;
 
-  const ShellSession({
+  ShellSession({
     required this.id,
     required this.connection,
     this.connectionError,
     this.connectedAt,
     this.sshClient,
     this.sshSession,
+    this.terminalController,
+    this.stdoutSub,
+    this.stderrSub,
     this.knownHostError,
     this.skipHostKeyVerification = false,
   });
 
-  const ShellSession.disconnected({
+  ShellSession.disconnected({
     required this.id,
     required this.connection,
     this.skipHostKeyVerification = false,
@@ -64,6 +78,9 @@ class ShellSession {
        connectedAt = null,
        sshClient = null,
        sshSession = null,
+       terminalController = null,
+       stdoutSub = null,
+       stderrSub = null,
        knownHostError = null;
 
   bool get isConnected => sshClient != null && sshSession != null;
@@ -75,6 +92,9 @@ class ShellSession {
     sshSession?.kill(SSHSignal.KILL);
     sshSession?.close();
     sshClient?.close();
+    terminalController?.dispose();
+    stdoutSub?.cancel();
+    stderrSub?.cancel();
   }
 
   ShellSession copyWith({
@@ -82,6 +102,9 @@ class ShellSession {
     DateTime? connectedAt,
     SSHClient? sshClient,
     SSHSession? sshSession,
+    TerminalController? terminalController,
+    StreamSubscription? stdoutSub,
+    StreamSubscription? stderrSub,
     KnownHostError? knownHostError,
   }) {
     return ShellSession(
@@ -91,6 +114,9 @@ class ShellSession {
       connectedAt: connectedAt ?? this.connectedAt,
       sshClient: sshClient ?? this.sshClient,
       sshSession: sshSession ?? this.sshSession,
+      terminalController: terminalController ?? this.terminalController,
+      stdoutSub: stdoutSub ?? this.stdoutSub,
+      stderrSub: stderrSub ?? this.stderrSub,
       knownHostError: knownHostError ?? this.knownHostError,
     );
   }
