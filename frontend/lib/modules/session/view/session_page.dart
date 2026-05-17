@@ -95,6 +95,14 @@ class _ShellSessionPageState extends ConsumerState<ShellSessionPage>
       terminalController.value = buildTerminalController();
     }
 
+    // focus terminal when page is opened
+    useEffect(() {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        widget.focusNode?.requestFocus();
+      });
+      return null;
+    }, []);
+
     // initial setup of terminal controller
     useEffect(() {
       if (terminalController.value != null) return null;
