@@ -1,6 +1,8 @@
 import 'package:cliq/modules/session/model/tab.model.dart';
 import 'package:cliq/modules/session/provider/session.provider.dart';
+import 'package:cliq/modules/session/ui/session_title_bar.dart';
 import 'package:cliq/modules/session/view/session_page.dart';
+import 'package:cliq/shared/ui/hover_builder.dart';
 import 'package:cliq/shared/ui/navigation_shell.dart';
 import 'package:cliq/shared/ui/split_view.dart';
 import 'package:flutter/material.dart' hide LicensePage;
@@ -39,7 +41,6 @@ class _SessionPageState extends ConsumerState<SessionPageWrapper> {
         key: ValueKey('session-${s.id}'),
         sessionId: s.id,
         focusNode: focus,
-        showTitleBar: !isSingle,
       ),
     );
   }
@@ -138,6 +139,7 @@ class _SessionPageState extends ConsumerState<SessionPageWrapper> {
 
     return PageView(
       controller: pageController,
+      physics: const NeverScrollableScrollPhysics(),
       children: [
         for (final tab in session.activeTabs)
           SplitView<ShellSession>(
@@ -171,6 +173,21 @@ class _SessionPageState extends ConsumerState<SessionPageWrapper> {
             },
             borderColor: context.theme.colors.border,
             focusedBorderColor: context.theme.colors.primary,
+            nodeBuilder: (context, leaf, child) {
+              // hide title bar for only one session
+              if (_pageMap[tab.id] is SplitLeaf<ShellSession>) {
+                return child;
+              }
+
+              return HoverBuilder(
+                builder: (_, hovered) => Column(
+                  children: [
+                    SessionTitleBar(sessionId: leaf.value.id, hovered: hovered),
+                    Expanded(child: child),
+                  ],
+                ),
+              );
+            },
           ),
       ],
     );

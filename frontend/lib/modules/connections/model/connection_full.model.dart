@@ -1,3 +1,4 @@
+import 'package:cliq/modules/settings/model/terminal_theme.state.dart';
 import 'package:cliq/modules/settings/provider/terminal_theme.provider.dart';
 
 import '../../../shared/data/database.dart';
@@ -12,6 +13,14 @@ class ConnectionFull extends Connection {
 
   String get addressAndPort => '[$address]:$port';
   String? get effectiveUsername => identity?.username ?? username;
+
+  CustomTerminalTheme getEffectiveTerminalTheme(
+    CustomTerminalThemeState themes,
+    int defaultTerminalThemeId,
+  ) {
+    return terminalThemeOverride ??
+        themes.findById(defaultTerminalThemeId, isDefaultTheme: true)!;
+  }
 
   ConnectionFull.fromConnection(
     Connection connection, {

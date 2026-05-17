@@ -128,6 +128,17 @@ class SessionNotifier extends Notifier<SessionState> {
     );
   }
 
+  ShellSession findById(String sessionId) {
+    for (final tab in state.activeTabs) {
+      for (final session in [...tab.sessions, tab.root]) {
+        if (session.id == sessionId) {
+          return session;
+        }
+      }
+    }
+    throw Exception('Session with id $sessionId not found in any active tab.');
+  }
+
   /// Resets the session to a disconnected state, disposing of any existing SSH resources.
   void resetSession(
     NavigationShellState shellState,

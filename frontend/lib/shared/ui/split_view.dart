@@ -49,10 +49,10 @@ class SplitBranch<T extends Object> extends SplitNode<T> {
 abstract class _NodeWidget<T extends Object> extends HookConsumerWidget {
   final bool Function(SplitLeaf<T> target, T dropped) canDrop;
   final void Function(SplitLeaf<T>, T, SplitViewDirection, bool) onDrop;
+  final Widget Function(BuildContext context, SplitLeaf<T> leaf, Widget child)
+  nodeBuilder;
   final Color borderColor;
   final Color focusedBorderColor;
-
-  final bool showBorder;
 
   const _NodeWidget({
     required super.key,
@@ -60,24 +60,21 @@ abstract class _NodeWidget<T extends Object> extends HookConsumerWidget {
     required this.onDrop,
     required this.borderColor,
     required this.focusedBorderColor,
-    required this.showBorder,
+    required this.nodeBuilder,
   });
 }
 
-class SplitView<T extends Object> extends HookConsumerWidget {
+class SplitView<T extends Object> extends _NodeWidget<T> {
   final SplitNode<T> root;
-  final bool Function(SplitLeaf<T> target, T dropped) canDrop;
-  final void Function(SplitLeaf<T>, T, SplitViewDirection, bool) onDrop;
-  final Color borderColor;
-  final Color focusedBorderColor;
 
   const SplitView({
     super.key,
+    required super.canDrop,
+    required super.onDrop,
+    required super.borderColor,
+    required super.focusedBorderColor,
+    required super.nodeBuilder,
     required this.root,
-    required this.canDrop,
-    required this.onDrop,
-    required this.borderColor,
-    required this.focusedBorderColor,
   });
 
   @override
@@ -88,6 +85,7 @@ class SplitView<T extends Object> extends HookConsumerWidget {
       onDrop: onDrop,
       borderColor: borderColor,
       focusedBorderColor: focusedBorderColor,
+      nodeBuilder: nodeBuilder,
       showBorder: root is SplitBranch<T>,
     );
   }
@@ -95,6 +93,7 @@ class SplitView<T extends Object> extends HookConsumerWidget {
 
 class _SplitNodeWidget<T extends Object> extends _NodeWidget<T> {
   final SplitNode<T> node;
+  final bool showBorder;
 
   const _SplitNodeWidget({
     super.key,
@@ -102,7 +101,8 @@ class _SplitNodeWidget<T extends Object> extends _NodeWidget<T> {
     required super.onDrop,
     required super.borderColor,
     required super.focusedBorderColor,
-    required super.showBorder,
+    required super.nodeBuilder,
+    required this.showBorder,
     required this.node,
   });
 
@@ -115,6 +115,7 @@ class _SplitNodeWidget<T extends Object> extends _NodeWidget<T> {
         onDrop: onDrop,
         borderColor: borderColor,
         focusedBorderColor: focusedBorderColor,
+        nodeBuilder: nodeBuilder,
         showBorder: showBorder,
       ),
       SplitBranch<T>() => _BranchNodeWidget<T>(
@@ -123,6 +124,7 @@ class _SplitNodeWidget<T extends Object> extends _NodeWidget<T> {
         onDrop: onDrop,
         borderColor: borderColor,
         focusedBorderColor: focusedBorderColor,
+        nodeBuilder: nodeBuilder,
         showBorder: showBorder,
       ),
     };
@@ -131,6 +133,7 @@ class _SplitNodeWidget<T extends Object> extends _NodeWidget<T> {
 
 class _LeafNodeWidget<T extends Object> extends _NodeWidget<T> {
   final SplitLeaf<T> leaf;
+  final bool showBorder;
 
   const _LeafNodeWidget({
     super.key,
@@ -138,7 +141,8 @@ class _LeafNodeWidget<T extends Object> extends _NodeWidget<T> {
     required super.onDrop,
     required super.borderColor,
     required super.focusedBorderColor,
-    required super.showBorder,
+    required super.nodeBuilder,
+    required this.showBorder,
     required this.leaf,
   });
 
@@ -207,7 +211,11 @@ class _LeafNodeWidget<T extends Object> extends _NodeWidget<T> {
                           )
                         : null,
                   ),
-                  child: leaf.builder(context, leaf.focusNode),
+                  child: nodeBuilder(
+                    context,
+                    leaf,
+                    leaf.builder(context, leaf.focusNode),
+                  ),
                 ),
               ),
               if (activeDragZone.value != null)
@@ -225,6 +233,7 @@ class _LeafNodeWidget<T extends Object> extends _NodeWidget<T> {
 
 class _BranchNodeWidget<T extends Object> extends _NodeWidget<T> {
   final SplitBranch<T> branch;
+  final bool showBorder;
 
   const _BranchNodeWidget({
     super.key,
@@ -232,7 +241,8 @@ class _BranchNodeWidget<T extends Object> extends _NodeWidget<T> {
     required super.onDrop,
     required super.borderColor,
     required super.focusedBorderColor,
-    required super.showBorder,
+    required super.nodeBuilder,
+    required this.showBorder,
     required this.branch,
   });
 
@@ -261,6 +271,7 @@ class _BranchNodeWidget<T extends Object> extends _NodeWidget<T> {
             onDrop: onDrop,
             borderColor: borderColor,
             focusedBorderColor: focusedBorderColor,
+            nodeBuilder: nodeBuilder,
             showBorder: showBorder,
           ),
         );

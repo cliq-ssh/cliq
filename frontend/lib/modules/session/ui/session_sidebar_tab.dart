@@ -45,28 +45,16 @@ class SessionSidebarTab extends HookConsumerWidget {
     final isDragging = useState(false);
 
     select() {
-      if (tabId != null) {
-        ref
-            .read(sessionProvider.notifier)
-            .setSelectedAndMaybeGo(NavigationShell.of(context), tabId);
-      } else {
-        // TODO: select session focus
-      }
+      if (tabId == null) return;
+      ref
+          .read(sessionProvider.notifier)
+          .setSelectedAndMaybeGo(NavigationShell.of(context), tabId);
     }
 
     close() {
-      if (tabId != null) {
-        // close whole tab
-        ref
-            .read(sessionProvider.notifier)
-            .closeTabAndMaybeGo(NavigationShell.of(context), tabId!);
-      } else {
-        // close single session in split view
-        ref
-            .read(sessionProvider.notifier)
-            .closeSessionAndMaybeGo(NavigationShell.of(context), root.id);
-        // TODO: re-layout
-      }
+      ref
+          .read(sessionProvider.notifier)
+          .closeTabAndMaybeGo(NavigationShell.of(context), tabId ?? root.id);
     }
 
     buildIcon() {
