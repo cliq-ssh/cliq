@@ -70,17 +70,22 @@ class SessionSidebarTab extends HookConsumerWidget {
     }
 
     buildIcon() {
+      if (sessions.isNotEmpty) {
+        return Padding(
+          padding: const EdgeInsets.all(3),
+          child: Icon(LucideIcons.layoutPanelLeft, size: 14),
+        );
+      }
+
       return Builder(
         builder: (context) {
           Widget child = Container(
             decoration: BoxDecoration(
-              // TODO
               color: root.connection.iconBackgroundColor,
               borderRadius: BorderRadius.circular(6),
             ),
             padding: .all(5),
             child: Icon(
-              // TODO
               root.connection.icon.iconData,
               color: root.connection.iconColor,
               size: 10,
@@ -131,33 +136,34 @@ class SessionSidebarTab extends HookConsumerWidget {
                   softWrap: false,
                 ),
               ),
-              // TODO: make shortcut functional
-              FTooltip(
-                tipBuilder: (_, _) => TextWithShortCutInfo(
-                  'Close',
-                  shortcut: ShortcutActionInfo(.keyW, modifiers: {.control}),
-                ),
-                child: FTappable(
-                  onPress: close,
-                  builder: (context, states, child) {
-                    final isHovered =
-                        states.contains(FTappableVariant.hovered) ||
-                        states.contains(FTappableVariant.pressed);
+              if (sessions.isEmpty)
+                // TODO: make shortcut functional
+                FTooltip(
+                  tipBuilder: (_, _) => TextWithShortCutInfo(
+                    'Close',
+                    shortcut: ShortcutActionInfo(.keyW, modifiers: {.control}),
+                  ),
+                  child: FTappable(
+                    onPress: close,
+                    builder: (context, states, child) {
+                      final isHovered =
+                          states.contains(FTappableVariant.hovered) ||
+                          states.contains(FTappableVariant.pressed);
 
-                    return Container(
-                      decoration: BoxDecoration(
-                        color: isHovered
-                            ? context.theme.colors.background
-                            : null,
-                        borderRadius: .circular(8),
-                      ),
-                      padding: const .all(4),
-                      child: child!,
-                    );
-                  },
-                  child: const Icon(LucideIcons.x, size: 16),
+                      return Container(
+                        decoration: BoxDecoration(
+                          color: isHovered
+                              ? context.theme.colors.background
+                              : null,
+                          borderRadius: .circular(8),
+                        ),
+                        padding: const .all(4),
+                        child: child!,
+                      );
+                    },
+                    child: const Icon(LucideIcons.x, size: 16),
+                  ),
                 ),
-              ),
             ],
           ),
           icon: buildIcon(),
@@ -165,7 +171,7 @@ class SessionSidebarTab extends HookConsumerWidget {
           onPress: select,
           noPadding: isExpanded,
           isTop: navPosition == .top,
-          children: sessions.isNotEmpty
+          children: isExpanded && sessions.isNotEmpty
               ? [
                   for (final session in [root, ...sessions])
                     SessionSidebarTab.single(

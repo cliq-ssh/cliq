@@ -44,6 +44,7 @@ class SidebarTab extends HookConsumerWidget {
           : null,
       selected: selected ?? false,
       onPress: onPress,
+      initiallyExpanded: true,
       children: children ?? [],
     );
 
