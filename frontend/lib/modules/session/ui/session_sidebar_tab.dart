@@ -115,7 +115,7 @@ class SessionSidebarTab extends HookConsumerWidget {
             shortcut: .new(.keyD, modifiers: {.meta}),
           ),
         .new(
-          label: 'Close',
+          label: sessions.isEmpty ? 'Close' : 'Close All',
           icon: LucideIcons.x,
           onPress: close,
           shortcut: .new(.keyW, modifiers: {.alt}),
