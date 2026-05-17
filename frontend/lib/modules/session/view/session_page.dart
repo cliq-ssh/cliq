@@ -115,7 +115,7 @@ class _ShellSessionPageState extends ConsumerState<ShellSessionPage>
           return;
         }
 
-        final shell =
+        final sshSession =
             session.sshSession ??
             await ref
                 .read(sessionProvider.notifier)
@@ -124,12 +124,12 @@ class _ShellSessionPageState extends ConsumerState<ShellSessionPage>
         terminalController.value!.fitResize(size);
 
         terminalController.value!.onInput = (s) {
-          session.sshSession?.stdin.add(Uint8List.fromList(s.codeUnits));
+          sshSession?.stdin.add(Uint8List.fromList(s.codeUnits));
         };
 
         StreamSubscription? stdoutSub =
             session.stdoutSub ??
-            shell?.stdout.listen((data) {
+            sshSession?.stdout.listen((data) {
               final controller = terminalController.value;
               if (controller != null) {
                 controller.feed(String.fromCharCodes(data));
@@ -138,7 +138,7 @@ class _ShellSessionPageState extends ConsumerState<ShellSessionPage>
 
         StreamSubscription? stderrSub =
             session.stderrSub ??
-            shell?.stderr.listen((data) {
+            sshSession?.stderr.listen((data) {
               final controller = terminalController.value;
               if (controller != null) {
                 controller.feed(String.fromCharCodes(data));

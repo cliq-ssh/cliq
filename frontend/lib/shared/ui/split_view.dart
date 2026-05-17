@@ -46,64 +46,106 @@ class SplitBranch<T extends Object> extends SplitNode<T> {
   }
 }
 
+abstract class _NodeWidget<T extends Object> extends HookConsumerWidget {
+  final bool Function(SplitLeaf<T> target, T dropped) canDrop;
+  final void Function(SplitLeaf<T>, T, SplitViewDirection, bool) onDrop;
+  final Color borderColor;
+  final Color focusedBorderColor;
+
+  final bool showBorder;
+
+  const _NodeWidget({
+    required super.key,
+    required this.canDrop,
+    required this.onDrop,
+    required this.borderColor,
+    required this.focusedBorderColor,
+    required this.showBorder,
+  });
+}
+
 class SplitView<T extends Object> extends HookConsumerWidget {
   final SplitNode<T> root;
   final bool Function(SplitLeaf<T> target, T dropped) canDrop;
   final void Function(SplitLeaf<T>, T, SplitViewDirection, bool) onDrop;
+  final Color borderColor;
+  final Color focusedBorderColor;
 
   const SplitView({
     super.key,
     required this.root,
     required this.canDrop,
     required this.onDrop,
+    required this.borderColor,
+    required this.focusedBorderColor,
   });
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) =>
-      _SplitNodeWidget<T>(node: root, canDrop: canDrop, onDrop: onDrop);
+  Widget build(BuildContext context, WidgetRef ref) {
+    return _SplitNodeWidget<T>(
+      node: root,
+      canDrop: canDrop,
+      onDrop: onDrop,
+      borderColor: borderColor,
+      focusedBorderColor: focusedBorderColor,
+      showBorder: root is SplitBranch<T>,
+    );
+  }
 }
 
-class _SplitNodeWidget<T extends Object> extends HookConsumerWidget {
+class _SplitNodeWidget<T extends Object> extends _NodeWidget<T> {
   final SplitNode<T> node;
-  final bool Function(SplitLeaf<T> target, T dropped) canDrop;
-  final void Function(SplitLeaf<T>, T, SplitViewDirection, bool) onDrop;
 
   const _SplitNodeWidget({
+    super.key,
+    required super.canDrop,
+    required super.onDrop,
+    required super.borderColor,
+    required super.focusedBorderColor,
+    required super.showBorder,
     required this.node,
-    required this.canDrop,
-    required this.onDrop,
   });
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) => switch (node) {
-    SplitLeaf<T>() => _LeafWidget<T>(
-      leaf: node as SplitLeaf<T>,
-      canDrop: canDrop,
-      onDrop: onDrop,
-    ),
-    SplitBranch<T>() => _BranchWidget<T>(
-      branch: node as SplitBranch<T>,
-      canDrop: canDrop,
-      onDrop: onDrop,
-    ),
-  };
+  Widget build(BuildContext context, WidgetRef ref) {
+    return switch (node) {
+      SplitLeaf<T>() => _LeafNodeWidget<T>(
+        leaf: node as SplitLeaf<T>,
+        canDrop: canDrop,
+        onDrop: onDrop,
+        borderColor: borderColor,
+        focusedBorderColor: focusedBorderColor,
+        showBorder: showBorder,
+      ),
+      SplitBranch<T>() => _BranchNodeWidget<T>(
+        branch: node as SplitBranch<T>,
+        canDrop: canDrop,
+        onDrop: onDrop,
+        borderColor: borderColor,
+        focusedBorderColor: focusedBorderColor,
+        showBorder: showBorder,
+      ),
+    };
+  }
 }
 
-class _LeafWidget<T extends Object> extends HookConsumerWidget {
+class _LeafNodeWidget<T extends Object> extends _NodeWidget<T> {
   final SplitLeaf<T> leaf;
-  final bool Function(SplitLeaf<T> target, T dropped) canDrop;
-  final void Function(SplitLeaf<T>, T, SplitViewDirection, bool) onDrop;
 
-  const _LeafWidget({
+  const _LeafNodeWidget({
+    super.key,
+    required super.canDrop,
+    required super.onDrop,
+    required super.borderColor,
+    required super.focusedBorderColor,
+    required super.showBorder,
     required this.leaf,
-    required this.canDrop,
-    required this.onDrop,
   });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final activeDragZone = useState<(SplitViewDirection, bool)?>(null);
-
+    final isFocused = leaf.focusNode.hasFocus;
     return LayoutBuilder(
       builder: (context, constraints) {
         (SplitViewDirection, bool) calculateZone(Offset global) {
@@ -146,7 +188,19 @@ class _LeafWidget<T extends Object> extends HookConsumerWidget {
           },
           builder: (_, _, _) => Stack(
             children: [
-              Positioned.fill(child: leaf.builder(context, leaf.focusNode)),
+              Positioned.fill(
+                child: Container(
+                  decoration: BoxDecoration(
+                    border: showBorder
+                        ? Border.all(
+                            color: isFocused ? focusedBorderColor : borderColor,
+                            width: 1,
+                          )
+                        : null,
+                  ),
+                  child: leaf.builder(context, leaf.focusNode),
+                ),
+              ),
               if (activeDragZone.value != null)
                 _DropOverlay(
                   zone: activeDragZone.value!,
@@ -160,43 +214,17 @@ class _LeafWidget<T extends Object> extends HookConsumerWidget {
   }
 }
 
-class _DropOverlay extends StatelessWidget {
-  final (SplitViewDirection, bool) zone;
-  final BoxConstraints constraints;
-
-  const _DropOverlay({required this.zone, required this.constraints});
-
-  @override
-  Widget build(BuildContext context) {
-    final color = context.theme.colors.primary.withValues(alpha: 0.35);
-    final (dir, isFirst) = zone;
-    return dir == SplitViewDirection.horizontal
-        ? Positioned(
-            top: isFirst ? 0 : constraints.maxHeight / 2,
-            bottom: isFirst ? constraints.maxHeight / 2 : 0,
-            left: 0,
-            right: 0,
-            child: Container(color: color),
-          )
-        : Positioned(
-            left: isFirst ? 0 : constraints.maxWidth / 2,
-            right: isFirst ? constraints.maxWidth / 2 : 0,
-            top: 0,
-            bottom: 0,
-            child: Container(color: color),
-          );
-  }
-}
-
-class _BranchWidget<T extends Object> extends HookConsumerWidget {
+class _BranchNodeWidget<T extends Object> extends _NodeWidget<T> {
   final SplitBranch<T> branch;
-  final bool Function(SplitLeaf<T> target, T dropped) canDrop;
-  final void Function(SplitLeaf<T>, T, SplitViewDirection, bool) onDrop;
 
-  const _BranchWidget({
+  const _BranchNodeWidget({
+    super.key,
+    required super.canDrop,
+    required super.onDrop,
+    required super.borderColor,
+    required super.focusedBorderColor,
+    required super.showBorder,
     required this.branch,
-    required this.canDrop,
-    required this.onDrop,
   });
 
   @override
@@ -222,6 +250,9 @@ class _BranchWidget<T extends Object> extends HookConsumerWidget {
             node: node,
             canDrop: canDrop,
             onDrop: onDrop,
+            borderColor: borderColor,
+            focusedBorderColor: focusedBorderColor,
+            showBorder: showBorder,
           ),
         );
 
@@ -262,5 +293,33 @@ class _BranchWidget<T extends Object> extends HookConsumerWidget {
               );
       },
     );
+  }
+}
+
+class _DropOverlay extends StatelessWidget {
+  final (SplitViewDirection, bool) zone;
+  final BoxConstraints constraints;
+
+  const _DropOverlay({required this.zone, required this.constraints});
+
+  @override
+  Widget build(BuildContext context) {
+    final color = context.theme.colors.primary.withValues(alpha: 0.35);
+    final (dir, isFirst) = zone;
+    return dir == SplitViewDirection.horizontal
+        ? Positioned(
+            top: isFirst ? 0 : constraints.maxHeight / 2,
+            bottom: isFirst ? constraints.maxHeight / 2 : 0,
+            left: 0,
+            right: 0,
+            child: Container(color: color),
+          )
+        : Positioned(
+            left: isFirst ? 0 : constraints.maxWidth / 2,
+            right: isFirst ? constraints.maxWidth / 2 : 0,
+            top: 0,
+            bottom: 0,
+            child: Container(color: color),
+          );
   }
 }

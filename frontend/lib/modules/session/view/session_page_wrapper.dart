@@ -5,6 +5,7 @@ import 'package:cliq/shared/ui/navigation_shell.dart';
 import 'package:cliq/shared/ui/split_view.dart';
 import 'package:flutter/material.dart' hide LicensePage;
 import 'package:flutter_hooks/flutter_hooks.dart';
+import 'package:forui/forui.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
 import '../../../shared/model/page_path.model.dart';
@@ -161,6 +162,8 @@ class _SessionPageState extends ConsumerState<SessionPageWrapper> {
                     .merge(NavigationShell.of(context), tab.id, dropped);
               });
             },
+            borderColor: context.theme.colors.primary,
+            focusedBorderColor: context.theme.colors.border,
           ),
       ],
     );
