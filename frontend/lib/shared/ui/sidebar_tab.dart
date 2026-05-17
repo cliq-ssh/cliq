@@ -10,7 +10,6 @@ class SidebarTab extends HookConsumerWidget {
   final bool isExpanded;
   final bool isTop;
   final bool noPadding;
-  final List<Widget>? children;
 
   const SidebarTab({
     super.key,
@@ -21,7 +20,6 @@ class SidebarTab extends HookConsumerWidget {
     this.isExpanded = false,
     this.isTop = false,
     this.noPadding = false,
-    this.children,
   });
 
   @override
@@ -45,7 +43,6 @@ class SidebarTab extends HookConsumerWidget {
       selected: selected ?? false,
       onPress: onPress,
       initiallyExpanded: true,
-      children: children ?? [],
     );
 
     if (isTop) {

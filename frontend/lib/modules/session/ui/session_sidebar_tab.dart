@@ -136,34 +136,33 @@ class SessionSidebarTab extends HookConsumerWidget {
                   softWrap: false,
                 ),
               ),
-              if (sessions.isEmpty)
-                // TODO: make shortcut functional
-                FTooltip(
-                  tipBuilder: (_, _) => TextWithShortCutInfo(
-                    'Close',
-                    shortcut: ShortcutActionInfo(.keyW, modifiers: {.control}),
-                  ),
-                  child: FTappable(
-                    onPress: close,
-                    builder: (context, states, child) {
-                      final isHovered =
-                          states.contains(FTappableVariant.hovered) ||
-                          states.contains(FTappableVariant.pressed);
-
-                      return Container(
-                        decoration: BoxDecoration(
-                          color: isHovered
-                              ? context.theme.colors.background
-                              : null,
-                          borderRadius: .circular(8),
-                        ),
-                        padding: const .all(4),
-                        child: child!,
-                      );
-                    },
-                    child: const Icon(LucideIcons.x, size: 16),
-                  ),
+              // TODO: make shortcut functional
+              FTooltip(
+                tipBuilder: (_, _) => TextWithShortCutInfo(
+                  sessions.isEmpty ? 'Close' : 'Close All',
+                  shortcut: ShortcutActionInfo(.keyW, modifiers: {.control}),
                 ),
+                child: FTappable(
+                  onPress: close,
+                  builder: (context, states, child) {
+                    final isHovered =
+                        states.contains(FTappableVariant.hovered) ||
+                        states.contains(FTappableVariant.pressed);
+
+                    return Container(
+                      decoration: BoxDecoration(
+                        color: isHovered
+                            ? context.theme.colors.background
+                            : null,
+                        borderRadius: .circular(8),
+                      ),
+                      padding: const .all(4),
+                      child: child!,
+                    );
+                  },
+                  child: const Icon(LucideIcons.x, size: 16),
+                ),
+              ),
             ],
           ),
           icon: buildIcon(),
@@ -171,16 +170,6 @@ class SessionSidebarTab extends HookConsumerWidget {
           onPress: select,
           noPadding: isExpanded,
           isTop: navPosition == .top,
-          children: isExpanded && sessions.isNotEmpty
-              ? [
-                  for (final session in [root, ...sessions])
-                    SessionSidebarTab.single(
-                      session,
-                      isExpanded: isExpanded,
-                      navPosition: navPosition,
-                    ),
-                ]
-              : null,
         );
 
         if (!isExpanded || sessions.isNotEmpty) {

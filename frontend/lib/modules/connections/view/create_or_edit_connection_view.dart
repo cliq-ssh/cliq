@@ -224,10 +224,7 @@ class CreateOrEditConnectionView extends HookConsumerWidget {
             decoration: BoxDecoration(
               color: color,
               borderRadius: .circular(8),
-              border: Border.all(
-                color: context.theme.colors.primaryForeground,
-                width: 2,
-              ),
+              border: Border.all(color: context.theme.colors.border, width: 2),
             ),
             child: isSelected
                 ? Icon(

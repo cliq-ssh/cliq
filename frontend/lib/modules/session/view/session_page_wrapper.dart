@@ -32,14 +32,17 @@ class _SessionPageState extends ConsumerState<SessionPageWrapper> {
       };
 
   /// Builds a [SplitLeaf] widget for the given [ShellSession].
-  SplitLeaf<ShellSession> _buildLeaf(ShellSession s) => SplitLeaf(
-    value: s,
-    builder: (_, focus) => ShellSessionPage(
-      key: ValueKey('session-${s.id}'),
-      sessionId: s.id,
-      focusNode: focus,
-    ),
-  );
+  SplitLeaf<ShellSession> _buildLeaf(ShellSession s, {required bool isSingle}) {
+    return SplitLeaf(
+      value: s,
+      builder: (context, focus) => ShellSessionPage(
+        key: ValueKey('session-${s.id}'),
+        sessionId: s.id,
+        focusNode: focus,
+        showTitleBar: !isSingle,
+      ),
+    );
+  }
 
   /// Replaces the target leaf node with the replacement node in the given tree.
   SplitNode<ShellSession> _replaceLeaf(
@@ -79,7 +82,7 @@ class _SessionPageState extends ConsumerState<SessionPageWrapper> {
   void _syncPageMap(List<SessionTab> activeTabs) {
     // add new sessions
     for (final tab in activeTabs) {
-      _pageMap[tab.id] ??= _buildLeaf(tab.root);
+      _pageMap[tab.id] ??= _buildLeaf(tab.root, isSingle: tab.sessions.isEmpty);
     }
 
     // collect every active session ID across all tabs
@@ -151,8 +154,12 @@ class _SessionPageState extends ConsumerState<SessionPageWrapper> {
                   target,
                   SplitBranch<ShellSession>(
                     direction: direction,
-                    first: isFirst ? _buildLeaf(dropped) : target,
-                    second: isFirst ? target : _buildLeaf(dropped),
+                    first: isFirst
+                        ? _buildLeaf(dropped, isSingle: false)
+                        : target,
+                    second: isFirst
+                        ? target
+                        : _buildLeaf(dropped, isSingle: false),
                   ),
                 );
 

@@ -19,11 +19,20 @@ import 'package:cliq_term/cliq_term.dart';
 import '../../../shared/ui/navigation_shell.dart';
 import '../provider/session.provider.dart';
 
+/// Amount of padding to add to the top of the terminal to show name, icon and various actions on hover
+const _kSessionTopPadding = 16.0;
+
 class ShellSessionPage extends StatefulHookConsumerWidget {
   final String sessionId;
   final FocusNode? focusNode;
+  final bool showTitleBar;
 
-  const ShellSessionPage({super.key, required this.sessionId, this.focusNode});
+  const ShellSessionPage({
+    super.key,
+    required this.sessionId,
+    this.focusNode,
+    this.showTitleBar = false,
+  });
 
   @override
   ConsumerState<ConsumerStatefulWidget> createState() =>
@@ -334,14 +343,64 @@ class _ShellSessionPageState extends ConsumerState<ShellSessionPage>
     }
 
     if (session.isConnected && terminalController.value != null) {
+      final terminalTheme = getEffectiveTerminalTheme();
+
+      final child = TerminalView(
+        controller: terminalController.value!,
+        focusNode: widget.focusNode,
+      );
+
       return SizedBox.expand(
         child: Container(
-          color: getEffectiveTerminalTheme().backgroundColor,
-          padding: const .all(8),
-          child: TerminalView(
-            controller: terminalController.value!,
-            focusNode: widget.focusNode,
+          color: terminalTheme.backgroundColor,
+          padding: .only(
+            left: 8,
+            right: 8,
+            bottom: 8,
+            top: widget.showTitleBar ? 0 : 8,
           ),
+          child: widget.showTitleBar
+              ? Column(
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.symmetric(
+                        vertical: _kSessionTopPadding / 2,
+                      ),
+                      child: Row(
+                        spacing: 8,
+                        crossAxisAlignment: .center,
+                        children: [
+                          Container(
+                            decoration: BoxDecoration(
+                              color: session.connection.iconBackgroundColor,
+                              borderRadius: BorderRadius.circular(6),
+                            ),
+                            padding: .all(4),
+                            child: Icon(
+                              session.connection.icon.iconData,
+                              color: session.connection.iconColor,
+                              size: 10,
+                            ),
+                          ),
+                          Text(
+                            session.connection.label,
+                            style: context.theme.typography.xs2.copyWith(
+                              fontFamily: CliqFontFamily.secondary.fontFamily,
+                              color: terminalTheme.foregroundColor,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    Expanded(
+                      child: TerminalView(
+                        controller: terminalController.value!,
+                        focusNode: widget.focusNode,
+                      ),
+                    ),
+                  ],
+                )
+              : child,
         ),
       );
     }
