@@ -104,29 +104,28 @@ class SessionNotifier extends Notifier<SessionState> {
     }
 
     final tab = state.activeTabs.firstWhere((s) => s.id == tabId);
-    final session = [
-      ...tab.sessions,
-      tab.root,
-    ].firstWhere((s) => s.id == sessionId);
+    final allSessions = [...tab.sessions, tab.root];
 
-    if (dispose) {
-      // dispose session resources
-      session.dispose();
+    if (dispose) allSessions.firstWhere((s) => s.id == sessionId).dispose();
+
+    final remaining = allSessions.where((s) => s.id != sessionId).toList();
+
+    // if no sessions remain, close the whole tab
+    if (remaining.isEmpty) {
+      closeTabAndMaybeGo(shellState, tabId, dispose: false);
+      return;
     }
 
-    // if root session is closed, close the entire tab
-    if (tab.root.id == sessionId) {
-      closeTabAndMaybeGo(shellState, tabId, dispose: dispose);
-    } else {
-      // otherwise just remove the session from the tab
-      final newSessions = tab.sessions.where((s) => s.id != sessionId).toList();
-      final newTab = tab.copyWith(sessions: newSessions);
-      final newActiveTabs = state.activeTabs.map((t) {
-        if (t.id == tabId) return newTab;
-        return t;
-      }).toList();
-      state = state.copyWith(activeTabs: newActiveTabs);
-    }
+    // otherwise promote first remaining as new root
+    final newRoot = tab.root.id == sessionId ? remaining.first : tab.root;
+    final newSessions = remaining.where((s) => s.id != newRoot.id).toList();
+
+    final newTab = tab.copyWith(root: newRoot, sessions: newSessions);
+    state = state.copyWith(
+      activeTabs: state.activeTabs
+          .map((t) => t.id == tabId ? newTab : t)
+          .toList(),
+    );
   }
 
   /// Resets the session to a disconnected state, disposing of any existing SSH resources.
