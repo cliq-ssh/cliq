@@ -145,7 +145,14 @@ class _LeafNodeWidget<T extends Object> extends _NodeWidget<T> {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final activeDragZone = useState<(SplitViewDirection, bool)?>(null);
-    final isFocused = leaf.focusNode.hasFocus;
+    final isFocused = useState(leaf.focusNode.hasPrimaryFocus);
+
+    useEffect(() {
+      void listener() => isFocused.value = leaf.focusNode.hasPrimaryFocus;
+      leaf.focusNode.addListener(listener);
+      return () => leaf.focusNode.removeListener(listener);
+    }, [leaf.focusNode]);
+
     return LayoutBuilder(
       builder: (context, constraints) {
         (SplitViewDirection, bool) calculateZone(Offset global) {
@@ -193,7 +200,9 @@ class _LeafNodeWidget<T extends Object> extends _NodeWidget<T> {
                   decoration: BoxDecoration(
                     border: showBorder
                         ? Border.all(
-                            color: isFocused ? focusedBorderColor : borderColor,
+                            color: isFocused.value
+                                ? focusedBorderColor
+                                : borderColor,
                             width: 1,
                           )
                         : null,

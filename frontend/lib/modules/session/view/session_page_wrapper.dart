@@ -162,8 +162,8 @@ class _SessionPageState extends ConsumerState<SessionPageWrapper> {
                     .merge(NavigationShell.of(context), tab.id, dropped);
               });
             },
-            borderColor: context.theme.colors.primary,
-            focusedBorderColor: context.theme.colors.border,
+            borderColor: context.theme.colors.border,
+            focusedBorderColor: context.theme.colors.primary,
           ),
       ],
     );
