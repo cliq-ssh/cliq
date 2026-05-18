@@ -46,13 +46,6 @@ dependencies:
   sodium: ^4.0.2+1
   pointycastle: ^4.0.0
 
-dependency_overrides:
-  forui:
-    git:
-      url: https://github.com/duobaseio/forui.git
-      ref: b7a89dd38cf44e6fd4f2093a49b141b5ad04f044
-      path: forui
-
 dev_dependencies:
   flutter_test:
     sdk: flutter

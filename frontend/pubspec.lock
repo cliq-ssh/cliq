@@ -433,11 +433,10 @@ packages:
   forui:
     dependency: "direct main"
     description:
-      path: forui
-      ref: b7a89dd38cf44e6fd4f2093a49b141b5ad04f044
-      resolved-ref: b7a89dd38cf44e6fd4f2093a49b141b5ad04f044
-      url: "https://github.com/duobaseio/forui.git"
-    source: git
+      name: forui
+      sha256: "099deb57d345aaafd73b4ee3dc150bfe032e1d583a898461183586cbb0153778"
+      url: "https://pub.dev"
+    source: hosted
     version: "0.21.3"
   forui_assets:
     dependency: transitive
