@@ -1,26 +1,10 @@
 import 'dart:io';
 
+import 'package:cliq/modules/settings/model/keyboard_shortcut.model.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/services.dart';
 import 'package:forui/forui.dart';
 import 'package:lucide_flutter/lucide_flutter.dart';
-
-class ShortcutActionInfo {
-  final LogicalKeyboardKey mainKey;
-  final Set<LogicalKeyboardKey> modifiers;
-
-  ShortcutActionInfo(this.mainKey, {this.modifiers = const {}})
-    : assert(
-        modifiers.every(
-          (mod) =>
-              mod == LogicalKeyboardKey.shift ||
-              mod == LogicalKeyboardKey.control ||
-              mod == LogicalKeyboardKey.alt ||
-              mod == LogicalKeyboardKey.meta,
-        ),
-        'Modifiers can only be shift, control, alt, or meta',
-      );
-}
 
 class _KeyDisplayInfo {
   final String? label;
@@ -35,7 +19,7 @@ class _KeyDisplayInfo {
 }
 
 class ShortcutInfo extends StatelessWidget {
-  final ShortcutActionInfo shortcut;
+  final KeyboardShortcut shortcut;
   final double size;
 
   const ShortcutInfo({super.key, required this.shortcut, this.size = 20});
@@ -120,11 +104,11 @@ class ShortcutInfo extends StatelessWidget {
   }
 }
 
-class TextWithShortCutInfo extends StatelessWidget {
+class TextWithShortcutInfo extends StatelessWidget {
   final String text;
-  final ShortcutActionInfo shortcut;
+  final KeyboardShortcut shortcut;
 
-  const TextWithShortCutInfo(this.text, {super.key, required this.shortcut});
+  const TextWithShortcutInfo(this.text, {super.key, required this.shortcut});
 
   @override
   Widget build(BuildContext context) {

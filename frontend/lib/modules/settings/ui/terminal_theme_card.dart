@@ -10,8 +10,8 @@ import 'package:forui_hooks/forui_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lucide_flutter/lucide_flutter.dart';
 
-import '../../../shared/ui/shortcut_info.dart';
 import '../../../shared/utils/commons.dart';
+import '../model/keyboard_shortcut.model.dart';
 import '../provider/terminal_theme_service.provider.dart';
 
 class TerminalThemeCard extends HookConsumerWidget {
@@ -142,15 +142,15 @@ class TerminalThemeCard extends HookConsumerWidget {
             label: 'Edit',
             icon: LucideIcons.pencil,
             onPress: edit,
-            shortcut: ShortcutActionInfo(.keyE),
+            shortcut: KeyboardShortcut(.keyE),
           ),
           .new(
             label: 'Delete',
             icon: LucideIcons.trash,
             onPress: delete,
             shortcut: Platform.isMacOS
-                ? ShortcutActionInfo(.backspace, modifiers: {.meta})
-                : ShortcutActionInfo(.delete),
+                ? KeyboardShortcut(.backspace, modifiers: {.meta})
+                : KeyboardShortcut(.delete),
           ),
         ],
       ],

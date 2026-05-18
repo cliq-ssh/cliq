@@ -15,6 +15,7 @@ import 'package:forui/forui.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lucide_flutter/lucide_flutter.dart';
 
+import '../../modules/settings/model/keyboard_shortcut.model.dart';
 import '../provider/store.provider.dart';
 
 enum EntityCardViewType { list, grid }
@@ -146,9 +147,9 @@ class EntityCardView<E> extends HookConsumerWidget {
                           children: [
                             if (filterableFields != null)
                               FTooltip(
-                                tipBuilder: (_, _) => TextWithShortCutInfo(
+                                tipBuilder: (_, _) => TextWithShortcutInfo(
                                   'Filter items',
-                                  shortcut: ShortcutActionInfo(
+                                  shortcut: KeyboardShortcut(
                                     .keyF,
                                     modifiers: {.control},
                                   ),
@@ -196,11 +197,11 @@ class EntityCardView<E> extends HookConsumerWidget {
                                     ],
                                   ),
                                 FTooltip(
-                                  tipBuilder: (_, _) => TextWithShortCutInfo(
+                                  tipBuilder: (_, _) => TextWithShortcutInfo(
                                     viewType.value == EntityCardViewType.list
                                         ? 'List View'
                                         : 'Grid View',
-                                    shortcut: ShortcutActionInfo(
+                                    shortcut: KeyboardShortcut(
                                       .keyG,
                                       modifiers: {.control},
                                     ),

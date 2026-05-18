@@ -10,8 +10,8 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lucide_flutter/lucide_flutter.dart';
 
 import '../../../shared/ui/navigation_shell.dart';
-import '../../../shared/ui/shortcut_info.dart';
 import '../../session/provider/session.provider.dart';
+import '../../settings/model/keyboard_shortcut.model.dart';
 import '../provider/connection_service.provider.dart';
 import '../view/create_or_edit_connection_view.dart';
 
@@ -107,21 +107,21 @@ class ConnectionCard extends HookConsumerWidget {
           label: 'Connect',
           icon: LucideIcons.unplug,
           onPress: connect,
-          shortcut: ShortcutActionInfo(.enter),
+          shortcut: KeyboardShortcut(.enter),
         ),
         .new(
           label: 'Edit',
           icon: LucideIcons.pencil,
           onPress: edit,
-          shortcut: ShortcutActionInfo(.keyE),
+          shortcut: KeyboardShortcut(.keyE),
         ),
         .new(
           label: 'Delete',
           icon: LucideIcons.trash,
           onPress: delete,
           shortcut: Platform.isMacOS
-              ? ShortcutActionInfo(.backspace, modifiers: {.meta})
-              : ShortcutActionInfo(.delete),
+              ? KeyboardShortcut(.backspace, modifiers: {.meta})
+              : KeyboardShortcut(.delete),
         ),
       ],
       popoverController: primaryPopoverController,

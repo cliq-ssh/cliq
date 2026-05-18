@@ -13,6 +13,8 @@ import 'package:flutter/services.dart';
 import 'package:forui/forui.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import '../../modules/settings/model/keyboard_shortcut.model.dart';
+
 final class Commons {
   const Commons._();
 
@@ -86,7 +88,7 @@ final class Commons {
                 if (PlatformUtils.isDesktop && canInstantDelete) ...[
                   TextSpan(text: '\n\nTIP: Hold ', style: subtitleStyle),
                   WidgetSpan(
-                    child: ShortcutInfo(shortcut: ShortcutActionInfo(.shift)),
+                    child: ShortcutInfo(shortcut: KeyboardShortcut(.shift)),
                   ),
                   TextSpan(text: ' to skip this dialog', style: subtitleStyle),
                 ],

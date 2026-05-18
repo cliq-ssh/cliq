@@ -13,6 +13,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 
 import '../../modules/session/provider/session.provider.dart';
 import '../../modules/session/ui/session_sidebar_tab.dart';
+import '../../modules/settings/model/keyboard_shortcut.model.dart';
 import '../../modules/settings/model/navigation_position.model.dart';
 import '../../modules/settings/provider/terminal_theme.provider.dart';
 
@@ -85,9 +86,9 @@ class NavigationShellState extends ConsumerState<NavigationShell>
     buildDashboardTab(bool isExpanded) {
       // TODO: make shortcut functional
       return FTooltip(
-        tipBuilder: (_, _) => TextWithShortCutInfo(
+        tipBuilder: (_, _) => TextWithShortcutInfo(
           'Dashboard',
-          shortcut: ShortcutActionInfo(.keyD, modifiers: {.control}),
+          shortcut: KeyboardShortcut(.keyD, modifiers: {.control}),
         ),
         child: SidebarTab(
           isExpanded: isExpanded,
@@ -109,9 +110,9 @@ class NavigationShellState extends ConsumerState<NavigationShell>
     buildSettingsTab(bool isExpanded) {
       // TODO: make shortcut functional
       return FTooltip(
-        tipBuilder: (_, _) => TextWithShortCutInfo(
+        tipBuilder: (_, _) => TextWithShortcutInfo(
           'Settings',
-          shortcut: ShortcutActionInfo(.comma, modifiers: {.control}),
+          shortcut: KeyboardShortcut(.comma, modifiers: {.control}),
         ),
         child: SidebarTab(
           isExpanded: isExpanded,

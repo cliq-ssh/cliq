@@ -6,12 +6,14 @@ import 'package:forui/forui.dart';
 import 'package:forui_hooks/forui_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
+import '../../modules/settings/model/keyboard_shortcut.model.dart';
+
 class CustomContextMenuAction {
   final String label;
   final IconData? icon;
   final VoidCallback onPress;
   final bool hideAfterPress;
-  final ShortcutActionInfo? shortcut;
+  final KeyboardShortcut? shortcut;
 
   CustomContextMenuAction({
     required this.label,

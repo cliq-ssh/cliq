@@ -9,6 +9,7 @@ import 'package:lucide_flutter/lucide_flutter.dart';
 import '../../../shared/ui/context_menu.dart';
 import '../../../shared/ui/navigation_shell.dart';
 import '../../../shared/ui/shortcut_info.dart';
+import '../../settings/model/keyboard_shortcut.model.dart';
 import '../model/session.model.dart';
 import '../model/tab.model.dart';
 import '../provider/session.provider.dart';
@@ -126,9 +127,9 @@ class SessionSidebarTab extends HookConsumerWidget {
               ),
               // TODO: make shortcut functional
               FTooltip(
-                tipBuilder: (_, _) => TextWithShortCutInfo(
+                tipBuilder: (_, _) => TextWithShortcutInfo(
                   sessions.isEmpty ? 'Close' : 'Close All',
-                  shortcut: ShortcutActionInfo(.keyW, modifiers: {.control}),
+                  shortcut: KeyboardShortcut(.keyW, modifiers: {.control}),
                 ),
                 child: FTappable(
                   onPress: close,
