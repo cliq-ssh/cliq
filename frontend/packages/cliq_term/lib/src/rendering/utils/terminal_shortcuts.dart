@@ -2,6 +2,8 @@ import 'package:flutter/services.dart';
 
 /// Handles terminal keyboard shortcuts (Ctrl+Shift+C/V and Cmd+Shift+C/V on macOS).
 class TerminalShortcuts {
+  const TerminalShortcuts._();
+
   static final Map<LogicalKeyboardKey, String> _controlCharacterMap = {
     LogicalKeyboardKey.keyA: '\x01',
     LogicalKeyboardKey.keyB: '\x02',

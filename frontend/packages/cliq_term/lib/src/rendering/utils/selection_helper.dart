@@ -1,5 +1,7 @@
 /// Helper class for selection normalization and coordinate mapping.
 class SelectionHelper {
+  const SelectionHelper._();
+
   /// Normalizes selection coordinates so start <= end for both rows and columns.
   /// Returns a normalized selection [SelectionBounds] with ordered coordinates.
   static SelectionBounds normalize({
