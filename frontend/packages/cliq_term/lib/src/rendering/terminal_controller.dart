@@ -7,7 +7,6 @@ import 'package:cliq_term/src/rendering/model/terminal_buffer.dart';
 import 'package:cliq_term/src/parser/cc_parser.dart';
 import 'package:cliq_term/src/parser/escape_parser.dart';
 import 'package:cliq_term/src/rendering/terminal_painter.dart';
-import 'package:cliq_term/src/rendering/utils/terminal_shortcuts.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -23,6 +22,9 @@ class TerminalController extends ChangeNotifier {
     .arrowDown: '\x1b[B',
     .arrowRight: '\x1b[C',
     .arrowLeft: '\x1b[D',
+    .home: '\x1b[H',
+    .end: '\x1b[F',
+    .delete: '\x1b[3~',
   };
 
   final Duration cursorBlinkInterval;
