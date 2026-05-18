@@ -15,6 +15,16 @@ enum CursorStyle { block, underline, bar }
 
 /// Controller for managing terminal state, including buffers, cursor, and input handling.
 class TerminalController extends ChangeNotifier {
+  static final Map<LogicalKeyboardKey, String> keyCharacterMap = {
+    .enter: '\n',
+    .backspace: '\x7f',
+    .tab: '\t',
+    .arrowUp: '\x1b[A',
+    .arrowDown: '\x1b[B',
+    .arrowRight: '\x1b[C',
+    .arrowLeft: '\x1b[D',
+  };
+
   final Duration cursorBlinkInterval;
   final int maxScrollbackLines;
   final bool debugLogging;
@@ -111,45 +121,38 @@ class TerminalController extends ChangeNotifier {
   /// Handles keyboard input events and translates them into terminal input.
   /// Supports character input and special keys like Enter, Backspace, Tab, and Arrow keys.
   void handleKey(KeyEvent ev) {
-    if (ev is! KeyDownEvent) return;
-
-    if (HardwareKeyboard.instance.isControlPressed) {
-      final controlChar = TerminalShortcuts.controlCharacterForKey(
-        ev.logicalKey,
-      );
-      if (controlChar != null) {
-        onInput?.call(controlChar);
-        return;
-      }
+    if (ev is! KeyDownEvent && ev is! KeyRepeatEvent) {
+      return;
     }
+
+    // TODO: this should already work and should not need extra handling. See https://github.com/cliq-ssh/cliq/pull/481#issuecomment-4472584212
+    //if (HardwareKeyboard.instance.isControlPressed) {
+    //  final controlChar = TerminalShortcuts.controlCharacterForKey(
+    //    ev.logicalKey,
+    //  );
+    //  if (controlChar != null) {
+    //    onInput?.call(controlChar);
+    //    return;
+    //  }
+    //}
 
     final String? ch = ev.character;
     if (ch != null && ch.isNotEmpty) {
       onInput?.call(ch);
       return;
     }
+    final String? char = ev.character;
 
-    final key = ev.logicalKey;
-    if (key == LogicalKeyboardKey.enter) {
-      onInput?.call('\n');
-    } else if (key == LogicalKeyboardKey.backspace) {
-      onInput?.call('\x7f');
-    } else if (key == LogicalKeyboardKey.delete) {
-      onInput?.call('\x1b[3~');
-    } else if (key == LogicalKeyboardKey.tab) {
-      onInput?.call('\t');
-    } else if (key == LogicalKeyboardKey.arrowUp) {
-      onInput?.call('\x1b[A');
-    } else if (key == LogicalKeyboardKey.arrowDown) {
-      onInput?.call('\x1b[B');
-    } else if (key == LogicalKeyboardKey.arrowRight) {
-      onInput?.call('\x1b[C');
-    } else if (key == LogicalKeyboardKey.arrowLeft) {
-      onInput?.call('\x1b[D');
-    } else if (key == LogicalKeyboardKey.home) {
-      onInput?.call('\x1b[H');
-    } else if (key == LogicalKeyboardKey.end) {
-      onInput?.call('\x1b[F');
+    // simply pass character input if available
+    if (char != null && char.isNotEmpty) {
+      onInput?.call(char);
+      return;
+    }
+
+    // otherwise check for special keys
+    final key = keyCharacterMap[ev.logicalKey];
+    if (key != null) {
+      onInput?.call(key);
     }
   }
 

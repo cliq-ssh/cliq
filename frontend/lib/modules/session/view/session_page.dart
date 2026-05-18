@@ -1,16 +1,15 @@
+import 'dart:async';
+
 import 'package:cliq/modules/connections/model/connection_full.model.dart';
 import 'package:cliq/modules/connections/provider/connection.provider.dart';
-import 'package:cliq/modules/session/model/session.model.dart';
 import 'package:cliq/modules/settings/extension/custom_terminal_theme.extension.dart';
 import 'package:cliq/modules/settings/provider/terminal_theme.provider.dart';
 import 'package:cliq/shared/provider/store.provider.dart';
 import 'package:cliq/shared/utils/commons.dart';
 import 'package:cliq_ui/cliq_ui.dart'
-    show CliqGridColumn, CliqGridContainer, CliqGridRow;
-import 'package:dartssh2/dartssh2.dart';
+    show CliqGridColumn, CliqGridContainer, CliqGridRow, CliqFontFamily;
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart' hide LicensePage;
-import 'package:flutter/services.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:forui/forui.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -20,10 +19,14 @@ import 'package:cliq_term/cliq_term.dart';
 import '../../../shared/ui/navigation_shell.dart';
 import '../provider/session.provider.dart';
 
-class ShellSessionPage extends StatefulHookConsumerWidget {
-  final ShellSession session;
+/// The padding around the terminal view in the session page.
+const kShellSessionPagePadding = 8.0;
 
-  const ShellSessionPage({super.key, required this.session});
+class ShellSessionPage extends StatefulHookConsumerWidget {
+  final String sessionId;
+  final FocusNode? focusNode;
+
+  const ShellSessionPage({super.key, required this.sessionId, this.focusNode});
 
   @override
   ConsumerState<ConsumerStatefulWidget> createState() =>
@@ -32,10 +35,6 @@ class ShellSessionPage extends StatefulHookConsumerWidget {
 
 class _ShellSessionPageState extends ConsumerState<ShellSessionPage>
     with AutomaticKeepAliveClientMixin {
-  ShellSession get session => widget.session;
-  SSHClient? get sshClient => session.sshClient;
-  SSHSession? get sshSession => session.sshSession;
-
   @override
   bool get wantKeepAlive => true;
 
@@ -43,30 +42,37 @@ class _ShellSessionPageState extends ConsumerState<ShellSessionPage>
   Widget build(BuildContext context) {
     super.build(context);
 
-    final terminalController = useState<TerminalController?>(null);
     final typography = context.theme.typography;
     final size = MediaQuery.of(context).size;
+
+    final session = ref
+        .watch(sessionProvider.notifier)
+        .getSessionById(widget.sessionId)!;
+    final terminalController = useState<TerminalController?>(
+      session.terminalController,
+    );
 
     final defaultTerminalTypography = useStore(.defaultTerminalTypography);
     final defaultTerminalTheme = useStore(.defaultTerminalThemeId);
     final themes = ref.watch(terminalThemeProvider);
 
-    getEffectiveTerminalTypography() =>
-        widget.session.connection.terminalTypographyOverride ??
-        defaultTerminalTypography.value;
+    final effectiveTerminalTheme = session.connection.getEffectiveTerminalTheme(
+      themes,
+      defaultTerminalTheme.value,
+    );
 
-    getEffectiveTerminalTheme() =>
-        widget.session.connection.terminalThemeOverride ??
-        themes.findById(defaultTerminalTheme.value, isDefaultTheme: true)!;
+    getEffectiveTerminalTypography() =>
+        session.connection.terminalTypographyOverride ??
+        defaultTerminalTypography.value;
 
     buildTerminalController() {
       // TODO: listen for onTitleChange and update tab title
       return TerminalController(
-        theme: getEffectiveTerminalTheme().toTerminalTheme(),
+        theme: effectiveTerminalTheme.toTerminalTheme(),
         typography: getEffectiveTerminalTypography(),
         debugLogging: kDebugMode,
         onResize: (rows, cols) {
-          sshSession?.resizeTerminal(cols, rows);
+          session.sshSession?.resizeTerminal(cols, rows);
           // TODO: resize overlay
         },
       );
@@ -75,7 +81,7 @@ class _ShellSessionPageState extends ConsumerState<ShellSessionPage>
     closeSession() {
       ref
           .read(sessionProvider.notifier)
-          .closeAnyMaybeGo(NavigationShell.of(context), widget.session.id);
+          .closeSessionAndMaybeGo(NavigationShell.of(context), session.id);
     }
 
     retrySession({bool skipHostKeyVerification = false}) {
@@ -89,10 +95,19 @@ class _ShellSessionPageState extends ConsumerState<ShellSessionPage>
       terminalController.value = buildTerminalController();
     }
 
+    // focus terminal when page is opened
+    useEffect(() {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        widget.focusNode?.requestFocus();
+      });
+      return null;
+    }, []);
+
     // initial setup of terminal controller
     useEffect(() {
+      if (terminalController.value != null) return null;
       terminalController.value = buildTerminalController();
-      return () => terminalController.value?.dispose();
+      return null;
     }, []);
 
     // open SSH connection when terminal controller is set
@@ -100,46 +115,82 @@ class _ShellSessionPageState extends ConsumerState<ShellSessionPage>
       if (terminalController.value == null) return null;
 
       Future<void> openSsh(ConnectionFull connection) async {
-        final client = await ref
-            .read(sessionProvider.notifier)
-            .createSSHClient(widget.session, connection);
+        if (terminalController.value == null) return;
 
-        final shell = await ref
-            .read(sessionProvider.notifier)
-            .spawnShell(widget.session.id, client);
+        final client =
+            session.sshClient ??
+            await ref
+                .read(sessionProvider.notifier)
+                .createSSHClient(session, connection);
+
+        if (client == null || !mounted) {
+          return;
+        }
+
+        final sshSession =
+            session.sshSession ??
+            await ref
+                .read(sessionProvider.notifier)
+                .spawnShell(session.id, client, terminalController.value!);
 
         terminalController.value!.fitResize(size);
+
         terminalController.value!.onInput = (s) {
-          if (sshSession != null) {
-            sshSession!.stdin.add(Uint8List.fromList(s.codeUnits));
-          }
+          sshSession?.stdin.add(Uint8List.fromList(s.codeUnits));
         };
 
-        shell?.stdout.listen((data) {
-          terminalController.value!.feed(String.fromCharCodes(data));
-        });
+        StreamSubscription? stdoutSub =
+            session.stdoutSub ??
+            sshSession?.stdout.listen((data) {
+              final controller = terminalController.value;
+              if (controller != null) {
+                controller.feed(String.fromCharCodes(data));
+              }
+            });
 
-        shell?.stderr.listen((data) {
-          terminalController.value!.feed(String.fromCharCodes(data));
-        });
+        StreamSubscription? stderrSub =
+            session.stderrSub ??
+            sshSession?.stderr.listen((data) {
+              final controller = terminalController.value;
+              if (controller != null) {
+                controller.feed(String.fromCharCodes(data));
+              }
+            });
+
+        ref
+            .read(sessionProvider.notifier)
+            .setStreamListeners(session.id, stdoutSub, stderrSub);
       }
 
       final connectionFull = ref
           .read(connectionProvider.notifier)
-          .findById(widget.session.connection.id);
-      if (connectionFull != null) openSsh(connectionFull);
-      return () => widget.session.dispose();
+          .findById(session.connection.id);
+
+      if (connectionFull != null) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (!mounted) return;
+          openSsh(connectionFull);
+        });
+      }
+
+      return null;
     }, [terminalController.value]);
 
     // update terminal controller when typography or theme changes
     useEffect(() {
       if (terminalController.value == null) return null;
-      terminalController.value!.setTerminalTypography(
-        getEffectiveTerminalTypography(),
-      );
-      terminalController.value!.setTerminalTheme(
-        getEffectiveTerminalTheme().toTerminalTheme(),
-      );
+
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+
+        terminalController.value!.setTerminalTypography(
+          getEffectiveTerminalTypography(),
+        );
+        terminalController.value!.setTerminalTheme(
+          effectiveTerminalTheme.toTerminalTheme(),
+        );
+      });
+
       return null;
     }, [defaultTerminalTypography.value, defaultTerminalTheme.value]);
 
@@ -152,7 +203,7 @@ class _ShellSessionPageState extends ConsumerState<ShellSessionPage>
             children: [
               TextSpan(text: 'Connecting to '),
               TextSpan(
-                text: widget.session.connection.address,
+                text: session.connection.address,
                 style: typography.xl.copyWith(fontWeight: .bold),
               ),
             ],
@@ -190,7 +241,7 @@ class _ShellSessionPageState extends ConsumerState<ShellSessionPage>
             ),
             textAlign: .center,
           ),
-        const SizedBox(height: 32),
+        const SizedBox(height: 16),
         FCard(
           subtitle: Row(
             mainAxisAlignment: .spaceBetween,
@@ -252,22 +303,34 @@ class _ShellSessionPageState extends ConsumerState<ShellSessionPage>
             children: [
               TextSpan(text: 'Failed to connect to '),
               TextSpan(
-                text: '${session.connection.addressAndPort}:',
+                text: session.connection.addressAndPort,
                 style: typography.xl.copyWith(fontWeight: .bold),
               ),
             ],
           ),
           style: typography.xl,
         ),
-        const SizedBox(height: 32),
+        const SizedBox(height: 16),
         if (session.connectionError != null)
           FCard(
-            subtitle: Text(
+            style: .delta(
+              decoration: .boxDelta(
+                color: context.theme.colors.destructive.withValues(alpha: 0.1),
+                border: Border.all(
+                  color: context.theme.colors.destructive.withValues(
+                    alpha: 0.2,
+                  ),
+                ),
+              ),
+            ),
+            child: Text(
               session.connectionError!,
-              style: typography.md,
-              textAlign: TextAlign.center,
+              style: context.theme.typography.xs.copyWith(
+                fontFamily: CliqFontFamily.secondary.fontFamily,
+              ),
             ),
           ),
+        const SizedBox(height: 8),
         Row(
           mainAxisAlignment: .spaceBetween,
           children: [
@@ -282,12 +345,15 @@ class _ShellSessionPageState extends ConsumerState<ShellSessionPage>
       ];
     }
 
-    if (widget.session.isConnected && terminalController.value != null) {
+    if (session.isConnected && terminalController.value != null) {
       return SizedBox.expand(
         child: Container(
-          color: getEffectiveTerminalTheme().backgroundColor,
-          padding: const .all(8),
-          child: TerminalView(controller: terminalController.value!),
+          color: effectiveTerminalTheme.backgroundColor,
+          padding: const .all(kShellSessionPagePadding),
+          child: TerminalView(
+            controller: terminalController.value!,
+            focusNode: widget.focusNode,
+          ),
         ),
       );
     }

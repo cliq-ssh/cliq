@@ -48,30 +48,32 @@ void _handleError(Object error, StackTrace stackTrace) {
     errorMessage = '${errorMessage.substring(0, 150)}...';
   }
 
-  showFToast(
-    context: Router.rootNavigatorKey.currentContext!,
-    variant: .destructive,
-    title: Text(errorMessage),
-    suffixBuilder: (context, entry) {
-      return FTooltip(
-        tipBuilder: (_, _) => Text('View error details'),
-        child: GestureDetector(
-          onTap: () {
-            entry.dismiss();
-            Commons.showResponsiveDialog(
-              (_) => ErrorView(error: error, stackTrace: stackTrace),
-            );
-          },
-          child: Icon(
-            LucideIcons.squareArrowOutUpRight,
-            color: context.theme.colors.destructive,
-            size: 20,
+  WidgetsBinding.instance.addPostFrameCallback((_) {
+    showFToast(
+      context: Router.rootNavigatorKey.currentContext!,
+      variant: .destructive,
+      title: Text(errorMessage),
+      suffixBuilder: (context, entry) {
+        return FTooltip(
+          tipBuilder: (_, _) => Text('View error details'),
+          child: GestureDetector(
+            onTap: () {
+              entry.dismiss();
+              Commons.showResponsiveDialog(
+                (_) => ErrorView(error: error, stackTrace: stackTrace),
+              );
+            },
+            child: Icon(
+              LucideIcons.squareArrowOutUpRight,
+              color: context.theme.colors.destructive,
+              size: 20,
+            ),
           ),
-        ),
-      );
-    },
-    duration: null,
-  );
+        );
+      },
+      duration: null,
+    );
+  });
 }
 
 void _initLogger() {

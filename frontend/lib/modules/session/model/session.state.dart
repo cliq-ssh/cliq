@@ -1,52 +1,57 @@
-import 'package:cliq/modules/session/model/session.model.dart';
+import 'package:cliq/modules/session/model/tab.model.dart';
 
-class SSHSessionState {
-  final List<ShellSession> activeSessions;
-  final String? selectedSessionId;
-  final Map<String, int> pageIndexes;
-  final bool isAskForKnownHost;
+class SessionState {
+  /// A list of active session tabs, where each tab can contain multiple ShellSessions, e.g., for split view.
+  final List<SessionTab> activeTabs;
 
-  SSHSessionState.initial()
-    : activeSessions = [],
-      selectedSessionId = null,
-      pageIndexes = {},
-      isAskForKnownHost = false;
+  /// The ID of the currently selected session tab. This corresponds to a key in [activeTabs].
+  final String? selectedTabId;
 
-  const SSHSessionState({
-    required this.activeSessions,
-    required this.selectedSessionId,
-    this.pageIndexes = const {},
-    this.isAskForKnownHost = false,
+  /// Maps session IDs to their currently active page index in the PageView.
+  final Map<String, int> tabPageIndices;
+
+  const SessionState.initial()
+    : activeTabs = const [],
+      selectedTabId = null,
+      tabPageIndices = const {};
+
+  const SessionState({
+    required this.activeTabs,
+    required this.selectedTabId,
+    this.tabPageIndices = const {},
   });
 
-  ShellSession? get selectedSession {
-    if (selectedSessionId == null) {
+  /// Gets the [SessionTab] for the currently selected tab id, or null if no tab is selected.
+  SessionTab? get selectedSession {
+    if (selectedTabId == null) {
       return null;
     }
-    for (final session in activeSessions) {
-      if (session.id == selectedSessionId) {
-        return session;
+
+    for (final tab in activeTabs) {
+      if (tab.id == selectedTabId) {
+        return tab;
       }
     }
     return null;
   }
 
-  int? get selectedSessionPageIndex {
-    if (selectedSessionId == null) {
+  /// Gets the currently active page index for the selected tab, or null if no tab is selected.
+  int? get selectedTabPageIndex {
+    if (selectedTabId == null) {
       return null;
     }
-    return pageIndexes[selectedSessionId!] ?? 0;
+    return tabPageIndices[selectedTabId!] ?? 0;
   }
 
-  SSHSessionState copyWith({
-    List<ShellSession>? activeSessions,
-    String? selectedSessionId,
-    Map<String, int>? pageIndexes,
+  SessionState copyWith({
+    List<SessionTab>? activeTabs,
+    String? selectedTabId,
+    Map<String, int>? tabPageIndices,
   }) {
-    return SSHSessionState(
-      activeSessions: activeSessions ?? this.activeSessions,
-      selectedSessionId: selectedSessionId ?? this.selectedSessionId,
-      pageIndexes: pageIndexes ?? this.pageIndexes,
+    return SessionState(
+      activeTabs: activeTabs ?? this.activeTabs,
+      selectedTabId: selectedTabId ?? this.selectedTabId,
+      tabPageIndices: tabPageIndices ?? this.tabPageIndices,
     );
   }
 }

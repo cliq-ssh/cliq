@@ -64,7 +64,6 @@ class _TerminalViewState extends State<TerminalView> {
       _focusNode.dispose();
     }
     _scrollController.dispose();
-    widget.controller.stopCursorBlink();
     super.dispose();
   }
 
@@ -110,13 +109,12 @@ class _TerminalViewState extends State<TerminalView> {
 
         return Focus(
           focusNode: _focusNode,
-          autofocus: true,
           onKeyEvent: (node, event) {
             if (widget.readOnly) {
-              return KeyEventResult.ignored;
+              return .ignored;
             }
 
-            if (event is KeyDownEvent) {
+            if (event is KeyDownEvent || event is KeyRepeatEvent) {
               // Do not clear selection on modifier-only key presses.
               if (KeyboardHelper.isModifierOnlyKey(event.logicalKey)) {
                 return .handled;
@@ -151,6 +149,7 @@ class _TerminalViewState extends State<TerminalView> {
               widget.controller.handleKey(event);
               return .handled;
             }
+
             return .ignored;
           },
 
