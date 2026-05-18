@@ -434,8 +434,8 @@ packages:
     dependency: "direct main"
     description:
       path: forui
-      ref: nightly
-      resolved-ref: e29c5e99fde6cabb91bbc1c56aeae95088b8d232
+      ref: b7a89dd38cf44e6fd4f2093a49b141b5ad04f044
+      resolved-ref: b7a89dd38cf44e6fd4f2093a49b141b5ad04f044
       url: "https://github.com/duobaseio/forui.git"
     source: git
     version: "0.21.3"
