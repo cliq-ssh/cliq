@@ -2,7 +2,6 @@ import 'package:cliq_term/cliq_term.dart';
 import 'package:cliq_term/src/rendering/terminal_painter.dart';
 import 'package:cliq_term/src/rendering/utils/gesture_selection_handler.dart';
 import 'package:cliq_term/src/rendering/utils/keyboard_helper.dart';
-import 'package:cliq_term/src/rendering/utils/terminal_shortcuts.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -128,23 +127,21 @@ class _TerminalViewState extends State<TerminalView> {
               if (widget.pasteShortcut?.isPressed(event) == true) {
                 widget.controller.clearSelection();
                 Clipboard.getData(Clipboard.kTextPlain).then((clip) {
-                  var text = clip?.text ?? '';
+                  String text = clip?.text ?? '';
                   if (text.isNotEmpty) {
                     // Strip trailing newlines to prevent auto-execution on multiline paste
-                    text = TerminalShortcuts.stripTrailingNewlines(text);
+                    text = _stripTrailingNewlines(text);
                     widget.controller.onInput?.call(text);
                   }
                 });
-
                 return .handled;
               }
 
               if (widget.copyShortcut?.isPressed(event) == true) {
-                final sel = widget.controller.getSelectedText();
-                if (sel != null && sel.isNotEmpty) {
-                  Clipboard.setData(ClipboardData(text: sel));
+                final selection = widget.controller.getSelectedText();
+                if (selection?.isNotEmpty == true) {
+                  Clipboard.setData(ClipboardData(text: selection!));
                 }
-
                 return .handled;
               }
 
@@ -152,11 +149,9 @@ class _TerminalViewState extends State<TerminalView> {
               widget.controller.handleKey(event);
               return .handled;
             }
-
             return .ignored;
           },
 
-          // TODO: focus when selecting tab
           child: GestureDetector(
             behavior: HitTestBehavior.translucent,
             onTap: () {
@@ -221,5 +216,16 @@ class _TerminalViewState extends State<TerminalView> {
         );
       },
     );
+  }
+
+  /// Strip trailing newlines from multiline text to prevent auto-execution.
+  /// Returns trimmed text if multiline, otherwise returns original text.
+  ///
+  /// TODO: There is a escape code that prevents auto-execution of pasted commands, but it is not implemented atm.
+  static String _stripTrailingNewlines(String text) {
+    if (text.contains('\n') && text.endsWith('\n')) {
+      return text.trimRight();
+    }
+    return text;
   }
 }

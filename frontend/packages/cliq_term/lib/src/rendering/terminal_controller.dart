@@ -14,7 +14,7 @@ enum CursorStyle { block, underline, bar }
 
 /// Controller for managing terminal state, including buffers, cursor, and input handling.
 class TerminalController extends ChangeNotifier {
-  static final Map<LogicalKeyboardKey, String> keyCharacterMap = {
+  static final Map<LogicalKeyboardKey, String> _keyCharacterMap = {
     .enter: '\n',
     .backspace: '\x7f',
     .tab: '\t',
@@ -126,22 +126,19 @@ class TerminalController extends ChangeNotifier {
       return;
     }
 
-    // TODO: this should already work and should not need extra handling. See https://github.com/cliq-ssh/cliq/pull/481#issuecomment-4472584212
-    //if (HardwareKeyboard.instance.isControlPressed) {
-    //  final controlChar = TerminalShortcuts.controlCharacterForKey(
-    //    ev.logicalKey,
-    //  );
-    //  if (controlChar != null) {
-    //    onInput?.call(controlChar);
-    //    return;
-    //  }
-    //}
-
-    final String? ch = ev.character;
-    if (ch != null && ch.isNotEmpty) {
-      onInput?.call(ch);
-      return;
+    // We seem to need extra control key handling for Windows here since [ev.character] is always
+    // null when Ctrl is pressed.
+    // See https://github.com/cliq-ssh/cliq/pull/481#issuecomment-4472584212
+    //
+    // This should streamline input for all platforms.
+    if (HardwareKeyboard.instance.isControlPressed) {
+      final key = ev.logicalKey.keyId - 'a'.codeUnitAt(0);
+      if (key >= 0 && key < 26) {
+        onInput?.call(String.fromCharCode(key + 1));
+        return;
+      }
     }
+
     final String? char = ev.character;
 
     // simply pass character input if available
@@ -151,7 +148,7 @@ class TerminalController extends ChangeNotifier {
     }
 
     // otherwise check for special keys
-    final key = keyCharacterMap[ev.logicalKey];
+    final key = _keyCharacterMap[ev.logicalKey];
     if (key != null) {
       onInput?.call(key);
     }
