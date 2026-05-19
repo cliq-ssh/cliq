@@ -1,5 +1,4 @@
 import 'package:cliq_term/cliq_term.dart';
-import 'package:cliq_term/src/rendering/model/terminal_buffer.dart';
 
 typedef CcHandler = void Function(TerminalBuffer buf);
 

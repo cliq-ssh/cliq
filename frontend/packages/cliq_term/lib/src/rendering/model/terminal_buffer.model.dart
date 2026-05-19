@@ -1,13 +1,11 @@
 import 'dart:math';
 
-import 'package:cliq_term/src/rendering/model/ring_buffer.dart';
+import 'package:cliq_term/cliq_term.dart';
 
-import '../../../cliq_term.dart';
-
-class Row {
+class TerminalBufferRow {
   final List<Cell> cells;
 
-  Row(int cols)
+  TerminalBufferRow(int cols)
     : cells = List.generate(cols, (_) => Cell.empty(), growable: false);
 
   void clear() {
@@ -23,7 +21,7 @@ class TerminalBuffer {
   final int maxScrollbackLines;
   final bool isBackBuffer;
 
-  final RingBuffer<Row> _buffer;
+  final RingBuffer<TerminalBufferRow> _buffer;
 
   /// The current formatting options.
   FormattingOptions currentFormat = FormattingOptions();
@@ -56,11 +54,11 @@ class TerminalBuffer {
     this.maxScrollbackLines = 1000,
     this.isBackBuffer = false,
     this.isLineFeedMode = false,
-  }) : _buffer = RingBuffer<Row>(rows + maxScrollbackLines),
+  }) : _buffer = RingBuffer<TerminalBufferRow>(rows + maxScrollbackLines),
        _topMargin = 0,
        _bottomMargin = rows - 1 {
     for (var i = 0; i < rows; i++) {
-      _buffer.add(Row(cols));
+      _buffer.add(TerminalBufferRow(cols));
     }
   }
 
@@ -145,7 +143,7 @@ class TerminalBuffer {
         scrollDown(1);
       } else {
         // Insert empty line at top
-        _buffer.prepend(Row(cols));
+        _buffer.prepend(TerminalBufferRow(cols));
         final topVisibleIdx = currentScrollback;
         _buffer[topVisibleIdx].clear();
       }
@@ -266,7 +264,7 @@ class TerminalBuffer {
   void clear() {
     _buffer.clear();
     for (var i = 0; i < rows; i++) {
-      _buffer.add(Row(cols));
+      _buffer.add(TerminalBufferRow(cols));
     }
     // reset cursor position
     cursorRow = 0;
@@ -274,7 +272,7 @@ class TerminalBuffer {
   }
 
   void pushEmptyLine() {
-    _buffer.add(Row(cols));
+    _buffer.add(TerminalBufferRow(cols));
 
     cursorRow = rows - 1;
     cursorCol = 0;
@@ -293,7 +291,7 @@ class TerminalBuffer {
         final srcIdx = visibleStart + srcRow;
         _buffer[destIdx] = _buffer[srcIdx];
       } else {
-        _buffer[destIdx] = Row(cols);
+        _buffer[destIdx] = TerminalBufferRow(cols);
       }
     }
   }
@@ -312,7 +310,7 @@ class TerminalBuffer {
         final srcIdx = visibleStart + srcRow;
         _buffer[destIdx] = _buffer[srcIdx];
       } else {
-        _buffer[destIdx] = Row(cols);
+        _buffer[destIdx] = TerminalBufferRow(cols);
       }
     }
   }

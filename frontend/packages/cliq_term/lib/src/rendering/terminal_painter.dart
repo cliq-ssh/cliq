@@ -3,7 +3,7 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 
 import '../../cliq_term.dart';
-import 'utils/selection_helper.dart';
+import '../utils/selection_helper.dart';
 
 class TerminalPainter extends CustomPainter {
   final TerminalController controller;

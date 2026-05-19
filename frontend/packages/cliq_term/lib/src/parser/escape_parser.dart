@@ -2,9 +2,6 @@ import 'package:cliq_term/cliq_term.dart';
 import 'package:cliq_term/src/parser/csi_parser.dart';
 import 'package:logging/logging.dart';
 
-import '../rendering/model/color.dart';
-import '../rendering/model/esc_terminator.dart';
-
 typedef EscHandler = void Function(String body, FormattingOptions formatting);
 
 typedef CsiHandler =
