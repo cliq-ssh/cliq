@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:cliq/modules/settings/view/create_or_edit_terminal_theme_view.dart';
 import 'package:cliq/shared/data/database.dart';
 import 'package:cliq/shared/ui/context_menu.dart';
+import 'package:cliq_term/cliq_term.dart';
 import 'package:drift/drift.dart' hide Column;
 import 'package:flutter/material.dart';
 import 'package:forui/forui.dart';
@@ -10,7 +11,6 @@ import 'package:forui_hooks/forui_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lucide_flutter/lucide_flutter.dart';
 
-import '../../../shared/ui/shortcut_info.dart';
 import '../../../shared/utils/commons.dart';
 import '../provider/terminal_theme_service.provider.dart';
 
@@ -142,15 +142,15 @@ class TerminalThemeCard extends HookConsumerWidget {
             label: 'Edit',
             icon: LucideIcons.pencil,
             onPress: edit,
-            shortcut: ShortcutActionInfo(.keyE),
+            shortcut: KeyboardShortcut(.keyE),
           ),
           .new(
             label: 'Delete',
             icon: LucideIcons.trash,
             onPress: delete,
             shortcut: Platform.isMacOS
-                ? ShortcutActionInfo(.backspace, modifiers: {.meta})
-                : ShortcutActionInfo(.delete),
+                ? KeyboardShortcut(.backspace, modifiers: {.meta})
+                : KeyboardShortcut(.delete),
           ),
         ],
       ],

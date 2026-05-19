@@ -1,5 +1,6 @@
 import 'package:cliq/shared/data/store.dart';
 import 'package:cliq/shared/ui/shortcut_info.dart';
+import 'package:cliq_term/cliq_term.dart';
 import 'package:cliq_ui/cliq_ui.dart'
     show
         CliqGridContainer,
@@ -146,9 +147,9 @@ class EntityCardView<E> extends HookConsumerWidget {
                           children: [
                             if (filterableFields != null)
                               FTooltip(
-                                tipBuilder: (_, _) => TextWithShortCutInfo(
+                                tipBuilder: (_, _) => TextWithShortcutInfo(
                                   'Filter items',
-                                  shortcut: ShortcutActionInfo(
+                                  shortcut: KeyboardShortcut(
                                     .keyF,
                                     modifiers: {.control},
                                   ),
@@ -196,11 +197,11 @@ class EntityCardView<E> extends HookConsumerWidget {
                                     ],
                                   ),
                                 FTooltip(
-                                  tipBuilder: (_, _) => TextWithShortCutInfo(
+                                  tipBuilder: (_, _) => TextWithShortcutInfo(
                                     viewType.value == EntityCardViewType.list
                                         ? 'List View'
                                         : 'Grid View',
-                                    shortcut: ShortcutActionInfo(
+                                    shortcut: KeyboardShortcut(
                                       .keyG,
                                       modifiers: {.control},
                                     ),

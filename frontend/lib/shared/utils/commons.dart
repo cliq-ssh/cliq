@@ -7,6 +7,7 @@ import 'package:cliq/shared/ui/shortcut_info.dart';
 import 'package:cliq/shared/utils/constants.dart';
 import 'package:cliq/shared/model/router.model.dart';
 import 'package:cliq/shared/utils/platform_utils.dart';
+import 'package:cliq_term/cliq_term.dart';
 import 'package:file_selector/file_selector.dart';
 import 'package:flutter/material.dart' hide Router;
 import 'package:flutter/services.dart';
@@ -86,7 +87,7 @@ final class Commons {
                 if (PlatformUtils.isDesktop && canInstantDelete) ...[
                   TextSpan(text: '\n\nTIP: Hold ', style: subtitleStyle),
                   WidgetSpan(
-                    child: ShortcutInfo(shortcut: ShortcutActionInfo(.shift)),
+                    child: ShortcutInfo(shortcut: KeyboardShortcut(.shift)),
                   ),
                   TextSpan(text: ' to skip this dialog', style: subtitleStyle),
                 ],

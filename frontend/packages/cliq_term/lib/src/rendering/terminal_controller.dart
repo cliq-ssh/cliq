@@ -72,8 +72,8 @@ class TerminalController extends ChangeNotifier {
   int? selectionEndCol;
 
   TerminalController({
-    required TerminalTypography typography,
-    required TerminalTheme theme,
+    required this._typography,
+    required this._theme,
     this.cursorBlinkInterval = const Duration(milliseconds: 600),
     this.maxScrollbackLines = 1000,
     this.debugLogging = false,
@@ -83,8 +83,7 @@ class TerminalController extends ChangeNotifier {
     this.onBell,
     this.rows = 0,
     this.cols = 0,
-  }) : _typography = typography,
-       _theme = theme;
+  });
 
   TerminalTheme get theme => _theme;
   TerminalTypography get typography => _typography;

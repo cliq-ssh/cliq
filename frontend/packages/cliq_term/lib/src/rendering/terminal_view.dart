@@ -11,11 +11,16 @@ class TerminalView extends StatefulWidget {
   final FocusNode? focusNode;
   final bool readOnly;
 
+  final KeyboardShortcut? copyShortcut;
+  final KeyboardShortcut? pasteShortcut;
+
   const TerminalView({
     super.key,
     required this.controller,
     this.focusNode,
     this.readOnly = false,
+    this.copyShortcut,
+    this.pasteShortcut,
   });
 
   @override
@@ -120,8 +125,7 @@ class _TerminalViewState extends State<TerminalView> {
                 return .handled;
               }
 
-              // Handle paste shortcut (Ctrl+Shift+V or Cmd+Shift+V)
-              if (TerminalShortcuts.isPasteShortcut(event)) {
+              if (widget.pasteShortcut?.isPressed(event) == true) {
                 widget.controller.clearSelection();
                 Clipboard.getData(Clipboard.kTextPlain).then((clip) {
                   var text = clip?.text ?? '';
@@ -135,8 +139,7 @@ class _TerminalViewState extends State<TerminalView> {
                 return .handled;
               }
 
-              // Handle copy shortcut (Ctrl+Shift+C or Cmd+Shift+C)
-              if (TerminalShortcuts.isCopyShortcut(event)) {
+              if (widget.copyShortcut?.isPressed(event) == true) {
                 final sel = widget.controller.getSelectedText();
                 if (sel != null && sel.isNotEmpty) {
                   Clipboard.setData(ClipboardData(text: sel));
