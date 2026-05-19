@@ -1,5 +1,6 @@
 import 'package:cliq/modules/settings/model/navigation_position.model.dart';
 import 'package:cliq/shared/ui/sidebar_tab.dart';
+import 'package:cliq_term/cliq_term.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:forui/forui.dart';
@@ -9,7 +10,6 @@ import 'package:lucide_flutter/lucide_flutter.dart';
 import '../../../shared/ui/context_menu.dart';
 import '../../../shared/ui/navigation_shell.dart';
 import '../../../shared/ui/shortcut_info.dart';
-import '../../settings/model/keyboard_shortcut.model.dart';
 import '../model/session.model.dart';
 import '../model/tab.model.dart';
 import '../provider/session.provider.dart';

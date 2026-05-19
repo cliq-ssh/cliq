@@ -38,24 +38,6 @@ class TerminalShortcuts {
     return _controlCharacterMap[key];
   }
 
-  /// Check if the keyboard event is Ctrl+Shift+C (copy) or Cmd+Shift+C on macOS.
-  static bool isCopyShortcut(KeyEvent event) {
-    final isCtrl =
-        HardwareKeyboard.instance.isControlPressed ||
-        HardwareKeyboard.instance.isMetaPressed;
-    final isShift = HardwareKeyboard.instance.isShiftPressed;
-    return isCtrl && isShift && event.logicalKey == LogicalKeyboardKey.keyC;
-  }
-
-  /// Check if the keyboard event is Ctrl+Shift+V (paste) or Cmd+Shift+V on macOS.
-  static bool isPasteShortcut(KeyEvent event) {
-    final isCtrl =
-        HardwareKeyboard.instance.isControlPressed ||
-        HardwareKeyboard.instance.isMetaPressed;
-    final isShift = HardwareKeyboard.instance.isShiftPressed;
-    return isCtrl && isShift && event.logicalKey == LogicalKeyboardKey.keyV;
-  }
-
   /// Strip trailing newlines from multiline text to prevent auto-execution.
   /// Returns trimmed text if multiline, otherwise returns original text.
   ///

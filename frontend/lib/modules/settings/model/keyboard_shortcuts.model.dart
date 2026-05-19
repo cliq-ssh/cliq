@@ -1,5 +1,7 @@
 import 'dart:io';
 
+import 'package:cliq/modules/settings/extension/keyboard_shortcut.extension.dart';
+import 'package:cliq_term/cliq_term.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/services.dart';
 
@@ -44,10 +46,13 @@ class KeyboardShortcuts {
         continue;
       }
 
-      final shortcutKey = KeyboardShortcutType.values.firstWhere(
-        (e) => e.name == entry.key,
+      final type = KeyboardShortcutType.values.firstWhere(
+        (t) => t.name == entry.key,
       );
-      shortcuts[shortcutKey] = KeyboardShortcut.fromJson(entry.value);
+      final shortcut = KeyboardShortcutExtension.tryFromJson(entry.value);
+      if (shortcut != null) {
+        shortcuts[type] = shortcut;
+      }
     }
     return KeyboardShortcuts(shortcuts);
   }
@@ -80,33 +85,5 @@ class KeyboardShortcuts {
       for (final entry in shortcuts.entries)
         entry.key.name: entry.value.toJson(),
     };
-  }
-}
-
-class KeyboardShortcut {
-  final LogicalKeyboardKey mainKey;
-  final Set<LogicalKeyboardKey> modifiers;
-
-  KeyboardShortcut(this.mainKey, {this.modifiers = const {}})
-    : assert(
-        modifiers.every(
-          (mod) =>
-              mod == .shift || mod == .control || mod == .alt || mod == .meta,
-        ),
-        'Modifiers can only be shift, control, alt, or meta',
-      );
-
-  factory KeyboardShortcut.fromJson(Map<String, dynamic> json) {
-    final mainKeyId = json['k'] as int;
-    final modifierIds = (json['m'] as List<dynamic>).cast<int>();
-
-    return KeyboardShortcut(
-      LogicalKeyboardKey(mainKeyId),
-      modifiers: modifierIds.map((id) => LogicalKeyboardKey(id)).toSet(),
-    );
-  }
-
-  Map<String, dynamic> toJson() {
-    return {'k': mainKey.keyId, 'm': modifiers.map((m) => m.keyId).toList()};
   }
 }

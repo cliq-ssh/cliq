@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:cliq/modules/connections/model/connection_full.model.dart';
 import 'package:cliq/shared/ui/context_menu.dart';
 import 'package:cliq/shared/utils/commons.dart';
+import 'package:cliq_term/cliq_term.dart';
 import 'package:flutter/material.dart';
 import 'package:forui/forui.dart';
 import 'package:forui_hooks/forui_hooks.dart';
@@ -11,7 +12,6 @@ import 'package:lucide_flutter/lucide_flutter.dart';
 
 import '../../../shared/ui/navigation_shell.dart';
 import '../../session/provider/session.provider.dart';
-import '../../settings/model/keyboard_shortcut.model.dart';
 import '../provider/connection_service.provider.dart';
 import '../view/create_or_edit_connection_view.dart';
 

@@ -1,12 +1,12 @@
 import 'dart:async';
 import 'dart:convert';
 
-import 'package:cliq/modules/settings/model/keyboard_shortcut.model.dart';
 import 'package:cliq/shared/ui/entity_card_view.dart';
 import 'package:cliq_term/cliq_term.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../../modules/settings/model/keyboard_shortcuts.model.dart';
 import '../../modules/settings/model/navigation_position.model.dart';
 import '../../modules/settings/model/theme.model.dart';
 
@@ -324,6 +324,9 @@ class KeyValueStore {
     if (value is T) {
       return value;
     }
-    return (key.fromValue?.call(value) ?? key.defaultValue ?? key.defaultFactory?.call()) as T;
+    return (key.fromValue?.call(value) ??
+            key.defaultValue ??
+            key.defaultFactory?.call())
+        as T;
   }
 }

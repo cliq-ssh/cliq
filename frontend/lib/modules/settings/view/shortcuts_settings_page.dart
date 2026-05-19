@@ -1,11 +1,9 @@
-import 'dart:math';
-
-import 'package:cliq/modules/settings/model/keyboard_shortcut.model.dart';
 import 'package:cliq/modules/settings/view/abstract_settings_page.dart';
 import 'package:cliq/modules/settings/view/settings_page.dart';
 import 'package:cliq/shared/data/store.dart';
 import 'package:cliq/shared/provider/store.provider.dart';
 import 'package:cliq/shared/ui/shortcut_info.dart';
+import 'package:cliq_term/cliq_term.dart';
 import 'package:cliq_ui/cliq_ui.dart'
     show CliqGridContainer, CliqGridRow, CliqGridColumn;
 import 'package:flutter/cupertino.dart' hide Router;
@@ -17,6 +15,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lucide_flutter/lucide_flutter.dart';
 
 import '../../../shared/model/page_path.model.dart';
+import '../model/keyboard_shortcuts.model.dart';
 
 class ShortcutsSettingsPage extends AbstractSettingsPage {
   static const PagePathBuilder pagePath = PagePathBuilder.child(
@@ -33,25 +32,33 @@ class ShortcutsSettingsPage extends AbstractSettingsPage {
   Widget buildBody(BuildContext context, WidgetRef ref) {
     final shortcuts = useStore(.shortcuts);
 
+    // the type of shortcut currently being recorded, or null if not recording
     final recording = useState<KeyboardShortcutType?>(null);
-    final currentRecording = useState<KeyboardShortcut?>(null);
+    // the current reported value of the recording
+    final currentRecording = useState<(KeyboardShortcut, String?)?>(null);
 
     useEffect(() {
       if (recording.value == null) return null;
 
       bool handler(KeyEvent event) {
-        if (event is! KeyDownEvent) return false;
+        if (event is! KeyDownEvent || event.character?.length != 1) {
+          return false;
+        }
+
+        final modifiers = <LogicalKeyboardKey>{
+          if (HardwareKeyboard.instance.isControlPressed) .control,
+          if (HardwareKeyboard.instance.isShiftPressed) .shift,
+          if (HardwareKeyboard.instance.isAltPressed) .alt,
+          if (HardwareKeyboard.instance.isMetaPressed) .meta,
+        };
+
+        if (modifiers.isEmpty) return false; // require at least one modifier
 
         final shortcut = KeyboardShortcut(
           event.logicalKey,
-          modifiers: {
-            if (HardwareKeyboard.instance.isControlPressed) .control,
-            if (HardwareKeyboard.instance.isShiftPressed) .shift,
-            if (HardwareKeyboard.instance.isAltPressed) .alt,
-            if (HardwareKeyboard.instance.isMetaPressed) .meta,
-          },
+          modifiers: modifiers,
         );
-        currentRecording.value = shortcut;
+        currentRecording.value = (shortcut, event.character);
         return true;
       }
 
@@ -68,13 +75,18 @@ class ShortcutsSettingsPage extends AbstractSettingsPage {
       }
 
       saveRecording() {
-        if (recording.value == null || currentRecording.value == null) return;
+        if (recording.value == null || currentRecording.value == null) {
+          recording.value = null;
+          currentRecording.value = null;
+          return;
+        }
 
+        // save to store
         StoreKey.shortcuts.write(
           shortcuts.value.copyWith(
             shortcuts: {
               ...shortcuts.value.shortcuts,
-              recording.value!: currentRecording.value!,
+              recording.value!: currentRecording.value!.$1,
             },
           ),
         );
@@ -93,7 +105,7 @@ class ShortcutsSettingsPage extends AbstractSettingsPage {
         }
 
         if (recording.value == type && currentRecording.value != null) {
-          return ShortcutInfo(shortcut: currentRecording.value!, size: 24);
+          return ShortcutInfo(shortcut: currentRecording.value!.$1, size: 24);
         }
 
         return FTappable(

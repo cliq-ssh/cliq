@@ -7,13 +7,12 @@ import 'package:cliq/shared/ui/shortcut_info.dart';
 import 'package:cliq/shared/utils/constants.dart';
 import 'package:cliq/shared/model/router.model.dart';
 import 'package:cliq/shared/utils/platform_utils.dart';
+import 'package:cliq_term/cliq_term.dart';
 import 'package:file_selector/file_selector.dart';
 import 'package:flutter/material.dart' hide Router;
 import 'package:flutter/services.dart';
 import 'package:forui/forui.dart';
 import 'package:url_launcher/url_launcher.dart';
-
-import '../../modules/settings/model/keyboard_shortcut.model.dart';
 
 final class Commons {
   const Commons._();

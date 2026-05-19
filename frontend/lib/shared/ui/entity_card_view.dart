@@ -1,5 +1,6 @@
 import 'package:cliq/shared/data/store.dart';
 import 'package:cliq/shared/ui/shortcut_info.dart';
+import 'package:cliq_term/cliq_term.dart';
 import 'package:cliq_ui/cliq_ui.dart'
     show
         CliqGridContainer,
@@ -15,7 +16,6 @@ import 'package:forui/forui.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lucide_flutter/lucide_flutter.dart';
 
-import '../../modules/settings/model/keyboard_shortcut.model.dart';
 import '../provider/store.provider.dart';
 
 enum EntityCardViewType { list, grid }

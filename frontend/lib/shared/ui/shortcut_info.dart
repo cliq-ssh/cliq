@@ -1,6 +1,6 @@
 import 'dart:io';
 
-import 'package:cliq/modules/settings/model/keyboard_shortcut.model.dart';
+import 'package:cliq_term/cliq_term.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/services.dart';
 import 'package:forui/forui.dart';
@@ -51,7 +51,7 @@ class ShortcutInfo extends StatelessWidget {
   Widget build(BuildContext context) {
     const double padding = 4;
 
-    _KeyDisplayInfo getKeyDisplayInfo(LogicalKeyboardKey key) {
+    _KeyDisplayInfo getKeyDisplayInfo(LogicalKeyboardKey? key) {
       _KeyDisplayInfo? info;
       if (Platform.isMacOS) {
         info = _macOSKeyMap[key];
@@ -62,11 +62,12 @@ class ShortcutInfo extends StatelessWidget {
       }
       return info ??
           _defaultKeyMap[key] ??
-          _KeyDisplayInfo(label: key.keyLabel.toUpperCase());
+          _KeyDisplayInfo(label: key!.keyLabel.toUpperCase());
     }
 
-    buildKey(LogicalKeyboardKey key) {
+    buildKey(LogicalKeyboardKey? key) {
       final info = getKeyDisplayInfo(key);
+
       return Container(
         width: size * info.widthModifier,
         height: size,
@@ -98,7 +99,7 @@ class ShortcutInfo extends StatelessWidget {
       spacing: 2,
       children: [
         for (final mod in shortcut.modifiers) buildKey(mod),
-        buildKey(shortcut.mainKey),
+        buildKey(shortcut.logicalKey),
       ],
     );
   }
