@@ -3,6 +3,9 @@ enum EscTerminator {
   /// Terminated by the next character
   singleChar,
 
+  /// Terminated by ESC + intermediate + designator, e.g. "ESC ( 0"
+  twoChar,
+
   /// Terminated by the final byte of a CSI sequence (0x40 to 0x7E)
   csi,
 

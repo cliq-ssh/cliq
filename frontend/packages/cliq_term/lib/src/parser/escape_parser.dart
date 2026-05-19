@@ -19,6 +19,8 @@ class EscapeParser {
     'ESC [': .csi,
     'ESC ]': .osc,
     'ESC P': .escBackslash,
+    'ESC (': .twoChar,
+    'ESC )': .twoChar,
   };
 
   late final Map<String, EscHandler> _escHandlers = {
@@ -47,11 +49,13 @@ class EscapeParser {
     // 'ESC ~': _escLockingShift1R,
     // 'ESC #': ???
     'ESC [': _escHandleCsi,
+    'ESC (': _escDesignateG0,
+    'ESC )': _escDesignateG1,
   };
 
   /// Map of CSI final byte codes to their handlers.
   late final Map<int, CsiHandler> _csiHandlers = {
-    'A'.codeUnitAt(0): _csiCursorUpOrScrollRight,
+    'A'.codeUnitAt(0): _csiCursorUp,
     'B'.codeUnitAt(0): _csiCursorDown,
     'C'.codeUnitAt(0): _csiCursorRight,
     'D'.codeUnitAt(0): _csiCursorLeft,
@@ -133,6 +137,18 @@ class EscapeParser {
     }
 
     switch (term) {
+      case .singleChar:
+        invokeHandler(key, next);
+        return (offset + 1) - initialOffset;
+
+      case .twoChar:
+        if (offset + 1 >= input.length) {
+          // incomplete, consume what we have
+          return (offset + 1) - initialOffset;
+        }
+        invokeHandler(key, input.substring(offset, offset + 2));
+        return (offset + 2) - initialOffset;
+
       case .csi:
         final start = offset;
         int i = offset + 1;
@@ -175,10 +191,6 @@ class EscapeParser {
         }
         invokeHandler(key, input.substring(start));
         return input.length - initialOffset;
-
-      case .singleChar:
-        invokeHandler(key, next);
-        return (offset + 1) - initialOffset;
     }
   }
 
@@ -219,12 +231,17 @@ class EscapeParser {
     }
   }
 
+  void _escDesignateG0(String body, FormattingOptions formatting) {
+    // TODO
+  }
+
+  void _escDesignateG1(String body, FormattingOptions formatting) {
+    // TODO
+  }
+
   // --- CSI Handlers ---
 
-  void _csiCursorUpOrScrollRight(
-    CsiParseResult parsed,
-    FormattingOptions formatting,
-  ) {
+  void _csiCursorUp(CsiParseResult parsed, FormattingOptions formatting) {
     final amount = _parseSingleParam(parsed);
     controller.activeBuffer.cursorUp(amount);
   }
@@ -392,27 +409,23 @@ class EscapeParser {
           code - 30,
         ),
         38 => () {
-          if (offset == codes.length) return;
+          if (offset >= codes.length) return;
           switch (codes[offset++]) {
             case 5:
-              if (offset == codes.length) return;
+              if (offset >= codes.length) return;
               formatting.fgColor = xterm256ToColor(
                 controller.theme,
-                codes[offset],
+                codes[offset++],
               );
-              break;
             case 2:
-              if ((offset + 2) == codes.length) return;
+              if (offset + 2 >= codes.length) return;
               formatting.fgColor = rgbToColor(
-                codes[offset - 3],
-                codes[offset - 2],
-                codes[offset - 1],
+                codes[offset],
+                codes[offset + 1],
+                codes[offset + 2],
               );
-            default:
-              break;
+              offset += 3;
           }
-          // assume we consumed all the extra params
-          offset = codes.length;
         },
         39 => () => formatting.fgColor = null,
         >= 40 && <= 47 => () => formatting.bgColor = ansi16ToColor(
@@ -420,27 +433,23 @@ class EscapeParser {
           code - 40,
         ),
         48 => () {
-          if (offset == codes.length) return;
-          switch (codes[offset]) {
+          if (offset >= codes.length) return;
+          switch (codes[offset++]) {
             case 5:
-              if ((offset + 1) == codes.length) return;
+              if (offset >= codes.length) return;
               formatting.bgColor = xterm256ToColor(
                 controller.theme,
-                codes[offset + 1],
+                codes[offset++],
               );
-              break;
             case 2:
-              if ((offset + 3) == codes.length) return;
+              if (offset + 2 >= codes.length) return;
               formatting.bgColor = rgbToColor(
+                codes[offset],
                 codes[offset + 1],
                 codes[offset + 2],
-                codes[offset + 3],
               );
-            default:
-              break;
+              offset += 3;
           }
-          // assume we consumed all the extra params
-          offset = codes.length;
         },
         49 => () => formatting.bgColor = null,
         >= 90 && <= 97 => () => formatting.fgColor = ansi16ToColor(
@@ -451,7 +460,10 @@ class EscapeParser {
           controller.theme,
           (code - 100) + 8,
         ),
-        _ => throw ArgumentError('Unhandled formatting code: $code'),
+        _ => () {
+          if (controller.debugLogging)
+            _log.warning('Unhandled SGR code: $code');
+        },
       }).call();
     }
   }
