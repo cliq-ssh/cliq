@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:cliq/modules/connections/model/connection_full.model.dart';
 import 'package:cliq/modules/connections/provider/connection.provider.dart';
 import 'package:cliq/modules/settings/extension/custom_terminal_theme.extension.dart';
+import 'package:cliq/modules/settings/model/keyboard_shortcuts.model.dart';
 import 'package:cliq/modules/settings/provider/terminal_theme.provider.dart';
 import 'package:cliq/shared/provider/store.provider.dart';
 import 'package:cliq/shared/utils/commons.dart';
@@ -55,6 +56,8 @@ class _ShellSessionPageState extends ConsumerState<ShellSessionPage>
     final defaultTerminalTypography = useStore(.defaultTerminalTypography);
     final defaultTerminalTheme = useStore(.defaultTerminalThemeId);
     final themes = ref.watch(terminalThemeProvider);
+
+    final shortcuts = useStore(.shortcuts);
 
     final effectiveTerminalTheme = session.connection.getEffectiveTerminalTheme(
       themes,
@@ -353,6 +356,9 @@ class _ShellSessionPageState extends ConsumerState<ShellSessionPage>
           child: TerminalView(
             controller: terminalController.value!,
             focusNode: widget.focusNode,
+            copyShortcut: shortcuts.value.shortcuts[KeyboardShortcutType.copy],
+            pasteShortcut:
+                shortcuts.value.shortcuts[KeyboardShortcutType.paste],
           ),
         ),
       );

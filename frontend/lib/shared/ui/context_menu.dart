@@ -1,5 +1,6 @@
 import 'package:cliq/shared/ui/shortcut_info.dart';
 import 'package:cliq/shared/utils/platform_utils.dart';
+import 'package:cliq_term/cliq_term.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/services.dart';
 import 'package:forui/forui.dart';
@@ -11,7 +12,7 @@ class CustomContextMenuAction {
   final IconData? icon;
   final VoidCallback onPress;
   final bool hideAfterPress;
-  final ShortcutActionInfo? shortcut;
+  final KeyboardShortcut? shortcut;
 
   CustomContextMenuAction({
     required this.label,
@@ -54,7 +55,7 @@ class CustomContextMenu extends HookConsumerWidget {
         for (final action in actions)
           if (action.shortcut != null)
             SingleActivator(
-              action.shortcut!.mainKey,
+              action.shortcut!.logicalKey,
               alt: action.shortcut!.modifiers.contains(LogicalKeyboardKey.alt),
               control: action.shortcut!.modifiers.contains(
                 LogicalKeyboardKey.control,

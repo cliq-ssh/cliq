@@ -3,6 +3,7 @@ import 'package:cliq/shared/provider/store.provider.dart';
 import 'package:cliq/shared/ui/responsive_sidebar.dart';
 import 'package:cliq/shared/ui/shortcut_info.dart';
 import 'package:cliq/shared/ui/sidebar_tab.dart';
+import 'package:cliq_term/cliq_term.dart';
 import 'package:cliq_ui/cliq_ui.dart' show useBreakpoint;
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:forui/forui.dart';
@@ -85,9 +86,9 @@ class NavigationShellState extends ConsumerState<NavigationShell>
     buildDashboardTab(bool isExpanded) {
       // TODO: make shortcut functional
       return FTooltip(
-        tipBuilder: (_, _) => TextWithShortCutInfo(
+        tipBuilder: (_, _) => TextWithShortcutInfo(
           'Dashboard',
-          shortcut: ShortcutActionInfo(.keyD, modifiers: {.control}),
+          shortcut: KeyboardShortcut(.keyD, modifiers: {.control}),
         ),
         child: SidebarTab(
           isExpanded: isExpanded,
@@ -109,9 +110,9 @@ class NavigationShellState extends ConsumerState<NavigationShell>
     buildSettingsTab(bool isExpanded) {
       // TODO: make shortcut functional
       return FTooltip(
-        tipBuilder: (_, _) => TextWithShortCutInfo(
+        tipBuilder: (_, _) => TextWithShortcutInfo(
           'Settings',
-          shortcut: ShortcutActionInfo(.comma, modifiers: {.control}),
+          shortcut: KeyboardShortcut(.comma, modifiers: {.control}),
         ),
         child: SidebarTab(
           isExpanded: isExpanded,

@@ -2,10 +2,12 @@ import 'package:cliq/modules/settings/provider/sync.provider.dart';
 import 'package:cliq/modules/settings/view/identities_settings_page.dart';
 import 'package:cliq/modules/settings/view/keys_settings_page.dart';
 import 'package:cliq/modules/settings/view/known_hosts_settings.dart';
+import 'package:cliq/modules/settings/view/shortcuts_settings_page.dart';
 import 'package:cliq/modules/settings/view/sync_settings_page.dart';
 import 'package:cliq/modules/settings/view/terminal_theme_settings_page.dart';
 import 'package:cliq/shared/extensions/router.extension.dart';
 import 'package:cliq/shared/utils/commons.dart';
+import 'package:cliq/shared/utils/platform_utils.dart';
 import 'package:flutter/foundation.dart';
 import 'package:forui/forui.dart';
 import 'package:lucide_flutter/lucide_flutter.dart';
@@ -112,6 +114,15 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                               AppearanceSettingsPage.pagePath.build(),
                             ),
                           ),
+                          if (PlatformUtils.isDesktop)
+                            FTile(
+                              prefix: Icon(LucideIcons.keyboard),
+                              suffix: Icon(LucideIcons.chevronRight),
+                              title: Text('Shortcuts'),
+                              onPress: () => context.pushPath(
+                                ShortcutsSettingsPage.pagePath.build(),
+                              ),
+                            ),
                           if (kDebugMode)
                             FTile(
                               prefix: Icon(LucideIcons.hammer),

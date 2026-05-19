@@ -14,14 +14,33 @@ enum CursorStyle { block, underline, bar }
 
 /// Controller for managing terminal state, including buffers, cursor, and input handling.
 class TerminalController extends ChangeNotifier {
-  static final Map<LogicalKeyboardKey, String> keyCharacterMap = {
-    .enter: '\n',
+  static final Map<LogicalKeyboardKey, String> _keyCharacterMap = {
+    .enter: '\r',
     .backspace: '\x7f',
     .tab: '\t',
+    .escape: '\x1b',
     .arrowUp: '\x1b[A',
     .arrowDown: '\x1b[B',
     .arrowRight: '\x1b[C',
     .arrowLeft: '\x1b[D',
+    .home: '\x1b[H',
+    .end: '\x1b[F',
+    .insert: '\x1b[2~',
+    .delete: '\x1b[3~',
+    .pageUp: '\x1b[5~',
+    .pageDown: '\x1b[6~',
+    .f1: '\x1bOP',
+    .f2: '\x1bOQ',
+    .f3: '\x1bOR',
+    .f4: '\x1bOS',
+    .f5: '\x1b[15~',
+    .f6: '\x1b[17~',
+    .f7: '\x1b[18~',
+    .f8: '\x1b[19~',
+    .f9: '\x1b[20~',
+    .f10: '\x1b[21~',
+    .f11: '\x1b[23~',
+    .f12: '\x1b[24~',
   };
 
   final Duration cursorBlinkInterval;
@@ -61,9 +80,16 @@ class TerminalController extends ChangeNotifier {
   bool cursorVisible = true;
   Timer? _cursorTimer;
 
+  // Selection state (visible coordinates: 0..rows-1)
+  bool selectionActive = false;
+  int? selectionStartRow;
+  int? selectionStartCol;
+  int? selectionEndRow;
+  int? selectionEndCol;
+
   TerminalController({
-    required TerminalTypography typography,
-    required TerminalTheme theme,
+    required this._typography,
+    required this._theme,
     this.cursorBlinkInterval = const Duration(milliseconds: 600),
     this.maxScrollbackLines = 1000,
     this.debugLogging = false,
@@ -73,8 +99,7 @@ class TerminalController extends ChangeNotifier {
     this.onBell,
     this.rows = 0,
     this.cols = 0,
-  }) : _typography = typography,
-       _theme = theme;
+  });
 
   TerminalTheme get theme => _theme;
   TerminalTypography get typography => _typography;
@@ -116,6 +141,20 @@ class TerminalController extends ChangeNotifier {
     if (ev is! KeyDownEvent && ev is! KeyRepeatEvent) {
       return;
     }
+
+    // We seem to need extra control key handling for Windows here since [ev.character] is always
+    // null when Ctrl is pressed.
+    // See https://github.com/cliq-ssh/cliq/pull/481#issuecomment-4472584212
+    //
+    // This should streamline input for all platforms.
+    if (HardwareKeyboard.instance.isControlPressed) {
+      final key = ev.logicalKey.keyId - 'a'.codeUnitAt(0);
+      if (key >= 0 && key < 26) {
+        onInput?.call(String.fromCharCode(key + 1));
+        return;
+      }
+    }
+
     final String? char = ev.character;
 
     // simply pass character input if available
@@ -125,7 +164,7 @@ class TerminalController extends ChangeNotifier {
     }
 
     // otherwise check for special keys
-    final key = keyCharacterMap[ev.logicalKey];
+    final key = _keyCharacterMap[ev.logicalKey];
     if (key != null) {
       onInput?.call(key);
     }
@@ -231,6 +270,51 @@ class TerminalController extends ChangeNotifier {
     //  cursorVisible = !cursorVisible;
     //  notifyListeners();
     //});
+  }
+
+  /// Begin text selection at visible [row],[col]
+  void startSelection(int row, int col) {
+    selectionActive = true;
+    selectionStartRow = row.clamp(0, max(0, rows - 1));
+    selectionStartCol = col.clamp(0, max(0, cols - 1));
+    selectionEndRow = selectionStartRow;
+    selectionEndCol = selectionStartCol;
+    notifyListeners();
+  }
+
+  /// Update the selection end to visible [row],[col]
+  void updateSelection(int row, int col) {
+    if (!selectionActive) return;
+    selectionEndRow = row.clamp(0, max(0, rows - 1));
+    selectionEndCol = col.clamp(0, max(0, cols - 1));
+    notifyListeners();
+  }
+
+  /// Clear the active selection
+  void clearSelection() {
+    selectionActive = false;
+    selectionStartRow = null;
+    selectionStartCol = null;
+    selectionEndRow = null;
+    selectionEndCol = null;
+    notifyListeners();
+  }
+
+  /// Return the selected text (if selection active) using visible coordinates.
+  String? getSelectedText() {
+    if (!selectionActive ||
+        selectionStartRow == null ||
+        selectionStartCol == null ||
+        selectionEndRow == null ||
+        selectionEndCol == null) {
+      return null;
+    }
+    return activeBuffer.exportSelection(
+      selectionStartRow!,
+      selectionStartCol!,
+      selectionEndRow!,
+      selectionEndCol!,
+    );
   }
 
   /// Stops the cursor blinking timer.

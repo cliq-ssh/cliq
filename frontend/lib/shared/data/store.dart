@@ -1,14 +1,14 @@
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:cliq/shared/ui/entity_card_view.dart';
 import 'package:cliq_term/cliq_term.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../../modules/settings/model/keyboard_shortcuts.model.dart';
 import '../../modules/settings/model/navigation_position.model.dart';
 import '../../modules/settings/model/theme.model.dart';
-
-// TODO: replace key name with id to avoid potential issues with renaming keys in the future
 
 enum StoreKey<T> {
   theme<CliqTheme>(
@@ -73,6 +73,14 @@ enum StoreKey<T> {
     defaultValue: .list,
     fromValue: _entityCardViewTypeFromValue,
     toValue: _enumToValue,
+  ),
+
+  shortcuts<KeyboardShortcuts>(
+    'shortcuts',
+    type: KeyboardShortcutType,
+    defaultFactory: _defaultShortcutsFactory,
+    fromValue: _shortcutsFromValue,
+    toValue: _shortcutsToValue,
   );
 
   final String key;
@@ -131,6 +139,18 @@ enum StoreKey<T> {
     if (fontSize == null) return null;
     return TerminalTypography(fontSize: fontSize, fontFamily: fontFamily);
   }
+
+  static KeyboardShortcuts _defaultShortcutsFactory() =>
+      KeyboardShortcuts.platformDefaults;
+
+  static String? _shortcutsToValue(KeyboardShortcuts? shortcuts) =>
+      shortcuts != null ? jsonEncode(shortcuts.toJson()) : null;
+
+  static KeyboardShortcuts? _shortcutsFromValue(String? value) => value != null
+      ? KeyboardShortcuts.fromJson(
+          Map<String, dynamic>.from(jsonDecode(value) as Map),
+        )
+      : null;
 }
 
 /// Small data class representing a change in the store
@@ -185,7 +205,7 @@ class KeyValueStore {
     // yield updates
     await for (final StoreChange change in changes) {
       if (change.key == key.key) {
-        yield change.value ?? key.defaultValue!;
+        yield change.value ?? (key.defaultValue ?? key.defaultFactory!.call())!;
       }
     }
   }
@@ -304,6 +324,9 @@ class KeyValueStore {
     if (value is T) {
       return value;
     }
-    return (key.fromValue?.call(value) ?? key.defaultValue) as T;
+    return (key.fromValue?.call(value) ??
+            key.defaultValue ??
+            key.defaultFactory?.call())
+        as T;
   }
 }

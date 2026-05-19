@@ -1,5 +1,6 @@
 import 'package:cliq/modules/settings/model/navigation_position.model.dart';
 import 'package:cliq/shared/ui/sidebar_tab.dart';
+import 'package:cliq_term/cliq_term.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:forui/forui.dart';
@@ -126,9 +127,9 @@ class SessionSidebarTab extends HookConsumerWidget {
               ),
               // TODO: make shortcut functional
               FTooltip(
-                tipBuilder: (_, _) => TextWithShortCutInfo(
+                tipBuilder: (_, _) => TextWithShortcutInfo(
                   sessions.isEmpty ? 'Close' : 'Close All',
-                  shortcut: ShortcutActionInfo(.keyW, modifiers: {.control}),
+                  shortcut: KeyboardShortcut(.keyW, modifiers: {.control}),
                 ),
                 child: FTappable(
                   onPress: close,

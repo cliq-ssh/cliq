@@ -466,4 +466,63 @@ class TerminalBuffer {
       cursorRow = min(rows - 1, cursorRow + amount);
     }
   }
+
+  /// Exports the visible screen as plain text.
+  /// Each visible row is converted to text and trailing spaces are trimmed.
+  /// This exports only the currently visible rows (not the full scrollback).
+  String exportVisibleText() {
+    final sb = StringBuffer();
+    for (var r = 0; r < rows; r++) {
+      // find last non-space cell to trim trailing spaces
+      var lastNonSpace = -1;
+      for (var c = 0; c < cols; c++) {
+        final ch = getCell(r, c).ch;
+        if (ch.trim().isNotEmpty) lastNonSpace = c;
+      }
+
+      if (lastNonSpace == -1) {
+        // empty row
+        sb.writeln();
+        continue;
+      }
+
+      for (var c = 0; c <= lastNonSpace; c++) {
+        sb.write(getCell(r, c).ch);
+      }
+
+      if (r < rows - 1) sb.writeln();
+    }
+    return sb.toString();
+  }
+
+  /// Exports a rectangular selection given by visible start/end coordinates.
+  /// Coordinates are visible row/col indices (0..rows-1). The method will
+  /// normalize start/end ordering and return the selected text with newlines
+  /// between rows.
+  String exportSelection(int startRow, int startCol, int endRow, int endCol) {
+    // normalize ordering
+    var r1 = startRow.clamp(0, rows - 1);
+    var r2 = endRow.clamp(0, rows - 1);
+    var c1 = startCol.clamp(0, cols - 1);
+    var c2 = endCol.clamp(0, cols - 1);
+    if (r1 > r2) {
+      final t = r1;
+      r1 = r2;
+      r2 = t;
+    }
+    if (c1 > c2) {
+      final t = c1;
+      c1 = c2;
+      c2 = t;
+    }
+
+    final sb = StringBuffer();
+    for (var r = r1; r <= r2; r++) {
+      for (var c = c1; c <= c2; c++) {
+        sb.write(getCell(r, c).ch);
+      }
+      if (r < r2) sb.writeln();
+    }
+    return sb.toString();
+  }
 }

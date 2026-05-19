@@ -1,5 +1,7 @@
 import 'package:cliq_term/cliq_term.dart';
 import 'package:cliq_term/src/rendering/terminal_painter.dart';
+import 'package:cliq_term/src/rendering/utils/gesture_selection_handler.dart';
+import 'package:cliq_term/src/rendering/utils/keyboard_helper.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -8,11 +10,16 @@ class TerminalView extends StatefulWidget {
   final FocusNode? focusNode;
   final bool readOnly;
 
+  final KeyboardShortcut? copyShortcut;
+  final KeyboardShortcut? pasteShortcut;
+
   const TerminalView({
     super.key,
     required this.controller,
     this.focusNode,
     this.readOnly = false,
+    this.copyShortcut,
+    this.pasteShortcut,
   });
 
   @override
@@ -112,18 +119,82 @@ class _TerminalViewState extends State<TerminalView> {
             }
 
             if (event is KeyDownEvent || event is KeyRepeatEvent) {
+              // Do not clear selection on modifier-only key presses.
+              if (KeyboardHelper.isModifierOnlyKey(event.logicalKey)) {
+                return .handled;
+              }
+
+              if (widget.pasteShortcut?.isPressed(event) == true) {
+                widget.controller.clearSelection();
+                Clipboard.getData(Clipboard.kTextPlain).then((clip) {
+                  String text = clip?.text ?? '';
+                  if (text.isNotEmpty) {
+                    // Strip trailing newlines to prevent auto-execution on multiline paste
+                    text = _stripTrailingNewlines(text);
+                    widget.controller.onInput?.call(text);
+                  }
+                });
+                return .handled;
+              }
+
+              if (widget.copyShortcut?.isPressed(event) == true) {
+                final selection = widget.controller.getSelectedText();
+                if (selection?.isNotEmpty == true) {
+                  Clipboard.setData(ClipboardData(text: selection!));
+                }
+                return .handled;
+              }
+
+              widget.controller.clearSelection();
               widget.controller.handleKey(event);
               return .handled;
             }
-
             return .ignored;
           },
 
-          // TODO: focus when selecting tab
           child: GestureDetector(
             behavior: HitTestBehavior.translucent,
-            // TODO: implement text selection
-            onTap: () => _focusNode.requestFocus(),
+            onTap: () {
+              _focusNode.requestFocus();
+              // clear any existing selection on simple click
+              widget.controller.clearSelection();
+            },
+            onPanStart: (details) {
+              _focusNode.requestFocus();
+              final (
+                visRow,
+                visCol,
+              ) = GestureSelectionHandler.calculateVisibleCoordinates(
+                localPosition: details.localPosition,
+                scrollOffset: _scrollController.offset,
+                cellWidth: cellW,
+                cellHeight: cellH,
+                currentScrollback:
+                    widget.controller.activeBuffer.currentScrollback,
+                maxRows: widget.controller.rows,
+                maxCols: widget.controller.cols,
+              );
+              widget.controller.startSelection(visRow, visCol);
+            },
+            onPanUpdate: (details) {
+              final (
+                visRow,
+                visCol,
+              ) = GestureSelectionHandler.calculateVisibleCoordinates(
+                localPosition: details.localPosition,
+                scrollOffset: _scrollController.offset,
+                cellWidth: cellW,
+                cellHeight: cellH,
+                currentScrollback:
+                    widget.controller.activeBuffer.currentScrollback,
+                maxRows: widget.controller.rows,
+                maxCols: widget.controller.cols,
+              );
+              widget.controller.updateSelection(visRow, visCol);
+            },
+            onPanEnd: (details) {
+              // selection remains active until user clears or starts another selection
+            },
             child: SingleChildScrollView(
               controller: _scrollController,
               scrollDirection: Axis.vertical,
@@ -145,5 +216,16 @@ class _TerminalViewState extends State<TerminalView> {
         );
       },
     );
+  }
+
+  /// Strip trailing newlines from multiline text to prevent auto-execution.
+  /// Returns trimmed text if multiline, otherwise returns original text.
+  ///
+  /// TODO: There is a escape code that prevents auto-execution of pasted commands, but it is not implemented atm.
+  static String _stripTrailingNewlines(String text) {
+    if (text.contains('\n') && text.endsWith('\n')) {
+      return text.trimRight();
+    }
+    return text;
   }
 }
