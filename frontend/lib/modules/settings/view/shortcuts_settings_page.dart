@@ -102,12 +102,8 @@ class ShortcutsSettingsPage extends AbstractSettingsPage {
       }
 
       delete() {
-        StoreKey.shortcuts.write(
-          shortcuts.value.copyWith(
-            shortcuts: {...shortcuts.value.shortcuts..remove(type)},
-          ),
-        );
-
+        final copy = {...shortcuts.value.shortcuts}..remove(type);
+        StoreKey.shortcuts.write(shortcuts.value.copyWith(shortcuts: copy));
         recording.value = null;
         currentRecording.value = null;
       }
