@@ -7,8 +7,14 @@ import 'package:flutter/services.dart';
 
 /// A default set of keyboard shortcuts for various systems.
 final defaultShortcuts = KeyboardShortcuts({
-  .copy: KeyboardShortcut(LogicalKeyboardKey.keyC, modifiers: {.control}),
-  .paste: KeyboardShortcut(LogicalKeyboardKey.keyV, modifiers: {.control}),
+  .copy: KeyboardShortcut(
+    LogicalKeyboardKey.keyC,
+    modifiers: {.control, .shift},
+  ),
+  .paste: KeyboardShortcut(
+    LogicalKeyboardKey.keyV,
+    modifiers: {.control, .shift},
+  ),
 });
 
 /// A default set of keyboard shortcuts for macOS.

@@ -66,6 +66,12 @@ class ShortcutsSettingsPage extends AbstractSettingsPage {
       return () => HardwareKeyboard.instance.removeHandler(handler);
     }, [recording.value]);
 
+    applyKeyboardShortcutsSet(KeyboardShortcuts shortcuts) {
+      StoreKey.shortcuts.write(shortcuts);
+      recording.value = null;
+      currentRecording.value = null;
+    }
+
     buildShortcutTile({required KeyboardShortcutType type}) {
       final shortcut = shortcuts.value.shortcuts[type];
 
@@ -74,7 +80,7 @@ class ShortcutsSettingsPage extends AbstractSettingsPage {
         currentRecording.value = null;
       }
 
-      saveRecording() {
+      save() {
         if (recording.value == null || currentRecording.value == null) {
           recording.value = null;
           currentRecording.value = null;
@@ -95,22 +101,38 @@ class ShortcutsSettingsPage extends AbstractSettingsPage {
         currentRecording.value = null;
       }
 
+      delete() {
+        StoreKey.shortcuts.write(
+          shortcuts.value.copyWith(
+            shortcuts: {...shortcuts.value.shortcuts..remove(type)},
+          ),
+        );
+
+        recording.value = null;
+        currentRecording.value = null;
+      }
+
       buildShortcutPreview() {
+        if (recording.value == type && currentRecording.value != null) {
+          return ShortcutInfo(shortcut: currentRecording.value!.$1, size: 24);
+        }
+
         if (shortcut == null) {
           return FButton(
+            size: .xs,
             variant: .outline,
             onPress: record,
             child: Text('Not set'),
           );
         }
 
-        if (recording.value == type && currentRecording.value != null) {
-          return ShortcutInfo(shortcut: currentRecording.value!.$1, size: 24);
-        }
-
-        return FTappable(
-          onPress: record,
-          child: ShortcutInfo(shortcut: shortcut, size: 24),
+        return FTooltip(
+          tipBuilder: (_, _) => Text('Right-click to delete'),
+          child: FTappable(
+            onPress: record,
+            onSecondaryPress: delete,
+            child: ShortcutInfo(shortcut: shortcut, size: 24),
+          ),
         );
       }
 
@@ -124,7 +146,7 @@ class ShortcutsSettingsPage extends AbstractSettingsPage {
             if (recording.value == type)
               FButton.icon(
                 variant: .primary,
-                onPress: saveRecording,
+                onPress: save,
                 size: .xs,
                 child: Icon(LucideIcons.check),
               ),
@@ -147,6 +169,23 @@ class ShortcutsSettingsPage extends AbstractSettingsPage {
                       children: [
                         for (final s in KeyboardShortcutType.values)
                           buildShortcutTile(type: s),
+                      ],
+                    ),
+                    FTileGroup(
+                      label: Text('Presets'),
+                      children: [
+                        FTile(
+                          title: Text('Apply macOS shortcuts'),
+                          prefix: Icon(LucideIcons.listRestart),
+                          onPress: () =>
+                              applyKeyboardShortcutsSet(defaultMacShortcuts),
+                        ),
+                        FTile(
+                          title: Text('Apply PC shortcuts'),
+                          prefix: Icon(LucideIcons.listRestart),
+                          onPress: () =>
+                              applyKeyboardShortcutsSet(defaultShortcuts),
+                        ),
                       ],
                     ),
                   ],
