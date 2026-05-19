@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 
 class KeyboardShortcut {
@@ -37,4 +38,16 @@ class KeyboardShortcut {
 
     return true;
   }
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+    if (other.runtimeType != runtimeType) return false;
+    return other is KeyboardShortcut &&
+        other.logicalKey == logicalKey &&
+        setEquals(other.modifiers, modifiers);
+  }
+
+  @override
+  int get hashCode => logicalKey.hashCode ^ modifiers.hashCode;
 }

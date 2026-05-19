@@ -123,7 +123,7 @@ class ShortcutsSettingsPage extends AbstractSettingsPage {
         }
 
         return FTooltip(
-          tipBuilder: (_, _) => Text('Right-click to delete'),
+          tipBuilder: (_, _) => Text('Right-click to unset'),
           child: FTappable(
             onPress: record,
             onSecondaryPress: delete,
@@ -132,8 +132,18 @@ class ShortcutsSettingsPage extends AbstractSettingsPage {
         );
       }
 
+      final duplicates = shortcuts.value.shortcuts.entries
+          .where((e) => e.key != type && e.value == shortcut)
+          .toList();
+
       return FTile(
+        variant: duplicates.isNotEmpty ? .destructive : .primary,
         title: Text(type.getDisplayName(context)),
+        subtitle: duplicates.isNotEmpty
+            ? Text(
+                'Conflicts with ${duplicates.length} shortcut(s): ${duplicates.map((e) => e.key.getDisplayName(context)).join(', ')}',
+              )
+            : null,
         suffix: Row(
           spacing: 8,
           mainAxisSize: .min,
