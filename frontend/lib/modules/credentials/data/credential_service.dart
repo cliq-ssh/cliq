@@ -24,7 +24,7 @@ final class CredentialService {
     final List<SSHKeyPair> keys = [];
 
     decryptKeyPairs(List<String> args) {
-      return SSHKeyPair.fromPem(args[0], args[1]);
+      return SSHKeyPair.fromPem(args[0], args.elementAtOrNull(1));
     }
 
     for (final credential in credentials) {
