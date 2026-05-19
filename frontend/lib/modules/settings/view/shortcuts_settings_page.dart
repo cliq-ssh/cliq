@@ -137,11 +137,13 @@ class ShortcutsSettingsPage extends AbstractSettingsPage {
           .toList();
 
       return FTile(
-        variant: duplicates.isNotEmpty ? .destructive : .primary,
         title: Text(type.getDisplayName(context)),
         subtitle: duplicates.isNotEmpty
             ? Text(
                 'Conflicts with ${duplicates.length} shortcut(s): ${duplicates.map((e) => e.key.getDisplayName(context)).join(', ')}',
+                style: context.theme.typography.xs.copyWith(
+                  color: context.theme.colors.error,
+                ),
               )
             : null,
         suffix: Row(
