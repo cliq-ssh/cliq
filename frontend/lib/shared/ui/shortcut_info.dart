@@ -39,7 +39,7 @@ class ShortcutInfo extends StatelessWidget {
   };
 
   static final Map<LogicalKeyboardKey, _KeyDisplayInfo> _windowsKeyMap = {
-    .control: _KeyDisplayInfo(label: 'CTRL', widthModifier: 1.8),
+    .control: _KeyDisplayInfo(label: 'CTRL', widthModifier: 2),
     .meta: _KeyDisplayInfo(label: 'WIN', widthModifier: 1.6),
   };
 
