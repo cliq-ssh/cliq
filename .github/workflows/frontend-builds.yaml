@@ -1,0 +1,175 @@
+name: Frontend Builds
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'frontend/**'
+  pull_request:
+    branches:
+      - main
+    paths:
+      - 'frontend/**'
+
+# Sets a default working directory
+defaults:
+  run:
+    working-directory: ./frontend  # Change the working directory to /frontend
+
+# Limits the permissions for the actions
+permissions:
+  contents: read
+
+jobs:
+  # iOS Build
+  build-ios:
+    name: Build iOS
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+          cache: true
+
+      - name: Get dependencies
+        run: flutter pub get
+
+      - name: Build iOS
+        run: flutter build ios --release --no-codesign
+
+  # Android Build
+  build-android:
+    name: Build Android
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+          cache: true
+
+      - name: Get dependencies
+        run: flutter pub get
+
+      - name: Build Android APK
+        run: flutter build apk --release
+
+      - name: Build Android App Bundle
+        run: flutter build appbundle --release
+
+  # Windows Build (x64 and ARM64)
+  build-windows:
+    name: Build Windows
+    runs-on: ${{ matrix.runner }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - arch: x64
+            runner: windows-latest
+            flutter-channel: stable
+          - arch: arm64
+            runner: windows-11-arm
+            flutter-channel: main # Remove when https://github.com/subosito/flutter-action/issues/345
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: ${{ matrix.flutter-channel }}
+          cache: true
+
+      - name: Get dependencies
+        run: flutter pub get
+
+      - name: Build Windows (${{ matrix.arch }})
+        run: flutter build windows --release
+
+      - name: Upload Windows artifacts
+        uses: actions/upload-artifact@v7
+        with:
+          name: windows-${{ matrix.arch }}-build
+          path: frontend/build/windows/${{ matrix.arch }}/runner/release/
+
+  # macOS Build (No need to separate out ARM64 flutter builds dual arch by default)
+  build-macos:
+    name: Build macOS
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+          cache: true
+
+      - name: Get dependencies
+        run: flutter pub get
+
+      - name: Build macOS
+        run: flutter build macos --release
+
+      - name: Upload macOS artifacts
+        uses: actions/upload-artifact@v7
+        with:
+          name: macos-build
+          path: frontend/build/macos/Build/Products/Release/cliq.app/Contents
+
+  # Linux Build (x64 and ARM64)
+  build-linux:
+    name: Build Linux
+    runs-on: ${{ matrix.runner }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - arch: x64
+            runner: ubuntu-latest
+            flutter-channel: stable
+          - arch: arm64
+            runner: ubuntu-24.04-arm
+            flutter-channel: main # Remove when https://github.com/subosito/flutter-action/issues/345
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Install Linux dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            pkg-config \
+            libgtk-3-dev \
+            libglib2.0-0 \
+            libglib2.0-dev \
+            libx11-dev \
+            libxext-dev \
+            libxinerama-dev \
+            libxrandr-dev \
+            libxrender-dev \
+            yasm \
+            libglu1-mesa \
+            libglu1-mesa-dev
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: ${{ matrix.flutter-channel }}
+          cache: true
+
+      - name: Get dependencies
+        run: flutter pub get
+
+      - name: Build Linux (${{ matrix.arch }})
+        run: flutter build linux --release --target-platform linux-${{ matrix.arch }}
+
+      - name: Upload Linux artifacts
+        uses: actions/upload-artifact@v7
+        with:
+          name: linux-${{ matrix.arch }}-build
+          path: frontend/build/linux/${{ matrix.arch }}/release/bundle/
