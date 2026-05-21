@@ -99,6 +99,10 @@ class TerminalController extends ChangeNotifier {
   /// This is toggled by [useBackBuffer] and [useMainBuffer].
   bool backBufferActive = false;
 
+  /// The answerback (ENQ) string.
+  /// https://terminalguide.namepad.de/seq/a_c0-e/
+  String answerback = '';
+
   /// The active text selection state.
   SelectionState selection = .new();
 
@@ -247,6 +251,7 @@ class TerminalController extends ChangeNotifier {
     while (i < input.length) {
       final cu = input.codeUnitAt(i);
 
+      // check if this is the start of an escape sequence
       if (cu == EscTerminator.escCode) {
         final consumed = _escapeParser.parse(
           input,

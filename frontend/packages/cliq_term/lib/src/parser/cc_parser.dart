@@ -9,6 +9,7 @@ class ControlCharacterParser {
   ControlCharacterParser({required this.controller});
 
   late final Map<int, CcHandler> _ccHandlers = {
+    0x05: _ccAnswerback,
     0x07: (_) => controller.onBell?.call(),
     0x08: (buf) => buf.backspace(),
     0x09: (buf) => buf.horizontalTab(),
@@ -29,5 +30,13 @@ class ControlCharacterParser {
       return true;
     }
     return false;
+  }
+
+  /// [Answerback (ENQ)](https://terminalguide.namepad.de/seq/a_c0-e/)
+  void _ccAnswerback(TerminalBuffer buf) {
+    final response = controller.answerback;
+    if (response.isNotEmpty) {
+      controller.onInput?.call(response);
+    }
   }
 }
