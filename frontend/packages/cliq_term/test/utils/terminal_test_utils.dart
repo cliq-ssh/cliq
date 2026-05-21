@@ -59,26 +59,29 @@ class TerminalTestUtils {
     Color? bgColor,
   }) {
     final cell = controller.activeBuffer.getAbsoluteCell(row, col);
-    if (ch != null)
+    if (ch != null) {
       expect(
         cell.ch,
         ch,
         reason:
             'Expected cell at ($row, $col) to have character "$ch" but found "${cell.ch}"',
       );
-    if (fgColor != null)
+    }
+    if (fgColor != null) {
       expect(
         cell.fmt.fgColor,
         fgColor,
         reason:
             'Expected cell at ($row, $col) to have foreground color $fgColor but found ${cell.fmt.fgColor}',
       );
-    if (bgColor != null)
+    }
+    if (bgColor != null) {
       expect(
         cell.fmt.bgColor,
         bgColor,
         reason:
             'Expected cell at ($row, $col) to have background color $bgColor but found ${cell.fmt.bgColor}',
       );
+    }
   }
 }
