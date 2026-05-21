@@ -7,21 +7,13 @@ class CursorState {
   final bool visible;
   final Timer? timer;
 
-  CursorState({
-    this.style = .bar,
-    this.visible = true,
-    this.timer
-  });
+  CursorState({this.style = .bar, this.visible = true, this.timer});
 
-  CursorState copyWith({
-    CursorStyle? style,
-    bool? visible,
-    Timer? timer
-  }) {
+  CursorState copyWith({CursorStyle? style, bool? visible, Timer? timer}) {
     return CursorState(
       style: style ?? this.style,
       visible: visible ?? this.visible,
-      timer: timer ?? this.timer
+      timer: timer ?? this.timer,
     );
   }
 }

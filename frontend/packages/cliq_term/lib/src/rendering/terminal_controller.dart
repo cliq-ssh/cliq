@@ -47,14 +47,19 @@ class TerminalController extends ChangeNotifier {
 
   /// Interval for cursor blinking.
   final Duration cursorBlinkInterval;
+
   /// Maximum number of lines to keep in the scrollback buffer. Older lines will be discarded when this limit is exceeded.
   final int maxScrollbackLines;
+
   /// Whether to log parsed (and missing!) escape sequences and control characters to the console for debugging.
   final bool debugLogging;
+
   /// A callback that is fired when the terminal is resized, providing the new number of rows and columns.
   final void Function(int, int)? onResize;
+
   /// A callback that is fired when the terminal title is changed via an escape sequence, providing the new title string.
   final void Function(String)? onTitleChange;
+
   /// A callback that is fired when a bell character (0x07) is received.
   final void Function()? onBell;
 
@@ -282,10 +287,10 @@ class TerminalController extends ChangeNotifier {
   void startCursorBlink() {
     cursor = cursor.copyWith(
       visible: true,
-//      timer: Timer.periodic(cursorBlinkInterval, (_) {
-//        cursor = cursor.copyWith(visible: !cursor.visible);
-//        notifyListeners();
-//      }),
+      //      timer: Timer.periodic(cursorBlinkInterval, (_) {
+      //        cursor = cursor.copyWith(visible: !cursor.visible);
+      //        notifyListeners();
+      //      }),
     );
   }
 
