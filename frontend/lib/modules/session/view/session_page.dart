@@ -142,6 +142,12 @@ class _ShellSessionPageState extends ConsumerState<ShellSessionPage>
           sshSession?.stdin.add(Uint8List.fromList(s.codeUnits));
         };
 
+        // close SSH session when terminal is closed
+        sshSession?.done.then((_) {
+          if (!mounted) return;
+          closeSession();
+        });
+
         StreamSubscription? stdoutSub =
             session.stdoutSub ??
             sshSession?.stdout.listen((data) {
