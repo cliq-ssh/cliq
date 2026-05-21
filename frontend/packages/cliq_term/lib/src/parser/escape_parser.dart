@@ -461,8 +461,9 @@ class EscapeParser {
           (code - 100) + 8,
         ),
         _ => () {
-          if (controller.debugLogging)
+          if (controller.debugLogging) {
             _log.warning('Unhandled SGR code: $code');
+          }
         },
       }).call();
     }
