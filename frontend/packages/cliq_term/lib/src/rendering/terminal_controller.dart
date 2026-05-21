@@ -49,6 +49,7 @@ class TerminalController extends ChangeNotifier {
   final void Function(int, int)? onResize;
   final void Function(String)? onTitleChange;
   final void Function()? onBell;
+
   void Function(String)? onInput;
   TerminalTypography _typography;
   TerminalTheme _theme;
