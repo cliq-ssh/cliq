@@ -19,4 +19,3 @@ void main() {
     TerminalTestUtils.expectCellAt(controller, 0, 2, ch: 'c');
   });
 }
-

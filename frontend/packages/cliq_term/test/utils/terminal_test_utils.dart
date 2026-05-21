@@ -30,13 +30,17 @@ class TerminalTestUtils {
   const TerminalTestUtils._();
 
   /// Creates a [TerminalController] with the default theme and typography for testing purposes.
-  static TerminalController createController({void Function()? onBell}) => TerminalController(
-    theme: _defaultTheme,
-    typography: TerminalTypography(fontFamily: 'Jetbrains Mono', fontSize: 12),
-    rows: 24,
-    cols: 80,
-    onBell: onBell
-  );
+  static TerminalController createController({void Function()? onBell}) =>
+      TerminalController(
+        theme: _defaultTheme,
+        typography: TerminalTypography(
+          fontFamily: 'Jetbrains Mono',
+          fontSize: 12,
+        ),
+        rows: 24,
+        cols: 80,
+        onBell: onBell,
+      );
 
   /// Asserts that the cursor is at the expected position in the terminal.
   static void expectCursorAt(TerminalController controller, int row, int col) {
@@ -55,8 +59,26 @@ class TerminalTestUtils {
     Color? bgColor,
   }) {
     final cell = controller.activeBuffer.getAbsoluteCell(row, col);
-    if (ch != null) expect(cell.ch, ch, reason: 'Expected cell at ($row, $col) to have character "$ch" but found "${cell.ch}"');
-    if (fgColor != null) expect(cell.fmt.fgColor, fgColor, reason: 'Expected cell at ($row, $col) to have foreground color $fgColor but found ${cell.fmt.fgColor}');
-    if (bgColor != null) expect(cell.fmt.bgColor, bgColor, reason: 'Expected cell at ($row, $col) to have background color $bgColor but found ${cell.fmt.bgColor}');
+    if (ch != null)
+      expect(
+        cell.ch,
+        ch,
+        reason:
+            'Expected cell at ($row, $col) to have character "$ch" but found "${cell.ch}"',
+      );
+    if (fgColor != null)
+      expect(
+        cell.fmt.fgColor,
+        fgColor,
+        reason:
+            'Expected cell at ($row, $col) to have foreground color $fgColor but found ${cell.fmt.fgColor}',
+      );
+    if (bgColor != null)
+      expect(
+        cell.fmt.bgColor,
+        bgColor,
+        reason:
+            'Expected cell at ($row, $col) to have background color $bgColor but found ${cell.fmt.bgColor}',
+      );
   }
 }

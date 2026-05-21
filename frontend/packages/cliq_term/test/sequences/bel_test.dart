@@ -11,7 +11,7 @@ void main() {
 
   setUp(() {
     controller = TerminalTestUtils.createController(
-      onBell: () => bellCalled = true
+      onBell: () => bellCalled = true,
     );
   });
 

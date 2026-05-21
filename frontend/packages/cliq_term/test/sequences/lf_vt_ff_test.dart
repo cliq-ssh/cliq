@@ -36,18 +36,35 @@ void main() {
   }
 
   group('Line Feed (LF)', () {
-    test('moves cursor down without changing column', () => testMoveCursorDownWithoutChangingColumn(lfInput));
-    test('with linefeed mode, also resets cursor to column 0', () => testLineFeedWithLinefeedMode(lfInput));
+    test(
+      'moves cursor down without changing column',
+      () => testMoveCursorDownWithoutChangingColumn(lfInput),
+    );
+    test(
+      'with linefeed mode, also resets cursor to column 0',
+      () => testLineFeedWithLinefeedMode(lfInput),
+    );
   });
 
   group('Vertical Tab (VT)', () {
-    test('moves cursor down without changing column', () => testMoveCursorDownWithoutChangingColumn(vtInput));
-    test('with linefeed mode, also resets cursor to column 0', () => testLineFeedWithLinefeedMode(vtInput));
+    test(
+      'moves cursor down without changing column',
+      () => testMoveCursorDownWithoutChangingColumn(vtInput),
+    );
+    test(
+      'with linefeed mode, also resets cursor to column 0',
+      () => testLineFeedWithLinefeedMode(vtInput),
+    );
   });
 
   group('Form Feed (FF)', () {
-    test('moves cursor down without changing column', () => testMoveCursorDownWithoutChangingColumn(ffInput));
-    test('with linefeed mode, also resets cursor to column 0', () => testLineFeedWithLinefeedMode(ffInput));
+    test(
+      'moves cursor down without changing column',
+      () => testMoveCursorDownWithoutChangingColumn(ffInput),
+    );
+    test(
+      'with linefeed mode, also resets cursor to column 0',
+      () => testLineFeedWithLinefeedMode(ffInput),
+    );
   });
 }
-
