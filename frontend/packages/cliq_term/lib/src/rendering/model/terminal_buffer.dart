@@ -111,11 +111,7 @@ class TerminalBuffer {
   void index() {
     if (isCursorInMargins()) {
       if (cursorRow == _bottomMargin) {
-        if (isBackBuffer) {
-          scrollUp(1);
-        } else {
-          pushEmptyLine();
-        }
+        scrollUp(1);
       } else {
         cursorDown(1);
       }
@@ -275,9 +271,44 @@ class TerminalBuffer {
 
   void pushEmptyLine() {
     _buffer.add(Row(cols));
-
     cursorRow = rows - 1;
-    cursorCol = 0;
+  }
+
+  /// Forward Index (DECFI)
+  /// - https://terminalguide.namepad.de/seq/a_esc_a9/
+  void forwardIndex() {
+    if (cursorCol < cols - 1) {
+      cursorRight(1);
+    } else {
+      // at rightmost column, scroll region content left, cursor stays
+      final visibleStart = currentScrollback;
+      for (var r = _topMargin; r <= _bottomMargin; r++) {
+        final row = _buffer[visibleStart + r];
+        for (var c = 0; c < cols - 1; c++) {
+          row.cells[c] = row.cells[c + 1];
+        }
+        row.cells[cols - 1] = Cell.empty();
+      }
+    }
+  }
+
+  /// Back Index (DECBI)
+  /// - https://terminalguide.namepad.de/seq/a_esc_a6/
+  void backIndex() {
+    if (cursorCol > 0) {
+      cursorLeft(1);
+      return;
+    }
+    // at left margin, scroll screen right
+    final visibleStart = currentScrollback;
+    for (var r = 0; r < rows; r++) {
+      final row = _buffer[visibleStart + r];
+      for (var c = cols - 1; c > 0; c--) {
+        row.cells[c] = row.cells[c - 1];
+      }
+      // blank the leftmost column
+      row.cells[0] = Cell.empty();
+    }
   }
 
   /// Scroll Up (SU)
@@ -412,7 +443,7 @@ class TerminalBuffer {
   void saveCursor() {
     savedCursorRow = cursorRow;
     savedCursorCol = cursorCol;
-    savedFormat = currentFormat;
+    savedFormat = FormattingOptions.clone(currentFormat);
     // TODO: implement charset
   }
 

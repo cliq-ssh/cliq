@@ -38,8 +38,10 @@ class EscapeParser {
   };
 
   late final Map<int, EscHandler> _escHandlers = {
+    0x36: _escBackIndex,
     0x37: _escSaveCursor,
     0x38: _escRestoreCursor,
+    0x39: _escForwardIndex,
     0x44: _escIndex,
     0x4D: _escReverseIndex,
     // 0x45: _escNextLine,
@@ -232,8 +234,10 @@ class EscapeParser {
 
   // --- ESC Handlers ---
 
+  void _escBackIndex() => controller.activeBuffer.backIndex();
   void _escSaveCursor() => controller.activeBuffer.saveCursor();
   void _escRestoreCursor() => controller.activeBuffer.restoreCursor();
+  void _escForwardIndex() => controller.activeBuffer.forwardIndex();
   void _escIndex() => controller.activeBuffer.index();
   void _escReverseIndex() => controller.activeBuffer.reverseIndex();
 
