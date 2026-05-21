@@ -1,4 +1,3 @@
-import 'dart:async';
 import 'dart:math';
 
 import 'package:cliq_term/cliq_term.dart';
@@ -7,8 +6,11 @@ import 'package:cliq_term/src/rendering/model/terminal_buffer.dart';
 import 'package:cliq_term/src/parser/cc_parser.dart';
 import 'package:cliq_term/src/parser/escape_parser.dart';
 import 'package:cliq_term/src/rendering/terminal_painter.dart';
+import 'package:cliq_term/src/state/selection.state.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+
+import '../state/cursor.state.dart';
 
 enum CursorStyle { block, underline, bar }
 
@@ -43,49 +45,60 @@ class TerminalController extends ChangeNotifier {
     .f12: '\x1b[24~',
   };
 
+  /// Interval for cursor blinking.
   final Duration cursorBlinkInterval;
+  /// Maximum number of lines to keep in the scrollback buffer. Older lines will be discarded when this limit is exceeded.
   final int maxScrollbackLines;
+  /// Whether to log parsed (and missing!) escape sequences and control characters to the console for debugging.
   final bool debugLogging;
+  /// A callback that is fired when the terminal is resized, providing the new number of rows and columns.
   final void Function(int, int)? onResize;
+  /// A callback that is fired when the terminal title is changed via an escape sequence, providing the new title string.
   final void Function(String)? onTitleChange;
+  /// A callback that is fired when a bell character (0x07) is received.
   final void Function()? onBell;
+
   void Function(String)? onInput;
   TerminalTypography _typography;
   TerminalTheme _theme;
 
-  late TerminalBuffer front = TerminalBuffer(
+  late final EscapeParser _escapeParser = EscapeParser(
+    controller: this,
+    colors: theme,
+  );
+
+  late final ControlCharacterParser _ccParser = ControlCharacterParser(
+    controller: this,
+  );
+
+  /// The main (front) buffer, which holds the primary terminal content and scrollback.
+  late TerminalBuffer _front = TerminalBuffer(
     rows: rows,
     cols: cols,
     maxScrollbackLines: maxScrollbackLines,
   );
-  late TerminalBuffer back = TerminalBuffer(
+
+  /// The alternate (back) buffer, used for applications that switch to an alternate screen (e.g. vim, less).
+  late TerminalBuffer _back = TerminalBuffer(
     rows: rows,
     cols: cols,
     maxScrollbackLines: 0,
     isBackBuffer: true,
   );
 
-  late final EscapeParser escapeParser = EscapeParser(
-    controller: this,
-    colors: theme,
-  );
-  late final ControlCharacterParser ccParser = ControlCharacterParser(
-    controller: this,
-  );
+  /// Number of visible rows and columns (excluding scrollback).
+  /// These are set via [resize] and used for rendering and input coordinate calculations.
+  int rows, cols;
 
-  int rows;
-  int cols;
+  /// Whether to render the back buffer instead of the front buffer.
+  /// This is toggled by [useBackBuffer] and [useMainBuffer].
   bool backBufferActive = false;
-  CursorStyle cursorStyle = .bar;
-  bool cursorVisible = true;
-  Timer? _cursorTimer;
 
-  // Selection state (visible coordinates: 0..rows-1)
-  bool selectionActive = false;
-  int? selectionStartRow;
-  int? selectionStartCol;
-  int? selectionEndRow;
-  int? selectionEndCol;
+  /// The active text selection state.
+  SelectionState selection = .new();
+
+  /// The cursor state.
+  CursorState cursor = .new();
 
   TerminalController({
     required this._typography,
@@ -103,9 +116,10 @@ class TerminalController extends ChangeNotifier {
 
   TerminalTheme get theme => _theme;
   TerminalTypography get typography => _typography;
-  TerminalBuffer get activeBuffer => backBufferActive ? back : front;
-  int get totalRows => front.currentScrollback + rows;
+  TerminalBuffer get activeBuffer => backBufferActive ? _back : _front;
+  int get totalRows => _front.currentScrollback + rows;
 
+  /// Automatically resizes the terminal based on the provided [size] and current typography settings.
   void fitResize(Size size) {
     if (!size.width.isFinite || !size.height.isFinite) {
       return;
@@ -121,16 +135,18 @@ class TerminalController extends ChangeNotifier {
 
   /// Resizes the terminal to the specified number of rows and columns.
   void resize(int newRows, int newCols) {
+    // do nothing if size is unchanged
     if (newRows == rows && newCols == cols) return;
     onResize?.call(newRows, newCols);
 
     rows = newRows;
     cols = newCols;
-    front = front.resize(newRows: newRows, newCols: newCols);
-    back = back.resize(newRows: newRows, newCols: newCols);
+    // resize buffers
+    _front = _front.resize(newRows: newRows, newCols: newCols);
+    _back = _back.resize(newRows: newRows, newCols: newCols);
 
-    front.resetVerticalMargins();
-    back.resetVerticalMargins();
+    _front.resetVerticalMargins();
+    _back.resetVerticalMargins();
 
     notifyListeners();
   }
@@ -174,9 +190,9 @@ class TerminalController extends ChangeNotifier {
   /// If [saveMainAndClear] is true, save the front buffer's cursor/format (DECSC-like).
   void useBackBuffer({bool saveMainAndClear = true}) {
     if (saveMainAndClear) {
-      front.saveCursor();
-      back.clear();
-      back.resetVerticalMargins();
+      _front.saveCursor();
+      _back.clear();
+      _back.resetVerticalMargins();
     }
 
     backBufferActive = true;
@@ -189,7 +205,7 @@ class TerminalController extends ChangeNotifier {
     backBufferActive = false;
 
     if (restoreMain) {
-      front.restoreCursor();
+      _front.restoreCursor();
     }
 
     notifyListeners();
@@ -227,7 +243,7 @@ class TerminalController extends ChangeNotifier {
       final cu = input.codeUnitAt(i);
 
       if (cu == EscTerminator.escCode) {
-        final consumed = escapeParser.parse(
+        final consumed = _escapeParser.parse(
           input,
           i,
           activeBuffer.currentFormat,
@@ -238,7 +254,7 @@ class TerminalController extends ChangeNotifier {
       }
 
       // handle control characters
-      if (ccParser.parseCc(cu)) {
+      if (_ccParser.parseCc(cu)) {
         i++;
         continue;
       }
@@ -264,70 +280,74 @@ class TerminalController extends ChangeNotifier {
 
   /// Starts the cursor blinking timer.
   void startCursorBlink() {
-    _cursorTimer?.cancel();
-    cursorVisible = true;
-    //_cursorTimer = Timer.periodic(cursorBlinkInterval, (_) {
-    //  cursorVisible = !cursorVisible;
-    //  notifyListeners();
-    //});
+    cursor = cursor.copyWith(
+      visible: true,
+//      timer: Timer.periodic(cursorBlinkInterval, (_) {
+//        cursor = cursor.copyWith(visible: !cursor.visible);
+//        notifyListeners();
+//      }),
+    );
   }
 
   /// Begin text selection at visible [row],[col]
   void startSelection(int row, int col) {
-    selectionActive = true;
-    selectionStartRow = row.clamp(0, max(0, rows - 1));
-    selectionStartCol = col.clamp(0, max(0, cols - 1));
-    selectionEndRow = selectionStartRow;
-    selectionEndCol = selectionStartCol;
+    final int selectionStartRow = row.clamp(0, max(0, rows - 1));
+    final int selectionStartCol = col.clamp(0, max(0, cols - 1));
+
+    selection = selection.copyWith(
+      active: true,
+      startRow: selectionStartRow,
+      startCol: selectionStartCol,
+      endRow: selectionStartRow,
+      endCol: selectionStartCol,
+    );
+
     notifyListeners();
   }
 
   /// Update the selection end to visible [row],[col]
   void updateSelection(int row, int col) {
-    if (!selectionActive) return;
-    selectionEndRow = row.clamp(0, max(0, rows - 1));
-    selectionEndCol = col.clamp(0, max(0, cols - 1));
+    if (!selection.active) return;
+
+    selection = selection.copyWith(
+      endRow: row.clamp(0, max(0, rows - 1)),
+      endCol: col.clamp(0, max(0, cols - 1)),
+    );
+
     notifyListeners();
   }
 
   /// Clear the active selection
   void clearSelection() {
-    selectionActive = false;
-    selectionStartRow = null;
-    selectionStartCol = null;
-    selectionEndRow = null;
-    selectionEndCol = null;
+    selection = .new();
     notifyListeners();
   }
 
   /// Return the selected text (if selection active) using visible coordinates.
   String? getSelectedText() {
-    if (!selectionActive ||
-        selectionStartRow == null ||
-        selectionStartCol == null ||
-        selectionEndRow == null ||
-        selectionEndCol == null) {
+    if (!selection.isSelectionActive) {
       return null;
     }
+
     return activeBuffer.exportSelection(
-      selectionStartRow!,
-      selectionStartCol!,
-      selectionEndRow!,
-      selectionEndCol!,
+      selection.startRow!,
+      selection.startCol!,
+      selection.endRow!,
+      selection.endCol!,
     );
   }
 
   /// Stops the cursor blinking timer.
   void stopCursorBlink() {
-    _cursorTimer?.cancel();
-    _cursorTimer = null;
-    cursorVisible = true;
+    cursor.timer?.cancel();
+    cursor = cursor.copyWith(visible: true, timer: null);
+
     notifyListeners();
   }
 
   @override
   void dispose() {
-    _cursorTimer?.cancel();
+    cursor.timer?.cancel();
     super.dispose();
   }
 }

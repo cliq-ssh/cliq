@@ -51,17 +51,13 @@ class TerminalPainter extends CustomPainter {
     }
 
     // Draw selection overlay if active (selection coordinates are in visible rows)
-    if (controller.selectionActive &&
-        controller.selectionStartRow != null &&
-        controller.selectionStartCol != null &&
-        controller.selectionEndRow != null &&
-        controller.selectionEndCol != null) {
+    if (controller.selection.isSelectionActive) {
       // normalize selection using helper
       final bounds = SelectionHelper.normalize(
-        startRow: controller.selectionStartRow!,
-        startCol: controller.selectionStartCol!,
-        endRow: controller.selectionEndRow!,
-        endCol: controller.selectionEndCol!,
+        startRow: controller.selection.startRow!,
+        startCol: controller.selection.startCol!,
+        endRow: controller.selection.endRow!,
+        endCol: controller.selection.endCol!,
         maxRows: controller.rows,
         maxCols: cols,
       );
@@ -153,7 +149,7 @@ class TerminalPainter extends CustomPainter {
     final absCursorRow =
         controller.activeBuffer.currentScrollback + visibleCursorRow;
 
-    if (controller.cursorVisible &&
+    if (controller.cursor.visible &&
         absCursorRow >= 0 &&
         absCursorRow < totalRows &&
         visibleCursorCol >= 0 &&
@@ -175,7 +171,7 @@ class TerminalPainter extends CustomPainter {
         cellH,
       );
 
-      switch (controller.cursorStyle) {
+      switch (controller.cursor.style) {
         case .block:
           canvas.drawRect(cursorRect, Paint()..color = fillColor);
           // re-draw the character with inverted color
