@@ -82,9 +82,7 @@ class TerminalBuffer {
 
     newBuffer.isAutoWrapMode = isAutoWrapMode;
 
-    newBuffer.tabStops = Set.from(
-      tabStops.where((s) => s < newCols),
-    );
+    newBuffer.tabStops = Set.from(tabStops.where((s) => s < newCols));
 
     // absolute index in old ring
     final oldVisibleStart = currentScrollback;
