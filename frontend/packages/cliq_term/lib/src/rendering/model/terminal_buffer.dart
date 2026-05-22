@@ -34,6 +34,10 @@ class TerminalBuffer {
   /// The current cursor column position.
   int cursorCol = 0;
 
+  late Set<int> tabStops = Set.from(
+    List.generate((cols ~/ 8), (i) => (i + 1) * 8).where((col) => col < cols),
+  );
+
   int _topMargin;
   int _bottomMargin;
 
@@ -77,6 +81,10 @@ class TerminalBuffer {
     );
 
     newBuffer.isAutoWrapMode = isAutoWrapMode;
+
+    newBuffer.tabStops = Set.from(
+      tabStops.where((s) => s < newCols),
+    );
 
     // absolute index in old ring
     final oldVisibleStart = currentScrollback;
@@ -150,6 +158,22 @@ class TerminalBuffer {
     }
   }
 
+  /// Next Line (NEL)
+  /// - https://terminalguide.namepad.de/seq/a_esc_ce/
+  void nextLine() {
+    index();
+    carriageReturn();
+  }
+
+  /// Horizontal Tab Set (HTS)
+  /// - https://terminalguide.namepad.de/seq/a_esc_ch/
+  void horizontalTabSet() {
+    // col 0 is always an implicit start position, not a settable tab stop
+    if (cursorCol > 0 && cursorCol < cols) {
+      tabStops.add(cursorCol);
+    }
+  }
+
   /// Line Feed (LF)
   /// - https://terminalguide.namepad.de/seq/a_c0-j/
   /// Vertical Tab (VT)
@@ -175,8 +199,12 @@ class TerminalBuffer {
   /// Horizontal Tab (TAB)
   /// - https://terminalguide.namepad.de/seq/a_c0-i/
   void horizontalTab() {
-    final nextTabStop = ((cursorCol ~/ 8) + 1) * 8;
-    cursorCol = min(nextTabStop, cols - 1);
+    final stops = tabStops.where((s) => s > cursorCol).toList()..sort();
+    if (stops.isEmpty) {
+      cursorCol = cols - 1;
+    } else {
+      cursorCol = stops.first;
+    }
   }
 
   /// Returns a Cell by absolute index inside the ring buffer:

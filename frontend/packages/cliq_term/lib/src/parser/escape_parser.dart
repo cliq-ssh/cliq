@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:cliq_term/cliq_term.dart';
 import 'package:cliq_term/src/parser/csi_parser.dart';
 import 'package:logging/logging.dart';
@@ -44,8 +46,8 @@ class EscapeParser {
     0x39: _escForwardIndex,
     0x44: _escIndex,
     0x4D: _escReverseIndex,
-    // 0x45: _escNextLine,
-    // 0x48: _escTabSet,
+    0x45: _escNextLine,
+    0x48: _escHorizontalTabSet,
   };
 
   late final Map<int, CsiHandler> _csiHandlers = {
@@ -65,12 +67,12 @@ class EscapeParser {
     'P'.codeUnitAt(0): _csiDeleteCharacter,
     // 'S'.codeUnitAt(0): _csiScrollUp,
     // 'T'.codeUnitAt(0): _csiScrollDown,
-    // 'X'.codeUnitAt(0): _csiEraseCharacter,
+    'X'.codeUnitAt(0): _csiEraseCharacter,
     // 'Z'.codeUnitAt(0): _csiCursorHorizontalBackwardTab,
     // 'a'.codeUnitAt(0): _csiCursorHorizontalRelative,
     // 'b'.codeUnitAt(0): _csiRepeatPrevCharacter,
     // 'c'.codeUnitAt(0): _csiDeviceAttributes,
-    // 'd'.codeUnitAt(0): _csiCursorVerticalPositionAbsolute,
+    'd'.codeUnitAt(0): _csiLinePositionAbsolute,
     // 'e'.codeUnitAt(0): _csiVerticalPosRelative,
     // 'f'.codeUnitAt(0): _csiSetCursorPosition,
     // 'g'.codeUnitAt(0): _csiTabClear,
@@ -240,6 +242,8 @@ class EscapeParser {
   void _escForwardIndex() => controller.activeBuffer.forwardIndex();
   void _escIndex() => controller.activeBuffer.index();
   void _escReverseIndex() => controller.activeBuffer.reverseIndex();
+  void _escNextLine() => controller.activeBuffer.nextLine();
+  void _escHorizontalTabSet() => controller.activeBuffer.horizontalTabSet();
 
   // --- CSI Handlers ---
 
@@ -251,6 +255,26 @@ class EscapeParser {
   void _csiCursorDown(CsiParseResult parsed) {
     final amount = _parseSingleParam(parsed);
     controller.activeBuffer.cursorDown(amount);
+  }
+
+  void _csiLinePositionAbsolute(CsiParseResult parsed) {
+    final row = (parsed.params.isNotEmpty ? (parsed.params[0] ?? 1) : 1) - 1;
+    controller.activeBuffer.setCursorPosition(
+      row,
+      controller.activeBuffer.cursorCol,
+    );
+  }
+
+  void _csiEraseCharacter(CsiParseResult parsed) {
+    final amount = _parseSingleParam(parsed, defaultValue: 1);
+    final buf = controller.activeBuffer;
+    for (
+      var c = buf.cursorCol;
+      c < min(buf.cursorCol + amount, controller.cols);
+      c++
+    ) {
+      buf.setCell(buf.cursorRow, c, Cell.empty());
+    }
   }
 
   void _csiCursorRight(CsiParseResult parsed) {
