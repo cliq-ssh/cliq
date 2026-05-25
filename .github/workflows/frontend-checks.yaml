@@ -28,9 +28,10 @@ jobs:
       fail-fast: false
       matrix:
         package:
-#         - cliq_api
-          - cliq_term
-          - cliq_ui
+          - ./
+          #         - cliq_api
+          - packages/cliq_term
+          - packages/cliq_ui
     steps:
       - name: Checkout
         uses: actions/checkout@v6
@@ -44,19 +45,20 @@ jobs:
 
       - name: Get dependencies
         run: |
-          cd packages/${{ matrix.package }}
+          cd ${{ matrix.package }}
           flutter pub get
 
       - name: Run tests
         run: |
-          cd packages/${{ matrix.package }}
+          cd ${{ matrix.package }}
           flutter test --file-reporter=json:reports/test-results.json
+
       - name: Publish Test Results
         uses: dorny/test-reporter@v3
         if: ${{ !cancelled() }}
         with:
           name: Frontend Tests (${{ matrix.package }})
-          path: frontend/packages/${{ matrix.package }}/reports/test-results.json
+          path: frontend/${{ matrix.package }}/reports/test-results.json
           reporter: flutter-json
           working-directory: ./
 
