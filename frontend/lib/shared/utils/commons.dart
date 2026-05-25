@@ -42,7 +42,15 @@ final class Commons {
       context: (Router.rootNavigatorKey.currentContext ?? context)!,
       side: FLayout.rtl,
       mainAxisMaxRatio: 1,
-      builder: (context) => ResponsiveDialog(child: builder(context)),
+      // Ensure the dialog content has a Material ancestor so widgets like
+      // ListTile, Icons and Theme-dependent widgets render correctly even if
+      // the caller provides a context that is not inside a MaterialApp.
+      builder: (context) => ResponsiveDialog(
+        child: Material(
+          type: MaterialType.transparency,
+          child: builder(context),
+        ),
+      ),
     );
   }
 
