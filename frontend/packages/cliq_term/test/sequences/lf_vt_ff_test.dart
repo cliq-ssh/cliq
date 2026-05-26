@@ -21,18 +21,18 @@ void main() {
   /// By default, LF moves the cursor down but does not change the column.
   testMoveCursorDownWithoutChangingColumn(String input) {
     controller.feed(input); // cursor at col 2 after 'ab', then LF
-    TerminalTestUtils.expectCellAt(controller, 0, 0, ch: 'a');
-    TerminalTestUtils.expectCellAt(controller, 0, 1, ch: 'b');
-    TerminalTestUtils.expectCellAt(controller, 1, 2, ch: 'c'); // col preserved
+    expectCellAt(controller, 0, 0, ch: 'a');
+    expectCellAt(controller, 0, 1, ch: 'b');
+    expectCellAt(controller, 1, 2, ch: 'c'); // col preserved
   }
 
   /// With linefeed mode enabled, LF also resets the column to 0.
   testLineFeedWithLinefeedMode(String input) {
     controller.setLineFeedMode(true);
     controller.feed(input);
-    TerminalTestUtils.expectCellAt(controller, 0, 0, ch: 'a');
-    TerminalTestUtils.expectCellAt(controller, 0, 1, ch: 'b');
-    TerminalTestUtils.expectCellAt(controller, 1, 0, ch: 'c'); // col reset to 0
+    expectCellAt(controller, 0, 0, ch: 'a');
+    expectCellAt(controller, 0, 1, ch: 'b');
+    expectCellAt(controller, 1, 0, ch: 'c'); // col reset to 0
   }
 
   group('Line Feed (LF)', () {

@@ -16,7 +16,7 @@ void main() {
     test('moves cursor down one line without changing column', () {
       controller.feed('ab'); // cursor at (0, 2)
       controller.feed('\x1bD');
-      TerminalTestUtils.expectCursorAt(controller, 1, 2);
+      expectCursorAt(controller, 1, 2);
     });
 
     test('at bottom of screen, scrolls up', () {
@@ -26,13 +26,8 @@ void main() {
       controller.feed('\x1bD');
 
       // cursor stays on last row
-      TerminalTestUtils.expectCursorAt(controller, controller.rows - 1, 3);
-      TerminalTestUtils.expectCellAt(
-        controller,
-        controller.rows - 2,
-        0,
-        ch: 'a',
-      );
+      expectCursorAt(controller, controller.rows - 1, 3);
+      expectCellAt(controller, controller.rows - 2, 0, ch: 'a');
     });
 
     test('at bottom of scroll region, scrolls region only', () {
@@ -42,15 +37,15 @@ void main() {
       controller.feed('\x1bD');
 
       // row 2 scrolled up, row 3 (bottom of region) cleared
-      TerminalTestUtils.expectCellAt(controller, 1, 0, ch: 'a');
-      TerminalTestUtils.expectCellAt(controller, 2, 0, ch: ' ');
+      expectCellAt(controller, 1, 0, ch: 'a');
+      expectCellAt(controller, 2, 0, ch: ' ');
     });
 
     test('outside scroll region, just moves down', () {
       controller.feed('\x1b[2;4r'); // scroll region rows 2-4
       controller.feed('\x1b[1;1H'); // cursor at row 1, outside region
       controller.feed('\x1bD');
-      TerminalTestUtils.expectCursorAt(controller, 1, 0);
+      expectCursorAt(controller, 1, 0);
     });
   });
 }

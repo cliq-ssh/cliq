@@ -18,7 +18,7 @@ void main() {
       controller.feed('\x1bH');
       controller.feed('\x0D');
       controller.feed('\x09');
-      TerminalTestUtils.expectCursorAt(controller, 0, 4);
+      expectCursorAt(controller, 0, 4);
     });
 
     test('custom tab stop takes priority over default', () {
@@ -27,7 +27,7 @@ void main() {
       controller.feed('\x0D');
       // should land at col 2, not default col 8
       controller.feed('\x09');
-      TerminalTestUtils.expectCursorAt(controller, 0, 2);
+      expectCursorAt(controller, 0, 2);
     });
 
     test('multiple custom tab stops work in sequence', () {
@@ -37,9 +37,9 @@ void main() {
       controller.feed('\x1bH');
       controller.feed('\x0D');
       controller.feed('\x09');
-      TerminalTestUtils.expectCursorAt(controller, 0, 2);
+      expectCursorAt(controller, 0, 2);
       controller.feed('\x09');
-      TerminalTestUtils.expectCursorAt(controller, 0, 5);
+      expectCursorAt(controller, 0, 5);
     });
   });
 }

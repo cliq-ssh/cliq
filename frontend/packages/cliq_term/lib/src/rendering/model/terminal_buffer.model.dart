@@ -2,6 +2,8 @@ import 'dart:math';
 
 import 'package:cliq_term/cliq_term.dart';
 
+import '../../state/charset.state.dart';
+
 class TerminalBufferRow {
   final List<Cell> cells;
 
@@ -52,15 +54,20 @@ class TerminalBuffer {
   /// and trigger an index operation
   bool pendingWrap = false;
 
+  /// Active charset state for this buffer.
+  final CharsetState charset;
+
   TerminalBuffer({
     required this.rows,
     required this.cols,
     this.maxScrollbackLines = 1000,
     this.isBackBuffer = false,
     this.isLineFeedMode = false,
+    CharsetState? charset,
   }) : _buffer = RingBuffer<TerminalBufferRow>(rows + maxScrollbackLines),
        _topMargin = 0,
-       _bottomMargin = rows - 1 {
+       _bottomMargin = rows - 1,
+       charset = charset ?? .new() {
     for (var i = 0; i < rows; i++) {
       _buffer.add(TerminalBufferRow(cols));
     }
@@ -76,10 +83,10 @@ class TerminalBuffer {
       maxScrollbackLines: maxScrollbackLines,
       isBackBuffer: isBackBuffer,
       isLineFeedMode: isLineFeedMode,
+      charset: CharsetState.copyFrom(charset),
     );
 
     newBuffer.isAutoWrapMode = isAutoWrapMode;
-
     newBuffer.tabStops = Set.from(tabStops.where((s) => s < newCols));
 
     // absolute index in old ring
@@ -239,6 +246,8 @@ class TerminalBuffer {
   /// Prints a single character at the current cursor position.
   /// - https://terminalguide.namepad.de/printing/
   void printChar(int cu) {
+    final translated = charset.translate(cu);
+
     if (pendingWrap) {
       if (isAutoWrapMode) {
         index();
@@ -269,7 +278,10 @@ class TerminalBuffer {
     }
 
     setCellAtCursor(
-      Cell(String.fromCharCode(cu), FormattingOptions.clone(currentFormat)),
+      Cell(
+        String.fromCharCode(translated),
+        FormattingOptions.clone(currentFormat),
+      ),
     );
 
     // whether the cursor is at the last column before printing
@@ -468,7 +480,7 @@ class TerminalBuffer {
     savedCursorRow = cursorRow;
     savedCursorCol = cursorCol;
     savedFormat = FormattingOptions.clone(currentFormat);
-    // TODO: implement charset
+    charset.save();
   }
 
   /// Restore Cursor (DECRC)
@@ -483,7 +495,7 @@ class TerminalBuffer {
     if (savedFormat != null) {
       currentFormat = savedFormat!;
     }
-    // TODO: implement charset
+    charset.restore();
   }
 
   /// Cursor Left (CUB)

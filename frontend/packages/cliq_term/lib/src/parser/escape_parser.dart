@@ -29,8 +29,8 @@ class EscapeParser {
     0x0B: (buf) => buf.lineFeed(),
     0x0C: (buf) => buf.lineFeed(),
     0x0D: (buf) => buf.carriageReturn(),
-    // 0x0E: (_) {}, // TODO Shift Out (SO)
-    // 0x0F: (_) {}, // TODO Shift In (SI)
+    0x0E: (buf) => buf.charset.use(1),
+    0x0F: (buf) => buf.charset.use(0),
 
     // CAN and SUB; cancel the current escape sequence
     0x18: (_) {},
@@ -132,6 +132,15 @@ class EscapeParser {
     // multi-byte ESC sequences
     if (next == 0x5B) return _consumeCsi(); // ESC [
     if (next == 0x5D) return _consumeOsc(); // ESC ]
+
+    if (next == 0x28 || next == 0x29) {
+      // ESC (, ESC )
+      if (_queue.isEmpty) return false;
+      final name = _queue.consume();
+      final slot = next == 0x28 ? 0 : 1;
+      controller.activeBuffer.charset.designate(slot, name);
+      return true;
+    }
 
     // single-char ESC sequences
     final handler = _escHandlers[next];

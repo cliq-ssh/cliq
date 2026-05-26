@@ -16,13 +16,13 @@ void main() {
     test('moves cursor to beginning of next line', () {
       controller.feed('abc'); // cursor at (0, 3)
       controller.feed('\x1bE');
-      TerminalTestUtils.expectCursorAt(controller, 1, 0);
+      expectCursorAt(controller, 1, 0);
     });
 
     test('always resets column to 0 regardless of current column', () {
       controller.feed('abcde'); // cursor at (0, 5)
       controller.feed('\x1bE');
-      TerminalTestUtils.expectCursorAt(controller, 1, 0);
+      expectCursorAt(controller, 1, 0);
     });
 
     test('scrolls screen up and resets column when at bottom line', () {
@@ -30,14 +30,9 @@ void main() {
       controller.feed('abc');
       controller.feed('\x1bE');
 
-      TerminalTestUtils.expectCursorAt(controller, controller.rows - 1, 0);
+      expectCursorAt(controller, controller.rows - 1, 0);
       // content scrolled, last row should be blank
-      TerminalTestUtils.expectCellAt(
-        controller,
-        controller.rows - 1,
-        0,
-        ch: ' ',
-      );
+      expectCellAt(controller, controller.rows - 1, 0, ch: ' ');
     });
   });
 }

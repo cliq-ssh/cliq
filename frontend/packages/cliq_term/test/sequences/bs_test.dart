@@ -14,8 +14,8 @@ void main() {
 
   test('Backspace (BS)', () {
     controller.feed('abc\x08\x08d');
-    TerminalTestUtils.expectCellAt(controller, 0, 0, ch: 'a');
-    TerminalTestUtils.expectCellAt(controller, 0, 1, ch: 'd');
-    TerminalTestUtils.expectCellAt(controller, 0, 2, ch: 'c');
+    expectCellAt(controller, 0, 0, ch: 'a');
+    expectCellAt(controller, 0, 1, ch: 'd');
+    expectCellAt(controller, 0, 2, ch: 'c');
   });
 }

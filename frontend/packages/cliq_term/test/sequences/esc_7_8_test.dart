@@ -20,11 +20,11 @@ void main() {
 
       // move to (4, 9)
       controller.feed('\x1b[5;10H');
-      TerminalTestUtils.expectCursorAt(controller, 4, 9);
+      expectCursorAt(controller, 4, 9);
 
       // restore
       controller.feed('\x1b8');
-      TerminalTestUtils.expectCursorAt(controller, 0, 3);
+      expectCursorAt(controller, 0, 3);
     });
 
     test('saves and restores formatting', () {
@@ -59,11 +59,11 @@ void main() {
 
       // restore on alt should go to (3, 3)
       controller.feed('\x1b8');
-      TerminalTestUtils.expectCursorAt(controller, 0, 0);
+      expectCursorAt(controller, 0, 0);
 
       // restore on main should still go to (0, 3)
       controller.feed('\x1b[?1049l');
-      TerminalTestUtils.expectCursorAt(controller, 0, 3);
+      expectCursorAt(controller, 0, 3);
     });
   });
 }

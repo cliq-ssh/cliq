@@ -16,8 +16,8 @@ void main() {
     test('moves cursor to next tab stop', () {
       // "In the reset state of the terminal tab stops are set on each 8th column, starting in column 1."
       controller.feed('a\x09b');
-      TerminalTestUtils.expectCellAt(controller, 0, 0, ch: 'a');
-      TerminalTestUtils.expectCellAt(controller, 0, 8, ch: 'b');
+      expectCellAt(controller, 0, 0, ch: 'a');
+      expectCellAt(controller, 0, 8, ch: 'b');
     });
 
     test('clamps at last column', () {

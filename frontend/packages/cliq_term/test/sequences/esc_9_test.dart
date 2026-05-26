@@ -16,7 +16,7 @@ void main() {
     test('moves cursor right by one column', () {
       controller.feed('abc'); // cursor at (0, 3)
       controller.feed('\x1b9');
-      TerminalTestUtils.expectCursorAt(controller, 0, 4);
+      expectCursorAt(controller, 0, 4);
     });
 
     test('at rightmost column, scrolls content left', () {
@@ -25,14 +25,14 @@ void main() {
       controller.setCursorPosition(0, controller.cols - 1);
       controller.feed('\x1b9');
 
-      TerminalTestUtils.expectCursorAt(controller, 0, controller.cols - 1);
-      TerminalTestUtils.expectCellAt(controller, 0, 0, ch: 'b');
+      expectCursorAt(controller, 0, controller.cols - 1);
+      expectCellAt(controller, 0, 0, ch: 'b');
     });
 
     test('does not change row', () {
       controller.feed('ab\x0A'); // cursor at (1, 2) after LF
       controller.feed('\x1b9');
-      TerminalTestUtils.expectCursorAt(controller, 1, 3);
+      expectCursorAt(controller, 1, 3);
     });
   });
 }

@@ -18,15 +18,15 @@ void main() {
     // ESC [ cancelled, 'b' prints normally
     controller.feed('\x1b[${cancelByte}b');
     // cursor advanced past 'b'
-    TerminalTestUtils.expectCursorAt(controller, 0, 1);
-    TerminalTestUtils.expectCellAt(controller, 0, 0, ch: 'b');
+    expectCursorAt(controller, 0, 1);
+    expectCellAt(controller, 0, 0, ch: 'b');
   }
 
   /// The cancel byte should not affect normal input if it's not part of a sequence.
   testDoesNotAffectNormalInputOutsideSequence(String cancelByte) {
     controller.feed('a${cancelByte}b');
-    TerminalTestUtils.expectCellAt(controller, 0, 0, ch: 'a');
-    TerminalTestUtils.expectCellAt(controller, 0, 1, ch: 'b');
+    expectCellAt(controller, 0, 0, ch: 'a');
+    expectCellAt(controller, 0, 1, ch: 'b');
   }
 
   group('Cancel Parsing (CAN)', () {
