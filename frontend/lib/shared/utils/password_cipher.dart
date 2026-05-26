@@ -5,8 +5,11 @@ import 'package:sodium/sodium_sumo.dart';
 /// Utility class for encrypting and decrypting data with a password using the sodium library.
 class PasswordCipher {
   static PasswordCipher? _instance;
+
   /// A fixed header to identify the whether the data is encrypted.
-  static final Uint8List _header = Uint8List.fromList("cliq-encrypted".codeUnits);
+  static final Uint8List _header = Uint8List.fromList(
+    "cliq-encrypted".codeUnits,
+  );
 
   final SodiumSumo _sodium;
 
