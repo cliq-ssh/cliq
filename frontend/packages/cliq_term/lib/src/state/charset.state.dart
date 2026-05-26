@@ -35,6 +35,7 @@ const _decSpecGraphicsMap = <int, int>{
 class CharsetState {
   final Map<int, int Function(int)> _charsetMap = {};
   int _currentIndex = 0;
+  int? _singleShiftIndex;
 
   /// Saved state for DECSC/DECRC
   Map<int, int Function(int)> _savedCharsetMap = {};
@@ -45,6 +46,7 @@ class CharsetState {
   CharsetState.copyFrom(CharsetState other) {
     _charsetMap.addAll(other._charsetMap);
     _currentIndex = other._currentIndex;
+    _singleShiftIndex = other._singleShiftIndex;
     _savedCharsetMap = Map.from(other._savedCharsetMap);
     _savedIndex = other._savedIndex;
   }
@@ -55,13 +57,17 @@ class CharsetState {
         if (c >= 127) return c;
         return _decSpecGraphicsMap[c] ?? c;
       },
-      _ => (c) => c, // 'B' or unknown = ASCII passthrough
+      0x42 => (c) => c, // ASCII
+      // TODO: implement debug logging for unrecognized charset names
+      _ => (c) => c,
     };
   }
 
   /// Translates a code point using the currently active charset, if any.
   int translate(int codePoint) {
-    final translator = _charsetMap[_currentIndex];
+    final index = _singleShiftIndex ?? _currentIndex;
+    _singleShiftIndex = null; // always clear after use
+    final translator = _charsetMap[index];
     if (translator == null) return codePoint;
     return translator(codePoint);
   }
@@ -69,6 +75,7 @@ class CharsetState {
   void designate(int index, int name) =>
       _charsetMap[index] = _resolveTranslator(name);
   void use(int index) => _currentIndex = index;
+  void singleShift(int index) => _singleShiftIndex = index;
 
   /// Saves the current charset state
   void save() {
@@ -82,5 +89,6 @@ class CharsetState {
       ..clear()
       ..addAll(_savedCharsetMap);
     _currentIndex = _savedIndex;
+    _singleShiftIndex = null;
   }
 }

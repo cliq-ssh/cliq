@@ -43,9 +43,11 @@ class EscapeParser {
     0x38: _escRestoreCursor,
     0x39: _escForwardIndex,
     0x44: _escIndex,
-    0x4D: _escReverseIndex,
     0x45: _escNextLine,
     0x48: _escHorizontalTabSet,
+    0x4D: _escReverseIndex,
+    0x4E: _escSingleShift2,
+    0x4F: _escSingleShift3,
   };
 
   late final Map<int, CsiHandler> _csiHandlers = {
@@ -133,12 +135,10 @@ class EscapeParser {
     if (next == 0x5B) return _consumeCsi(); // ESC [
     if (next == 0x5D) return _consumeOsc(); // ESC ]
 
-    if (next == 0x28 || next == 0x29) {
-      // ESC (, ESC )
+    // G0 ('('), G1 (')'), G2 ('*'), G3 ('+') charset designation
+    if (next == 0x28 || next == 0x29 || next == 0x2A || next == 0x2B) {
       if (_queue.isEmpty) return false;
-      final name = _queue.consume();
-      final slot = next == 0x28 ? 0 : 1;
-      controller.activeBuffer.charset.designate(slot, name);
+      controller.activeBuffer.charset.designate(next - 0x28, _queue.consume());
       return true;
     }
 
@@ -248,9 +248,11 @@ class EscapeParser {
   void _escRestoreCursor() => controller.activeBuffer.restoreCursor();
   void _escForwardIndex() => controller.activeBuffer.forwardIndex();
   void _escIndex() => controller.activeBuffer.index();
-  void _escReverseIndex() => controller.activeBuffer.reverseIndex();
   void _escNextLine() => controller.activeBuffer.nextLine();
   void _escHorizontalTabSet() => controller.activeBuffer.horizontalTabSet();
+  void _escReverseIndex() => controller.activeBuffer.reverseIndex();
+  void _escSingleShift2() => controller.activeBuffer.charset.singleShift(2);
+  void _escSingleShift3() => controller.activeBuffer.charset.singleShift(3);
 
   // --- CSI Handlers ---
 
