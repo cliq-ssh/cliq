@@ -1,6 +1,0 @@
-Host myserver
-  HostName myserver.example.com
-  Port 22
-  User johndoe
-  PreferredAuthentications publickey
-  IdentityFile ~/.ssh/id_rsa

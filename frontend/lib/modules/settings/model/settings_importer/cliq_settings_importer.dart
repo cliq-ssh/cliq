@@ -12,6 +12,7 @@ class CliqSettingsImporter extends AbstractSettingsImporter {
 
   @override
   Future<bool> canParse(String path, String content, {String? password}) async {
+    content = content.trim();
     if (content.length % 4 == 0 &&
         RegExp(r'^[A-Za-z0-9+/=]+$').hasMatch(content)) {
       content = utf8.decode(
@@ -37,6 +38,7 @@ class CliqSettingsImporter extends AbstractSettingsImporter {
     String content, {
     String? password,
   }) async {
+    content = content.trim();
     final json = jsonDecode(
       utf8.decode(await _decodeAndDecrypt(content, password: password)),
     );
@@ -48,7 +50,7 @@ class CliqSettingsImporter extends AbstractSettingsImporter {
     String? password,
   }) async {
     Uint8List decoded = base64Decode(content);
-    if (PasswordCipher.instance.isEncrypted(decoded)) {
+    if (PasswordCipher.isEncrypted(decoded)) {
       if (password == null) {
         throw LocalizedException('settings.import.error.encryptedFile');
       }
