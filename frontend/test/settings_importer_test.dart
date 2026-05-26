@@ -1,10 +1,11 @@
 import 'package:cliq/modules/settings/model/settings_importer/settings_importer.dart';
+import 'package:cliq/shared/utils/password_cipher.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'util/test_utils.dart';
 
 const Map<SettingsImporter, String> sampleFiles = {
-  .cliq: 'cliq_settings_export.json',
+  .cliq: 'cliq_settings_export.txt',
 };
 
 void main() {
@@ -13,6 +14,8 @@ void main() {
     late String content;
 
     setUp(() async {
+      await PasswordCipher.init();
+
       final file = await TestUtils.readFile(
         sampleFiles[parser]!,
         'settings_importer',
@@ -25,7 +28,7 @@ void main() {
       test(
         'getParser: Return ${parser.instance.runtimeType} for valid ${parser.name} file',
         () async {
-          final result = SettingsImporter.getParser(path, content);
+          final result = await SettingsImporter.getParser(path, content);
 
           expect(result, isNotNull);
           expect(result.runtimeType, parser.instance.runtimeType);
