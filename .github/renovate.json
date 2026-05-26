@@ -7,5 +7,12 @@
         "frontend/android/",
         "frontend/macos/",
         "frontend/ios/"
+    ],
+    "packageRules": [
+        {
+            "matchFileNames": ["frontend/pubspec.yaml"],
+            "matchPackageNames": ["forui", "forui_hooks"],
+            "groupName": "forui"
+        }
     ]
 }
