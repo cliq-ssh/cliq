@@ -4,7 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'util/test_utils.dart';
 
 const Map<SettingsImporter, String> sampleFiles = {
-  .cliq: 'cliq_settings_export.json',
+  .cliq: 'cliq_settings_export.txt',
 };
 
 void main() {
@@ -25,7 +25,7 @@ void main() {
       test(
         'getParser: Return ${parser.instance.runtimeType} for valid ${parser.name} file',
         () async {
-          final result = SettingsImporter.getParser(path, content);
+          final result = await SettingsImporter.getParser(path, content);
 
           expect(result, isNotNull);
           expect(result.runtimeType, parser.instance.runtimeType);
