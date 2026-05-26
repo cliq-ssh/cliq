@@ -30,38 +30,48 @@ class KeyCreationChoiceView extends HookConsumerWidget {
       color: context.theme.colors.mutedForeground,
     );
 
-    return ConstrainedBox(
-      constraints: const BoxConstraints(maxWidth: 520),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        spacing: 16,
-        children: [
-          Text('Add Key', style: context.theme.typography.xl2),
-          Text(
-            'Choose whether you want to import an existing SSH key or generate a new one.',
-            style: mutedStyle,
-          ),
-          FButton(
-            variant: .outline,
-            prefix: const Icon(LucideIcons.folderOpen),
-            onPress: openImport,
-            child: const Text('Import Existing Key'),
-          ),
-          FButton(
-            prefix: const Icon(Icons.vpn_key),
-            onPress: openGenerate,
-            child: const Text('Generate New Key'),
-          ),
-          Align(
-            alignment: Alignment.centerRight,
-            child: FButton(
-              variant: .ghost,
-              onPress: () => Navigator.of(context).pop(),
-              child: const Text('Cancel'),
+    return FScaffold(
+      child: LayoutBuilder(
+        builder: (context, _) {
+          return SizedBox.expand(
+            child: Center(
+              child: SizedBox(
+                width: 520,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  spacing: 16,
+                  children: [
+                    Text('Add Key', style: context.theme.typography.xl2),
+                    Text(
+                      'Choose whether you want to import an existing SSH key or generate a new one.',
+                      style: mutedStyle,
+                    ),
+                    FButton(
+                      variant: .outline,
+                      prefix: const Icon(LucideIcons.folderOpen),
+                      onPress: openImport,
+                      child: const Text('Import Existing Key'),
+                    ),
+                    FButton(
+                      prefix: const Icon(Icons.vpn_key),
+                      onPress: openGenerate,
+                      child: const Text('Generate New Key'),
+                    ),
+                    Align(
+                      alignment: Alignment.centerRight,
+                      child: FButton(
+                        variant: .ghost,
+                        onPress: () => Navigator.of(context).pop(),
+                        child: const Text('Cancel'),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
             ),
-          ),
-        ],
+          );
+        },
       ),
     );
   }

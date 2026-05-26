@@ -5,7 +5,6 @@ import 'package:cliq/shared/utils/validators.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:forui/forui.dart';
-import 'package:cliq/shared/ui/option_tile.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
 class GenerateKeyView extends HookConsumerWidget {
@@ -43,59 +42,6 @@ class GenerateKeyView extends HookConsumerWidget {
       Navigator.of(context).pop((keyId, label));
     }
 
-    Widget buildAlgorithmOption(SshKeyAlgorithm algorithm) {
-      final isSelected = keyType.value == algorithm;
-      final subtitleStyle = context.theme.typography.sm.copyWith(
-        color: context.theme.colors.mutedForeground,
-      );
-
-      return OptionTile(
-        padding: EdgeInsets.zero,
-        onTap: () => keyType.value = algorithm,
-        leading: Icon(
-          isSelected
-              ? Icons.radio_button_checked
-              : Icons.radio_button_unchecked,
-        ),
-        title: Text(algorithm.label),
-        subtitle: Text(algorithm.note, style: subtitleStyle),
-        selected: isSelected,
-        dense: true,
-      );
-    }
-
-    Widget buildCurveOption(SshEcdsaCurveSize size) {
-      final isSelected = ecdsaSize.value == size;
-      return OptionTile(
-        padding: EdgeInsets.zero,
-        onTap: () => ecdsaSize.value = size,
-        leading: Icon(
-          isSelected
-              ? Icons.radio_button_checked
-              : Icons.radio_button_unchecked,
-        ),
-        title: Text(size.label),
-        selected: isSelected,
-        dense: true,
-      );
-    }
-
-    Widget buildRsaOption(SshRsaKeySize size) {
-      final isSelected = rsaSize.value == size;
-      return OptionTile(
-        padding: EdgeInsets.zero,
-        onTap: () => rsaSize.value = size,
-        leading: Icon(
-          isSelected
-              ? Icons.radio_button_checked
-              : Icons.radio_button_unchecked,
-        ),
-        title: Text(size.label),
-        selected: isSelected,
-        dense: true,
-      );
-    }
-
     return CreateOrEditEntityView(
       onSave: onSave,
       isEdit: false,
@@ -115,36 +61,84 @@ class GenerateKeyView extends HookConsumerWidget {
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('Key Type', style: context.theme.typography.lg),
-                const SizedBox(height: 8),
-                buildAlgorithmOption(SshKeyAlgorithm.ed25519),
-                buildAlgorithmOption(SshKeyAlgorithm.ecdsa),
-                buildAlgorithmOption(SshKeyAlgorithm.rsa),
+                FSelectGroup<SshKeyAlgorithm>(
+                  control: FMultiValueControl<SshKeyAlgorithm>.managedRadio(
+                    initial: keyType.value,
+                    onChange: (value) {
+                      final selected = value.firstOrNull;
+                      if (selected != null) {
+                        keyType.value = selected;
+                      }
+                    },
+                  ),
+                  label: const Text('Key Type'),
+                  children: [
+                    for (final algorithm in SshKeyAlgorithm.values)
+                      FSelectGroupItemMixin.radio(
+                        value: algorithm,
+                        label: Text(algorithm.label),
+                        description: Text(algorithm.note),
+                      ),
+                  ],
+                ),
               ],
             ),
             if (keyType.value == SshKeyAlgorithm.ecdsa)
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    'Elliptic Curve Size (bits)',
-                    style: context.theme.typography.lg,
+                  FSelectGroup<SshEcdsaCurveSize>(
+                    control: FMultiValueControl<SshEcdsaCurveSize>.managedRadio(
+                      initial: ecdsaSize.value,
+                      onChange: (value) {
+                        final selected = value.firstOrNull;
+                        if (selected != null) {
+                          ecdsaSize.value = selected;
+                        }
+                      },
+                    ),
+                    label: const Text('Elliptic Curve Size (bits)'),
+                    children: [
+                      for (final size in [
+                        SshEcdsaCurveSize.bits521,
+                        SshEcdsaCurveSize.bits384,
+                        SshEcdsaCurveSize.bits256,
+                      ])
+                        FSelectGroupItemMixin.radio(
+                          value: size,
+                          label: Text(size.label),
+                        ),
+                    ],
                   ),
-                  const SizedBox(height: 8),
-                  buildCurveOption(SshEcdsaCurveSize.bits521),
-                  buildCurveOption(SshEcdsaCurveSize.bits384),
-                  buildCurveOption(SshEcdsaCurveSize.bits256),
                 ],
               ),
             if (keyType.value == SshKeyAlgorithm.rsa)
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('Key Size (bits)', style: context.theme.typography.lg),
-                  const SizedBox(height: 8),
-                  buildRsaOption(SshRsaKeySize.bits4096),
-                  buildRsaOption(SshRsaKeySize.bits2048),
-                  buildRsaOption(SshRsaKeySize.bits1024),
+                  FSelectGroup<SshRsaKeySize>(
+                    control: FMultiValueControl<SshRsaKeySize>.managedRadio(
+                      initial: rsaSize.value,
+                      onChange: (value) {
+                        final selected = value.firstOrNull;
+                        if (selected != null) {
+                          rsaSize.value = selected;
+                        }
+                      },
+                    ),
+                    label: const Text('Key Size (bits)'),
+                    children: [
+                      for (final size in [
+                        SshRsaKeySize.bits4096,
+                        SshRsaKeySize.bits2048,
+                        SshRsaKeySize.bits1024,
+                      ])
+                        FSelectGroupItemMixin.radio(
+                          value: size,
+                          label: Text(size.label),
+                        ),
+                    ],
+                  ),
                 ],
               ),
           ],
