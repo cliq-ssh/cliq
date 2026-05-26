@@ -6,6 +6,11 @@ import 'package:sodium/sodium_sumo.dart';
 class PasswordCipher {
   static PasswordCipher? _instance;
 
+  /// A fixed header to identify the whether the data is encrypted.
+  static final Uint8List _header = Uint8List.fromList(
+    "cliq-encrypted".codeUnits,
+  );
+
   final SodiumSumo _sodium;
 
   const PasswordCipher._(this._sodium);
@@ -24,6 +29,19 @@ class PasswordCipher {
     _instance = PasswordCipher._(await SodiumSumoInit.init());
   }
 
+  /// Checks if the given [data] is in the expected encrypted format.
+  /// This does not guarantee that the data can be decrypted successfully, only that it has the correct header.
+  static bool isEncrypted(Uint8List data) => _hasValidMagic(data);
+
+  /// Checks if the given [data] starts with the expected header.
+  static bool _hasValidMagic(Uint8List data) {
+    if (data.length < _header.length) return false;
+    for (int i = 0; i < _header.length; i++) {
+      if (data[i] != _header[i]) return false;
+    }
+    return true;
+  }
+
   /// Encrypts the given [plaintext] using a key derived from the [password].
   Future<Uint8List> encrypt(Uint8List plaintext, Uint8List password) async {
     final aead = _sodium.crypto.aeadXChaCha20Poly1305IETF;
@@ -32,6 +50,7 @@ class PasswordCipher {
     final key = await _deriveKey(password, salt);
     try {
       return Uint8List.fromList([
+        ..._header,
         ...salt,
         ...nonce,
         ...aead.encrypt(message: plaintext, nonce: nonce, key: key),
@@ -43,35 +62,33 @@ class PasswordCipher {
 
   /// Decrypts the given [data] using a key derived from the [password].
   Future<Uint8List> decrypt(Uint8List data, Uint8List password) async {
+    if (!_hasValidMagic(data)) {
+      throw const FormatException('Invalid payload.');
+    }
+
     final aead = _sodium.crypto.aeadXChaCha20Poly1305IETF;
     final saltLen = _sodium.crypto.pwhash.saltBytes;
     final nonceLen = aead.nonceBytes;
 
-    if (data.length < saltLen + nonceLen + aead.aBytes) {
+    // strip header
+    final payload = data.sublist(_header.length);
+
+    if (payload.length < saltLen + nonceLen + aead.aBytes) {
       throw const FormatException('Invalid payload.');
     }
 
-    final key = await _deriveKey(password, data.sublist(0, saltLen));
+    final key = await _deriveKey(password, payload.sublist(0, saltLen));
     try {
       return aead.decrypt(
-        cipherText: data.sublist(saltLen + nonceLen),
-        nonce: data.sublist(saltLen, saltLen + nonceLen),
+        cipherText: payload.sublist(saltLen + nonceLen),
+        nonce: payload.sublist(saltLen, saltLen + nonceLen),
         key: key,
       );
     } on SodiumException {
-      throw const FormatException('Wrong password or corrupted data.');
+      throw const FormatException('Wrong password or corrupted payload.');
     } finally {
       key.dispose();
     }
-  }
-
-  /// Checks if the given [data] is in the expected encrypted format.
-  /// This does not guarantee that the data can be decrypted successfully, only that it has the minimum length to
-  /// contain the salt, nonce, and authentication tag.
-  bool isEncrypted(Uint8List data) {
-    final aead = _sodium.crypto.aeadXChaCha20Poly1305IETF;
-    return data.length >=
-        _sodium.crypto.pwhash.saltBytes + aead.nonceBytes + aead.aBytes;
   }
 
   /// Derives a key from the given [password] and [salt] using the Argon2id algorithm in an isolate, to avoid
