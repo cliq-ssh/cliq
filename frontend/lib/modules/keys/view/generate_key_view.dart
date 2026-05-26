@@ -2,10 +2,34 @@ import 'package:cliq/modules/keys/model/ssh_key_generator.dart';
 import 'package:cliq/modules/keys/provider/key_service.provider.dart';
 import 'package:cliq/shared/ui/create_or_edit_entity_view.dart';
 import 'package:cliq/shared/utils/validators.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:forui/forui.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+
+class _KeyGenerationParams {
+  final SshKeyAlgorithm algorithm;
+  final SshEcdsaCurveSize ecdsaCurveSize;
+  final SshRsaKeySize rsaKeySize;
+  final String comment;
+
+  _KeyGenerationParams({
+    required this.algorithm,
+    required this.ecdsaCurveSize,
+    required this.rsaKeySize,
+    required this.comment,
+  });
+}
+
+Future<GeneratedSshKeyPair> _generateKeyInIsolate(
+  _KeyGenerationParams params,
+) => SshKeyGenerator.generate(
+  params.algorithm,
+  ecdsaCurveSize: params.ecdsaCurveSize,
+  rsaKeySize: params.rsaKeySize,
+  comment: params.comment,
+);
 
 class GenerateKeyView extends HookConsumerWidget {
   const GenerateKeyView({super.key});
@@ -17,35 +41,47 @@ class GenerateKeyView extends HookConsumerWidget {
     final keyType = useState(SshKeyAlgorithm.ed25519);
     final ecdsaSize = useState(SshEcdsaCurveSize.bits256);
     final rsaSize = useState(SshRsaKeySize.bits2048);
+    final isLoading = useState(false);
 
     Future<void> onSave(int? vaultId) async {
       if (!(formKey.currentState?.validate() ?? false)) return;
+      if (isLoading.value) return;
 
-      final label = labelCtrl.text.trim();
-      final generated = await SshKeyGenerator.generate(
-        keyType.value,
-        ecdsaCurveSize: ecdsaSize.value,
-        rsaKeySize: rsaSize.value,
-        comment: label,
-      );
+      try {
+        isLoading.value = true;
+        final label = labelCtrl.text.trim();
 
-      final keyService = ref.read(keyServiceProvider);
-      final keyId = await keyService.createKey(
-        vaultId: vaultId!,
-        label: label,
-        privateKey: generated.privateKey,
-        publicKey: generated.publicKey,
-        passphrase: null,
-      );
+        final generated = await compute(
+          _generateKeyInIsolate,
+          _KeyGenerationParams(
+            algorithm: keyType.value,
+            ecdsaCurveSize: ecdsaSize.value,
+            rsaKeySize: rsaSize.value,
+            comment: label,
+          ),
+        );
 
-      if (!context.mounted) return;
-      Navigator.of(context).pop((keyId, label));
+        final keyService = ref.read(keyServiceProvider);
+        final keyId = await keyService.createKey(
+          vaultId: vaultId!,
+          label: label,
+          privateKey: generated.privateKey,
+          publicKey: generated.publicKey,
+          passphrase: null,
+        );
+
+        if (!context.mounted) return;
+        Navigator.of(context).pop((keyId, label));
+      } finally {
+        isLoading.value = false;
+      }
     }
 
     return CreateOrEditEntityView(
       onSave: onSave,
       isEdit: false,
       createLabel: 'Generate Key',
+      isCreateLoading: isLoading.value,
       child: Form(
         key: formKey,
         child: Column(
@@ -57,6 +93,7 @@ class GenerateKeyView extends HookConsumerWidget {
               label: const Text('Label'),
               hint: 'My Key',
               validator: Validators.nonEmpty,
+              enabled: !isLoading.value,
             ),
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -65,9 +102,8 @@ class GenerateKeyView extends HookConsumerWidget {
                   control: FMultiValueControl<SshKeyAlgorithm>.managedRadio(
                     initial: keyType.value,
                     onChange: (value) {
-                      final selected = value.firstOrNull;
-                      if (selected != null) {
-                        keyType.value = selected;
+                      if (!isLoading.value) {
+                        keyType.value = value.firstOrNull ?? keyType.value;
                       }
                     },
                   ),
@@ -91,9 +127,9 @@ class GenerateKeyView extends HookConsumerWidget {
                     control: FMultiValueControl<SshEcdsaCurveSize>.managedRadio(
                       initial: ecdsaSize.value,
                       onChange: (value) {
-                        final selected = value.firstOrNull;
-                        if (selected != null) {
-                          ecdsaSize.value = selected;
+                        if (!isLoading.value) {
+                          ecdsaSize.value =
+                              value.firstOrNull ?? ecdsaSize.value;
                         }
                       },
                     ),
@@ -120,9 +156,8 @@ class GenerateKeyView extends HookConsumerWidget {
                     control: FMultiValueControl<SshRsaKeySize>.managedRadio(
                       initial: rsaSize.value,
                       onChange: (value) {
-                        final selected = value.firstOrNull;
-                        if (selected != null) {
-                          rsaSize.value = selected;
+                        if (!isLoading.value) {
+                          rsaSize.value = value.firstOrNull ?? rsaSize.value;
                         }
                       },
                     ),
