@@ -14,8 +14,6 @@ void main() {
     late String content;
 
     setUp(() async {
-      await PasswordCipher.init();
-
       final file = await TestUtils.readFile(
         sampleFiles[parser]!,
         'settings_importer',

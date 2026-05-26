@@ -29,6 +29,19 @@ class PasswordCipher {
     _instance = PasswordCipher._(await SodiumSumoInit.init());
   }
 
+  /// Checks if the given [data] is in the expected encrypted format.
+  /// This does not guarantee that the data can be decrypted successfully, only that it has the correct header.
+  static bool isEncrypted(Uint8List data) => _hasValidMagic(data);
+
+  /// Checks if the given [data] starts with the expected header.
+  static bool _hasValidMagic(Uint8List data) {
+    if (data.length < _header.length) return false;
+    for (int i = 0; i < _header.length; i++) {
+      if (data[i] != _header[i]) return false;
+    }
+    return true;
+  }
+
   /// Encrypts the given [plaintext] using a key derived from the [password].
   Future<Uint8List> encrypt(Uint8List plaintext, Uint8List password) async {
     final aead = _sodium.crypto.aeadXChaCha20Poly1305IETF;
@@ -76,19 +89,6 @@ class PasswordCipher {
     } finally {
       key.dispose();
     }
-  }
-
-  /// Checks if the given [data] is in the expected encrypted format.
-  /// This does not guarantee that the data can be decrypted successfully, only that it has the correct header.
-  bool isEncrypted(Uint8List data) => _hasValidMagic(data);
-
-  /// Checks if the given [data] starts with the expected header.
-  bool _hasValidMagic(Uint8List data) {
-    if (data.length < _header.length) return false;
-    for (int i = 0; i < _header.length; i++) {
-      if (data[i] != _header[i]) return false;
-    }
-    return true;
   }
 
   /// Derives a key from the given [password] and [salt] using the Argon2id algorithm in an isolate, to avoid
