@@ -80,9 +80,7 @@ class PasswordCipher {
 
   /// Checks if the given [data] is in the expected encrypted format.
   /// This does not guarantee that the data can be decrypted successfully, only that it has the correct header.
-  bool isEncrypted(Uint8List data) {
-    return _hasValidMagic(data);
-  }
+  bool isEncrypted(Uint8List data) => _hasValidMagic(data);
 
   /// Checks if the given [data] starts with the expected header.
   bool _hasValidMagic(Uint8List data) {
