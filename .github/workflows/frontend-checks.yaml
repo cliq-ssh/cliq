@@ -10,6 +10,7 @@ on:
       - main
     paths:
       - 'frontend/**'
+  workflow_dispatch: ~
 
 # Sets a default working directory
 defaults:
