@@ -98,9 +98,7 @@ class SessionNotifier extends Notifier<SessionState> {
     final tabId = findTabIdBySessionId(sessionId);
     if (tabId == null) {
       // This should never happen
-      throw Exception(
-        'Session with id $sessionId not found in any active tab.',
-      );
+      return;
     }
 
     final tab = state.activeTabs.firstWhere((s) => s.id == tabId);
