@@ -1,5 +1,4 @@
 import 'package:cliq/modules/settings/model/settings_importer/settings_importer.dart';
-import 'package:cliq/shared/utils/password_cipher.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'util/test_utils.dart';
