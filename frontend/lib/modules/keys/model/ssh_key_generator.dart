@@ -2,10 +2,14 @@ import 'dart:convert';
 import 'dart:math';
 import 'dart:typed_data';
 
-import 'package:dartssh2/src/algorithm/ssh_cipher_type.dart';
-import 'package:dartssh2/src/ssh_key_pair.dart';
-import 'package:dartssh2/src/utils/cipher_ext.dart';
+// We need to import these internal utilities to encrypt the private key in the OpenSSH format.
+// DartSSH2 doesn't provide a public API for this.
+
+import 'package:dartssh2/dartssh2.dart';
+// ignore: implementation_imports
 import 'package:dartssh2/src/utils/bcrypt.dart';
+// ignore: implementation_imports
+import 'package:dartssh2/src/utils/cipher_ext.dart';
 import 'package:pointycastle/export.dart';
 import 'package:sodium/sodium_sumo.dart';
 
