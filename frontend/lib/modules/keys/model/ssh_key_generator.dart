@@ -2,6 +2,10 @@ import 'dart:convert';
 import 'dart:math';
 import 'dart:typed_data';
 
+import 'package:dartssh2/src/algorithm/ssh_cipher_type.dart';
+import 'package:dartssh2/src/ssh_key_pair.dart';
+import 'package:dartssh2/src/utils/cipher_ext.dart';
+import 'package:dartssh2/src/utils/bcrypt.dart';
 import 'package:pointycastle/export.dart';
 import 'package:sodium/sodium_sumo.dart';
 
@@ -88,21 +92,30 @@ final class SshKeyGenerator {
     SshEcdsaCurveSize ecdsaCurveSize = SshEcdsaCurveSize.bits256,
     SshRsaKeySize rsaKeySize = SshRsaKeySize.bits2048,
     String comment = '',
+    String? passphrase,
   }) async {
     return switch (algorithm) {
-      SshKeyAlgorithm.ed25519 => await _generateEd25519(comment),
+      SshKeyAlgorithm.ed25519 => await _generateEd25519(
+        comment,
+        passphrase: passphrase,
+      ),
       SshKeyAlgorithm.ecdsa => _generateEcdsa(
         comment: comment,
         curveSize: ecdsaCurveSize,
+        passphrase: passphrase,
       ),
       SshKeyAlgorithm.rsa => _generateRsa(
         comment: comment,
         bitStrength: rsaKeySize.bits,
+        passphrase: passphrase,
       ),
     };
   }
 
-  static Future<GeneratedSshKeyPair> _generateEd25519(String comment) async {
+  static Future<GeneratedSshKeyPair> _generateEd25519(
+    String comment, {
+    String? passphrase,
+  }) async {
     final sodium = await _getSodium();
     final keyPair = sodium.crypto.sign.keyPair();
 
@@ -114,6 +127,7 @@ final class SshKeyGenerator {
         type: SshKeyAlgorithm.ed25519.sshType,
         publicKeyBlob: _buildEd25519PublicBlob(publicKey),
         comment: comment,
+        passphrase: passphrase,
         writePrivateBlob: (writer) {
           writer.writeString(publicKey);
           writer.writeString(secretKey);
@@ -128,6 +142,7 @@ final class SshKeyGenerator {
   static GeneratedSshKeyPair _generateEcdsa({
     required String comment,
     required SshEcdsaCurveSize curveSize,
+    String? passphrase,
   }) {
     final curveId = curveSize.curveId;
     final curve = switch (curveSize) {
@@ -152,6 +167,7 @@ final class SshKeyGenerator {
       type: 'ecdsa-sha2-$curveId',
       publicKeyBlob: _buildEcdsaPublicBlob(curveId: curveId, q: q),
       comment: comment,
+      passphrase: passphrase,
       writePrivateBlob: (writer) {
         writer.writeUtf8(curveId);
         writer.writeString(q);
@@ -164,6 +180,7 @@ final class SshKeyGenerator {
   static GeneratedSshKeyPair _generateRsa({
     required String comment,
     required int bitStrength,
+    String? passphrase,
   }) {
     final keyGenerator = RSAKeyGenerator()
       ..init(
@@ -182,6 +199,7 @@ final class SshKeyGenerator {
       type: SshKeyAlgorithm.rsa.sshType,
       publicKeyBlob: _buildRsaPublicBlob(publicKey),
       comment: comment,
+      passphrase: passphrase,
       writePrivateBlob: (writer) {
         writer.writeMpInt(publicKey.modulus!);
         writer.writeMpInt(publicKey.publicExponent!);
@@ -208,6 +226,7 @@ final class SshKeyGenerator {
     required String type,
     required Uint8List publicKeyBlob,
     required String comment,
+    String? passphrase,
     required void Function(_SshMessageWriter writer) writePrivateBlob,
   }) {
     final privateWriter = _SshMessageWriter();
@@ -217,12 +236,21 @@ final class SshKeyGenerator {
     privateWriter.writeUint32(checkInt);
     privateWriter.writeUtf8(type);
     writePrivateBlob(privateWriter);
-    privateWriter.padToMultipleOf(8);
-
-    final privateKey = _encodeOpenSshPrivateKey(
-      publicKeyBlob: publicKeyBlob,
-      privateKeyBlob: privateWriter.takeBytes(),
+    final hasPassphrase = passphrase?.isNotEmpty ?? false;
+    privateWriter.padToMultipleOf(
+      hasPassphrase ? SSHCipherType.aes256ctr.blockSize : 8,
     );
+
+    final privateKey = hasPassphrase
+        ? _encodeEncryptedOpenSshPrivateKey(
+            publicKeyBlob: publicKeyBlob,
+            privateKeyBlob: privateWriter.takeBytes(),
+            passphrase: passphrase!,
+          )
+        : _encodeOpenSshPrivateKey(
+            publicKeyBlob: publicKeyBlob,
+            privateKeyBlob: privateWriter.takeBytes(),
+          );
 
     return GeneratedSshKeyPair(
       privateKey: privateKey,
@@ -234,22 +262,46 @@ final class SshKeyGenerator {
     required Uint8List publicKeyBlob,
     required Uint8List privateKeyBlob,
   }) {
-    final writer = _SshMessageWriter();
+    return OpenSSHKeyPairs.unencrypted(
+      publicKeys: [publicKeyBlob],
+      privateKeyBlob: privateKeyBlob,
+    ).toPem();
+  }
 
-    writer.writeBytes(_opensshMagic);
-    writer.writeUint8(0);
-    writer.writeUtf8('none');
-    writer.writeUtf8('none');
-    writer.writeString(Uint8List(0));
-    writer.writeUint32(1);
-    writer.writeString(publicKeyBlob);
-    writer.writeString(privateKeyBlob);
+  static String _encodeEncryptedOpenSshPrivateKey({
+    required Uint8List publicKeyBlob,
+    required Uint8List privateKeyBlob,
+    required String passphrase,
+  }) {
+    const cipher = SSHCipherType.aes256ctr;
+    const rounds = 16;
+    final salt = _randomBytes(16);
+    final passphraseBytes = Uint8List.fromList(utf8.encode(passphrase));
+    final kdfHash = Uint8List(cipher.keySize + cipher.ivSize);
 
-    return _encodePem(
-      'OPENSSH PRIVATE KEY',
-      writer.takeBytes(),
-      lineLength: 70,
+    bcrypt_pbkdf(
+      passphraseBytes,
+      passphraseBytes.length,
+      salt,
+      salt.length,
+      kdfHash,
+      kdfHash.length,
+      rounds,
     );
+
+    final key = Uint8List.view(kdfHash.buffer, 0, cipher.keySize);
+    final iv = Uint8List.view(kdfHash.buffer, cipher.keySize, cipher.ivSize);
+    final encryptedPrivateKeyBlob = cipher
+        .createCipher(key, iv, forEncryption: true)
+        .processAll(privateKeyBlob);
+
+    return OpenSSHKeyPairs(
+      cipherName: cipher.name,
+      kdfName: 'bcrypt',
+      kdfOptions: OpenSSHBcryptKdfOptions(salt, rounds),
+      publicKeys: [publicKeyBlob],
+      privateKeyBlob: encryptedPrivateKeyBlob,
+    ).toPem();
   }
 
   static Uint8List _buildRsaPublicBlob(RSAPublicKey key) {
@@ -289,24 +341,6 @@ final class SshKeyGenerator {
         : '$type ${base64.encode(blob)} $suffix';
   }
 
-  static String _encodePem(
-    String type,
-    Uint8List content, {
-    int lineLength = 70,
-  }) {
-    final encoded = base64.encode(content);
-    final chunks = <String>[];
-    for (var i = 0; i < encoded.length; i += lineLength) {
-      chunks.add(encoded.substring(i, min(i + lineLength, encoded.length)));
-    }
-
-    return [
-      '-----BEGIN $type-----',
-      ...chunks,
-      '-----END $type-----',
-    ].join('\n');
-  }
-
   static Uint8List _randomBytes(int length) {
     return Uint8List.fromList(
       List<int>.generate(length, (_) => _secureRandom.nextInt(256)),
@@ -317,10 +351,6 @@ final class SshKeyGenerator {
     final bytes = _randomBytes(4);
     return (bytes[0] << 24) | (bytes[1] << 16) | (bytes[2] << 8) | bytes[3];
   }
-
-  static final Uint8List _opensshMagic = Uint8List.fromList(
-    'openssh-key-v1'.codeUnits,
-  );
 }
 
 final class _SshMessageWriter {

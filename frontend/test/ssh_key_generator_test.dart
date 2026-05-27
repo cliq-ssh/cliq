@@ -58,5 +58,49 @@ void main() {
         expect(parsed.single.name, SshKeyAlgorithm.rsa.sshType);
       });
     }
+
+    group('with passphrase', () {
+      test('encrypts ED25519 SSH keys', () async {
+        const passphrase = 's3cr3t-passphrase';
+        final generated = await SshKeyGenerator.generate(
+          SshKeyAlgorithm.ed25519,
+          comment: 'cliq@test',
+          passphrase: passphrase,
+        );
+
+        expect(SSHKeyPair.isEncryptedPem(generated.privateKey), isTrue);
+        final parsed = SSHKeyPair.fromPem(generated.privateKey, passphrase);
+        expect(parsed, isNotEmpty);
+        expect(parsed.single.name, SshKeyAlgorithm.ed25519.sshType);
+      });
+
+      test('encrypts ECDSA SSH keys', () async {
+        const passphrase = 's3cr3t-passphrase';
+        final generated = await SshKeyGenerator.generate(
+          SshKeyAlgorithm.ecdsa,
+          comment: 'cliq@test',
+          passphrase: passphrase,
+        );
+
+        expect(SSHKeyPair.isEncryptedPem(generated.privateKey), isTrue);
+        final parsed = SSHKeyPair.fromPem(generated.privateKey, passphrase);
+        expect(parsed, isNotEmpty);
+        expect(parsed.single.name, startsWith('ecdsa-sha2-'));
+      });
+
+      test('encrypts RSA SSH keys', () async {
+        const passphrase = 's3cr3t-passphrase';
+        final generated = await SshKeyGenerator.generate(
+          SshKeyAlgorithm.rsa,
+          comment: 'cliq@test',
+          passphrase: passphrase,
+        );
+
+        expect(SSHKeyPair.isEncryptedPem(generated.privateKey), isTrue);
+        final parsed = SSHKeyPair.fromPem(generated.privateKey, passphrase);
+        expect(parsed, isNotEmpty);
+        expect(parsed.single.name, SshKeyAlgorithm.rsa.sshType);
+      });
+    });
   });
 }

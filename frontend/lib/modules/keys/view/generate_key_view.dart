@@ -13,12 +13,14 @@ class _KeyGenerationParams {
   final SshEcdsaCurveSize ecdsaCurveSize;
   final SshRsaKeySize rsaKeySize;
   final String comment;
+  final String? passphrase;
 
   _KeyGenerationParams({
     required this.algorithm,
     required this.ecdsaCurveSize,
     required this.rsaKeySize,
     required this.comment,
+    required this.passphrase,
   });
 }
 
@@ -29,6 +31,7 @@ Future<GeneratedSshKeyPair> _generateKeyInIsolate(
   ecdsaCurveSize: params.ecdsaCurveSize,
   rsaKeySize: params.rsaKeySize,
   comment: params.comment,
+  passphrase: params.passphrase,
 );
 
 class GenerateKeyView extends HookConsumerWidget {
@@ -38,6 +41,7 @@ class GenerateKeyView extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final formKey = useMemoized(() => GlobalKey<FormState>());
     final labelCtrl = useTextEditingController();
+    final passCtrl = useTextEditingController();
     final keyType = useState(SshKeyAlgorithm.ed25519);
     final ecdsaSize = useState(SshEcdsaCurveSize.bits256);
     final rsaSize = useState(SshRsaKeySize.bits2048);
@@ -50,6 +54,7 @@ class GenerateKeyView extends HookConsumerWidget {
       try {
         isLoading.value = true;
         final label = labelCtrl.text.trim();
+        final passphrase = passCtrl.text.isEmpty ? null : passCtrl.text;
 
         final generated = await compute(
           _generateKeyInIsolate,
@@ -58,6 +63,7 @@ class GenerateKeyView extends HookConsumerWidget {
             ecdsaCurveSize: ecdsaSize.value,
             rsaKeySize: rsaSize.value,
             comment: label,
+            passphrase: passphrase,
           ),
         );
 
@@ -67,7 +73,7 @@ class GenerateKeyView extends HookConsumerWidget {
           label: label,
           privateKey: generated.privateKey,
           publicKey: generated.publicKey,
-          passphrase: null,
+          passphrase: passphrase,
         );
 
         if (!context.mounted) return;
@@ -93,6 +99,11 @@ class GenerateKeyView extends HookConsumerWidget {
               label: const Text('Label'),
               hint: 'My Key',
               validator: Validators.nonEmpty,
+              enabled: !isLoading.value,
+            ),
+            FTextFormField.password(
+              control: .managed(controller: passCtrl),
+              label: const Text('Passphrase (Optional)'),
               enabled: !isLoading.value,
             ),
             Column(
