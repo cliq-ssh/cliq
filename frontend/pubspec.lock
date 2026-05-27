@@ -434,26 +434,26 @@ packages:
     dependency: "direct main"
     description:
       name: forui
-      sha256: "099deb57d345aaafd73b4ee3dc150bfe032e1d583a898461183586cbb0153778"
+      sha256: "1a0709bd92195c43d412f09164cd1c16a83720215b001056397d48ea63d2d243"
       url: "https://pub.dev"
     source: hosted
-    version: "0.21.3"
+    version: "0.22.3"
   forui_assets:
     dependency: transitive
     description:
       name: forui_assets
-      sha256: f83517074a11f6458986dbb5d0a0b364cebf6861a4e143acb2d51e6626ecf813
+      sha256: "5d81724c7d6b1bb538a0220fabcbeb5ceb0491ba3e80d5a19d694688e8fd1fbe"
       url: "https://pub.dev"
     source: hosted
-    version: "0.21.0"
+    version: "0.22.0"
   forui_hooks:
     dependency: "direct main"
     description:
       name: forui_hooks
-      sha256: "00b9ff5a2cfe063e9ce2f66cfb5b7f955b3de04c936c2684448b5bfaef51caca"
+      sha256: d79442f90441d054589a4265c5d9ab49b9b3f33c8a8bab58244b36a139a3b6e1
       url: "https://pub.dev"
     source: hosted
-    version: "0.21.0"
+    version: "0.22.1"
   freezed_annotation:
     dependency: transitive
     description:
@@ -678,14 +678,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "0.17.6"
-  nitrogen_types:
-    dependency: transitive
-    description:
-      name: nitrogen_types
-      sha256: "5d4ec453aea14e34607bc6021ff1381192e8fcd8541bf103638baa4d013e668f"
-      url: "https://pub.dev"
-    source: hosted
-    version: "0.4.0+1"
   node_preamble:
     dependency: transitive
     description:
@@ -1286,4 +1278,4 @@ packages:
     version: "3.1.3"
 sdks:
   dart: ">=3.12.0 <4.0.0"
-  flutter: ">=3.44.0-0"
+  flutter: ">=3.44.0"

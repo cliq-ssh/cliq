@@ -215,7 +215,7 @@ class CreateOrEditCredentialsFormState
                           validator: Validators.nonEmpty,
                           autovalidateMode: .onUserInteraction,
                         ),
-                        .key => FAutocomplete.builder(
+                        .key => FAutocomplete.textBuilder(
                           control: .managed(controller: data.controller),
                           filter: (query) async {
                             return keysFuture.on(
