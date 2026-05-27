@@ -1,5 +1,4 @@
 import 'package:cliq/modules/keys/model/key_full.model.dart';
-import 'package:cliq/modules/keys/view/create_or_edit_key_view.dart';
 import 'package:cliq/modules/settings/view/abstract_settings_page.dart';
 import 'package:cliq/modules/settings/view/settings_page.dart';
 import 'package:cliq/shared/ui/entity_card_view.dart';
@@ -14,6 +13,7 @@ import '../../../shared/model/page_path.model.dart';
 import '../../../shared/utils/commons.dart';
 import '../../keys/provider/key.provider.dart';
 import '../../keys/provider/key_service.provider.dart';
+import '../../keys/view/key_creation_choice_view.dart';
 import '../../keys/ui/key_card.dart';
 
 class KeysSettingsPage extends AbstractSettingsPage {
@@ -46,8 +46,9 @@ class KeysSettingsPage extends AbstractSettingsPage {
               'Add your first key by clicking the button below.',
           addEntityTitle: 'Add Key',
           filterableFields: (k) => [k.vault.label, k.label],
-          onAddEntity: () =>
-              Commons.showResponsiveDialog((_) => CreateOrEditKeyView.create()),
+          onAddEntity: () => Commons.showResponsiveDialog(
+            (_) => const KeyCreationChoiceView(),
+          ),
         );
       },
     );

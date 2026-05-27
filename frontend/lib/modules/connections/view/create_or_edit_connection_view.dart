@@ -512,7 +512,7 @@ class CreateOrEditConnectionView extends HookConsumerWidget {
               hint: labelCtrl.text.isEmpty ? addressCtrl.text : null,
             ),
 
-            FAutocomplete(
+            FAutocomplete.text(
               control: .managed(controller: groupCtrl),
               label: const Text('Group'),
               clearable: (value) => value.text.isNotEmpty,
@@ -522,7 +522,7 @@ class CreateOrEditConnectionView extends HookConsumerWidget {
                     ? const Text('No groups')
                     : Text('Create group "${groupCtrl.text}"'),
               ),
-              contentErrorBuilder: (_, _, _) => Padding(
+              contentErrorBuilder: (_, _, _, _) => Padding(
                 padding: const EdgeInsets.symmetric(vertical: 12),
                 child: Text('Create group "${groupCtrl.text}"'),
               ),
@@ -556,7 +556,7 @@ class CreateOrEditConnectionView extends HookConsumerWidget {
             Row(
               children: [
                 Expanded(
-                  child: FAutocomplete.builder(
+                  child: FAutocomplete.textBuilder(
                     control: .managed(controller: usernameCtrl),
                     filter: (query) {
                       final values = identities.entities.map(
