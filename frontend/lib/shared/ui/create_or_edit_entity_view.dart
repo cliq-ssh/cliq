@@ -20,6 +20,12 @@ class CreateOrEditEntityView extends HookConsumerWidget {
   /// Whether to show the vault selector in the form. If this is false, [onSave] will be called with null.
   final bool withVaultSelector;
 
+  /// Loading states and labels for create and edit actions.
+  final bool isCreateLoading;
+  final bool isEditLoading;
+  final String? createLoadingLabel;
+  final String? editLoadingLabel;
+
   const CreateOrEditEntityView({
     super.key,
     required this.onSave,
@@ -29,6 +35,10 @@ class CreateOrEditEntityView extends HookConsumerWidget {
     this.editLabel,
     this.createLabel,
     this.withVaultSelector = true,
+    this.isCreateLoading = false,
+    this.isEditLoading = false,
+    this.createLoadingLabel,
+    this.editLoadingLabel,
   });
 
   @override
@@ -101,18 +111,47 @@ class CreateOrEditEntityView extends HookConsumerWidget {
             const SizedBox(height: 40),
             SizedBox(
               width: double.infinity,
-              child: FButton(
-                onPress: () {
-                  if (withVaultSelector && !formKey.currentState!.validate()) {
-                    return;
-                  }
-                  onSave(
-                    withVaultSelector ? vaultSelectController.value! : null,
+              child: Builder(
+                builder: (_) {
+                  final label = isEdit
+                      ? (editLabel ?? 'Edit')
+                      : (createLabel ?? 'Save');
+                  final isLoading = isEdit ? isEditLoading : isCreateLoading;
+                  final currentLabel = isEdit
+                      ? (editLoadingLabel ?? label)
+                      : (createLoadingLabel ?? label);
+                  final isBusy = isCreateLoading || isEditLoading;
+
+                  return FButton(
+                    onPress: isBusy
+                        ? null
+                        : () {
+                            if (withVaultSelector &&
+                                !formKey.currentState!.validate()) {
+                              return;
+                            }
+                            onSave(
+                              withVaultSelector
+                                  ? vaultSelectController.value!
+                                  : null,
+                            );
+                          },
+                    child: isLoading
+                        ? Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            spacing: 8,
+                            children: [
+                              Text(currentLabel),
+                              const SizedBox(
+                                width: 16,
+                                height: 16,
+                                child: FCircularProgress(),
+                              ),
+                            ],
+                          )
+                        : Text(label),
                   );
                 },
-                child: Text(
-                  isEdit ? (editLabel ?? 'Edit') : (createLabel ?? 'Save'),
-                ),
               ),
             ),
           ],
