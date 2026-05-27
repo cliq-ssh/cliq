@@ -8,6 +8,7 @@ import 'package:cliq/shared/provider/store.provider.dart';
 import 'package:cliq/shared/ui/error_view.dart';
 import 'package:cliq/shared/utils/commons.dart';
 import 'package:cliq/shared/utils/password_cipher.dart';
+import 'package:cliq/shared/utils/platform_utils.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart' hide Router;
 import 'package:flutter/services.dart';
@@ -16,6 +17,11 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:logging/logging.dart';
 import 'package:lucide_flutter/lucide_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:window_manager/window_manager.dart';
+
+const windowMinWidth = 1100.0;
+const windowMinHeight = 500.0;
+const windowMinSize = Size(windowMinWidth, windowMinHeight);
 
 void main() async {
   runZonedGuarded(() async {
@@ -34,8 +40,24 @@ void main() async {
     await KeyValueStore.init();
     await PasswordCipher.init();
 
+    await _configureWindow();
+
     runApp(const ProviderScope(child: CliqApp()));
   }, _handleError);
+}
+
+Future<void> _configureWindow() async {
+  if (!PlatformUtils.isDesktop) {
+    debugPrint('Window configuration is only supported on desktop platforms.');
+    return;
+  }
+
+  await windowManager.ensureInitialized();
+  WindowOptions windowOptions = WindowOptions(minimumSize: windowMinSize);
+  windowManager.waitUntilReadyToShow(windowOptions, () async {
+    await windowManager.show();
+    await windowManager.focus();
+  });
 }
 
 void _handleError(Object error, StackTrace stackTrace) {
