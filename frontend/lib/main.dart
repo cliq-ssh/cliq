@@ -19,7 +19,7 @@ import 'package:lucide_flutter/lucide_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:window_manager/window_manager.dart';
 
-const windowMinWidth = 1100.0;
+const windowMinWidth = 900.0;
 const windowMinHeight = 500.0;
 const windowMinSize = Size(windowMinWidth, windowMinHeight);
 
