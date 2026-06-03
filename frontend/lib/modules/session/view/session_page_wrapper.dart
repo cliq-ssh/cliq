@@ -37,7 +37,7 @@ class _SessionPageState extends ConsumerState<SessionPageWrapper> {
   SplitLeaf<ShellSession> _buildLeaf(ShellSession s, {required bool isSingle}) {
     return SplitLeaf(
       value: s,
-      builder: (context, focus) => ShellSessionPage(
+      builder: (context, focus) => SessionPage(
         key: ValueKey('session-${s.id}'),
         sessionId: s.id,
         focusNode: focus,

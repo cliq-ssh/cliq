@@ -10,7 +10,7 @@ import 'package:path_provider/path_provider.dart';
 
 import '../../modules/connections/data/connection_credentials_repository.dart';
 import '../../modules/connections/data/connections_repository.dart';
-import '../../modules/connections/model/connection_icon.dart';
+import '../../modules/connections/model/connection_icons.dart';
 import '../../modules/credentials/data/credentials_repository.dart';
 import '../../modules/credentials/model/credential_type.dart';
 import '../../modules/identities/data/identities_repository.dart';

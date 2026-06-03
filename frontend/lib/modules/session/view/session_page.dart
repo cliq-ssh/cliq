@@ -23,18 +23,18 @@ import '../provider/session.provider.dart';
 /// The padding around the terminal view in the session page.
 const kShellSessionPagePadding = 8.0;
 
-class ShellSessionPage extends StatefulHookConsumerWidget {
+class SessionPage extends StatefulHookConsumerWidget {
   final String sessionId;
   final FocusNode? focusNode;
 
-  const ShellSessionPage({super.key, required this.sessionId, this.focusNode});
+  const SessionPage({super.key, required this.sessionId, this.focusNode});
 
   @override
   ConsumerState<ConsumerStatefulWidget> createState() =>
       _ShellSessionPageState();
 }
 
-class _ShellSessionPageState extends ConsumerState<ShellSessionPage>
+class _ShellSessionPageState extends ConsumerState<SessionPage>
     with AutomaticKeepAliveClientMixin {
   @override
   bool get wantKeepAlive => true;
@@ -49,6 +49,7 @@ class _ShellSessionPageState extends ConsumerState<ShellSessionPage>
     final session = ref
         .watch(sessionProvider.notifier)
         .getSessionById(widget.sessionId)!;
+
     final terminalController = useState<TerminalController?>(
       session.terminalController,
     );
@@ -117,11 +118,14 @@ class _ShellSessionPageState extends ConsumerState<ShellSessionPage>
     useEffect(() {
       if (terminalController.value == null) return null;
 
-      Future<void> openSsh(ConnectionFull connection) async {
+      Future<void> openSession(
+        ConnectionFull connection, {
+        bool isSftp = false,
+      }) async {
         if (terminalController.value == null) return;
 
         final client =
-            session.sshClient ??
+            session.client ??
             await ref
                 .read(sessionProvider.notifier)
                 .createSSHClient(session, connection);
@@ -130,45 +134,52 @@ class _ShellSessionPageState extends ConsumerState<ShellSessionPage>
           return;
         }
 
-        final sshSession =
-            session.sshSession ??
-            await ref
-                .read(sessionProvider.notifier)
-                .spawnShell(session.id, client, terminalController.value!);
+        if (session.type == .ssh) {
+          final sshSession = await ref
+              .read(sessionProvider.notifier)
+              .spawnSsh(session.id, client, terminalController.value!);
 
-        terminalController.value!.fitResize(size);
+          terminalController.value!.fitResize(size);
 
-        terminalController.value!.onInput = (s) {
-          sshSession?.stdin.add(Uint8List.fromList(s.codeUnits));
-        };
+          // close SSH session when terminal is closed
+          sshSession?.done.then((_) {
+            if (!mounted) return;
+            closeSession();
+          });
 
-        // close SSH session when terminal is closed
-        sshSession?.done.then((_) {
-          if (!mounted) return;
-          closeSession();
-        });
+          terminalController.value!.fitResize(size);
 
-        StreamSubscription? stdoutSub =
-            session.stdoutSub ??
-            sshSession?.stdout.listen((data) {
-              final controller = terminalController.value;
-              if (controller != null) {
-                controller.feed(String.fromCharCodes(data));
-              }
-            });
+          terminalController.value!.onInput = (s) {
+            sshSession?.stdin.add(Uint8List.fromList(s.codeUnits));
+          };
 
-        StreamSubscription? stderrSub =
-            session.stderrSub ??
-            sshSession?.stderr.listen((data) {
-              final controller = terminalController.value;
-              if (controller != null) {
-                controller.feed(String.fromCharCodes(data));
-              }
-            });
+          StreamSubscription? stdoutSub =
+              session.stdoutSub ??
+              sshSession?.stdout.listen((data) {
+                final controller = terminalController.value;
+                if (controller != null) {
+                  controller.feed(String.fromCharCodes(data));
+                }
+              });
 
-        ref
-            .read(sessionProvider.notifier)
-            .setStreamListeners(session.id, stdoutSub, stderrSub);
+          StreamSubscription? stderrSub =
+              session.stderrSub ??
+              sshSession?.stderr.listen((data) {
+                final controller = terminalController.value;
+                if (controller != null) {
+                  controller.feed(String.fromCharCodes(data));
+                }
+              });
+
+          ref
+              .read(sessionProvider.notifier)
+              .setStreamListeners(session.id, stdoutSub, stderrSub);
+        }
+        if (session.type == .sftp) {
+          await ref
+              .read(sessionProvider.notifier)
+              .spawnSftp(session.id, client);
+        }
       }
 
       final connectionFull = ref
@@ -178,7 +189,7 @@ class _ShellSessionPageState extends ConsumerState<ShellSessionPage>
       if (connectionFull != null) {
         WidgetsBinding.instance.addPostFrameCallback((_) {
           if (!mounted) return;
-          openSsh(connectionFull);
+          openSession(connectionFull);
         });
       }
 
@@ -355,6 +366,11 @@ class _ShellSessionPageState extends ConsumerState<ShellSessionPage>
     }
 
     if (session.isConnected && terminalController.value != null) {
+      if (session.type == .sftp) {
+        // TODO:
+        return Text('TODO: Implement SFTP View');
+      }
+
       return SizedBox.expand(
         child: Container(
           color: effectiveTerminalTheme.backgroundColor,

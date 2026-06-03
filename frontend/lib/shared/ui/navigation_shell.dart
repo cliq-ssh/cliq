@@ -1,4 +1,5 @@
 import 'package:cliq/modules/connections/provider/connection.provider.dart';
+import 'package:cliq/modules/connections/ui/connection_icon.dart';
 import 'package:cliq/shared/provider/store.provider.dart';
 import 'package:cliq/shared/ui/responsive_sidebar.dart';
 import 'package:cliq/shared/ui/shortcut_info.dart';
@@ -150,6 +151,11 @@ class NavigationShellState extends ConsumerState<NavigationShell>
               children: [
                 for (final connection in connections.entities)
                   FItem(
+                    prefix: ConnectionIcon.fromConnection(
+                      connection,
+                      size: 10,
+                      padding: 5,
+                    ),
                     title: Text(connection.label),
                     onPress: () {
                       ref
