@@ -1,3 +1,4 @@
+import 'package:cliq/modules/connections/model/connection_full.model.dart';
 import 'package:cliq/modules/connections/provider/connection.provider.dart';
 import 'package:cliq/modules/connections/ui/connection_icon.dart';
 import 'package:cliq/shared/provider/store.provider.dart';
@@ -69,6 +70,13 @@ class NavigationShellState extends ConsumerState<NavigationShell>
           : .top;
       return null;
     }, [breakpoint, prefDesktopNavPosition.value]);
+
+    connect(ConnectionFull connection, {bool isSftp = false}) {
+      ref
+          .read(sessionProvider.notifier)
+          .createAndGo(this, connection, isSftp: isSftp);
+      showTabs.value = false;
+    }
 
     /// Gets the effective sidebar color based on the selected session and its terminal theme.
     Color getEffectiveSidebarColor() {
@@ -156,13 +164,23 @@ class NavigationShellState extends ConsumerState<NavigationShell>
                       size: 10,
                       padding: 5,
                     ),
+                    suffix: Row(
+                      mainAxisSize: .min,
+                      spacing: 4,
+                      children: [
+                        FButton.icon(
+                          size: .xs,
+                          child: Icon(LucideIcons.plugZap, size: 12),
+                          onPress: () => connect(connection),
+                        ),
+                        FButton.icon(
+                          size: .xs,
+                          child: Icon(LucideIcons.folder, size: 12),
+                          onPress: () => connect(connection, isSftp: true),
+                        ),
+                      ],
+                    ),
                     title: Text(connection.label),
-                    onPress: () {
-                      ref
-                          .read(sessionProvider.notifier)
-                          .createAndGo(this, connection);
-                      showTabs.value = false;
-                    },
                   ),
               ],
             ),
