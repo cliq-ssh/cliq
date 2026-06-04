@@ -1,7 +1,8 @@
 import 'package:cliq/modules/session/model/tab.model.dart';
 import 'package:cliq/modules/session/provider/session.provider.dart';
 import 'package:cliq/modules/session/ui/session_title_bar.dart';
-import 'package:cliq/modules/session/view/session_page.dart';
+import 'package:cliq/modules/session/view/sftp_session_page.dart';
+import 'package:cliq/modules/session/view/ssh_session_page.dart';
 import 'package:cliq/shared/ui/hover_builder.dart';
 import 'package:cliq/shared/ui/navigation_shell.dart';
 import 'package:cliq/shared/ui/split_view.dart';
@@ -37,11 +38,13 @@ class _SessionPageState extends ConsumerState<SessionPageWrapper> {
   SplitLeaf<ShellSession> _buildLeaf(ShellSession s, {required bool isSingle}) {
     return SplitLeaf(
       value: s,
-      builder: (context, focus) => SessionPage(
-        key: ValueKey('session-${s.id}'),
-        sessionId: s.id,
-        focusNode: focus,
-      ),
+      builder: (context, focus) {
+        final key = ValueKey('session--${s.type.name}-${s.id}');
+        return switch (s.type) {
+          .ssh => SshSessionPage(key: key, sessionId: s.id, focusNode: focus),
+          .sftp => SftpSessionPage(key: key, sessionId: s.id),
+        };
+      },
     );
   }
 
