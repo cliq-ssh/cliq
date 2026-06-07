@@ -63,12 +63,13 @@ class SessionTab {
     ShellSession? root,
     List<ShellSession>? sessions,
     String? label,
+    bool clearLabel = false,
   }) {
     return SessionTab(
       id: id ?? this.id,
       root: root ?? this.root,
       sessions: sessions ?? this.sessions,
-      label: label,
+      label: clearLabel ? null : (label ?? this.label),
     );
   }
 }

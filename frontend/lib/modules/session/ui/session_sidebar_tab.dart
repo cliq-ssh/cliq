@@ -36,17 +36,6 @@ class SessionSidebarTab extends HookConsumerWidget {
     return '${sessions.length + 1} Sessions';
   }
 
-  SessionSidebarTab.single(
-    ShellSession session, {
-    super.key,
-    required this.isExpanded,
-    required this.navPosition,
-    this.selected = false,
-  }) : root = session,
-       sessions = [],
-       _label = null,
-       tabId = null;
-
   SessionSidebarTab.tab(
     SessionTab tab, {
     super.key,
