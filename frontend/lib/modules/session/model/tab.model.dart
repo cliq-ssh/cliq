@@ -68,7 +68,7 @@ class SessionTab {
       id: id ?? this.id,
       root: root ?? this.root,
       sessions: sessions ?? this.sessions,
-      label: label ?? this.label,
+      label: label,
     );
   }
 }

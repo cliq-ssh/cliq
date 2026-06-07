@@ -165,13 +165,7 @@ class SessionNotifier extends Notifier<SessionState> {
     final tab = state.activeTabs.firstWhere((s) => s.id == tabId);
     final newSessions = [...tab.sessions, newSession];
 
-    // Only generate a group label if tab has no custom label (label is null)
-    String? newLabel;
-    if (tab.label == null) {
-      newLabel = '${newSessions.length + 1} Sessions';
-    }
-
-    final newTab = tab.copyWith(sessions: newSessions, label: newLabel);
+    final newTab = tab.copyWith(sessions: newSessions, label: tab.label);
     final newActiveTabs = state.activeTabs.map((t) {
       if (t.id == tabId) return newTab;
       return t;

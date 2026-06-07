@@ -24,8 +24,17 @@ class SessionSidebarTab extends HookConsumerWidget {
   final bool selected;
   final String? tabId;
 
-  String get label =>
-      (_label != null && _label.isNotEmpty) ? _label : root.connection.label;
+  String get label {
+    if (_label != null && _label.isNotEmpty) {
+      return _label;
+    }
+
+    if (sessions.isEmpty) {
+      return root.connection.label;
+    }
+
+    return '${sessions.length + 1} Sessions';
+  }
 
   SessionSidebarTab.single(
     ShellSession session, {
@@ -105,10 +114,10 @@ class SessionSidebarTab extends HookConsumerWidget {
             label: 'Rename',
             icon: LucideIcons.edit,
             onPress: () {
+              final controller = TextEditingController(text: label);
               showFDialog(
                 context: Router.rootNavigatorKey.currentContext ?? context,
                 builder: (dialogContext, style, animation) {
-                  final controller = TextEditingController(text: label);
                   return FDialog(
                     style: style,
                     animation: animation,
