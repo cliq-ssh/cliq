@@ -93,13 +93,12 @@ jobs:
 
       - name: Build Windows Installer (${{ matrix.arch }})
         run: fastforge package --platform windows --targets msix
-        #run: dart run msix:create --release --build-windows=false --architecture=${{ matrix.arch }}
 
       - name: Upload Windows installer artifacts
         uses: actions/upload-artifact@v7
         with:
           name: windows-${{ matrix.arch }}-installer
-          path: frontend/build/windows/${{ matrix.arch }}/runner/release/cliq.msix
+          path: frontend/dist/**/*.msix
           archive: false
 
   # macOS Build (No need to separate out ARM64 flutter builds dual arch by default)
