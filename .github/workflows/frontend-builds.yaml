@@ -131,13 +131,13 @@ jobs:
         run: fastforge package --platform macos --targets dmg
 
       - name: Rename DMG
-        run: mv dist/**/*.dmg dist/cliq.dmg
+        run: mv dist/**/*.dmg dist/cliq-macos.dmg
 
       - name: Upload macOS artifacts
         uses: actions/upload-artifact@v7
         with:
           name: macos-installer
-          path: frontend/dist/cliq.dmg
+          path: frontend/dist/cliq-macos.dmg
           archive: false
           if-no-files-found: error
 
@@ -197,12 +197,12 @@ jobs:
         run: fastforge package --platform linux --targets appimage
 
       - name: Rename AppImage
-        run: mv dist/**/*.AppImage dist/cliq-${{ matrix.arch }}.AppImage
+        run: mv dist/**/*.AppImage dist/cliq-linux-${{ matrix.arch }}.AppImage
 
       - name: Upload Linux artifacts
         uses: actions/upload-artifact@v7
         with:
           name: linux-${{ matrix.arch }}-installer
-          path: frontend/dist/cliq-${{ matrix.arch }}.AppImage
+          path: frontend/dist/cliq-linux-${{ matrix.arch }}.AppImage
           archive: false
           if-no-files-found: error
