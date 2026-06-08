@@ -85,14 +85,15 @@ jobs:
           channel: ${{ matrix.flutter-channel }}
           cache: true
 
+      - name: Install fastforge
+        run: dart pub global activate fastforge
+
       - name: Get dependencies
         run: flutter pub get
 
-      - name: Build Windows (${{ matrix.arch }})
-        run: flutter build windows --release
-
       - name: Build Windows Installer (${{ matrix.arch }})
-        run: dart run msix:create --release --build-windows=false --architecture=${{ matrix.arch }}
+        run: fastforge package --platform windows --targets msix
+        #run: dart run msix:create --release --build-windows=false --architecture=${{ matrix.arch }}
 
       - name: Upload Windows installer artifacts
         uses: actions/upload-artifact@v7

@@ -76,7 +76,3 @@ flutter:
         - asset: assets/fonts/JetBrainsMono[wght].ttf
         - asset: assets/fonts/JetBrainsMono-Italic[wght].ttf
           style: italic
-
-msix_config:
-  logo_path: "assets/icon/icon.png"
-  install_certificate: false
