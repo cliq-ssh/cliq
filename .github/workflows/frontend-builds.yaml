@@ -79,6 +79,9 @@ jobs:
     steps:
       - uses: actions/checkout@v6
 
+      - name: Install Inno Setup
+        run: winget install --id JRSoftware.InnoSetup -e --silent
+
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
@@ -92,16 +95,16 @@ jobs:
       - *get-flutter-dependencies
 
       - name: Build Windows Installer (${{ matrix.arch }})
-        run: fastforge package --platform windows --targets msix
+        run: fastforge package --platform windows --targets exe
 
       - name: Rename MSIX
-        run: mv dist/**/*.msix dist/cliq-${{ matrix.arch }}.msix
+        run: mv dist/**/*.exe dist/cliqsetup-windows-${{ matrix.arch }}.exe
 
       - name: Upload Windows installer artifacts
         uses: actions/upload-artifact@v7
         with:
           name: windows-${{ matrix.arch }}-installer
-          path: frontend/dist/cliq-${{ matrix.arch }}.msix
+          path: frontend/dist/cliqsetup-windows-${{ matrix.arch }}.exe
           archive: false
           if-no-files-found: error
 
