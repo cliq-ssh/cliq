@@ -91,11 +91,15 @@ jobs:
       - name: Build Windows (${{ matrix.arch }})
         run: flutter build windows --release
 
-      - name: Upload Windows artifacts
+      - name: Build Windows Installer (${{ matrix.arch }})
+        run: dart run msix:create --release --build-windows=false --architecture=${{ matrix.arch }}
+
+      - name: Upload Windows installer artifacts
         uses: actions/upload-artifact@v7
         with:
-          name: windows-${{ matrix.arch }}-build
-          path: frontend/build/windows/${{ matrix.arch }}/runner/release/
+          name: windows-${{ matrix.arch }}-installer
+          path: frontend/build/windows/${{ matrix.arch }}/runner/release/cliq.msix
+          archive: false
 
   # macOS Build (No need to separate out ARM64 flutter builds dual arch by default)
   build-macos:
