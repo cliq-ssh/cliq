@@ -34,7 +34,8 @@ jobs:
           channel: 'stable'
           cache: true
 
-      - name: Get dependencies
+      - &get-flutter-dependencies
+        name: Get dependencies
         run: flutter pub get
 
       - name: Build iOS
@@ -53,8 +54,7 @@ jobs:
           channel: 'stable'
           cache: true
 
-      - name: Get dependencies
-        run: flutter pub get
+      - *get-flutter-dependencies
 
       - name: Build Android APK
         run: flutter build apk --release
@@ -85,11 +85,11 @@ jobs:
           channel: ${{ matrix.flutter-channel }}
           cache: true
 
-      - name: Install fastforge
+      - &install-fastforge
+        name: Install fastforge
         run: dart pub global activate fastforge
 
-      - name: Get dependencies
-        run: flutter pub get
+      - *get-flutter-dependencies
 
       - name: Build Windows Installer (${{ matrix.arch }})
         run: fastforge package --platform windows --targets msix
@@ -121,11 +121,8 @@ jobs:
           channel: 'stable'
           cache: true
 
-      - name: Install fastforge
-        run: dart pub global activate fastforge
-
-      - name: Get dependencies
-        run: flutter pub get
+      - *install-fastforge
+      - *get-flutter-dependencies
 
       - name: Build macOS Installer
         run: fastforge package --platform macos --targets dmg
@@ -190,11 +187,8 @@ jobs:
           channel: ${{ matrix.flutter-channel }}
           cache: true
 
-      - name: Install fastforge
-        run: dart pub global activate fastforge
-
-      - name: Get dependencies
-        run: flutter pub get
+      - *install-fastforge
+      - *get-flutter-dependencies
 
       - name: Build Linux AppImage
         run: fastforge package --platform linux --targets appimage
