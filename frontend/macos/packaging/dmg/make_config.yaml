@@ -1,4 +1,6 @@
 title: Cliq
+icon: cliq.app/Contents/Resources/AppIcon.icns
+icon-size: 128
 contents:
   - x: 448
     y: 344
