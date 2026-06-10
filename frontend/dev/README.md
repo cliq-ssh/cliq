@@ -9,3 +9,9 @@ This provides a simple OpenSSH server, defined in `compose.yaml`, that can be us
 | Username                                    | `cliq`    |
 | Password                                    | `cliq123` |
 | Key Password                                | `cliq123` |
+
+## Customization
+
+You can customize environment variables by creating a `.env.local` file. The file is automatically excluded from version control.
+
+You can customize the Docker configuration by creating a `compose.override.yaml` file. The file is automatically excluded from version control.
