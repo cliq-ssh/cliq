@@ -44,15 +44,38 @@ enum _AllowedCredentialType {
 final class _CredentialData {
   final int? id;
   final CredentialType type;
-  final FAutocompleteController controller = FAutocompleteController();
+  final TextEditingController _passwordTextController = TextEditingController();
+  final FAutocompleteController _keyAutocompleteController =
+      FAutocompleteController();
 
-  _CredentialData({required this.id, required this.type, String? initialData}) {
-    if (initialData != null) {
-      controller.text = initialData;
+  TextEditingController get passwordTextController => _passwordTextController;
+  FAutocompleteController get keyAutocompleteController =>
+      _keyAutocompleteController;
+
+  String get password => _passwordTextController.text;
+  set password(String value) => _passwordTextController.text = value;
+
+  String get key => _keyAutocompleteController.text;
+  set key(String value) => _keyAutocompleteController.text = value;
+
+  _CredentialData({
+    required this.id,
+    required this.type,
+    String? initialPassword,
+    String? initialKey,
+  }) {
+    if (initialPassword != null) {
+      password = initialPassword;
+    }
+    if (initialKey != null) {
+      key = initialKey;
     }
   }
 
-  void dispose() => controller.dispose();
+  void dispose() {
+    _keyAutocompleteController.dispose();
+    _passwordTextController.dispose();
+  }
 }
 
 class CreateOrEditCredentialsForm extends StatefulHookConsumerWidget {
@@ -101,9 +124,9 @@ class CreateOrEditCredentialsFormState
     for (final data in _selectedCredentials.value) {
       final controllerData = switch (data.type) {
         .key => AutocompleteUtils.fromAutocompleteString(
-          data.controller.text,
+          data.key,
         ).$1!.toString(),
-        .password => data.controller.text,
+        .password => data.password,
       };
 
       if (data.id != null) {
@@ -165,13 +188,13 @@ class CreateOrEditCredentialsFormState
             return _CredentialData(
               id: c.id,
               type: c.type,
-              initialData: switch (c.type) {
-                .password => c.password,
-                .key => AutocompleteUtils.toAutocompleteString(
-                  c.key!.id,
-                  c.key!.label,
-                ),
-              },
+              initialPassword: c.password,
+              initialKey: c.type == CredentialType.key
+                  ? AutocompleteUtils.toAutocompleteString(
+                      c.key!.id,
+                      c.key!.label,
+                    )
+                  : null,
             );
           }).toList();
         });
@@ -207,16 +230,19 @@ class CreateOrEditCredentialsFormState
                   children: [
                     Expanded(
                       child: switch (allowedType) {
-                        .password => FTextFormField(
-                          control: .managed(controller: data.controller),
+                        .password => FTextFormField.password(
+                          control: .managed(
+                            controller: data.passwordTextController,
+                          ),
                           label: buildCredentialLabel(data),
                           minLines: 1,
-                          obscureText: true,
                           validator: Validators.nonEmpty,
                           autovalidateMode: .onUserInteraction,
                         ),
                         .key => FAutocomplete.textBuilder(
-                          control: .managed(controller: data.controller),
+                          control: .managed(
+                            controller: data.keyAutocompleteController,
+                          ),
                           filter: (query) async {
                             return keysFuture.on(
                               onLoading: () => [],
@@ -242,9 +268,9 @@ class CreateOrEditCredentialsFormState
                             onTap: () async {
                               final result = await Commons.showResponsiveDialog(
                                 (_) => CreateOrEditKeyView.create(
-                                  initialLabel: data.controller.text.isEmpty
+                                  initialLabel: data.key.isEmpty
                                       ? null
-                                      : data.controller.text.trim(),
+                                      : data.key.trim(),
                                 ),
                               );
                               if (result != null) {
@@ -253,7 +279,7 @@ class CreateOrEditCredentialsFormState
                                       result.$1,
                                       result.$2,
                                     );
-                                data.controller.text = newText;
+                                data.key = newText;
                               }
                             },
                             child: Padding(
@@ -270,11 +296,9 @@ class CreateOrEditCredentialsFormState
                                     size: 16,
                                     color: context.theme.colors.foreground,
                                   ),
-                                  data.controller.text.isEmpty
+                                  data.key.isEmpty
                                       ? Text('Create Key')
-                                      : Text(
-                                          'Create Key "${data.controller.text}"',
-                                        ),
+                                      : Text('Create Key "${data.key}"'),
                                 ],
                               ),
                             ),
