@@ -33,7 +33,7 @@ dependencies:
   hooks_riverpod: 3.3.2
   riverpod: 3.3.2
   logging: ^1.3.0
-  drift: 2.33.0
+  drift: 2.34.0
   drift_flutter: 0.3.0
   path_provider: ^2.1.5
   forui: 0.22.3
