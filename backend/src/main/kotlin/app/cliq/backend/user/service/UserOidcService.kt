@@ -9,7 +9,7 @@ import org.springframework.stereotype.Service
 @Service
 class UserOidcService(private val userRepository: UserRepository, private val userFactory: UserFactory) {
     fun putUserFromOidcUser(oidcUser: OidcUser): User {
-        val sub = oidcUser.subject
+        val sub = oidcUser.subject ?: throw IllegalArgumentException("OIDC User must have a subject")
         var user = userRepository.findByOidcSub(sub)
         user =
             when (user) {
@@ -21,14 +21,18 @@ class UserOidcService(private val userRepository: UserRepository, private val us
     }
 
     private fun updateUser(user: User, oidcUser: OidcUser): User {
-        user.name = oidcUser.preferredUsername
-        user.email = oidcUser.email
+        user.name = oidcUser.preferredUsername ?: throw IllegalArgumentException(
+            "OIDC User must have a preferredUsername",
+        )
+        user.email = oidcUser.email ?: throw IllegalArgumentException("OIDC User must have a email")
 
         return user
     }
 
-    private fun linkOrCreateUser(oidcUser: OidcUser): User =
-        when (val user = userRepository.findByEmail(oidcUser.email)) {
+    private fun linkOrCreateUser(oidcUser: OidcUser): User {
+        val email = oidcUser.email ?: throw IllegalArgumentException("OIDC User must have an email")
+
+        return when (val user = userRepository.findByEmail(email)) {
             null -> {
                 createOidcUser(oidcUser)
             }
@@ -38,14 +42,23 @@ class UserOidcService(private val userRepository: UserRepository, private val us
                 user
             }
         }
+    }
 
     private fun linkUser(oidcUser: OidcUser, user: User) {
         user.oidcSub = oidcUser.subject
     }
 
-    private fun createOidcUser(oidcUser: OidcUser): User = userFactory.createOidcUser(
-        email = oidcUser.email,
-        sub = oidcUser.subject,
-        name = oidcUser.preferredUsername,
-    )
+    private fun createOidcUser(oidcUser: OidcUser): User {
+        val email = oidcUser.email ?: throw IllegalArgumentException("OIDC User must have an email")
+        val sub = oidcUser.subject ?: throw IllegalArgumentException("OIDC User must have a subject")
+        val preferredUsername = oidcUser.preferredUsername ?: throw IllegalArgumentException(
+            "OIDC User must have a preferredUsername",
+        )
+
+        return userFactory.createOidcUser(
+            email = email,
+            sub = sub,
+            name = preferredUsername,
+        )
+    }
 }
