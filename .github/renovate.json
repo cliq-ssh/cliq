@@ -18,6 +18,11 @@
             "matchFileNames": ["frontend/pubspec.yaml"],
             "matchPackageNames": ["drift", "drift_dev"],
             "groupName": "drift"
+        },
+        {
+            "matchFileNames": ["frontend/pubspec.yaml"],
+            "matchPackageNames": ["riverpod", "hooks_riverpod"],
+            "groupName": "riverpod"
         }
     ]
 }
