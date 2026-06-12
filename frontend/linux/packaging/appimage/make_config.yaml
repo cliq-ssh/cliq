@@ -1,0 +1,11 @@
+display_name: "Cliq"
+generic_name: "cliq"
+icon: "assets/icon/icon.png"
+
+keywords:
+  - Application
+  - Terminal
+
+categories:
+  - System
+  - Utility
