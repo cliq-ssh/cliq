@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:cliq/modules/connections/model/connection_full.model.dart';
 import 'package:cliq/modules/connections/provider/connection.provider.dart';
 import 'package:cliq/modules/session/view/generic_session_page.dart';
+import 'package:cliq_term/cliq_term.dart';
 import 'package:dartssh2/dartssh2.dart';
 import 'package:flutter/material.dart' hide LicensePage;
 import 'package:flutter_hooks/flutter_hooks.dart';
@@ -11,7 +12,21 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lucide_flutter/lucide_flutter.dart';
 
 import '../../../shared/ui/navigation_shell.dart';
+import '../../../shared/ui/shortcut_info.dart';
 import '../provider/session.provider.dart';
+
+enum _SftpFileViewType {
+  list,
+  grid,
+}
+
+class _SftpFileViewOptions {
+  final bool showHiddenFiles;
+
+  const _SftpFileViewOptions({
+    this.showHiddenFiles = false,
+  });
+}
 
 class SftpSessionPage extends StatefulHookConsumerWidget {
   final String sessionId;
@@ -37,6 +52,7 @@ class _SftpSessionPageState extends ConsumerState<SftpSessionPage>
         .getSessionById(widget.sessionId)!;
 
     final isLoading = useState(true);
+    final viewType = useState(_SftpFileViewType.list);
 
     final currentDirectory = useState<List<String>?>([]);
     final currentFiles = useState<List<SftpName>?>(null);
@@ -146,18 +162,82 @@ class _SftpSessionPageState extends ConsumerState<SftpSessionPage>
           spacing: 8,
           children: [
             Padding(
-              padding: const .only(top: 8, left: 8),
-              child: FBreadcrumb(
+              padding: const .only(top: 8, left: 8, right: 8),
+              child: Row(
+                spacing: 8,
                 children: [
-                  for (final part in currentDirectory.value!)
-                    FBreadcrumbItem(
-                      child: Text(part.isEmpty ? '/' : part),
-                      onPress: () {
-                        final index = currentDirectory.value!.indexOf(part);
-                        currentDirectory.value = currentDirectory.value!
-                            .sublist(0, index + 1);
-                      },
+                  Row(
+                    spacing: 8,
+                    children: [
+                      // TODO implement
+                      FTooltip(
+                        tipBuilder: (_, _) => Text('Navigate back'),
+                        child: FButton.icon(
+                          variant: .outline,
+                          onPress: null,
+                          child: Icon(LucideIcons.arrowLeft),
+                        ),
+                      ),
+                      FTooltip(
+                        tipBuilder: (_, _) => Text('Navigate forward'),
+                        child: FButton.icon(
+                          variant: .outline,
+                          onPress: null,
+                          child: Icon(LucideIcons.arrowRight),
+                        ),
+                      ),
+                    ],
+                  ),
+                  Expanded(
+                    child: FBreadcrumb(
+                      children: [
+                        for (final part in currentDirectory.value!)
+                          FBreadcrumbItem(
+                            child: Text(part.isEmpty ? '/' : part),
+                            onPress: () {
+                              final index = currentDirectory.value!.indexOf(part);
+                              currentDirectory.value = currentDirectory.value!
+                                  .sublist(0, index + 1);
+                            },
+                          ),
+                      ],
                     ),
+                  ),
+                  Row(
+                    spacing: 8,
+                    children: [
+                      // TODO: implement grid view
+                      FTooltip(
+                        tipBuilder: (_, _) => TextWithShortcutInfo(
+                          viewType.value == .list
+                              ? 'List View'
+                              : 'Grid View',
+                          shortcut: KeyboardShortcut(
+                                .keyG,
+                            modifiers: {.control},
+                          ),
+                        ),
+                        child: FButton.icon(
+                          variant: .outline,
+                          onPress: () => viewType.value = viewType.value == .list
+                              ? _SftpFileViewType.grid
+                              : _SftpFileViewType.list,
+                          child: Icon(
+                            viewType.value == .list
+                                ? LucideIcons.rows3
+                                : LucideIcons.grid3x2,
+                          ),
+                        ),
+                      ),
+                      FButton.icon(
+                        variant: .outline,
+                        onPress: null, // TODO: implement sftp view options
+                        child: Icon(
+                            LucideIcons.ellipsis
+                        ),
+                      ),
+                    ],
+                  )
                 ],
               ),
             ),
