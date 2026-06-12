@@ -186,10 +186,6 @@ class GenericSessionPage extends HookConsumerWidget {
       ];
     }
 
-    if (isConnected) {
-      return child;
-    }
-
     List<Widget> children = [];
     if (session.knownHostError != null) {
       children = buildKnownHostWarning();
@@ -197,6 +193,8 @@ class GenericSessionPage extends HookConsumerWidget {
       children = buildError();
     } else if (isLikelyLoading) {
       children = buildConnecting();
+    } else if (isConnected) {
+      return child;
     }
 
     return CliqGridContainer(
