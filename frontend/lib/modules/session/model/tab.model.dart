@@ -13,13 +13,18 @@ class SessionTab {
   /// The list of sessions contained in this tab, including the root and any additional sessions from splits.
   final List<ShellSession> sessions;
 
+  /// Optional custom label for the tab. If null, the UI will fall back to the connection label or a
+  /// generated label based on number of sessions.
+  final String? label;
+
   const SessionTab({
     required this.id,
     required this.root,
     required this.sessions,
+    this.label,
   });
 
-  const SessionTab.create({required this.id, required this.root})
+  const SessionTab.create({required this.id, required this.root, this.label})
     : sessions = const [];
 
   void dispose() {
@@ -57,11 +62,14 @@ class SessionTab {
     String? id,
     ShellSession? root,
     List<ShellSession>? sessions,
+    String? label,
+    bool clearLabel = false,
   }) {
     return SessionTab(
       id: id ?? this.id,
       root: root ?? this.root,
       sessions: sessions ?? this.sessions,
+      label: clearLabel ? null : (label ?? this.label),
     );
   }
 }

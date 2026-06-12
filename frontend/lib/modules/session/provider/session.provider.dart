@@ -164,11 +164,26 @@ class SessionNotifier extends Notifier<SessionState> {
 
     final tab = state.activeTabs.firstWhere((s) => s.id == tabId);
     final newSessions = [...tab.sessions, newSession];
-    final newTab = tab.copyWith(sessions: newSessions);
+
+    final newTab = tab.copyWith(sessions: newSessions, label: tab.label);
     final newActiveTabs = state.activeTabs.map((t) {
       if (t.id == tabId) return newTab;
       return t;
     }).toList();
+    state = state.copyWith(activeTabs: newActiveTabs);
+  }
+
+  /// Renames the tab with [tabId] to [label]. If [label] is null or empty the custom label will be
+  /// cleared and UI will fall back to the default connection label / generated label.
+  void renameTab(String tabId, String? label) {
+    final newActiveTabs = state.activeTabs.map((t) {
+      if (t.id != tabId) return t;
+
+      return t.copyWith(
+        label: (label == null || label.trim().isEmpty) ? null : label.trim(),
+      );
+    }).toList();
+
     state = state.copyWith(activeTabs: newActiveTabs);
   }
 
