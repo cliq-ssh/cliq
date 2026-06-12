@@ -15,17 +15,12 @@ import '../../../shared/ui/navigation_shell.dart';
 import '../../../shared/ui/shortcut_info.dart';
 import '../provider/session.provider.dart';
 
-enum _SftpFileViewType {
-  list,
-  grid,
-}
+enum _SftpFileViewType { list, grid }
 
 class _SftpFileViewOptions {
   final bool showHiddenFiles;
 
-  const _SftpFileViewOptions({
-    this.showHiddenFiles = false,
-  });
+  const _SftpFileViewOptions({this.showHiddenFiles = false});
 }
 
 class SftpSessionPage extends StatefulHookConsumerWidget {
@@ -195,7 +190,9 @@ class _SftpSessionPageState extends ConsumerState<SftpSessionPage>
                           FBreadcrumbItem(
                             child: Text(part.isEmpty ? '/' : part),
                             onPress: () {
-                              final index = currentDirectory.value!.indexOf(part);
+                              final index = currentDirectory.value!.indexOf(
+                                part,
+                              );
                               currentDirectory.value = currentDirectory.value!
                                   .sublist(0, index + 1);
                             },
@@ -209,17 +206,16 @@ class _SftpSessionPageState extends ConsumerState<SftpSessionPage>
                       // TODO: implement grid view
                       FTooltip(
                         tipBuilder: (_, _) => TextWithShortcutInfo(
-                          viewType.value == .list
-                              ? 'List View'
-                              : 'Grid View',
+                          viewType.value == .list ? 'List View' : 'Grid View',
                           shortcut: KeyboardShortcut(
-                                .keyG,
+                            .keyG,
                             modifiers: {.control},
                           ),
                         ),
                         child: FButton.icon(
                           variant: .outline,
-                          onPress: () => viewType.value = viewType.value == .list
+                          onPress: () =>
+                              viewType.value = viewType.value == .list
                               ? _SftpFileViewType.grid
                               : _SftpFileViewType.list,
                           child: Icon(
@@ -232,12 +228,10 @@ class _SftpSessionPageState extends ConsumerState<SftpSessionPage>
                       FButton.icon(
                         variant: .outline,
                         onPress: null, // TODO: implement sftp view options
-                        child: Icon(
-                            LucideIcons.ellipsis
-                        ),
+                        child: Icon(LucideIcons.ellipsis),
                       ),
                     ],
-                  )
+                  ),
                 ],
               ),
             ),
