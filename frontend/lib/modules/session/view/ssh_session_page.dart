@@ -127,7 +127,7 @@ class _SshSessionPageState extends ConsumerState<SshSessionPage>
 
         // close SSH session when terminal is closed
         sshSession?.done.then((_) {
-          if (!mounted) return;
+          if (!context.mounted) return;
           ref
               .read(sessionProvider.notifier)
               .closeSessionAndMaybeGo(NavigationShell.of(context), session.id);

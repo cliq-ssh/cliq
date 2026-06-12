@@ -17,12 +17,6 @@ import '../provider/session.provider.dart';
 
 enum _SftpFileViewType { list, grid }
 
-class _SftpFileViewOptions {
-  final bool showHiddenFiles;
-
-  const _SftpFileViewOptions({this.showHiddenFiles = false});
-}
-
 class SftpSessionPage extends StatefulHookConsumerWidget {
   final String sessionId;
 
@@ -187,16 +181,24 @@ class _SftpSessionPageState extends ConsumerState<SftpSessionPage>
                     child: FBreadcrumb(
                       children: [
                         for (final part in currentDirectory.value!)
-                          FBreadcrumbItem(
-                            child: Text(part.isEmpty ? '/' : part),
-                            onPress: () {
-                              final index = currentDirectory.value!.indexOf(
-                                part,
-                              );
-                              currentDirectory.value = currentDirectory.value!
-                                  .sublist(0, index + 1);
-                            },
-                          ),
+                          // if last part
+                          if (isLoading.value &&
+                              part == currentDirectory.value!.last)
+                            Padding(
+                              padding: const EdgeInsets.only(left: 4),
+                              child: FCircularProgress(),
+                            )
+                          else
+                            FBreadcrumbItem(
+                              child: Text(part.isEmpty ? '/' : part),
+                              onPress: () {
+                                final index = currentDirectory.value!.indexOf(
+                                  part,
+                                );
+                                currentDirectory.value = currentDirectory.value!
+                                    .sublist(0, index + 1);
+                              },
+                            ),
                       ],
                     ),
                   ),
@@ -237,10 +239,6 @@ class _SftpSessionPageState extends ConsumerState<SftpSessionPage>
             ),
             Builder(
               builder: (context) {
-                if (isLoading.value) {
-                  return Expanded(child: Center(child: FCircularProgress()));
-                }
-
                 final files = (currentFiles.value ?? [])
                   ..sort((a, b) {
                     // directories first
