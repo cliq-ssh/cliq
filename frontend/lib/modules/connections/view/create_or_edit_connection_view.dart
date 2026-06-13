@@ -1,7 +1,7 @@
 import 'dart:async';
 
 import 'package:cliq/modules/connections/model/connection_full.model.dart';
-import 'package:cliq/modules/connections/model/connection_icon.dart';
+import 'package:cliq/modules/connections/model/connection_icons.dart';
 import 'package:cliq/modules/identities/provider/identity.provider.dart';
 import 'package:cliq/shared/extensions/text_controller.extension.dart';
 import 'package:cliq/shared/ui/create_or_edit_credential_form.dart';
@@ -120,8 +120,8 @@ class CreateOrEditConnectionView extends HookConsumerWidget {
       text: current?.iconBackgroundColor.value.toHex(),
     );
 
-    final selectedIcon = useState<ConnectionIcon>(
-      current?.icon.value ?? ConnectionIcon.linux,
+    final selectedIcon = useState<ConnectionIcons>(
+      current?.icon.value ?? ConnectionIcons.linux,
     );
     final selectedIconColor = useState<Color>(
       current?.iconColor.value ?? Colors.white,
@@ -394,7 +394,7 @@ class CreateOrEditConnectionView extends HookConsumerWidget {
                         spacing: 8,
                         runSpacing: 8,
                         children: [
-                          for (final icon in ConnectionIcon.values)
+                          for (final icon in ConnectionIcons.values)
                             FTooltip(
                               tipBuilder: (_, _) => Text(icon.name),
                               child: FButton.icon(

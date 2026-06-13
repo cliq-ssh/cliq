@@ -9,7 +9,7 @@ import 'package:drift/drift.dart';
 
 import '../../credentials/data/credential_service.dart';
 import '../model/connection_full.model.dart';
-import '../model/connection_icon.dart';
+import '../model/connection_icons.dart';
 import 'connections_repository.dart';
 
 final class ConnectionService {
@@ -46,7 +46,7 @@ final class ConnectionService {
     required String? groupName,
     required int? port,
     required String? username,
-    required ConnectionIcon? icon,
+    required ConnectionIcons? icon,
     required int? identityId,
     required TerminalTypography? terminalTypographyOverride,
     required int? terminalThemeOverrideId,
@@ -98,7 +98,7 @@ final class ConnectionService {
     required String? groupName,
     required int? port,
     required String? username,
-    required ConnectionIcon? icon,
+    required ConnectionIcons? icon,
     required int? identityId,
     required TerminalTypography? terminalTypographyOverride,
     required int? terminalThemeOverrideId,

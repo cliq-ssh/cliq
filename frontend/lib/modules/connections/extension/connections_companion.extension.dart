@@ -1,4 +1,4 @@
-import 'package:cliq/modules/connections/model/connection_icon.dart';
+import 'package:cliq/modules/connections/model/connection_icons.dart';
 import 'package:cliq/shared/extensions/color.extension.dart';
 import 'package:cliq_term/cliq_term.dart';
 import 'package:drift/drift.dart';
@@ -36,9 +36,9 @@ extension ConnectionsCompanionExtension on ConnectionsCompanion {
       iconColor: Value(iconColor),
       iconBackgroundColor: Value(iconBackgroundColor),
       icon: Value(
-        ConnectionIcon.values.firstWhere(
+        ConnectionIcons.values.firstWhere(
           (e) => e.name == json['icon'],
-          orElse: () => ConnectionIcon.unknown,
+          orElse: () => ConnectionIcons.unknown,
         ),
       ),
       username: Value(json['username'] as String?),

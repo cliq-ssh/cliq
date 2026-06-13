@@ -1,31 +1,18 @@
 import 'dart:async';
-import 'dart:typed_data';
 
 import 'package:cliq/modules/connections/model/connection_full.model.dart';
-import 'package:cliq/shared/data/database.dart';
 import 'package:cliq_term/cliq_term.dart';
 import 'package:dartssh2/dartssh2.dart';
 
-class KnownHostError {
-  final String host;
-  final Uint8List hostKey;
-  final String algorithm;
-  final String sha256Fingerprint;
-  // The known host entry that was found, if any.
-  final KnownHostsCompanion? knownHost;
+import '../../settings/model/known_host_error.model.dart';
 
-  const KnownHostError({
-    required this.host,
-    required this.hostKey,
-    required this.algorithm,
-    required this.sha256Fingerprint,
-    this.knownHost,
-  });
-}
+enum SessionType { ssh, sftp }
 
 class ShellSession {
   /// A unique identifier for this session, used for state management and UI tracking.
   final String id;
+
+  final SessionType type;
 
   /// The connection details associated with this session, including host, port, username, and authentication method.
   final ConnectionFull connection;
@@ -38,7 +25,10 @@ class ShellSession {
   final DateTime? connectedAt;
 
   /// The SSH client associated with this session, only set if connected.
-  final SSHClient? sshClient;
+  final SSHClient? client;
+
+  /// The SFTP client associated with this session, only set if connected and SFTP is initialized.
+  final SftpClient? sftpClient;
 
   /// The SSH session associated with this session, only set if connected.
   final SSHSession? sshSession;
@@ -58,10 +48,12 @@ class ShellSession {
 
   ShellSession({
     required this.id,
+    required this.type,
     required this.connection,
     this.connectionError,
     this.connectedAt,
-    this.sshClient,
+    this.client,
+    this.sftpClient,
     this.sshSession,
     this.terminalController,
     this.stdoutSub,
@@ -72,18 +64,21 @@ class ShellSession {
 
   ShellSession.disconnected({
     required this.id,
+    required this.type,
     required this.connection,
     this.skipHostKeyVerification = false,
   }) : connectionError = null,
        connectedAt = null,
-       sshClient = null,
+       client = null,
+       sftpClient = null,
        sshSession = null,
        terminalController = null,
        stdoutSub = null,
        stderrSub = null,
        knownHostError = null;
 
-  bool get isConnected => sshClient != null && sshSession != null;
+  bool get isConnected =>
+      client != null && (sshSession != null || sftpClient != null);
 
   /// Whether the session is likely in the process of connecting, since it is not connected and has no error.
   bool get isLikelyLoading => !isConnected && connectionError == null;
@@ -91,7 +86,8 @@ class ShellSession {
   void dispose() {
     sshSession?.kill(SSHSignal.KILL);
     sshSession?.close();
-    sshClient?.close();
+    client?.close();
+    sftpClient?.close();
     terminalController?.dispose();
     stdoutSub?.cancel();
     stderrSub?.cancel();
@@ -100,7 +96,8 @@ class ShellSession {
   ShellSession copyWith({
     String? connectionError,
     DateTime? connectedAt,
-    SSHClient? sshClient,
+    SSHClient? client,
+    SftpClient? sftpClient,
     SSHSession? sshSession,
     TerminalController? terminalController,
     StreamSubscription? stdoutSub,
@@ -109,10 +106,12 @@ class ShellSession {
   }) {
     return ShellSession(
       id: id,
+      type: type,
       connection: connection,
       connectionError: connectionError ?? this.connectionError,
       connectedAt: connectedAt ?? this.connectedAt,
-      sshClient: sshClient ?? this.sshClient,
+      client: client ?? this.client,
+      sftpClient: sftpClient ?? this.sftpClient,
       sshSession: sshSession ?? this.sshSession,
       terminalController: terminalController ?? this.terminalController,
       stdoutSub: stdoutSub ?? this.stdoutSub,
