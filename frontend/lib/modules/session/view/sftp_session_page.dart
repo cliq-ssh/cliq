@@ -289,12 +289,25 @@ class _SftpSessionPageState extends ConsumerState<SftpSessionPage>
                     itemCount: files.length,
                     separatorBuilder: (_, _) => const SizedBox(height: 8),
                     itemBuilder: (_, index) {
+                      final isHidden = files[index].filename.startsWith('.');
+                      final fileColor = isHidden
+                          ? context.theme.colors.mutedForeground
+                          : null;
+
                       return FTile(
-                        title: Text(files[index].filename),
+                        title: Text(
+                          files[index].filename,
+                          style: context.theme.typography.sm.copyWith(
+                            color: isHidden ? fileColor : null,
+                          ),
+                        ),
                         subtitle: Text(files[index].longname),
-                        prefix: Icon(getFileIcon(files[index])),
+                        prefix: Icon(
+                          getFileIcon(files[index]),
+                          color: fileColor,
+                        ),
                         suffix: files[index].attr.isDirectory
-                            ? const Icon(LucideIcons.chevronRight)
+                            ? Icon(LucideIcons.chevronRight, color: fileColor)
                             : null,
                         onPress: onAction(() => onFilePress(files[index])),
                       );
