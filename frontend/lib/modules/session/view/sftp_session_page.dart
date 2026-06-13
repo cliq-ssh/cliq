@@ -43,6 +43,8 @@ class _SftpSessionPageState extends ConsumerState<SftpSessionPage>
     final isLoading = useState(true);
     final viewType = useState(_SftpFileViewType.list);
 
+    final navigateBackBuffer = useState<List<String>?>(null);
+
     final currentDirectory = useState<List<String>?>([]);
     final currentFiles = useState<List<SftpName>?>(null);
 
@@ -141,6 +143,7 @@ class _SftpSessionPageState extends ConsumerState<SftpSessionPage>
             ..trim();
 
       currentDirectory.value = path == '/' ? [''] : path.split('/');
+      navigateBackBuffer.value = null;
       isLoading.value = false;
     }
 
@@ -166,7 +169,20 @@ class _SftpSessionPageState extends ConsumerState<SftpSessionPage>
                         tipBuilder: (_, _) => Text('Navigate back'),
                         child: FButton.icon(
                           variant: .outline,
-                          onPress: null,
+                          onPress:
+                              currentDirectory.value == null ||
+                                  currentDirectory.value!.length <= 1
+                              ? null
+                              : onAction(() {
+                                  // remove last part of current directory
+                                  final current = [...currentDirectory.value!];
+                                  final removed = current.removeLast();
+                                  navigateBackBuffer.value = [
+                                    ...?navigateBackBuffer.value,
+                                    removed,
+                                  ];
+                                  currentDirectory.value = current;
+                                }),
                           child: Icon(LucideIcons.arrowLeft),
                         ),
                       ),
@@ -174,7 +190,17 @@ class _SftpSessionPageState extends ConsumerState<SftpSessionPage>
                         tipBuilder: (_, _) => Text('Navigate forward'),
                         child: FButton.icon(
                           variant: .outline,
-                          onPress: null,
+                          onPress:
+                              navigateBackBuffer.value == null ||
+                                  navigateBackBuffer.value!.isEmpty
+                              ? null
+                              : onAction(() {
+                                  final current = [
+                                    ...?currentDirectory.value,
+                                    navigateBackBuffer.value!.removeLast(),
+                                  ];
+                                  currentDirectory.value = current;
+                                }),
                           child: Icon(LucideIcons.arrowRight),
                         ),
                       ),
@@ -193,14 +219,15 @@ class _SftpSessionPageState extends ConsumerState<SftpSessionPage>
                             )
                           else
                             FBreadcrumbItem(
-                              child: Text(part.isEmpty ? '/' : part),
-                              onPress: () {
+                              onPress: onAction(() {
                                 final index = currentDirectory.value!.indexOf(
                                   part,
                                 );
                                 currentDirectory.value = currentDirectory.value!
                                     .sublist(0, index + 1);
-                              },
+                                navigateBackBuffer.value = null;
+                              }),
+                              child: Text(part.isEmpty ? '/' : part),
                             ),
                       ],
                     ),
