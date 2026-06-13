@@ -116,6 +116,9 @@ class _SftpSessionPageState extends ConsumerState<SftpSessionPage>
       return null;
     }, [currentDirectory.value]);
 
+    // helper for preventing certain actions while loading
+    onAction(VoidCallback func) => isLoading.value ? null : func;
+
     getFileIcon(SftpName file) {
       if (file.attr.isDirectory) {
         return LucideIcons.folder;
@@ -127,7 +130,7 @@ class _SftpSessionPageState extends ConsumerState<SftpSessionPage>
     }
 
     onFilePress(SftpName file) async {
-      if (isLoading.value || !file.attr.isDirectory || file.filename.isEmpty) {
+      if (!file.attr.isDirectory || file.filename.isEmpty) {
         return;
       }
       isLoading.value = true;
@@ -216,10 +219,11 @@ class _SftpSessionPageState extends ConsumerState<SftpSessionPage>
                         ),
                         child: FButton.icon(
                           variant: .outline,
-                          onPress: () =>
-                              viewType.value = viewType.value == .list
-                              ? _SftpFileViewType.grid
-                              : _SftpFileViewType.list,
+                          onPress: onAction(
+                            () => viewType.value = viewType.value == .list
+                                ? _SftpFileViewType.grid
+                                : _SftpFileViewType.list,
+                          ),
                           child: Icon(
                             viewType.value == .list
                                 ? LucideIcons.rows3
@@ -265,7 +269,7 @@ class _SftpSessionPageState extends ConsumerState<SftpSessionPage>
                         suffix: files[index].attr.isDirectory
                             ? const Icon(LucideIcons.chevronRight)
                             : null,
-                        onPress: () => onFilePress(files[index]),
+                        onPress: onAction(() => onFilePress(files[index])),
                       );
                     },
                   ),
