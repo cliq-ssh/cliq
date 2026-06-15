@@ -23,6 +23,11 @@
             "matchFileNames": ["frontend/pubspec.yaml"],
             "matchPackageNames": ["riverpod", "hooks_riverpod"],
             "groupName": "riverpod"
+        },
+        {
+            "matchFileNames": ["backend/build.gradle.kts"],
+            "matchPackageNames": ["dev.detekt", "dev.detekt:detekt-rules-ktlint-wrapper"],
+            "groupName": "detekt"
         }
     ]
 }
