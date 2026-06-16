@@ -1,7 +1,7 @@
 app_id: f1b0469a-0966-4c66-bd51-e37fe11962bd
 publisher: cliq-ssh
 publisher_url: https://github.com/cliq-ssh/cliq
-display_name: Cliq
+display_name: cliq
 create_desktop_icon: true
 install_dir_name: "{sd}\\Program Files\\cliq"
 setup_icon_file: "assets/icon/icon.ico"
