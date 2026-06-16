@@ -13,6 +13,21 @@
             "matchFileNames": ["frontend/pubspec.yaml"],
             "matchPackageNames": ["forui", "forui_hooks"],
             "groupName": "forui"
+        },
+        {
+            "matchFileNames": ["frontend/pubspec.yaml"],
+            "matchPackageNames": ["drift", "drift_dev"],
+            "groupName": "drift"
+        },
+        {
+            "matchFileNames": ["frontend/pubspec.yaml"],
+            "matchPackageNames": ["riverpod", "hooks_riverpod"],
+            "groupName": "riverpod"
+        },
+        {
+            "matchFileNames": ["backend/build.gradle.kts"],
+            "matchPackageNames": ["dev.detekt", "dev.detekt:detekt-rules-ktlint-wrapper"],
+            "groupName": "detekt"
         }
     ]
 }
