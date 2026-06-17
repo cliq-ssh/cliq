@@ -13,12 +13,11 @@ import kotlin.jvm.optionals.getOrNull
 class JwtResolver(
     private val jwtDecoder: JwtDecoder,
     private val sessionRepository: SessionRepository,
-    private val refreshTokenService: RefreshTokenService,
     private val tokenUtils: TokenUtils,
 ) {
     fun resolveSessionFromJwt(jwtAccessToken: String): Session {
         val jwt = jwtDecoder.decode(jwtAccessToken)
-        val sessionId = jwt.getClaim<Long>(JwtClaims.SID)
+        val sessionId = jwt.getClaim<Long>(JwtClaims.SID) ?: throw BadCredentialsException("Invalid JWT Access Token")
         val session =
             sessionRepository.findById(sessionId).getOrNull()
                 ?: throw BadCredentialsException("Invalid JWT Access Token")

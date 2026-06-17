@@ -1,4 +1,4 @@
-ARG JDK_VERSION=25
+ARG JDK_VERSION=26
 ARG JRE_VERSION=26
 
 # Stage 1: Build the application

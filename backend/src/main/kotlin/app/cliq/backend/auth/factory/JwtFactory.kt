@@ -32,7 +32,7 @@ class JwtFactory(
                 .issuedAt(now.toInstant())
                 .expiresAt(accessTokenExpiresAt.toInstant())
                 .subject(user.id.toString())
-                .claim(JwtClaims.SID, session.id)
+                .claim(JwtClaims.SID, session.id!!)
                 .build()
 
         return jwtEncoder.encode(JwtEncoderParameters.from(claims))

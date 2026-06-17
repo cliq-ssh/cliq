@@ -10,11 +10,11 @@ plugins {
     kotlin("plugin.allopen") version kotlinVersion
 
     // Spring / Spring Boot
-    id("org.springframework.boot") version "4.0.6"
+    id("org.springframework.boot") version "4.1.0"
     id("io.spring.dependency-management") version "1.1.7"
 
     // Linter and Formatter
-    id("dev.detekt") version "2.0.0-alpha.3"
+    id("dev.detekt") version "2.0.0-alpha.4"
 }
 
 // Fixes: https://github.com/detekt/detekt/issues/6198
@@ -33,7 +33,7 @@ group = "app.cliq"
 version = "0.1.0"
 description = "Open source SSH & SFTP client with focus on security and portability"
 
-val targetJvmVersion = 25
+val targetJvmVersion = 26
 
 java {
     toolchain {
@@ -140,7 +140,7 @@ dependencies {
     testImplementation("org.springframework.boot:spring-boot-starter-data-jpa-test")
 
     // Greenmail
-    val greenmailVersion = "2.1.8"
+    val greenmailVersion = "2.1.9"
     testImplementation("com.icegreen:greenmail-spring:$greenmailVersion")
     testImplementation("com.icegreen:greenmail:$greenmailVersion")
     testImplementation("com.icegreen:greenmail-junit5:$greenmailVersion")
