@@ -14,7 +14,7 @@ plugins {
     id("io.spring.dependency-management") version "1.1.7"
 
     // Linter and Formatter
-    id("dev.detekt") version "2.0.0-alpha.4"
+    id("dev.detekt") version "2.0.0-alpha.5"
 }
 
 // Fixes: https://github.com/detekt/detekt/issues/6198
@@ -162,7 +162,7 @@ dependencies {
     // Linting
 
     // Detekt
-    detektPlugins("dev.detekt:detekt-rules-ktlint-wrapper:2.0.0-alpha.3")
+    detektPlugins("dev.detekt:detekt-rules-ktlint-wrapper:2.0.0-alpha.5")
 }
 
 kotlin {
