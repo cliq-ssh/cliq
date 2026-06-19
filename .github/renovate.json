@@ -25,9 +25,11 @@
             "groupName": "riverpod"
         },
         {
-            "matchFileNames": ["backend/build.gradle.kts"],
-            "matchPackageNames": ["dev.detekt", "dev.detekt:detekt-rules-ktlint-wrapper"],
-            "groupName": "detekt"
+            "groupName": "detekt",
+            "matchManagers": ["gradle", "gradle-wrapper"],
+            "matchPackagePatterns": [
+                "^dev\\.detekt($|:)"
+            ]
         }
     ]
 }

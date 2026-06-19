@@ -14,7 +14,7 @@ plugins {
     id("io.spring.dependency-management") version "1.1.7"
 
     // Linter and Formatter
-    id("dev.detekt") version "2.0.0-alpha.4"
+    id("dev.detekt") version "2.0.0-alpha.5"
 }
 
 // Fixes: https://github.com/detekt/detekt/issues/6198
@@ -83,7 +83,7 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-data-jpa")
     runtimeOnly("org.postgresql:postgresql")
     // Flyway
-    val flywayVersion = "12.8.1"
+    val flywayVersion = "12.9.0"
     implementation("org.springframework.boot:spring-boot-starter-flyway")
     implementation("org.flywaydb:flyway-core:$flywayVersion")
     implementation("org.flywaydb:flyway-database-postgresql:$flywayVersion")
@@ -162,7 +162,7 @@ dependencies {
     // Linting
 
     // Detekt
-    detektPlugins("dev.detekt:detekt-rules-ktlint-wrapper:2.0.0-alpha.3")
+    detektPlugins("dev.detekt:detekt-rules-ktlint-wrapper:2.0.0-alpha.5")
 }
 
 kotlin {
