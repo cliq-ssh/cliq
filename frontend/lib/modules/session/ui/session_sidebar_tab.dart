@@ -1,7 +1,7 @@
 import 'package:cliq/modules/settings/model/navigation_position.model.dart';
 import 'package:cliq/shared/ui/sidebar_tab.dart';
 import 'package:cliq_term/cliq_term.dart';
-import 'package:flutter/cupertino.dart';
+import 'package:flutter/cupertino.dart' hide Router;
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:forui/forui.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -10,6 +10,7 @@ import 'package:lucide_flutter/lucide_flutter.dart';
 import '../../../shared/ui/context_menu.dart';
 import '../../../shared/ui/navigation_shell.dart';
 import '../../../shared/ui/shortcut_info.dart';
+import '../../../shared/model/router.model.dart' show Router;
 import '../model/session.model.dart';
 import '../model/tab.model.dart';
 import '../provider/session.provider.dart';
@@ -17,20 +18,23 @@ import '../provider/session.provider.dart';
 class SessionSidebarTab extends HookConsumerWidget {
   final ShellSession root;
   final List<ShellSession> sessions;
+  final String? _label;
   final bool isExpanded;
   final NavigationPosition navPosition;
   final bool selected;
   final String? tabId;
 
-  SessionSidebarTab.single(
-    ShellSession session, {
-    super.key,
-    required this.isExpanded,
-    required this.navPosition,
-    this.selected = false,
-  }) : root = session,
-       sessions = [],
-       tabId = null;
+  String get label {
+    if (_label != null && _label.isNotEmpty) {
+      return _label;
+    }
+
+    if (sessions.isEmpty) {
+      return root.connection.label;
+    }
+
+    return '${sessions.length + 1} Sessions';
+  }
 
   SessionSidebarTab.tab(
     SessionTab tab, {
@@ -40,7 +44,9 @@ class SessionSidebarTab extends HookConsumerWidget {
     this.selected = false,
   }) : root = tab.root,
        sessions = tab.sessions,
+       _label = tab.label,
        tabId = tab.id;
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final isDragging = useState(false);
@@ -92,6 +98,50 @@ class SessionSidebarTab extends HookConsumerWidget {
 
     return CustomContextMenu(
       actions: [
+        if (tabId != null)
+          .new(
+            label: 'Rename',
+            icon: LucideIcons.edit,
+            onPress: () {
+              final controller = TextEditingController(text: label);
+              showFDialog(
+                context: Router.rootNavigatorKey.currentContext ?? context,
+                builder: (dialogContext, style, animation) {
+                  return FDialog(
+                    style: style,
+                    animation: animation,
+                    title: const Text('Rename tab'),
+                    body: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        FTextField(
+                          control: .managed(controller: controller),
+                          autofocus: true,
+                        ),
+                      ],
+                    ),
+                    actions: [
+                      FButton(
+                        variant: .outline,
+                        child: const Text('Cancel'),
+                        onPress: () => Navigator.of(dialogContext).pop(),
+                      ),
+                      FButton(
+                        child: const Text('Save'),
+                        onPress: () {
+                          final newLabel = controller.text.trim();
+                          ref
+                              .read(sessionProvider.notifier)
+                              .renameTab(tabId!, newLabel);
+                          Navigator.of(dialogContext).pop();
+                        },
+                      ),
+                    ],
+                  );
+                },
+              );
+            },
+          ),
         if (sessions.isEmpty)
           .new(
             label: 'Duplicate',
@@ -116,15 +166,7 @@ class SessionSidebarTab extends HookConsumerWidget {
           label: Row(
             spacing: 8,
             children: [
-              Expanded(
-                child: Text(
-                  sessions.isEmpty
-                      ? root.connection.label
-                      : '${sessions.length + 1} sessions',
-                  overflow: .fade,
-                  softWrap: false,
-                ),
-              ),
+              Expanded(child: Text(label, overflow: .fade, softWrap: false)),
               // TODO: make shortcut functional
               FTooltip(
                 tipBuilder: (_, _) => TextWithShortcutInfo(
