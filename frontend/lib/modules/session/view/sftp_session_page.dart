@@ -129,6 +129,13 @@ enum _SftpColumn {
   }
 }
 
+class _SftpDragData {
+  final String sessionId;
+  final List<({String hostPath, String filename})> files;
+
+  const _SftpDragData({required this.sessionId, required this.files});
+}
+
 class _ModifiedFile {
   /// The file path on the remote host
   final String hostPath;
@@ -317,7 +324,8 @@ class _SftpSessionPageState extends ConsumerState<SftpSessionPage>
 
       final fullPath = [...?currentDirectory.value, file.filename].join('/');
 
-      final fullName = '${tempDir.path}${Platform.pathSeparator}${file.filename}';
+      final fullName =
+          '${tempDir.path}${Platform.pathSeparator}${file.filename}';
       File tempFile = File(fullName);
       final originalContent = await (await session.sftpClient!.open(
         fullPath,
@@ -586,38 +594,45 @@ class _SftpSessionPageState extends ConsumerState<SftpSessionPage>
                 ],
               ),
             ),
-            Builder(
-              builder: (context) {
-                final files = (currentFiles.value ?? [])
-                  ..sort((a, b) {
-                    // directories first
-                    if (a.attr.isDirectory && !b.attr.isDirectory) {
-                      return -1;
-                    }
-                    if (!a.attr.isDirectory && b.attr.isDirectory) return 1;
+            Expanded(
+              child: DragTarget<_SftpDragData>(
+                onAcceptWithDetails: (details) {
+                  print(
+                    'Dropped files: ${details.data.files.map((f) => f.filename).join(', ')}',
+                  );
+                },
+                builder: (context, data, _) {
+                  final files = (currentFiles.value ?? [])
+                    ..sort((a, b) {
+                      // directories first
+                      if (a.attr.isDirectory && !b.attr.isDirectory) {
+                        return -1;
+                      }
+                      if (!a.attr.isDirectory && b.attr.isDirectory) return 1;
 
-                    if (sortColumn.value != null) {
-                      final col = sortColumn.value!.$1;
-                      final cmp = col.sortableValueBuilder != null
-                          ? col.sortableValueBuilder!(a).compareTo(
-                              col.sortableValueBuilder!(b),
-                            )
-                          : col.valueBuilder(a).compareTo(col.valueBuilder(b));
-                      if (cmp != 0) return sortColumn.value!.$2 ? cmp : -cmp;
-                    }
+                      if (sortColumn.value != null) {
+                        final col = sortColumn.value!.$1;
+                        final cmp = col.sortableValueBuilder != null
+                            ? col.sortableValueBuilder!(a).compareTo(
+                                col.sortableValueBuilder!(b),
+                              )
+                            : col
+                                  .valueBuilder(a)
+                                  .compareTo(col.valueBuilder(b));
+                        if (cmp != 0) return sortColumn.value!.$2 ? cmp : -cmp;
+                      }
 
-                    // otherwise just sort by name
-                    return a.filename.toLowerCase().compareTo(
-                      b.filename.toLowerCase(),
-                    );
-                  });
+                      // otherwise just sort by name
+                      return a.filename.toLowerCase().compareTo(
+                        b.filename.toLowerCase(),
+                      );
+                    });
 
-                final visibleCols = _SftpColumn.values
-                    .where((c) => visibleColumns.value.contains(c))
-                    .toList();
+                  final visibleCols = _SftpColumn.values
+                      .where((c) => visibleColumns.value.contains(c))
+                      .toList();
 
-                return Expanded(
-                  child: Padding(
+                  return Padding(
                     padding: const EdgeInsets.all(16),
                     child: TableView.builder(
                       key: ValueKey(currentDirectory.value),
@@ -774,18 +789,67 @@ class _SftpSessionPageState extends ConsumerState<SftpSessionPage>
                           return text;
                         }
 
+                        buildDragFeedback() {
+                          return SizedBox(
+                            width: 200,
+                            child: Opacity(
+                              opacity: 0.7,
+                              child: IgnorePointer(
+                                ignoring: true,
+                                child: FTileGroup(
+                                  children: [
+                                    for (final file in selectedFiles.value)
+                                      FTile(
+                                        title: Text(files[file].filename),
+                                        prefix: _SftpColumn.name.prefixBuilder!
+                                            .call(files[file]),
+                                      ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          );
+                        }
+
                         return TableViewRow(
                           cells: [
                             for (final col in _SftpColumn.values)
                               if (visibleColumns.value.contains(col))
-                                .new(child: buildCell(col)),
+                                .new(
+                                  child: Draggable<_SftpDragData>(
+                                    data: _SftpDragData(
+                                      sessionId: session.id,
+                                      files: selectedFiles.value
+                                          .map(
+                                            (i) => (
+                                              hostPath: [
+                                                ...?currentDirectory.value,
+                                                files[i].filename,
+                                              ].join('/'),
+                                              filename: files[i].filename,
+                                            ),
+                                          )
+                                          .toList(),
+                                    ),
+                                    feedback: buildDragFeedback(),
+                                    onDragStarted: () {
+                                      final isPartOfSelection = selectedFiles
+                                          .value
+                                          .contains(index);
+                                      if (!isPartOfSelection) {
+                                        selectedFiles.value = {index};
+                                      }
+                                    },
+                                    child: buildCell(col),
+                                  ),
+                                ),
                           ],
                         );
                       },
                     ),
-                  ),
-                );
-              },
+                  );
+                },
+              ),
             ),
           ],
         ),
