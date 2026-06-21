@@ -315,10 +315,9 @@ class _SftpSessionPageState extends ConsumerState<SftpSessionPage>
 
       loadingFiles.value = {...loadingFiles.value, index};
 
-      // TODO: copy file to temp directory, open with default app and watch for changes to sync back
       final fullPath = [...?currentDirectory.value, file.filename].join('/');
 
-      final fullName = '${tempDir.path}/${file.filename}';
+      final fullName = '${tempDir.path}${Platform.pathSeparator}${file.filename}';
       File tempFile = File(fullName);
       final originalContent = await (await session.sftpClient!.open(
         fullPath,
@@ -387,14 +386,10 @@ class _SftpSessionPageState extends ConsumerState<SftpSessionPage>
       isLoading.value = true;
 
       final symlinkPath = [...?currentDirectory.value, file.filename].join('/');
-      final targetAttr = await session.sftpClient!.stat(
-        symlinkPath,
-      );
+      final targetAttr = await session.sftpClient!.stat(symlinkPath);
 
       if (targetAttr.isDirectory) {
-        final absolutePath = await session.sftpClient!.absolute(
-          symlinkPath,
-        );
+        final absolutePath = await session.sftpClient!.absolute(symlinkPath);
         currentDirectory.value = absolutePath.split('/');
         navigateBackBuffer.value = null;
       } else {
