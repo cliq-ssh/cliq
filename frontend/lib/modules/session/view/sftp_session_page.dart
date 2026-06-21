@@ -387,10 +387,14 @@ class _SftpSessionPageState extends ConsumerState<SftpSessionPage>
       isLoading.value = true;
 
       final symlinkPath = [...?currentDirectory.value, file.filename].join('/');
-      final targetAttr = await session.sftpClient!.stat(symlinkPath); // stat follows links
+      final targetAttr = await session.sftpClient!.stat(
+        symlinkPath,
+      );
 
       if (targetAttr.isDirectory) {
-        final absolutePath = await session.sftpClient!.absolute(symlinkPath); // ~
+        final absolutePath = await session.sftpClient!.absolute(
+          symlinkPath,
+        );
         currentDirectory.value = absolutePath.split('/');
         navigateBackBuffer.value = null;
       } else {
