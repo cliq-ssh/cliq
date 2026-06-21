@@ -25,11 +25,11 @@ jobs:
       checks: write
     steps:
       - name: Checkout code
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
       - name: Set up Java
         uses: actions/setup-java@v5
         with:
-          java-version: "25"
+          java-version: "26"
           distribution: "temurin"
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v6
@@ -60,11 +60,11 @@ jobs:
       security-events: write
     steps:
       - name: Checkout code
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
       - name: Set up Java
         uses: actions/setup-java@v5
         with:
-          java-version: "25"
+          java-version: "26"
           distribution: "temurin"
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v6

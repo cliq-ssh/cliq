@@ -13,6 +13,23 @@
             "matchFileNames": ["frontend/pubspec.yaml"],
             "matchPackageNames": ["forui", "forui_hooks"],
             "groupName": "forui"
+        },
+        {
+            "matchFileNames": ["frontend/pubspec.yaml"],
+            "matchPackageNames": ["drift", "drift_dev"],
+            "groupName": "drift"
+        },
+        {
+            "matchFileNames": ["frontend/pubspec.yaml"],
+            "matchPackageNames": ["riverpod", "hooks_riverpod"],
+            "groupName": "riverpod"
+        },
+        {
+            "groupName": "detekt",
+            "matchManagers": ["gradle", "gradle-wrapper"],
+            "matchPackagePatterns": [
+                "^dev\\.detekt($|:)"
+            ]
         }
     ]
 }
