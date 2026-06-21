@@ -24,10 +24,11 @@ class OidcLogoutHandler(private val sessionRepository: SessionRepository, privat
         }
 
         val token = authentication.principal as OidcLogoutToken
+        val subject = token.subject ?: return
         val deletedSessions =
             when (val sessionId = token.sessionId) {
                 null -> {
-                    deleteWithOidcUser(token.subject)
+                    deleteWithOidcUser(subject)
                 }
 
                 else -> {
