@@ -170,7 +170,7 @@ class NavigationShellState extends ConsumerState<NavigationShell>
                       children: [
                         FButton.icon(
                           size: .xs,
-                          child: Icon(LucideIcons.plugZap, size: 12),
+                          child: Icon(LucideIcons.unplug, size: 12),
                           onPress: () => connect(connection),
                         ),
                         FButton.icon(

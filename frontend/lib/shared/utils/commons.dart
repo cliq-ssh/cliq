@@ -134,7 +134,10 @@ final class Commons {
         title: Row(
           spacing: 8,
           mainAxisSize: .min,
-          children: [?prefix, Text(message)],
+          children: [
+            ?prefix,
+            Flexible(child: Text(message)),
+          ],
         ),
       );
     }
