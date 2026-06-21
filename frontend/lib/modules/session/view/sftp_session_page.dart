@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:cliq/modules/connections/model/connection_full.model.dart';
 import 'package:cliq/modules/connections/provider/connection.provider.dart';
@@ -7,12 +8,14 @@ import 'package:cliq/shared/data/store.dart';
 import 'package:cliq/shared/provider/store.provider.dart';
 import 'package:cliq/shared/utils/text_utils.dart';
 import 'package:dartssh2/dartssh2.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart' hide LicensePage;
 import 'package:flutter/services.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:forui/forui.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lucide_flutter/lucide_flutter.dart';
+import 'package:open_app_file/open_app_file.dart';
 
 import '../../../shared/ui/navigation_shell.dart';
 import '../../../shared/ui/table_view.dart';
@@ -126,6 +129,21 @@ enum _SftpColumn {
   }
 }
 
+class _ModifiedFile {
+  /// The file path on the remote host
+  final String hostPath;
+
+  /// The file path on the local machine (temp directory)
+  final String tempPath;
+  final Uint8List data;
+
+  _ModifiedFile({
+    required this.hostPath,
+    required this.tempPath,
+    required this.data,
+  });
+}
+
 const _ignoredFilenames = {'.'};
 const _ignoredSelectableFilenames = {'.', '..'};
 
@@ -160,6 +178,13 @@ class _SftpSessionPageState extends ConsumerState<SftpSessionPage>
     final currentFiles = useState<List<SftpName>?>(null);
 
     final selectedFiles = useState<Set<int>>({});
+
+    final loadingFiles = useState<Set<int>>({});
+    final updatedFiles = useState<Map<int, _ModifiedFile>>({});
+
+    final tempDir = useMemoized(
+      () => Directory.systemTemp.createTempSync('cliq_sftp_${session.id}'),
+    );
 
     final visibleColumns = useState<Set<_SftpColumn>>({
       .name,
@@ -283,8 +308,96 @@ class _SftpSessionPageState extends ConsumerState<SftpSessionPage>
       isLoading.value = false;
     }
 
-    void onFilePress(SftpName file) {
+    onFilePress(SftpName file, int index) async {
+      if (file.filename.isEmpty) {
+        return;
+      }
+
+      loadingFiles.value = {...loadingFiles.value, index};
+
       // TODO: copy file to temp directory, open with default app and watch for changes to sync back
+      final fullPath = [...?currentDirectory.value, file.filename].join('/');
+
+      final fullName = '${tempDir.path}/${file.filename}';
+      File tempFile = File(fullName);
+      final originalContent = await (await session.sftpClient!.open(
+        fullPath,
+      )).readBytes();
+      await tempFile.writeAsBytes(originalContent);
+
+      // open with default app
+      final result = await OpenAppFile.open(tempFile.path);
+      if (result.type == .noAppToOpen || result.type == .error) {
+        // add .txt extension and try again
+        final tempFileWithExt = File('${tempFile.path}.txt');
+        await tempFile.copy(tempFileWithExt.path);
+        final fallbackResult = await OpenAppFile.open(tempFileWithExt.path);
+        if (fallbackResult.type == .done) {
+          tempFile = tempFileWithExt;
+        }
+      }
+
+      loadingFiles.value = {...loadingFiles.value..remove(index)};
+
+      tempFile.parent.watch().listen((event) async {
+        if (event.path != tempFile.path) return;
+        if (event.type == FileSystemEvent.create ||
+            event.type == FileSystemEvent.modify) {
+          await Future.delayed(const Duration(milliseconds: 100));
+          try {
+            final newContent = await File(event.path).readAsBytes();
+            if (listEquals(newContent, originalContent)) {
+              updatedFiles.value = {...updatedFiles.value..remove(index)};
+            } else {
+              updatedFiles.value = {
+                ...updatedFiles.value,
+                index: _ModifiedFile(
+                  hostPath: fullPath,
+                  tempPath: tempFile.path,
+                  data: newContent,
+                ),
+              };
+            }
+          } catch (_) {}
+        }
+      });
+    }
+
+    cleanupFile(int index, _ModifiedFile modifiedFile) {
+      try {
+        updatedFiles.value = {...updatedFiles.value..remove(index)};
+        File(modifiedFile.tempPath).deleteSync();
+      } catch (_) {}
+    }
+
+    writeFile(int index, _ModifiedFile modifiedFile) async {
+      final file = await session.sftpClient!.open(
+        modifiedFile.hostPath,
+        mode: SftpFileOpenMode.write | SftpFileOpenMode.truncate,
+      );
+      await file.writeBytes(modifiedFile.data);
+      cleanupFile(index, modifiedFile);
+
+      if (!context.mounted) return;
+      Commons.showToast('File ${modifiedFile.hostPath} uploaded successfully');
+    }
+
+    onSymlinkPress(SftpName file, int index) async {
+      if (!file.attr.isSymbolicLink || file.filename.isEmpty) return;
+      isLoading.value = true;
+
+      final symlinkPath = [...?currentDirectory.value, file.filename].join('/');
+      final targetAttr = await session.sftpClient!.stat(symlinkPath); // stat follows links
+
+      if (targetAttr.isDirectory) {
+        final absolutePath = await session.sftpClient!.absolute(symlinkPath); // ~
+        currentDirectory.value = absolutePath.split('/');
+        navigateBackBuffer.value = null;
+      } else {
+        await onFilePress(file, index);
+      }
+
+      isLoading.value = false;
     }
 
     buildTableHeader(_SftpColumn col) {
@@ -569,10 +682,13 @@ class _SftpSessionPageState extends ConsumerState<SftpSessionPage>
                       },
                       onRowDoubleTap: (index) {
                         final file = files[index];
-                        selectedFiles.value = {};
-                        return file.attr.isDirectory
-                            ? onFolderPress(file)
-                            : onFilePress(file);
+                        selectedFiles.value = {if (file.attr.isFile) index};
+                        final _ = switch (file.attr.type) {
+                          .directory => onFolderPress(file),
+                          .regularFile => onFilePress(file, index),
+                          .symbolicLink => onSymlinkPress(file, index),
+                          _ => null,
+                        };
                       },
                       rowBuilder: (context, index) {
                         final file = files[index];
@@ -596,13 +712,63 @@ class _SftpSessionPageState extends ConsumerState<SftpSessionPage>
                             style: fileStyle,
                           );
 
+                          final isLoadingFile = loadingFiles.value.contains(
+                            index,
+                          );
+                          final isModifiedFile = updatedFiles.value.containsKey(
+                            index,
+                          );
+
                           if (col.prefixBuilder != null) {
                             return Row(
                               spacing: 8,
                               children: [
-                                col.prefixBuilder!.call(file),
-                                Flexible(child: text),
+                                isLoadingFile
+                                    ? SizedBox(
+                                        width: 16,
+                                        height: 16,
+                                        child: FCircularProgress(),
+                                      )
+                                    : col.prefixBuilder!.call(file),
+                                Expanded(child: text),
+                                if (isModifiedFile) ...[
+                                  FButton.icon(
+                                    onPress: () => writeFile(
+                                      index,
+                                      updatedFiles.value[index]!,
+                                    ),
+                                    child: Icon(LucideIcons.upload),
+                                  ),
+                                  FButton.icon(
+                                    onPress: () => cleanupFile(
+                                      index,
+                                      updatedFiles.value[index]!,
+                                    ),
+                                    variant: .destructive,
+                                    child: Icon(LucideIcons.x),
+                                  ),
+                                ],
                               ],
+                            );
+                          }
+
+                          if (col == .size && isModifiedFile) {
+                            return Text.rich(
+                              TextSpan(
+                                text: col.valueBuilder.call(file),
+                                children: [
+                                  TextSpan(
+                                    text:
+                                        ' (${TextUtils.formatBytes(updatedFiles.value[index]!.data.length)})',
+                                    style: TextStyle(
+                                      color: context.theme.colors.primary,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              overflow: .fade,
+                              softWrap: false,
+                              style: fileStyle,
                             );
                           }
 
