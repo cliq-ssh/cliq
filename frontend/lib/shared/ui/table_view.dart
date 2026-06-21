@@ -26,22 +26,30 @@ class _TableRow extends StatefulWidget {
   final List<double> widths;
   final double height;
   final EdgeInsets padding;
-  final ValueChanged<int?>? onTap;
 
   /// If true, every cell can receive focus individually. If false, only the entire row can be focused.
   final bool perCellFocus;
-  final void Function(int columnIndex, double delta)? onResize;
+
+  final bool isSelected;
   final Color? backgroundColor;
+  final Color? selectedBackgroundColor;
+
+  final void Function(int columnIndex, double delta)? onResize;
+  final ValueChanged<int?>? onTap;
+  final ValueChanged<int?>? onDoubleTap;
 
   const _TableRow({
     required this.cells,
     required this.widths,
     required this.height,
     required this.padding,
-    this.onResize,
-    this.backgroundColor,
-    this.onTap,
     this.perCellFocus = false,
+    this.isSelected = false,
+    this.backgroundColor,
+    this.selectedBackgroundColor,
+    this.onResize,
+    this.onTap,
+    this.onDoubleTap,
   });
 
   @override
@@ -77,6 +85,11 @@ class _TableRowState extends State<_TableRow> {
       setState(() => _focused = null);
     }
 
+    onDoubleTap(int index) {
+      widget.onDoubleTap?.call(index);
+      setState(() => _focused = null);
+    }
+
     buildFocusWrapper(Widget child, int index) {
       return Stack(
         children: [
@@ -99,7 +112,7 @@ class _TableRowState extends State<_TableRow> {
               actions: <Type, Action<Intent>>{
                 ActivateIntent: CallbackAction<ActivateIntent>(
                   onInvoke: (intent) {
-                    onTap(index);
+                    onDoubleTap(index);
                     return null;
                   },
                 ),
@@ -150,6 +163,7 @@ class _TableRowState extends State<_TableRow> {
                 child: GestureDetector(
                   behavior: .opaque,
                   onTap: () => onTap(index),
+                  onDoubleTap: () => onDoubleTap(index),
                   child: Padding(
                     padding: effectivePadding,
                     child: Align(
@@ -197,7 +211,9 @@ class _TableRowState extends State<_TableRow> {
     }
 
     Widget baseRow = Container(
-      color: widget.backgroundColor,
+      color: widget.isSelected
+          ? widget.selectedBackgroundColor
+          : widget.backgroundColor,
       child: Row(children: List.generate(widget.cells.length, buildCell)),
     );
 
@@ -216,7 +232,9 @@ class TableView extends StatefulWidget {
   final TableViewRow? Function(BuildContext context, int index) rowBuilder;
   final ValueChanged<int>? onColumnTap;
   final ValueChanged<int>? onRowTap;
-  final Color? headerBackgroundColor;
+  final ValueChanged<int>? onRowDoubleTap;
+  final List<int>? selectedRows;
+  final Color? backgroundColor;
 
   const TableView.builder({
     super.key,
@@ -225,7 +243,9 @@ class TableView extends StatefulWidget {
     required this.rowBuilder,
     this.onColumnTap,
     this.onRowTap,
-    this.headerBackgroundColor,
+    this.onRowDoubleTap,
+    this.selectedRows,
+    this.backgroundColor,
   });
 
   @override
@@ -308,6 +328,12 @@ class _TableViewState extends State<TableView> {
           widths.fold<double>(0, (a, b) => a + b),
         );
 
+        final backgroundColor =
+            widget.backgroundColor ?? context.theme.colors.background;
+        final selectedBackgroundColor = context.theme.colors.primary.withValues(
+          alpha: 0.2,
+        );
+
         return SingleChildScrollView(
           scrollDirection: Axis.horizontal,
           child: SizedBox(
@@ -323,9 +349,7 @@ class _TableViewState extends State<TableView> {
                     perCellFocus: true,
                     onTap: (index) => widget.onColumnTap?.call(index!),
                     onResize: _resizeColumn,
-                    backgroundColor:
-                        widget.headerBackgroundColor ??
-                        context.theme.colors.background,
+                    backgroundColor: backgroundColor,
                   ),
                 ),
                 SliverList.builder(
@@ -342,6 +366,10 @@ class _TableViewState extends State<TableView> {
                       height: _kRowHeight,
                       padding: _kRowPadding,
                       onTap: (_) => widget.onRowTap?.call(index),
+                      onDoubleTap: (_) => widget.onRowDoubleTap?.call(index),
+                      isSelected: widget.selectedRows?.contains(index) ?? false,
+                      backgroundColor: backgroundColor,
+                      selectedBackgroundColor: selectedBackgroundColor,
                     );
                   },
                 ),

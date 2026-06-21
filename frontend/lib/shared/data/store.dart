@@ -81,6 +81,12 @@ enum StoreKey<T> {
     defaultFactory: _defaultShortcutsFactory,
     fromValue: _shortcutsFromValue,
     toValue: _shortcutsToValue,
+  ),
+
+  sftpShowHiddenFiles<bool>(
+    'sftp_show_hidden_files',
+    type: bool,
+    defaultValue: false,
   );
 
   final String key;

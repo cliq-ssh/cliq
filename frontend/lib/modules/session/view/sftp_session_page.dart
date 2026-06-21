@@ -3,9 +3,12 @@ import 'dart:async';
 import 'package:cliq/modules/connections/model/connection_full.model.dart';
 import 'package:cliq/modules/connections/provider/connection.provider.dart';
 import 'package:cliq/modules/session/view/generic_session_page.dart';
+import 'package:cliq/shared/data/store.dart';
+import 'package:cliq/shared/provider/store.provider.dart';
 import 'package:cliq/shared/utils/text_utils.dart';
 import 'package:dartssh2/dartssh2.dart';
 import 'package:flutter/material.dart' hide LicensePage;
+import 'package:flutter/services.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:forui/forui.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -124,6 +127,7 @@ enum _SftpColumn {
 }
 
 const _ignoredFilenames = {'.'};
+const _ignoredSelectableFilenames = {'.', '..'};
 
 class SftpSessionPage extends StatefulHookConsumerWidget {
   final String sessionId;
@@ -155,6 +159,8 @@ class _SftpSessionPageState extends ConsumerState<SftpSessionPage>
     final currentDirectory = useState<List<String>?>([]);
     final currentFiles = useState<List<SftpName>?>(null);
 
+    final selectedFiles = useState<Set<int>>({});
+
     final visibleColumns = useState<Set<_SftpColumn>>({
       .name,
       .modified,
@@ -162,7 +168,7 @@ class _SftpSessionPageState extends ConsumerState<SftpSessionPage>
       .kind,
     });
     final sortColumn = useState<(_SftpColumn, bool)?>(null);
-    final showHiddenFiles = useState(false);
+    final showHiddenFiles = useStore(.sftpShowHiddenFiles);
 
     retrySession({bool skipHostKeyVerification = false}) {
       ref
@@ -449,8 +455,8 @@ class _SftpSessionPageState extends ConsumerState<SftpSessionPage>
                                 prefix: showHiddenFiles.value
                                     ? Icon(LucideIcons.check)
                                     : SizedBox(width: 16),
-                                onPress: () => showHiddenFiles.value =
-                                    !showHiddenFiles.value,
+                                onPress: () => StoreKey.sftpShowHiddenFiles
+                                    .write(!showHiddenFiles.value),
                               ),
                             ],
                           ),
@@ -517,10 +523,53 @@ class _SftpSessionPageState extends ConsumerState<SftpSessionPage>
                             !sortColumn.value!.$2,
                           );
                         }
+                        selectedFiles.value = {};
                       },
                       rowCount: files.length,
+                      selectedRows: selectedFiles.value.toList(growable: false),
                       onRowTap: (index) {
+                        // ignore non-selectable files
+                        if (files[index].filename.isEmpty ||
+                            (_ignoredSelectableFilenames.contains(
+                                  files[index].filename,
+                                ) &&
+                                files.length > 1)) {
+                          selectedFiles.value = {};
+                          return;
+                        }
+
+                        // shift selects range
+                        if (HardwareKeyboard.instance.isShiftPressed &&
+                            selectedFiles.value.isNotEmpty) {
+                          // get first selected index and select all to tapped index
+                          final firstIndex = selectedFiles.value.first;
+                          final range = firstIndex <= index
+                              ? [for (var i = firstIndex; i <= index; i++) i]
+                              : [for (var i = index; i <= firstIndex; i++) i];
+                          selectedFiles.value = {firstIndex, ...range};
+                          return;
+                        }
+
+                        // ctrl/cmd toggles selection
+                        if (HardwareKeyboard.instance.isMetaPressed ||
+                            HardwareKeyboard.instance.isControlPressed) {
+                          if (selectedFiles.value.contains(index)) {
+                            selectedFiles.value = {
+                              ...selectedFiles.value..remove(index),
+                            };
+                          } else {
+                            selectedFiles.value = {
+                              ...selectedFiles.value..add(index),
+                            };
+                          }
+                          return;
+                        }
+
+                        selectedFiles.value = {index};
+                      },
+                      onRowDoubleTap: (index) {
                         final file = files[index];
+                        selectedFiles.value = {};
                         return file.attr.isDirectory
                             ? onFolderPress(file)
                             : onFilePress(file);
