@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:isolate';
 
 import 'package:cliq/modules/connections/model/connection_full.model.dart';
 import 'package:cliq/modules/credentials/data/credential_service.dart';
@@ -15,6 +16,8 @@ import '../../credentials/provider/credential_service.provider.dart';
 import '../../settings/model/known_host_error.model.dart';
 import '../../settings/provider/known_host_service.provider.dart';
 import '../model/session.model.dart';
+import '../model/sftp_transfer.model.dart';
+import '../model/sftp_transfer_params.model.dart';
 import '../model/tab.model.dart';
 
 final sessionProvider = NotifierProvider(SessionNotifier.new);
@@ -103,6 +106,77 @@ class SessionNotifier extends Notifier<SessionState> {
     final session = getSessionById(sessionId);
     if (session == null || session.sftpClient == null) return null;
     return (await session.sftpClient!.open(filePath));
+  }
+
+  /// Transfers data from remote to local, local to remote or remote to remote via SFTP.
+  /// This runs in a separate isolate to avoid overloading the main thread
+  ///
+  /// Returns a stream of progress values between 0.0 and 1.0, where 1.0 indicates completion.
+  Stream<double> transferSftp({
+    ShellSession? source,
+    ShellSession? destination,
+    String? sourcePath,
+    String? destinationPath,
+    String? localPath,
+  }) {
+    assert(source != null || localPath != null);
+    assert(destination != null || localPath != null);
+
+    final controller = StreamController<double>();
+
+    resolveParams(ShellSession? session) async {
+      if (session == null) return null;
+      final conn = session.connection;
+      final creds = await ref
+          .read(credentialServiceProvider)
+          .findByIds(conn.identity?.credentialIds ?? conn.credentialIds);
+      final (password, keys) =
+          await CredentialService.collectAuthenticationMethods(creds);
+      return SftpConnectParams(
+        host: conn.address,
+        port: conn.port,
+        username: conn.effectiveUsername!,
+        password: password,
+        keyPems: keys.map((k) => (k as dynamic).toPem() as String).toList(),
+      );
+    }
+
+    Future<void> run() async {
+      final port = ReceivePort();
+
+      await Isolate.spawn(
+        sftpTransferIsolate,
+        SftpTransferParams(
+          sendPort: port.sendPort,
+          source: await resolveParams(source),
+          sourcePath: sourcePath ?? localPath!,
+          destination: await resolveParams(destination),
+          destinationPath: destinationPath ?? localPath!,
+        ),
+      );
+
+      await for (final msg in port) {
+        final progress = msg as double;
+
+        // should never happen
+        if (progress < 0) {
+          port.close();
+          controller.addError(.new());
+          break;
+        }
+
+        controller.add(progress);
+
+        if (progress >= 1.0) {
+          port.close();
+          break;
+        }
+      }
+      await controller.close();
+    }
+
+    run().catchError(controller.addError);
+    return controller.stream;
   }
 
   void closeSessionAndMaybeGo(

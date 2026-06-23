@@ -131,7 +131,7 @@ enum _SftpColumn {
 
 class _SftpDragData {
   final String sessionId;
-  final List<_QueuedFile> files;
+  final Map<int, _QueuedFile> files;
 
   const _SftpDragData({required this.sessionId, required this.files});
 }
@@ -232,6 +232,10 @@ class _SftpSessionPageState extends ConsumerState<SftpSessionPage>
     final sortColumn = useState<(_SftpColumn, bool)?>(null);
     final showHiddenFiles = useStore(.sftpShowHiddenFiles);
 
+    final rotation = useAnimationController(
+      duration: const Duration(seconds: 2),
+    );
+
     retrySession({bool skipHostKeyVerification = false}) {
       ref
           .read(sessionProvider.notifier)
@@ -326,6 +330,17 @@ class _SftpSessionPageState extends ConsumerState<SftpSessionPage>
       return null;
     }, [currentDirectory.value]);
 
+    useEffect(() {
+      if (queuedFiles.value.isEmpty) {
+        rotation
+          ..stop()
+          ..reset();
+      } else {
+        rotation.repeat();
+      }
+      return null;
+    }, [queuedFiles.value]);
+
     // helper for preventing certain actions while loading
     onAction(VoidCallback func) => isLoading.value ? null : func;
 
@@ -377,6 +392,7 @@ class _SftpSessionPageState extends ConsumerState<SftpSessionPage>
       attemptOpenAndWatch(File file) async {
         // open with default app
         final result = await OpenAppFile.open(file.path);
+
         if (result.type == .noAppToOpen || result.type == .error) {
           // add .txt extension and try again
           final withExtension = File('${file.path}.txt');
@@ -416,27 +432,19 @@ class _SftpSessionPageState extends ConsumerState<SftpSessionPage>
         });
       }
 
-      // stat the file to get its size
-      final attributes = await session.sftpClient!.stat(fullPath);
-
       setQueuedFileProgress(index, 0);
 
-      final sink = tempFile.openWrite(mode: FileMode.append);
-      await session.sftpClient!
-          .download(
-            fullPath,
-            sink,
-            maxPendingRequests: 8, // TODO: temporary solution, move to own thread.
-            onProgress: (p) {
-              final progress = (p / (attributes.size ?? 1) * 100).ceil() / 100;
-              // dont update state for the same progress value to avoid unnecessary rebuilds
-              if (queuedFiles.value[index]?.value.progress == progress) return;
-              setQueuedFileProgress(index, progress);
-            },
+      ref
+          .read(sessionProvider.notifier)
+          .transferSftp(
+            source: session,
+            sourcePath: fullPath,
+            localPath: tempFile.path,
           )
-          .whenComplete(() async {
+          .listen((p) => setQueuedFileProgress(index, p))
+          .onDone(() async {
             setQueuedFileProgress(index, null);
-            return await attemptOpenAndWatch(tempFile);
+            await attemptOpenAndWatch(tempFile);
           });
     }
 
@@ -647,6 +655,60 @@ class _SftpSessionPageState extends ConsumerState<SftpSessionPage>
                           );
                         },
                       ),
+                      FPopoverMenu(
+                        menu: [
+                          .group(
+                            divider: .full,
+                            children: [
+                              for (final queuedFile
+                                  in queuedFiles.value.entries)
+                                .item(
+                                  title: Text(queuedFile.value.value.fileName),
+                                  prefix: _SftpColumn.name.prefixBuilder!.call(
+                                    currentFiles.value![queuedFile.key],
+                                  ),
+                                  subtitle: ValueListenableBuilder<_QueuedFile>(
+                                    valueListenable: queuedFile.value,
+                                    builder: (_, file, _) {
+                                      return Padding(
+                                        padding: const .symmetric(vertical: 4),
+                                        child: Row(
+                                          spacing: 8,
+                                          children: [
+                                            Text(
+                                              '${((file.progress ?? 0) * 100).toStringAsFixed(1)}%',
+                                            ),
+                                            // TODO: speed, ETA
+                                            SizedBox(
+                                              width: 100,
+                                              child: FDeterminateProgress(
+                                                value: file.progress ?? 0,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      );
+                                    },
+                                  ),
+                                ),
+                            ],
+                          ),
+                        ],
+                        builder: (_, controller, _) {
+                          return FButton.icon(
+                            variant: .outline,
+                            onPress: controller.toggle,
+                            child: RotationTransition(
+                              turns: rotation,
+                              child: Icon(
+                                queuedFiles.value.isEmpty
+                                    ? LucideIcons.refreshCwOff
+                                    : LucideIcons.refreshCw,
+                              ),
+                            ),
+                          );
+                        },
+                      ),
                     ],
                   ),
                 ],
@@ -658,28 +720,32 @@ class _SftpSessionPageState extends ConsumerState<SftpSessionPage>
                     details.data.sessionId != session.id,
                 onAcceptWithDetails: (details) async {
                   print(
-                    'Dropped files: ${details.data.files.map((f) => f.path).join(', ')}',
+                    'Dropped files: ${details.data.files.values.map((f) => f.path).join(', ')}',
                   );
 
-                  for (final file in details.data.files) {
-                    final data = await ref
+                  for (final fileEntry in details.data.files.entries) {
+                    print(
+                      'Moving file from source:${fileEntry.value.path} to dest:${[...?currentDirectory.value, fileEntry.value.fileName].join('/')}',
+                    );
+
+                    final index = fileEntry.key;
+                    setQueuedFileProgress(index, 0);
+
+                    ref
                         .read(sessionProvider.notifier)
-                        .readFileFromSession(details.data.sessionId, file.path);
-
-                    if (data == null) {
-                      return;
-                    }
-
-                    data.read().listen((chunk) async {
-                      final f = await session.sftpClient!.open(
-                        [...currentDirectory.value!, file.fileName].join('/'),
-                        mode:
-                            SftpFileOpenMode.create |
-                            SftpFileOpenMode.write |
-                            SftpFileOpenMode.truncate,
-                      );
-                      await f.writeBytes(chunk);
-                    });
+                        .transferSftp(
+                          source: session,
+                          destination: ref
+                              .read(sessionProvider.notifier)
+                              .getSessionById(details.data.sessionId)!,
+                          sourcePath: fileEntry.value.path,
+                          localPath: [
+                            ...?currentDirectory.value,
+                            fileEntry.value.fileName,
+                          ].join('/'),
+                        )
+                        .listen((p) => setQueuedFileProgress(index, p))
+                        .onDone(() async => setQueuedFileProgress(index, null));
                   }
                 },
                 builder: (context, data, _) {
@@ -825,18 +891,6 @@ class _SftpSessionPageState extends ConsumerState<SftpSessionPage>
                                       )
                                     : col.prefixBuilder!.call(file),
                                 Expanded(child: text),
-                                if (isQueuedFile)
-                                  SizedBox(
-                                    width: 50,
-                                    child: ValueListenableBuilder(
-                                      valueListenable:
-                                          queuedFiles.value[index]!,
-                                      builder: (context, value, _) =>
-                                          FDeterminateProgress(
-                                            value: value.progress ?? 0,
-                                          ),
-                                    ),
-                                  ),
                                 if (isModifiedFile) ...[
                                   FButton.icon(
                                     onPress: () {}, // TODO
@@ -916,16 +970,15 @@ class _SftpSessionPageState extends ConsumerState<SftpSessionPage>
                                     child: Draggable<_SftpDragData>(
                                       data: _SftpDragData(
                                         sessionId: session.id,
-                                        files: selectedFiles.value
-                                            .map(
-                                              (i) => _QueuedFile(
-                                                path: [
-                                                  ...?currentDirectory.value,
-                                                  files[i].filename,
-                                                ].join('/'),
-                                              ),
-                                            )
-                                            .toList(),
+                                        files: {
+                                          for (final i in selectedFiles.value)
+                                            i: _QueuedFile(
+                                              path: [
+                                                ...?currentDirectory.value,
+                                                files[i].filename,
+                                              ].join('/'),
+                                            ),
+                                        },
                                       ),
                                       onDragStarted: () {
                                         final isPartOfSelection = selectedFiles
