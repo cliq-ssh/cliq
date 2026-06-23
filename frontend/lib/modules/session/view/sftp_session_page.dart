@@ -596,6 +596,7 @@ class _SftpSessionPageState extends ConsumerState<SftpSessionPage>
             ),
             Expanded(
               child: DragTarget<_SftpDragData>(
+                onWillAcceptWithDetails: (details) => details.data.sessionId != session.id,
                 onAcceptWithDetails: (details) {
                   print(
                     'Dropped files: ${details.data.files.map((f) => f.filename).join(', ')}',
@@ -816,31 +817,38 @@ class _SftpSessionPageState extends ConsumerState<SftpSessionPage>
                             for (final col in _SftpColumn.values)
                               if (visibleColumns.value.contains(col))
                                 .new(
-                                  child: Draggable<_SftpDragData>(
-                                    data: _SftpDragData(
-                                      sessionId: session.id,
-                                      files: selectedFiles.value
-                                          .map(
-                                            (i) => (
-                                              hostPath: [
-                                                ...?currentDirectory.value,
-                                                files[i].filename,
-                                              ].join('/'),
-                                              filename: files[i].filename,
-                                            ),
-                                          )
-                                          .toList(),
-                                    ),
-                                    feedback: buildDragFeedback(),
-                                    onDragStarted: () {
-                                      final isPartOfSelection = selectedFiles
-                                          .value
-                                          .contains(index);
-                                      if (!isPartOfSelection) {
+                                  child: Listener(
+                                    onPointerDown: (_) {
+                                      if (!selectedFiles.value.contains(index)) {
                                         selectedFiles.value = {index};
                                       }
                                     },
-                                    child: buildCell(col),
+                                    child: Draggable<_SftpDragData>(
+                                      data: _SftpDragData(
+                                        sessionId: session.id,
+                                        files: selectedFiles.value
+                                            .map(
+                                              (i) => (
+                                                hostPath: [
+                                                  ...?currentDirectory.value,
+                                                  files[i].filename,
+                                                ].join('/'),
+                                                filename: files[i].filename,
+                                              ),
+                                            )
+                                            .toList(),
+                                      ),
+                                      feedback: buildDragFeedback(),
+                                      onDragStarted: () {
+                                        final isPartOfSelection = selectedFiles
+                                            .value
+                                            .contains(index);
+                                        if (!isPartOfSelection) {
+                                          selectedFiles.value = {index};
+                                        }
+                                      },
+                                      child: buildCell(col),
+                                    ),
                                   ),
                                 ),
                           ],

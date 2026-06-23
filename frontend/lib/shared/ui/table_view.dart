@@ -58,8 +58,15 @@ class _TableRow extends StatefulWidget {
 
 class _TableRowState extends State<_TableRow> {
   int? _focused;
+  late int _lastClickMilliseconds;
 
   static const double _resizeHandleWidth = 18;
+
+  @override
+  void initState() {
+    super.initState();
+    _lastClickMilliseconds = DateTime.now().millisecondsSinceEpoch;
+  }
 
   @override
   void didChangeDependencies() {
@@ -162,8 +169,16 @@ class _TableRowState extends State<_TableRow> {
               Positioned.fill(
                 child: GestureDetector(
                   behavior: .opaque,
-                  onTap: () => onTap(index),
-                  onDoubleTap: () => onDoubleTap(index),
+                  onPanStart: (_) => onTap(index),
+                  onTapDown: (_) {
+                    final int currMills = DateTime.now().millisecondsSinceEpoch;
+                    if ((currMills - _lastClickMilliseconds) < 300) {
+                      onDoubleTap(index);
+                    } else {
+                      onTap(index);
+                    }
+                    setState(() => _lastClickMilliseconds = currMills);
+                  },
                   child: Padding(
                     padding: effectivePadding,
                     child: Align(
