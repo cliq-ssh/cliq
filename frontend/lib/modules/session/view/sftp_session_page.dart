@@ -785,7 +785,10 @@ class _SftpSessionPageState extends ConsumerState<SftpSessionPage>
 
                     final index = fileEntry.key;
 
-                    addQueuedFile(index, _QueuedFile(path: fileEntry.value.path));
+                    addQueuedFile(
+                      index,
+                      _QueuedFile(path: fileEntry.value.path),
+                    );
                     setQueuedFileProgress(index, 0);
 
                     ref
@@ -802,7 +805,11 @@ class _SftpSessionPageState extends ConsumerState<SftpSessionPage>
                           ].join('/'),
                         )
                         .listen((p) => setQueuedFileProgress(index, p))
-                        .onDone(() async => setQueuedFileProgress(index, null));
+                        .onDone(() {
+                          setQueuedFileProgress(index, null);
+                          // refresh directory
+                          currentDirectory.value = [...?currentDirectory.value];
+                        });
                   }
                 },
                 builder: (context, data, _) {
