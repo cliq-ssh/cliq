@@ -470,6 +470,50 @@ class _SftpSessionPageState extends ConsumerState<SftpSessionPage>
       isLoading.value = false;
     }
 
+    cleanupModified(SftpName file, String id) {
+      final modifiedFile = modifiedFiles.value[id];
+      if (modifiedFile == null) return;
+
+      // delete local file
+      if (modifiedFile.tempPath != null) {
+        final tempFile = File(modifiedFile.tempPath!);
+        if (tempFile.existsSync()) {
+          debugPrint('Deleting temp file: ${tempFile.path}');
+          tempFile.deleteSync();
+        }
+      }
+
+      modifiedFiles.value = {...modifiedFiles.value..remove(id)};
+    }
+
+    uploadModified(SftpName file, String id) {
+      final modifiedFile = modifiedFiles.value[id];
+      if (modifiedFile == null) return;
+      debugPrint(
+        'Uploading modified file: ${modifiedFile.tempPath} to ${modifiedFile.path}',
+      );
+
+      addQueuedFile(id, _QueuedFile(path: modifiedFile.path));
+      ref
+          .read(sessionProvider.notifier)
+          .transferSftp(
+            localPath: modifiedFiles.value[id]!.tempPath!,
+            destination: session,
+            destinationPath: [
+              ...?currentDirectory.value,
+              file.filename,
+            ].join('/'),
+          )
+          .listen((p) => setQueuedFileProgress(id, p))
+          .onDone(() {
+            cleanupModified(file, id);
+            setQueuedFileProgress(id, null);
+
+            // refresh directory
+            currentDirectory.value = [...?currentDirectory.value];
+          });
+    }
+
     isHiddenFile(SftpName file) {
       if (file.filename.isEmpty || file.filename == '..') return false;
       return file.filename.startsWith('.');
@@ -693,7 +737,7 @@ class _SftpSessionPageState extends ConsumerState<SftpSessionPage>
                                             Text(
                                               '${((file.progress ?? 0) * 100).toStringAsFixed(1)}%',
                                             ),
-                                            // TODO: speed, ETA
+                                            // TODO: correct file icon, speed, ETA, upload/download/transfer?
                                             SizedBox(
                                               width: 100,
                                               child: FDeterminateProgress(
@@ -734,13 +778,9 @@ class _SftpSessionPageState extends ConsumerState<SftpSessionPage>
                 onWillAcceptWithDetails: (details) =>
                     details.data.sessionId != session.id,
                 onAcceptWithDetails: (details) async {
-                  print(
-                    'Dropped files: ${details.data.files.values.map((f) => f.path).join(', ')}',
-                  );
-
                   for (final fileEntry in details.data.files.entries) {
-                    print(
-                      'Moving file from source:${fileEntry.value.path} to dest:${[...?currentDirectory.value, fileEntry.value.fileName].join('/')}',
+                    debugPrint(
+                      'Transferring file from source ${fileEntry.value.path} to destination ${[...?currentDirectory.value, fileEntry.value.fileName].join('/')}',
                     );
 
                     final index = fileEntry.key;
@@ -935,13 +975,13 @@ class _SftpSessionPageState extends ConsumerState<SftpSessionPage>
                                       )
                                     : col.prefixBuilder!.call(file),
                                 Expanded(child: text),
-                                if (isModified) ...[
+                                if (isModified && !isQueued) ...[
                                   FButton.icon(
-                                    onPress: () {}, // TODO
+                                    onPress: () => uploadModified(file, id),
                                     child: Icon(LucideIcons.upload),
                                   ),
                                   FButton.icon(
-                                    onPress: () {}, // TODO
+                                    onPress: () => cleanupModified(file, id),
                                     variant: .destructive,
                                     child: Icon(LucideIcons.x),
                                   ),
@@ -951,22 +991,28 @@ class _SftpSessionPageState extends ConsumerState<SftpSessionPage>
                           }
 
                           if (col == .size && isModified) {
-                            return Text.rich(
-                              TextSpan(
-                                text: col.valueBuilder.call(file),
-                                children: [
-                                  TextSpan(
-                                    text:
-                                        ' (${TextUtils.formatBytes(0)})', // TODO
-                                    style: TextStyle(
-                                      color: context.theme.colors.primary,
-                                    ),
-                                  ),
-                                ],
+                            return FutureBuilder(
+                              future: File(
+                                modifiedFiles.value[id]!.tempPath!,
+                              ).length(),
+                              builder: (_, snap) => Text.rich(
+                                TextSpan(
+                                  text: col.valueBuilder.call(file),
+                                  children: [
+                                    if (snap.hasData)
+                                      TextSpan(
+                                        text:
+                                            ' (${TextUtils.formatBytes(snap.data as int)})',
+                                        style: TextStyle(
+                                          color: context.theme.colors.primary,
+                                        ),
+                                      ),
+                                  ],
+                                ),
+                                overflow: .fade,
+                                softWrap: false,
+                                style: fileStyle,
                               ),
-                              overflow: .fade,
-                              softWrap: false,
-                              style: fileStyle,
                             );
                           }
 

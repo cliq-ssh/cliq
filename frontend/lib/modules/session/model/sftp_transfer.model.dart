@@ -97,8 +97,9 @@ Future<void> sftpTransferIsolate(SftpTransferParams p) async {
       pipe.read.map((chunk) {
         final bytes = Uint8List.fromList(chunk);
         transferred += bytes.length;
-        if (totalBytes > 0)
+        if (totalBytes > 0) {
           p.sendPort.send((transferred / totalBytes).clamp(0.0, 0.99));
+        }
         return bytes;
       }),
     );
