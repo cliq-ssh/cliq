@@ -131,7 +131,7 @@ enum _SftpColumn {
 
 class _SftpDragData {
   final String sessionId;
-  final Map<int, _QueuedFile> files;
+  final Map<String, _QueuedFile> files;
 
   const _SftpDragData({required this.sessionId, required this.files});
 }
@@ -145,9 +145,7 @@ class _QueuedFile {
 
   String get fileName => path.split('/').last;
 
-  String withPath(List<String> currentDirectory) {
-    return [...currentDirectory, fileName].join('/');
-  }
+  String getFileId(String sessionId) => '$sessionId:$path';
 
   _QueuedFile copyWith({String? path, double? progress}) {
     return _QueuedFile(
@@ -213,11 +211,11 @@ class _SftpSessionPageState extends ConsumerState<SftpSessionPage>
     final currentDirectory = useState<List<String>?>([]);
     final currentFiles = useState<List<SftpName>?>(null);
 
-    final selectedFiles = useState<Set<int>>({});
+    final selectedFilesIds = useState<Set<String>>({});
 
-    final queuedFiles = useState<Map<int, ValueNotifier<_QueuedFile>>>({});
+    final queuedFiles = useState<Map<String, ValueNotifier<_QueuedFile>>>({});
     // modified file data that needs to be confirmed by the user before writing
-    final modifiedFiles = useState<Map<int, _QueuedLocallyCachedFile>>({});
+    final modifiedFiles = useState<Map<String, _QueuedLocallyCachedFile>>({});
 
     final tempDir = useMemoized(
       () => Directory.systemTemp.createTempSync('cliq_sftp_${session.id}'),
@@ -341,24 +339,29 @@ class _SftpSessionPageState extends ConsumerState<SftpSessionPage>
       return null;
     }, [queuedFiles.value]);
 
+    getFileIdFromSftpName(SftpName file) {
+      return '${session.id}:${[...?currentDirectory.value, file.filename].join('/')}';
+    }
+
     // helper for preventing certain actions while loading
     onAction(VoidCallback func) => isLoading.value ? null : func;
 
-    setQueuedFileProgress(int index, double? progress) {
+    setQueuedFileProgress(String id, double? progress) {
       if (progress == null || progress < 0 || progress >= 1) {
-        queuedFiles.value[index]?.dispose();
-        queuedFiles.value = {...queuedFiles.value..remove(index)};
+        queuedFiles.value[id]?.dispose();
+        queuedFiles.value = {...queuedFiles.value..remove(id)};
         return;
       }
 
-      if (!queuedFiles.value.containsKey(index)) return;
-      queuedFiles.value[index]!.value = queuedFiles.value[index]!.value
-          .copyWith(progress: progress);
+      if (!queuedFiles.value.containsKey(id)) return;
+      queuedFiles.value[id]!.value = queuedFiles.value[id]!.value.copyWith(
+        progress: progress,
+      );
     }
 
-    addQueuedFile(int index, _QueuedFile file) {
-      queuedFiles.value = {...queuedFiles.value, index: ValueNotifier(file)};
-      setQueuedFileProgress(index, 0);
+    addQueuedFile(String id, _QueuedFile file) {
+      queuedFiles.value = {...queuedFiles.value, id: ValueNotifier(file)};
+      setQueuedFileProgress(id, 0);
     }
 
     onFolderPress(SftpName file) async {
@@ -372,12 +375,13 @@ class _SftpSessionPageState extends ConsumerState<SftpSessionPage>
             )
             ..trim();
 
+      selectedFilesIds.value = {};
       currentDirectory.value = path == '/' ? [''] : path.split('/');
       navigateBackBuffer.value = null;
       isLoading.value = false;
     }
 
-    onFilePress(SftpName file, int index) async {
+    onFilePress(SftpName file, String id) async {
       if (file.filename.isEmpty) {
         return;
       }
@@ -387,7 +391,7 @@ class _SftpSessionPageState extends ConsumerState<SftpSessionPage>
           '${tempDir.path}${Platform.pathSeparator}${file.filename}';
       File tempFile = File(fullName);
 
-      addQueuedFile(index, _QueuedLocallyCachedFile(path: tempFile.path));
+      addQueuedFile(id, _QueuedLocallyCachedFile(path: tempFile.path));
 
       attemptOpenAndWatch(File file) async {
         // open with default app
@@ -417,11 +421,11 @@ class _SftpSessionPageState extends ConsumerState<SftpSessionPage>
             try {
               final newContent = await File(event.path).readAsBytes();
               if (listEquals(newContent, originalContent)) {
-                modifiedFiles.value = {...modifiedFiles.value..remove(index)};
+                modifiedFiles.value = {...modifiedFiles.value..remove(id)};
               } else {
                 modifiedFiles.value = {
                   ...modifiedFiles.value,
-                  index: _QueuedLocallyCachedFile(
+                  id: _QueuedLocallyCachedFile(
                     path: fullPath,
                     tempPath: tempFile.path,
                   ),
@@ -432,7 +436,7 @@ class _SftpSessionPageState extends ConsumerState<SftpSessionPage>
         });
       }
 
-      setQueuedFileProgress(index, 0);
+      setQueuedFileProgress(id, 0);
 
       ref
           .read(sessionProvider.notifier)
@@ -441,14 +445,14 @@ class _SftpSessionPageState extends ConsumerState<SftpSessionPage>
             sourcePath: fullPath,
             localPath: tempFile.path,
           )
-          .listen((p) => setQueuedFileProgress(index, p))
+          .listen((p) => setQueuedFileProgress(id, p))
           .onDone(() async {
-            setQueuedFileProgress(index, null);
+            setQueuedFileProgress(id, null);
             await attemptOpenAndWatch(tempFile);
           });
     }
 
-    onSymlinkPress(SftpName file, int index) async {
+    onSymlinkPress(SftpName file, String id) async {
       if (!file.attr.isSymbolicLink || file.filename.isEmpty) return;
       isLoading.value = true;
 
@@ -460,17 +464,10 @@ class _SftpSessionPageState extends ConsumerState<SftpSessionPage>
         currentDirectory.value = absolutePath.split('/');
         navigateBackBuffer.value = null;
       } else {
-        await onFilePress(file, index);
+        await onFilePress(file, id);
       }
 
       isLoading.value = false;
-    }
-
-    cleanupFile(int index, _QueuedLocallyCachedFile file) {
-      try {
-        queuedFiles.value = {...queuedFiles.value..remove(index)};
-        if (file.tempPath != null) File(file.tempPath!).deleteSync();
-      } catch (_) {}
     }
 
     isHiddenFile(SftpName file) {
@@ -660,15 +657,33 @@ class _SftpSessionPageState extends ConsumerState<SftpSessionPage>
                           .group(
                             divider: .full,
                             children: [
-                              for (final queuedFile
+                              for (final queuedFileIds
                                   in queuedFiles.value.entries)
                                 .item(
-                                  title: Text(queuedFile.value.value.fileName),
-                                  prefix: _SftpColumn.name.prefixBuilder!.call(
-                                    currentFiles.value![queuedFile.key],
+                                  title: Text(
+                                    queuedFileIds.value.value.fileName,
+                                  ),
+                                  prefix: Builder(
+                                    builder: (context) {
+                                      final file = currentFiles.value!.where(
+                                        (f) =>
+                                            getFileIdFromSftpName(f) ==
+                                            queuedFileIds.key,
+                                      );
+
+                                      if (file.isEmpty) {
+                                        // TODO: save file type when downloading
+                                        return Icon(
+                                          LucideIcons.fileQuestionMark,
+                                        );
+                                      }
+
+                                      return _SftpColumn.name.prefixBuilder!
+                                          .call(file.first);
+                                    },
                                   ),
                                   subtitle: ValueListenableBuilder<_QueuedFile>(
-                                    valueListenable: queuedFile.value,
+                                    valueListenable: queuedFileIds.value,
                                     builder: (_, file, _) {
                                       return Padding(
                                         padding: const .symmetric(vertical: 4),
@@ -775,6 +790,17 @@ class _SftpSessionPageState extends ConsumerState<SftpSessionPage>
                       );
                     });
 
+                  final fileToIndex = <String, int>{};
+                  for (var i = 0; i < files.length; i++) {
+                    fileToIndex[getFileIdFromSftpName(files[i])] = i;
+                  }
+
+                  getFileFromId(String id) {
+                    final index = fileToIndex[id];
+                    if (index == null) return null;
+                    return files[index];
+                  }
+
                   final visibleCols = _SftpColumn.values
                       .where((c) => visibleColumns.value.contains(c))
                       .toList();
@@ -797,62 +823,81 @@ class _SftpSessionPageState extends ConsumerState<SftpSessionPage>
                             !sortColumn.value!.$2,
                           );
                         }
-                        selectedFiles.value = {};
+                        selectedFilesIds.value = {};
                       },
                       rowCount: files.length,
-                      selectedRows: selectedFiles.value.toList(growable: false),
+                      selectedRows: selectedFilesIds.value
+                          .map((id) => fileToIndex[id])
+                          .whereType<int>()
+                          .toList(growable: false),
                       onRowTap: (index) {
+                        final file = files[index];
+
                         // ignore non-selectable files
-                        if (files[index].filename.isEmpty ||
+                        if (file.filename.isEmpty ||
                             (_ignoredSelectableFilenames.contains(
-                                  files[index].filename,
+                                  file.filename,
                                 ) &&
                                 files.length > 1)) {
-                          selectedFiles.value = {};
+                          selectedFilesIds.value = {};
                           return;
                         }
 
+                        final id = getFileIdFromSftpName(file);
+
                         // shift selects range
                         if (HardwareKeyboard.instance.isShiftPressed &&
-                            selectedFiles.value.isNotEmpty) {
+                            selectedFilesIds.value.isNotEmpty) {
                           // get first selected index and select all to tapped index
-                          final firstIndex = selectedFiles.value.first;
+                          final firstIndex =
+                              fileToIndex[selectedFilesIds.value.first]!;
                           final range = firstIndex <= index
-                              ? [for (var i = firstIndex; i <= index; i++) i]
-                              : [for (var i = index; i <= firstIndex; i++) i];
-                          selectedFiles.value = {firstIndex, ...range};
+                              ? [
+                                  for (var i = firstIndex; i <= index; i++)
+                                    getFileIdFromSftpName(files[i]),
+                                ]
+                              : [
+                                  for (var i = index; i <= firstIndex; i++)
+                                    getFileIdFromSftpName(files[i]),
+                                ];
+                          selectedFilesIds.value = {
+                            selectedFilesIds.value.first,
+                            ...range,
+                          };
                           return;
                         }
 
                         // ctrl/cmd toggles selection
                         if (HardwareKeyboard.instance.isMetaPressed ||
                             HardwareKeyboard.instance.isControlPressed) {
-                          if (selectedFiles.value.contains(index)) {
-                            selectedFiles.value = {
-                              ...selectedFiles.value..remove(index),
+                          if (selectedFilesIds.value.contains(id)) {
+                            selectedFilesIds.value = {
+                              ...selectedFilesIds.value..remove(id),
                             };
                           } else {
-                            selectedFiles.value = {
-                              ...selectedFiles.value..add(index),
+                            selectedFilesIds.value = {
+                              ...selectedFilesIds.value..add(id),
                             };
                           }
                           return;
                         }
 
-                        selectedFiles.value = {index};
+                        selectedFilesIds.value = {id};
                       },
                       onRowDoubleTap: (index) {
                         final file = files[index];
-                        selectedFiles.value = {if (file.attr.isFile) index};
+                        final id = getFileIdFromSftpName(file);
+                        selectedFilesIds.value = {if (file.attr.isFile) id};
                         final _ = switch (file.attr.type) {
                           .directory => onFolderPress(file),
-                          .regularFile => onFilePress(file, index),
-                          .symbolicLink => onSymlinkPress(file, index),
+                          .regularFile => onFilePress(file, id),
+                          .symbolicLink => onSymlinkPress(file, id),
                           _ => null,
                         };
                       },
                       rowBuilder: (context, index) {
                         final file = files[index];
+                        final id = getFileIdFromSftpName(file);
 
                         final isHidden = isHiddenFile(file);
                         if (isHidden && !showHiddenFiles.value) {
@@ -873,17 +918,16 @@ class _SftpSessionPageState extends ConsumerState<SftpSessionPage>
                             style: fileStyle,
                           );
 
-                          final isQueuedFile = queuedFiles.value.containsKey(
-                            index,
+                          final isQueued = queuedFiles.value.containsKey(id);
+                          final isModified = modifiedFiles.value.containsKey(
+                            id,
                           );
-                          final isModifiedFile = modifiedFiles.value
-                              .containsKey(index);
 
                           if (col.prefixBuilder != null) {
                             return Row(
                               spacing: 8,
                               children: [
-                                isQueuedFile
+                                isQueued
                                     ? SizedBox(
                                         width: 16,
                                         height: 16,
@@ -891,16 +935,13 @@ class _SftpSessionPageState extends ConsumerState<SftpSessionPage>
                                       )
                                     : col.prefixBuilder!.call(file),
                                 Expanded(child: text),
-                                if (isModifiedFile) ...[
+                                if (isModified) ...[
                                   FButton.icon(
                                     onPress: () {}, // TODO
                                     child: Icon(LucideIcons.upload),
                                   ),
                                   FButton.icon(
-                                    onPress: () => cleanupFile(
-                                      index,
-                                      modifiedFiles.value[index]!,
-                                    ),
+                                    onPress: () {}, // TODO
                                     variant: .destructive,
                                     child: Icon(LucideIcons.x),
                                   ),
@@ -909,7 +950,7 @@ class _SftpSessionPageState extends ConsumerState<SftpSessionPage>
                             );
                           }
 
-                          if (col == .size && isModifiedFile) {
+                          if (col == .size && isModified) {
                             return Text.rich(
                               TextSpan(
                                 text: col.valueBuilder.call(file),
@@ -941,11 +982,16 @@ class _SftpSessionPageState extends ConsumerState<SftpSessionPage>
                                 ignoring: true,
                                 child: FTileGroup(
                                   children: [
-                                    for (final file in selectedFiles.value)
+                                    for (final id in selectedFilesIds.value)
                                       FTile(
-                                        title: Text(files[file].filename),
-                                        prefix: _SftpColumn.name.prefixBuilder!
-                                            .call(files[file]),
+                                        title: Text(
+                                          getFileFromId(id)?.filename ??
+                                              'Unknown',
+                                        ),
+                                        prefix: getFileFromId(id) == null
+                                            ? null
+                                            : _SftpColumn.name.prefixBuilder!
+                                                  .call(getFileFromId(id)!),
                                       ),
                                   ],
                                 ),
@@ -961,35 +1007,49 @@ class _SftpSessionPageState extends ConsumerState<SftpSessionPage>
                                 .new(
                                   child: Listener(
                                     onPointerDown: (_) {
-                                      if (!selectedFiles.value.contains(
-                                        index,
+                                      if (!selectedFilesIds.value.contains(
+                                        id,
                                       )) {
-                                        selectedFiles.value = {index};
+                                        selectedFilesIds.value = {id};
                                       }
                                     },
-                                    child: Draggable<_SftpDragData>(
-                                      data: _SftpDragData(
-                                        sessionId: session.id,
-                                        files: {
-                                          for (final i in selectedFiles.value)
-                                            i: _QueuedFile(
-                                              path: [
-                                                ...?currentDirectory.value,
-                                                files[i].filename,
-                                              ].join('/'),
-                                            ),
-                                        },
-                                      ),
-                                      onDragStarted: () {
-                                        final isPartOfSelection = selectedFiles
-                                            .value
-                                            .contains(index);
-                                        if (!isPartOfSelection) {
-                                          selectedFiles.value = {index};
+                                    child: Builder(
+                                      builder: (context) {
+                                        final selected =
+                                            <String, _QueuedFile>{};
+                                        for (final id
+                                            in selectedFilesIds.value) {
+                                          final file = getFileFromId(id);
+                                          if (file != null) {
+                                            final fullPath = [
+                                              ...?currentDirectory.value,
+                                              file.filename,
+                                            ].join('/');
+
+                                            selected[id] = _QueuedFile(
+                                              path: fullPath,
+                                            );
+                                          }
                                         }
+
+                                        return Draggable<_SftpDragData>(
+                                          data: _SftpDragData(
+                                            sessionId: session.id,
+                                            files: selected,
+                                          ),
+                                          onDragStarted: () {
+                                            final isPartOfSelection =
+                                                selectedFilesIds.value.contains(
+                                                  id,
+                                                );
+                                            if (!isPartOfSelection) {
+                                              selectedFilesIds.value = {id};
+                                            }
+                                          },
+                                          feedback: buildDragFeedback(),
+                                          child: buildCell(col),
+                                        );
                                       },
-                                      feedback: buildDragFeedback(),
-                                      child: buildCell(col),
                                     ),
                                   ),
                                 ),
