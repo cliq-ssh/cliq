@@ -131,24 +131,53 @@ enum _SftpColumn {
 
 class _SftpDragData {
   final String sessionId;
-  final List<({String hostPath, String filename})> files;
+  final List<_QueuedFile> files;
 
   const _SftpDragData({required this.sessionId, required this.files});
 }
 
-class _ModifiedFile {
+class _QueuedFile {
   /// The file path on the remote host
-  final String hostPath;
+  final String path;
+  final double? progress;
 
-  /// The file path on the local machine (temp directory)
-  final String tempPath;
-  final Uint8List data;
+  const _QueuedFile({required this.path, this.progress});
 
-  _ModifiedFile({
-    required this.hostPath,
-    required this.tempPath,
-    required this.data,
+  String get fileName => path.split('/').last;
+
+  String withPath(List<String> currentDirectory) {
+    return [...currentDirectory, fileName].join('/');
+  }
+
+  _QueuedFile copyWith({String? path, double? progress}) {
+    return _QueuedFile(
+      path: path ?? this.path,
+      progress: progress ?? this.progress,
+    );
+  }
+}
+
+class _QueuedLocallyCachedFile extends _QueuedFile {
+  final String? tempPath;
+
+  const _QueuedLocallyCachedFile({
+    required super.path,
+    super.progress,
+    this.tempPath,
   });
+
+  @override
+  _QueuedLocallyCachedFile copyWith({
+    String? path,
+    double? progress,
+    String? tempPath,
+  }) {
+    return _QueuedLocallyCachedFile(
+      path: path ?? this.path,
+      progress: progress ?? this.progress,
+      tempPath: tempPath ?? this.tempPath,
+    );
+  }
 }
 
 const _ignoredFilenames = {'.'};
@@ -186,8 +215,9 @@ class _SftpSessionPageState extends ConsumerState<SftpSessionPage>
 
     final selectedFiles = useState<Set<int>>({});
 
-    final loadingFiles = useState<Set<int>>({});
-    final updatedFiles = useState<Map<int, _ModifiedFile>>({});
+    final queuedFiles = useState<Map<int, ValueNotifier<_QueuedFile>>>({});
+    // modified file data that needs to be confirmed by the user before writing
+    final modifiedFiles = useState<Map<int, _QueuedLocallyCachedFile>>({});
 
     final tempDir = useMemoized(
       () => Directory.systemTemp.createTempSync('cliq_sftp_${session.id}'),
@@ -299,6 +329,23 @@ class _SftpSessionPageState extends ConsumerState<SftpSessionPage>
     // helper for preventing certain actions while loading
     onAction(VoidCallback func) => isLoading.value ? null : func;
 
+    setQueuedFileProgress(int index, double? progress) {
+      if (progress == null || progress < 0 || progress >= 1) {
+        queuedFiles.value[index]?.dispose();
+        queuedFiles.value = {...queuedFiles.value..remove(index)};
+        return;
+      }
+
+      if (!queuedFiles.value.containsKey(index)) return;
+      queuedFiles.value[index]!.value = queuedFiles.value[index]!.value
+          .copyWith(progress: progress);
+    }
+
+    addQueuedFile(int index, _QueuedFile file) {
+      queuedFiles.value = {...queuedFiles.value, index: ValueNotifier(file)};
+      setQueuedFileProgress(index, 0);
+    }
+
     onFolderPress(SftpName file) async {
       if (!file.attr.isDirectory || file.filename.isEmpty) {
         return;
@@ -320,73 +367,77 @@ class _SftpSessionPageState extends ConsumerState<SftpSessionPage>
         return;
       }
 
-      loadingFiles.value = {...loadingFiles.value, index};
-
       final fullPath = [...?currentDirectory.value, file.filename].join('/');
-
       final fullName =
           '${tempDir.path}${Platform.pathSeparator}${file.filename}';
       File tempFile = File(fullName);
-      final originalContent = await (await session.sftpClient!.open(
-        fullPath,
-      )).readBytes();
-      await tempFile.writeAsBytes(originalContent);
 
-      // open with default app
-      final result = await OpenAppFile.open(tempFile.path);
-      if (result.type == .noAppToOpen || result.type == .error) {
-        // add .txt extension and try again
-        final tempFileWithExt = File('${tempFile.path}.txt');
-        await tempFile.copy(tempFileWithExt.path);
-        final fallbackResult = await OpenAppFile.open(tempFileWithExt.path);
-        if (fallbackResult.type == .done) {
-          tempFile = tempFileWithExt;
+      addQueuedFile(index, _QueuedLocallyCachedFile(path: tempFile.path));
+
+      attemptOpenAndWatch(File file) async {
+        // open with default app
+        final result = await OpenAppFile.open(file.path);
+        if (result.type == .noAppToOpen || result.type == .error) {
+          // add .txt extension and try again
+          final withExtension = File('${file.path}.txt');
+          await file.rename(withExtension.path);
+
+          final fallbackResult = await OpenAppFile.open(withExtension.path);
+          if (fallbackResult.type == .done) {
+            file = withExtension;
+
+            // update temp file name in state
+            // TODO:?
+          }
         }
+
+        final originalContent = await file.readAsBytes();
+
+        file.parent.watch().listen((event) async {
+          if (event.path != tempFile.path) return;
+          if (event.type == FileSystemEvent.create ||
+              event.type == FileSystemEvent.modify) {
+            await Future.delayed(const Duration(milliseconds: 100));
+            try {
+              final newContent = await File(event.path).readAsBytes();
+              if (listEquals(newContent, originalContent)) {
+                modifiedFiles.value = {...modifiedFiles.value..remove(index)};
+              } else {
+                modifiedFiles.value = {
+                  ...modifiedFiles.value,
+                  index: _QueuedLocallyCachedFile(
+                    path: fullPath,
+                    tempPath: tempFile.path,
+                  ),
+                };
+              }
+            } catch (_) {}
+          }
+        });
       }
 
-      loadingFiles.value = {...loadingFiles.value..remove(index)};
+      // stat the file to get its size
+      final attributes = await session.sftpClient!.stat(fullPath);
 
-      tempFile.parent.watch().listen((event) async {
-        if (event.path != tempFile.path) return;
-        if (event.type == FileSystemEvent.create ||
-            event.type == FileSystemEvent.modify) {
-          await Future.delayed(const Duration(milliseconds: 100));
-          try {
-            final newContent = await File(event.path).readAsBytes();
-            if (listEquals(newContent, originalContent)) {
-              updatedFiles.value = {...updatedFiles.value..remove(index)};
-            } else {
-              updatedFiles.value = {
-                ...updatedFiles.value,
-                index: _ModifiedFile(
-                  hostPath: fullPath,
-                  tempPath: tempFile.path,
-                  data: newContent,
-                ),
-              };
-            }
-          } catch (_) {}
-        }
-      });
-    }
+      setQueuedFileProgress(index, 0);
 
-    cleanupFile(int index, _ModifiedFile modifiedFile) {
-      try {
-        updatedFiles.value = {...updatedFiles.value..remove(index)};
-        File(modifiedFile.tempPath).deleteSync();
-      } catch (_) {}
-    }
-
-    writeFile(int index, _ModifiedFile modifiedFile) async {
-      final file = await session.sftpClient!.open(
-        modifiedFile.hostPath,
-        mode: SftpFileOpenMode.write | SftpFileOpenMode.truncate,
-      );
-      await file.writeBytes(modifiedFile.data);
-      cleanupFile(index, modifiedFile);
-
-      if (!context.mounted) return;
-      Commons.showToast('File ${modifiedFile.hostPath} uploaded successfully');
+      final sink = tempFile.openWrite(mode: FileMode.append);
+      await session.sftpClient!
+          .download(
+            fullPath,
+            sink,
+            maxPendingRequests: 8, // TODO: temporary solution, move to own thread.
+            onProgress: (p) {
+              final progress = (p / (attributes.size ?? 1) * 100).ceil() / 100;
+              // dont update state for the same progress value to avoid unnecessary rebuilds
+              if (queuedFiles.value[index]?.value.progress == progress) return;
+              setQueuedFileProgress(index, progress);
+            },
+          )
+          .whenComplete(() async {
+            setQueuedFileProgress(index, null);
+            return await attemptOpenAndWatch(tempFile);
+          });
     }
 
     onSymlinkPress(SftpName file, int index) async {
@@ -405,6 +456,18 @@ class _SftpSessionPageState extends ConsumerState<SftpSessionPage>
       }
 
       isLoading.value = false;
+    }
+
+    cleanupFile(int index, _QueuedLocallyCachedFile file) {
+      try {
+        queuedFiles.value = {...queuedFiles.value..remove(index)};
+        if (file.tempPath != null) File(file.tempPath!).deleteSync();
+      } catch (_) {}
+    }
+
+    isHiddenFile(SftpName file) {
+      if (file.filename.isEmpty || file.filename == '..') return false;
+      return file.filename.startsWith('.');
     }
 
     buildTableHeader(_SftpColumn col) {
@@ -430,11 +493,6 @@ class _SftpSessionPageState extends ConsumerState<SftpSessionPage>
           ],
         ),
       );
-    }
-
-    isHiddenFile(SftpName file) {
-      if (file.filename.isEmpty || file.filename == '..') return false;
-      return file.filename.startsWith('.');
     }
 
     return GenericSessionPage(
@@ -598,10 +656,31 @@ class _SftpSessionPageState extends ConsumerState<SftpSessionPage>
               child: DragTarget<_SftpDragData>(
                 onWillAcceptWithDetails: (details) =>
                     details.data.sessionId != session.id,
-                onAcceptWithDetails: (details) {
+                onAcceptWithDetails: (details) async {
                   print(
-                    'Dropped files: ${details.data.files.map((f) => f.filename).join(', ')}',
+                    'Dropped files: ${details.data.files.map((f) => f.path).join(', ')}',
                   );
+
+                  for (final file in details.data.files) {
+                    final data = await ref
+                        .read(sessionProvider.notifier)
+                        .readFileFromSession(details.data.sessionId, file.path);
+
+                    if (data == null) {
+                      return;
+                    }
+
+                    data.read().listen((chunk) async {
+                      final f = await session.sftpClient!.open(
+                        [...currentDirectory.value!, file.fileName].join('/'),
+                        mode:
+                            SftpFileOpenMode.create |
+                            SftpFileOpenMode.write |
+                            SftpFileOpenMode.truncate,
+                      );
+                      await f.writeBytes(chunk);
+                    });
+                  }
                 },
                 builder: (context, data, _) {
                   final files = (currentFiles.value ?? [])
@@ -728,18 +807,17 @@ class _SftpSessionPageState extends ConsumerState<SftpSessionPage>
                             style: fileStyle,
                           );
 
-                          final isLoadingFile = loadingFiles.value.contains(
+                          final isQueuedFile = queuedFiles.value.containsKey(
                             index,
                           );
-                          final isModifiedFile = updatedFiles.value.containsKey(
-                            index,
-                          );
+                          final isModifiedFile = modifiedFiles.value
+                              .containsKey(index);
 
                           if (col.prefixBuilder != null) {
                             return Row(
                               spacing: 8,
                               children: [
-                                isLoadingFile
+                                isQueuedFile
                                     ? SizedBox(
                                         width: 16,
                                         height: 16,
@@ -747,18 +825,27 @@ class _SftpSessionPageState extends ConsumerState<SftpSessionPage>
                                       )
                                     : col.prefixBuilder!.call(file),
                                 Expanded(child: text),
+                                if (isQueuedFile)
+                                  SizedBox(
+                                    width: 50,
+                                    child: ValueListenableBuilder(
+                                      valueListenable:
+                                          queuedFiles.value[index]!,
+                                      builder: (context, value, _) =>
+                                          FDeterminateProgress(
+                                            value: value.progress ?? 0,
+                                          ),
+                                    ),
+                                  ),
                                 if (isModifiedFile) ...[
                                   FButton.icon(
-                                    onPress: () => writeFile(
-                                      index,
-                                      updatedFiles.value[index]!,
-                                    ),
+                                    onPress: () {}, // TODO
                                     child: Icon(LucideIcons.upload),
                                   ),
                                   FButton.icon(
                                     onPress: () => cleanupFile(
                                       index,
-                                      updatedFiles.value[index]!,
+                                      modifiedFiles.value[index]!,
                                     ),
                                     variant: .destructive,
                                     child: Icon(LucideIcons.x),
@@ -775,7 +862,7 @@ class _SftpSessionPageState extends ConsumerState<SftpSessionPage>
                                 children: [
                                   TextSpan(
                                     text:
-                                        ' (${TextUtils.formatBytes(updatedFiles.value[index]!.data.length)})',
+                                        ' (${TextUtils.formatBytes(0)})', // TODO
                                     style: TextStyle(
                                       color: context.theme.colors.primary,
                                     ),
@@ -831,12 +918,11 @@ class _SftpSessionPageState extends ConsumerState<SftpSessionPage>
                                         sessionId: session.id,
                                         files: selectedFiles.value
                                             .map(
-                                              (i) => (
-                                                hostPath: [
+                                              (i) => _QueuedFile(
+                                                path: [
                                                   ...?currentDirectory.value,
                                                   files[i].filename,
                                                 ].join('/'),
-                                                filename: files[i].filename,
                                               ),
                                             )
                                             .toList(),

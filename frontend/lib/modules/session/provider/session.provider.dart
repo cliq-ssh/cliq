@@ -96,6 +96,15 @@ class SessionNotifier extends Notifier<SessionState> {
     );
   }
 
+  Future<SftpFile?> readFileFromSession(
+    String sessionId,
+    String filePath,
+  ) async {
+    final session = getSessionById(sessionId);
+    if (session == null || session.sftpClient == null) return null;
+    return (await session.sftpClient!.open(filePath));
+  }
+
   void closeSessionAndMaybeGo(
     NavigationShellState shellState,
     String sessionId, {
