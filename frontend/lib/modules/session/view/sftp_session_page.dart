@@ -779,6 +779,7 @@ class _SftpSessionPageState extends ConsumerState<SftpSessionPage>
                     details.data.sessionId != session.id,
                 onAcceptWithDetails: (details) async {
                   for (final fileEntry in details.data.files.entries) {
+                    // TODO: if its the same host, just copy the file instead of piping
                     debugPrint(
                       'Transferring file from source ${fileEntry.value.path} to destination ${[...?currentDirectory.value, fileEntry.value.fileName].join('/')}',
                     );
