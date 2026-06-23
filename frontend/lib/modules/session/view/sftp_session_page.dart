@@ -784,6 +784,8 @@ class _SftpSessionPageState extends ConsumerState<SftpSessionPage>
                     );
 
                     final index = fileEntry.key;
+
+                    addQueuedFile(index, _QueuedFile(path: fileEntry.value.path));
                     setQueuedFileProgress(index, 0);
 
                     ref
