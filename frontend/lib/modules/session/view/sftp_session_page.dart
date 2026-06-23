@@ -596,7 +596,8 @@ class _SftpSessionPageState extends ConsumerState<SftpSessionPage>
             ),
             Expanded(
               child: DragTarget<_SftpDragData>(
-                onWillAcceptWithDetails: (details) => details.data.sessionId != session.id,
+                onWillAcceptWithDetails: (details) =>
+                    details.data.sessionId != session.id,
                 onAcceptWithDetails: (details) {
                   print(
                     'Dropped files: ${details.data.files.map((f) => f.filename).join(', ')}',
@@ -819,7 +820,9 @@ class _SftpSessionPageState extends ConsumerState<SftpSessionPage>
                                 .new(
                                   child: Listener(
                                     onPointerDown: (_) {
-                                      if (!selectedFiles.value.contains(index)) {
+                                      if (!selectedFiles.value.contains(
+                                        index,
+                                      )) {
                                         selectedFiles.value = {index};
                                       }
                                     },
@@ -838,7 +841,6 @@ class _SftpSessionPageState extends ConsumerState<SftpSessionPage>
                                             )
                                             .toList(),
                                       ),
-                                      feedback: buildDragFeedback(),
                                       onDragStarted: () {
                                         final isPartOfSelection = selectedFiles
                                             .value
@@ -847,6 +849,7 @@ class _SftpSessionPageState extends ConsumerState<SftpSessionPage>
                                           selectedFiles.value = {index};
                                         }
                                       },
+                                      feedback: buildDragFeedback(),
                                       child: buildCell(col),
                                     ),
                                   ),
