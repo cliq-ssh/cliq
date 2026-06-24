@@ -779,7 +779,6 @@ class _SftpSessionPageState extends ConsumerState<SftpSessionPage>
                     details.data.sessionId != session.id,
                 onAcceptWithDetails: (details) async {
                   for (final fileEntry in details.data.files.entries) {
-                    // TODO: if its the same host, just copy the file instead of piping
                     debugPrint(
                       'Transferring file from source ${fileEntry.value.path} to destination ${[...?currentDirectory.value, fileEntry.value.fileName].join('/')}',
                     );
@@ -808,6 +807,8 @@ class _SftpSessionPageState extends ConsumerState<SftpSessionPage>
                         .listen((p) => setQueuedFileProgress(index, p))
                         .onDone(() {
                           setQueuedFileProgress(index, null);
+                          // TODO also refresh directory in source SftpSessionPage
+
                           // refresh directory
                           currentDirectory.value = [...?currentDirectory.value];
                         });

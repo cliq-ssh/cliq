@@ -1,9 +1,9 @@
 import 'dart:io';
-import 'dart:typed_data';
 
 import 'package:cliq/modules/session/model/sftp_transfer_params.model.dart';
 import 'package:cliq/modules/session/provider/session.provider.dart';
 import 'package:dartssh2/dartssh2.dart';
+import 'package:flutter/foundation.dart';
 
 /// Performs an SFTP transfer in an isolate, sending progress updates back to the main isolate via a [SendPort].
 /// This is put into a separate file to avoid complications with isolate spawning and dependencies.
@@ -75,12 +75,19 @@ Future<void> sftpTransferIsolate(SftpTransferParams p) async {
   }
 
   /// Transfers a file from the source SFTP server to the destination SFTP server via a temporary local file.
+  /// If both source and destination are the same host, a simple rename is performed instead of a full transfer.
   remoteToRemote() async {
     sourceClient = await connect(p.source!);
     destinationClient = await connect(p.destination!);
     final srcSftp = await sourceClient!.sftp();
     final dstSftp = await destinationClient!.sftp();
     final totalBytes = (await srcSftp.stat(p.sourcePath)).size ?? 0;
+
+    if (listEquals(p.source!.hostKey, p.destination!.hostKey)) {
+      await srcSftp.rename(p.sourcePath, p.destinationPath);
+      p.sendPort.send(1.0);
+      return;
+    }
 
     final pipe = await Pipe.create();
     final remoteFile = await dstSftp.open(

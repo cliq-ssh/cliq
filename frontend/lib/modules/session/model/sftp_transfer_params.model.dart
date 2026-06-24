@@ -1,9 +1,12 @@
 import 'dart:isolate';
+import 'dart:typed_data';
 
 class SftpConnectParams {
   final String host;
   final int port;
   final String username;
+  final Uint8List hostKey;
+
   final String? password;
   final List<String> keyPems;
 
@@ -11,6 +14,7 @@ class SftpConnectParams {
     required this.host,
     required this.port,
     required this.username,
+    required this.hostKey,
     this.password,
     this.keyPems = const [],
   });

@@ -132,10 +132,17 @@ class SessionNotifier extends Notifier<SessionState> {
           .findByIds(conn.identity?.credentialIds ?? conn.credentialIds);
       final (password, keys) =
           await CredentialService.collectAuthenticationMethods(creds);
+
+      // find hostKey for the source/destination host
+      final hostKey = await ref
+          .read(knownHostServiceProvider)
+          .findKeyForHost(conn.addressAndPort);
+
       return SftpConnectParams(
         host: conn.address,
         port: conn.port,
         username: conn.effectiveUsername!,
+        hostKey: hostKey!, // must exist since we're already connected
         password: password,
         keyPems: keys.map((k) => (k as dynamic).toPem() as String).toList(),
       );
