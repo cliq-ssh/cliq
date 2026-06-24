@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:cliq/modules/session/model/sftp_transfer_params.model.dart';
 import 'package:cliq/modules/session/provider/session.provider.dart';
+import 'package:cliq/modules/session/view/sftp_session_page.dart';
 import 'package:dartssh2/dartssh2.dart';
 import 'package:flutter/foundation.dart';
 
@@ -37,7 +38,9 @@ Future<void> sftpTransferIsolate(SftpTransferParams p) async {
       sink,
       onProgress: (bytes) {
         if (totalBytes > 0) {
-          p.sendPort.send((bytes / totalBytes).clamp(0.0, 0.99));
+          p.sendPort.send(
+            FileProgressData(currentBytes: bytes, totalBytes: totalBytes),
+          );
         }
       },
     );
@@ -66,7 +69,9 @@ Future<void> sftpTransferIsolate(SftpTransferParams p) async {
         final bytes = Uint8List.fromList(chunk);
         uploaded += bytes.length;
         if (totalBytes > 0) {
-          p.sendPort.send((uploaded / totalBytes).clamp(0.0, 0.99));
+          p.sendPort.send(
+            FileProgressData(currentBytes: uploaded, totalBytes: totalBytes),
+          );
         }
         return bytes;
       }),
@@ -85,7 +90,7 @@ Future<void> sftpTransferIsolate(SftpTransferParams p) async {
 
     if (listEquals(p.source!.hostKey, p.destination!.hostKey)) {
       await srcSftp.rename(p.sourcePath, p.destinationPath);
-      p.sendPort.send(1.0);
+      p.sendPort.send(FileProgressData.completed(totalBytes: totalBytes));
       return;
     }
 
@@ -105,7 +110,12 @@ Future<void> sftpTransferIsolate(SftpTransferParams p) async {
         final bytes = Uint8List.fromList(chunk);
         transferred += bytes.length;
         if (totalBytes > 0) {
-          p.sendPort.send((transferred / totalBytes).clamp(0.0, 0.99));
+          p.sendPort.send(
+            (FileProgressData(
+              currentBytes: transferred,
+              totalBytes: totalBytes,
+            )),
+          );
         }
         return bytes;
       }),
@@ -128,9 +138,9 @@ Future<void> sftpTransferIsolate(SftpTransferParams p) async {
       ),
     });
 
-    p.sendPort.send(1.0);
-  } catch (_) {
-    p.sendPort.send(-1.0);
+    p.sendPort.send(FileProgressData.completed());
+  } catch (e) {
+    p.sendPort.send(FileProgressData.error(e.toString()));
   } finally {
     sourceClient?.close();
     destinationClient?.close();

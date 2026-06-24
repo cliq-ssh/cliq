@@ -5,6 +5,7 @@ import 'dart:isolate';
 import 'package:cliq/modules/connections/model/connection_full.model.dart';
 import 'package:cliq/modules/credentials/data/credential_service.dart';
 import 'package:cliq/modules/session/model/session.state.dart';
+import 'package:cliq/modules/session/view/sftp_session_page.dart';
 import 'package:cliq/shared/ui/navigation_shell.dart';
 import 'package:cliq_term/cliq_term.dart';
 import 'package:crypto/crypto.dart';
@@ -112,7 +113,7 @@ class SessionNotifier extends Notifier<SessionState> {
   /// This runs in a separate isolate to avoid overloading the main thread
   ///
   /// Returns a stream of progress values between 0.0 and 1.0, where 1.0 indicates completion.
-  Stream<double> transferSftp({
+  Stream<FileProgressData> transferSftp({
     ShellSession? source,
     ShellSession? destination,
     String? sourcePath,
@@ -122,7 +123,7 @@ class SessionNotifier extends Notifier<SessionState> {
     assert(source != null || localPath != null);
     assert(destination != null || localPath != null);
 
-    final controller = StreamController<double>();
+    final controller = StreamController<FileProgressData>();
 
     resolveParams(ShellSession? session) async {
       if (session == null) return null;
@@ -163,18 +164,18 @@ class SessionNotifier extends Notifier<SessionState> {
       );
 
       await for (final msg in port) {
-        final progress = msg as double;
+        final data = msg as FileProgressData;
 
         // should never happen
-        if (progress < 0) {
+        if (data.error != null || data.progress < 0) {
           port.close();
           controller.addError(.new());
           break;
         }
 
-        controller.add(progress);
+        controller.add(data);
 
-        if (progress >= 1.0) {
+        if (data.progress >= 1.0) {
           port.close();
           break;
         }

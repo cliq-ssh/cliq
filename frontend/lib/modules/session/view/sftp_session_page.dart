@@ -131,49 +131,62 @@ enum _SftpColumn {
 
 class _SftpDragData {
   final String sessionId;
-  final Map<String, _QueuedFile> files;
+  final Map<String, _FileData> files;
 
   const _SftpDragData({required this.sessionId, required this.files});
 }
 
-class _QueuedFile {
+class _FileData {
   /// The file path on the remote host
   final String path;
-  final double? progress;
 
-  const _QueuedFile({required this.path, this.progress});
+  /// Temp path on the local system
+  final String? tempPath;
+
+  const _FileData({required this.path, this.tempPath});
 
   String get fileName => path.split('/').last;
 
   String getFileId(String sessionId) => '$sessionId:$path';
 
-  _QueuedFile copyWith({String? path, double? progress}) {
-    return _QueuedFile(
+  _FileData copyWith({String? path, String? tempPath}) {
+    return _FileData(
       path: path ?? this.path,
-      progress: progress ?? this.progress,
+      tempPath: tempPath ?? this.tempPath,
     );
   }
 }
 
-class _QueuedLocallyCachedFile extends _QueuedFile {
-  final String? tempPath;
+class FileProgressData {
+  final int currentBytes;
+  final int totalBytes;
+  final String? error;
 
-  const _QueuedLocallyCachedFile({
-    required super.path,
-    super.progress,
-    this.tempPath,
+  const FileProgressData({
+    required this.currentBytes,
+    required this.totalBytes,
+    this.error,
   });
+  const FileProgressData.completed({this.totalBytes = 1})
+    : currentBytes = totalBytes,
+      error = null;
+  const FileProgressData.zero()
+    : currentBytes = 0,
+      totalBytes = 1,
+      error = null;
+  const FileProgressData.error(this.error) : currentBytes = 0, totalBytes = 1;
 
-  @override
-  _QueuedLocallyCachedFile copyWith({
-    String? path,
-    double? progress,
-    String? tempPath,
+  double get progress => totalBytes == 0 ? 0 : currentBytes / totalBytes;
+
+  FileProgressData copyWith({
+    int? currentBytes,
+    int? totalBytes,
+    String? error,
   }) {
-    return _QueuedLocallyCachedFile(
-      path: path ?? this.path,
-      progress: progress ?? this.progress,
-      tempPath: tempPath ?? this.tempPath,
+    return FileProgressData(
+      currentBytes: currentBytes ?? this.currentBytes,
+      totalBytes: totalBytes ?? this.totalBytes,
+      error: error ?? this.error,
     );
   }
 }
@@ -213,9 +226,12 @@ class _SftpSessionPageState extends ConsumerState<SftpSessionPage>
 
     final selectedFilesIds = useState<Set<String>>({});
 
-    final queuedFiles = useState<Map<String, ValueNotifier<_QueuedFile>>>({});
+    final queuedFiles = useState<Map<String, _FileData>>({});
+    final queuedFilesProgress =
+        useState<Map<String, ValueNotifier<FileProgressData>>>({});
+
     // modified file data that needs to be confirmed by the user before writing
-    final modifiedFiles = useState<Map<String, _QueuedLocallyCachedFile>>({});
+    final modifiedFiles = useState<Map<String, _FileData>>({});
 
     final tempDir = useMemoized(
       () => Directory.systemTemp.createTempSync('cliq_sftp_${session.id}'),
@@ -346,22 +362,28 @@ class _SftpSessionPageState extends ConsumerState<SftpSessionPage>
     // helper for preventing certain actions while loading
     onAction(VoidCallback func) => isLoading.value ? null : func;
 
-    setQueuedFileProgress(String id, double? progress) {
-      if (progress == null || progress < 0 || progress >= 1) {
-        queuedFiles.value[id]?.dispose();
+    setQueuedFileProgress(String id, FileProgressData? data) {
+      if (data == null || data.progress >= 1) {
+        queuedFilesProgress.value[id]?.dispose();
+        queuedFilesProgress.value = {...queuedFilesProgress.value..remove(id)};
+        // also remove queued file
         queuedFiles.value = {...queuedFiles.value..remove(id)};
         return;
       }
 
-      if (!queuedFiles.value.containsKey(id)) return;
-      queuedFiles.value[id]!.value = queuedFiles.value[id]!.value.copyWith(
-        progress: progress,
-      );
+      if (queuedFilesProgress.value.containsKey(id)) {
+        queuedFilesProgress.value[id]!.value = data;
+      } else {
+        queuedFilesProgress.value = {
+          ...queuedFilesProgress.value,
+          id: ValueNotifier(data),
+        };
+      }
     }
 
-    addQueuedFile(String id, _QueuedFile file) {
-      queuedFiles.value = {...queuedFiles.value, id: ValueNotifier(file)};
-      setQueuedFileProgress(id, 0);
+    addQueuedFile(String id, _FileData file) {
+      setQueuedFileProgress(id, .zero());
+      queuedFiles.value = {...queuedFiles.value, id: file};
     }
 
     onFolderPress(SftpName file) async {
@@ -391,7 +413,7 @@ class _SftpSessionPageState extends ConsumerState<SftpSessionPage>
           '${tempDir.path}${Platform.pathSeparator}${file.filename}';
       File tempFile = File(fullName);
 
-      addQueuedFile(id, _QueuedLocallyCachedFile(path: tempFile.path));
+      addQueuedFile(id, _FileData(path: tempFile.path));
 
       attemptOpenAndWatch(File file) async {
         // open with default app
@@ -425,18 +447,13 @@ class _SftpSessionPageState extends ConsumerState<SftpSessionPage>
               } else {
                 modifiedFiles.value = {
                   ...modifiedFiles.value,
-                  id: _QueuedLocallyCachedFile(
-                    path: fullPath,
-                    tempPath: tempFile.path,
-                  ),
+                  id: _FileData(path: fullPath, tempPath: tempFile.path),
                 };
               }
             } catch (_) {}
           }
         });
       }
-
-      setQueuedFileProgress(id, 0);
 
       ref
           .read(sessionProvider.notifier)
@@ -493,7 +510,7 @@ class _SftpSessionPageState extends ConsumerState<SftpSessionPage>
         'Uploading modified file: ${modifiedFile.tempPath} to ${modifiedFile.path}',
       );
 
-      addQueuedFile(id, _QueuedFile(path: modifiedFile.path));
+      addQueuedFile(id, _FileData(path: modifiedFile.path));
       ref
           .read(sessionProvider.notifier)
           .transferSftp(
@@ -701,53 +718,48 @@ class _SftpSessionPageState extends ConsumerState<SftpSessionPage>
                           .group(
                             divider: .full,
                             children: [
-                              for (final queuedFileIds
+                              for (final queuedFileEntries
                                   in queuedFiles.value.entries)
                                 .item(
-                                  title: Text(
-                                    queuedFileIds.value.value.fileName,
-                                  ),
-                                  prefix: Builder(
-                                    builder: (context) {
-                                      final file = currentFiles.value!.where(
-                                        (f) =>
-                                            getFileIdFromSftpName(f) ==
-                                            queuedFileIds.key,
-                                      );
-
-                                      if (file.isEmpty) {
-                                        // TODO: save file type when downloading
-                                        return Icon(
-                                          LucideIcons.fileQuestionMark,
-                                        );
-                                      }
-
-                                      return _SftpColumn.name.prefixBuilder!
-                                          .call(file.first);
-                                    },
-                                  ),
-                                  subtitle: ValueListenableBuilder<_QueuedFile>(
-                                    valueListenable: queuedFileIds.value,
-                                    builder: (_, file, _) {
-                                      return Padding(
-                                        padding: const .symmetric(vertical: 4),
-                                        child: Row(
-                                          spacing: 8,
-                                          children: [
-                                            Text(
-                                              '${((file.progress ?? 0) * 100).toStringAsFixed(1)}%',
-                                            ),
-                                            // TODO: correct file icon, speed, ETA, upload/download/transfer?
-                                            SizedBox(
-                                              width: 100,
-                                              child: FDeterminateProgress(
-                                                value: file.progress ?? 0,
+                                  title: Text(queuedFileEntries.value.fileName),
+                                  subtitle: SizedBox(
+                                    width: 300,
+                                    child: ValueListenableBuilder<FileProgressData>(
+                                      valueListenable: queuedFilesProgress
+                                          .value[queuedFileEntries.key]!,
+                                      builder: (_, data, _) {
+                                        return Padding(
+                                          padding: const .symmetric(
+                                            vertical: 4,
+                                          ),
+                                          child: Column(
+                                            crossAxisAlignment: .center,
+                                            spacing: 8,
+                                            children: [
+                                              SizedBox(
+                                                width: double.infinity,
+                                                child: FDeterminateProgress(
+                                                  value: data.progress,
+                                                ),
                                               ),
-                                            ),
-                                          ],
-                                        ),
-                                      );
-                                    },
+                                              Row(
+                                                spacing: 8,
+                                                mainAxisAlignment:
+                                                    .spaceBetween,
+                                                children: [
+                                                  Text(
+                                                    '${TextUtils.formatBytes(data.currentBytes) ?? '--'} / ${TextUtils.formatBytes(data.totalBytes) ?? '--'}',
+                                                  ),
+                                                  Text(
+                                                    '${(data.progress * 100).toStringAsFixed(1)}%',
+                                                  ),
+                                                ],
+                                              ),
+                                            ],
+                                          ),
+                                        );
+                                      },
+                                    ),
                                   ),
                                 ),
                             ],
@@ -785,11 +797,7 @@ class _SftpSessionPageState extends ConsumerState<SftpSessionPage>
 
                     final index = fileEntry.key;
 
-                    addQueuedFile(
-                      index,
-                      _QueuedFile(path: fileEntry.value.path),
-                    );
-                    setQueuedFileProgress(index, 0);
+                    addQueuedFile(index, _FileData(path: fileEntry.value.path));
 
                     ref
                         .read(sessionProvider.notifier)
@@ -1072,8 +1080,7 @@ class _SftpSessionPageState extends ConsumerState<SftpSessionPage>
                                     },
                                     child: Builder(
                                       builder: (context) {
-                                        final selected =
-                                            <String, _QueuedFile>{};
+                                        final selected = <String, _FileData>{};
                                         for (final id
                                             in selectedFilesIds.value) {
                                           final file = getFileFromId(id);
@@ -1083,7 +1090,7 @@ class _SftpSessionPageState extends ConsumerState<SftpSessionPage>
                                               file.filename,
                                             ].join('/');
 
-                                            selected[id] = _QueuedFile(
+                                            selected[id] = _FileData(
                                               path: fullPath,
                                             );
                                           }
