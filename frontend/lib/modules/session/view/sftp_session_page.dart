@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:cliq/modules/connections/model/connection_full.model.dart';
 import 'package:cliq/modules/connections/provider/connection.provider.dart';
+import 'package:cliq/modules/session/model/sftp_transfer_params.model.dart';
 import 'package:cliq/modules/session/view/generic_session_page.dart';
 import 'package:cliq/shared/data/store.dart';
 import 'package:cliq/shared/provider/store.provider.dart';
@@ -70,7 +71,7 @@ enum _SftpColumn {
       return Icon(LucideIcons.folder);
     }
     if (file.attr.isSymbolicLink) {
-      return Icon(LucideIcons.fileInput);
+      return Icon(LucideIcons.fileSymlink);
     }
     return Icon(LucideIcons.file);
   }
@@ -137,24 +138,27 @@ class _SftpDragData {
 }
 
 class _FileData {
-  /// The file path on the remote host
   final String path;
 
-  /// Temp path on the local system
-  final String? tempPath;
-
-  const _FileData({required this.path, this.tempPath});
+  const _FileData({required this.path});
 
   String get fileName => path.split('/').last;
 
   String getFileId(String sessionId) => '$sessionId:$path';
+}
 
-  _FileData copyWith({String? path, String? tempPath}) {
-    return _FileData(
-      path: path ?? this.path,
-      tempPath: tempPath ?? this.tempPath,
-    );
-  }
+/// Represents a file that is queued for transfer to/from the SFTP server.
+class _QueuedFileData extends _FileData {
+  final SftpTransferType type;
+
+  const _QueuedFileData({required super.path, required this.type});
+}
+
+/// Represents a file that has been modified locally and needs to be confirmed before uploading back to the SFTP server.
+class _ModifiedFileData extends _FileData {
+  final String tempPath;
+
+  const _ModifiedFileData({required super.path, required this.tempPath});
 }
 
 class FileProgressData {
@@ -167,13 +171,16 @@ class FileProgressData {
     required this.totalBytes,
     this.error,
   });
+
   const FileProgressData.completed({this.totalBytes = 1})
     : currentBytes = totalBytes,
       error = null;
+
   const FileProgressData.zero()
     : currentBytes = 0,
       totalBytes = 1,
       error = null;
+
   const FileProgressData.error(this.error) : currentBytes = 0, totalBytes = 1;
 
   double get progress => totalBytes == 0 ? 0 : currentBytes / totalBytes;
@@ -226,12 +233,12 @@ class _SftpSessionPageState extends ConsumerState<SftpSessionPage>
 
     final selectedFilesIds = useState<Set<String>>({});
 
-    final queuedFiles = useState<Map<String, _FileData>>({});
+    final queuedFiles = useState<Map<String, _QueuedFileData>>({});
     final queuedFilesProgress =
         useState<Map<String, ValueNotifier<FileProgressData>>>({});
 
     // modified file data that needs to be confirmed by the user before writing
-    final modifiedFiles = useState<Map<String, _FileData>>({});
+    final modifiedFiles = useState<Map<String, _ModifiedFileData>>({});
 
     final tempDir = useMemoized(
       () => Directory.systemTemp.createTempSync('cliq_sftp_${session.id}'),
@@ -381,7 +388,7 @@ class _SftpSessionPageState extends ConsumerState<SftpSessionPage>
       }
     }
 
-    addQueuedFile(String id, _FileData file) {
+    addQueuedFile(String id, _QueuedFileData file) {
       setQueuedFileProgress(id, .zero());
       queuedFiles.value = {...queuedFiles.value, id: file};
     }
@@ -413,7 +420,10 @@ class _SftpSessionPageState extends ConsumerState<SftpSessionPage>
           '${tempDir.path}${Platform.pathSeparator}${file.filename}';
       File tempFile = File(fullName);
 
-      addQueuedFile(id, _FileData(path: tempFile.path));
+      addQueuedFile(
+        id,
+        _QueuedFileData(path: tempFile.path, type: .remoteToLocal),
+      );
 
       attemptOpenAndWatch(File file) async {
         // open with default app
@@ -447,7 +457,10 @@ class _SftpSessionPageState extends ConsumerState<SftpSessionPage>
               } else {
                 modifiedFiles.value = {
                   ...modifiedFiles.value,
-                  id: _FileData(path: fullPath, tempPath: tempFile.path),
+                  id: _ModifiedFileData(
+                    path: fullPath,
+                    tempPath: tempFile.path,
+                  ),
                 };
               }
             } catch (_) {}
@@ -492,12 +505,10 @@ class _SftpSessionPageState extends ConsumerState<SftpSessionPage>
       if (modifiedFile == null) return;
 
       // delete local file
-      if (modifiedFile.tempPath != null) {
-        final tempFile = File(modifiedFile.tempPath!);
-        if (tempFile.existsSync()) {
-          debugPrint('Deleting temp file: ${tempFile.path}');
-          tempFile.deleteSync();
-        }
+      final tempFile = File(modifiedFile.tempPath);
+      if (tempFile.existsSync()) {
+        debugPrint('Deleting temp file: ${tempFile.path}');
+        tempFile.deleteSync();
       }
 
       modifiedFiles.value = {...modifiedFiles.value..remove(id)};
@@ -510,11 +521,14 @@ class _SftpSessionPageState extends ConsumerState<SftpSessionPage>
         'Uploading modified file: ${modifiedFile.tempPath} to ${modifiedFile.path}',
       );
 
-      addQueuedFile(id, _FileData(path: modifiedFile.path));
+      addQueuedFile(
+        id,
+        _QueuedFileData(path: modifiedFile.path, type: .localToRemote),
+      );
       ref
           .read(sessionProvider.notifier)
           .transferSftp(
-            localPath: modifiedFiles.value[id]!.tempPath!,
+            localPath: modifiedFiles.value[id]!.tempPath,
             destination: session,
             destinationPath: [
               ...?currentDirectory.value,
@@ -718,50 +732,63 @@ class _SftpSessionPageState extends ConsumerState<SftpSessionPage>
                           .group(
                             divider: .full,
                             children: [
-                              for (final queuedFileEntries
-                                  in queuedFiles.value.entries)
-                                .item(
-                                  title: Text(queuedFileEntries.value.fileName),
-                                  subtitle: SizedBox(
-                                    width: 300,
-                                    child: ValueListenableBuilder<FileProgressData>(
-                                      valueListenable: queuedFilesProgress
-                                          .value[queuedFileEntries.key]!,
-                                      builder: (_, data, _) {
-                                        return Padding(
-                                          padding: const .symmetric(
-                                            vertical: 4,
-                                          ),
-                                          child: Column(
-                                            crossAxisAlignment: .center,
-                                            spacing: 8,
-                                            children: [
-                                              SizedBox(
-                                                width: double.infinity,
-                                                child: FDeterminateProgress(
-                                                  value: data.progress,
+                              if (queuedFiles.value.isEmpty)
+                                .item(title: Text('No queued files'))
+                              else
+                                for (final entries in queuedFiles.value.entries)
+                                  .item(
+                                    title: Text(entries.value.fileName),
+                                    prefix: Padding(
+                                      padding: const .only(right: 8),
+                                      child: Icon(switch (entries.value.type) {
+                                        .remoteToLocal =>
+                                          LucideIcons.cloudDownload,
+                                        .localToRemote =>
+                                          LucideIcons.cloudUpload,
+                                        .remoteToRemote =>
+                                          LucideIcons.cloudSync,
+                                      }, size: 20),
+                                    ),
+                                    subtitle: SizedBox(
+                                      width: 300,
+                                      child: ValueListenableBuilder<FileProgressData>(
+                                        valueListenable: queuedFilesProgress
+                                            .value[entries.key]!,
+                                        builder: (_, data, _) {
+                                          return Padding(
+                                            padding: const .symmetric(
+                                              vertical: 4,
+                                            ),
+                                            child: Column(
+                                              crossAxisAlignment: .center,
+                                              spacing: 8,
+                                              children: [
+                                                SizedBox(
+                                                  width: double.infinity,
+                                                  child: FDeterminateProgress(
+                                                    value: data.progress,
+                                                  ),
                                                 ),
-                                              ),
-                                              Row(
-                                                spacing: 8,
-                                                mainAxisAlignment:
-                                                    .spaceBetween,
-                                                children: [
-                                                  Text(
-                                                    '${TextUtils.formatBytes(data.currentBytes) ?? '--'} / ${TextUtils.formatBytes(data.totalBytes) ?? '--'}',
-                                                  ),
-                                                  Text(
-                                                    '${(data.progress * 100).toStringAsFixed(1)}%',
-                                                  ),
-                                                ],
-                                              ),
-                                            ],
-                                          ),
-                                        );
-                                      },
+                                                Row(
+                                                  spacing: 8,
+                                                  mainAxisAlignment:
+                                                      .spaceBetween,
+                                                  children: [
+                                                    Text(
+                                                      '${TextUtils.formatBytes(data.currentBytes) ?? '--'} / ${TextUtils.formatBytes(data.totalBytes) ?? '--'}',
+                                                    ),
+                                                    Text(
+                                                      '${(data.progress * 100).toStringAsFixed(1)}%',
+                                                    ),
+                                                  ],
+                                                ),
+                                              ],
+                                            ),
+                                          );
+                                        },
+                                      ),
                                     ),
                                   ),
-                                ),
                             ],
                           ),
                         ],
@@ -797,7 +824,10 @@ class _SftpSessionPageState extends ConsumerState<SftpSessionPage>
 
                     final index = fileEntry.key;
 
-                    addQueuedFile(index, _FileData(path: fileEntry.value.path));
+                    addQueuedFile(
+                      index,
+                      .new(path: fileEntry.value.path, type: .remoteToRemote),
+                    );
 
                     ref
                         .read(sessionProvider.notifier)
@@ -1012,7 +1042,7 @@ class _SftpSessionPageState extends ConsumerState<SftpSessionPage>
                           if (col == .size && isModified) {
                             return FutureBuilder(
                               future: File(
-                                modifiedFiles.value[id]!.tempPath!,
+                                modifiedFiles.value[id]!.tempPath,
                               ).length(),
                               builder: (_, snap) => Text.rich(
                                 TextSpan(

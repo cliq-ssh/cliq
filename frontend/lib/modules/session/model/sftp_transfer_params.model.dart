@@ -1,6 +1,8 @@
 import 'dart:isolate';
 import 'dart:typed_data';
 
+enum SftpTransferType { localToRemote, remoteToLocal, remoteToRemote }
+
 class SftpConnectParams {
   final String host;
   final int port;
