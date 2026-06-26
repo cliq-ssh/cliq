@@ -430,7 +430,7 @@ class _SftpSessionPageState extends ConsumerState<SftpSessionPage>
     }
 
     openFile(SftpName file, String id) async {
-      if (file.filename.isEmpty) {
+      if (file.attr.isDirectory || file.filename.isEmpty) {
         return;
       }
 
@@ -1220,14 +1220,15 @@ class _SftpSessionPageState extends ConsumerState<SftpSessionPage>
 
                         return CustomContextMenu(
                           actions: [
-                            .new(
-                              label: 'Open',
-                              icon: LucideIcons.folderOpen,
-                              onPress: () => openFile(file, id),
-                            ),
+                            if (file.attr.isFile)
+                              .new(
+                                label: 'Download & Edit',
+                                icon: LucideIcons.filePen,
+                                onPress: () => openFile(file, id),
+                              ),
                             .new(
                               label: 'Rename',
-                              icon: LucideIcons.pencil,
+                              icon: LucideIcons.pencilLine,
                               onPress: () {
                                 renameController.text = file.filename;
                                 renameItemId.value = id;
@@ -1240,9 +1241,7 @@ class _SftpSessionPageState extends ConsumerState<SftpSessionPage>
                               onPress: () => deleteItem(file, id),
                             ),
                           ],
-                          builder: (context) {
-                            return child;
-                          },
+                          builder: (_) => child,
                         );
                       },
                     ),

@@ -71,16 +71,16 @@ class CustomContextMenu extends HookConsumerWidget {
             ): () =>
                 onPress(action),
       },
-      child: FPopoverMenu(
+      child: FContextMenu(
         autofocus: true,
         control: .managed(
           controller: popoverController ?? managedPopoverController,
         ),
         menu: [
-          FItemGroup(
+          .group(
             children: [
               for (final action in actions)
-                FItem(
+                .item(
                   variant: action.variant ?? .primary,
                   prefix: action.icon != null ? Icon(action.icon) : null,
                   title: action.shortcut == null
@@ -99,10 +99,7 @@ class CustomContextMenu extends HookConsumerWidget {
           ),
         ],
         builder: (context, controller, _) {
-          return GestureDetector(
-            onSecondaryTap: controller.toggle,
-            child: builder(context),
-          );
+          return GestureDetector(child: builder(context));
         },
       ),
     );
