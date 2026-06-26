@@ -394,6 +394,20 @@ class _SftpSessionPageState extends ConsumerState<SftpSessionPage>
       queuedFiles.value = {...queuedFiles.value, id: file};
     }
 
+    cleanupModified(SftpName file, String id) {
+      final modifiedFile = modifiedFiles.value[id];
+      if (modifiedFile == null) return;
+
+      // delete local file
+      final tempFile = File(modifiedFile.tempPath);
+      if (tempFile.existsSync()) {
+        debugPrint('Deleting temp file: ${tempFile.path}');
+        tempFile.deleteSync();
+      }
+
+      modifiedFiles.value = {...modifiedFiles.value..remove(id)};
+    }
+
     openFolder(SftpName file) async {
       if (!file.attr.isDirectory || file.filename.isEmpty) {
         return;
@@ -508,25 +522,13 @@ class _SftpSessionPageState extends ConsumerState<SftpSessionPage>
             ? session.sftpClient!.rmdir(fullPath)
             : session.sftpClient!.remove(fullPath));
 
+        cleanupModified(file, id);
+
         // reload directory
         currentDirectory.value = [...?currentDirectory.value];
       }
 
       Commons.showDeleteDialog(entity: file.filename, onDelete: delete);
-    }
-
-    cleanupModified(SftpName file, String id) {
-      final modifiedFile = modifiedFiles.value[id];
-      if (modifiedFile == null) return;
-
-      // delete local file
-      final tempFile = File(modifiedFile.tempPath);
-      if (tempFile.existsSync()) {
-        debugPrint('Deleting temp file: ${tempFile.path}');
-        tempFile.deleteSync();
-      }
-
-      modifiedFiles.value = {...modifiedFiles.value..remove(id)};
     }
 
     uploadModified(SftpName file, String id) {
