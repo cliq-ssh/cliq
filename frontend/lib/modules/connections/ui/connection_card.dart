@@ -158,15 +158,17 @@ class ConnectionCard extends HookConsumerWidget {
                               connection.label,
                               overflow: .fade,
                               softWrap: false,
-                              style: context.theme.typography.lg,
+                              style: context.theme.typography.body.lg,
                             ),
                             if (connection.effectiveUsername != null)
                               Text(
                                 connection.effectiveUsername!,
-                                style: context.theme.typography.xs.copyWith(
-                                  color: context.theme.colors.mutedForeground,
-                                  fontWeight: .normal,
-                                ),
+                                style: context.theme.typography.body.xs
+                                    .copyWith(
+                                      color:
+                                          context.theme.colors.mutedForeground,
+                                      fontWeight: .normal,
+                                    ),
                               ),
                           ],
                         ),

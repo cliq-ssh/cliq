@@ -26,7 +26,7 @@ class KeyCreationChoiceView extends HookConsumerWidget {
       });
     }
 
-    final mutedStyle = context.theme.typography.sm.copyWith(
+    final mutedStyle = context.theme.typography.body.sm.copyWith(
       color: context.theme.colors.mutedForeground,
     );
 
@@ -42,7 +42,7 @@ class KeyCreationChoiceView extends HookConsumerWidget {
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   spacing: 16,
                   children: [
-                    Text('Add Key', style: context.theme.typography.xl2),
+                    Text('Add Key', style: context.theme.typography.body.xl2),
                     Text(
                       'Choose whether you want to import an existing SSH key or generate a new one.',
                       style: mutedStyle,

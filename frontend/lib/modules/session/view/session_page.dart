@@ -213,11 +213,11 @@ class _ShellSessionPageState extends ConsumerState<ShellSessionPage>
               TextSpan(text: 'Connecting to '),
               TextSpan(
                 text: session.connection.address,
-                style: typography.xl.copyWith(fontWeight: .bold),
+                style: typography.body.xl.copyWith(fontWeight: .bold),
               ),
             ],
           ),
-          style: typography.xl,
+          style: typography.body.xl,
         ),
       ];
     }
@@ -235,17 +235,17 @@ class _ShellSessionPageState extends ConsumerState<ShellSessionPage>
                   : TextSpan(text: 'Accept fingerprint for '),
               TextSpan(
                 text: session.knownHostError!.host,
-                style: typography.xl.copyWith(fontWeight: .bold),
+                style: typography.body.xl.copyWith(fontWeight: .bold),
               ),
               TextSpan(text: '?'),
             ],
           ),
-          style: typography.xl,
+          style: typography.body.xl,
         ),
         if (session.knownHostError!.knownHost != null)
           Text(
             'The host is known, but the saved fingerprint does not match.',
-            style: typography.md.copyWith(
+            style: typography.body.md.copyWith(
               color: context.theme.colors.mutedForeground,
             ),
             textAlign: .center,
@@ -313,11 +313,11 @@ class _ShellSessionPageState extends ConsumerState<ShellSessionPage>
               TextSpan(text: 'Failed to connect to '),
               TextSpan(
                 text: session.connection.addressAndPort,
-                style: typography.xl.copyWith(fontWeight: .bold),
+                style: typography.body.xl.copyWith(fontWeight: .bold),
               ),
             ],
           ),
-          style: typography.xl,
+          style: typography.body.xl,
         ),
         const SizedBox(height: 16),
         if (session.connectionError != null)
@@ -334,7 +334,7 @@ class _ShellSessionPageState extends ConsumerState<ShellSessionPage>
             ),
             child: Text(
               session.connectionError!,
-              style: context.theme.typography.xs.copyWith(
+              style: context.theme.typography.body.xs.copyWith(
                 fontFamily: CliqFontFamily.secondary.fontFamily,
               ),
             ),

@@ -58,7 +58,7 @@ class KeyCard extends HookConsumerWidget {
                         keyEntity.label,
                         overflow: .fade,
                         softWrap: false,
-                        style: context.theme.typography.lg,
+                        style: context.theme.typography.body.lg,
                       ),
                     ],
                   ),
