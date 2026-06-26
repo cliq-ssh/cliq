@@ -1046,11 +1046,12 @@ class _SftpSessionPageState extends ConsumerState<SftpSessionPage>
                           return null;
                         }
 
-                        final fileStyle = context.theme.typography.sm.copyWith(
-                          color: isHidden
-                              ? context.theme.colors.mutedForeground
-                              : null,
-                        );
+                        final fileStyle = context.theme.typography.body.sm
+                            .copyWith(
+                              color: isHidden
+                                  ? context.theme.colors.mutedForeground
+                                  : null,
+                            );
 
                         buildCell(_SftpColumn col) {
                           final text = Text(
