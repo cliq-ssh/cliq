@@ -1222,9 +1222,15 @@ class _SftpSessionPageState extends ConsumerState<SftpSessionPage>
                           actions: [
                             if (file.attr.isFile)
                               .new(
-                                label: 'Download & Edit',
+                                label: 'Open',
                                 icon: LucideIcons.filePen,
                                 onPress: () => openFile(file, id),
+                              ),
+                            if (file.attr.isDirectory)
+                              .new(
+                                label: 'Open',
+                                icon: LucideIcons.folderOpen,
+                                onPress: () => openFolder(file),
                               ),
                             .new(
                               label: 'Rename',
