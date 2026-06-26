@@ -111,10 +111,16 @@ class ConnectionCard extends HookConsumerWidget {
     return CustomContextMenu(
       actions: [
         .new(
-          label: 'Connect',
+          label: 'Connect via SSH',
           icon: LucideIcons.unplug,
           onPress: connect,
           shortcut: KeyboardShortcut(.enter),
+        ),
+        .new(
+          label: 'Connect via SFTP',
+          icon: LucideIcons.folderOpen,
+          onPress: () => connect(isSftp: true),
+          shortcut: KeyboardShortcut(.enter, modifiers: {.shift})
         ),
         .new(
           label: 'Edit',
