@@ -371,6 +371,26 @@ class _SftpSessionPageState extends ConsumerState<SftpSessionPage>
       return '${session.id}:${[...?currentDirectory.value, file.filename].join('/')}';
     }
 
+    useEffect(() {
+      if (renameItemId.value == null) {
+        renameController.clear();
+      } else {
+        final id = renameItemId.value!;
+        final file = currentFiles.value
+            ?.where((f) => getFileIdFromSftpName(f) == id)
+            .firstOrNull;
+
+        if (file != null) {
+          renameController.text = file.filename;
+          renameController.selection = .new(
+            baseOffset: 0,
+            extentOffset: file.filename.length,
+          );
+        }
+      }
+      return null;
+    }, [renameItemId.value]);
+
     // helper for preventing certain actions while loading
     onAction(VoidCallback func) => isLoading.value ? null : func;
 
@@ -538,16 +558,22 @@ class _SftpSessionPageState extends ConsumerState<SftpSessionPage>
       } on SftpStatusError catch (e) {
         if (!context.mounted) return;
 
-        // show error toast
+        String message = e.message;
+        if (e.code == 4) {
+          message = 'A file with that name already exists.';
+        }
+
         Commons.showToast(
-          'Failed to rename: ${e.message}',
+          'Failed to rename: $message',
           prefix: Icon(
-            LucideIcons.edit3,
+            LucideIcons.pencilOff,
             size: 20,
             color: context.theme.colors.destructive,
           ),
           variant: .destructive,
         );
+
+        renameItemId.value = null;
       }
     }
 
@@ -1069,12 +1095,19 @@ class _SftpSessionPageState extends ConsumerState<SftpSessionPage>
                               renameItemId.value == id && col == .name;
 
                           if (isRename) {
-                            return FTextField(
-                              control: .managed(controller: renameController),
-                              autofocus: true,
-                              onSubmit: (value) => renameItem(file, id, value),
-                              onTapOutside: (_) =>
-                                  renameItem(file, id, renameController.text),
+                            return CallbackShortcuts(
+                              bindings: {
+                                const SingleActivator(.escape): () =>
+                                    renameItemId.value = null,
+                              },
+                              child: FTextField(
+                                control: .managed(controller: renameController),
+                                autofocus: true,
+                                onSubmit: (value) =>
+                                    renameItem(file, id, value),
+                                onTapOutside: (_) =>
+                                    renameItem(file, id, renameController.text),
+                              ),
                             );
                           } else if (col.prefixBuilder != null) {
                             return Row(
@@ -1235,10 +1268,7 @@ class _SftpSessionPageState extends ConsumerState<SftpSessionPage>
                             .new(
                               label: 'Rename',
                               icon: LucideIcons.pencilLine,
-                              onPress: () {
-                                renameController.text = file.filename;
-                                renameItemId.value = id;
-                              },
+                              onPress: () => renameItemId.value = id,
                             ),
                             .new(
                               label: 'Delete',
