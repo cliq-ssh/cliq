@@ -120,7 +120,7 @@ class ConnectionCard extends HookConsumerWidget {
           label: 'Connect via SFTP',
           icon: LucideIcons.folderOpen,
           onPress: () => connect(isSftp: true),
-          shortcut: KeyboardShortcut(.enter, modifiers: {.shift})
+          shortcut: KeyboardShortcut(.enter, modifiers: {.shift}),
         ),
         .new(
           label: 'Edit',
