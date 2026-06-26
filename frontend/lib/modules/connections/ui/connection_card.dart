@@ -125,6 +125,7 @@ class ConnectionCard extends HookConsumerWidget {
         .new(
           label: 'Delete',
           icon: LucideIcons.trash,
+          variant: .destructive,
           onPress: delete,
           shortcut: Platform.isMacOS
               ? KeyboardShortcut(.backspace, modifiers: {.meta})

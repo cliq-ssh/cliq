@@ -11,6 +11,7 @@ class CustomContextMenuAction {
   final String label;
   final IconData? icon;
   final VoidCallback onPress;
+  final FItemVariant? variant;
   final bool hideAfterPress;
   final KeyboardShortcut? shortcut;
 
@@ -18,6 +19,7 @@ class CustomContextMenuAction {
     required this.label,
     this.icon,
     required this.onPress,
+    this.variant,
     this.hideAfterPress = true,
     this.shortcut,
   });
@@ -79,6 +81,7 @@ class CustomContextMenu extends HookConsumerWidget {
             children: [
               for (final action in actions)
                 FItem(
+                  variant: action.variant ?? .primary,
                   prefix: action.icon != null ? Icon(action.icon) : null,
                   title: action.shortcut == null
                       ? Text(action.label)

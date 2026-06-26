@@ -18,6 +18,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lucide_flutter/lucide_flutter.dart';
 import 'package:open_app_file/open_app_file.dart';
 
+import '../../../shared/ui/context_menu.dart';
 import '../../../shared/ui/navigation_shell.dart';
 import '../../../shared/ui/table_view.dart';
 import '../../../shared/utils/commons.dart';
@@ -393,7 +394,7 @@ class _SftpSessionPageState extends ConsumerState<SftpSessionPage>
       queuedFiles.value = {...queuedFiles.value, id: file};
     }
 
-    onFolderPress(SftpName file) async {
+    openFolder(SftpName file) async {
       if (!file.attr.isDirectory || file.filename.isEmpty) {
         return;
       }
@@ -410,7 +411,7 @@ class _SftpSessionPageState extends ConsumerState<SftpSessionPage>
       isLoading.value = false;
     }
 
-    onFilePress(SftpName file, String id) async {
+    openFile(SftpName file, String id) async {
       if (file.filename.isEmpty) {
         return;
       }
@@ -482,7 +483,7 @@ class _SftpSessionPageState extends ConsumerState<SftpSessionPage>
           });
     }
 
-    onSymlinkPress(SftpName file, String id) async {
+    openSymlink(SftpName file, String id) async {
       if (!file.attr.isSymbolicLink || file.filename.isEmpty) return;
       isLoading.value = true;
 
@@ -494,10 +495,24 @@ class _SftpSessionPageState extends ConsumerState<SftpSessionPage>
         currentDirectory.value = absolutePath.split('/');
         navigateBackBuffer.value = null;
       } else {
-        await onFilePress(file, id);
+        await openFile(file, id);
       }
 
       isLoading.value = false;
+    }
+
+    deleteFile(SftpName file, String id) async {
+      delete() async {
+        final fullPath = [...?currentDirectory.value, file.filename].join('/');
+        await (file.attr.isDirectory
+            ? session.sftpClient!.rmdir(fullPath)
+            : session.sftpClient!.remove(fullPath));
+
+        // reload directory
+        currentDirectory.value = [...?currentDirectory.value];
+      }
+
+      Commons.showDeleteDialog(entity: file.filename, onDelete: delete);
     }
 
     cleanupModified(SftpName file, String id) {
@@ -978,9 +993,9 @@ class _SftpSessionPageState extends ConsumerState<SftpSessionPage>
                         final id = getFileIdFromSftpName(file);
                         selectedFilesIds.value = {if (file.attr.isFile) id};
                         final _ = switch (file.attr.type) {
-                          .directory => onFolderPress(file),
-                          .regularFile => onFilePress(file, id),
-                          .symbolicLink => onSymlinkPress(file, id),
+                          .directory => openFolder(file),
+                          .regularFile => openFile(file, id),
+                          .symbolicLink => openSymlink(file, id),
                           _ => null,
                         };
                       },
@@ -1100,51 +1115,68 @@ class _SftpSessionPageState extends ConsumerState<SftpSessionPage>
                             for (final col in _SftpColumn.values)
                               if (visibleColumns.value.contains(col))
                                 .new(
-                                  child: Listener(
-                                    onPointerDown: (_) {
-                                      if (!selectedFilesIds.value.contains(
-                                        id,
-                                      )) {
-                                        selectedFilesIds.value = {id};
-                                      }
-                                    },
-                                    child: Builder(
-                                      builder: (context) {
-                                        final selected = <String, _FileData>{};
-                                        for (final id
-                                            in selectedFilesIds.value) {
-                                          final file = getFileFromId(id);
-                                          if (file != null) {
-                                            final fullPath = [
-                                              ...?currentDirectory.value,
-                                              file.filename,
-                                            ].join('/');
-
-                                            selected[id] = _FileData(
-                                              path: fullPath,
-                                            );
+                                  child: CustomContextMenu(
+                                    actions: [
+                                      .new(
+                                        label: 'Open',
+                                        icon: LucideIcons.folderOpen,
+                                        onPress: () => openFile(file, id),
+                                      ),
+                                      .new(
+                                        label: 'Delete',
+                                        icon: LucideIcons.trash,
+                                        variant: .destructive,
+                                        onPress: () => deleteFile(file, id),
+                                      ),
+                                    ],
+                                    builder: (_) {
+                                      return Listener(
+                                        onPointerDown: (_) {
+                                          if (!selectedFilesIds.value.contains(
+                                            id,
+                                          )) {
+                                            selectedFilesIds.value = {id};
                                           }
-                                        }
+                                        },
+                                        child: Builder(
+                                          builder: (context) {
+                                            final selected =
+                                                <String, _FileData>{};
+                                            for (final id
+                                                in selectedFilesIds.value) {
+                                              final file = getFileFromId(id);
+                                              if (file != null) {
+                                                final fullPath = [
+                                                  ...?currentDirectory.value,
+                                                  file.filename,
+                                                ].join('/');
 
-                                        return Draggable<_SftpDragData>(
-                                          data: _SftpDragData(
-                                            sessionId: session.id,
-                                            files: selected,
-                                          ),
-                                          onDragStarted: () {
-                                            final isPartOfSelection =
-                                                selectedFilesIds.value.contains(
-                                                  id,
+                                                selected[id] = _FileData(
+                                                  path: fullPath,
                                                 );
-                                            if (!isPartOfSelection) {
-                                              selectedFilesIds.value = {id};
+                                              }
                                             }
+
+                                            return Draggable<_SftpDragData>(
+                                              data: _SftpDragData(
+                                                sessionId: session.id,
+                                                files: selected,
+                                              ),
+                                              onDragStarted: () {
+                                                final isPartOfSelection =
+                                                    selectedFilesIds.value
+                                                        .contains(id);
+                                                if (!isPartOfSelection) {
+                                                  selectedFilesIds.value = {id};
+                                                }
+                                              },
+                                              feedback: buildDragFeedback(),
+                                              child: buildCell(col),
+                                            );
                                           },
-                                          feedback: buildDragFeedback(),
-                                          child: buildCell(col),
-                                        );
-                                      },
-                                    ),
+                                        ),
+                                      );
+                                    },
                                   ),
                                 ),
                           ],

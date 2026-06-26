@@ -100,6 +100,7 @@ class SessionSidebarTab extends HookConsumerWidget {
         .new(
           label: sessions.isEmpty ? 'Close' : 'Close All',
           icon: LucideIcons.x,
+          variant: .destructive,
           onPress: close,
           shortcut: .new(.keyW, modifiers: {.alt}),
         ),

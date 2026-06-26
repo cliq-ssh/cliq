@@ -112,7 +112,7 @@ class SessionNotifier extends Notifier<SessionState> {
   /// Transfers data from remote to local, local to remote or remote to remote via SFTP.
   /// This runs in a separate isolate to avoid overloading the main thread
   ///
-  /// Returns a stream of progress values between 0.0 and 1.0, where 1.0 indicates completion.
+  /// Returns a stream of [FileProgressData] objects, which can be used to track the progress of the transfer.
   Stream<FileProgressData> transferSftp({
     ShellSession? source,
     ShellSession? destination,
