@@ -1,25 +1,30 @@
+import 'dart:io';
+import 'dart:isolate';
+
 import '../../modules/session/view/sftp_session_page.dart';
 
-class TransferQueueItem {
+class FileTransferItem {
   final QueuedFileData file;
   final int startTime;
   FileProgressData progressData;
 
+  Isolate? isolateHandle;
+  File? tempFile;
   int? endTime;
   String? error;
 
-  TransferQueueItem({required this.file, required this.progressData})
+  FileTransferItem({required this.file, required this.progressData})
     : startTime = DateTime.now().millisecondsSinceEpoch;
 
   bool get isInProgress => endTime == null && error == null;
 }
 
-class TransferQueueState {
-  final Map<String, TransferQueueItem> queued;
+class FileTransferState {
+  final Map<String, FileTransferItem> queued;
 
-  const TransferQueueState.initial() : queued = const {};
+  FileTransferState.initial() : queued = const {};
 
-  const TransferQueueState({required this.queued});
+  FileTransferState({required this.queued});
 
   bool isPending(String id) => queued[id]?.isInProgress == true;
 

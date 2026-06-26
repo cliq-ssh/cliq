@@ -18,7 +18,7 @@ import '../../modules/session/provider/session.provider.dart';
 import '../../modules/session/ui/session_sidebar_tab.dart';
 import '../../modules/settings/model/navigation_position.model.dart';
 import '../../modules/settings/provider/terminal_theme.provider.dart';
-import '../provider/transfer_queue.provider.dart';
+import '../provider/file_transfer.provider.dart';
 import '../utils/text_utils.dart';
 
 class NavigationShell extends StatefulHookConsumerWidget {
@@ -61,7 +61,7 @@ class NavigationShellState extends ConsumerState<NavigationShell>
     final selectedTab = useState(sessions.selectedSession);
     final showTabs = useState(false);
 
-    final transferQueue = ref.watch(transferQueueProvider);
+    final transferQueue = ref.watch(fileTransferProvider);
 
     final rotationAnimation = useAnimationController(
       duration: const .new(seconds: 2),
@@ -144,12 +144,12 @@ class NavigationShellState extends ConsumerState<NavigationShell>
               if (transferQueue.isEmpty)
                 .item(title: Text('Nothing in queue'))
               else
-                for (final item in transferQueue.queued.values)
+                for (final item in transferQueue.queued.entries)
                   .item(
-                    title: Text(item.file.fileName),
+                    title: Text(item.value.file.fileName),
                     subtitle: SizedBox(
                       width: 300,
-                      child: item.isInProgress
+                      child: item.value.isInProgress
                           ? Padding(
                               padding: const .symmetric(vertical: 4),
                               child: Column(
@@ -159,7 +159,7 @@ class NavigationShellState extends ConsumerState<NavigationShell>
                                   SizedBox(
                                     width: double.infinity,
                                     child: FDeterminateProgress(
-                                      value: item.progressData.progress,
+                                      value: item.value.progressData.progress,
                                     ),
                                   ),
                                   Row(
@@ -167,19 +167,48 @@ class NavigationShellState extends ConsumerState<NavigationShell>
                                     mainAxisAlignment: .spaceBetween,
                                     children: [
                                       Text(
-                                        '${TextUtils.formatBytes(item.progressData.currentBytes) ?? '--'} / ${TextUtils.formatBytes(item.progressData.totalBytes) ?? '--'}',
+                                        '${TextUtils.formatBytes(item.value.progressData.currentBytes) ?? '--'} / ${TextUtils.formatBytes(item.value.progressData.totalBytes) ?? '--'}',
                                       ),
                                       Text(
-                                        '${(item.progressData.progress * 100).toStringAsFixed(1)}%',
+                                        '${(item.value.progressData.progress * 100).toStringAsFixed(1)}%',
                                       ),
                                     ],
                                   ),
                                 ],
                               ),
                             )
-                          : Text(
-                              'completed in ${DateTime.fromMillisecondsSinceEpoch(item.endTime!).difference(DateTime.fromMillisecondsSinceEpoch(item.startTime)).inSeconds}s',
-                            ),
+                          : (item.value.error != null
+                                ? Text(
+                                    item.value.error!,
+                                    style: context.theme.typography.body.xs
+                                        .copyWith(
+                                          color:
+                                              context.theme.colors.destructive,
+                                        ),
+                                  )
+                                : Text(
+                                    'completed in ${DateTime.fromMillisecondsSinceEpoch(item.value.endTime!).difference(DateTime.fromMillisecondsSinceEpoch(item.value.startTime)).inSeconds}s',
+                                  )),
+                    ),
+                    suffix: FButton.icon(
+                      variant: item.value.tempFile != null
+                          ? .destructive
+                          : .ghost,
+                      child: Icon(
+                        item.value.tempFile != null
+                            ? LucideIcons.trash
+                            : LucideIcons.x,
+                      ),
+                      onPress: () {
+                        final fileTransferNotifier = ref.read(
+                          fileTransferProvider.notifier,
+                        );
+                        if (item.value.isInProgress) {
+                          fileTransferNotifier.cancel(context, item.key);
+                        } else {
+                          fileTransferNotifier.remove(item.key);
+                        }
+                      },
                     ),
                   ),
             ],

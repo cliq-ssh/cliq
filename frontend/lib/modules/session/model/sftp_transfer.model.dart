@@ -105,7 +105,7 @@ Future<void> sftpTransferIsolate(SftpTransferParams p) async {
 
     var transferred = 0;
 
-    remoteFile.write(
+    final writeFuture = remoteFile.write(
       pipe.read.map((chunk) {
         final bytes = Uint8List.fromList(chunk);
         transferred += bytes.length;
@@ -125,6 +125,7 @@ Future<void> sftpTransferIsolate(SftpTransferParams p) async {
         .download(p.sourcePath, pipe.write)
         .whenComplete(pipe.write.close);
 
+    await writeFuture;
     await remoteFile.close();
   }
 

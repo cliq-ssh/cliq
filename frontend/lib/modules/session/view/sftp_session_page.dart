@@ -9,7 +9,6 @@ import 'package:cliq/shared/data/store.dart';
 import 'package:cliq/shared/provider/store.provider.dart';
 import 'package:cliq/shared/utils/text_utils.dart';
 import 'package:dartssh2/dartssh2.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart' hide LicensePage;
 import 'package:flutter/services.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
@@ -18,7 +17,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lucide_flutter/lucide_flutter.dart';
 import 'package:open_app_file/open_app_file.dart';
 
-import '../../../shared/provider/transfer_queue.provider.dart';
+import '../../../shared/provider/file_transfer.provider.dart';
 import '../../../shared/ui/context_menu.dart';
 import '../../../shared/ui/navigation_shell.dart';
 import '../../../shared/ui/table_view.dart';
@@ -235,6 +234,7 @@ class _SftpSessionPageState extends ConsumerState<SftpSessionPage>
 
     final selectedFilesIds = useState<Set<String>>({});
 
+    final fileTransfers = ref.watch(fileTransferProvider);
     // modified file data that needs to be confirmed by the user before writing
     final modifiedFiles = useState<Map<String, _ModifiedFileData>>({});
 
@@ -373,20 +373,24 @@ class _SftpSessionPageState extends ConsumerState<SftpSessionPage>
       return null;
     }, [renameItemId.value]);
 
+    // cleanup modified files that were cleared through the file transfer provider
+    useEffect(() {
+      final diff = modifiedFiles.value.keys.toSet().difference(
+        fileTransfers.queued.keys.toSet(),
+      );
+
+      modifiedFiles.value = {
+        ...modifiedFiles.value..removeWhere((key, _) => diff.contains(key)),
+      };
+
+      return null;
+    }, [fileTransfers.queued]);
+
     // helper for preventing certain actions while loading
     onAction(VoidCallback func) => isLoading.value ? null : func;
 
-    cleanupModified(SftpName file, String id) {
-      final modifiedFile = modifiedFiles.value[id];
-      if (modifiedFile == null) return;
-
-      // delete local file
-      final tempFile = File(modifiedFile.tempPath);
-      if (tempFile.existsSync()) {
-        debugPrint('Deleting temp file: ${tempFile.path}');
-        tempFile.deleteSync();
-      }
-
+    cleanupModified(SftpName file, String id) async {
+      await ref.read(fileTransferProvider.notifier).remove(id);
       modifiedFiles.value = {...modifiedFiles.value..remove(id)};
     }
 
@@ -418,8 +422,12 @@ class _SftpSessionPageState extends ConsumerState<SftpSessionPage>
       File tempFile = File(fullName);
 
       ref
-          .read(transferQueueProvider.notifier)
-          .add(id, .new(path: tempFile.path, type: .remoteToLocal));
+          .read(fileTransferProvider.notifier)
+          .add(
+            id,
+            .new(path: tempFile.path, type: .remoteToLocal),
+            tempFile: tempFile,
+          );
 
       attemptOpenAndWatch(File file) async {
         // open with default app
@@ -433,47 +441,31 @@ class _SftpSessionPageState extends ConsumerState<SftpSessionPage>
           final fallbackResult = await OpenAppFile.open(withExtension.path);
           if (fallbackResult.type == .done) {
             file = withExtension;
-
-            // update temp file name in state
-            // TODO:?
           }
         }
-
-        final originalContent = await file.readAsBytes();
 
         file.parent.watch().listen((event) async {
           if (event.path != tempFile.path) return;
           if (event.type == FileSystemEvent.create ||
               event.type == FileSystemEvent.modify) {
-            await Future.delayed(const Duration(milliseconds: 100));
-            try {
-              final newContent = await File(event.path).readAsBytes();
-              if (listEquals(newContent, originalContent)) {
-                modifiedFiles.value = {...modifiedFiles.value..remove(id)};
-              } else {
-                modifiedFiles.value = {
-                  ...modifiedFiles.value,
-                  id: _ModifiedFileData(
-                    path: fullPath,
-                    tempPath: tempFile.path,
-                  ),
-                };
-              }
-            } catch (_) {}
+            modifiedFiles.value = {
+              ...modifiedFiles.value,
+              id: .new(path: fullPath, tempPath: tempFile.path),
+            };
           }
         });
       }
 
-      final transferQueueNotifier = ref.read(transferQueueProvider.notifier);
+      final fileTransferNotifier = ref.read(fileTransferProvider.notifier);
 
-      ref
-          .read(sessionProvider.notifier)
+      fileTransferNotifier
           .transferSftp(
+            id,
             source: session,
             sourcePath: fullPath,
             localPath: tempFile.path,
           )
-          .listen((p) => transferQueueNotifier.setProgress(id, p))
+          .listen((p) => fileTransferNotifier.setProgress(id, p))
           .onDone(() async => await attemptOpenAndWatch(tempFile));
     }
 
@@ -552,20 +544,16 @@ class _SftpSessionPageState extends ConsumerState<SftpSessionPage>
     uploadModified(SftpName file, String id) {
       final modifiedFile = modifiedFiles.value[id];
       if (modifiedFile == null) return;
-      debugPrint(
-        'Uploading modified file: ${modifiedFile.tempPath} to ${modifiedFile.path}',
-      );
+      final fileTransferNotifier = ref.read(fileTransferProvider.notifier);
 
-      final transferQueueNotifier = ref.read(transferQueueProvider.notifier);
-
-      transferQueueNotifier.add(
+      fileTransferNotifier.add(
         id,
         .new(path: modifiedFile.tempPath, type: .localToRemote),
       );
 
-      ref
-          .read(sessionProvider.notifier)
+      fileTransferNotifier
           .transferSftp(
+            id,
             localPath: modifiedFiles.value[id]!.tempPath,
             destination: session,
             destinationPath: [
@@ -573,8 +561,8 @@ class _SftpSessionPageState extends ConsumerState<SftpSessionPage>
               file.filename,
             ].join('/'),
           )
-          .listen((p) => transferQueueNotifier.setProgress(id, p))
-          .onDone(() {
+          .listen((p) => fileTransferNotifier.setProgress(id, p))
+          .onDone(() async {
             cleanupModified(file, id);
             // refresh directory
             currentDirectory.value = [...?currentDirectory.value];
@@ -774,43 +762,58 @@ class _SftpSessionPageState extends ConsumerState<SftpSessionPage>
                     details.data.sessionId != session.id,
                 onAcceptWithDetails: (details) async {
                   for (final fileEntry in details.data.files.entries) {
-                    debugPrint(
-                      'Transferring file from source ${fileEntry.value.path} to destination ${[...?currentDirectory.value, fileEntry.value.fileName].join('/')}',
+                    final id = fileEntry.key;
+
+                    final fileTransferNotifier = ref.read(
+                      fileTransferProvider.notifier,
                     );
 
-                    final index = fileEntry.key;
+                    final destinationPath = [
+                      ...?currentDirectory.value,
+                      fileEntry.value.fileName,
+                    ].join('/');
 
-                    final transferQueueNotifier = ref.read(
-                      transferQueueProvider.notifier,
-                    );
+                    transfer() {
+                      fileTransferNotifier.add(
+                        id,
+                            .new(path: fileEntry.value.path, type: .remoteToRemote),
+                      );
 
-                    transferQueueNotifier.add(
-                      index,
-                      .new(path: fileEntry.value.path, type: .remoteToRemote),
-                    );
+                      final sourceSession = ref
+                          .read(sessionProvider.notifier)
+                          .getSessionById(details.data.sessionId)!;
 
-                    ref
-                        .read(sessionProvider.notifier)
-                        .transferSftp(
-                          source: session,
-                          destination: ref
-                              .read(sessionProvider.notifier)
-                              .getSessionById(details.data.sessionId)!,
-                          sourcePath: fileEntry.value.path,
-                          localPath: [
-                            ...?currentDirectory.value,
-                            fileEntry.value.fileName,
-                          ].join('/'),
-                        )
-                        .listen(
-                          (p) => transferQueueNotifier.setProgress(index, p),
-                        )
-                        .onDone(() {
-                          // TODO also refresh directory in source SftpSessionPage
+                      fileTransferNotifier
+                          .transferSftp(
+                            id,
+                            source: sourceSession,
+                            sourcePath: fileEntry.value.path,
+                            destination: session,
+                            destinationPath: destinationPath,
+                          )
+                          .listen(
+                            (p) => fileTransferNotifier.setProgress(id, p),
+                          )
+                          .onDone(() {
+                            // refresh directory
+                            currentDirectory.value = [
+                              ...?currentDirectory.value,
+                            ];
+                          });
+                    }
 
-                          // refresh directory
-                          currentDirectory.value = [...?currentDirectory.value];
-                        });
+                    // check if file exists
+                    try {
+                      await session.sftpClient!.stat(destinationPath);
+                      Commons.showDeleteDialog(
+                        term: 'overwrite',
+                        entity: fileEntry.value.fileName,
+                        onDelete: transfer,
+                        canInstantDelete: false,
+                      );
+                    } on SftpStatusError catch (_) {
+                      transfer();
+                    }
                   }
                 },
                 builder: (context, data, _) {
@@ -970,7 +973,7 @@ class _SftpSessionPageState extends ConsumerState<SftpSessionPage>
                           );
 
                           final isQueued = ref
-                              .read(transferQueueProvider)
+                              .read(fileTransferProvider)
                               .isPending(id);
                           final isModified = modifiedFiles.value.containsKey(
                             id,
@@ -995,7 +998,7 @@ class _SftpSessionPageState extends ConsumerState<SftpSessionPage>
                             );
                           } else if (col.prefixBuilder != null) {
                             return Row(
-                              spacing: 8,
+                              spacing: 4,
                               children: [
                                 isQueued
                                     ? SizedBox(
@@ -1008,12 +1011,13 @@ class _SftpSessionPageState extends ConsumerState<SftpSessionPage>
                                 if (isModified && !isQueued) ...[
                                   FButton.icon(
                                     onPress: () => uploadModified(file, id),
+                                    variant: .primary,
                                     child: Icon(LucideIcons.upload),
                                   ),
                                   FButton.icon(
                                     onPress: () => cleanupModified(file, id),
                                     variant: .destructive,
-                                    child: Icon(LucideIcons.x),
+                                    child: Icon(LucideIcons.trash),
                                   ),
                                 ],
                               ],
