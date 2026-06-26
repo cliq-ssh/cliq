@@ -198,7 +198,7 @@ class TerminalThemeCard extends HookConsumerWidget {
                     if (theme.id == -1)
                       Text(
                         'built-in',
-                        style: context.theme.typography.xs.copyWith(
+                        style: context.theme.typography.body.xs.copyWith(
                           color: context.theme.colors.mutedForeground,
                           fontWeight: .normal,
                         ),

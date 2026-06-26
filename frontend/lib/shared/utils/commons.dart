@@ -65,7 +65,7 @@ final class Commons {
     return showFDialog(
       context: (Router.rootNavigatorKey.currentContext ?? context)!,
       builder: (context, style, animation) {
-        final subtitleStyle = context.theme.typography.sm.copyWith(
+        final subtitleStyle = context.theme.typography.body.sm.copyWith(
           color: context.theme.colors.mutedForeground,
         );
         return FDialog(
@@ -79,7 +79,7 @@ final class Commons {
                 TextSpan(text: 'Are you sure you want to delete '),
                 TextSpan(
                   text: entity,
-                  style: context.theme.typography.sm.copyWith(
+                  style: context.theme.typography.body.sm.copyWith(
                     fontWeight: .bold,
                   ),
                 ),

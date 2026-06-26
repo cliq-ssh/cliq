@@ -141,7 +141,7 @@ class ShortcutsSettingsPage extends AbstractSettingsPage {
         subtitle: duplicates.isNotEmpty
             ? Text(
                 'Conflicts with ${duplicates.length} shortcut(s): ${duplicates.map((e) => e.key.getDisplayName(context)).join(', ')}',
-                style: context.theme.typography.xs.copyWith(
+                style: context.theme.typography.body.xs.copyWith(
                   color: context.theme.colors.error,
                 ),
               )

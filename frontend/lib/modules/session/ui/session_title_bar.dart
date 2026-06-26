@@ -87,7 +87,7 @@ class SessionTitleBar extends HookConsumerWidget {
             ConnectionIcon.fromConnection(connection, size: 10, padding: 4),
             Text(
               connection.label,
-              style: context.theme.typography.xs2.copyWith(
+              style: context.theme.typography.body.xs2.copyWith(
                 fontFamily: CliqFontFamily.secondary.fontFamily,
                 color: foregroundColor.value ?? context.theme.colors.foreground,
               ),
