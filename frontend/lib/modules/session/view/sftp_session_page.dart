@@ -241,6 +241,10 @@ class _SftpSessionPageState extends ConsumerState<SftpSessionPage>
     // modified file data that needs to be confirmed by the user before writing
     final modifiedFiles = useState<Map<String, _ModifiedFileData>>({});
 
+    // the id of the file that is currently being renamed, if any
+    final renameItemId = useState<String?>(null);
+    final renameController = useTextEditingController();
+
     final tempDir = useMemoized(
       () => Directory.systemTemp.createTempSync('cliq_sftp_${session.id}'),
     );
@@ -515,7 +519,39 @@ class _SftpSessionPageState extends ConsumerState<SftpSessionPage>
       isLoading.value = false;
     }
 
-    deleteFile(SftpName file, String id) async {
+    renameItem(SftpName file, String id, String newFileName) async {
+      newFileName = newFileName.trim();
+      if (newFileName.isEmpty || newFileName == file.filename) {
+        renameItemId.value = null;
+        return;
+      }
+
+      final oldPath = [...?currentDirectory.value, file.filename].join('/');
+      final newPath = [...?currentDirectory.value, newFileName].join('/');
+
+      try {
+        await session.sftpClient!.rename(oldPath, newPath);
+        renameItemId.value = null;
+
+        // refresh directory
+        currentDirectory.value = [...?currentDirectory.value];
+      } on SftpStatusError catch (e) {
+        if (!context.mounted) return;
+
+        // show error toast
+        Commons.showToast(
+          'Failed to rename: ${e.message}',
+          prefix: Icon(
+            LucideIcons.edit3,
+            size: 20,
+            color: context.theme.colors.destructive,
+          ),
+          variant: .destructive,
+        );
+      }
+    }
+
+    deleteItem(SftpName file, String id) async {
       delete() async {
         final fullPath = [...?currentDirectory.value, file.filename].join('/');
         await (file.attr.isDirectory
@@ -1028,8 +1064,18 @@ class _SftpSessionPageState extends ConsumerState<SftpSessionPage>
                           final isModified = modifiedFiles.value.containsKey(
                             id,
                           );
+                          final isRename =
+                              renameItemId.value == id && col == .name;
 
-                          if (col.prefixBuilder != null) {
+                          if (isRename) {
+                            return FTextField(
+                              control: .managed(controller: renameController),
+                              autofocus: true,
+                              onSubmit: (value) => renameItem(file, id, value),
+                              onTapOutside: (_) =>
+                                  renameItem(file, id, renameController.text),
+                            );
+                          } else if (col.prefixBuilder != null) {
                             return Row(
                               spacing: 8,
                               children: [
@@ -1117,71 +1163,85 @@ class _SftpSessionPageState extends ConsumerState<SftpSessionPage>
                             for (final col in _SftpColumn.values)
                               if (visibleColumns.value.contains(col))
                                 .new(
-                                  child: CustomContextMenu(
-                                    actions: [
-                                      .new(
-                                        label: 'Open',
-                                        icon: LucideIcons.folderOpen,
-                                        onPress: () => openFile(file, id),
-                                      ),
-                                      .new(
-                                        label: 'Delete',
-                                        icon: LucideIcons.trash,
-                                        variant: .destructive,
-                                        onPress: () => deleteFile(file, id),
-                                      ),
-                                    ],
-                                    builder: (_) {
-                                      return Listener(
-                                        onPointerDown: (_) {
-                                          if (!selectedFilesIds.value.contains(
-                                            id,
-                                          )) {
-                                            selectedFilesIds.value = {id};
-                                          }
-                                        },
-                                        child: Builder(
-                                          builder: (context) {
-                                            final selected =
-                                                <String, _FileData>{};
-                                            for (final id
-                                                in selectedFilesIds.value) {
-                                              final file = getFileFromId(id);
-                                              if (file != null) {
-                                                final fullPath = [
-                                                  ...?currentDirectory.value,
-                                                  file.filename,
-                                                ].join('/');
-
-                                                selected[id] = _FileData(
-                                                  path: fullPath,
-                                                );
-                                              }
-                                            }
-
-                                            return Draggable<_SftpDragData>(
-                                              data: _SftpDragData(
-                                                sessionId: session.id,
-                                                files: selected,
-                                              ),
-                                              onDragStarted: () {
-                                                final isPartOfSelection =
-                                                    selectedFilesIds.value
-                                                        .contains(id);
-                                                if (!isPartOfSelection) {
-                                                  selectedFilesIds.value = {id};
-                                                }
-                                              },
-                                              feedback: buildDragFeedback(),
-                                              child: buildCell(col),
-                                            );
-                                          },
-                                        ),
-                                      );
+                                  child: Listener(
+                                    onPointerDown: (_) {
+                                      if (!selectedFilesIds.value.contains(
+                                        id,
+                                      )) {
+                                        selectedFilesIds.value = {id};
+                                      }
                                     },
+                                    child: Builder(
+                                      builder: (context) {
+                                        final selected = <String, _FileData>{};
+                                        for (final id
+                                            in selectedFilesIds.value) {
+                                          final file = getFileFromId(id);
+                                          if (file != null) {
+                                            final fullPath = [
+                                              ...?currentDirectory.value,
+                                              file.filename,
+                                            ].join('/');
+
+                                            selected[id] = _FileData(
+                                              path: fullPath,
+                                            );
+                                          }
+                                        }
+
+                                        return Draggable<_SftpDragData>(
+                                          data: _SftpDragData(
+                                            sessionId: session.id,
+                                            files: selected,
+                                          ),
+                                          onDragStarted: () {
+                                            final isPartOfSelection =
+                                                selectedFilesIds.value.contains(
+                                                  id,
+                                                );
+                                            if (!isPartOfSelection) {
+                                              selectedFilesIds.value = {id};
+                                            }
+                                          },
+                                          feedback: buildDragFeedback(),
+                                          child: buildCell(col),
+                                        );
+                                      },
+                                    ),
                                   ),
                                 ),
                           ],
+                        );
+                      },
+                      rowWrapper: (context, child, index) {
+                        final file = files[index];
+                        final id = getFileIdFromSftpName(file);
+
+                        return CustomContextMenu(
+                          actions: [
+                            .new(
+                              label: 'Open',
+                              icon: LucideIcons.folderOpen,
+                              onPress: () => openFile(file, id),
+                            ),
+                            .new(
+                              label: 'Rename',
+                              icon: LucideIcons.pencil,
+                              onPress: () {
+                                renameController.text = file.filename;
+                                renameItemId.value = id;
+                              },
+                            ),
+                            .new(
+                              label: 'Delete',
+                              icon: LucideIcons.trash,
+                              variant: .destructive,
+                              onPress: () => deleteItem(file, id),
+                            ),
+                          ],
+                          builder: (context) {
+                            return child;
+                          },
                         );
                       },
                     ),

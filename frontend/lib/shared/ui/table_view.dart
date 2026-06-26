@@ -100,33 +100,7 @@ class _TableRowState extends State<_TableRow> {
     buildFocusWrapper(Widget child, int index) {
       return Stack(
         children: [
-          Semantics(
-            button: true,
-            child: FocusableActionDetector(
-              mouseCursor: SystemMouseCursors.click,
-              onShowFocusHighlight: (value) {
-                if (!mounted) return;
-                if (value) {
-                  setState(() => _focused = index);
-                  return;
-                }
-                setState(() => _focused = null);
-              },
-              shortcuts: const {
-                SingleActivator(.enter): ActivateIntent(),
-                SingleActivator(.space): ActivateIntent(),
-              },
-              actions: <Type, Action<Intent>>{
-                ActivateIntent: CallbackAction<ActivateIntent>(
-                  onInvoke: (intent) {
-                    onDoubleTap(index);
-                    return null;
-                  },
-                ),
-              },
-              child: child,
-            ),
-          ),
+          Semantics(button: true, child: child),
           if (_focused == index)
             Positioned.fill(
               child: IgnorePointer(
@@ -245,6 +219,8 @@ class TableView extends StatefulWidget {
   final List<TableViewCell> columns;
   final int rowCount;
   final TableViewRow? Function(BuildContext context, int index) rowBuilder;
+  final Widget Function(BuildContext context, Widget child, int index)?
+  rowWrapper;
   final ValueChanged<int>? onColumnTap;
   final ValueChanged<int>? onRowTap;
   final ValueChanged<int>? onRowDoubleTap;
@@ -256,6 +232,7 @@ class TableView extends StatefulWidget {
     required this.columns,
     required this.rowCount,
     required this.rowBuilder,
+    this.rowWrapper,
     this.onColumnTap,
     this.onRowTap,
     this.onRowDoubleTap,
@@ -375,7 +352,7 @@ class _TableViewState extends State<TableView> {
                       return const SizedBox.shrink();
                     }
 
-                    return _TableRow(
+                    Widget child = _TableRow(
                       cells: row.cells,
                       widths: widths,
                       height: _kRowHeight,
@@ -386,6 +363,12 @@ class _TableViewState extends State<TableView> {
                       backgroundColor: backgroundColor,
                       selectedBackgroundColor: selectedBackgroundColor,
                     );
+
+                    if (widget.rowWrapper != null) {
+                      child = widget.rowWrapper!(context, child, index);
+                    }
+
+                    return child;
                   },
                 ),
               ],
