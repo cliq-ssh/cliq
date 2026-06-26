@@ -18,6 +18,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lucide_flutter/lucide_flutter.dart';
 import 'package:open_app_file/open_app_file.dart';
 
+import '../../../shared/provider/transfer_queue.provider.dart';
 import '../../../shared/ui/context_menu.dart';
 import '../../../shared/ui/navigation_shell.dart';
 import '../../../shared/ui/table_view.dart';
@@ -149,10 +150,10 @@ class _FileData {
 }
 
 /// Represents a file that is queued for transfer to/from the SFTP server.
-class _QueuedFileData extends _FileData {
+class QueuedFileData extends _FileData {
   final SftpTransferType type;
 
-  const _QueuedFileData({required super.path, required this.type});
+  const QueuedFileData({required super.path, required this.type});
 }
 
 /// Represents a file that has been modified locally and needs to be confirmed before uploading back to the SFTP server.
@@ -234,10 +235,6 @@ class _SftpSessionPageState extends ConsumerState<SftpSessionPage>
 
     final selectedFilesIds = useState<Set<String>>({});
 
-    final queuedFiles = useState<Map<String, _QueuedFileData>>({});
-    final queuedFilesProgress =
-        useState<Map<String, ValueNotifier<FileProgressData>>>({});
-
     // modified file data that needs to be confirmed by the user before writing
     final modifiedFiles = useState<Map<String, _ModifiedFileData>>({});
 
@@ -257,10 +254,6 @@ class _SftpSessionPageState extends ConsumerState<SftpSessionPage>
     });
     final sortColumn = useState<(_SftpColumn, bool)?>(null);
     final showHiddenFiles = useStore(.sftpShowHiddenFiles);
-
-    final rotation = useAnimationController(
-      duration: const Duration(seconds: 2),
-    );
 
     retrySession({bool skipHostKeyVerification = false}) {
       ref
@@ -356,17 +349,6 @@ class _SftpSessionPageState extends ConsumerState<SftpSessionPage>
       return null;
     }, [currentDirectory.value]);
 
-    useEffect(() {
-      if (queuedFiles.value.isEmpty) {
-        rotation
-          ..stop()
-          ..reset();
-      } else {
-        rotation.repeat();
-      }
-      return null;
-    }, [queuedFiles.value]);
-
     getFileIdFromSftpName(SftpName file) {
       return '${session.id}:${[...?currentDirectory.value, file.filename].join('/')}';
     }
@@ -393,30 +375,6 @@ class _SftpSessionPageState extends ConsumerState<SftpSessionPage>
 
     // helper for preventing certain actions while loading
     onAction(VoidCallback func) => isLoading.value ? null : func;
-
-    setQueuedFileProgress(String id, FileProgressData? data) {
-      if (data == null || data.progress >= 1) {
-        queuedFilesProgress.value[id]?.dispose();
-        queuedFilesProgress.value = {...queuedFilesProgress.value..remove(id)};
-        // also remove queued file
-        queuedFiles.value = {...queuedFiles.value..remove(id)};
-        return;
-      }
-
-      if (queuedFilesProgress.value.containsKey(id)) {
-        queuedFilesProgress.value[id]!.value = data;
-      } else {
-        queuedFilesProgress.value = {
-          ...queuedFilesProgress.value,
-          id: ValueNotifier(data),
-        };
-      }
-    }
-
-    addQueuedFile(String id, _QueuedFileData file) {
-      setQueuedFileProgress(id, .zero());
-      queuedFiles.value = {...queuedFiles.value, id: file};
-    }
 
     cleanupModified(SftpName file, String id) {
       final modifiedFile = modifiedFiles.value[id];
@@ -459,10 +417,9 @@ class _SftpSessionPageState extends ConsumerState<SftpSessionPage>
           '${tempDir.path}${Platform.pathSeparator}${file.filename}';
       File tempFile = File(fullName);
 
-      addQueuedFile(
-        id,
-        _QueuedFileData(path: tempFile.path, type: .remoteToLocal),
-      );
+      ref
+          .read(transferQueueProvider.notifier)
+          .add(id, .new(path: tempFile.path, type: .remoteToLocal));
 
       attemptOpenAndWatch(File file) async {
         // open with default app
@@ -507,6 +464,8 @@ class _SftpSessionPageState extends ConsumerState<SftpSessionPage>
         });
       }
 
+      final transferQueueNotifier = ref.read(transferQueueProvider.notifier);
+
       ref
           .read(sessionProvider.notifier)
           .transferSftp(
@@ -514,11 +473,8 @@ class _SftpSessionPageState extends ConsumerState<SftpSessionPage>
             sourcePath: fullPath,
             localPath: tempFile.path,
           )
-          .listen((p) => setQueuedFileProgress(id, p))
-          .onDone(() async {
-            setQueuedFileProgress(id, null);
-            await attemptOpenAndWatch(tempFile);
-          });
+          .listen((p) => transferQueueNotifier.setProgress(id, p))
+          .onDone(() async => await attemptOpenAndWatch(tempFile));
     }
 
     openSymlink(SftpName file, String id) async {
@@ -600,10 +556,13 @@ class _SftpSessionPageState extends ConsumerState<SftpSessionPage>
         'Uploading modified file: ${modifiedFile.tempPath} to ${modifiedFile.path}',
       );
 
-      addQueuedFile(
+      final transferQueueNotifier = ref.read(transferQueueProvider.notifier);
+
+      transferQueueNotifier.add(
         id,
-        _QueuedFileData(path: modifiedFile.path, type: .localToRemote),
+        .new(path: modifiedFile.tempPath, type: .localToRemote),
       );
+
       ref
           .read(sessionProvider.notifier)
           .transferSftp(
@@ -614,11 +573,9 @@ class _SftpSessionPageState extends ConsumerState<SftpSessionPage>
               file.filename,
             ].join('/'),
           )
-          .listen((p) => setQueuedFileProgress(id, p))
+          .listen((p) => transferQueueNotifier.setProgress(id, p))
           .onDone(() {
             cleanupModified(file, id);
-            setQueuedFileProgress(id, null);
-
             // refresh directory
             currentDirectory.value = [...?currentDirectory.value];
           });
@@ -806,86 +763,6 @@ class _SftpSessionPageState extends ConsumerState<SftpSessionPage>
                           );
                         },
                       ),
-                      FPopoverMenu(
-                        menu: [
-                          .group(
-                            divider: .full,
-                            children: [
-                              if (queuedFiles.value.isEmpty)
-                                .item(title: Text('No queued files'))
-                              else
-                                for (final entries in queuedFiles.value.entries)
-                                  .item(
-                                    title: Text(entries.value.fileName),
-                                    prefix: Padding(
-                                      padding: const .only(right: 8),
-                                      child: Icon(switch (entries.value.type) {
-                                        .remoteToLocal =>
-                                          LucideIcons.cloudDownload,
-                                        .localToRemote =>
-                                          LucideIcons.cloudUpload,
-                                        .remoteToRemote =>
-                                          LucideIcons.cloudSync,
-                                      }, size: 20),
-                                    ),
-                                    subtitle: SizedBox(
-                                      width: 300,
-                                      child: ValueListenableBuilder<FileProgressData>(
-                                        valueListenable: queuedFilesProgress
-                                            .value[entries.key]!,
-                                        builder: (_, data, _) {
-                                          return Padding(
-                                            padding: const .symmetric(
-                                              vertical: 4,
-                                            ),
-                                            child: Column(
-                                              crossAxisAlignment: .center,
-                                              spacing: 8,
-                                              children: [
-                                                SizedBox(
-                                                  width: double.infinity,
-                                                  child: FDeterminateProgress(
-                                                    value: data.progress,
-                                                  ),
-                                                ),
-                                                Row(
-                                                  spacing: 8,
-                                                  mainAxisAlignment:
-                                                      .spaceBetween,
-                                                  children: [
-                                                    Text(
-                                                      '${TextUtils.formatBytes(data.currentBytes) ?? '--'} / ${TextUtils.formatBytes(data.totalBytes) ?? '--'}',
-                                                    ),
-                                                    Text(
-                                                      '${(data.progress * 100).toStringAsFixed(1)}%',
-                                                    ),
-                                                  ],
-                                                ),
-                                              ],
-                                            ),
-                                          );
-                                        },
-                                      ),
-                                    ),
-                                  ),
-                            ],
-                          ),
-                        ],
-                        builder: (_, controller, _) {
-                          return FButton.icon(
-                            variant: .outline,
-                            onPress: controller.toggle,
-                            child: RotationTransition(
-                              turns: rotation,
-                              child: Icon(
-                                queuedFiles.value.isEmpty
-                                    ? LucideIcons.refreshCwOff
-                                    : LucideIcons.refreshCw,
-                              ),
-                            ),
-                          );
-                        },
-                      ),
                     ],
                   ),
                 ],
@@ -903,7 +780,11 @@ class _SftpSessionPageState extends ConsumerState<SftpSessionPage>
 
                     final index = fileEntry.key;
 
-                    addQueuedFile(
+                    final transferQueueNotifier = ref.read(
+                      transferQueueProvider.notifier,
+                    );
+
+                    transferQueueNotifier.add(
                       index,
                       .new(path: fileEntry.value.path, type: .remoteToRemote),
                     );
@@ -921,9 +802,10 @@ class _SftpSessionPageState extends ConsumerState<SftpSessionPage>
                             fileEntry.value.fileName,
                           ].join('/'),
                         )
-                        .listen((p) => setQueuedFileProgress(index, p))
+                        .listen(
+                          (p) => transferQueueNotifier.setProgress(index, p),
+                        )
                         .onDone(() {
-                          setQueuedFileProgress(index, null);
                           // TODO also refresh directory in source SftpSessionPage
 
                           // refresh directory
@@ -1087,7 +969,9 @@ class _SftpSessionPageState extends ConsumerState<SftpSessionPage>
                             style: fileStyle,
                           );
 
-                          final isQueued = queuedFiles.value.containsKey(id);
+                          final isQueued = ref
+                              .read(transferQueueProvider)
+                              .isPending(id);
                           final isModified = modifiedFiles.value.containsKey(
                             id,
                           );

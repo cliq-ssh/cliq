@@ -18,6 +18,8 @@ import '../../modules/session/provider/session.provider.dart';
 import '../../modules/session/ui/session_sidebar_tab.dart';
 import '../../modules/settings/model/navigation_position.model.dart';
 import '../../modules/settings/provider/terminal_theme.provider.dart';
+import '../provider/transfer_queue.provider.dart';
+import '../utils/text_utils.dart';
 
 class NavigationShell extends StatefulHookConsumerWidget {
   final StatefulNavigationShell shell;
@@ -59,6 +61,12 @@ class NavigationShellState extends ConsumerState<NavigationShell>
     final selectedTab = useState(sessions.selectedSession);
     final showTabs = useState(false);
 
+    final transferQueue = ref.watch(transferQueueProvider);
+
+    final rotationAnimation = useAnimationController(
+      duration: const .new(seconds: 2),
+    );
+
     useEffect(() {
       selectedTab.value = sessions.selectedSession;
       return null;
@@ -70,6 +78,17 @@ class NavigationShellState extends ConsumerState<NavigationShell>
           : .top;
       return null;
     }, [breakpoint, prefDesktopNavPosition.value]);
+
+    useEffect(() {
+      if (transferQueue.isAnyPending) {
+        rotationAnimation.repeat();
+      } else {
+        rotationAnimation
+          ..stop()
+          ..reset();
+      }
+      return null;
+    }, [transferQueue.queued]);
 
     connect(ConnectionFull connection, {bool isSftp = false}) {
       ref
@@ -113,6 +132,74 @@ class NavigationShellState extends ConsumerState<NavigationShell>
           isTop: navPosition.value == .top,
           noPadding: navPosition.value == .top,
         ),
+      );
+    }
+
+    buildTransferQueue(bool isExpanded) {
+      return FPopoverMenu(
+        menu: [
+          .group(
+            divider: .full,
+            children: [
+              if (transferQueue.isEmpty)
+                .item(title: Text('Nothing in queue'))
+              else
+                for (final item in transferQueue.queued.values)
+                  .item(
+                    title: Text(item.file.fileName),
+                    subtitle: SizedBox(
+                      width: 300,
+                      child: item.isInProgress
+                          ? Padding(
+                              padding: const .symmetric(vertical: 4),
+                              child: Column(
+                                crossAxisAlignment: .center,
+                                spacing: 8,
+                                children: [
+                                  SizedBox(
+                                    width: double.infinity,
+                                    child: FDeterminateProgress(
+                                      value: item.progressData.progress,
+                                    ),
+                                  ),
+                                  Row(
+                                    spacing: 8,
+                                    mainAxisAlignment: .spaceBetween,
+                                    children: [
+                                      Text(
+                                        '${TextUtils.formatBytes(item.progressData.currentBytes) ?? '--'} / ${TextUtils.formatBytes(item.progressData.totalBytes) ?? '--'}',
+                                      ),
+                                      Text(
+                                        '${(item.progressData.progress * 100).toStringAsFixed(1)}%',
+                                      ),
+                                    ],
+                                  ),
+                                ],
+                              ),
+                            )
+                          : Text(
+                              'completed in ${DateTime.fromMillisecondsSinceEpoch(item.endTime!).difference(DateTime.fromMillisecondsSinceEpoch(item.startTime)).inSeconds}s',
+                            ),
+                    ),
+                  ),
+            ],
+          ),
+        ],
+        builder: (_, controller, _) {
+          return SidebarTab(
+            isExpanded: isExpanded,
+            label: Text('Queue'),
+            onPress: transferQueue.isEmpty ? null : controller.toggle,
+            icon: RotationTransition(
+              turns: rotationAnimation,
+              child: Icon(
+                transferQueue.isEmpty
+                    ? LucideIcons.refreshCwOff
+                    : LucideIcons.refreshCw,
+              ),
+            ),
+          );
+        },
       );
     }
 
@@ -230,7 +317,13 @@ class NavigationShellState extends ConsumerState<NavigationShell>
             ),
           );
         },
-        footerBuilder: (_, isExpanded) => buildSettingsTab(isExpanded),
+        footerBuilder: (_, isExpanded) => Column(
+          mainAxisSize: .min,
+          children: [
+            buildTransferQueue(isExpanded),
+            buildSettingsTab(isExpanded),
+          ],
+        ),
         contentBuilder: (context, isExpanded) {
           return [
             buildDashboardTab(isExpanded),
