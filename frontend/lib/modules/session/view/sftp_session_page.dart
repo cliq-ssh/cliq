@@ -227,7 +227,8 @@ class _SftpSessionPageState extends ConsumerState<SftpSessionPage>
 
     final isLoading = useState(true);
 
-    final navigateBackBuffer = useState<List<String>?>(null);
+    final backStack = useState<List<List<String>>>([]);
+    final forwardStack = useState<List<List<String>>>([]);
 
     final currentDirectory = useState<List<String>?>([]);
     final currentFiles = useState<List<SftpName>?>(null);
@@ -389,6 +390,15 @@ class _SftpSessionPageState extends ConsumerState<SftpSessionPage>
     // helper for preventing certain actions while loading
     onAction(VoidCallback func) => isLoading.value ? null : func;
 
+    navigateTo(List<String> path) {
+      if (currentDirectory.value != null) {
+        backStack.value = [...backStack.value, currentDirectory.value!];
+      }
+      forwardStack.value = [];
+      selectedFilesIds.value = {};
+      currentDirectory.value = path;
+    }
+
     cleanupModified(SftpName file, String id) async {
       await ref.read(fileTransferProvider.notifier).remove(id);
       modifiedFiles.value = {...modifiedFiles.value..remove(id)};
@@ -405,10 +415,8 @@ class _SftpSessionPageState extends ConsumerState<SftpSessionPage>
             )
             ..trim();
 
-      selectedFilesIds.value = {};
-      currentDirectory.value = path == '/' ? [''] : path.split('/');
-      navigateBackBuffer.value = null;
       isLoading.value = false;
+      navigateTo(path == '/' ? [''] : path.split('/'));
     }
 
     openFile(SftpName file, String id) async {
@@ -478,8 +486,7 @@ class _SftpSessionPageState extends ConsumerState<SftpSessionPage>
 
       if (targetAttr.isDirectory) {
         final absolutePath = await session.sftpClient!.absolute(symlinkPath);
-        currentDirectory.value = absolutePath.split('/');
-        navigateBackBuffer.value = null;
+        navigateTo(absolutePath.split('/'));
       } else {
         await openFile(file, id);
       }
@@ -616,24 +623,22 @@ class _SftpSessionPageState extends ConsumerState<SftpSessionPage>
                   Row(
                     spacing: 8,
                     children: [
-                      // TODO implement
                       FTooltip(
                         tipBuilder: (_, _) => Text('Navigate back'),
                         child: FButton.icon(
                           variant: .outline,
-                          onPress:
-                              currentDirectory.value == null ||
-                                  currentDirectory.value!.length <= 1
+                          onPress: backStack.value.isEmpty
                               ? null
                               : onAction(() {
-                                  // remove last part of current directory
-                                  final current = [...currentDirectory.value!];
-                                  final removed = current.removeLast();
-                                  navigateBackBuffer.value = [
-                                    ...?navigateBackBuffer.value,
-                                    removed,
+                                  forwardStack.value = [
+                                    currentDirectory.value!,
+                                    ...forwardStack.value,
                                   ];
-                                  currentDirectory.value = current;
+                                  currentDirectory.value = backStack.value.last;
+                                  backStack.value = backStack.value.sublist(
+                                    0,
+                                    backStack.value.length - 1,
+                                  );
                                 }),
                           child: Icon(LucideIcons.arrowLeft),
                         ),
@@ -642,16 +647,17 @@ class _SftpSessionPageState extends ConsumerState<SftpSessionPage>
                         tipBuilder: (_, _) => Text('Navigate forward'),
                         child: FButton.icon(
                           variant: .outline,
-                          onPress:
-                              navigateBackBuffer.value == null ||
-                                  navigateBackBuffer.value!.isEmpty
+                          onPress: forwardStack.value.isEmpty
                               ? null
                               : onAction(() {
-                                  final current = [
-                                    ...?currentDirectory.value,
-                                    navigateBackBuffer.value!.removeLast(),
+                                  backStack.value = [
+                                    ...backStack.value,
+                                    currentDirectory.value!,
                                   ];
-                                  currentDirectory.value = current;
+                                  currentDirectory.value =
+                                      forwardStack.value.first;
+                                  forwardStack.value = forwardStack.value
+                                      .sublist(1);
                                 }),
                           child: Icon(LucideIcons.arrowRight),
                         ),
@@ -677,10 +683,12 @@ class _SftpSessionPageState extends ConsumerState<SftpSessionPage>
                                   final index = currentDirectory.value!.indexOf(
                                     part,
                                   );
-                                  currentDirectory.value = currentDirectory
-                                      .value!
-                                      .sublist(0, index + 1);
-                                  navigateBackBuffer.value = null;
+                                  navigateTo(
+                                    currentDirectory.value!.sublist(
+                                      0,
+                                      index + 1,
+                                    ),
+                                  );
                                 }),
                                 child: Text(part.isEmpty ? '/' : part),
                               ),
@@ -776,7 +784,7 @@ class _SftpSessionPageState extends ConsumerState<SftpSessionPage>
                     transfer() {
                       fileTransferNotifier.add(
                         id,
-                            .new(path: fileEntry.value.path, type: .remoteToRemote),
+                        .new(path: fileEntry.value.path, type: .remoteToRemote),
                       );
 
                       final sourceSession = ref
