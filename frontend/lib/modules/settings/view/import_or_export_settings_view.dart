@@ -214,7 +214,7 @@ class _ImportOrExportSettingsViewState
       bool Function(T)? isRelated,
       void Function(Set<ID>)? onChange,
     }) {
-      final toolbarTextStyle = context.theme.typography.xs.copyWith(
+      final toolbarTextStyle = context.theme.typography.body.xs.copyWith(
         fontWeight: .normal,
       );
 
@@ -389,7 +389,7 @@ class _ImportOrExportSettingsViewState
                   if (error.value != null)
                     Text(
                       error.value!,
-                      style: context.theme.typography.sm.copyWith(
+                      style: context.theme.typography.body.sm.copyWith(
                         color: context.theme.colors.error,
                       ),
                     ),
