@@ -1,4 +1,6 @@
+import 'package:cliq/modules/connections/model/connection_full.model.dart';
 import 'package:cliq/modules/connections/provider/connection.provider.dart';
+import 'package:cliq/modules/connections/ui/connection_icon.dart';
 import 'package:cliq/shared/provider/store.provider.dart';
 import 'package:cliq/shared/ui/responsive_sidebar.dart';
 import 'package:cliq/shared/ui/shortcut_info.dart';
@@ -16,6 +18,8 @@ import '../../modules/session/provider/session.provider.dart';
 import '../../modules/session/ui/session_sidebar_tab.dart';
 import '../../modules/settings/model/navigation_position.model.dart';
 import '../../modules/settings/provider/terminal_theme.provider.dart';
+import '../provider/file_transfer.provider.dart';
+import '../utils/text_utils.dart';
 
 class NavigationShell extends StatefulHookConsumerWidget {
   final StatefulNavigationShell shell;
@@ -57,6 +61,12 @@ class NavigationShellState extends ConsumerState<NavigationShell>
     final selectedTab = useState(sessions.selectedSession);
     final showTabs = useState(false);
 
+    final transferQueue = ref.watch(fileTransferProvider);
+
+    final rotationAnimation = useAnimationController(
+      duration: const .new(seconds: 2),
+    );
+
     useEffect(() {
       selectedTab.value = sessions.selectedSession;
       return null;
@@ -68,6 +78,24 @@ class NavigationShellState extends ConsumerState<NavigationShell>
           : .top;
       return null;
     }, [breakpoint, prefDesktopNavPosition.value]);
+
+    useEffect(() {
+      if (transferQueue.isAnyPending) {
+        rotationAnimation.repeat();
+      } else {
+        rotationAnimation
+          ..stop()
+          ..reset();
+      }
+      return null;
+    }, [transferQueue.queued]);
+
+    connect(ConnectionFull connection, {bool isSftp = false}) {
+      ref
+          .read(sessionProvider.notifier)
+          .createAndGo(this, connection, isSftp: isSftp);
+      showTabs.value = false;
+    }
 
     /// Gets the effective sidebar color based on the selected session and its terminal theme.
     Color getEffectiveSidebarColor() {
@@ -104,6 +132,103 @@ class NavigationShellState extends ConsumerState<NavigationShell>
           isTop: navPosition.value == .top,
           noPadding: navPosition.value == .top,
         ),
+      );
+    }
+
+    buildTransferQueue(bool isExpanded) {
+      return FPopoverMenu(
+        menu: [
+          .group(
+            divider: .full,
+            children: [
+              if (transferQueue.isEmpty)
+                .item(title: Text('Nothing in queue'))
+              else
+                for (final item in transferQueue.queued.entries)
+                  .item(
+                    title: Text(item.value.file.fileName),
+                    subtitle: SizedBox(
+                      width: 300,
+                      child: item.value.isInProgress
+                          ? Padding(
+                              padding: const .symmetric(vertical: 4),
+                              child: Column(
+                                crossAxisAlignment: .center,
+                                spacing: 8,
+                                children: [
+                                  SizedBox(
+                                    width: double.infinity,
+                                    child: FDeterminateProgress(
+                                      value: item.value.progressData.progress,
+                                    ),
+                                  ),
+                                  Row(
+                                    spacing: 8,
+                                    mainAxisAlignment: .spaceBetween,
+                                    children: [
+                                      Text(
+                                        '${TextUtils.formatBytes(item.value.progressData.currentBytes) ?? '--'} / ${TextUtils.formatBytes(item.value.progressData.totalBytes) ?? '--'}',
+                                      ),
+                                      Text(
+                                        '${(item.value.progressData.progress * 100).toStringAsFixed(1)}%',
+                                      ),
+                                    ],
+                                  ),
+                                ],
+                              ),
+                            )
+                          : (item.value.error != null
+                                ? Text(
+                                    item.value.error!,
+                                    style: context.theme.typography.body.xs
+                                        .copyWith(
+                                          color:
+                                              context.theme.colors.destructive,
+                                        ),
+                                  )
+                                : Text(
+                                    'completed in ${DateTime.fromMillisecondsSinceEpoch(item.value.endTime!).difference(DateTime.fromMillisecondsSinceEpoch(item.value.startTime)).inSeconds}s',
+                                  )),
+                    ),
+                    suffix: FButton.icon(
+                      variant: item.value.tempFile != null
+                          ? .destructive
+                          : .ghost,
+                      child: Icon(
+                        item.value.tempFile != null
+                            ? LucideIcons.trash
+                            : LucideIcons.x,
+                      ),
+                      onPress: () {
+                        final fileTransferNotifier = ref.read(
+                          fileTransferProvider.notifier,
+                        );
+                        if (item.value.isInProgress) {
+                          fileTransferNotifier.cancel(context, item.key);
+                        } else {
+                          fileTransferNotifier.remove(item.key);
+                        }
+                      },
+                    ),
+                  ),
+            ],
+          ),
+        ],
+        builder: (_, controller, _) {
+          return SidebarTab(
+            isExpanded: isExpanded,
+            label: Text('Queue'),
+            onPress: transferQueue.isEmpty ? null : controller.toggle,
+            icon: RotationTransition(
+              turns: rotationAnimation,
+              child: Icon(
+                transferQueue.isEmpty
+                    ? LucideIcons.refreshCwOff
+                    : LucideIcons.refreshCw,
+              ),
+            ),
+          );
+        },
       );
     }
 
@@ -150,13 +275,28 @@ class NavigationShellState extends ConsumerState<NavigationShell>
               children: [
                 for (final connection in connections.entities)
                   FItem(
+                    prefix: ConnectionIcon.fromConnection(
+                      connection,
+                      size: 10,
+                      padding: 5,
+                    ),
+                    suffix: Row(
+                      mainAxisSize: .min,
+                      spacing: 4,
+                      children: [
+                        FButton.icon(
+                          size: .xs,
+                          child: Icon(LucideIcons.unplug, size: 12),
+                          onPress: () => connect(connection),
+                        ),
+                        FButton.icon(
+                          size: .xs,
+                          child: Icon(LucideIcons.folder, size: 12),
+                          onPress: () => connect(connection, isSftp: true),
+                        ),
+                      ],
+                    ),
                     title: Text(connection.label),
-                    onPress: () {
-                      ref
-                          .read(sessionProvider.notifier)
-                          .createAndGo(this, connection);
-                      showTabs.value = false;
-                    },
                   ),
               ],
             ),
@@ -206,7 +346,13 @@ class NavigationShellState extends ConsumerState<NavigationShell>
             ),
           );
         },
-        footerBuilder: (_, isExpanded) => buildSettingsTab(isExpanded),
+        footerBuilder: (_, isExpanded) => Column(
+          mainAxisSize: .min,
+          children: [
+            buildTransferQueue(isExpanded),
+            buildSettingsTab(isExpanded),
+          ],
+        ),
         contentBuilder: (context, isExpanded) {
           return [
             buildDashboardTab(isExpanded),

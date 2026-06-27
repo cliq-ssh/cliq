@@ -1,3 +1,4 @@
+import 'package:cliq/modules/connections/ui/connection_icon.dart';
 import 'package:cliq/modules/settings/model/navigation_position.model.dart';
 import 'package:cliq/shared/ui/sidebar_tab.dart';
 import 'package:cliq_term/cliq_term.dart';
@@ -68,17 +69,10 @@ class SessionSidebarTab extends HookConsumerWidget {
 
       return Builder(
         builder: (context) {
-          Widget child = Container(
-            decoration: BoxDecoration(
-              color: root.connection.iconBackgroundColor,
-              borderRadius: BorderRadius.circular(6),
-            ),
-            padding: .all(5),
-            child: Icon(
-              root.connection.icon.iconData,
-              color: root.connection.iconColor,
-              size: 10,
-            ),
+          Widget child = ConnectionIcon.fromConnection(
+            root.connection,
+            size: 10,
+            padding: 5,
           );
 
           if (!isExpanded) {
@@ -106,6 +100,7 @@ class SessionSidebarTab extends HookConsumerWidget {
         .new(
           label: sessions.isEmpty ? 'Close' : 'Close All',
           icon: LucideIcons.x,
+          variant: .destructive,
           onPress: close,
           shortcut: .new(.keyW, modifiers: {.alt}),
         ),
