@@ -62,18 +62,18 @@ class IdentityCard extends HookConsumerWidget {
                         identity.label,
                         overflow: .fade,
                         softWrap: false,
-                        style: context.theme.typography.lg,
+                        style: context.theme.typography.body.lg,
                       ),
                       Text(
                         identity.username,
-                        style: context.theme.typography.xs.copyWith(
+                        style: context.theme.typography.body.xs.copyWith(
                           color: context.theme.colors.mutedForeground,
                         ),
                       ),
                       if (identity.credentialIds.isNotEmpty)
                         Text(
                           '${identity.credentialIds.length} credential(s)',
-                          style: context.theme.typography.xs.copyWith(
+                          style: context.theme.typography.body.xs.copyWith(
                             color: context.theme.colors.mutedForeground,
                             fontWeight: .normal,
                           ),

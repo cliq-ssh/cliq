@@ -1,13 +1,13 @@
 import 'dart:math';
 
-import 'package:cliq_term/src/rendering/model/ring_buffer.dart';
+import 'package:cliq_term/cliq_term.dart';
 
-import '../../../cliq_term.dart';
+import '../../state/charset.state.dart';
 
-class Row {
+class TerminalBufferRow {
   final List<Cell> cells;
 
-  Row(int cols)
+  TerminalBufferRow(int cols)
     : cells = List.generate(cols, (_) => Cell.empty(), growable: false);
 
   void clear() {
@@ -23,7 +23,7 @@ class TerminalBuffer {
   final int maxScrollbackLines;
   final bool isBackBuffer;
 
-  final RingBuffer<Row> _buffer;
+  final RingBuffer<TerminalBufferRow> _buffer;
 
   /// The current formatting options.
   FormattingOptions currentFormat = FormattingOptions();
@@ -33,6 +33,10 @@ class TerminalBuffer {
 
   /// The current cursor column position.
   int cursorCol = 0;
+
+  late Set<int> tabStops = Set.from(
+    List.generate((cols ~/ 8), (i) => (i + 1) * 8).where((col) => col < cols),
+  );
 
   int _topMargin;
   int _bottomMargin;
@@ -50,17 +54,22 @@ class TerminalBuffer {
   /// and trigger an index operation
   bool pendingWrap = false;
 
+  /// Active charset state for this buffer.
+  final CharsetState charset;
+
   TerminalBuffer({
     required this.rows,
     required this.cols,
     this.maxScrollbackLines = 1000,
     this.isBackBuffer = false,
     this.isLineFeedMode = false,
-  }) : _buffer = RingBuffer<Row>(rows + maxScrollbackLines),
+    CharsetState? charset,
+  }) : _buffer = RingBuffer<TerminalBufferRow>(rows + maxScrollbackLines),
        _topMargin = 0,
-       _bottomMargin = rows - 1 {
+       _bottomMargin = rows - 1,
+       charset = charset ?? .new() {
     for (var i = 0; i < rows; i++) {
-      _buffer.add(Row(cols));
+      _buffer.add(TerminalBufferRow(cols));
     }
   }
 
@@ -74,9 +83,11 @@ class TerminalBuffer {
       maxScrollbackLines: maxScrollbackLines,
       isBackBuffer: isBackBuffer,
       isLineFeedMode: isLineFeedMode,
+      charset: CharsetState.copyFrom(charset),
     );
 
     newBuffer.isAutoWrapMode = isAutoWrapMode;
+    newBuffer.tabStops = Set.from(tabStops.where((s) => s < newCols));
 
     // absolute index in old ring
     final oldVisibleStart = currentScrollback;
@@ -111,11 +122,7 @@ class TerminalBuffer {
   void index() {
     if (isCursorInMargins()) {
       if (cursorRow == _bottomMargin) {
-        if (isBackBuffer) {
-          scrollUp(1);
-        } else {
-          pushEmptyLine();
-        }
+        scrollUp(1);
       } else {
         cursorDown(1);
       }
@@ -145,12 +152,28 @@ class TerminalBuffer {
         scrollDown(1);
       } else {
         // Insert empty line at top
-        _buffer.prepend(Row(cols));
+        _buffer.prepend(TerminalBufferRow(cols));
         final topVisibleIdx = currentScrollback;
         _buffer[topVisibleIdx].clear();
       }
     } else {
       cursorUp(1);
+    }
+  }
+
+  /// Next Line (NEL)
+  /// - https://terminalguide.namepad.de/seq/a_esc_ce/
+  void nextLine() {
+    index();
+    carriageReturn();
+  }
+
+  /// Horizontal Tab Set (HTS)
+  /// - https://terminalguide.namepad.de/seq/a_esc_ch/
+  void horizontalTabSet() {
+    // col 0 is always an implicit start position, not a settable tab stop
+    if (cursorCol > 0 && cursorCol < cols) {
+      tabStops.add(cursorCol);
     }
   }
 
@@ -179,8 +202,12 @@ class TerminalBuffer {
   /// Horizontal Tab (TAB)
   /// - https://terminalguide.namepad.de/seq/a_c0-i/
   void horizontalTab() {
-    final nextTabStop = ((cursorCol ~/ 8) + 1) * 8;
-    cursorCol = min(nextTabStop, cols - 1);
+    final stops = tabStops.where((s) => s > cursorCol).toList()..sort();
+    if (stops.isEmpty) {
+      cursorCol = cols - 1;
+    } else {
+      cursorCol = stops.first;
+    }
   }
 
   /// Returns a Cell by absolute index inside the ring buffer:
@@ -219,6 +246,8 @@ class TerminalBuffer {
   /// Prints a single character at the current cursor position.
   /// - https://terminalguide.namepad.de/printing/
   void printChar(int cu) {
+    final translated = charset.translate(cu);
+
     if (pendingWrap) {
       if (isAutoWrapMode) {
         index();
@@ -249,7 +278,10 @@ class TerminalBuffer {
     }
 
     setCellAtCursor(
-      Cell(String.fromCharCode(cu), FormattingOptions.clone(currentFormat)),
+      Cell(
+        String.fromCharCode(translated),
+        FormattingOptions.clone(currentFormat),
+      ),
     );
 
     // whether the cursor is at the last column before printing
@@ -266,7 +298,7 @@ class TerminalBuffer {
   void clear() {
     _buffer.clear();
     for (var i = 0; i < rows; i++) {
-      _buffer.add(Row(cols));
+      _buffer.add(TerminalBufferRow(cols));
     }
     // reset cursor position
     cursorRow = 0;
@@ -274,10 +306,45 @@ class TerminalBuffer {
   }
 
   void pushEmptyLine() {
-    _buffer.add(Row(cols));
-
+    _buffer.add(TerminalBufferRow(cols));
     cursorRow = rows - 1;
-    cursorCol = 0;
+  }
+
+  /// Forward Index (DECFI)
+  /// - https://terminalguide.namepad.de/seq/a_esc_a9/
+  void forwardIndex() {
+    if (cursorCol < cols - 1) {
+      cursorRight(1);
+    } else {
+      // at rightmost column, scroll region content left, cursor stays
+      final visibleStart = currentScrollback;
+      for (var r = _topMargin; r <= _bottomMargin; r++) {
+        final row = _buffer[visibleStart + r];
+        for (var c = 0; c < cols - 1; c++) {
+          row.cells[c] = row.cells[c + 1];
+        }
+        row.cells[cols - 1] = Cell.empty();
+      }
+    }
+  }
+
+  /// Back Index (DECBI)
+  /// - https://terminalguide.namepad.de/seq/a_esc_a6/
+  void backIndex() {
+    if (cursorCol > 0) {
+      cursorLeft(1);
+      return;
+    }
+    // at left margin, scroll screen right
+    final visibleStart = currentScrollback;
+    for (var r = 0; r < rows; r++) {
+      final row = _buffer[visibleStart + r];
+      for (var c = cols - 1; c > 0; c--) {
+        row.cells[c] = row.cells[c - 1];
+      }
+      // blank the leftmost column
+      row.cells[0] = Cell.empty();
+    }
   }
 
   /// Scroll Up (SU)
@@ -293,7 +360,7 @@ class TerminalBuffer {
         final srcIdx = visibleStart + srcRow;
         _buffer[destIdx] = _buffer[srcIdx];
       } else {
-        _buffer[destIdx] = Row(cols);
+        _buffer[destIdx] = TerminalBufferRow(cols);
       }
     }
   }
@@ -312,7 +379,7 @@ class TerminalBuffer {
         final srcIdx = visibleStart + srcRow;
         _buffer[destIdx] = _buffer[srcIdx];
       } else {
-        _buffer[destIdx] = Row(cols);
+        _buffer[destIdx] = TerminalBufferRow(cols);
       }
     }
   }
@@ -412,8 +479,8 @@ class TerminalBuffer {
   void saveCursor() {
     savedCursorRow = cursorRow;
     savedCursorCol = cursorCol;
-    savedFormat = currentFormat;
-    // TODO: implement charset
+    savedFormat = FormattingOptions.clone(currentFormat);
+    charset.save();
   }
 
   /// Restore Cursor (DECRC)
@@ -428,7 +495,7 @@ class TerminalBuffer {
     if (savedFormat != null) {
       currentFormat = savedFormat!;
     }
-    // TODO: implement charset
+    charset.restore();
   }
 
   /// Cursor Left (CUB)

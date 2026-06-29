@@ -91,7 +91,7 @@ class EntityCardView<E> extends HookConsumerWidget {
                     Text(
                       noEntitiesTitle,
                       textAlign: TextAlign.center,
-                      style: typography.xl2,
+                      style: typography.body.xl2,
                     ),
                     Text(noEntitiesSubtitle, textAlign: TextAlign.center),
                     if (addEntityTitle != null && onAddEntity != null) ...[
@@ -255,9 +255,10 @@ class EntityCardView<E> extends HookConsumerWidget {
                                           children: [
                                             Text(
                                               group.key,
-                                              style: typography.lg.copyWith(
-                                                fontWeight: FontWeight.bold,
-                                              ),
+                                              style: typography.body.lg
+                                                  .copyWith(
+                                                    fontWeight: FontWeight.bold,
+                                                  ),
                                             ),
                                             Wrap(
                                               spacing: 8,
