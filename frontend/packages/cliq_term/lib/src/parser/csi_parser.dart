@@ -13,11 +13,11 @@ class CsiParser {
     if (body.isEmpty) {
       throw ArgumentError('Empty CSI body');
     }
-    if (body.codeUnitAt(0) != '['.codeUnitAt(0)) {
-      throw ArgumentError('CSI body must start with "["');
-    }
     if (body.length < 2) {
       throw ArgumentError('CSI body too short');
+    }
+    if (body.codeUnitAt(0) != '['.codeUnitAt(0)) {
+      throw ArgumentError('CSI body must start with "["');
     }
 
     final result = CsiParseResult();

@@ -1,9 +1,6 @@
 import 'dart:math';
 
 import 'package:cliq_term/cliq_term.dart';
-import 'package:cliq_term/src/rendering/model/esc_terminator.dart';
-import 'package:cliq_term/src/rendering/model/terminal_buffer.dart';
-import 'package:cliq_term/src/parser/cc_parser.dart';
 import 'package:cliq_term/src/parser/escape_parser.dart';
 import 'package:cliq_term/src/rendering/terminal_painter.dart';
 import 'package:cliq_term/src/state/selection.state.dart';
@@ -67,14 +64,7 @@ class TerminalController extends ChangeNotifier {
   TerminalTypography _typography;
   TerminalTheme _theme;
 
-  late final EscapeParser _escapeParser = EscapeParser(
-    controller: this,
-    colors: theme,
-  );
-
-  late final ControlCharacterParser _ccParser = ControlCharacterParser(
-    controller: this,
-  );
+  late final EscapeParser _escapeParser = EscapeParser(controller: this);
 
   /// The main (front) buffer, which holds the primary terminal content and scrollback.
   late TerminalBuffer _front = TerminalBuffer(
@@ -98,6 +88,10 @@ class TerminalController extends ChangeNotifier {
   /// Whether to render the back buffer instead of the front buffer.
   /// This is toggled by [useBackBuffer] and [useMainBuffer].
   bool backBufferActive = false;
+
+  /// The answerback (ENQ) string.
+  /// https://terminalguide.namepad.de/seq/a_c0-e/
+  String answerback = '';
 
   /// The active text selection state.
   SelectionState selection = .new();
@@ -241,33 +235,8 @@ class TerminalController extends ChangeNotifier {
     notifyListeners();
   }
 
-  /// Feeds input string into the terminal, parsing escape sequences and control characters.
   void feed(String input) {
-    int i = 0;
-    while (i < input.length) {
-      final cu = input.codeUnitAt(i);
-
-      if (cu == EscTerminator.escCode) {
-        final consumed = _escapeParser.parse(
-          input,
-          i,
-          activeBuffer.currentFormat,
-        );
-        if (consumed <= 0) break; // incomplete sequence
-        i += consumed;
-        continue;
-      }
-
-      // handle control characters
-      if (_ccParser.parseCc(cu)) {
-        i++;
-        continue;
-      }
-
-      activeBuffer.printChar(cu);
-      i++;
-    }
-
+    _escapeParser.write(input);
     notifyListeners();
   }
 

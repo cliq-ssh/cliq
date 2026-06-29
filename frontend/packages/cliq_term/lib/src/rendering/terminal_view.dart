@@ -1,7 +1,7 @@
 import 'package:cliq_term/cliq_term.dart';
 import 'package:cliq_term/src/rendering/terminal_painter.dart';
-import 'package:cliq_term/src/rendering/utils/gesture_selection_handler.dart';
-import 'package:cliq_term/src/rendering/utils/keyboard_helper.dart';
+import 'package:cliq_term/src/utils/gesture_selection_handler.dart';
+import 'package:cliq_term/src/utils/keyboard_helper.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
