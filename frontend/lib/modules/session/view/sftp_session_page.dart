@@ -199,7 +199,10 @@ class FileProgressData {
   }
 }
 
+/// Files that should not shown in the file list.
 const _ignoredFilenames = {'.'};
+
+/// Files that should not be selectable, editable, or transferable.
 const _ignoredSelectableFilenames = {'.', '..'};
 
 class SftpSessionPage extends StatefulHookConsumerWidget {
@@ -420,7 +423,9 @@ class _SftpSessionPageState extends ConsumerState<SftpSessionPage>
     }
 
     openFile(SftpName file, String id) async {
-      if (file.attr.isDirectory || file.filename.isEmpty) {
+      if (file.attr.isDirectory ||
+          file.filename.isEmpty ||
+          _ignoredSelectableFilenames.contains(file.filename)) {
         return;
       }
 
@@ -495,6 +500,10 @@ class _SftpSessionPageState extends ConsumerState<SftpSessionPage>
     }
 
     renameItem(SftpName file, String id, String newFileName) async {
+      if (_ignoredSelectableFilenames.contains(file.filename)) {
+        return;
+      }
+
       newFileName = newFileName.trim();
       if (newFileName.isEmpty || newFileName == file.filename) {
         renameItemId.value = null;
@@ -533,6 +542,10 @@ class _SftpSessionPageState extends ConsumerState<SftpSessionPage>
     }
 
     deleteItem(SftpName file, String id) async {
+      if (_ignoredSelectableFilenames.contains(file.filename)) {
+        return;
+      }
+
       delete() async {
         final fullPath = [...?currentDirectory.value, file.filename].join('/');
         await (file.attr.isDirectory
@@ -549,6 +562,10 @@ class _SftpSessionPageState extends ConsumerState<SftpSessionPage>
     }
 
     uploadModified(SftpName file, String id) {
+      if (_ignoredSelectableFilenames.contains(file.filename)) {
+        return;
+      }
+
       final modifiedFile = modifiedFiles.value[id];
       if (modifiedFile == null) return;
       final fileTransferNotifier = ref.read(fileTransferProvider.notifier);
@@ -1161,17 +1178,21 @@ class _SftpSessionPageState extends ConsumerState<SftpSessionPage>
                                 icon: LucideIcons.folderOpen,
                                 onPress: () => openFolder(file),
                               ),
-                            .new(
-                              label: 'Rename',
-                              icon: LucideIcons.pencilLine,
-                              onPress: () => renameItemId.value = id,
-                            ),
-                            .new(
-                              label: 'Delete',
-                              icon: LucideIcons.trash,
-                              variant: .destructive,
-                              onPress: () => deleteItem(file, id),
-                            ),
+                            if (!_ignoredSelectableFilenames.contains(
+                              file.filename,
+                            )) ...[
+                              .new(
+                                label: 'Rename',
+                                icon: LucideIcons.pencilLine,
+                                onPress: () => renameItemId.value = id,
+                              ),
+                              .new(
+                                label: 'Delete',
+                                icon: LucideIcons.trash,
+                                variant: .destructive,
+                                onPress: () => deleteItem(file, id),
+                              ),
+                            ],
                           ],
                           builder: (_) => child,
                         );
