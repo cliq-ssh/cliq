@@ -52,7 +52,7 @@ class KnownHostCard extends HookConsumerWidget {
                         knownHost.host,
                         overflow: .fade,
                         softWrap: false,
-                        style: context.theme.typography.lg,
+                        style: context.theme.typography.body.lg,
                       ),
                     ],
                   ),
