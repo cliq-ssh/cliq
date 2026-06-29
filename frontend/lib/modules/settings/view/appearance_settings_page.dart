@@ -141,7 +141,7 @@ class AppearanceSettingsPage extends AbstractSettingsPage {
                         layout: .vertical,
                         child: Text(
                           'Color Theme',
-                          style: context.theme.typography.md.copyWith(
+                          style: context.theme.typography.body.md.copyWith(
                             color: context.theme.colors.primary,
                             fontWeight: .bold,
                           ),

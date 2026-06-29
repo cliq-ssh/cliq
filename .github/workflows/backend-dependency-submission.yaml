@@ -19,12 +19,12 @@ jobs:
       contents: write
     steps:
       - name: Checkout sources
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
       - name: Setup Java
         uses: actions/setup-java@v5
         with:
           distribution: "temurin"
-          java-version: "25"
+          java-version: "26"
       - name: Generate and submit dependency graph
         uses: gradle/actions/dependency-submission@v6
         with:
