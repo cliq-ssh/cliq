@@ -61,7 +61,7 @@ class NavigationShellState extends ConsumerState<NavigationShell>
     final selectedTab = useState(sessions.selectedSession);
     final showTabs = useState(false);
 
-    final transferQueue = ref.watch(fileTransferProvider);
+    final fileTransfer = ref.watch(fileTransferProvider);
 
     final rotationAnimation = useAnimationController(
       duration: const .new(seconds: 2),
@@ -80,7 +80,7 @@ class NavigationShellState extends ConsumerState<NavigationShell>
     }, [breakpoint, prefDesktopNavPosition.value]);
 
     useEffect(() {
-      if (transferQueue.isAnyPending) {
+      if (fileTransfer.isAnyPending) {
         rotationAnimation.repeat();
       } else {
         rotationAnimation
@@ -88,7 +88,7 @@ class NavigationShellState extends ConsumerState<NavigationShell>
           ..reset();
       }
       return null;
-    }, [transferQueue.queued]);
+    }, [fileTransfer.queued]);
 
     connect(ConnectionFull connection, {bool isSftp = false}) {
       ref
@@ -135,16 +135,16 @@ class NavigationShellState extends ConsumerState<NavigationShell>
       );
     }
 
-    buildTransferQueue(bool isExpanded) {
+    buildQueue(bool isExpanded) {
       return FPopoverMenu(
         menu: [
           .group(
             divider: .full,
             children: [
-              if (transferQueue.isEmpty)
+              if (fileTransfer.isEmpty)
                 .item(title: Text('Nothing in queue'))
               else
-                for (final item in transferQueue.queued.entries)
+                for (final item in fileTransfer.queued.entries)
                   .item(
                     title: Text(item.value.file.fileName),
                     subtitle: SizedBox(
@@ -218,15 +218,17 @@ class NavigationShellState extends ConsumerState<NavigationShell>
           return SidebarTab(
             isExpanded: isExpanded,
             label: Text('Queue'),
-            onPress: transferQueue.isEmpty ? null : controller.toggle,
+            onPress: fileTransfer.isEmpty ? null : controller.toggle,
             icon: RotationTransition(
               turns: rotationAnimation,
               child: Icon(
-                transferQueue.isEmpty
+                fileTransfer.isEmpty
                     ? LucideIcons.refreshCwOff
                     : LucideIcons.refreshCw,
               ),
             ),
+            isTop: navPosition.value == .top,
+            noPadding: navPosition.value == .top,
           );
         },
       );
@@ -349,7 +351,7 @@ class NavigationShellState extends ConsumerState<NavigationShell>
         footerBuilder: (_, isExpanded) => Column(
           mainAxisSize: .min,
           children: [
-            buildTransferQueue(isExpanded),
+            buildQueue(isExpanded),
             buildSettingsTab(isExpanded),
           ],
         ),
@@ -396,6 +398,7 @@ class NavigationShellState extends ConsumerState<NavigationShell>
                   ),
                 ),
               ),
+              buildQueue(false),
               buildSettingsTab(false),
             ],
           ),
