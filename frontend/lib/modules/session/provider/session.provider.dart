@@ -203,11 +203,23 @@ class SessionNotifier extends Notifier<SessionState> {
           ),
     );
 
-    try {
-      final socket = await SSHSocket.connect(
-        connection.address,
-        connection.port,
+    close([String? message]) {
+      _modifySession(
+        session.id,
+        (session) =>
+            session.copyWith(connectionError: message ?? 'Connection closed'),
       );
+    }
+
+    try {
+      final socket =
+          await SSHSocket.connect(
+              connection.address,
+              connection.port,
+              timeout: .new(seconds: 10), // TODO:
+            )
+            ..done.then((_) => close(), onError: (e) => close(e.toString()));
+
       final sshClient = SSHClient(
         socket,
         username: connection.effectiveUsername!,
@@ -244,14 +256,11 @@ class SessionNotifier extends Notifier<SessionState> {
           return false;
         },
         onPasswordRequest: password != null ? () => password : null,
-      );
+      )..done.then((_) => close(), onError: (e) => close(e.toString()));
 
       return sshClient;
     } catch (e) {
-      _modifySession(
-        session.id,
-        (session) => session.copyWith(connectionError: e.toString()),
-      );
+      close(e.toString());
       return null;
     }
   }
