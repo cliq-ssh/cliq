@@ -6,7 +6,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 enum SplitViewDirection { horizontal, vertical }
 
 /// The minimum extent of a split leaf. This is to prevent the leaf from being resized to a size that is too small to be usable.
-const _kMinExtent = 80.0;
+const _kMinExtent = 160.0;
 
 /// The thickness of the divider that can be dragged to resize the leaves.
 const _kDividerExtent = 6.0;
@@ -175,21 +175,30 @@ class _LeafNodeWidget<T extends Object> extends _NodeWidget<T> {
           return (i < 2 ? .horizontal : .vertical, i.isEven);
         }
 
+        bool isZoneTooSmall((SplitViewDirection, bool) zone) {
+          final extent = zone.$1 == SplitViewDirection.horizontal
+              ? constraints.maxHeight
+              : constraints.maxWidth;
+          return extent < 2 * _kMinExtent + _kDividerExtent;
+        }
+
         return DragTarget<T>(
           onWillAcceptWithDetails: (d) {
-            if (!canDrop(leaf, d.data)) {
+            final zone = calculateZone(d.offset);
+            if (isZoneTooSmall(zone) || !canDrop(leaf, d.data)) {
               activeDragZone.value = null;
               return false;
             }
-            activeDragZone.value = calculateZone(d.offset);
+            activeDragZone.value = zone;
             return true;
           },
           onMove: (d) {
-            if (!canDrop(leaf, d.data)) {
+            final zone = calculateZone(d.offset);
+            if (isZoneTooSmall(zone) || !canDrop(leaf, d.data)) {
               activeDragZone.value = null;
               return;
             }
-            activeDragZone.value = calculateZone(d.offset);
+            activeDragZone.value = zone;
           },
           onLeave: (_) => activeDragZone.value = null,
           onAcceptWithDetails: (d) {

@@ -14,6 +14,7 @@ import '../../../shared/ui/navigation_shell.dart';
 import '../../session/provider/session.provider.dart';
 import '../provider/connection_service.provider.dart';
 import '../view/create_or_edit_connection_view.dart';
+import 'connection_icon.dart';
 
 class ConnectionCard extends HookConsumerWidget {
   final ConnectionFull connection;
@@ -25,7 +26,7 @@ class ConnectionCard extends HookConsumerWidget {
     final primaryPopoverController = useFPopoverController();
     final secondaryPopoverController = useFPopoverController();
 
-    connect() async {
+    connect({bool isSftp = false}) async {
       await primaryPopoverController.hide();
       await secondaryPopoverController.hide();
       if (!context.mounted) return;
@@ -46,7 +47,7 @@ class ConnectionCard extends HookConsumerWidget {
 
       return ref
           .read(sessionProvider.notifier)
-          .createAndGo(NavigationShell.of(context), connection);
+          .createAndGo(NavigationShell.of(context), connection, isSftp: isSftp);
     }
 
     edit() async {
@@ -81,8 +82,13 @@ class ConnectionCard extends HookConsumerWidget {
             children: [
               FItem(
                 prefix: Icon(LucideIcons.unplug),
-                title: Text('Connect'),
+                title: Text('Connect via SSH'),
                 onPress: connect,
+              ),
+              FItem(
+                prefix: Icon(LucideIcons.folderOpen),
+                title: Text('Connect via SFTP'),
+                onPress: () => connect(isSftp: true),
               ),
               FItem(
                 prefix: Icon(LucideIcons.pencil),
@@ -90,6 +96,7 @@ class ConnectionCard extends HookConsumerWidget {
                 onPress: edit,
               ),
               FItem(
+                variant: .destructive,
                 prefix: Icon(LucideIcons.trash),
                 title: Text('Delete'),
                 onPress: delete,
@@ -104,10 +111,16 @@ class ConnectionCard extends HookConsumerWidget {
     return CustomContextMenu(
       actions: [
         .new(
-          label: 'Connect',
+          label: 'Connect via SSH',
           icon: LucideIcons.unplug,
           onPress: connect,
           shortcut: KeyboardShortcut(.enter),
+        ),
+        .new(
+          label: 'Connect via SFTP',
+          icon: LucideIcons.folderOpen,
+          onPress: () => connect(isSftp: true),
+          shortcut: KeyboardShortcut(.enter, modifiers: {.shift}),
         ),
         .new(
           label: 'Edit',
@@ -118,6 +131,7 @@ class ConnectionCard extends HookConsumerWidget {
         .new(
           label: 'Delete',
           icon: LucideIcons.trash,
+          variant: .destructive,
           onPress: delete,
           shortcut: Platform.isMacOS
               ? KeyboardShortcut(.backspace, modifiers: {.meta})
@@ -137,18 +151,11 @@ class ConnectionCard extends HookConsumerWidget {
                   child: Row(
                     spacing: 16,
                     children: [
-                      Container(
-                        width: 48,
-                        height: 48,
-                        decoration: BoxDecoration(
-                          color: connection.iconBackgroundColor,
-                          borderRadius: .circular(16),
-                        ),
-                        child: Icon(
-                          connection.icon.iconData,
-                          color: connection.iconColor,
-                          size: 28,
-                        ),
+                      ConnectionIcon.fromConnection(
+                        connection,
+                        borderRadius: 16,
+                        size: 28,
+                        padding: 10,
                       ),
                       Expanded(
                         child: Column(

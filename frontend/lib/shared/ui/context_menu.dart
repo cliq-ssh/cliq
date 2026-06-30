@@ -11,6 +11,7 @@ class CustomContextMenuAction {
   final String label;
   final IconData? icon;
   final VoidCallback onPress;
+  final FItemVariant? variant;
   final bool hideAfterPress;
   final KeyboardShortcut? shortcut;
 
@@ -18,6 +19,7 @@ class CustomContextMenuAction {
     required this.label,
     this.icon,
     required this.onPress,
+    this.variant,
     this.hideAfterPress = true,
     this.shortcut,
   });
@@ -69,16 +71,17 @@ class CustomContextMenu extends HookConsumerWidget {
             ): () =>
                 onPress(action),
       },
-      child: FPopoverMenu(
+      child: FContextMenu(
         autofocus: true,
         control: .managed(
           controller: popoverController ?? managedPopoverController,
         ),
         menu: [
-          FItemGroup(
+          .group(
             children: [
               for (final action in actions)
-                FItem(
+                .item(
+                  variant: action.variant ?? .primary,
                   prefix: action.icon != null ? Icon(action.icon) : null,
                   title: action.shortcut == null
                       ? Text(action.label)
@@ -96,10 +99,7 @@ class CustomContextMenu extends HookConsumerWidget {
           ),
         ],
         builder: (context, controller, _) {
-          return GestureDetector(
-            onSecondaryTap: controller.toggle,
-            child: builder(context),
-          );
+          return GestureDetector(child: builder(context));
         },
       ),
     );

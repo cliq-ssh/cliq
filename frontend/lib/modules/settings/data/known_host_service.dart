@@ -44,6 +44,17 @@ final class KnownHostService {
     return (null, false);
   }
 
+  Future<Uint8List?> findKeyForHost(String host) async {
+    final knownHosts = await _knownHostsRepository.db
+        .findKnownHostByHost(host)
+        .get();
+
+    if (knownHosts.isEmpty) {
+      return null;
+    }
+    return knownHosts.first.hostKey;
+  }
+
   Future<int> createKnownHost({
     required int vaultId,
     required String host,

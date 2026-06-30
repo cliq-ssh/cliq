@@ -54,6 +54,7 @@ final class Commons {
     BuildContext? context,
     bool canInstantDelete = true,
     bool mayNeedAppRestart = false,
+    String? term = 'delete',
   }) {
     if (PlatformUtils.isDesktop &&
         canInstantDelete &&
@@ -76,7 +77,7 @@ final class Commons {
           body: RichText(
             text: TextSpan(
               children: [
-                TextSpan(text: 'Are you sure you want to delete '),
+                TextSpan(text: 'Are you sure you want to $term '),
                 TextSpan(
                   text: entity,
                   style: context.theme.typography.body.sm.copyWith(
@@ -134,7 +135,10 @@ final class Commons {
         title: Row(
           spacing: 8,
           mainAxisSize: .min,
-          children: [?prefix, Text(message)],
+          children: [
+            ?prefix,
+            Flexible(child: Text(message)),
+          ],
         ),
       );
     }

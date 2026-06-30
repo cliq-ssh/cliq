@@ -12,6 +12,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:uuid/v4.dart';
 
 import '../../credentials/provider/credential_service.provider.dart';
+import '../../settings/model/known_host_error.model.dart';
 import '../../settings/provider/known_host_service.provider.dart';
 import '../model/session.model.dart';
 import '../model/tab.model.dart';
@@ -25,9 +26,14 @@ class SessionNotifier extends Notifier<SessionState> {
   SessionState build() => SessionState.initial();
 
   /// Creates a new session and navigates to the session branch, where the tab is selected.
-  void createAndGo(NavigationShellState shellState, ConnectionFull connection) {
+  void createAndGo(
+    NavigationShellState shellState,
+    ConnectionFull connection, {
+    bool isSftp = false,
+  }) {
     final newSession = ShellSession.disconnected(
       id: uuid.generate(),
+      type: isSftp ? .sftp : .ssh,
       connection: connection,
     );
 
@@ -90,6 +96,15 @@ class SessionNotifier extends Notifier<SessionState> {
     );
   }
 
+  Future<SftpFile?> readFileFromSession(
+    String sessionId,
+    String filePath,
+  ) async {
+    final session = getSessionById(sessionId);
+    if (session == null || session.sftpClient == null) return null;
+    return (await session.sftpClient!.open(filePath));
+  }
+
   void closeSessionAndMaybeGo(
     NavigationShellState shellState,
     String sessionId, {
@@ -147,6 +162,7 @@ class SessionNotifier extends Notifier<SessionState> {
       sessionId,
       (session) => ShellSession.disconnected(
         id: session.id,
+        type: session.type,
         connection: session.connection,
         skipHostKeyVerification: skipHostKeyVerification,
       ),
@@ -187,11 +203,23 @@ class SessionNotifier extends Notifier<SessionState> {
           ),
     );
 
-    try {
-      final socket = await SSHSocket.connect(
-        connection.address,
-        connection.port,
+    close([String? message]) {
+      _modifySession(
+        session.id,
+        (session) =>
+            session.copyWith(connectionError: message ?? 'Connection closed'),
       );
+    }
+
+    try {
+      final socket =
+          await SSHSocket.connect(
+              connection.address,
+              connection.port,
+              timeout: .new(seconds: 10), // TODO:
+            )
+            ..done.then((_) => close(), onError: (e) => close(e.toString()));
+
       final sshClient = SSHClient(
         socket,
         username: connection.effectiveUsername!,
@@ -228,43 +256,63 @@ class SessionNotifier extends Notifier<SessionState> {
           return false;
         },
         onPasswordRequest: password != null ? () => password : null,
-      );
+      )..done.then((_) => close(), onError: (e) => close(e.toString()));
 
       return sshClient;
     } catch (e) {
-      _modifySession(
-        session.id,
-        (session) => session.copyWith(connectionError: e.toString()),
-      );
+      close(e.toString());
       return null;
     }
   }
 
-  Future<SSHSession?> spawnShell(
+  Future<SSHSession?> spawnSsh(
     String sessionId,
-    SSHClient sshClient,
+    SSHClient client,
     TerminalController controller,
   ) async {
     try {
-      final sshSession = await sshClient.shell();
-      await sshClient.authenticated;
+      final sshSession = await client.shell();
+      await client.authenticated;
       _modifySession(
         sessionId,
         (session) => session.copyWith(
           connectedAt: DateTime.now(),
-          sshClient: sshClient,
+          client: client,
           sshSession: sshSession,
           terminalController: controller,
         ),
       );
       return sshSession;
     } catch (e) {
-      sshClient.close();
+      client.close();
       _modifySession(
         sessionId,
         (session) => session.copyWith(connectionError: e.toString()),
       );
       return null;
+    }
+  }
+
+  Future<SftpClient> spawnSftp(String sessionId, SSHClient client) async {
+    try {
+      final sftpClient = await client.sftp();
+      await client.authenticated;
+      _modifySession(
+        sessionId,
+        (session) => session.copyWith(
+          connectedAt: DateTime.now(),
+          client: client,
+          sftpClient: sftpClient,
+        ),
+      );
+      return sftpClient;
+    } catch (e) {
+      client.close();
+      _modifySession(
+        sessionId,
+        (session) => session.copyWith(connectionError: e.toString()),
+      );
+      rethrow;
     }
   }
 
@@ -310,9 +358,7 @@ class SessionNotifier extends Notifier<SessionState> {
     final tabId = findTabIdBySessionId(sessionId);
     if (tabId == null) {
       // This should never happen
-      throw Exception(
-        'Session with id $sessionId not found in any active tab.',
-      );
+      return;
     }
 
     // replace tab with modified session

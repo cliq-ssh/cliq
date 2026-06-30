@@ -3337,7 +3337,7 @@ class Connections extends Table with TableInfo<Connections, Connection> {
     requiredDuringInsert: false,
     $customConstraints: '',
   );
-  late final GeneratedColumnWithTypeConverter<ConnectionIcon, int> icon =
+  late final GeneratedColumnWithTypeConverter<ConnectionIcons, int> icon =
       GeneratedColumn<int>(
         'icon',
         aliasedName,
@@ -3346,7 +3346,7 @@ class Connections extends Table with TableInfo<Connections, Connection> {
         requiredDuringInsert: false,
         $customConstraints: 'NOT NULL DEFAULT \'unknown\'',
         defaultValue: const CustomExpression('\'unknown\''),
-      ).withConverter<ConnectionIcon>(Connections.$convertericon);
+      ).withConverter<ConnectionIcons>(Connections.$convertericon);
   late final GeneratedColumnWithTypeConverter<Color, int> iconColor =
       GeneratedColumn<int>(
         'icon_color',
@@ -3584,8 +3584,8 @@ class Connections extends Table with TableInfo<Connections, Connection> {
     return Connections(attachedDatabase, alias);
   }
 
-  static JsonTypeConverter2<ConnectionIcon, int, int> $convertericon =
-      const EnumIndexConverter<ConnectionIcon>(ConnectionIcon.values);
+  static JsonTypeConverter2<ConnectionIcons, int, int> $convertericon =
+      const EnumIndexConverter<ConnectionIcons>(ConnectionIcons.values);
   static TypeConverter<Color, int> $convertericonColor = const ColorConverter();
   static TypeConverter<Color, int> $convertericonBackgroundColor =
       const ColorConverter();
@@ -3608,7 +3608,7 @@ class Connection extends DataClass implements Insertable<Connection> {
   final int? identityId;
   final String? username;
   final String? groupName;
-  final ConnectionIcon icon;
+  final ConnectionIcons icon;
   final Color iconColor;
   final Color iconBackgroundColor;
   final TerminalTypography? terminalTypographyOverride;
@@ -3776,7 +3776,7 @@ class Connection extends DataClass implements Insertable<Connection> {
     Value<int?> identityId = const Value.absent(),
     Value<String?> username = const Value.absent(),
     Value<String?> groupName = const Value.absent(),
-    ConnectionIcon? icon,
+    ConnectionIcons? icon,
     Color? iconColor,
     Color? iconBackgroundColor,
     Value<TerminalTypography?> terminalTypographyOverride =
@@ -3900,7 +3900,7 @@ class ConnectionsCompanion extends UpdateCompanion<Connection> {
   final Value<int?> identityId;
   final Value<String?> username;
   final Value<String?> groupName;
-  final Value<ConnectionIcon> icon;
+  final Value<ConnectionIcons> icon;
   final Value<Color> iconColor;
   final Value<Color> iconBackgroundColor;
   final Value<TerminalTypography?> terminalTypographyOverride;
@@ -3990,7 +3990,7 @@ class ConnectionsCompanion extends UpdateCompanion<Connection> {
     Value<int?>? identityId,
     Value<String?>? username,
     Value<String?>? groupName,
-    Value<ConnectionIcon>? icon,
+    Value<ConnectionIcons>? icon,
     Value<Color>? iconColor,
     Value<Color>? iconBackgroundColor,
     Value<TerminalTypography?>? terminalTypographyOverride,
@@ -8101,7 +8101,7 @@ typedef $ConnectionsCreateCompanionBuilder =
       Value<int?> identityId,
       Value<String?> username,
       Value<String?> groupName,
-      Value<ConnectionIcon> icon,
+      Value<ConnectionIcons> icon,
       required Color iconColor,
       required Color iconBackgroundColor,
       Value<TerminalTypography?> terminalTypographyOverride,
@@ -8118,7 +8118,7 @@ typedef $ConnectionsUpdateCompanionBuilder =
       Value<int?> identityId,
       Value<String?> username,
       Value<String?> groupName,
-      Value<ConnectionIcon> icon,
+      Value<ConnectionIcons> icon,
       Value<Color> iconColor,
       Value<Color> iconBackgroundColor,
       Value<TerminalTypography?> terminalTypographyOverride,
@@ -8255,7 +8255,7 @@ class $ConnectionsFilterComposer extends Composer<_$CliqDatabase, Connections> {
     builder: (column) => ColumnFilters(column),
   );
 
-  ColumnWithTypeConverterFilters<ConnectionIcon, ConnectionIcon, int>
+  ColumnWithTypeConverterFilters<ConnectionIcons, ConnectionIcons, int>
   get icon => $composableBuilder(
     column: $table.icon,
     builder: (column) => ColumnWithTypeConverterFilters(column),
@@ -8544,7 +8544,7 @@ class $ConnectionsAnnotationComposer
   GeneratedColumn<String> get groupName =>
       $composableBuilder(column: $table.groupName, builder: (column) => column);
 
-  GeneratedColumnWithTypeConverter<ConnectionIcon, int> get icon =>
+  GeneratedColumnWithTypeConverter<ConnectionIcons, int> get icon =>
       $composableBuilder(column: $table.icon, builder: (column) => column);
 
   GeneratedColumnWithTypeConverter<Color, int> get iconColor =>
@@ -8703,7 +8703,7 @@ class $ConnectionsTableManager
                 Value<int?> identityId = const Value.absent(),
                 Value<String?> username = const Value.absent(),
                 Value<String?> groupName = const Value.absent(),
-                Value<ConnectionIcon> icon = const Value.absent(),
+                Value<ConnectionIcons> icon = const Value.absent(),
                 Value<Color> iconColor = const Value.absent(),
                 Value<Color> iconBackgroundColor = const Value.absent(),
                 Value<TerminalTypography?> terminalTypographyOverride =
@@ -8736,7 +8736,7 @@ class $ConnectionsTableManager
                 Value<int?> identityId = const Value.absent(),
                 Value<String?> username = const Value.absent(),
                 Value<String?> groupName = const Value.absent(),
-                Value<ConnectionIcon> icon = const Value.absent(),
+                Value<ConnectionIcons> icon = const Value.absent(),
                 required Color iconColor,
                 required Color iconBackgroundColor,
                 Value<TerminalTypography?> terminalTypographyOverride =
