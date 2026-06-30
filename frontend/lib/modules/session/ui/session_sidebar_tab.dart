@@ -140,7 +140,7 @@ class SessionSidebarTab extends HookConsumerWidget {
                             : null,
                         borderRadius: .circular(8),
                       ),
-                      padding: const .all(4),
+                      padding: const .symmetric(horizontal: 4),
                       child: child!,
                     );
                   },

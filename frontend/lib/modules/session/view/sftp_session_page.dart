@@ -226,7 +226,9 @@ class _SftpSessionPageState extends ConsumerState<SftpSessionPage>
 
     final session = ref
         .watch(sessionProvider.notifier)
-        .getSessionById(widget.sessionId)!;
+        .getSessionById(widget.sessionId);
+
+    if (session == null) return SizedBox.shrink();
 
     final isLoading = useState(true);
 

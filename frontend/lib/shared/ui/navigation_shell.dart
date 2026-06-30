@@ -373,6 +373,7 @@ class NavigationShellState extends ConsumerState<NavigationShell>
       childPad: false,
       header: Container(
         padding: const EdgeInsets.all(8),
+        constraints: .new(minHeight: 54),
         decoration: BoxDecoration(
           color: getEffectiveSidebarColor(),
           border: Border(
