@@ -350,10 +350,7 @@ class NavigationShellState extends ConsumerState<NavigationShell>
         },
         footerBuilder: (_, isExpanded) => Column(
           mainAxisSize: .min,
-          children: [
-            buildQueue(isExpanded),
-            buildSettingsTab(isExpanded),
-          ],
+          children: [buildQueue(isExpanded), buildSettingsTab(isExpanded)],
         ),
         contentBuilder: (context, isExpanded) {
           return [
