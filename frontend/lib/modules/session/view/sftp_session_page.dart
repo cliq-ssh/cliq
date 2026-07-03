@@ -9,6 +9,7 @@ import 'package:cliq/shared/data/store.dart';
 import 'package:cliq/shared/provider/store.provider.dart';
 import 'package:cliq/shared/utils/text_utils.dart';
 import 'package:dartssh2/dartssh2.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart' hide LicensePage;
 import 'package:flutter/services.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
@@ -395,6 +396,10 @@ class _SftpSessionPageState extends ConsumerState<SftpSessionPage>
     // helper for preventing certain actions while loading
     onAction(VoidCallback func) => isLoading.value ? null : func;
 
+    reloadDirectory() {
+      currentDirectory.value = [...?currentDirectory.value];
+    }
+
     navigateTo(List<String> path) {
       if (currentDirectory.value != null) {
         backStack.value = [...backStack.value, currentDirectory.value!];
@@ -519,8 +524,7 @@ class _SftpSessionPageState extends ConsumerState<SftpSessionPage>
         await session.sftpClient!.rename(oldPath, newPath);
         renameItemId.value = null;
 
-        // refresh directory
-        currentDirectory.value = [...?currentDirectory.value];
+        reloadDirectory();
       } on SftpStatusError catch (e) {
         if (!context.mounted) return;
 
@@ -556,8 +560,7 @@ class _SftpSessionPageState extends ConsumerState<SftpSessionPage>
 
         cleanupModified(file, id);
 
-        // reload directory
-        currentDirectory.value = [...?currentDirectory.value];
+        reloadDirectory();
       }
 
       Commons.showDeleteDialog(entity: file.filename, onDelete: delete);
@@ -590,8 +593,7 @@ class _SftpSessionPageState extends ConsumerState<SftpSessionPage>
           .listen((p) => fileTransferNotifier.setProgress(id, p))
           .onDone(() async {
             cleanupModified(file, id);
-            // refresh directory
-            currentDirectory.value = [...?currentDirectory.value];
+            reloadDirectory();
           });
     }
 
@@ -725,12 +727,7 @@ class _SftpSessionPageState extends ConsumerState<SftpSessionPage>
                               .item(
                                 title: Text('Refresh'),
                                 prefix: Icon(LucideIcons.refreshCw),
-                                onPress: onAction(() {
-                                  // trigger refetch by setting current directory to itself
-                                  currentDirectory.value = [
-                                    ...?currentDirectory.value,
-                                  ];
-                                }),
+                                onPress: onAction(reloadDirectory),
                               ),
                             ],
                           ),
@@ -821,12 +818,7 @@ class _SftpSessionPageState extends ConsumerState<SftpSessionPage>
                           .listen(
                             (p) => fileTransferNotifier.setProgress(id, p),
                           )
-                          .onDone(() {
-                            // refresh directory
-                            currentDirectory.value = [
-                              ...?currentDirectory.value,
-                            ];
-                          });
+                          .onDone(reloadDirectory);
                     }
 
                     // check if file exists
@@ -889,6 +881,13 @@ class _SftpSessionPageState extends ConsumerState<SftpSessionPage>
                     padding: const EdgeInsets.all(16),
                     child: TableView.builder(
                       key: ValueKey(currentDirectory.value),
+                      actions: [
+                        .new(
+                          label: 'Refresh',
+                          icon: LucideIcons.refreshCw,
+                          onPress: reloadDirectory,
+                        ),
+                      ],
                       columns: _SftpColumn.values
                           .where((c) => visibleColumns.value.contains(c))
                           .map((c) => buildTableHeader(c))
@@ -1113,10 +1112,12 @@ class _SftpSessionPageState extends ConsumerState<SftpSessionPage>
                               if (visibleColumns.value.contains(col))
                                 .new(
                                   child: Listener(
-                                    onPointerDown: (_) {
-                                      if (!selectedFilesIds.value.contains(
-                                        id,
-                                      )) {
+                                    onPointerDown: (event) {
+                                      if (event.buttons !=
+                                              kPrimaryMouseButton &&
+                                          !selectedFilesIds.value.contains(
+                                            id,
+                                          )) {
                                         selectedFilesIds.value = {id};
                                       }
                                     },

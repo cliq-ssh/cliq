@@ -1,5 +1,6 @@
 import 'dart:math' as math;
 
+import 'package:cliq/shared/ui/context_menu.dart';
 import 'package:flutter/material.dart' hide LicensePage;
 import 'package:forui/forui.dart';
 import 'package:lucide_flutter/lucide_flutter.dart';
@@ -226,6 +227,7 @@ class TableView extends StatefulWidget {
   final ValueChanged<int>? onRowDoubleTap;
   final List<int>? selectedRows;
   final Color? backgroundColor;
+  final List<CustomContextMenuAction> actions;
 
   const TableView.builder({
     super.key,
@@ -238,6 +240,7 @@ class TableView extends StatefulWidget {
     this.onRowDoubleTap,
     this.selectedRows,
     this.backgroundColor,
+    this.actions = const [],
   });
 
   @override
@@ -370,6 +373,13 @@ class _TableViewState extends State<TableView> {
 
                     return child;
                   },
+                ),
+                SliverFillRemaining(
+                  hasScrollBody: false,
+                  child: CustomContextMenu(
+                    actions: widget.actions,
+                    builder: (_) => const SizedBox.expand(),
+                  ),
                 ),
               ],
             ),
