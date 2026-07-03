@@ -270,7 +270,7 @@ class _SftpSessionPageState extends ConsumerState<SftpSessionPage>
     final renameController = useTextEditingController();
 
     final tempDir = useMemoized(
-      () => Directory.systemTemp.createTempSync('cliq_sftp_${session.id}'),
+      () => Constants.sftpTempDirectory.createTempSync('${session.id}_'),
     );
 
     final visibleColumns = useState<Set<_SftpColumn>>({

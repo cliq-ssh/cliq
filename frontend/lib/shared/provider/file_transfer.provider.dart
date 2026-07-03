@@ -14,6 +14,7 @@ import '../../modules/session/model/sftp_transfer.model.dart';
 import '../../modules/session/model/sftp_transfer_params.model.dart';
 import '../../modules/session/view/sftp_session_page.dart';
 import '../../modules/settings/provider/known_host_service.provider.dart';
+import '../utils/constants.dart';
 
 final fileTransferProvider = NotifierProvider(FileTransferNotifier.new);
 
@@ -149,6 +150,42 @@ class FileTransferNotifier extends Notifier<FileTransferState> {
     _modify(id, (item) => item.error = "Cancelled");
     _cleanup(id);
     _log.fine("Cancelled file transfer item: $id");
+  }
+
+  Future<int> readTempDirectorySize() async {
+    final dir = Constants.sftpTempDirectory;
+    if (!await dir.exists()) return 0;
+
+    var total = 0;
+    await for (final entity in dir.list(recursive: true, followLinks: false)) {
+      if (entity is File) {
+        try {
+          total += await entity.length();
+        } catch (_) {
+          // file may have been deleted/moved concurrently
+        }
+      }
+    }
+    return total;
+  }
+
+  Future<void> clearTempDirectory() async {
+    // cancel all active transfers first
+    for (final id in state.pending.keys.toList()) {
+      await _cleanup(id);
+    }
+    state = state.copyWith(queued: {});
+
+    final dir = Constants.sftpTempDirectory;
+    if (await dir.exists()) {
+      try {
+        await dir.delete(recursive: true);
+      } catch (e) {
+        _log.warning("Failed to delete temp directory: $e");
+      }
+    }
+    // recreate so we can keep writing new temp files immediately
+    await dir.create(recursive: true);
   }
 
   /// Kills the isolate & cleans up any temporary files, if applicable.
