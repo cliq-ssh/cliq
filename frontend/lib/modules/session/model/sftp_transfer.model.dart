@@ -9,8 +9,6 @@ import 'package:flutter/foundation.dart';
 const _kMinEmitIntervalMillis = 500;
 const _kWindowMillis = 3000;
 
-const _kDownloadChunkSize = 256 * 1024;
-
 /// Tracks the speed of a file transfer over a sliding window of time.
 class _TransferTracker {
   final Stopwatch _stopwatch = Stopwatch()..start();
@@ -67,7 +65,6 @@ Future<void> sftpTransferIsolate(SftpTransferParams p) async {
     await sftp.download(
       p.sourcePath,
       sink,
-      chunkSize: _kDownloadChunkSize,
       onProgress: (bytes) {
         if (totalBytes > 0) {
           final (speed, shouldEmit) = speedTracker.record(bytes);
@@ -172,7 +169,7 @@ Future<void> sftpTransferIsolate(SftpTransferParams p) async {
     );
 
     await srcSftp
-        .download(chunkSize: _kDownloadChunkSize, p.sourcePath, pipe.write)
+        .download(p.sourcePath, pipe.write)
         .whenComplete(pipe.write.close);
 
     await writeFuture;
