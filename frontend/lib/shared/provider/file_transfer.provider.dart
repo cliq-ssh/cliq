@@ -116,19 +116,19 @@ class FileTransferNotifier extends Notifier<FileTransferState> {
     final item = FileTransferItem(file: file, progressData: .zero())
       ..tempFile = tempFile;
 
-    state = state.copyWith(queued: {...state.pending, id: item});
+    state = state.copyWith(pending: {...state.pending, id: item});
     _log.fine("Added file transfer item: $id");
   }
 
   Future<void> remove(String id) async {
     await _cleanup(id);
-    state = state.copyWith(queued: .from(state.pending)..remove(id));
+    state = state.copyWith(pending: .from(state.pending)..remove(id));
     _log.fine("Removed file transfer item: $id");
   }
 
   void setProgress(String id, FileProgressData? data) {
     if (data == null || data.progress < 0) {
-      state = state.copyWith(queued: .from(state.pending)..remove(id));
+      state = state.copyWith(pending: .from(state.pending)..remove(id));
       return;
     }
 
@@ -174,7 +174,7 @@ class FileTransferNotifier extends Notifier<FileTransferState> {
     for (final id in state.pending.keys.toList()) {
       await _cleanup(id);
     }
-    state = state.copyWith(queued: {});
+    state = state.copyWith(pending: {});
 
     final dir = Constants.sftpTempDirectory;
     if (await dir.exists()) {
@@ -220,6 +220,6 @@ class FileTransferNotifier extends Notifier<FileTransferState> {
     if (!state.pending.containsKey(id)) return;
     final item = state.pending[id]!;
     modify(item);
-    state = state.copyWith(queued: {...state.pending, id: item});
+    state = state.copyWith(pending: {...state.pending, id: item});
   }
 }

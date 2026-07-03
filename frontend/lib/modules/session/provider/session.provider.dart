@@ -1,12 +1,10 @@
 import 'dart:async';
-import 'dart:convert';
 
 import 'package:cliq/modules/connections/model/connection_full.model.dart';
 import 'package:cliq/modules/credentials/data/credential_service.dart';
 import 'package:cliq/modules/session/model/session.state.dart';
 import 'package:cliq/shared/ui/navigation_shell.dart';
 import 'package:cliq_term/cliq_term.dart';
-import 'package:crypto/crypto.dart';
 import 'package:dartssh2/dartssh2.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:uuid/v4.dart';
@@ -224,7 +222,7 @@ class SessionNotifier extends Notifier<SessionState> {
         socket,
         username: connection.effectiveUsername!,
         identities: keys,
-        onVerifyHostKey: (algorithm, hostKey) async {
+        onVerifyHostKey: (algorithm, fingerprint) async {
           if (session.skipHostKeyVerification) {
             return true;
           }
@@ -232,21 +230,17 @@ class SessionNotifier extends Notifier<SessionState> {
           // check db whether host is known
           final (knownHost, isKeyMatch) = await ref
               .read(knownHostServiceProvider)
-              .isHostKnown(connection.addressAndPort, hostKey);
+              .isHostKnown(connection.addressAndPort, fingerprint);
 
           if (knownHost != null && isKeyMatch) return true;
-
-          final sha256Fingerprint =
-              'SHA256:${base64.encode(sha256.convert(hostKey).bytes).replaceAll('=', '')}';
 
           _modifySession(
             session.id,
             (session) => session.copyWith(
               knownHostError: KnownHostError(
                 host: connection.addressAndPort,
-                hostKey: hostKey,
                 algorithm: algorithm,
-                sha256Fingerprint: sha256Fingerprint,
+                fingerprint: fingerprint,
                 knownHost: knownHost,
               ),
             ),
@@ -338,7 +332,7 @@ class SessionNotifier extends Notifier<SessionState> {
           .update(
             error.knownHost!.id.value,
             vaultId: vaultId,
-            hostKey: error.hostKey,
+            fingerprint: error.fingerprint,
             compareTo: error.knownHost,
           );
     }
@@ -347,7 +341,7 @@ class SessionNotifier extends Notifier<SessionState> {
         .createKnownHost(
           vaultId: vaultId,
           host: error.host,
-          hostKey: error.hostKey,
+          fingerprint: error.fingerprint,
         );
   }
 

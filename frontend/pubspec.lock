@@ -228,12 +228,11 @@ packages:
   dartssh2:
     dependency: "direct main"
     description:
-      path: "."
-      ref: master
-      resolved-ref: "1fdb2b60d6eaa02e8f8fb24b2a6bd7be5572ed29"
-      url: "https://github.com/cliq-ssh/dartssh2.git"
-    source: git
-    version: "2.17.1"
+      name: dartssh2
+      sha256: "8af742da413dd1d6479f6f884d2db59385a6666326a3df7cb696436059319b15"
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.22.0"
   dio:
     dependency: transitive
     description:

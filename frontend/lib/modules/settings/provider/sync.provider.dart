@@ -143,7 +143,7 @@ class SyncProviderNotifier extends Notifier<SyncState> {
       await knownHostService.createKnownHost(
         vaultId: vaultId,
         host: knownHost.host.value,
-        hostKey: knownHost.hostKey.value,
+        fingerprint: knownHost.hostKey.value,
       );
     }
   }

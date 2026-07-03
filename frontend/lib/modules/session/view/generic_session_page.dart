@@ -93,14 +93,14 @@ class GenericSessionPage extends HookConsumerWidget {
                 child: FButton.icon(
                   onPress: () => Commons.copyToClipboard(
                     context,
-                    session.knownHostError!.sha256Fingerprint,
+                    session.knownHostError!.fingerprintString,
                   ),
                   child: Icon(LucideIcons.copy, size: 14),
                 ),
               ),
             ],
           ),
-          child: SelectableText(session.knownHostError!.sha256Fingerprint),
+          child: SelectableText(session.knownHostError!.fingerprintString),
         ),
         const SizedBox(height: 8),
         Row(

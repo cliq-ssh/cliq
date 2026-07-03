@@ -33,7 +33,7 @@ class FileTransferState {
   bool get isEmpty => pending.isEmpty;
   bool get isNotEmpty => pending.isNotEmpty;
 
-  FileTransferState copyWith({Map<String, FileTransferItem>? queued}) {
-    return FileTransferState(pending: queued ?? this.pending);
+  FileTransferState copyWith({Map<String, FileTransferItem>? pending}) {
+    return FileTransferState(pending: pending ?? this.pending);
   }
 }
