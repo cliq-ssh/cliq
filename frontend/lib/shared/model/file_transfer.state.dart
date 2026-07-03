@@ -20,20 +20,20 @@ class FileTransferItem {
 }
 
 class FileTransferState {
-  final Map<String, FileTransferItem> queued;
+  final Map<String, FileTransferItem> pending;
 
-  FileTransferState.initial() : queued = const {};
+  FileTransferState.initial() : pending = const {};
 
-  FileTransferState({required this.queued});
+  FileTransferState({required this.pending});
 
-  bool isPending(String id) => queued[id]?.isInProgress == true;
+  bool isPending(String id) => pending[id]?.isInProgress == true;
 
-  bool get isAnyPending => queued.values.any((item) => item.isInProgress);
+  bool get isAnyPending => pending.values.any((item) => item.isInProgress);
 
-  bool get isEmpty => queued.isEmpty;
-  bool get isNotEmpty => queued.isNotEmpty;
+  bool get isEmpty => pending.isEmpty;
+  bool get isNotEmpty => pending.isNotEmpty;
 
   FileTransferState copyWith({Map<String, FileTransferItem>? queued}) {
-    return FileTransferState(queued: queued ?? this.queued);
+    return FileTransferState(pending: queued ?? this.pending);
   }
 }

@@ -425,7 +425,7 @@ class _SftpSessionPageState extends ConsumerState<SftpSessionPage>
     // cleanup modified files that were cleared through the file transfer provider
     useEffect(() {
       final diff = modifiedFiles.value.keys.toSet().difference(
-        fileTransfers.queued.keys.toSet(),
+        fileTransfers.pending.keys.toSet(),
       );
 
       modifiedFiles.value = {
@@ -433,7 +433,7 @@ class _SftpSessionPageState extends ConsumerState<SftpSessionPage>
       };
 
       return null;
-    }, [fileTransfers.queued]);
+    }, [fileTransfers.pending]);
 
     // helper for preventing certain actions while loading
     onAction(VoidCallback func) => isLoading.value ? null : func;
@@ -462,8 +462,8 @@ class _SftpSessionPageState extends ConsumerState<SftpSessionPage>
     }
 
     cleanupModified(SftpName file, String id) async {
-      await ref.read(fileTransferProvider.notifier).remove(id);
       modifiedFiles.value = {...modifiedFiles.value..remove(id)};
+      await ref.read(fileTransferProvider.notifier).remove(id);
     }
 
     openFolder(SftpName file) async {
@@ -533,16 +533,15 @@ class _SftpSessionPageState extends ConsumerState<SftpSessionPage>
           }
         }
 
-        file.parent.watch().listen((event) async {
-          if (event.path != tempFile.path) return;
-          if (event.type == FileSystemEvent.create ||
-              event.type == FileSystemEvent.modify) {
-            modifiedFiles.value = {
-              ...modifiedFiles.value,
-              id: .new(path: fullPath, tempPath: tempFile.path),
-            };
-          }
-        });
+        file.parent
+            .watch(events: FileSystemEvent.modify | FileSystemEvent.create)
+            .listen((event) async {
+              if (event.path != tempFile.path) return;
+              modifiedFiles.value = {
+                ...modifiedFiles.value,
+                id: .new(path: fullPath, tempPath: tempFile.path),
+              };
+            });
       }
 
       final fileTransferNotifier = ref.read(fileTransferProvider.notifier);

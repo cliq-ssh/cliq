@@ -88,7 +88,7 @@ class NavigationShellState extends ConsumerState<NavigationShell>
           ..reset();
       }
       return null;
-    }, [fileTransfer.queued]);
+    }, [fileTransfer.pending]);
 
     connect(ConnectionFull connection, {bool isSftp = false}) {
       ref
@@ -136,89 +136,134 @@ class NavigationShellState extends ConsumerState<NavigationShell>
     }
 
     buildQueue(bool isExpanded) {
-      return FPopoverMenu(
-        menu: [
-          .group(
-            divider: .full,
-            children: [
-              if (fileTransfer.isEmpty)
-                .item(title: Text('Nothing in queue'))
-              else
-                for (final item in fileTransfer.queued.entries)
-                  .item(
-                    title: Text(item.value.file.fileName),
-                    subtitle: SizedBox(
-                      width: 300,
-                      child: item.value.isInProgress
-                          ? Padding(
-                              padding: const .symmetric(vertical: 4),
-                              child: Column(
-                                crossAxisAlignment: .start,
-                                spacing: 8,
-                                children: [
-                                  SizedBox(
-                                    width: double.infinity,
-                                    child: FDeterminateProgress(
-                                      value: item.value.progressData.progress,
-                                    ),
-                                  ),
-                                  Row(
-                                    spacing: 8,
-                                    mainAxisAlignment: .spaceBetween,
-                                    children: [
-                                      Text(
-                                        '${TextUtils.formatBytes(item.value.progressData.currentBytes) ?? '--'} / ${TextUtils.formatBytes(item.value.progressData.totalBytes) ?? '--'}',
-                                      ),
-                                      Text(
-                                        '${(item.value.progressData.progress * 100).toStringAsFixed(1)}%',
-                                      ),
-                                    ],
-                                  ),
-                                  if (item.value.progressData.bytesPerSecond !=
-                                      null)
-                                    Text(
-                                      '${TextUtils.formatDuration(item.value.progressData.estimatedSecondsRemaining!)}, ${TextUtils.formatBytes(item.value.progressData.bytesPerSecond!) ?? '--'}/s',
-                                    ),
-                                ],
+      return FPopover(
+        popoverBuilder: (context, controller) {
+          // latest transfer on top
+          final items = fileTransfer.pending.entries.toList()
+            ..sort((a, b) => b.value.startTime.compareTo(a.value.startTime));
+
+          return Container(
+            width: 300,
+            constraints: .new(maxHeight: 400),
+            child: FTileGroup(
+              divider: .full,
+              children: [
+                if (fileTransfer.isEmpty)
+                  FTile(title: Text('Nothing in queue'))
+                else
+                  for (final item in items)
+                    FTile(
+                      title: Row(
+                        mainAxisAlignment: .spaceBetween,
+                        children: [
+                          Expanded(
+                            child: SingleChildScrollView(
+                              scrollDirection: Axis.horizontal,
+                              child: Text(
+                                item.value.file.fileName,
+                                softWrap: false,
                               ),
-                            )
-                          : (item.value.error != null
-                                ? Text(
-                                    item.value.error!,
-                                    style: context.theme.typography.body.xs
-                                        .copyWith(
-                                          color:
-                                              context.theme.colors.destructive,
-                                        ),
-                                  )
-                                : Text(
-                                    'completed in ${DateTime.fromMillisecondsSinceEpoch(item.value.endTime!).difference(DateTime.fromMillisecondsSinceEpoch(item.value.startTime)).inSeconds}s',
-                                  )),
-                    ),
-                    suffix: FButton.icon(
-                      variant: item.value.tempFile != null
-                          ? .destructive
-                          : .ghost,
-                      child: Icon(
-                        item.value.tempFile != null
-                            ? LucideIcons.trash
-                            : LucideIcons.x,
+                            ),
+                          ),
+                          if (item.value.isInProgress)
+                            Text(
+                              '${(item.value.progressData.progress * 100).toStringAsFixed(1)}%',
+                              style: context.theme.typography.body.xs.copyWith(
+                                color: context.theme.colors.mutedForeground,
+                              ),
+                            ),
+                        ],
                       ),
-                      onPress: () {
-                        final fileTransferNotifier = ref.read(
-                          fileTransferProvider.notifier,
-                        );
-                        if (item.value.isInProgress) {
-                          fileTransferNotifier.cancel(context, item.key);
-                        } else {
-                          fileTransferNotifier.remove(item.key);
-                        }
-                      },
+                      subtitle: SizedBox(
+                        width: 300,
+                        child: Builder(
+                          builder: (context) {
+                            if (item.value.isInProgress) {
+                              return Padding(
+                                padding: const .symmetric(vertical: 4),
+                                child: Column(
+                                  crossAxisAlignment: .start,
+                                  spacing: 8,
+                                  children: [
+                                    SizedBox(
+                                      width: double.infinity,
+                                      child: FDeterminateProgress(
+                                        value: item.value.progressData.progress,
+                                      ),
+                                    ),
+                                    Row(
+                                      spacing: 8,
+                                      mainAxisAlignment: .spaceBetween,
+                                      children: [
+                                        Text(
+                                          '${TextUtils.formatBytes(item.value.progressData.currentBytes) ?? '--'} / ${TextUtils.formatBytes(item.value.progressData.totalBytes) ?? '--'}',
+                                        ),
+                                        if (item
+                                                .value
+                                                .progressData
+                                                .bytesPerSecond !=
+                                            null)
+                                          Text(
+                                            '${TextUtils.formatDuration(item.value.progressData.estimatedSecondsRemaining!)}, ${TextUtils.formatBytes(item.value.progressData.bytesPerSecond!) ?? '--'}/s',
+                                          ),
+                                      ],
+                                    ),
+                                  ],
+                                ),
+                              );
+                            }
+
+                            if (item.value.error != null) {
+                              return Text(
+                                item.value.error!,
+                                style: context.theme.typography.body.xs
+                                    .copyWith(
+                                      color: context.theme.colors.destructive,
+                                    ),
+                              );
+                            }
+
+                            final seconds =
+                                DateTime.fromMillisecondsSinceEpoch(
+                                      item.value.endTime!,
+                                    )
+                                    .difference(
+                                      DateTime.fromMillisecondsSinceEpoch(
+                                        item.value.startTime,
+                                      ),
+                                    )
+                                    .inSeconds;
+                            return Text(
+                              'completed in ${TextUtils.formatDuration(seconds)}',
+                            );
+                          },
+                        ),
+                      ),
+                      suffix: FButton.icon(
+                        variant: item.value.tempFile != null
+                            ? .destructive
+                            : .ghost,
+                        child: Icon(
+                          item.value.tempFile != null
+                              ? LucideIcons.trash
+                              : LucideIcons.x,
+                        ),
+                        onPress: () {
+                          final fileTransferNotifier = ref.read(
+                            fileTransferProvider.notifier,
+                          );
+                          if (item.value.isInProgress) {
+                            fileTransferNotifier.cancel(context, item.key);
+                          } else {
+                            fileTransferNotifier.remove(item.key);
+                          }
+                        },
+                      ),
                     ),
-                  ),
-            ],
-          ),
-        ],
+              ],
+            ),
+          );
+        },
         builder: (_, controller, _) {
           return SidebarTab(
             isExpanded: isExpanded,

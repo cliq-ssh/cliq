@@ -115,19 +115,19 @@ class FileTransferNotifier extends Notifier<FileTransferState> {
     final item = FileTransferItem(file: file, progressData: .zero())
       ..tempFile = tempFile;
 
-    state = state.copyWith(queued: {...state.queued, id: item});
+    state = state.copyWith(queued: {...state.pending, id: item});
     _log.fine("Added file transfer item: $id");
   }
 
   Future<void> remove(String id) async {
     await _cleanup(id);
-    state = state.copyWith(queued: .from(state.queued)..remove(id));
+    state = state.copyWith(queued: .from(state.pending)..remove(id));
     _log.fine("Removed file transfer item: $id");
   }
 
   void setProgress(String id, FileProgressData? data) {
     if (data == null || data.progress < 0) {
-      state = state.copyWith(queued: .from(state.queued)..remove(id));
+      state = state.copyWith(queued: .from(state.pending)..remove(id));
       return;
     }
 
@@ -136,7 +136,7 @@ class FileTransferNotifier extends Notifier<FileTransferState> {
       return;
     }
 
-    if (!state.queued.containsKey(id)) return;
+    if (!state.pending.containsKey(id)) return;
     _modify(id, (item) => item.progressData = data);
   }
 
@@ -153,8 +153,8 @@ class FileTransferNotifier extends Notifier<FileTransferState> {
 
   /// Kills the isolate & cleans up any temporary files, if applicable.
   Future<void> _cleanup(String id) async {
-    if (!state.queued.containsKey(id)) return;
-    final item = state.queued[id]!;
+    if (!state.pending.containsKey(id)) return;
+    final item = state.pending[id]!;
 
     if (item.isolateHandle != null) {
       item.isolateHandle?.kill(priority: Isolate.immediate);
@@ -165,7 +165,7 @@ class FileTransferNotifier extends Notifier<FileTransferState> {
     if (item.tempFile != null) {
       try {
         if (await item.tempFile!.exists()) {
-          await item.tempFile!.delete();
+          await item.tempFile!.delete(recursive: true);
           _log.fine(
             "Deleted temporary file for transfer item $id: ${item.tempFile!.path}",
           );
@@ -180,9 +180,9 @@ class FileTransferNotifier extends Notifier<FileTransferState> {
   }
 
   void _modify(String id, void Function(FileTransferItem) modify) {
-    if (!state.queued.containsKey(id)) return;
-    final item = state.queued[id]!;
+    if (!state.pending.containsKey(id)) return;
+    final item = state.pending[id]!;
     modify(item);
-    state = state.copyWith(queued: {...state.queued, id: item});
+    state = state.copyWith(queued: {...state.pending, id: item});
   }
 }
