@@ -98,9 +98,8 @@ class CustomContextMenu extends HookConsumerWidget {
             ],
           ),
         ],
-        builder: (context, controller, _) {
-          return GestureDetector(child: builder(context));
-        },
+        builder: (context, _, _) =>
+            GestureDetector(behavior: .opaque, child: builder(context)),
       ),
     );
   }
