@@ -206,6 +206,9 @@ const _ignoredFilenames = {'.'};
 /// Files that should not be selectable, editable, or transferable.
 const _ignoredSelectableFilenames = {'.', '..'};
 
+/// A special file name (and thus id) used to represent a new folder being created in the file list.
+const _createFolderFileName = '@new-folder';
+
 class SftpSessionPage extends StatefulHookConsumerWidget {
   final String sessionId;
 
@@ -261,6 +264,7 @@ class _SftpSessionPageState extends ConsumerState<SftpSessionPage>
     });
     final sortColumn = useState<(_SftpColumn, bool)?>(null);
     final showHiddenFiles = useStore(.sftpShowHiddenFiles);
+    final isCreatingDirectory = useState(false);
 
     retrySession({bool skipHostKeyVerification = false}) {
       ref
@@ -360,6 +364,27 @@ class _SftpSessionPageState extends ConsumerState<SftpSessionPage>
       return '${session.id}:${[...?currentDirectory.value, file.filename].join('/')}';
     }
 
+    getFileByIndex(int index) {
+      if (currentFiles.value == null) return null;
+      final files = currentFiles.value!;
+      if (index < 0 ||
+          index >= files.length + (isCreatingDirectory.value ? 1 : 0)) {
+        return null;
+      }
+
+      if (isCreatingDirectory.value) {
+        if (index == 0) {
+          return SftpName(
+            filename: _createFolderFileName,
+            longname: '', // we don't use the longname anyway
+            attr: .new(mode: .value(0x41FF)),
+          );
+        }
+      }
+
+      return files[isCreatingDirectory.value ? index - 1 : index];
+    }
+
     useEffect(() {
       if (renameItemId.value == null) {
         renameController.clear();
@@ -398,6 +423,16 @@ class _SftpSessionPageState extends ConsumerState<SftpSessionPage>
 
     reloadDirectory() {
       currentDirectory.value = [...?currentDirectory.value];
+    }
+
+    createDirectory() {
+      isCreatingDirectory.value = true;
+      renameItemId.value = getFileIdFromSftpName(getFileByIndex(0)!);
+    }
+
+    resetRename() {
+      renameItemId.value = null;
+      isCreatingDirectory.value = false;
     }
 
     navigateTo(List<String> path) {
@@ -506,14 +541,19 @@ class _SftpSessionPageState extends ConsumerState<SftpSessionPage>
       isLoading.value = false;
     }
 
-    renameItem(SftpName file, String id, String newFileName) async {
+    /// Renames a file/directory or creates a new directory if [isCreatingDirectory] is true.
+    renameItemOrCreateDirectory(
+      SftpName file,
+      String id,
+      String newFileName,
+    ) async {
       if (_ignoredSelectableFilenames.contains(file.filename)) {
         return;
       }
 
       newFileName = newFileName.trim();
       if (newFileName.isEmpty || newFileName == file.filename) {
-        renameItemId.value = null;
+        resetRename();
         return;
       }
 
@@ -521,9 +561,12 @@ class _SftpSessionPageState extends ConsumerState<SftpSessionPage>
       final newPath = [...?currentDirectory.value, newFileName].join('/');
 
       try {
-        await session.sftpClient!.rename(oldPath, newPath);
-        renameItemId.value = null;
-
+        if (isCreatingDirectory.value) {
+          await session.sftpClient!.mkdir(newPath);
+        } else {
+          await session.sftpClient!.rename(oldPath, newPath);
+        }
+        resetRename();
         reloadDirectory();
       } on SftpStatusError catch (e) {
         if (!context.mounted) return;
@@ -543,7 +586,7 @@ class _SftpSessionPageState extends ConsumerState<SftpSessionPage>
           variant: .destructive,
         );
 
-        renameItemId.value = null;
+        resetRename();
       }
     }
 
@@ -729,6 +772,11 @@ class _SftpSessionPageState extends ConsumerState<SftpSessionPage>
                                 prefix: Icon(LucideIcons.refreshCw),
                                 onPress: onAction(reloadDirectory),
                               ),
+                              .item(
+                                title: Text('New folder'),
+                                prefix: Icon(LucideIcons.folderPlus),
+                                onPress: onAction(createDirectory),
+                              ),
                             ],
                           ),
                           .group(
@@ -864,13 +912,13 @@ class _SftpSessionPageState extends ConsumerState<SftpSessionPage>
 
                   final fileToIndex = <String, int>{};
                   for (var i = 0; i < files.length; i++) {
-                    fileToIndex[getFileIdFromSftpName(files[i])] = i;
+                    fileToIndex[getFileIdFromSftpName(getFileByIndex(i)!)] = i;
                   }
 
                   getFileFromId(String id) {
                     final index = fileToIndex[id];
                     if (index == null) return null;
-                    return files[index];
+                    return getFileByIndex(index)!;
                   }
 
                   final visibleCols = _SftpColumn.values
@@ -886,6 +934,11 @@ class _SftpSessionPageState extends ConsumerState<SftpSessionPage>
                           label: 'Refresh',
                           icon: LucideIcons.refreshCw,
                           onPress: reloadDirectory,
+                        ),
+                        .new(
+                          label: 'New folder',
+                          icon: LucideIcons.folderPlus,
+                          onPress: createDirectory,
                         ),
                       ],
                       columns: _SftpColumn.values
@@ -904,13 +957,14 @@ class _SftpSessionPageState extends ConsumerState<SftpSessionPage>
                         }
                         selectedFilesIds.value = {};
                       },
-                      rowCount: files.length,
+                      rowCount:
+                          files.length + (isCreatingDirectory.value ? 1 : 0),
                       selectedRows: selectedFilesIds.value
                           .map((id) => fileToIndex[id])
                           .whereType<int>()
                           .toList(growable: false),
                       onRowTap: (index) {
-                        final file = files[index];
+                        final file = getFileByIndex(index)!;
 
                         // ignore non-selectable files
                         if (file.filename.isEmpty ||
@@ -933,11 +987,11 @@ class _SftpSessionPageState extends ConsumerState<SftpSessionPage>
                           final range = firstIndex <= index
                               ? [
                                   for (var i = firstIndex; i <= index; i++)
-                                    getFileIdFromSftpName(files[i]),
+                                    getFileIdFromSftpName(getFileByIndex(i)!),
                                 ]
                               : [
                                   for (var i = index; i <= firstIndex; i++)
-                                    getFileIdFromSftpName(files[i]),
+                                    getFileIdFromSftpName(getFileByIndex(i)!),
                                 ];
                           selectedFilesIds.value = {
                             selectedFilesIds.value.first,
@@ -964,7 +1018,7 @@ class _SftpSessionPageState extends ConsumerState<SftpSessionPage>
                         selectedFilesIds.value = {id};
                       },
                       onRowDoubleTap: (index) {
-                        final file = files[index];
+                        final file = getFileByIndex(index)!;
                         final id = getFileIdFromSftpName(file);
                         selectedFilesIds.value = {if (file.attr.isFile) id};
                         final _ = switch (file.attr.type) {
@@ -975,7 +1029,7 @@ class _SftpSessionPageState extends ConsumerState<SftpSessionPage>
                         };
                       },
                       rowBuilder: (context, index) {
-                        final file = files[index];
+                        final file = getFileByIndex(index)!;
                         final id = getFileIdFromSftpName(file);
 
                         final isHidden = isHiddenFile(file);
@@ -1010,16 +1064,23 @@ class _SftpSessionPageState extends ConsumerState<SftpSessionPage>
                           if (isRename) {
                             return CallbackShortcuts(
                               bindings: {
-                                const SingleActivator(.escape): () =>
-                                    renameItemId.value = null,
+                                const SingleActivator(.escape): resetRename,
                               },
                               child: FTextField(
                                 control: .managed(controller: renameController),
                                 autofocus: true,
                                 onSubmit: (value) =>
-                                    renameItem(file, id, value),
+                                    renameItemOrCreateDirectory(
+                                      file,
+                                      id,
+                                      value,
+                                    ),
                                 onTapOutside: (_) =>
-                                    renameItem(file, id, renameController.text),
+                                    renameItemOrCreateDirectory(
+                                      file,
+                                      id,
+                                      renameController.text,
+                                    ),
                               ),
                             );
                           } else if (col.prefixBuilder != null) {
@@ -1164,7 +1225,7 @@ class _SftpSessionPageState extends ConsumerState<SftpSessionPage>
                         );
                       },
                       rowWrapper: (context, child, index) {
-                        final file = files[index];
+                        final file = getFileByIndex(index)!;
                         final id = getFileIdFromSftpName(file);
 
                         return CustomContextMenu(
