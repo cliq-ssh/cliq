@@ -45,11 +45,25 @@ enum _RenderableTag {
 class TextUtils {
   const TextUtils._();
 
-  static String? formatBytes(int? bytes, {int decimals = 2}) {
+  static String? formatBytes(num? bytes, {int decimals = 2}) {
     if (bytes == null || bytes <= 0) return null;
     const suffixes = ['B', 'KB', 'MB', 'GB', 'TB'];
     final i = (log(bytes) / log(1024)).floor();
     return '${(bytes / (pow(1024, i))).toStringAsFixed(decimals)} ${suffixes[i]}';
+  }
+
+  static String formatDuration(int seconds) {
+    final duration = Duration(seconds: seconds);
+    final hours = duration.inHours;
+    final minutes = duration.inMinutes.remainder(60);
+    final secs = duration.inSeconds.remainder(60);
+    if (hours > 0) {
+      return '${hours}h ${minutes}m ${secs}s';
+    } else if (minutes > 0) {
+      return '${minutes}m ${secs}s';
+    } else {
+      return '${secs}s';
+    }
   }
 
   /// Renders the given text into a list of InlineSpan.

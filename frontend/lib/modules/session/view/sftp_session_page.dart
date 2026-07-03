@@ -168,23 +168,36 @@ class FileProgressData {
   final int currentBytes;
   final int totalBytes;
   final String? error;
+  final double? bytesPerSecond;
 
   const FileProgressData({
     required this.currentBytes,
     required this.totalBytes,
     this.error,
+    this.bytesPerSecond,
   });
+
+  int? get estimatedSecondsRemaining {
+    if (bytesPerSecond == null || bytesPerSecond! <= 0) return null;
+    final remainingBytes = totalBytes - currentBytes;
+    return (remainingBytes / bytesPerSecond!).ceil();
+  }
 
   const FileProgressData.completed({this.totalBytes = 1})
     : currentBytes = totalBytes,
-      error = null;
+      error = null,
+      bytesPerSecond = null;
 
   const FileProgressData.zero()
     : currentBytes = 0,
       totalBytes = 1,
-      error = null;
+      error = null,
+      bytesPerSecond = null;
 
-  const FileProgressData.error(this.error) : currentBytes = 0, totalBytes = 1;
+  const FileProgressData.error(this.error)
+    : currentBytes = 0,
+      totalBytes = 1,
+      bytesPerSecond = null;
 
   double get progress => totalBytes == 0 ? 0 : currentBytes / totalBytes;
 
@@ -192,11 +205,13 @@ class FileProgressData {
     int? currentBytes,
     int? totalBytes,
     String? error,
+    double? bytesPerSecond,
   }) {
     return FileProgressData(
       currentBytes: currentBytes ?? this.currentBytes,
       totalBytes: totalBytes ?? this.totalBytes,
       error: error ?? this.error,
+      bytesPerSecond: bytesPerSecond ?? this.bytesPerSecond,
     );
   }
 }

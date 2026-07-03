@@ -6,11 +6,40 @@ import 'package:cliq/modules/session/view/sftp_session_page.dart';
 import 'package:dartssh2/dartssh2.dart';
 import 'package:flutter/foundation.dart';
 
+const _kMinEmitIntervalMillis = 500;
+const _kWindowMillis = 3000;
+
+/// Tracks the speed of a file transfer over a sliding window of time.
+class _TransferTracker {
+  final Stopwatch _stopwatch = Stopwatch()..start();
+  final List<MapEntry<int, int>> _samples = [];
+
+  int _lastEmit = -1 << 30;
+
+  /// Records a new sample of bytes transferred and calculates the current transfer speed.
+  /// Returns a tuple of (speed in bytes per second, shouldEmit).
+  /// shouldEmit is true if enough time has passed since the last emission to warrant sending an update (as defined by [_kMinEmitIntervalMillis]).
+  (double? speed, bool shouldEmit) record(int bytes) {
+    final now = _stopwatch.elapsedMilliseconds;
+    if (now - _lastEmit < _kMinEmitIntervalMillis) return (null, false);
+    _lastEmit = now;
+
+    _samples.add(MapEntry(now, bytes));
+    _samples.removeWhere((s) => now - s.key > _kWindowMillis);
+
+    if (_samples.length < 2) return (null, true);
+    final deltaSeconds = (_samples.last.key - _samples.first.key) / 1000;
+    if (deltaSeconds <= 0) return (null, true);
+    return ((_samples.last.value - _samples.first.value) / deltaSeconds, true);
+  }
+}
+
 /// Performs an SFTP transfer in an isolate, sending progress updates back to the main isolate via a [SendPort].
 /// This is put into a separate file to avoid complications with isolate spawning and dependencies.
 /// See [SessionNotifier.transferSftp] for usage.
 Future<void> sftpTransferIsolate(SftpTransferParams p) async {
   SSHClient? sourceClient, destinationClient;
+  final speedTracker = _TransferTracker();
 
   connect(SftpConnectParams c) async {
     return SSHClient(
@@ -38,9 +67,16 @@ Future<void> sftpTransferIsolate(SftpTransferParams p) async {
       sink,
       onProgress: (bytes) {
         if (totalBytes > 0) {
-          p.sendPort.send(
-            FileProgressData(currentBytes: bytes, totalBytes: totalBytes),
-          );
+          final (speed, shouldEmit) = speedTracker.record(bytes);
+          if (shouldEmit) {
+            p.sendPort.send(
+              FileProgressData(
+                currentBytes: bytes,
+                totalBytes: totalBytes,
+                bytesPerSecond: speed,
+              ),
+            );
+          }
         }
       },
     );
@@ -69,9 +105,16 @@ Future<void> sftpTransferIsolate(SftpTransferParams p) async {
         final bytes = Uint8List.fromList(chunk);
         uploaded += bytes.length;
         if (totalBytes > 0) {
-          p.sendPort.send(
-            FileProgressData(currentBytes: uploaded, totalBytes: totalBytes),
-          );
+          final (speed, shouldEmit) = speedTracker.record(uploaded);
+          if (shouldEmit) {
+            p.sendPort.send(
+              FileProgressData(
+                currentBytes: uploaded,
+                totalBytes: totalBytes,
+                bytesPerSecond: speed,
+              ),
+            );
+          }
         }
         return bytes;
       }),
@@ -110,12 +153,16 @@ Future<void> sftpTransferIsolate(SftpTransferParams p) async {
         final bytes = Uint8List.fromList(chunk);
         transferred += bytes.length;
         if (totalBytes > 0) {
-          p.sendPort.send(
-            (FileProgressData(
-              currentBytes: transferred,
-              totalBytes: totalBytes,
-            )),
-          );
+          final (speed, shouldEmit) = speedTracker.record(transferred);
+          if (shouldEmit) {
+            p.sendPort.send(
+              FileProgressData(
+                currentBytes: transferred,
+                totalBytes: totalBytes,
+                bytesPerSecond: speed,
+              ),
+            );
+          }
         }
         return bytes;
       }),

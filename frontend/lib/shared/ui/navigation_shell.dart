@@ -153,7 +153,7 @@ class NavigationShellState extends ConsumerState<NavigationShell>
                           ? Padding(
                               padding: const .symmetric(vertical: 4),
                               child: Column(
-                                crossAxisAlignment: .center,
+                                crossAxisAlignment: .start,
                                 spacing: 8,
                                 children: [
                                   SizedBox(
@@ -174,6 +174,11 @@ class NavigationShellState extends ConsumerState<NavigationShell>
                                       ),
                                     ],
                                   ),
+                                  if (item.value.progressData.bytesPerSecond !=
+                                      null)
+                                    Text(
+                                      '${TextUtils.formatDuration(item.value.progressData.estimatedSecondsRemaining!)}, ${TextUtils.formatBytes(item.value.progressData.bytesPerSecond!) ?? '--'}/s',
+                                    ),
                                 ],
                               ),
                             )
