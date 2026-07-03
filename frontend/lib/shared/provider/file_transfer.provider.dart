@@ -115,19 +115,19 @@ class FileTransferNotifier extends Notifier<FileTransferState> {
     final item = FileTransferItem(file: file, progressData: .zero())
       ..tempFile = tempFile;
 
-    state = .new(queued: {...state.queued, id: item});
+    state = state.copyWith(queued: {...state.queued, id: item});
     _log.fine("Added file transfer item: $id");
   }
 
   Future<void> remove(String id) async {
     await _cleanup(id);
-    state = .new(queued: {...state.queued..remove(id)});
+    state = state.copyWith(queued: .from(state.queued)..remove(id));
     _log.fine("Removed file transfer item: $id");
   }
 
   void setProgress(String id, FileProgressData? data) {
     if (data == null || data.progress < 0) {
-      state = .new(queued: {...state.queued..remove(id)});
+      state = state.copyWith(queued: .from(state.queued)..remove(id));
       return;
     }
 
@@ -183,6 +183,6 @@ class FileTransferNotifier extends Notifier<FileTransferState> {
     if (!state.queued.containsKey(id)) return;
     final item = state.queued[id]!;
     modify(item);
-    state = .new(queued: {...state.queued, id: item});
+    state = state.copyWith(queued: {...state.queued, id: item});
   }
 }

@@ -32,4 +32,8 @@ class FileTransferState {
 
   bool get isEmpty => queued.isEmpty;
   bool get isNotEmpty => queued.isNotEmpty;
+
+  FileTransferState copyWith({Map<String, FileTransferItem>? queued}) {
+    return FileTransferState(queued: queued ?? this.queued);
+  }
 }
