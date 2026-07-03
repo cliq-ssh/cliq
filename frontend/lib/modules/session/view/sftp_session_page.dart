@@ -7,6 +7,7 @@ import 'package:cliq/modules/session/model/sftp_transfer_params.model.dart';
 import 'package:cliq/modules/session/view/generic_session_page.dart';
 import 'package:cliq/shared/data/store.dart';
 import 'package:cliq/shared/provider/store.provider.dart';
+import 'package:cliq/shared/utils/constants.dart';
 import 'package:cliq/shared/utils/text_utils.dart';
 import 'package:dartssh2/dartssh2.dart';
 import 'package:flutter/gestures.dart';
@@ -235,6 +236,7 @@ class _SftpSessionPageState extends ConsumerState<SftpSessionPage>
     if (session == null) return SizedBox.shrink();
 
     final isLoading = useState(true);
+    final largeDownloadWarning = useStore(.sftpLargeDownloadWarning);
 
     final backStack = useState<List<List<String>>>([]);
     final forwardStack = useState<List<List<String>>>([]);
@@ -469,6 +471,23 @@ class _SftpSessionPageState extends ConsumerState<SftpSessionPage>
           file.filename.isEmpty ||
           _ignoredSelectableFilenames.contains(file.filename)) {
         return;
+      }
+
+      // check file size & warn user if enabled
+      if (largeDownloadWarning.value &&
+          file.attr.size! > Constants.largeFileSizeThreshold) {
+        final shouldContinue = await Commons.showConfirmationDialog(
+          title: 'Large file',
+          children: (context, _, _) => TextUtils.renderText(
+            context,
+            'The file <b>${file.filename}</b> is larger than <b>${TextUtils.formatBytes(Constants.largeFileSizeThreshold, decimals: 0)} (${TextUtils.formatBytes(file.attr.size)})</b> and may take a long time to download. You can edit the file once it has been downloaded.\nDo you want to continue?\n\n<tip>TIP: You can disable this warning in <b>Settings > SSH & SFTP > Large Downloads Warning</b>.</tip>',
+          ),
+          confirmButtonText: 'Download & Edit',
+        );
+
+        if (shouldContinue != true) {
+          return;
+        }
       }
 
       final fullPath = [...?currentDirectory.value, file.filename].join('/');

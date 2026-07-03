@@ -87,6 +87,11 @@ enum StoreKey<T> {
     'sftp_show_hidden_files',
     type: bool,
     defaultValue: false,
+  ),
+  sftpLargeDownloadWarning<bool>(
+    'sftp_large_download_warning',
+    type: bool,
+    defaultValue: true,
   );
 
   final String key;

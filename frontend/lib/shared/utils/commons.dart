@@ -3,11 +3,10 @@ import 'dart:convert';
 import 'package:cliq/modules/settings/model/settings_importer/settings_importer.dart';
 import 'package:cliq/modules/settings/model/theme_parser/terminal_theme_parser.dart';
 import 'package:cliq/shared/ui/responsive_dialog.dart';
-import 'package:cliq/shared/ui/shortcut_info.dart';
 import 'package:cliq/shared/utils/constants.dart';
 import 'package:cliq/shared/model/router.model.dart';
 import 'package:cliq/shared/utils/platform_utils.dart';
-import 'package:cliq_term/cliq_term.dart';
+import 'package:cliq/shared/utils/text_utils.dart';
 import 'package:file_selector/file_selector.dart';
 import 'package:flutter/material.dart' hide Router;
 import 'package:flutter/services.dart';
@@ -46,6 +45,52 @@ final class Commons {
     );
   }
 
+  /// Shows a common confirmation dialog.
+  static Future<T?> showConfirmationDialog<T>({
+    required List<InlineSpan> Function(
+      BuildContext,
+      FDialogStyle,
+      Animation<double>,
+    )
+    children,
+    VoidCallback? onConfirm,
+    BuildContext? context,
+    String? title,
+    String? confirmButtonText,
+  }) {
+    return showFDialog(
+      context: (Router.rootNavigatorKey.currentContext ?? context)!,
+      builder: (context, style, animation) {
+        return FDialog(
+          style: style,
+          animation: animation,
+          direction: Axis.horizontal,
+          title: title != null ? Text(title) : null,
+          body: RichText(
+            text: TextSpan(children: children(context, style, animation)),
+          ),
+          actions: [
+            FButton(
+              variant: .outline,
+              child: const Text('Cancel'),
+              onPress: () => Navigator.of(context).pop(false),
+            ),
+            FButton(
+              variant: .destructive,
+              child: confirmButtonText != null
+                  ? Text(confirmButtonText)
+                  : const Text('Confirm'),
+              onPress: () {
+                onConfirm?.call();
+                Navigator.of(context).pop(true);
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   /// Shows a common delete confirmation dialog.
   /// On desktop, if [canInstantDelete] is true, holding shift while triggering the delete action will skip the dialog and immediately call [onDelete].
   static Future<T?> showDeleteDialog<T>({
@@ -63,62 +108,16 @@ final class Commons {
       return Future.value(null);
     }
 
-    return showFDialog(
-      context: (Router.rootNavigatorKey.currentContext ?? context)!,
-      builder: (context, style, animation) {
-        final subtitleStyle = context.theme.typography.body.sm.copyWith(
-          color: context.theme.colors.mutedForeground,
-        );
-        return FDialog(
-          style: style,
-          animation: animation,
-          direction: Axis.horizontal,
-          title: const Text('Are you sure?'),
-          body: RichText(
-            text: TextSpan(
-              children: [
-                TextSpan(text: 'Are you sure you want to $term '),
-                TextSpan(
-                  text: entity,
-                  style: context.theme.typography.body.sm.copyWith(
-                    fontWeight: .bold,
-                  ),
-                ),
-                TextSpan(text: '? This action cannot be undone.'),
-                if (PlatformUtils.isDesktop && canInstantDelete) ...[
-                  TextSpan(text: '\n\nTIP: Hold ', style: subtitleStyle),
-                  WidgetSpan(
-                    child: ShortcutInfo(shortcut: KeyboardShortcut(.shift)),
-                  ),
-                  TextSpan(text: ' to skip this dialog', style: subtitleStyle),
-                ],
-                if (mayNeedAppRestart) ...[
-                  TextSpan(
-                    text:
-                        '\n\nNOTE: You may need to restart the app after doing this.',
-                    style: subtitleStyle,
-                  ),
-                ],
-              ],
-            ),
-          ),
-          actions: [
-            FButton(
-              variant: .outline,
-              child: const Text('Cancel'),
-              onPress: () => Navigator.of(context).pop(),
-            ),
-            FButton(
-              variant: .destructive,
-              child: const Text('Delete'),
-              onPress: () {
-                onDelete.call();
-                Navigator.of(context).pop();
-              },
-            ),
-          ],
-        );
-      },
+    return showConfirmationDialog(
+      confirmButtonText: 'Delete',
+      title: 'Are you sure?',
+      onConfirm: onDelete,
+      children: (context, _, _) => TextUtils.renderText(
+        context,
+        'Are you sure you want to $term <b>$entity</b>? This action cannot be undone.'
+        '${PlatformUtils.isDesktop && canInstantDelete ? '\n\n<tip>TIP: Hold <shiftIcon/> to skip this dialog</tip>' : ''}'
+        '${mayNeedAppRestart ? '\n\n<tip>NOTE: You may need to restart the app after doing this.</tip>' : ''}',
+      ),
     );
   }
 
