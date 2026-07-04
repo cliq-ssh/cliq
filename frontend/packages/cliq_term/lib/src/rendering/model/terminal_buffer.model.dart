@@ -18,6 +18,8 @@ class TerminalBufferRow {
 }
 
 class TerminalBuffer {
+  static const int defaultMaxScrollbackLines = 10_000;
+
   final int rows;
   final int cols;
   final int maxScrollbackLines;
@@ -60,7 +62,7 @@ class TerminalBuffer {
   TerminalBuffer({
     required this.rows,
     required this.cols,
-    this.maxScrollbackLines = 1000,
+    this.maxScrollbackLines = defaultMaxScrollbackLines,
     this.isBackBuffer = false,
     this.isLineFeedMode = false,
     CharsetState? charset,

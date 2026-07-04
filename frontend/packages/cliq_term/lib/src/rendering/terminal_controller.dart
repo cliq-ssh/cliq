@@ -103,7 +103,7 @@ class TerminalController extends ChangeNotifier {
     required this._typography,
     required this._theme,
     this.cursorBlinkInterval = const Duration(milliseconds: 600),
-    this.maxScrollbackLines = 1000,
+    this.maxScrollbackLines = TerminalBuffer.defaultMaxScrollbackLines,
     this.debugLogging = false,
     this.onInput,
     this.onResize,
