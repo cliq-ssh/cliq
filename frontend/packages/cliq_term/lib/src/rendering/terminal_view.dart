@@ -172,7 +172,7 @@ class _TerminalViewState extends State<TerminalView> {
             },
             onPanStart: (details) {
               _focusNode.requestFocus();
-              final (visRow, visCol) = _calculateCoords(
+              final (absRow, absCol) = _calculateCoords(
                 details.localPosition,
                 cellW,
                 cellH,
@@ -180,7 +180,7 @@ class _TerminalViewState extends State<TerminalView> {
               widget.controller.startSelection(absRow, absCol);
             },
             onPanUpdate: (details) {
-              final (visRow, visCol) = _calculateCoords(
+              final (absRow, absCol) = _calculateCoords(
                 details.localPosition,
                 cellW,
                 cellH,
@@ -217,19 +217,15 @@ class _TerminalViewState extends State<TerminalView> {
     double cellW,
     double cellH,
   ) {
-    final scrollOffset = _scrollController.hasClients
-        ? _scrollController.offset
-        : 0.0;
+    final scrollOffset =
+        _scrollController.hasClients ? _scrollController.offset : 0.0;
     final totalLocalY = localPosition.dy + scrollOffset;
 
     final absRow = (totalLocalY / cellH).floor();
     final col = (localPosition.dx / cellW).floor();
 
-    // Convert absolute row back to visible row for selection logic
-    final visRow = absRow - widget.controller.activeBuffer.currentScrollback;
-
     return (
-      visRow.clamp(0, widget.controller.rows - 1),
+      absRow.clamp(0, max(0, widget.controller.totalRows - 1)),
       col.clamp(0, widget.controller.cols - 1),
     );
   }
@@ -336,14 +332,12 @@ class _SingleRowPainter extends CustomPainter {
         startCol: controller.selection.startCol!,
         endRow: controller.selection.endRow!,
         endCol: controller.selection.endCol!,
-        maxRows: controller.rows,
+        maxRows: controller.totalRows,
         maxCols: cols,
       );
 
-      final visibleRow =
-          absoluteRowIndex - controller.activeBuffer.currentScrollback;
       final rowSel = SelectionHelper.getRowSelection(
-        row: visibleRow,
+        row: absoluteRowIndex,
         bounds: bounds,
         maxCols: cols,
       );
