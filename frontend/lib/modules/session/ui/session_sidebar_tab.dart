@@ -71,7 +71,7 @@ class SessionSidebarTab extends HookConsumerWidget {
         builder: (context) {
           Widget child = ConnectionIcon.fromConnection(
             root.connection,
-            size: 10,
+            size: navPosition == .left && !isExpanded ? 16 : 12,
             padding: 5,
           );
 
