@@ -10,6 +10,7 @@ import 'package:cliq/shared/provider/store.provider.dart';
 import 'package:cliq/shared/utils/constants.dart';
 import 'package:cliq/shared/utils/text_utils.dart';
 import 'package:dartssh2/dartssh2.dart';
+import 'package:file_selector/file_selector.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart' hide LicensePage;
 import 'package:flutter/services.dart';
@@ -250,8 +251,12 @@ class _SftpSessionPageState extends ConsumerState<SftpSessionPage>
 
     if (session == null) return SizedBox.shrink();
 
+    // used to trigger a reconnect when the user clicks "Retry" after a connection error
+    final refreshTrigger = useState(0);
+
     final isLoading = useState(true);
     final largeDownloadWarning = useStore(.sftpLargeDownloadWarning);
+    final directoryNotEmptyWarning = useStore(.sftpDirectoryNotEmptyWarning);
 
     final backStack = useState<List<List<String>>>([]);
     final forwardStack = useState<List<List<String>>>([]);
@@ -291,6 +296,7 @@ class _SftpSessionPageState extends ConsumerState<SftpSessionPage>
             session.id,
             skipHostKeyVerification: skipHostKeyVerification,
           );
+      refreshTrigger.value++;
     }
 
     // open SFTP connection when terminal controller is set
@@ -329,7 +335,7 @@ class _SftpSessionPageState extends ConsumerState<SftpSessionPage>
       }
 
       return null;
-    }, []);
+    }, [refreshTrigger.value]);
 
     // fetch files in current directory
     useEffect(() {
@@ -437,6 +443,15 @@ class _SftpSessionPageState extends ConsumerState<SftpSessionPage>
 
     // helper for preventing certain actions while loading
     onAction(VoidCallback func) => isLoading.value ? null : func;
+
+    isDirectoryEmpty(SftpName file) async {
+      if (!file.attr.isDirectory) return false;
+      final path = [...?currentDirectory.value, file.filename].join('/');
+      final entries = await session.sftpClient!.listdir(path);
+      return !entries.any(
+        (e) => !_ignoredSelectableFilenames.contains(e.filename),
+      );
+    }
 
     reloadDirectory() {
       currentDirectory.value = [...?currentDirectory.value];
@@ -574,6 +589,34 @@ class _SftpSessionPageState extends ConsumerState<SftpSessionPage>
       isLoading.value = false;
     }
 
+    download(SftpName file, String id, String location) async {
+      if (file.filename.isEmpty ||
+          _ignoredSelectableFilenames.contains(file.filename)) {
+        return;
+      }
+
+      final fullPath = [...?currentDirectory.value, file.filename].join('/');
+      final localFilePath = [
+        location,
+        file.filename,
+      ].join(Platform.pathSeparator);
+
+      ref
+          .read(fileTransferProvider.notifier)
+          .add(id, .new(path: fullPath, type: .remoteToLocal));
+
+      final fileTransferNotifier = ref.read(fileTransferProvider.notifier);
+
+      fileTransferNotifier
+          .transferSftp(
+            id,
+            source: session,
+            sourcePath: fullPath,
+            localPath: localFilePath,
+          )
+          .listen((p) => fileTransferNotifier.setProgress(id, p));
+    }
+
     /// Renames a file/directory or creates a new directory if [isCreatingDirectory] is true.
     renameItemOrCreateDirectory(
       SftpName file,
@@ -623,19 +666,58 @@ class _SftpSessionPageState extends ConsumerState<SftpSessionPage>
       }
     }
 
-    deleteItem(SftpName file, String id) async {
+    deleteItem(SftpName file, String id, {bool forceRecursive = false}) async {
       if (_ignoredSelectableFilenames.contains(file.filename)) {
         return;
       }
 
+      deleteRecursive(SftpClient sftp, String path) async {
+        final attrs = await sftp.stat(path);
+
+        if (attrs.isDirectory) {
+          final entries = await sftp.listdir(path);
+          for (final entry in entries) {
+            if (_ignoredSelectableFilenames.contains(entry.filename)) continue;
+            await deleteRecursive(sftp, '$path/${entry.filename}');
+          }
+          await sftp.rmdir(path);
+        } else {
+          await sftp.remove(path);
+        }
+      }
+
       delete() async {
+        isLoading.value = true;
         final fullPath = [...?currentDirectory.value, file.filename].join('/');
-        await (file.attr.isDirectory
-            ? session.sftpClient!.rmdir(fullPath)
-            : session.sftpClient!.remove(fullPath));
 
+        if (forceRecursive) {
+          await deleteRecursive(session.sftpClient!, fullPath);
+        } else if (!file.attr.isDirectory) {
+          await session.sftpClient!.remove(fullPath);
+        } else {
+          if (await isDirectoryEmpty(file)) {
+            await session.sftpClient!.rmdir(fullPath);
+          } else {
+            // warn user if enabled
+            bool result = false;
+            if (directoryNotEmptyWarning.value) {
+              result = await Commons.showConfirmationDialog(
+                title: 'Directory not empty',
+                children: (context, _, _) => TextUtils.renderText(
+                  context,
+                  'The directory <b>${file.filename}</b> is not empty and may contain files or subdirectories. Deleting it will remove all its contents.\nDo you want to continue?\n\n<tip>TIP: You can disable this warning in <b>Settings > SSH & SFTP > Directory Not Empty Warning</b>.</tip>',
+                ),
+                confirmButtonText: 'Delete Anyway',
+              );
+            }
+            if (!directoryNotEmptyWarning.value || result) {
+              await deleteRecursive(session.sftpClient!, fullPath);
+            }
+          }
+        }
+
+        isLoading.value = false;
         cleanupModified(file, id);
-
         reloadDirectory();
       }
 
@@ -1282,6 +1364,15 @@ class _SftpSessionPageState extends ConsumerState<SftpSessionPage>
                                 label: 'Rename',
                                 icon: LucideIcons.pencilLine,
                                 onPress: () => renameItemId.value = id,
+                              ),
+                              .new(
+                                label: 'Download',
+                                icon: LucideIcons.download,
+                                onPress: () async {
+                                  final location = await getDirectoryPath();
+                                  if (location == null) return;
+                                  download(file, id, location);
+                                },
                               ),
                               .new(
                                 label: 'Delete',

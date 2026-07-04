@@ -156,15 +156,15 @@ class SessionNotifier extends Notifier<SessionState> {
     String sessionId, {
     bool skipHostKeyVerification = false,
   }) {
-    _modifySession(
-      sessionId,
-      (session) => ShellSession.disconnected(
+    _modifySession(sessionId, (session) {
+      session.dispose();
+      return ShellSession.disconnected(
         id: session.id,
         type: session.type,
         connection: session.connection,
         skipHostKeyVerification: skipHostKeyVerification,
-      ),
-    );
+      );
+    });
   }
 
   /// Merges a single session into an existing tab, closing the merged session and adding it to the
@@ -201,14 +201,6 @@ class SessionNotifier extends Notifier<SessionState> {
           ),
     );
 
-    close([String? message]) {
-      _modifySession(
-        session.id,
-        (session) =>
-            session.copyWith(connectionError: message ?? 'Connection closed'),
-      );
-    }
-
     try {
       final socket =
           await SSHSocket.connect(
@@ -216,45 +208,53 @@ class SessionNotifier extends Notifier<SessionState> {
               connection.port,
               timeout: .new(seconds: 10), // TODO:
             )
-            ..done.then((_) => close(), onError: (e) => close(e.toString()));
+            ..done.then(
+              (_) => _close(session.id),
+              onError: (e) => _close(session.id, e.toString()),
+            );
 
-      final sshClient = SSHClient(
-        socket,
-        username: connection.effectiveUsername!,
-        identities: keys,
-        onVerifyHostKey: (algorithm, fingerprint) async {
-          if (session.skipHostKeyVerification) {
-            return true;
-          }
+      final sshClient =
+          SSHClient(
+              socket,
+              username: connection.effectiveUsername!,
+              identities: keys,
+              onVerifyHostKey: (algorithm, fingerprint) async {
+                if (session.skipHostKeyVerification) {
+                  return true;
+                }
 
-          // check db whether host is known
-          final (knownHost, isKeyMatch) = await ref
-              .read(knownHostServiceProvider)
-              .isHostKnown(connection.addressAndPort, fingerprint);
+                // check db whether host is known
+                final (knownHost, isKeyMatch) = await ref
+                    .read(knownHostServiceProvider)
+                    .isHostKnown(connection.addressAndPort, fingerprint);
 
-          if (knownHost != null && isKeyMatch) return true;
+                if (knownHost != null && isKeyMatch) return true;
 
-          _modifySession(
-            session.id,
-            (session) => session.copyWith(
-              knownHostError: KnownHostError(
-                host: connection.addressAndPort,
-                algorithm: algorithm,
-                fingerprint: fingerprint,
-                knownHost: knownHost,
-              ),
-            ),
-          );
+                _modifySession(
+                  session.id,
+                  (session) => session.copyWith(
+                    knownHostError: KnownHostError(
+                      host: connection.addressAndPort,
+                      algorithm: algorithm,
+                      fingerprint: fingerprint,
+                      knownHost: knownHost,
+                    ),
+                  ),
+                );
 
-          // fail the verification for now, try again if the user accepts
-          return false;
-        },
-        onPasswordRequest: password != null ? () => password : null,
-      )..done.then((_) => close(), onError: (e) => close(e.toString()));
+                // fail the verification for now, try again if the user accepts
+                return false;
+              },
+              onPasswordRequest: password != null ? () => password : null,
+            )
+            ..done.then(
+              (_) => _close(session.id),
+              onError: (e) => _close(session.id, e.toString()),
+            );
 
       return sshClient;
     } catch (e) {
-      close(e.toString());
+      _close(session.id, e.toString());
       return null;
     }
   }
@@ -265,8 +265,10 @@ class SessionNotifier extends Notifier<SessionState> {
     TerminalController controller,
   ) async {
     try {
+      await client.authenticated.onError(
+        (e, _) => _close(sessionId, e.toString()),
+      );
       final sshSession = await client.shell();
-      await client.authenticated;
       _modifySession(
         sessionId,
         (session) => session.copyWith(
@@ -279,18 +281,15 @@ class SessionNotifier extends Notifier<SessionState> {
       return sshSession;
     } catch (e) {
       client.close();
-      _modifySession(
-        sessionId,
-        (session) => session.copyWith(connectionError: e.toString()),
-      );
+      _close(sessionId, e.toString());
       return null;
     }
   }
 
   Future<SftpClient> spawnSftp(String sessionId, SSHClient client) async {
     try {
-      final sftpClient = await client.sftp();
       await client.authenticated;
+      final sftpClient = await client.sftp();
       _modifySession(
         sessionId,
         (session) => session.copyWith(
@@ -302,10 +301,7 @@ class SessionNotifier extends Notifier<SessionState> {
       return sftpClient;
     } catch (e) {
       client.close();
-      _modifySession(
-        sessionId,
-        (session) => session.copyWith(connectionError: e.toString()),
-      );
+      _close(sessionId, e.toString());
       rethrow;
     }
   }
@@ -343,6 +339,14 @@ class SessionNotifier extends Notifier<SessionState> {
           host: error.host,
           fingerprint: error.fingerprint,
         );
+  }
+
+  void _close(String sessionId, [String? message]) {
+    _modifySession(
+      sessionId,
+      (session) =>
+          session.copyWith(connectionError: message ?? 'Connection closed'),
+    );
   }
 
   void _modifySession(
