@@ -27,7 +27,11 @@ void main() {
 
   test('copyWith keeps custom label when updating sessions', () {
     final connection = buildConnection();
-    final root = ShellSession.disconnected(id: 'root', connection: connection, type: .ssh);
+    final root = ShellSession.disconnected(
+      id: 'root',
+      connection: connection,
+      type: .ssh,
+    );
     final tab = SessionTab(
       id: 'tab',
       root: root,
@@ -42,7 +46,11 @@ void main() {
 
   test('copyWith can explicitly clear the label', () {
     final connection = buildConnection();
-    final root = ShellSession.disconnected(id: 'root', connection: connection, type: .ssh);
+    final root = ShellSession.disconnected(
+      id: 'root',
+      connection: connection,
+      type: .ssh,
+    );
     final tab = SessionTab(
       id: 'tab',
       root: root,
