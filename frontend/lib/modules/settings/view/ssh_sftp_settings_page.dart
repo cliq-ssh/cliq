@@ -57,6 +57,7 @@ class SshSftpSettingsPage extends AbstractSettingsPage {
                           subtitle: Text(
                             'Show hidden files in SFTP file listings',
                           ),
+                          prefix: Icon(LucideIcons.fileSearchCorner),
                           suffix: FSwitch(
                             value: showHiddenFiles.value,
                             onChange: (value) =>
@@ -68,6 +69,7 @@ class SshSftpSettingsPage extends AbstractSettingsPage {
                           subtitle: Text(
                             'Warn when downloading large files (${TextUtils.formatBytes(Constants.largeFileSizeThreshold, decimals: 0)}) over SFTP',
                           ),
+                          prefix: Icon(LucideIcons.fileExclamationPoint),
                           suffix: FSwitch(
                             value: largeDownloadsWarning.value,
                             onChange: (value) =>
@@ -79,6 +81,7 @@ class SshSftpSettingsPage extends AbstractSettingsPage {
                           subtitle: Text(
                             'Warn when attempting to delete a non-empty directory over SFTP',
                           ),
+                          prefix: Icon(LucideIcons.folders),
                           suffix: FSwitch(
                             value: directoryNotEmptyWarning.value,
                             onChange: (value) => StoreKey
