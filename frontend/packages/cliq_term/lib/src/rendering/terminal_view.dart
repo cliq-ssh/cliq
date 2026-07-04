@@ -86,6 +86,15 @@ class _TerminalViewState extends State<TerminalView> {
     });
   }
 
+  void _scrollToBottom() {
+    _userScrolledAwayFromBottom = false;
+    if (!_scrollController.hasClients) return;
+    final maxExt = _scrollController.position.maxScrollExtent;
+    if (maxExt > 0) {
+      _scrollController.jumpTo(maxExt);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return LayoutBuilder(
@@ -125,6 +134,7 @@ class _TerminalViewState extends State<TerminalView> {
               }
 
               if (widget.pasteShortcut?.isPressed(event) == true) {
+                _scrollToBottom();
                 widget.controller.clearSelection();
                 Clipboard.getData(Clipboard.kTextPlain).then((clip) {
                   String text = clip?.text ?? '';
@@ -145,6 +155,7 @@ class _TerminalViewState extends State<TerminalView> {
                 return .handled;
               }
 
+              _scrollToBottom();
               widget.controller.clearSelection();
               widget.controller.handleKey(event);
               return .handled;
