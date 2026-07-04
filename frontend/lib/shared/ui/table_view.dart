@@ -33,6 +33,7 @@ class _TableRow extends StatefulWidget {
 
   final bool isSelected;
   final Color? backgroundColor;
+  final Color? hoverBackgroundColor;
   final Color? selectedBackgroundColor;
 
   final void Function(int columnIndex, double delta)? onResize;
@@ -47,6 +48,7 @@ class _TableRow extends StatefulWidget {
     this.perCellFocus = false,
     this.isSelected = false,
     this.backgroundColor,
+    this.hoverBackgroundColor,
     this.selectedBackgroundColor,
     this.onResize,
     this.onTap,
@@ -200,19 +202,28 @@ class _TableRowState extends State<_TableRow> {
       return child;
     }
 
-    Widget baseRow = Container(
-      color: widget.isSelected
-          ? widget.selectedBackgroundColor
-          : widget.backgroundColor,
-      child: Row(children: List.generate(widget.cells.length, buildCell)),
-    );
+    Widget baseRow = Row(children: List.generate(widget.cells.length, buildCell));
 
     // focus wrapper on the entire row if perCellFocus is false
     if (!widget.perCellFocus && widget.onTap != null) {
       baseRow = buildFocusWrapper(baseRow, 0);
     }
 
-    return baseRow;
+    return FTappable(
+      behavior: .translucent,
+      builder: (context, states, child) {
+        final isHovered =
+            states.contains(FTappableVariant.hovered) ||
+                states.contains(FTappableVariant.pressed);
+
+        final color = widget.isSelected
+            ? widget.selectedBackgroundColor
+            : (isHovered ? widget.hoverBackgroundColor : widget.backgroundColor);
+
+        return Container(color: color, child: child);
+      },
+      child: baseRow,
+    );
   }
 }
 
@@ -325,6 +336,10 @@ class _TableViewState extends State<TableView> {
 
         final backgroundColor =
             widget.backgroundColor ?? context.theme.colors.background;
+
+        final hoverBackgroundColor = context.theme.colors.primary.withValues(
+          alpha: 0.1,
+        );
         final selectedBackgroundColor = context.theme.colors.primary.withValues(
           alpha: 0.2,
         );
@@ -364,6 +379,7 @@ class _TableViewState extends State<TableView> {
                       onDoubleTap: (_) => widget.onRowDoubleTap?.call(index),
                       isSelected: widget.selectedRows?.contains(index) ?? false,
                       backgroundColor: backgroundColor,
+                      hoverBackgroundColor: hoverBackgroundColor,
                       selectedBackgroundColor: selectedBackgroundColor,
                     );
 
