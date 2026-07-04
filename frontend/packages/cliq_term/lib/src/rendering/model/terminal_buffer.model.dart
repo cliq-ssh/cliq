@@ -95,12 +95,32 @@ class TerminalBuffer {
     newBuffer.isAutoWrapMode = isAutoWrapMode;
     newBuffer.tabStops = Set.from(tabStops.where((s) => s < newCols));
 
-    // Preserve history and visible rows by copying all rows from the old ring buffer
+    // Preserve history and visible rows by copying rows from the old ring buffer
+    // When shrinking, we try to discard trailing empty lines to avoid unnecessary scrollback
     final oldCurrentScrollback = currentScrollback;
+    final absCursorRow = cursorRow + oldCurrentScrollback;
     newBuffer._buffer.clear();
 
+    int effectiveOldLength = _buffer.length;
+    final emptyFormat = FormattingOptions();
+    while (effectiveOldLength > newRows) {
+      final row = _buffer[effectiveOldLength - 1];
+      bool isEmpty = true;
+      for (final cell in row.cells) {
+        if (cell.ch != ' ' || cell.fmt != emptyFormat) {
+          isEmpty = false;
+          break;
+        }
+      }
+      if (isEmpty && (effectiveOldLength - 1) > absCursorRow) {
+        effectiveOldLength--;
+      } else {
+        break;
+      }
+    }
+
     final minCols = min(cols, newCols);
-    for (var i = 0; i < _buffer.length; i++) {
+    for (var i = 0; i < effectiveOldLength; i++) {
       final oldRow = _buffer[i];
       final newRow = TerminalBufferRow(newCols);
       for (var c = 0; c < minCols; c++) {
@@ -117,7 +137,6 @@ class TerminalBuffer {
     // Adjust cursor position relative to the content. If the screen grows, the visible
     // content shifts "up" in the viewport relative to the bottom, so the cursorRow
     // must be adjusted based on the change in currentScrollback
-    final absCursorRow = cursorRow + oldCurrentScrollback;
     final newCurrentScrollback = newBuffer.currentScrollback;
     newBuffer.cursorRow = (absCursorRow - newCurrentScrollback).clamp(
       0,

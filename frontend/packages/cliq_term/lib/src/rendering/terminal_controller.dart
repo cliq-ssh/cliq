@@ -116,7 +116,7 @@ class TerminalController extends ChangeNotifier {
   TerminalTheme get theme => _theme;
   TerminalTypography get typography => _typography;
   TerminalBuffer get activeBuffer => backBufferActive ? _back : _front;
-  int get totalRows => _front.currentScrollback + rows;
+  int get totalRows => backBufferActive ? rows : (_front.currentScrollback + rows);
 
   /// Automatically resizes the terminal based on the provided [size] and current typography settings.
   void fitResize(Size size) {

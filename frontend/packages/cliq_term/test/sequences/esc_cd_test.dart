@@ -27,7 +27,7 @@ void main() {
 
       // cursor stays on last row
       expectCursorAt(controller, controller.rows - 1, 3);
-      expectCellAt(controller, controller.rows - 2, 0, ch: 'a');
+      expectCellAt(controller, controller.rows - 1, 0, ch: 'a');
     });
 
     test('at bottom of scroll region, scrolls region only', () {
