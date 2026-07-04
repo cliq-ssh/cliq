@@ -1,17 +1,16 @@
 import 'dart:async';
-import 'dart:convert';
 
 import 'package:cliq/modules/connections/model/connection_full.model.dart';
 import 'package:cliq/modules/credentials/data/credential_service.dart';
 import 'package:cliq/modules/session/model/session.state.dart';
 import 'package:cliq/shared/ui/navigation_shell.dart';
 import 'package:cliq_term/cliq_term.dart';
-import 'package:crypto/crypto.dart';
 import 'package:dartssh2/dartssh2.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:uuid/v4.dart';
 
 import '../../credentials/provider/credential_service.provider.dart';
+import '../../settings/model/known_host_error.model.dart';
 import '../../settings/provider/known_host_service.provider.dart';
 import '../model/session.model.dart';
 import '../model/tab.model.dart';
@@ -25,9 +24,14 @@ class SessionNotifier extends Notifier<SessionState> {
   SessionState build() => SessionState.initial();
 
   /// Creates a new session and navigates to the session branch, where the tab is selected.
-  void createAndGo(NavigationShellState shellState, ConnectionFull connection) {
+  void createAndGo(
+    NavigationShellState shellState,
+    ConnectionFull connection, {
+    bool isSftp = false,
+  }) {
     final newSession = ShellSession.disconnected(
       id: uuid.generate(),
+      type: isSftp ? .sftp : .ssh,
       connection: connection,
     );
 
@@ -90,6 +94,15 @@ class SessionNotifier extends Notifier<SessionState> {
     );
   }
 
+  Future<SftpFile?> readFileFromSession(
+    String sessionId,
+    String filePath,
+  ) async {
+    final session = getSessionById(sessionId);
+    if (session == null || session.sftpClient == null) return null;
+    return (await session.sftpClient!.open(filePath));
+  }
+
   void closeSessionAndMaybeGo(
     NavigationShellState shellState,
     String sessionId, {
@@ -143,14 +156,15 @@ class SessionNotifier extends Notifier<SessionState> {
     String sessionId, {
     bool skipHostKeyVerification = false,
   }) {
-    _modifySession(
-      sessionId,
-      (session) => ShellSession.disconnected(
+    _modifySession(sessionId, (session) {
+      session.dispose();
+      return ShellSession.disconnected(
         id: session.id,
+        type: session.type,
         connection: session.connection,
         skipHostKeyVerification: skipHostKeyVerification,
-      ),
-    );
+      );
+    });
   }
 
   /// Merges a single session into an existing tab, closing the merged session and adding it to the
@@ -203,83 +217,107 @@ class SessionNotifier extends Notifier<SessionState> {
     );
 
     try {
-      final socket = await SSHSocket.connect(
-        connection.address,
-        connection.port,
-      );
-      final sshClient = SSHClient(
-        socket,
-        username: connection.effectiveUsername!,
-        identities: keys,
-        onVerifyHostKey: (algorithm, hostKey) async {
-          if (session.skipHostKeyVerification) {
-            return true;
-          }
+      final socket =
+          await SSHSocket.connect(
+              connection.address,
+              connection.port,
+              timeout: .new(seconds: 10), // TODO:
+            )
+            ..done.then(
+              (_) => _close(session.id),
+              onError: (e) => _close(session.id, e.toString()),
+            );
 
-          // check db whether host is known
-          final (knownHost, isKeyMatch) = await ref
-              .read(knownHostServiceProvider)
-              .isHostKnown(connection.addressAndPort, hostKey);
+      final sshClient =
+          SSHClient(
+              socket,
+              username: connection.effectiveUsername!,
+              identities: keys,
+              onVerifyHostKey: (algorithm, fingerprint) async {
+                if (session.skipHostKeyVerification) {
+                  return true;
+                }
 
-          if (knownHost != null && isKeyMatch) return true;
+                // check db whether host is known
+                final (knownHost, isKeyMatch) = await ref
+                    .read(knownHostServiceProvider)
+                    .isHostKnown(connection.addressAndPort, fingerprint);
 
-          final sha256Fingerprint =
-              'SHA256:${base64.encode(sha256.convert(hostKey).bytes).replaceAll('=', '')}';
+                if (knownHost != null && isKeyMatch) return true;
 
-          _modifySession(
-            session.id,
-            (session) => session.copyWith(
-              knownHostError: KnownHostError(
-                host: connection.addressAndPort,
-                hostKey: hostKey,
-                algorithm: algorithm,
-                sha256Fingerprint: sha256Fingerprint,
-                knownHost: knownHost,
-              ),
-            ),
-          );
+                _modifySession(
+                  session.id,
+                  (session) => session.copyWith(
+                    knownHostError: KnownHostError(
+                      host: connection.addressAndPort,
+                      algorithm: algorithm,
+                      fingerprint: fingerprint,
+                      knownHost: knownHost,
+                    ),
+                  ),
+                );
 
-          // fail the verification for now, try again if the user accepts
-          return false;
-        },
-        onPasswordRequest: password != null ? () => password : null,
-      );
+                // fail the verification for now, try again if the user accepts
+                return false;
+              },
+              onPasswordRequest: password != null ? () => password : null,
+            )
+            ..done.then(
+              (_) => _close(session.id),
+              onError: (e) => _close(session.id, e.toString()),
+            );
 
       return sshClient;
     } catch (e) {
-      _modifySession(
-        session.id,
-        (session) => session.copyWith(connectionError: e.toString()),
-      );
+      _close(session.id, e.toString());
       return null;
     }
   }
 
-  Future<SSHSession?> spawnShell(
+  Future<SSHSession?> spawnSsh(
     String sessionId,
-    SSHClient sshClient,
+    SSHClient client,
     TerminalController controller,
   ) async {
     try {
-      final sshSession = await sshClient.shell();
-      await sshClient.authenticated;
+      await client.authenticated.onError(
+        (e, _) => _close(sessionId, e.toString()),
+      );
+      final sshSession = await client.shell();
       _modifySession(
         sessionId,
         (session) => session.copyWith(
           connectedAt: DateTime.now(),
-          sshClient: sshClient,
+          client: client,
           sshSession: sshSession,
           terminalController: controller,
         ),
       );
       return sshSession;
     } catch (e) {
-      sshClient.close();
+      client.close();
+      _close(sessionId, e.toString());
+      return null;
+    }
+  }
+
+  Future<SftpClient> spawnSftp(String sessionId, SSHClient client) async {
+    try {
+      await client.authenticated;
+      final sftpClient = await client.sftp();
       _modifySession(
         sessionId,
-        (session) => session.copyWith(connectionError: e.toString()),
+        (session) => session.copyWith(
+          connectedAt: DateTime.now(),
+          client: client,
+          sftpClient: sftpClient,
+        ),
       );
-      return null;
+      return sftpClient;
+    } catch (e) {
+      client.close();
+      _close(sessionId, e.toString());
+      rethrow;
     }
   }
 
@@ -305,7 +343,7 @@ class SessionNotifier extends Notifier<SessionState> {
           .update(
             error.knownHost!.id.value,
             vaultId: vaultId,
-            hostKey: error.hostKey,
+            fingerprint: error.fingerprint,
             compareTo: error.knownHost,
           );
     }
@@ -314,8 +352,16 @@ class SessionNotifier extends Notifier<SessionState> {
         .createKnownHost(
           vaultId: vaultId,
           host: error.host,
-          hostKey: error.hostKey,
+          fingerprint: error.fingerprint,
         );
+  }
+
+  void _close(String sessionId, [String? message]) {
+    _modifySession(
+      sessionId,
+      (session) =>
+          session.copyWith(connectionError: message ?? 'Connection closed'),
+    );
   }
 
   void _modifySession(
@@ -325,9 +371,7 @@ class SessionNotifier extends Notifier<SessionState> {
     final tabId = findTabIdBySessionId(sessionId);
     if (tabId == null) {
       // This should never happen
-      throw Exception(
-        'Session with id $sessionId not found in any active tab.',
-      );
+      return;
     }
 
     // replace tab with modified session

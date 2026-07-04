@@ -41,7 +41,7 @@ class SessionTab {
     CustomTerminalThemeState terminalThemes,
     int defaultTerminalTheme,
   ) {
-    if (sessions.isEmpty) {
+    if (sessions.isEmpty && root.type == .ssh) {
       final hsl = HSLColor.fromColor(
         (root.connection.terminalThemeOverride ??
                 terminalThemes.findById(

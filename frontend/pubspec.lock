@@ -228,12 +228,11 @@ packages:
   dartssh2:
     dependency: "direct main"
     description:
-      path: "."
-      ref: master
-      resolved-ref: "1fdb2b60d6eaa02e8f8fb24b2a6bd7be5572ed29"
-      url: "https://github.com/cliq-ssh/dartssh2.git"
-    source: git
-    version: "2.17.1"
+      name: dartssh2
+      sha256: "8af742da413dd1d6479f6f884d2db59385a6666326a3df7cb696436059319b15"
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.22.0"
   dio:
     dependency: transitive
     description:
@@ -634,10 +633,10 @@ packages:
     dependency: "direct main"
     description:
       name: lucide_flutter
-      sha256: "5c5b1c4c886a52d0bdc597d9c3b7f615de0c4014e21be028c74e1f3c2b43af99"
+      sha256: "611d33d6a39d2e1263a0dc6134aaf7e496dbee1493780e6e557c868f3e6ca50f"
       url: "https://pub.dev"
     source: hosted
-    version: "1.20.0"
+    version: "1.23.0"
   matcher:
     dependency: transitive
     description:
@@ -686,6 +685,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.0.2"
+  open_app_file:
+    dependency: "direct main"
+    description:
+      name: open_app_file
+      sha256: d5611ffb9c46d7cb176ddb88461cbe79e6c220b01a9e009d8e0ebd704493bfff
+      url: "https://pub.dev"
+    source: hosted
+    version: "4.0.5"
   package_config:
     dependency: transitive
     description:
