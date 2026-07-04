@@ -658,6 +658,7 @@ class _SftpSessionPageState extends ConsumerState<SftpSessionPage>
       }
 
       delete() async {
+        isLoading.value = true;
         final fullPath = [...?currentDirectory.value, file.filename].join('/');
 
         if (forceRecursive) {
@@ -686,6 +687,7 @@ class _SftpSessionPageState extends ConsumerState<SftpSessionPage>
           }
         }
 
+        isLoading.value = false;
         cleanupModified(file, id);
         reloadDirectory();
       }
