@@ -10,6 +10,7 @@ import 'package:cliq/shared/provider/store.provider.dart';
 import 'package:cliq/shared/utils/constants.dart';
 import 'package:cliq/shared/utils/text_utils.dart';
 import 'package:dartssh2/dartssh2.dart';
+import 'package:file_selector/file_selector.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart' hide LicensePage;
 import 'package:flutter/services.dart';
@@ -586,6 +587,34 @@ class _SftpSessionPageState extends ConsumerState<SftpSessionPage>
       }
 
       isLoading.value = false;
+    }
+
+    download(SftpName file, String id, String location) async {
+      if (file.filename.isEmpty ||
+          _ignoredSelectableFilenames.contains(file.filename)) {
+        return;
+      }
+
+      final fullPath = [...?currentDirectory.value, file.filename].join('/');
+      final localFilePath = [
+        location,
+        file.filename,
+      ].join(Platform.pathSeparator);
+
+      ref
+          .read(fileTransferProvider.notifier)
+          .add(id, .new(path: fullPath, type: .remoteToLocal));
+
+      final fileTransferNotifier = ref.read(fileTransferProvider.notifier);
+
+      fileTransferNotifier
+          .transferSftp(
+            id,
+            source: session,
+            sourcePath: fullPath,
+            localPath: localFilePath,
+          )
+          .listen((p) => fileTransferNotifier.setProgress(id, p));
     }
 
     /// Renames a file/directory or creates a new directory if [isCreatingDirectory] is true.
@@ -1328,6 +1357,15 @@ class _SftpSessionPageState extends ConsumerState<SftpSessionPage>
                                 icon: LucideIcons.folderOpen,
                                 onPress: () => openFolder(file),
                               ),
+                            .new(
+                              label: 'Download',
+                              icon: LucideIcons.download,
+                              onPress: () async {
+                                final location = await getDirectoryPath();
+                                if (location == null) return;
+                                download(file, id, location);
+                              },
+                            ),
                             if (!_ignoredSelectableFilenames.contains(
                               file.filename,
                             )) ...[
