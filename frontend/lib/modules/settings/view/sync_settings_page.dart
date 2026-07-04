@@ -46,7 +46,7 @@ class SyncSettingsPage extends AbstractSettingsPage {
                         FTile(
                           prefix: Icon(LucideIcons.download),
                           suffix: Icon(LucideIcons.folderOpen),
-                          title: Text('sync_import_file').tr(),
+                          title: Text('sync_import_file'.tr()),
                           onPress: () async {
                             AppSettings? settings;
 
@@ -100,7 +100,7 @@ class SyncSettingsPage extends AbstractSettingsPage {
                         FTile(
                           prefix: Icon(LucideIcons.upload),
                           suffix: Icon(LucideIcons.chevronRight),
-                          title: Text('sync_export_file').tr(),
+                          title: Text('sync_export_file'.tr()),
                           onPress: () => Commons.showResponsiveDialog(
                             (_) => ImportOrExportSettingsView.export(),
                           ),

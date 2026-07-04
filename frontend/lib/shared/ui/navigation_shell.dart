@@ -121,7 +121,7 @@ class NavigationShellState extends ConsumerState<NavigationShell>
         ),
         child: SidebarTab(
           isExpanded: isExpanded,
-          label: Text('dashboard').tr(),
+          label: Text('dashboard'.tr()),
           icon: Icon(LucideIcons.house),
           selected: widget.shell.currentIndex == _dashboardBranchIndex,
           onPress: () {
@@ -150,7 +150,7 @@ class NavigationShellState extends ConsumerState<NavigationShell>
               divider: .full,
               children: [
                 if (fileTransfer.isEmpty)
-                  FTile(title: Text('queue_empty').tr())
+                  FTile(title: Text('queue_empty'.tr()))
                 else
                   for (final item in items)
                     FTile(
@@ -268,7 +268,7 @@ class NavigationShellState extends ConsumerState<NavigationShell>
         builder: (_, controller, _) {
           return SidebarTab(
             isExpanded: isExpanded,
-            label: Text('queue').tr(),
+            label: Text('queue'.tr()),
             onPress: fileTransfer.isEmpty ? null : controller.toggle,
             icon: RotationTransition(
               turns: rotationAnimation,
@@ -294,7 +294,7 @@ class NavigationShellState extends ConsumerState<NavigationShell>
         ),
         child: SidebarTab(
           isExpanded: isExpanded,
-          label: Text('settings').tr(),
+          label: Text('settings'.tr()),
           icon: Icon(LucideIcons.settings),
           selected: widget.shell.currentIndex == _settingsBranchIndex,
           onPress: () {
@@ -356,7 +356,7 @@ class NavigationShellState extends ConsumerState<NavigationShell>
           ],
           child: SidebarTab(
             isExpanded: isExpanded && navPosition.value == .left,
-            label: Text('session_new').tr(),
+            label: Text('session_new'.tr()),
             icon: Icon(LucideIcons.plus),
             onPress: connections.entities.isNotEmpty
                 ? () => showTabs.value = !showTabs.value
@@ -411,7 +411,7 @@ class NavigationShellState extends ConsumerState<NavigationShell>
               ...buildSessionSidebarTabs(isExpanded)
             else if (sessions.activeTabs.isNotEmpty)
               FSidebarGroup(
-                label: Text('sessions').tr(),
+                label: Text('sessions'.tr()),
                 children: buildSessionSidebarTabs(isExpanded),
               ),
           ];

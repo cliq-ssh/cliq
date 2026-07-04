@@ -302,7 +302,7 @@ class CreateOrEditCredentialsFormState
                                     color: context.theme.colors.foreground,
                                   ),
                                   data.key.isEmpty
-                                      ? Text('credentials_form_create_key').tr()
+                                      ? Text('credentials_form_create_key'.tr())
                                       : Text(
                                           'credentials_form_create_key_named',
                                         ).tr(args: [data.key]),
@@ -413,7 +413,7 @@ class CreateOrEditCredentialsFormState
                           prefix: const Icon(LucideIcons.plus),
                           onPress: controller.toggle,
                           child: Flexible(
-                            child: const Text('credentials_form_add_auth').tr(),
+                            child: Text('credentials_form_add_auth'.tr()),
                           ),
                         );
                       },

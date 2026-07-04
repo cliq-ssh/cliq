@@ -95,14 +95,14 @@ class CreateOrEditIdentityView extends HookConsumerWidget {
           children: [
             FTextFormField(
               control: .managed(controller: labelCtrl),
-              label: const Text('identities_label').tr(),
+              label: Text('identities_label'.tr()),
               hint: 'identities_label_placeholder'.tr(),
               validator: Validators.nonEmpty,
             ),
 
             FTextFormField(
               control: .managed(controller: usernameCtrl),
-              label: const Text('identities_username').tr(),
+              label: Text('identities_username'.tr()),
               hint: 'identities_username_placeholder'.tr(),
               validator: Validators.nonEmpty,
             ),

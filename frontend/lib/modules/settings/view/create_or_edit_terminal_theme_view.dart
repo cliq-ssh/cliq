@@ -4,6 +4,7 @@ import 'package:cliq/shared/ui/create_or_edit_entity_view.dart';
 import 'package:cliq/shared/utils/input_formatters.dart';
 import 'package:cliq/shared/utils/validators.dart';
 import 'package:drift/drift.dart' hide Column;
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart' hide Key;
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:forui/forui.dart';
@@ -241,7 +242,7 @@ class CreateOrEditTerminalThemeView extends HookConsumerWidget {
     }
 
     buildHexColorField(
-      String label,
+      String labelKey,
       TextEditingController controller, {
       bool required = true,
     }) {
@@ -277,8 +278,11 @@ class CreateOrEditTerminalThemeView extends HookConsumerWidget {
                           controller: controller,
                           onChange: (_) => setState(() {}),
                         ),
-                        label: Text(label),
-                        hint: '#RRGGBB',
+                        label: Text(
+                          'terminal_themes_theme_add_color.$labelKey'.tr(),
+                        ),
+                        hint: 'terminal_themes_theme_add_color_placeholder'
+                            .tr(),
                         validator: (value) => Validators.chain([
                           if (required) Validators.nonEmpty,
                           Validators.hexColor,
@@ -310,35 +314,35 @@ class CreateOrEditTerminalThemeView extends HookConsumerWidget {
           children: [
             FTextFormField(
               control: .managed(controller: nameCtrl),
-              label: const Text('Name'),
-              hint: 'My Theme',
+              label: Text('terminal_themes_theme_add_label'.tr()),
+              hint: 'terminal_themes_theme_add_label_placeholder'.tr(),
               validator: Validators.nonEmpty,
             ),
             Wrap(
               spacing: 16,
               runSpacing: 16,
               children: [
-                buildHexColorField('Black', blackColorCtrl),
-                buildHexColorField('Red', redColorCtrl),
-                buildHexColorField('Green', greenColorCtrl),
-                buildHexColorField('Yellow', yellowColorCtrl),
-                buildHexColorField('Blue', blueColorCtrl),
-                buildHexColorField('Purple', purpleColorCtrl),
-                buildHexColorField('Cyan', cyanColorCtrl),
-                buildHexColorField('White', whiteColorCtrl),
-                buildHexColorField('Bright Black', brightBlackColorCtrl),
-                buildHexColorField('Bright Red', brightRedColorCtrl),
-                buildHexColorField('Bright Green', brightGreenColorCtrl),
-                buildHexColorField('Bright Yellow', brightYellowColorCtrl),
-                buildHexColorField('Bright Blue', brightBlueColorCtrl),
-                buildHexColorField('Bright Purple', brightPurpleColorCtrl),
-                buildHexColorField('Bright Cyan', brightCyanColorCtrl),
-                buildHexColorField('Bright White', brightWhiteColorCtrl),
-                buildHexColorField('Foreground', foregroundColorCtrl),
-                buildHexColorField('Background', backgroundColorCtrl),
-                buildHexColorField('Cursor', cursorColorCtrl),
+                buildHexColorField('black', blackColorCtrl),
+                buildHexColorField('red', redColorCtrl),
+                buildHexColorField('green', greenColorCtrl),
+                buildHexColorField('yellow', yellowColorCtrl),
+                buildHexColorField('blue', blueColorCtrl),
+                buildHexColorField('purple', purpleColorCtrl),
+                buildHexColorField('cyan', cyanColorCtrl),
+                buildHexColorField('white', whiteColorCtrl),
+                buildHexColorField('bright_black', brightBlackColorCtrl),
+                buildHexColorField('bright_red', brightRedColorCtrl),
+                buildHexColorField('bright_green', brightGreenColorCtrl),
+                buildHexColorField('bright_yellow', brightYellowColorCtrl),
+                buildHexColorField('bright_blue', brightBlueColorCtrl),
+                buildHexColorField('bright_purple', brightPurpleColorCtrl),
+                buildHexColorField('bright_cyan', brightCyanColorCtrl),
+                buildHexColorField('bright_white', brightWhiteColorCtrl),
+                buildHexColorField('foreground', foregroundColorCtrl),
+                buildHexColorField('background', backgroundColorCtrl),
+                buildHexColorField('cursor', cursorColorCtrl),
                 buildHexColorField(
-                  'Selection Background',
+                  'selection_background',
                   selectionBackgroundColorCtrl,
                 ),
               ],
@@ -349,12 +353,12 @@ class CreateOrEditTerminalThemeView extends HookConsumerWidget {
               runSpacing: 16,
               children: [
                 buildHexColorField(
-                  'Selection Foreground',
+                  'selection_foreground',
                   selectionForegroundColorCtrl,
                   required: false,
                 ),
                 buildHexColorField(
-                  'Cursor Text Color',
+                  'cursor_text',
                   cursorTextColorCtrl,
                   required: false,
                 ),

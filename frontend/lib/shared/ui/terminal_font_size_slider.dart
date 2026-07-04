@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:forui/forui.dart';
@@ -25,7 +26,7 @@ class TerminalFontSizeSlider extends HookConsumerWidget {
         onChange: (val) => sliderValue.value = val,
         value: sliderValue.value,
       ),
-      label: Text('Font Size'),
+      label: Text('terminal_themes_font_size'.tr()),
       tooltipBuilder: (_, value) => Text('${(value * 48).round() + 4}'),
       onEnd: (value) => onEnd?.call((value.max * 48).round() + 4),
       marks: [

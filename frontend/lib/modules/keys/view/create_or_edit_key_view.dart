@@ -90,7 +90,7 @@ class CreateOrEditKeyView extends HookConsumerWidget {
       return FButton(
         variant: .ghost,
         prefix: Icon(LucideIcons.folderOpen),
-        child: const Text('keys_import').tr(),
+        child: Text('keys_import'.tr()),
         onPress: () async {
           final keyFile = await openFile(
             acceptedTypeGroups: [Commons.keyGroup],
@@ -117,7 +117,7 @@ class CreateOrEditKeyView extends HookConsumerWidget {
           showFToast(
             context: context,
             icon: Icon(LucideIcons.circleCheck),
-            title: Text('keys_import_success').tr(),
+            title: Text('keys_import_success'.tr()),
           );
         },
       );
@@ -127,7 +127,7 @@ class CreateOrEditKeyView extends HookConsumerWidget {
       return FButton(
         variant: .ghost,
         prefix: Icon(LucideIcons.copy),
-        child: Text('copy').tr(),
+        child: Text('copy'.tr()),
         onPress: () {
           Commons.copyToClipboard(context, controller.text);
         },
@@ -145,7 +145,7 @@ class CreateOrEditKeyView extends HookConsumerWidget {
           children: [
             FTextFormField(
               control: .managed(controller: labelCtrl),
-              label: const Text('keys_import_label').tr(),
+              label: Text('keys_import_label'.tr()),
               hint: 'keys_import_label_placeholder'.tr(),
               validator: Validators.nonEmpty,
             ),
@@ -154,7 +154,7 @@ class CreateOrEditKeyView extends HookConsumerWidget {
               label: Row(
                 crossAxisAlignment: .end,
                 children: [
-                  Text('keys_import_public_key').tr(),
+                  Text('keys_import_public_key'.tr()),
                   const Spacer(),
                   buildImportKeyButton(publicKeyCtrl, .public),
                   buildCopyButton(publicKeyCtrl),
@@ -168,7 +168,7 @@ class CreateOrEditKeyView extends HookConsumerWidget {
               label: Row(
                 crossAxisAlignment: .end,
                 children: [
-                  Text('keys_import_private_key').tr(),
+                  Text('keys_import_private_key'.tr()),
                   const Spacer(),
                   buildImportKeyButton(privateKeyCtrl, .private),
                   buildCopyButton(privateKeyCtrl),
@@ -182,7 +182,7 @@ class CreateOrEditKeyView extends HookConsumerWidget {
             ),
             FTextFormField.password(
               control: .managed(controller: passCtrl),
-              label: Text('keys_import_passphrase').tr(),
+              label: Text('keys_import_passphrase'.tr()),
               maxLines: 1,
               autovalidateMode: .onUserInteraction,
             ),

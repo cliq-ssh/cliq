@@ -10,6 +10,7 @@ import 'package:cliq/shared/utils/commons.dart';
 import 'package:cliq_term/cliq_term.dart';
 import 'package:cliq_ui/cliq_ui.dart'
     show CliqGridColumn, CliqGridContainer, CliqGridRow;
+import 'package:easy_localization/easy_localization.dart';
 import 'package:file_selector/file_selector.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
@@ -59,7 +60,7 @@ class TerminalThemeSettingsPage extends AbstractSettingsPage {
   const TerminalThemeSettingsPage({super.key});
 
   @override
-  String get title => 'Terminal Theme';
+  String get title => 'terminal_themes'.tr();
 
   @override
   Widget buildBody(BuildContext context, WidgetRef ref) {
@@ -163,14 +164,14 @@ class TerminalThemeSettingsPage extends AbstractSettingsPage {
                         mainAxisAlignment: .spaceBetween,
                         crossAxisAlignment: .end,
                         children: [
-                          Text('Theme'),
+                          Text('terminal_themes_theme'.tr()),
                           Row(
                             children: [
                               FButton(
                                 variant: .ghost,
                                 prefix: Icon(LucideIcons.plus),
                                 onPress: create,
-                                child: Text('Add Theme'),
+                                child: Text('terminal_themes_theme_add'.tr()),
                               ),
                               FButton(
                                 variant: .ghost,
@@ -191,7 +192,9 @@ class TerminalThemeSettingsPage extends AbstractSettingsPage {
                                     showFToast(
                                       context: context,
                                       icon: Icon(LucideIcons.circleX),
-                                      title: Text('Failed to import theme'),
+                                      title: Text(
+                                        'terminal_themes_import_error'.tr(),
+                                      ),
                                       description: Text(error),
                                     );
                                     return;
@@ -199,10 +202,12 @@ class TerminalThemeSettingsPage extends AbstractSettingsPage {
                                   showFToast(
                                     context: context,
                                     icon: Icon(LucideIcons.circleCheck),
-                                    title: Text('Theme imported successfully'),
+                                    title: Text(
+                                      'terminal_themes_import_success'.tr(),
+                                    ),
                                   );
                                 },
-                                child: Text('Import'),
+                                child: Text('terminal_themes_import'.tr()),
                               ),
                             ],
                           ),

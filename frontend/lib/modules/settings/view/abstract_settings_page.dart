@@ -17,10 +17,7 @@ abstract class AbstractSettingsPage extends HookConsumerWidget {
       header: FHeader.nested(
         title: FBreadcrumb(
           children: [
-            FBreadcrumbItem(
-              onPress: context.pop,
-              child: const Text('settings').tr(),
-            ),
+            FBreadcrumbItem(onPress: context.pop, child: Text('settings'.tr())),
             FBreadcrumbItem(current: true, child: Text(title)),
           ],
         ),

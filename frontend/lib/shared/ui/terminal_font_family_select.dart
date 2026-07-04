@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:forui/forui.dart';
 
@@ -25,7 +26,7 @@ class TerminalFontFamilySelect extends StatelessWidget {
           }
         },
       ),
-      label: Text('Font Family'),
+      label: Text('terminal_themes_font_family'.tr()),
       hint: selectedFontFamily,
       format: (s) => s,
       children: [

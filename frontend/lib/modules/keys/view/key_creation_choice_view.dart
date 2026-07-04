@@ -44,27 +44,27 @@ class KeyCreationChoiceView extends HookConsumerWidget {
                   spacing: 16,
                   children: [
                     Text(
-                      'keys_add',
+                      'keys_add'.tr(),
                       style: context.theme.typography.body.xl2,
-                    ).tr(),
-                    Text('keys_add_subtitle', style: mutedStyle).tr(),
+                    ),
+                    Text('keys_add_subtitle'.tr(), style: mutedStyle),
                     FButton(
                       variant: .outline,
                       prefix: const Icon(LucideIcons.folderOpen),
                       onPress: openImport,
-                      child: const Text('keys_import_existing').tr(),
+                      child: Text('keys_import_existing'.tr()),
                     ),
                     FButton(
                       prefix: const Icon(Icons.vpn_key),
                       onPress: openGenerate,
-                      child: const Text('keys_generate_new').tr(),
+                      child: Text('keys_generate_new'.tr()),
                     ),
                     Align(
                       alignment: Alignment.centerRight,
                       child: FButton(
                         variant: .ghost,
                         onPress: () => Navigator.of(context).pop(),
-                        child: const Text('cancel').tr(),
+                        child: Text('cancel'.tr()),
                       ),
                     ),
                   ],

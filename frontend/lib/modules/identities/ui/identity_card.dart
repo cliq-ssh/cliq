@@ -92,12 +92,13 @@ class IdentityCard extends HookConsumerWidget {
                 children: [
                   FItem(
                     prefix: Icon(LucideIcons.pencil),
-                    title: Text('Edit'),
+                    title: Text('edit'.tr()),
                     onPress: edit,
                   ),
                   FItem(
+                    variant: .destructive,
                     prefix: Icon(LucideIcons.trash),
-                    title: Text('Delete'),
+                    title: Text('delete'.tr()),
                     onPress: delete,
                   ),
                 ],

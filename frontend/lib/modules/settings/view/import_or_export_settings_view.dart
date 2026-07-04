@@ -233,7 +233,7 @@ class _ImportOrExportSettingsViewState
                   controller.update(id, add: true);
                 }
               },
-              child: Text('select_all', style: toolbarTextStyle).tr(),
+              child: Text('select_all'.tr(), style: toolbarTextStyle),
             ),
             Text('|', style: toolbarTextStyle),
             FTappable(
@@ -244,7 +244,7 @@ class _ImportOrExportSettingsViewState
                   controller.update(id, add: false);
                 }
               },
-              child: Text('deselect_all', style: toolbarTextStyle).tr(),
+              child: Text('deselect_all'.tr(), style: toolbarTextStyle),
             ),
           ],
         ),
@@ -279,10 +279,10 @@ class _ImportOrExportSettingsViewState
                   if (!widget.isImport)
                     FTextFormField.password(
                       control: .managed(controller: passwordController),
-                      label: Text('sync_export_password').tr(),
+                      label: Text('sync_export_password'.tr()),
                       description: Text(
-                        'sync_export_password_description',
-                      ).tr(),
+                        'sync_export_password_description'.tr(),
+                      ),
                       inputFormatters: InputFormatters.password(),
                     ),
 
@@ -389,11 +389,11 @@ class _ImportOrExportSettingsViewState
 
                   if (error.value != null)
                     Text(
-                      error.value!,
+                      error.value!.tr(),
                       style: context.theme.typography.body.sm.copyWith(
                         color: context.theme.colors.error,
                       ),
-                    ).tr(),
+                    ),
 
                   if (showExportWarning.value)
                     FCard(
@@ -414,7 +414,7 @@ class _ImportOrExportSettingsViewState
                         children: [
                           Icon(LucideIcons.triangleAlert),
                           Expanded(
-                            child: Text('sync_export_password_warning').tr(),
+                            child: Text('sync_export_password_warning'.tr()),
                           ),
                         ],
                       ),

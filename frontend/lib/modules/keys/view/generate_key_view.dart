@@ -97,14 +97,14 @@ class GenerateKeyView extends HookConsumerWidget {
           children: [
             FTextFormField(
               control: .managed(controller: labelCtrl),
-              label: const Text('keys_generate_label').tr(),
+              label: Text('keys_generate_label'.tr()),
               hint: 'keys_generate_label_placeholder'.tr(),
               validator: Validators.nonEmpty,
               enabled: !isLoading.value,
             ),
             FTextFormField.password(
               control: .managed(controller: passCtrl),
-              label: const Text('keys_generate_passphrase').tr(),
+              label: Text('keys_generate_passphrase'.tr()),
               enabled: !isLoading.value,
             ),
             Column(
@@ -119,7 +119,7 @@ class GenerateKeyView extends HookConsumerWidget {
                       }
                     },
                   ),
-                  label: const Text('keys_generate_type').tr(),
+                  label: Text('keys_generate_type'.tr()),
                   children: [
                     for (final algorithm in SshKeyAlgorithm.values)
                       FSelectGroupItemMixin.radio(
@@ -145,7 +145,7 @@ class GenerateKeyView extends HookConsumerWidget {
                         }
                       },
                     ),
-                    label: const Text('keys_generate_ecdsa_size').tr(),
+                    label: Text('keys_generate_ecdsa_size'.tr()),
                     children: [
                       for (final size in [
                         SshEcdsaCurveSize.bits521,
@@ -173,7 +173,7 @@ class GenerateKeyView extends HookConsumerWidget {
                         }
                       },
                     ),
-                    label: const Text('keys_generate_rsa_size').tr(),
+                    label: Text('keys_generate_rsa_size'.tr()),
                     children: [
                       for (final size in [
                         SshRsaKeySize.bits4096,
