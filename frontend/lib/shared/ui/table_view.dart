@@ -202,7 +202,9 @@ class _TableRowState extends State<_TableRow> {
       return child;
     }
 
-    Widget baseRow = Row(children: List.generate(widget.cells.length, buildCell));
+    Widget baseRow = Row(
+      children: List.generate(widget.cells.length, buildCell),
+    );
 
     // focus wrapper on the entire row if perCellFocus is false
     if (!widget.perCellFocus && widget.onTap != null) {
@@ -214,11 +216,13 @@ class _TableRowState extends State<_TableRow> {
       builder: (context, states, child) {
         final isHovered =
             states.contains(FTappableVariant.hovered) ||
-                states.contains(FTappableVariant.pressed);
+            states.contains(FTappableVariant.pressed);
 
         final color = widget.isSelected
             ? widget.selectedBackgroundColor
-            : (isHovered ? widget.hoverBackgroundColor : widget.backgroundColor);
+            : (isHovered
+                  ? widget.hoverBackgroundColor
+                  : widget.backgroundColor);
 
         return Container(color: color, child: child);
       },
@@ -341,7 +345,7 @@ class _TableViewState extends State<TableView> {
           alpha: 0.1,
         );
         final selectedBackgroundColor = context.theme.colors.primary.withValues(
-          alpha: 0.2,
+          alpha: 0.3,
         );
 
         return SingleChildScrollView(
