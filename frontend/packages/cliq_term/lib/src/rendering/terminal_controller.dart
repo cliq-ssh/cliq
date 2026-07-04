@@ -109,8 +109,8 @@ class TerminalController extends ChangeNotifier {
     this.onResize,
     this.onTitleChange,
     this.onBell,
-    this.rows = 0,
-    this.cols = 0,
+    this.rows = 24,
+    this.cols = 80,
   });
 
   TerminalTheme get theme => _theme;
