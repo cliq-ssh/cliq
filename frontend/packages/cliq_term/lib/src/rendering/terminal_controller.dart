@@ -99,6 +99,47 @@ class TerminalController extends ChangeNotifier {
   /// The cursor state.
   CursorState cursor = .new();
 
+  final Map<TerminalBufferRow, (int revision, TextPainter painter)> _rowCache =
+      {};
+  static const int _maxCacheSize = 500;
+
+  TextPainter? getCachedRow(TerminalBufferRow row) {
+    final cached = _rowCache.remove(row);
+    if (cached != null) {
+      if (cached.$1 == row.revision) {
+        _rowCache[row] = cached; // Move to end (MRU)
+        return cached.$2;
+      }
+      // Revision mismatch, don't put it back, effectively evicting it
+    }
+    return null;
+  }
+
+  void cacheRow(TerminalBufferRow row, TextPainter painter) {
+    if (_rowCache.length >= _maxCacheSize) {
+      // LinkedHashMap iterates in insertion order, so the first element is the LRU
+      final firstKey = _rowCache.keys.first;
+      _rowCache.remove(firstKey);
+    }
+    _rowCache[row] = (row.revision, painter);
+  }
+
+  void clearCache() {
+    _rowCache.clear();
+  }
+
+  bool _isDirty = false;
+  bool get isDirty => _isDirty;
+
+  void markDirty() {
+    _isDirty = true;
+    notifyListeners();
+  }
+
+  void clearDirty() {
+    _isDirty = false;
+  }
+
   TerminalController({
     required this._typography,
     required this._theme,
@@ -148,6 +189,8 @@ class TerminalController extends ChangeNotifier {
     _front.resetVerticalMargins();
     _back.resetVerticalMargins();
 
+    clearCache();
+    markDirty();
     notifyListeners();
   }
 
@@ -196,6 +239,7 @@ class TerminalController extends ChangeNotifier {
     }
 
     backBufferActive = true;
+    markDirty();
     notifyListeners();
   }
 
@@ -208,16 +252,21 @@ class TerminalController extends ChangeNotifier {
       _front.restoreCursor();
     }
 
+    markDirty();
     notifyListeners();
   }
 
   void setTerminalTheme(TerminalTheme theme) {
     _theme = theme;
+    clearCache();
+    markDirty();
     notifyListeners();
   }
 
   void setTerminalTypography(TerminalTypography newTypography) {
     _typography = newTypography;
+    clearCache();
+    markDirty();
     notifyListeners();
   }
 
@@ -238,14 +287,13 @@ class TerminalController extends ChangeNotifier {
 
   void feed(String input) {
     _escapeParser.write(input);
-    notifyListeners();
   }
 
   /// Sets the cursor position to the specified [row] and [col].
   void setCursorPosition(int row, int col) {
     activeBuffer.cursorRow = row;
     activeBuffer.cursorCol = col;
-    notifyListeners();
+    markDirty();
   }
 
   void setCursorPositionRow(int row) =>
@@ -277,7 +325,7 @@ class TerminalController extends ChangeNotifier {
       endCol: selectionStartCol,
     );
 
-    notifyListeners();
+    markDirty();
   }
 
   /// Update the selection end to visible [row],[col]
@@ -289,13 +337,13 @@ class TerminalController extends ChangeNotifier {
       endCol: col.clamp(0, max(0, cols - 1)),
     );
 
-    notifyListeners();
+    markDirty();
   }
 
   /// Clear the active selection
   void clearSelection() {
     selection = .new();
-    notifyListeners();
+    markDirty();
   }
 
   /// Return the selected text (if selection active) using visible coordinates.

@@ -19,8 +19,8 @@ void main() {
       final a = Cell('A', .new());
       final b = Cell('B', .new());
 
-      buf.setCell(0, 0, a);
-      buf.setCell(1, 2, b);
+      buf.setCell(0, 0, a.ch, a.fmt);
+      buf.setCell(1, 2, b.ch, b.fmt);
 
       _expectBufferEquals([
         ['A', ' ', ' '],
@@ -31,9 +31,9 @@ void main() {
     test('pushEmptyLine shifts visible rows and clears bottom', () {
       final buf = TerminalBuffer(rows: 3, cols: 2);
 
-      buf.setCell(0, 0, Cell('0', .new()));
-      buf.setCell(1, 0, Cell('1', .new()));
-      buf.setCell(2, 0, Cell('2', .new()));
+      buf.setCell(0, 0, '0', .new());
+      buf.setCell(1, 0, '1', .new());
+      buf.setCell(2, 0, '2', .new());
 
       // push one empty line, visible rows should shift up
       buf.pushEmptyLine();
@@ -74,7 +74,7 @@ void main() {
     test('clear resets buffer', () {
       final buf = TerminalBuffer(rows: 2, cols: 2);
 
-      buf.setCell(1, 1, Cell('X', .new()));
+      buf.setCell(1, 1, 'X', .new());
 
       _expectBufferEquals([
         [' ', ' '],
@@ -95,8 +95,8 @@ void main() {
     test('resize preserves top-left region when shrinking', () {
       final buf = TerminalBuffer(rows: 4, cols: 5);
 
-      buf.setCell(0, 0, Cell('A', .new()));
-      buf.setCell(1, 1, Cell('B', .new()));
+      buf.setCell(0, 0, 'A', .new());
+      buf.setCell(1, 1, 'B', .new());
 
       _expectBufferEquals([
         ['A', ' ', ' ', ' ', ' '],
@@ -115,8 +115,8 @@ void main() {
     test('resize enlarges with preserved content', () {
       final buf = TerminalBuffer(rows: 2, cols: 2);
 
-      buf.setCell(0, 0, Cell('X', .new()));
-      buf.setCell(1, 1, Cell('Y', .new()));
+      buf.setCell(0, 0, 'X', .new());
+      buf.setCell(1, 1, 'Y', .new());
 
       _expectBufferEquals([
         ['X', ' '],

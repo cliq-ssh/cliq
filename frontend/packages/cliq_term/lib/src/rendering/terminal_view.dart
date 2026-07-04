@@ -1,8 +1,12 @@
+import 'dart:math';
+
 import 'package:cliq_term/cliq_term.dart';
 import 'package:cliq_term/src/rendering/terminal_painter.dart';
-import 'package:cliq_term/src/utils/gesture_selection_handler.dart';
+import 'package:cliq_term/src/utils/selection_helper.dart';
 import 'package:cliq_term/src/utils/keyboard_helper.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
+import 'package:flutter/scheduler.dart';
 import 'package:flutter/services.dart';
 
 class TerminalView extends StatefulWidget {
@@ -33,6 +37,7 @@ class _TerminalViewState extends State<TerminalView> {
 
   final ScrollController _scrollController = ScrollController();
   bool _userScrolledAwayFromBottom = false;
+  bool _isUpdatePending = false;
 
   @override
   void initState() {
@@ -72,17 +77,27 @@ class _TerminalViewState extends State<TerminalView> {
   }
 
   void _onUpdate() {
-    setState(() {});
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!_scrollController.hasClients) return;
-      if (_userScrolledAwayFromBottom) {
-        return; // user is viewing history; don't yank them
-      }
-      // jump to bottom
-      final maxExt = _scrollController.position.maxScrollExtent;
-      if (maxExt > 0) {
-        _scrollController.jumpTo(maxExt);
-      }
+    if (_isUpdatePending) return;
+    _isUpdatePending = true;
+
+    // Batch updates to occur at most once per frame.
+    SchedulerBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+
+      setState(() {
+        _isUpdatePending = false;
+      });
+
+      // After building, handle auto-scroll.
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted || !_scrollController.hasClients) return;
+        if (_userScrolledAwayFromBottom) return;
+
+        final maxExt = _scrollController.position.maxScrollExtent;
+        if (maxExt > 0) {
+          _scrollController.jumpTo(maxExt);
+        }
+      });
     });
   }
 
@@ -95,31 +110,19 @@ class _TerminalViewState extends State<TerminalView> {
           (_) => widget.controller.fitResize(constraints.biggest),
         );
 
-        // compute char cell size to compute overall canvas size
+        // compute char cell size
         final (cellW, cellH) = TerminalPainter.measureChar(
           widget.controller.typography,
         );
 
-        // total rows available in front buffer (visible + scrollback)
         final totalRows = widget.controller.totalRows;
-        final totalCols = widget.controller.cols;
-
-        final canvasWidth = (totalCols > 0)
-            ? totalCols * cellW
-            : constraints.maxWidth;
-        final canvasHeight = (totalRows > 0)
-            ? totalRows * cellH
-            : constraints.maxHeight;
 
         return Focus(
           focusNode: _focusNode,
           onKeyEvent: (node, event) {
-            if (widget.readOnly) {
-              return .ignored;
-            }
+            if (widget.readOnly) return .ignored;
 
             if (event is KeyDownEvent || event is KeyRepeatEvent) {
-              // Do not clear selection on modifier-only key presses.
               if (KeyboardHelper.isModifierOnlyKey(event.logicalKey)) {
                 return .handled;
               }
@@ -129,7 +132,6 @@ class _TerminalViewState extends State<TerminalView> {
                 Clipboard.getData(Clipboard.kTextPlain).then((clip) {
                   String text = clip?.text ?? '';
                   if (text.isNotEmpty) {
-                    // Strip trailing newlines to prevent auto-execution on multiline paste
                     text = _stripTrailingNewlines(text);
                     widget.controller.onInput?.call(text);
                   }
@@ -151,70 +153,73 @@ class _TerminalViewState extends State<TerminalView> {
             }
             return .ignored;
           },
-
           child: GestureDetector(
             behavior: HitTestBehavior.translucent,
             onTap: () {
               _focusNode.requestFocus();
-              // clear any existing selection on simple click
               widget.controller.clearSelection();
             },
             onPanStart: (details) {
               _focusNode.requestFocus();
-              final (
-                visRow,
-                visCol,
-              ) = GestureSelectionHandler.calculateVisibleCoordinates(
-                localPosition: details.localPosition,
-                scrollOffset: _scrollController.offset,
-                cellWidth: cellW,
-                cellHeight: cellH,
-                currentScrollback:
-                    widget.controller.activeBuffer.currentScrollback,
-                maxRows: widget.controller.rows,
-                maxCols: widget.controller.cols,
+              final (visRow, visCol) = _calculateCoords(
+                details.localPosition,
+                cellW,
+                cellH,
               );
               widget.controller.startSelection(visRow, visCol);
             },
             onPanUpdate: (details) {
-              final (
-                visRow,
-                visCol,
-              ) = GestureSelectionHandler.calculateVisibleCoordinates(
-                localPosition: details.localPosition,
-                scrollOffset: _scrollController.offset,
-                cellWidth: cellW,
-                cellHeight: cellH,
-                currentScrollback:
-                    widget.controller.activeBuffer.currentScrollback,
-                maxRows: widget.controller.rows,
-                maxCols: widget.controller.cols,
+              final (visRow, visCol) = _calculateCoords(
+                details.localPosition,
+                cellW,
+                cellH,
               );
               widget.controller.updateSelection(visRow, visCol);
             },
-            onPanEnd: (details) {
-              // selection remains active until user clears or starts another selection
-            },
-            child: SingleChildScrollView(
-              controller: _scrollController,
-              scrollDirection: Axis.vertical,
-              physics: ClampingScrollPhysics(),
-              child: SizedBox(
-                width: canvasWidth,
-                height: canvasHeight < constraints.maxHeight
-                    ? constraints.maxHeight
-                    : canvasHeight,
-                child: CustomPaint(
-                  painter: TerminalPainter(
-                    widget.controller,
+            child: Container(
+              color: widget.controller.theme.backgroundColor,
+              child: ListView.builder(
+                scrollCacheExtent: ScrollCacheExtent.pixels(cellH * 10),
+                controller: _scrollController,
+                itemCount: totalRows,
+                itemExtent: cellH,
+                physics: const ClampingScrollPhysics(),
+                itemBuilder: (context, index) {
+                  return TerminalRowWidget(
+                    controller: widget.controller,
+                    absoluteRowIndex: index,
+                    cellWidth: cellW,
+                    cellHeight: cellH,
                     readOnly: widget.readOnly,
-                  ),
-                ),
+                  );
+                },
               ),
             ),
           ),
         );
       },
+    );
+  }
+
+  (int, int) _calculateCoords(
+    Offset localPosition,
+    double cellW,
+    double cellH,
+  ) {
+    final scrollOffset = _scrollController.hasClients
+        ? _scrollController.offset
+        : 0.0;
+    final totalLocalY = localPosition.dy + scrollOffset;
+
+    final absRow = (totalLocalY / cellH).floor();
+    final col = (localPosition.dx / cellW).floor();
+
+    // Convert absolute row back to visible row for selection logic
+    final visRow = absRow - widget.controller.activeBuffer.currentScrollback;
+
+    return (
+      visRow.clamp(0, widget.controller.rows - 1),
+      col.clamp(0, widget.controller.cols - 1),
     );
   }
 
@@ -227,5 +232,261 @@ class _TerminalViewState extends State<TerminalView> {
       return text.trimRight();
     }
     return text;
+  }
+}
+
+class TerminalRowWidget extends StatelessWidget {
+  final TerminalController controller;
+  final int absoluteRowIndex;
+  final double cellWidth;
+  final double cellHeight;
+  final bool readOnly;
+
+  const TerminalRowWidget({
+    super.key,
+    required this.controller,
+    required this.absoluteRowIndex,
+    required this.cellWidth,
+    required this.cellHeight,
+    required this.readOnly,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return CustomPaint(
+      size: Size(controller.cols * cellWidth, cellHeight),
+      painter: _SingleRowPainter(
+        controller: controller,
+        absoluteRowIndex: absoluteRowIndex,
+        cellWidth: cellWidth,
+        cellHeight: cellHeight,
+        readOnly: readOnly,
+      ),
+    );
+  }
+}
+
+class _SingleRowPainter extends CustomPainter {
+  final TerminalController controller;
+  final int absoluteRowIndex;
+  final double cellWidth;
+  final double cellHeight;
+  final bool readOnly;
+
+  _SingleRowPainter({
+    required this.controller,
+    required this.absoluteRowIndex,
+    required this.cellWidth,
+    required this.cellHeight,
+    required this.readOnly,
+  }) : super(repaint: controller);
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final row = controller.activeBuffer.getAbsoluteRow(absoluteRowIndex);
+    final cells = row.cells;
+    final cols = controller.activeBuffer.cols;
+    final rowCols = cells.length;
+
+    // 1. Backgrounds
+    final bgPaint = Paint();
+    Color? lastColor;
+    int startCol = 0;
+
+    void flushBg(int endCol) {
+      if (lastColor != null) {
+        bgPaint.color = lastColor;
+        canvas.drawRect(
+          Rect.fromLTWH(
+            startCol * cellWidth,
+            0,
+            (endCol - startCol) * cellWidth,
+            cellHeight,
+          ),
+          bgPaint,
+        );
+      }
+    }
+
+    for (int c = 0; c < cols; c++) {
+      final cellBg = (c < rowCols) ? cells[c].fmt.bgColor : null;
+      if (cellBg != lastColor) {
+        flushBg(c);
+        lastColor = cellBg;
+        startCol = c;
+      }
+    }
+    flushBg(cols);
+
+    // 2. Selection
+    if (controller.selection.isSelectionActive) {
+      final bounds = SelectionHelper.normalize(
+        startRow: controller.selection.startRow!,
+        startCol: controller.selection.startCol!,
+        endRow: controller.selection.endRow!,
+        endCol: controller.selection.endCol!,
+        maxRows: controller.rows,
+        maxCols: cols,
+      );
+
+      final visibleRow =
+          absoluteRowIndex - controller.activeBuffer.currentScrollback;
+      final rowSel = SelectionHelper.getRowSelection(
+        row: visibleRow,
+        bounds: bounds,
+        maxCols: cols,
+      );
+
+      if (!rowSel.isEmpty) {
+        canvas.drawRect(
+          Rect.fromLTWH(
+            rowSel.start * cellWidth,
+            0,
+            (rowSel.end - rowSel.start + 1) * cellWidth,
+            cellHeight,
+          ),
+          Paint()..color = controller.theme.selectionColor,
+        );
+      }
+    }
+
+    // 3. Text
+    TextPainter? tp = controller.getCachedRow(row);
+    if (tp == null) {
+      final textStyle = controller.typography.toTextStyle();
+      FormattingOptions? lastFmt;
+      final List<InlineSpan> spans = [];
+      final StringBuffer sb = StringBuffer();
+
+      void flushRun() {
+        if (sb.isEmpty) return;
+        final fmt = lastFmt ?? FormattingOptions.defaultFormat;
+        final effectiveFg = fmt.concealed
+            ? controller.theme.foregroundColor.withAlpha(0)
+            : (fmt.effectiveFgColor ?? controller.theme.foregroundColor);
+
+        final style = textStyle.copyWith(
+          color: effectiveFg,
+          fontWeight: fmt.bold ? FontWeight.w700 : null,
+          fontStyle: fmt.italic ? FontStyle.italic : FontStyle.normal,
+          decoration: fmt.underline == Underline.none
+              ? TextDecoration.none
+              : TextDecoration.underline,
+          decorationStyle: fmt.underline == Underline.double
+              ? TextDecorationStyle.double
+              : TextDecorationStyle.solid,
+        );
+        spans.add(TextSpan(text: sb.toString(), style: style));
+        sb.clear();
+      }
+
+      for (int c = 0; c < cols; c++) {
+        final cell = (c < rowCols) ? cells[c] : null;
+        final fmt = cell?.fmt ?? FormattingOptions.defaultFormat;
+        if (lastFmt == null) {
+          lastFmt = fmt;
+        } else if (!identical(lastFmt, fmt) && lastFmt != fmt) {
+          flushRun();
+          lastFmt = fmt;
+        }
+        sb.write(cell?.ch ?? ' ');
+      }
+      flushRun();
+
+      if (spans.isNotEmpty) {
+        tp = TextPainter(
+          text: TextSpan(children: spans),
+          textDirection: TextDirection.ltr,
+          maxLines: 1,
+        )..layout(minWidth: 0, maxWidth: cols * cellWidth);
+        controller.cacheRow(row, tp);
+      }
+    }
+
+    if (tp != null) {
+      tp.paint(canvas, Offset.zero);
+    }
+
+    // 4. Cursor
+    if (!readOnly && controller.cursor.visible) {
+      final visibleCursorRow = controller.activeBuffer.cursorRow;
+      final absCursorRow =
+          controller.activeBuffer.currentScrollback + visibleCursorRow;
+
+      if (absCursorRow == absoluteRowIndex) {
+        final visibleCursorCol = controller.activeBuffer.cursorCol;
+        if (visibleCursorCol >= 0 && visibleCursorCol < cols) {
+          final cell = controller.activeBuffer.getAbsoluteCell(
+            absCursorRow,
+            visibleCursorCol,
+          );
+          final cellFg = cell.fmt.effectiveFgColor;
+          final cellBg = cell.fmt.effectiveBgColor;
+
+          final Color fillColor = cellFg ?? controller.theme.foregroundColor;
+          final Color charColor = cellBg ?? controller.theme.backgroundColor;
+
+          final cursorRect = Rect.fromLTWH(
+            visibleCursorCol * cellWidth,
+            0,
+            cellWidth,
+            cellHeight,
+          );
+
+          switch (controller.cursor.style) {
+            case .block:
+              canvas.drawRect(cursorRect, Paint()..color = fillColor);
+              final displayedChar = cell.ch.isEmpty ? ' ' : cell.ch;
+              final charStyle = TextStyle(
+                color: charColor,
+                fontSize: controller.typography.fontSize.toDouble(),
+                fontFamily: controller.typography.fontFamily,
+                fontWeight: cell.fmt.bold ? FontWeight.w700 : FontWeight.w400,
+                fontStyle: cell.fmt.italic
+                    ? FontStyle.italic
+                    : FontStyle.normal,
+              );
+              TextPainter(
+                  text: TextSpan(text: displayedChar, style: charStyle),
+                  textDirection: TextDirection.ltr,
+                )
+                ..layout(minWidth: 0, maxWidth: cellWidth)
+                ..paint(canvas, Offset(visibleCursorCol * cellWidth, 0));
+              break;
+            case .underline:
+              final underlineHeight = cellHeight * 0.18;
+              canvas.drawRect(
+                Rect.fromLTWH(
+                  visibleCursorCol * cellWidth,
+                  cellHeight - underlineHeight,
+                  cellWidth,
+                  underlineHeight,
+                ),
+                Paint()..color = fillColor,
+              );
+              break;
+            case .bar:
+              final barWidth = max(1.0, cellWidth * 0.12);
+              canvas.drawRect(
+                Rect.fromLTWH(
+                  visibleCursorCol * cellWidth,
+                  0,
+                  barWidth,
+                  cellHeight,
+                ),
+                Paint()..color = fillColor,
+              );
+              break;
+          }
+        }
+      }
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant _SingleRowPainter oldDelegate) {
+    return oldDelegate.controller != controller ||
+        oldDelegate.absoluteRowIndex != absoluteRowIndex ||
+        oldDelegate.readOnly != readOnly;
   }
 }

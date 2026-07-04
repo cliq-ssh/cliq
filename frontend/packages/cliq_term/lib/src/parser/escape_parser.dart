@@ -93,34 +93,59 @@ class EscapeParser {
   /// The input can contain any combination of printable characters, control characters, and escape sequences.
   void write(String input) {
     _queue.add(input);
-    _process();
+    if (!_isProcessing) {
+      _process();
+    }
   }
+
+  bool _isProcessing = false;
 
   /// Processes the byte queue, handling control characters and escape sequences until more input is needed.
   void _process() {
+    _isProcessing = true;
+    final sw = Stopwatch()..start();
+
     while (_queue.isNotEmpty) {
-      final cu = _queue.peek();
-
-      if (cu == 0x1B) {
-        final saved = _queue.position;
-        _queue.consume();
-        if (!_processEscape()) {
-          _queue.savePosition(saved);
-          return;
-        }
-        continue;
+      // Check every 100 characters to see if we should yield
+      for (int i = 0; i < 100 && _queue.isNotEmpty; i++) {
+        _processOne();
       }
 
+      if (sw.elapsedMilliseconds > 2) {
+        // Yield to the event loop so the UI thread remains responsive.
+        // We use a short delay to allow the renderer and other tasks to run.
+        Future.delayed(const Duration(milliseconds: 1), _process);
+        controller.markDirty();
+        return;
+      }
+    }
+
+    _isProcessing = false;
+    controller.markDirty();
+  }
+
+  void _processOne() {
+    final cu = _queue.peek();
+
+    if (cu == 0x1B) {
+      final saved = _queue.position;
       _queue.consume();
-
-      final ccHandler = _ccHandlers[cu];
-      if (ccHandler != null) {
-        ccHandler(controller.activeBuffer);
-      } else if (cu >= 0x20) {
-        controller.activeBuffer.printChar(cu);
-      } else if (controller.debugLogging) {
-        _log.warning('[CC] Unhandled 0x${cu.toRadixString(16)}');
+      if (!_processEscape()) {
+        _queue.savePosition(saved);
+        return;
       }
+      return;
+    }
+
+    _queue.consume();
+
+    final ccHandler = _ccHandlers[cu];
+    if (ccHandler != null) {
+      ccHandler(controller.activeBuffer);
+    } else if (cu >= 0x20) {
+      controller.activeBuffer.printChar(cu);
+    } else if (controller.debugLogging) {
+      _log.warning('[CC] Unhandled 0x${cu.toRadixString(16)}');
     }
   }
 
@@ -282,7 +307,7 @@ class EscapeParser {
       c < min(buf.cursorCol + amount, controller.cols);
       c++
     ) {
-      buf.setCell(buf.cursorRow, c, Cell.empty());
+      buf.eraseCell(buf.cursorRow, c);
     }
   }
 
@@ -405,7 +430,7 @@ class EscapeParser {
 
   /// https://terminalguide.namepad.de/seq/csi_sm/
   void _csiSelectGraphicRendition(CsiParseResult parsed) {
-    final formatting = controller.activeBuffer.currentFormat;
+    var formatting = controller.activeBuffer.currentFormat;
 
     final List<int> codes = parsed.params.isEmpty
         ? const <int>[0]
@@ -415,86 +440,90 @@ class EscapeParser {
     while (offset < codes.length) {
       int code = codes[offset++];
 
-      (switch (code) {
-        0 => () => formatting.reset(),
-        1 => () => formatting.bold = true,
-        2 => () => formatting.faint = true,
-        3 => () => formatting.italic = true,
-        4 => () => formatting.underline = Underline.single,
-        7 => () => formatting.inverted = true,
-        8 => () => formatting.concealed = true,
-        21 => () => formatting.underline = Underline.double,
-        22 => () {
-          formatting.bold = false;
-          formatting.faint = false;
-        },
-        23 => () => formatting.italic = false,
-        24 => () => formatting.underline = Underline.none,
-        27 => () => formatting.inverted = false,
-        28 => () => formatting.concealed = false,
-        >= 30 && <= 37 => () => formatting.fgColor = ansi16ToColor(
-          controller.theme,
-          code - 30,
+      formatting = (switch (code) {
+        0 => () => FormattingOptions.defaultFormat,
+        1 => () => formatting.copyWith(bold: true),
+        2 => () => formatting.copyWith(faint: true),
+        3 => () => formatting.copyWith(italic: true),
+        4 => () => formatting.copyWith(underline: Underline.single),
+        7 => () => formatting.copyWith(inverted: true),
+        8 => () => formatting.copyWith(concealed: true),
+        21 => () => formatting.copyWith(underline: Underline.double),
+        22 => () => formatting.copyWith(bold: false, faint: false),
+        23 => () => formatting.copyWith(italic: false),
+        24 => () => formatting.copyWith(underline: Underline.none),
+        27 => () => formatting.copyWith(inverted: false),
+        28 => () => formatting.copyWith(concealed: false),
+        >= 30 && <= 37 => () => formatting.copyWith(
+          fgColor: ansi16ToColor(controller.theme, code - 30),
         ),
         38 => () {
-          if (offset >= codes.length) return;
+          if (offset >= codes.length) return formatting;
           switch (codes[offset++]) {
             case 5:
-              if (offset >= codes.length) return;
-              formatting.fgColor = xterm256ToColor(
-                controller.theme,
-                codes[offset++],
+              if (offset >= codes.length) return formatting;
+              return formatting.copyWith(
+                fgColor: xterm256ToColor(controller.theme, codes[offset++]),
               );
             case 2:
-              if (offset + 2 >= codes.length) return;
-              formatting.fgColor = rgbToColor(
-                codes[offset],
-                codes[offset + 1],
-                codes[offset + 2],
+              if (offset + 2 >= codes.length) return formatting;
+              final res = formatting.copyWith(
+                fgColor: rgbToColor(
+                  codes[offset],
+                  codes[offset + 1],
+                  codes[offset + 2],
+                ),
               );
               offset += 3;
+              return res;
+            default:
+              return formatting;
           }
         },
-        39 => () => formatting.fgColor = null,
-        >= 40 && <= 47 => () => formatting.bgColor = ansi16ToColor(
-          controller.theme,
-          code - 40,
+        39 => () => formatting.copyWith(fgColor: null),
+        >= 40 && <= 47 => () => formatting.copyWith(
+          bgColor: ansi16ToColor(controller.theme, code - 40),
         ),
         48 => () {
-          if (offset >= codes.length) return;
+          if (offset >= codes.length) return formatting;
           switch (codes[offset++]) {
             case 5:
-              if (offset >= codes.length) return;
-              formatting.bgColor = xterm256ToColor(
-                controller.theme,
-                codes[offset++],
+              if (offset >= codes.length) return formatting;
+              return formatting.copyWith(
+                bgColor: xterm256ToColor(controller.theme, codes[offset++]),
               );
             case 2:
-              if (offset + 2 >= codes.length) return;
-              formatting.bgColor = rgbToColor(
-                codes[offset],
-                codes[offset + 1],
-                codes[offset + 2],
+              if (offset + 2 >= codes.length) return formatting;
+              final res = formatting.copyWith(
+                bgColor: rgbToColor(
+                  codes[offset],
+                  codes[offset + 1],
+                  codes[offset + 2],
+                ),
               );
               offset += 3;
+              return res;
+            default:
+              return formatting;
           }
         },
-        49 => () => formatting.bgColor = null,
-        >= 90 && <= 97 => () => formatting.fgColor = ansi16ToColor(
-          controller.theme,
-          (code - 90) + 8,
+        49 => () => formatting.copyWith(bgColor: null),
+        >= 90 && <= 97 => () => formatting.copyWith(
+          fgColor: ansi16ToColor(controller.theme, (code - 90) + 8),
         ),
-        >= 100 && <= 107 => () => formatting.bgColor = ansi16ToColor(
-          controller.theme,
-          (code - 100) + 8,
+        >= 100 && <= 107 => () => formatting.copyWith(
+          bgColor: ansi16ToColor(controller.theme, (code - 100) + 8),
         ),
         _ => () {
           if (controller.debugLogging) {
             _log.warning('Unhandled SGR code: $code');
           }
+          return formatting;
         },
       }).call();
     }
+
+    controller.activeBuffer.currentFormat = formatting;
   }
 
   void _csiSetScrollingRegion(CsiParseResult parsed) {
