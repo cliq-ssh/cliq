@@ -31,6 +31,7 @@ class SshSftpSettingsPage extends AbstractSettingsPage {
   Widget buildBody(BuildContext context, WidgetRef ref) {
     final showHiddenFiles = useStore(.sftpShowHiddenFiles);
     final largeDownloadsWarning = useStore(.sftpLargeDownloadWarning);
+    final directoryNotEmptyWarning = useStore(.sftpDirectoryNotEmptyWarning);
 
     final refreshTrigger = useState(0);
     final tempDirSizeFuture = useMemoized(
@@ -71,6 +72,18 @@ class SshSftpSettingsPage extends AbstractSettingsPage {
                             value: largeDownloadsWarning.value,
                             onChange: (value) =>
                                 StoreKey.sftpLargeDownloadWarning.write(value),
+                          ),
+                        ),
+                        FTile(
+                          title: Text('Directory Not Empty Warning'),
+                          subtitle: Text(
+                            'Warn when attempting to delete a non-empty directory over SFTP',
+                          ),
+                          suffix: FSwitch(
+                            value: directoryNotEmptyWarning.value,
+                            onChange: (value) => StoreKey
+                                .sftpDirectoryNotEmptyWarning
+                                .write(value),
                           ),
                         ),
                         FTile(

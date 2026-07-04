@@ -92,6 +92,11 @@ enum StoreKey<T> {
     'sftp_large_download_warning',
     type: bool,
     defaultValue: true,
+  ),
+  sftpDirectoryNotEmptyWarning<bool>(
+    'sftp_directory_not_empty_warning',
+    type: bool,
+    defaultValue: true,
   );
 
   final String key;
