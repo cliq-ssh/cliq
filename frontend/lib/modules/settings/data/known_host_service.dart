@@ -44,15 +44,26 @@ final class KnownHostService {
     return (null, false);
   }
 
+  Future<Uint8List?> findKeyForHost(String host) async {
+    final knownHosts = await _knownHostsRepository.db
+        .findKnownHostByHost(host)
+        .get();
+
+    if (knownHosts.isEmpty) {
+      return null;
+    }
+    return knownHosts.first.hostKey;
+  }
+
   Future<int> createKnownHost({
     required int vaultId,
     required String host,
-    required Uint8List hostKey,
+    required Uint8List fingerprint,
   }) => _knownHostsRepository.insert(
     KnownHostsCompanion.insert(
       vaultId: vaultId,
       host: host.trim(),
-      hostKey: hostKey,
+      hostKey: fingerprint,
       createdAt: Value(DateTime.now()),
     ),
   );
@@ -60,13 +71,16 @@ final class KnownHostService {
   Future<int> update(
     int id, {
     required int? vaultId,
-    required Uint8List? hostKey,
+    required Uint8List? fingerprint,
     KnownHostsCompanion? compareTo,
   }) => _knownHostsRepository.updateById(
     id,
     KnownHostsCompanion(
       vaultId: ValueExtension.absentIfNullOrSame(vaultId, compareTo?.vaultId),
-      hostKey: ValueExtension.absentIfNullOrSame(hostKey, compareTo?.hostKey),
+      hostKey: ValueExtension.absentIfNullOrSame(
+        fingerprint,
+        compareTo?.hostKey,
+      ),
     ),
   );
 

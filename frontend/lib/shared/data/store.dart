@@ -81,6 +81,22 @@ enum StoreKey<T> {
     defaultFactory: _defaultShortcutsFactory,
     fromValue: _shortcutsFromValue,
     toValue: _shortcutsToValue,
+  ),
+
+  sftpShowHiddenFiles<bool>(
+    'sftp_show_hidden_files',
+    type: bool,
+    defaultValue: false,
+  ),
+  sftpLargeDownloadWarning<bool>(
+    'sftp_large_download_warning',
+    type: bool,
+    defaultValue: true,
+  ),
+  sftpDirectoryNotEmptyWarning<bool>(
+    'sftp_directory_not_empty_warning',
+    type: bool,
+    defaultValue: true,
   );
 
   final String key;

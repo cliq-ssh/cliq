@@ -3,6 +3,7 @@ import 'package:cliq/modules/settings/view/identities_settings_page.dart';
 import 'package:cliq/modules/settings/view/keys_settings_page.dart';
 import 'package:cliq/modules/settings/view/known_hosts_settings.dart';
 import 'package:cliq/modules/settings/view/shortcuts_settings_page.dart';
+import 'package:cliq/modules/settings/view/ssh_sftp_settings_page.dart';
 import 'package:cliq/modules/settings/view/sync_settings_page.dart';
 import 'package:cliq/modules/settings/view/terminal_theme_settings_page.dart';
 import 'package:cliq/shared/extensions/router.extension.dart';
@@ -94,7 +95,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                             onPress: null,
                           ),
                           FTile(
-                            prefix: Icon(LucideIcons.squareTerminal),
+                            prefix: Icon(LucideIcons.swatchBook),
                             suffix: Icon(LucideIcons.chevronRight),
                             title: Text('Terminal Theme'),
                             onPress: () => context.pushPath(
@@ -123,6 +124,14 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                                 ShortcutsSettingsPage.pagePath.build(),
                               ),
                             ),
+                          FTile(
+                            prefix: Icon(LucideIcons.terminal),
+                            suffix: Icon(LucideIcons.chevronRight),
+                            title: Text('SSH & SFTP'),
+                            onPress: () => context.pushPath(
+                              SshSftpSettingsPage.pagePath.build(),
+                            ),
+                          ),
                           if (kDebugMode)
                             FTile(
                               prefix: Icon(LucideIcons.hammer),

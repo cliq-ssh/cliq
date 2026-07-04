@@ -2,7 +2,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:lucide_flutter/lucide_flutter.dart';
 import 'package:simple_icons/simple_icons.dart';
 
-enum ConnectionIcon {
+enum ConnectionIcons {
   // OS-specific
   linux(SimpleIcons.linux, brandColor: SimpleIconColors.linux),
   debian(SimpleIcons.debian, brandColor: SimpleIconColors.debian),
@@ -32,12 +32,12 @@ enum ConnectionIcon {
   final IconData iconData;
   final Color? brandColor;
 
-  const ConnectionIcon(this.iconData, {this.brandColor});
+  const ConnectionIcons(this.iconData, {this.brandColor});
 
-  static ConnectionIcon fromString(String value) {
-    return ConnectionIcon.values.firstWhere(
+  static ConnectionIcons fromString(String value) {
+    return ConnectionIcons.values.firstWhere(
       (e) => e.name.toLowerCase() == value.toLowerCase(),
-      orElse: () => ConnectionIcon.unknown,
+      orElse: () => ConnectionIcons.unknown,
     );
   }
 }
