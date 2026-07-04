@@ -9,6 +9,7 @@ import 'package:cliq/shared/ui/create_or_edit_entity_view.dart';
 import 'package:cliq/shared/utils/commons.dart';
 import 'package:cliq/shared/utils/input_formatters.dart';
 import 'package:cliq/shared/utils/password_cipher.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart' hide Key;
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:forui/forui.dart';
@@ -101,7 +102,7 @@ class _ImportOrExportSettingsViewState
           identitiesTileController.value.isEmpty &&
           knownHostsTileController.value.isEmpty &&
           keysTileController.value.isEmpty) {
-        error.value = 'settings.sync.import.selectAtLeastOneEntity';
+        error.value = 'sync_import_error_one_entity';
         return;
       }
 
@@ -232,7 +233,7 @@ class _ImportOrExportSettingsViewState
                   controller.update(id, add: true);
                 }
               },
-              child: Text('Select All', style: toolbarTextStyle),
+              child: Text('select_all', style: toolbarTextStyle).tr(),
             ),
             Text('|', style: toolbarTextStyle),
             FTappable(
@@ -243,7 +244,7 @@ class _ImportOrExportSettingsViewState
                   controller.update(id, add: false);
                 }
               },
-              child: Text('Deselect All', style: toolbarTextStyle),
+              child: Text('deselect_all', style: toolbarTextStyle).tr(),
             ),
           ],
         ),
@@ -265,8 +266,8 @@ class _ImportOrExportSettingsViewState
     return CreateOrEditEntityView(
       onSave: (v) => onSave(v!),
       isEdit: widget.isImport,
-      editLabel: 'Import',
-      createLabel: 'Export...',
+      editLabel: 'sync_import'.tr(),
+      createLabel: 'sync_export'.tr(),
       child: Form(
         key: formKey,
         child: Column(
@@ -278,17 +279,17 @@ class _ImportOrExportSettingsViewState
                   if (!widget.isImport)
                     FTextFormField.password(
                       control: .managed(controller: passwordController),
-                      label: Text('Password (recommended)'),
+                      label: Text('sync_export_password').tr(),
                       description: Text(
-                        'Encrypt exported settings with a password. Leave empty for no encryption.',
-                      ),
+                        'sync_export_password_description',
+                      ).tr(),
                       inputFormatters: InputFormatters.password(),
                     ),
 
                   if (settings.value!.connections?.isNotEmpty == true)
                     buildEntityTiles<ConnectionsCompanion, int>(
                       controller: connectionsTileController,
-                      label: 'Connections',
+                      label: 'connections'.tr(),
                       entities: settings.value!.connections,
                       idSelector: (c) => c.id.value,
                       titleBuilder: (c) => c.label.value,
@@ -335,7 +336,7 @@ class _ImportOrExportSettingsViewState
                   if (settings.value!.identities?.isNotEmpty == true)
                     buildEntityTiles<IdentitiesCompanion, int>(
                       controller: identitiesTileController,
-                      label: 'Identities',
+                      label: 'identities'.tr(),
                       entities: settings.value!.identities,
                       idSelector: (i) => i.id.value,
                       titleBuilder: (i) => i.label.value,
@@ -368,7 +369,7 @@ class _ImportOrExportSettingsViewState
                   if (settings.value!.keys?.isNotEmpty == true)
                     buildEntityTiles<KeysCompanion, int>(
                       controller: keysTileController,
-                      label: 'Keys',
+                      label: 'keys'.tr(),
                       entities: settings.value!.keys,
                       idSelector: (k) => k.id.value,
                       titleBuilder: (k) => k.label.value,
@@ -380,7 +381,7 @@ class _ImportOrExportSettingsViewState
                   if (settings.value!.knownHosts?.isNotEmpty == true)
                     buildEntityTiles<KnownHostsCompanion, int>(
                       controller: knownHostsTileController,
-                      label: 'Known Hosts',
+                      label: 'known_hosts'.tr(),
                       entities: settings.value!.knownHosts,
                       idSelector: (k) => k.id.value,
                       titleBuilder: (k) => k.host.value,
@@ -392,7 +393,7 @@ class _ImportOrExportSettingsViewState
                       style: context.theme.typography.body.sm.copyWith(
                         color: context.theme.colors.error,
                       ),
-                    ),
+                    ).tr(),
 
                   if (showExportWarning.value)
                     FCard(
@@ -413,9 +414,7 @@ class _ImportOrExportSettingsViewState
                         children: [
                           Icon(LucideIcons.triangleAlert),
                           Expanded(
-                            child: Text(
-                              'This export contains sensitive data, such as passwords and/or private keys. Setting an encryption password is highly recommended.',
-                            ),
+                            child: Text('sync_export_password_warning').tr(),
                           ),
                         ],
                       ),

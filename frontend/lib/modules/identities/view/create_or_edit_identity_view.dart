@@ -4,6 +4,7 @@ import 'package:cliq/modules/identities/model/identity_full.model.dart';
 import 'package:cliq/shared/extensions/text_controller.extension.dart';
 import 'package:cliq/shared/utils/validators.dart';
 import 'package:drift/drift.dart' hide Column;
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:forui/forui.dart';
@@ -94,15 +95,15 @@ class CreateOrEditIdentityView extends HookConsumerWidget {
           children: [
             FTextFormField(
               control: .managed(controller: labelCtrl),
-              label: const Text('Label'),
-              hint: 'My Server',
+              label: const Text('identities_label').tr(),
+              hint: 'identities_label_placeholder'.tr(),
               validator: Validators.nonEmpty,
             ),
 
             FTextFormField(
               control: .managed(controller: usernameCtrl),
-              label: const Text('Username'),
-              hint: 'root',
+              label: const Text('identities_username').tr(),
+              hint: 'identities_username_placeholder'.tr(),
               validator: Validators.nonEmpty,
             ),
 

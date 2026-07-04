@@ -2,6 +2,7 @@ import 'package:cliq/modules/identities/model/identity_full.model.dart';
 import 'package:cliq/modules/identities/provider/identity_service.provider.dart';
 import 'package:cliq/modules/identities/view/create_or_edit_identity_view.dart';
 import 'package:cliq/shared/utils/commons.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:forui/forui.dart';
 import 'package:forui_hooks/forui_hooks.dart';
@@ -72,12 +73,12 @@ class IdentityCard extends HookConsumerWidget {
                       ),
                       if (identity.credentialIds.isNotEmpty)
                         Text(
-                          '${identity.credentialIds.length} credential(s)',
+                          'identities_credential_amount',
                           style: context.theme.typography.body.xs.copyWith(
                             color: context.theme.colors.mutedForeground,
                             fontWeight: .normal,
                           ),
-                        ),
+                        ).plural(identity.credentialIds.length),
                     ],
                   ),
                 ),

@@ -1,6 +1,7 @@
 import 'package:cliq/modules/vaults/provider/vault.provider.dart';
 import 'package:cliq/shared/data/database.dart';
 import 'package:cliq/shared/utils/validators.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:forui/forui.dart';
@@ -114,8 +115,8 @@ class CreateOrEditEntityView extends HookConsumerWidget {
               child: Builder(
                 builder: (_) {
                   final label = isEdit
-                      ? (editLabel ?? 'Edit')
-                      : (createLabel ?? 'Save');
+                      ? (editLabel ?? 'edit'.tr())
+                      : (createLabel ?? 'save'.tr());
                   final isLoading = isEdit ? isEditLoading : isCreateLoading;
                   final currentLabel = isEdit
                       ? (editLoadingLabel ?? label)

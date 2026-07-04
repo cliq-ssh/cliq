@@ -7,6 +7,7 @@ import 'package:cliq/shared/ui/shortcut_info.dart';
 import 'package:cliq/shared/ui/sidebar_tab.dart';
 import 'package:cliq_term/cliq_term.dart';
 import 'package:cliq_ui/cliq_ui.dart' show useBreakpoint;
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:forui/forui.dart';
 import 'package:lucide_flutter/lucide_flutter.dart';
@@ -115,12 +116,12 @@ class NavigationShellState extends ConsumerState<NavigationShell>
       // TODO: make shortcut functional
       return FTooltip(
         tipBuilder: (_, _) => TextWithShortcutInfo(
-          'Dashboard',
+          'Dashboard'.tr(),
           shortcut: KeyboardShortcut(.keyD, modifiers: {.control}),
         ),
         child: SidebarTab(
           isExpanded: isExpanded,
-          label: Text('Dashboard'),
+          label: Text('dashboard').tr(),
           icon: Icon(LucideIcons.house),
           selected: widget.shell.currentIndex == _dashboardBranchIndex,
           onPress: () {
@@ -149,7 +150,7 @@ class NavigationShellState extends ConsumerState<NavigationShell>
               divider: .full,
               children: [
                 if (fileTransfer.isEmpty)
-                  FTile(title: Text('Nothing in queue'))
+                  FTile(title: Text('queue_empty').tr())
                 else
                   for (final item in items)
                     FTile(
@@ -267,7 +268,7 @@ class NavigationShellState extends ConsumerState<NavigationShell>
         builder: (_, controller, _) {
           return SidebarTab(
             isExpanded: isExpanded,
-            label: Text('Queue'),
+            label: Text('queue').tr(),
             onPress: fileTransfer.isEmpty ? null : controller.toggle,
             icon: RotationTransition(
               turns: rotationAnimation,
@@ -288,12 +289,12 @@ class NavigationShellState extends ConsumerState<NavigationShell>
       // TODO: make shortcut functional
       return FTooltip(
         tipBuilder: (_, _) => TextWithShortcutInfo(
-          'Settings',
+          'settings'.tr(),
           shortcut: KeyboardShortcut(.comma, modifiers: {.control}),
         ),
         child: SidebarTab(
           isExpanded: isExpanded,
-          label: Text('Settings'),
+          label: Text('settings').tr(),
           icon: Icon(LucideIcons.settings),
           selected: widget.shell.currentIndex == _settingsBranchIndex,
           onPress: () {
@@ -355,7 +356,7 @@ class NavigationShellState extends ConsumerState<NavigationShell>
           ],
           child: SidebarTab(
             isExpanded: isExpanded && navPosition.value == .left,
-            label: Text('New Session'),
+            label: Text('session_new').tr(),
             icon: Icon(LucideIcons.plus),
             onPress: connections.entities.isNotEmpty
                 ? () => showTabs.value = !showTabs.value
@@ -410,7 +411,7 @@ class NavigationShellState extends ConsumerState<NavigationShell>
               ...buildSessionSidebarTabs(isExpanded)
             else if (sessions.activeTabs.isNotEmpty)
               FSidebarGroup(
-                label: Text('Sessions'),
+                label: Text('sessions').tr(),
                 children: buildSessionSidebarTabs(isExpanded),
               ),
           ];

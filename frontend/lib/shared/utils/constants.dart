@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:ui';
 
 final class Constants {
   const Constants._();
@@ -17,4 +18,9 @@ final class Constants {
     if (!dir.existsSync()) dir.createSync(recursive: true);
     return dir;
   }
+
+  static const List<Locale> supportedLocales = [
+    Locale('en', 'US'),
+    Locale('de', 'DE'),
+  ];
 }

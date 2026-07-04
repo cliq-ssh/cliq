@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/cupertino.dart';
 
 class LocalizedException implements Exception {
@@ -5,8 +6,5 @@ class LocalizedException implements Exception {
 
   const LocalizedException(this.key);
 
-  String localize(BuildContext context) {
-    // TODO:
-    return key;
-  }
+  String tr(BuildContext context) => key.tr();
 }

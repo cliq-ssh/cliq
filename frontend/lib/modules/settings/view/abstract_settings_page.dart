@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:forui/forui.dart';
 import 'package:go_router/go_router.dart';
@@ -18,7 +19,7 @@ abstract class AbstractSettingsPage extends HookConsumerWidget {
           children: [
             FBreadcrumbItem(
               onPress: context.pop,
-              child: const Text('Settings'),
+              child: const Text('settings').tr(),
             ),
             FBreadcrumbItem(current: true, child: Text(title)),
           ],
