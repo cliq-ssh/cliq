@@ -1,5 +1,5 @@
 import 'package:cliq/modules/connections/model/connection_full.model.dart';
-import 'package:cliq/modules/connections/model/connection_icon.dart';
+import 'package:cliq/modules/connections/model/connection_icons.dart';
 import 'package:cliq/modules/session/model/session.model.dart';
 import 'package:cliq/modules/session/model/tab.model.dart';
 import 'package:cliq/shared/data/database.dart';
@@ -15,7 +15,7 @@ void main() {
         label: 'Example',
         address: '127.0.0.1',
         port: 22,
-        icon: ConnectionIcon.server,
+        icon: ConnectionIcons.server,
         iconColor: const Color(0xFF000000),
         iconBackgroundColor: const Color(0xFFFFFFFF),
         usesDefaultThemeOverride: true,
@@ -27,7 +27,7 @@ void main() {
 
   test('copyWith keeps custom label when updating sessions', () {
     final connection = buildConnection();
-    final root = ShellSession.disconnected(id: 'root', connection: connection);
+    final root = ShellSession.disconnected(id: 'root', connection: connection, type: .ssh);
     final tab = SessionTab(
       id: 'tab',
       root: root,
@@ -42,7 +42,7 @@ void main() {
 
   test('copyWith can explicitly clear the label', () {
     final connection = buildConnection();
-    final root = ShellSession.disconnected(id: 'root', connection: connection);
+    final root = ShellSession.disconnected(id: 'root', connection: connection, type: .ssh);
     final tab = SessionTab(
       id: 'tab',
       root: root,
