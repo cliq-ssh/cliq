@@ -89,31 +89,25 @@ class TerminalBuffer {
     newBuffer.isAutoWrapMode = isAutoWrapMode;
     newBuffer.tabStops = Set.from(tabStops.where((s) => s < newCols));
 
-    // absolute index in old ring
-    final oldVisibleStart = currentScrollback;
-    // absolute index in new ring
-    final newVisibleStart = newBuffer.currentScrollback;
-
-    final minRows = min(rows, newRows);
+    // Clear initial empty rows and copy everything from the old buffer
+    newBuffer._buffer.clear();
     final minCols = min(cols, newCols);
 
-    for (var r = 0; r < minRows; r++) {
-      final srcRow = _buffer[oldVisibleStart + r];
-      final dstRow = newBuffer._buffer[newVisibleStart + r];
-
-      // copy cell contents up to minCols
+    for (var i = 0; i < _buffer.length; i++) {
+      final oldRow = _buffer[i];
+      final newRow = TerminalBufferRow(newCols);
       for (var c = 0; c < minCols; c++) {
-        dstRow.cells[c] = srcRow.cells[c];
+        newRow.cells[c] = Cell.clone(oldRow.cells[c]);
       }
-      // clear remaining columns in dst row if any
-      for (var c = minCols; c < newCols; c++) {
-        dstRow.cells[c] = Cell.empty();
-      }
+      newBuffer._buffer.add(newRow);
     }
 
-    // Adjust cursor position
-    newBuffer.cursorRow = min(cursorRow, newRows - 1);
-    newBuffer.cursorCol = min(cursorCol, newCols - 1);
+    while (newBuffer.length < newRows) {
+      newBuffer._buffer.add(TerminalBufferRow(newCols));
+    }
+
+    newBuffer.cursorRow = cursorRow.clamp(0, newRows - 1);
+    newBuffer.cursorCol = cursorCol.clamp(0, newCols - 1);
     return newBuffer;
   }
 
@@ -122,7 +116,12 @@ class TerminalBuffer {
   void index() {
     if (isCursorInMargins()) {
       if (cursorRow == _bottomMargin) {
-        scrollUp(1);
+        // Use pushEmptyLine for full-screen scrolls to preserve history
+        if (_topMargin == 0 && _bottomMargin == rows - 1 && !isBackBuffer) {
+          pushEmptyLine();
+        } else {
+          scrollUp(1);
+        }
       } else {
         cursorDown(1);
       }
