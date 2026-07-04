@@ -132,6 +132,65 @@ void main() {
       ], resized);
     });
   });
+
+  group('TerminalBuffer exportSelection', () {
+    test('exportSelection single line, trims trailing spaces', () {
+      final buf = TerminalBuffer(rows: 2, cols: 10);
+      buf.printString('hello     '); // 'hello' followed by 5 spaces
+
+      // Select 'hello     ' (cols 0 to 9)
+      final selection = buf.exportSelection(0, 0, 0, 9);
+      expect(selection, equals('hello'));
+    });
+
+    test('exportSelection single line, preserves internal spaces', () {
+      final buf = TerminalBuffer(rows: 2, cols: 10);
+      buf.printString('a  b     '); // 'a', 2 spaces, 'b', 5 spaces
+
+      // Select 'a  b     ' (cols 0 to 9)
+      final selection = buf.exportSelection(0, 0, 0, 9);
+      expect(selection, equals('a  b'));
+    });
+
+    test('exportSelection multi-line flow selection', () {
+      final buf = TerminalBuffer(rows: 3, cols: 10);
+      buf.printString('line 1');
+      buf.setCursorPosition(1, 0);
+      buf.printString('line 2');
+
+      // Row 0: "line 1    "
+      // Row 1: "line 2    "
+
+      // Select from row 0, col 5 ('1') to row 1, col 5 ('2')
+      final selection = buf.exportSelection(0, 5, 1, 5);
+      expect(selection, equals('1\nline 2'));
+    });
+
+    test(
+      'exportSelection multi-line, preserves trailing space if text follows in same row',
+      () {
+        final buf = TerminalBuffer(rows: 3, cols: 10);
+        buf.printString('A B');
+        // Row 0: "A B       "
+
+        // Select from row 0 col 0 to row 0 col 1.
+        // Text after col 1 is 'B' at col 2.
+        final selection = buf.exportSelection(0, 0, 0, 1);
+        expect(selection, equals('A '));
+      },
+    );
+
+    test('exportSelection multi-line, trims trailing spaces at end of row', () {
+      final buf = TerminalBuffer(rows: 3, cols: 10);
+      buf.printString('row0');
+      buf.setCursorPosition(1, 0);
+      buf.printString('row1');
+
+      // Select from 0,0 to 1,9
+      final selection = buf.exportSelection(0, 0, 1, 9);
+      expect(selection, equals('row0\nrow1'));
+    });
+  });
 }
 
 void _expectBufferEquals(List<List<String>> expected, TerminalBuffer buf) {

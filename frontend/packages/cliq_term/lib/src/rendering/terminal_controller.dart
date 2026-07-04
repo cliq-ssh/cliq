@@ -77,7 +77,7 @@ class TerminalController extends ChangeNotifier {
   late TerminalBuffer _back = TerminalBuffer(
     rows: rows,
     cols: cols,
-    maxScrollbackLines: 0,
+    maxScrollbackLines: TerminalBuffer.minMaxScrollbackLines,
     isBackBuffer: true,
   );
 
@@ -312,9 +312,9 @@ class TerminalController extends ChangeNotifier {
     );
   }
 
-  /// Begin text selection at visible [row],[col]
+  /// Begin text selection at absolute [row],[col]
   void startSelection(int row, int col) {
-    final int selectionStartRow = row.clamp(0, max(0, rows - 1));
+    final int selectionStartRow = row.clamp(0, max(0, totalRows - 1));
     final int selectionStartCol = col.clamp(0, max(0, cols - 1));
 
     selection = selection.copyWith(
@@ -328,12 +328,12 @@ class TerminalController extends ChangeNotifier {
     markDirty();
   }
 
-  /// Update the selection end to visible [row],[col]
+  /// Update the selection end to absolute [row],[col]
   void updateSelection(int row, int col) {
     if (!selection.active) return;
 
     selection = selection.copyWith(
-      endRow: row.clamp(0, max(0, rows - 1)),
+      endRow: row.clamp(0, max(0, totalRows - 1)),
       endCol: col.clamp(0, max(0, cols - 1)),
     );
 
@@ -346,7 +346,7 @@ class TerminalController extends ChangeNotifier {
     markDirty();
   }
 
-  /// Return the selected text (if selection active) using visible coordinates.
+  /// Return the selected text (if selection active) using absolute coordinates.
   String? getSelectedText() {
     if (!selection.isSelectionActive) {
       return null;

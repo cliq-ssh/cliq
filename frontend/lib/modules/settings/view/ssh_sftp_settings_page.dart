@@ -5,10 +5,12 @@ import 'package:cliq/shared/provider/file_transfer.provider.dart';
 import 'package:cliq/shared/provider/store.provider.dart';
 import 'package:cliq/shared/utils/constants.dart';
 import 'package:cliq/shared/utils/text_utils.dart';
+import 'package:cliq_term/cliq_term.dart';
 import 'package:cliq_ui/cliq_ui.dart'
     show CliqGridContainer, CliqGridRow, CliqGridColumn;
 import 'package:flutter/cupertino.dart' hide Router;
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:forui/forui.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -29,6 +31,7 @@ class SshSftpSettingsPage extends AbstractSettingsPage {
 
   @override
   Widget buildBody(BuildContext context, WidgetRef ref) {
+    final sshHistorySize = useStore(.sshHistorySize);
     final showHiddenFiles = useStore(.sftpShowHiddenFiles);
     final largeDownloadsWarning = useStore(.sftpLargeDownloadWarning);
     final directoryNotEmptyWarning = useStore(.sftpDirectoryNotEmptyWarning);
@@ -37,6 +40,10 @@ class SshSftpSettingsPage extends AbstractSettingsPage {
     final tempDirSizeFuture = useMemoized(
       () => ref.read(fileTransferProvider.notifier).readTempDirectorySize(),
       [refreshTrigger.value],
+    );
+
+    final sshHistorySizeController = useTextEditingController(
+      text: sshHistorySize.value.toString(),
     );
 
     return SingleChildScrollView(
@@ -49,6 +56,47 @@ class SshSftpSettingsPage extends AbstractSettingsPage {
                   mainAxisAlignment: .center,
                   spacing: 16,
                   children: [
+                    FTileGroup(
+                      label: Text('SSH'),
+                      children: [
+                        FTile(
+                          title: Text('History size'),
+                          subtitle: Text(
+                            'The number of lines you can scroll back to.',
+                          ),
+                          prefix: Icon(LucideIcons.history),
+                          suffix: SizedBox(
+                            width: 150,
+                            child: FTextField(
+                              control: FTextFieldControl.managed(
+                                controller: sshHistorySizeController,
+                              ),
+                              keyboardType: TextInputType.number,
+                              inputFormatters: [
+                                FilteringTextInputFormatter.digitsOnly,
+                              ],
+                              onSubmit: (value) {
+                                var numberOfLines = int.tryParse(value);
+                                numberOfLines ??= sshHistorySize.value;
+                                if (numberOfLines <
+                                    TerminalBuffer.minMaxScrollbackLines) {
+                                  numberOfLines =
+                                      TerminalBuffer.minMaxScrollbackLines;
+                                }
+                                if (numberOfLines >
+                                    TerminalBuffer.maxMaxScrollbackLines) {
+                                  numberOfLines =
+                                      TerminalBuffer.maxMaxScrollbackLines;
+                                }
+                                StoreKey.sshHistorySize.write(numberOfLines);
+                                sshHistorySizeController.text = numberOfLines
+                                    .toString();
+                              },
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
                     FTileGroup(
                       label: Text('SFTP'),
                       children: [

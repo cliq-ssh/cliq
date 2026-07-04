@@ -3,6 +3,7 @@ import 'dart:math';
 import 'package:cliq_term/cliq_term.dart';
 
 import '../../state/charset.state.dart';
+import '../../utils/selection_helper.dart';
 
 class TerminalBufferRow {
   List<Cell> cells;
@@ -35,7 +36,9 @@ class TerminalBufferRow {
 }
 
 class TerminalBuffer {
-  static const int defaultMaxScrollbackLines = 10_000;
+  static const int defaultMaxScrollbackLines = 2_000;
+  static const int minMaxScrollbackLines = 0;
+  static const int maxMaxScrollbackLines = 100_000;
 
   final int rows;
   final int cols;
@@ -661,33 +664,53 @@ class TerminalBuffer {
     return sb.toString();
   }
 
-  /// Exports a rectangular selection given by visible start/end coordinates.
+  /// Exports a selection given by visible start/end coordinates.
   /// Coordinates are visible row/col indices (0..rows-1). The method will
   /// normalize start/end ordering and return the selected text with newlines
-  /// between rows.
+  /// between rows. Trailing whitespace in each row is trimmed.
   String exportSelection(int startRow, int startCol, int endRow, int endCol) {
-    // normalize ordering
-    var r1 = startRow.clamp(0, rows - 1);
-    var r2 = endRow.clamp(0, rows - 1);
-    var c1 = startCol.clamp(0, cols - 1);
-    var c2 = endCol.clamp(0, cols - 1);
-    if (r1 > r2) {
-      final t = r1;
-      r1 = r2;
-      r2 = t;
-    }
-    if (c1 > c2) {
-      final t = c1;
-      c1 = c2;
-      c2 = t;
-    }
+    final bounds = SelectionHelper.normalize(
+      startRow: startRow,
+      startCol: startCol,
+      endRow: endRow,
+      endCol: endCol,
+      maxRows: length,
+      maxCols: cols,
+    );
 
     final sb = StringBuffer();
-    for (var r = r1; r <= r2; r++) {
-      for (var c = c1; c <= c2; c++) {
-        sb.write(getCell(r, c).ch);
+    for (var r = bounds.startRow; r <= bounds.endRow; r++) {
+      final rowSel = SelectionHelper.getRowSelection(
+        row: r,
+        bounds: bounds,
+        maxCols: cols,
+      );
+
+      if (rowSel.isEmpty) continue;
+
+      final rowSb = StringBuffer();
+      for (var c = rowSel.start; c <= rowSel.end; c++) {
+        rowSb.write(getAbsoluteCell(r, c).ch);
       }
-      if (r < r2) sb.writeln();
+
+      String rowText = rowSb.toString();
+
+      // Only trim trailing whitespace if there's no non-whitespace text after the selection in this row.
+      // This preserves intentional trailing spaces within a line while removing trailing spaces at the end of a line.
+      bool hasTextAfterSelection = false;
+      for (var c = rowSel.end + 1; c < cols; c++) {
+        if (getAbsoluteCell(r, c).ch != ' ') {
+          hasTextAfterSelection = true;
+          break;
+        }
+      }
+
+      if (!hasTextAfterSelection) {
+        rowText = rowText.trimRight();
+      }
+
+      sb.write(rowText);
+      if (r < bounds.endRow) sb.writeln();
     }
     return sb.toString();
   }

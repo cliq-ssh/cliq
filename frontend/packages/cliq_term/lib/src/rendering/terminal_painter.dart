@@ -85,7 +85,7 @@ class TerminalPainter extends CustomPainter {
       flushBg(cols);
     }
 
-    // Draw selection overlay if active (selection coordinates are in visible rows)
+    // Draw selection overlay if active (selection coordinates are in absolute rows)
     if (controller.selection.isSelectionActive) {
       // normalize selection using helper
       final bounds = SelectionHelper.normalize(
@@ -93,17 +93,14 @@ class TerminalPainter extends CustomPainter {
         startCol: controller.selection.startCol!,
         endRow: controller.selection.endRow!,
         endCol: controller.selection.endCol!,
-        maxRows: controller.rows,
+        maxRows: totalRows,
         maxCols: cols,
       );
 
       // render selection overlay for each row
-      for (var vr = bounds.startRow; vr <= bounds.endRow; vr++) {
-        final absRow = controller.activeBuffer.currentScrollback + vr;
-        if (absRow < firstRow || absRow > lastRow) continue;
-
+      for (var absRow = bounds.startRow; absRow <= bounds.endRow; absRow++) {
         final rowSel = SelectionHelper.getRowSelection(
-          row: vr,
+          row: absRow,
           bounds: bounds,
           maxCols: cols,
         );

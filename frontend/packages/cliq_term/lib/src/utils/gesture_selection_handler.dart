@@ -4,31 +4,29 @@ import 'package:flutter/gestures.dart';
 class GestureSelectionHandler {
   const GestureSelectionHandler._();
 
-  /// Calculate the visible row and column from a pointer position.
+  /// Calculate the absolute row and column from a pointer position.
   ///
   /// [localPosition] - the local position of the pointer (relative to widget)
   /// [scrollOffset] - the current scroll offset
   /// [cellWidth] - the width of a single character cell
   /// [cellHeight] - the height of a single character cell
-  /// [currentScrollback] - the current scrollback offset in the buffer
-  /// [maxRows] - the maximum number of visible rows
-  /// [maxCols] - the maximum number of visible columns
-  static (int row, int col) calculateVisibleCoordinates({
+  /// [totalRows] - the total number of rows in the buffer
+  /// [maxCols] - the maximum number of columns
+  static (int row, int col) calculateAbsoluteCoordinates({
     required Offset localPosition,
     required double scrollOffset,
     required double cellWidth,
     required double cellHeight,
-    required int currentScrollback,
-    required int maxRows,
+    required int totalRows,
     required int maxCols,
   }) {
     final absY = localPosition.dy + scrollOffset;
-    final row = (absY / cellHeight).floor() - currentScrollback;
+    final row = (absY / cellHeight).floor();
     final col = (localPosition.dx / cellWidth).floor();
 
-    final visRow = row.clamp(0, maxRows - 1);
-    final visCol = col.clamp(0, maxCols - 1);
+    final absRow = row.clamp(0, totalRows - 1);
+    final absCol = col.clamp(0, maxCols - 1);
 
-    return (visRow, visCol);
+    return (absRow, absCol);
   }
 }
