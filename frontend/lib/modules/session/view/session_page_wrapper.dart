@@ -36,16 +36,21 @@ class _SessionPageState extends ConsumerState<SessionPageWrapper> {
 
   /// Builds a [SplitLeaf] widget for the given [ShellSession].
   SplitLeaf<ShellSession> _buildLeaf(ShellSession s, {required bool isSingle}) {
-    return SplitLeaf(
+    late final SplitLeaf<ShellSession> leaf;
+    leaf = SplitLeaf(
       value: s,
       builder: (context, focus) {
-        final key = ValueKey('session--${s.type.name}-${s.id}');
         return switch (s.type) {
-          .ssh => SshSessionPage(key: key, sessionId: s.id, focusNode: focus),
-          .sftp => SftpSessionPage(key: key, sessionId: s.id),
+          .ssh => SshSessionPage(
+            key: leaf.pageKey,
+            sessionId: s.id,
+            focusNode: focus,
+          ),
+          .sftp => SftpSessionPage(key: leaf.pageKey, sessionId: s.id),
         };
       },
     );
+    return leaf;
   }
 
   /// Replaces the target leaf node with the replacement node in the given tree.

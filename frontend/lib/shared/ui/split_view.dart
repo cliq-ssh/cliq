@@ -19,6 +19,7 @@ class SplitLeaf<T extends Object> extends SplitNode<T> {
   final T value;
   final Widget Function(BuildContext, FocusNode) builder;
   final FocusNode focusNode = FocusNode();
+  final GlobalKey pageKey = GlobalKey();
 
   SplitLeaf({required this.value, required this.builder});
 
