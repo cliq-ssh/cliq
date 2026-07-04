@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:math';
 
 import 'package:cliq_term/cliq_term.dart';
@@ -19,6 +20,8 @@ class EscapeParser {
   final _queue = ByteQueue();
 
   EscapeParser({required this.controller});
+
+  int get queueLength => _queue.length;
 
   late final Map<int, CcHandler> _ccHandlers = {
     0x05: _ccAnswerback,
@@ -106,15 +109,14 @@ class EscapeParser {
     final sw = Stopwatch()..start();
 
     while (_queue.isNotEmpty) {
-      // Check every 100 characters to see if we should yield
-      for (int i = 0; i < 100 && _queue.isNotEmpty; i++) {
+      // Check every 5000 characters to see if we should yield
+      for (int i = 0; i < 5000 && _queue.isNotEmpty; i++) {
         _processOne();
       }
 
-      if (sw.elapsedMilliseconds > 2) {
+      if (sw.elapsedMilliseconds > 4) {
         // Yield to the event loop so the UI thread remains responsive.
-        // We use a short delay to allow the renderer and other tasks to run.
-        Future.delayed(const Duration(milliseconds: 1), _process);
+        Timer.run(_process);
         controller.markDirty();
         return;
       }

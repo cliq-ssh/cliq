@@ -6,7 +6,6 @@ import 'package:cliq_term/src/utils/selection_helper.dart';
 import 'package:cliq_term/src/utils/keyboard_helper.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
-import 'package:flutter/scheduler.dart';
 import 'package:flutter/services.dart';
 
 class TerminalView extends StatefulWidget {
@@ -66,6 +65,15 @@ class _TerminalViewState extends State<TerminalView> {
   }
 
   @override
+  void didUpdateWidget(TerminalView oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.controller != widget.controller) {
+      oldWidget.controller.removeListener(_onUpdate);
+      widget.controller.addListener(_onUpdate);
+    }
+  }
+
+  @override
   void dispose() {
     widget.controller.removeListener(_onUpdate);
     _focusNode.removeListener(_focusListener);
@@ -77,27 +85,21 @@ class _TerminalViewState extends State<TerminalView> {
   }
 
   void _onUpdate() {
-    if (_isUpdatePending) return;
+    if (!mounted || _isUpdatePending) return;
     _isUpdatePending = true;
 
-    // Batch updates to occur at most once per frame.
-    SchedulerBinding.instance.addPostFrameCallback((_) {
-      if (!mounted) return;
+    setState(() {});
 
-      setState(() {
-        _isUpdatePending = false;
-      });
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _isUpdatePending = false;
+      if (!mounted || !_scrollController.hasClients) return;
 
-      // After building, handle auto-scroll.
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (!mounted || !_scrollController.hasClients) return;
-        if (_userScrolledAwayFromBottom) return;
-
+      if (!_userScrolledAwayFromBottom) {
         final maxExt = _scrollController.position.maxScrollExtent;
         if (maxExt > 0) {
           _scrollController.jumpTo(maxExt);
         }
-      });
+      }
     });
   }
 
@@ -217,8 +219,9 @@ class _TerminalViewState extends State<TerminalView> {
     double cellW,
     double cellH,
   ) {
-    final scrollOffset =
-        _scrollController.hasClients ? _scrollController.offset : 0.0;
+    final scrollOffset = _scrollController.hasClients
+        ? _scrollController.offset
+        : 0.0;
     final totalLocalY = localPosition.dy + scrollOffset;
 
     final absRow = (totalLocalY / cellH).floor();
@@ -260,6 +263,8 @@ class TerminalRowWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final row = controller.activeBuffer.getAbsoluteRow(absoluteRowIndex);
+
     return CustomPaint(
       size: Size(controller.cols * cellWidth, cellHeight),
       painter: _SingleRowPainter(
@@ -268,6 +273,7 @@ class TerminalRowWidget extends StatelessWidget {
         cellWidth: cellWidth,
         cellHeight: cellHeight,
         readOnly: readOnly,
+        rowRevision: row.revision,
       ),
     );
   }
@@ -279,6 +285,7 @@ class _SingleRowPainter extends CustomPainter {
   final double cellWidth;
   final double cellHeight;
   final bool readOnly;
+  final int rowRevision;
 
   _SingleRowPainter({
     required this.controller,
@@ -286,7 +293,8 @@ class _SingleRowPainter extends CustomPainter {
     required this.cellWidth,
     required this.cellHeight,
     required this.readOnly,
-  }) : super(repaint: controller);
+    required this.rowRevision,
+  });
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -294,6 +302,8 @@ class _SingleRowPainter extends CustomPainter {
     final cells = row.cells;
     final cols = controller.activeBuffer.cols;
     final rowCols = cells.length;
+
+    // ... rest of paint method
 
     // 1. Backgrounds
     final bgPaint = Paint();
@@ -492,6 +502,9 @@ class _SingleRowPainter extends CustomPainter {
   bool shouldRepaint(covariant _SingleRowPainter oldDelegate) {
     return oldDelegate.controller != controller ||
         oldDelegate.absoluteRowIndex != absoluteRowIndex ||
-        oldDelegate.readOnly != readOnly;
+        oldDelegate.readOnly != readOnly ||
+        oldDelegate.rowRevision != rowRevision ||
+        controller.selection.isSelectionActive ||
+        controller.cursor.visible;
   }
 }

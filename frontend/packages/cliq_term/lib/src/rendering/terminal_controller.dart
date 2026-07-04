@@ -289,6 +289,9 @@ class TerminalController extends ChangeNotifier {
     _escapeParser.write(input);
   }
 
+  /// Returns the number of characters currently waiting to be parsed.
+  int get pendingInputLength => _escapeParser.queueLength;
+
   /// Sets the cursor position to the specified [row] and [col].
   void setCursorPosition(int row, int col) {
     activeBuffer.cursorRow = row;

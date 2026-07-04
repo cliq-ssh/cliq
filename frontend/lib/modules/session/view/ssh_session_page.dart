@@ -135,22 +135,96 @@ class _SshSessionPageState extends ConsumerState<SshSessionPage>
           sshSession?.stdin.add(Uint8List.fromList(s.codeUnits));
         };
 
-        StreamSubscription? stdoutSub =
+        StreamSubscription? stdoutSub;
+        StreamSubscription? stderrSub;
+
+        final List<Uint8List> stdoutQueue = [];
+        bool isStdoutPaused = false;
+
+        void processStdout() {
+          final controller = terminalController.value;
+          if (controller == null || stdoutQueue.isEmpty) return;
+
+          // Only process a few chunks per call to ensure input events can get through
+          int processed = 0;
+          while (stdoutQueue.isNotEmpty &&
+              controller.pendingInputLength < 500 &&
+              processed < 4) {
+            final data = stdoutQueue.removeAt(0);
+            controller.feed(String.fromCharCodes(data));
+            processed++;
+          }
+
+          if (stdoutQueue.isEmpty && isStdoutPaused) {
+            isStdoutPaused = false;
+            stdoutSub?.resume();
+          }
+        }
+
+        final List<Uint8List> stderrQueue = [];
+        bool isStderrPaused = false;
+
+        void processStderr() {
+          final controller = terminalController.value;
+          if (controller == null || stderrQueue.isEmpty) return;
+
+          int processed = 0;
+          while (stderrQueue.isNotEmpty &&
+              controller.pendingInputLength < 500 &&
+              processed < 4) {
+            final data = stderrQueue.removeAt(0);
+            controller.feed(String.fromCharCodes(data));
+            processed++;
+          }
+
+          if (stderrQueue.isEmpty && isStderrPaused) {
+            isStderrPaused = false;
+            stderrSub?.resume();
+          }
+        }
+
+        void onTerminalUpdate() {
+          processStdout();
+          processStderr();
+        }
+
+        terminalController.value?.addListener(onTerminalUpdate);
+
+        stdoutSub =
             session.stdoutSub ??
             sshSession?.stdout.listen((data) {
-              final controller = terminalController.value;
-              if (controller != null) {
-                controller.feed(String.fromCharCodes(data));
+              // Split large packets into 1KB chunks to prevent event loop blocking
+              const int chunkSize = 1024;
+              for (int i = 0; i < data.length; i += chunkSize) {
+                final end = (i + chunkSize < data.length)
+                    ? i + chunkSize
+                    : data.length;
+                stdoutQueue.add(data.sublist(i, end));
               }
+
+              if (stdoutQueue.length > 20 && !isStdoutPaused) {
+                isStdoutPaused = true;
+                stdoutSub?.pause();
+              }
+              processStdout();
             });
 
-        StreamSubscription? stderrSub =
+        stderrSub =
             session.stderrSub ??
             sshSession?.stderr.listen((data) {
-              final controller = terminalController.value;
-              if (controller != null) {
-                controller.feed(String.fromCharCodes(data));
+              const int chunkSize = 1024;
+              for (int i = 0; i < data.length; i += chunkSize) {
+                final end = (i + chunkSize < data.length)
+                    ? i + chunkSize
+                    : data.length;
+                stderrQueue.add(data.sublist(i, end));
               }
+
+              if (stderrQueue.length > 20 && !isStderrPaused) {
+                isStderrPaused = true;
+                stderrSub?.pause();
+              }
+              processStderr();
             });
 
         ref
