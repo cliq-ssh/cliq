@@ -36,10 +36,7 @@ dependencies:
   forui: 0.23.0
   forui_hooks: 0.23.0
   uuid: 4.5.3
-  simple_icons:
-    git:
-      url: https://github.com/jlnrrg/simple_icons.git
-      ref: 5e5a86a45ddcaacdb1a785a1593501658e12e9dd
+  simple_icons: ^16.23.0
   url_launcher: ^6.3.2
   crypto: ^3.0.7
   file_selector: ^1.1.0
@@ -58,8 +55,6 @@ dev_dependencies:
   flutter_native_splash: 2.4.8
 
 flutter:
-  uses-material-design: true
-
   fonts:
     - family: SourceCodePro
       fonts:
