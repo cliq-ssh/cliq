@@ -1357,15 +1357,6 @@ class _SftpSessionPageState extends ConsumerState<SftpSessionPage>
                                 icon: LucideIcons.folderOpen,
                                 onPress: () => openFolder(file),
                               ),
-                            .new(
-                              label: 'Download',
-                              icon: LucideIcons.download,
-                              onPress: () async {
-                                final location = await getDirectoryPath();
-                                if (location == null) return;
-                                download(file, id, location);
-                              },
-                            ),
                             if (!_ignoredSelectableFilenames.contains(
                               file.filename,
                             )) ...[
@@ -1373,6 +1364,15 @@ class _SftpSessionPageState extends ConsumerState<SftpSessionPage>
                                 label: 'Rename',
                                 icon: LucideIcons.pencilLine,
                                 onPress: () => renameItemId.value = id,
+                              ),
+                              .new(
+                                label: 'Download',
+                                icon: LucideIcons.download,
+                                onPress: () async {
+                                  final location = await getDirectoryPath();
+                                  if (location == null) return;
+                                  download(file, id, location);
+                                },
                               ),
                               .new(
                                 label: 'Delete',
