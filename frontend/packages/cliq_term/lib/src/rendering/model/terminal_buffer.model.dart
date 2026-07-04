@@ -77,6 +77,10 @@ class TerminalBuffer {
   int get currentScrollback => _buffer.length - rows;
 
   TerminalBuffer resize({required int newRows, required int newCols}) {
+    // Assert that the new dimensions are valid
+    newRows = max(1, newRows);
+    newCols = max(1, newCols);
+
     final newBuffer = TerminalBuffer(
       rows: newRows,
       cols: newCols,
@@ -89,10 +93,11 @@ class TerminalBuffer {
     newBuffer.isAutoWrapMode = isAutoWrapMode;
     newBuffer.tabStops = Set.from(tabStops.where((s) => s < newCols));
 
-    // Clear initial empty rows and copy everything from the old buffer
+    // Preserve history and visible rows by copying all rows from the old ring buffer
+    final oldCurrentScrollback = currentScrollback;
     newBuffer._buffer.clear();
-    final minCols = min(cols, newCols);
 
+    final minCols = min(cols, newCols);
     for (var i = 0; i < _buffer.length; i++) {
       final oldRow = _buffer[i];
       final newRow = TerminalBufferRow(newCols);
@@ -102,12 +107,22 @@ class TerminalBuffer {
       newBuffer._buffer.add(newRow);
     }
 
+    // Ensure we have at least "newRows" in the buffer to satisfy currentScrollback calculations
     while (newBuffer.length < newRows) {
       newBuffer._buffer.add(TerminalBufferRow(newCols));
     }
 
-    newBuffer.cursorRow = cursorRow.clamp(0, newRows - 1);
+    // Adjust cursor position relative to the content. If the screen grows, the visible
+    // content shifts "up" in the viewport relative to the bottom, so the cursorRow
+    // must be adjusted based on the change in currentScrollback
+    final absCursorRow = cursorRow + oldCurrentScrollback;
+    final newCurrentScrollback = newBuffer.currentScrollback;
+    newBuffer.cursorRow = (absCursorRow - newCurrentScrollback).clamp(
+      0,
+      newRows - 1,
+    );
     newBuffer.cursorCol = cursorCol.clamp(0, newCols - 1);
+
     return newBuffer;
   }
 
