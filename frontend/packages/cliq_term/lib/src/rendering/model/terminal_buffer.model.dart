@@ -610,7 +610,7 @@ class TerminalBuffer {
       startCol: startCol,
       endRow: endRow,
       endCol: endCol,
-      maxRows: rows,
+      maxRows: length,
       maxCols: cols,
     );
 
@@ -626,7 +626,7 @@ class TerminalBuffer {
 
       final rowSb = StringBuffer();
       for (var c = rowSel.start; c <= rowSel.end; c++) {
-        rowSb.write(getCell(r, c).ch);
+        rowSb.write(getAbsoluteCell(r, c).ch);
       }
 
       String rowText = rowSb.toString();
@@ -635,7 +635,7 @@ class TerminalBuffer {
       // This preserves intentional trailing spaces within a line while removing trailing spaces at the end of a line.
       bool hasTextAfterSelection = false;
       for (var c = rowSel.end + 1; c < cols; c++) {
-        if (getCell(r, c).ch != ' ') {
+        if (getAbsoluteCell(r, c).ch != ' ') {
           hasTextAfterSelection = true;
           break;
         }

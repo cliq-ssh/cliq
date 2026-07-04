@@ -162,35 +162,31 @@ class _TerminalViewState extends State<TerminalView> {
             onPanStart: (details) {
               _focusNode.requestFocus();
               final (
-                visRow,
-                visCol,
-              ) = GestureSelectionHandler.calculateVisibleCoordinates(
+                absRow,
+                absCol,
+              ) = GestureSelectionHandler.calculateAbsoluteCoordinates(
                 localPosition: details.localPosition,
                 scrollOffset: _scrollController.offset,
                 cellWidth: cellW,
                 cellHeight: cellH,
-                currentScrollback:
-                    widget.controller.activeBuffer.currentScrollback,
-                maxRows: widget.controller.rows,
+                totalRows: widget.controller.totalRows,
                 maxCols: widget.controller.cols,
               );
-              widget.controller.startSelection(visRow, visCol);
+              widget.controller.startSelection(absRow, absCol);
             },
             onPanUpdate: (details) {
               final (
-                visRow,
-                visCol,
-              ) = GestureSelectionHandler.calculateVisibleCoordinates(
+                absRow,
+                absCol,
+              ) = GestureSelectionHandler.calculateAbsoluteCoordinates(
                 localPosition: details.localPosition,
                 scrollOffset: _scrollController.offset,
                 cellWidth: cellW,
                 cellHeight: cellH,
-                currentScrollback:
-                    widget.controller.activeBuffer.currentScrollback,
-                maxRows: widget.controller.rows,
+                totalRows: widget.controller.totalRows,
                 maxCols: widget.controller.cols,
               );
-              widget.controller.updateSelection(visRow, visCol);
+              widget.controller.updateSelection(absRow, absCol);
             },
             onPanEnd: (details) {
               // selection remains active until user clears or starts another selection
