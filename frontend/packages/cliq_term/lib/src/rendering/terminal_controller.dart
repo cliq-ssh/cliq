@@ -77,7 +77,7 @@ class TerminalController extends ChangeNotifier {
   late TerminalBuffer _back = TerminalBuffer(
     rows: rows,
     cols: cols,
-    maxScrollbackLines: 0,
+    maxScrollbackLines: TerminalBuffer.minMaxScrollbackLines,
     isBackBuffer: true,
   );
 
