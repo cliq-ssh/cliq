@@ -161,7 +161,7 @@ class CreateOrEditKeyView extends HookConsumerWidget {
                 ],
               ),
               maxLines: 1,
-              hint: 'ssh-rsa AAAAB3NzaC1yc2EAAAADAQA...',
+              hint: 'keys_import_public_key_placeholder'.tr(),
             ),
             FTextFormField(
               control: .managed(controller: privateKeyCtrl),
