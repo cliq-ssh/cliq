@@ -5,10 +5,12 @@ import 'package:cliq/shared/provider/file_transfer.provider.dart';
 import 'package:cliq/shared/provider/store.provider.dart';
 import 'package:cliq/shared/utils/constants.dart';
 import 'package:cliq/shared/utils/text_utils.dart';
+import 'package:cliq_term/cliq_term.dart';
 import 'package:cliq_ui/cliq_ui.dart'
     show CliqGridContainer, CliqGridRow, CliqGridColumn;
 import 'package:flutter/cupertino.dart' hide Router;
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:forui/forui.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -29,6 +31,7 @@ class SshSftpSettingsPage extends AbstractSettingsPage {
 
   @override
   Widget buildBody(BuildContext context, WidgetRef ref) {
+    final sshScrollbackSize = useStore(.sshScrollbackSize);
     final showHiddenFiles = useStore(.sftpShowHiddenFiles);
     final largeDownloadsWarning = useStore(.sftpLargeDownloadWarning);
     final directoryNotEmptyWarning = useStore(.sftpDirectoryNotEmptyWarning);
@@ -38,6 +41,23 @@ class SshSftpSettingsPage extends AbstractSettingsPage {
       () => ref.read(fileTransferProvider.notifier).readTempDirectorySize(),
       [refreshTrigger.value],
     );
+
+    final sshScrollbackSizeController = useTextEditingController(
+      text: sshScrollbackSize.value.toString(),
+    );
+
+    onScrollbackSubmit(String value) {
+      int amount = int.tryParse(value) ?? sshScrollbackSize.value;
+
+      if (amount < TerminalBuffer.minMaxScrollbackLines) {
+        amount = TerminalBuffer.minMaxScrollbackLines;
+      }
+      if (amount > TerminalBuffer.maxMaxScrollbackLines) {
+        amount = TerminalBuffer.maxMaxScrollbackLines;
+      }
+      StoreKey.sshScrollbackSize.write(amount);
+      sshScrollbackSizeController.text = amount.toString();
+    }
 
     return SingleChildScrollView(
       child: CliqGridContainer(
@@ -49,6 +69,31 @@ class SshSftpSettingsPage extends AbstractSettingsPage {
                   mainAxisAlignment: .center,
                   spacing: 16,
                   children: [
+                    FTileGroup(
+                      label: Text('SSH'),
+                      children: [
+                        FTile(
+                          title: Text('Scrollback'),
+                          subtitle: Text(
+                            'The maximum number of lines to keep in the terminal',
+                          ),
+                          prefix: Icon(LucideIcons.history),
+                          suffix: SizedBox(
+                            width: 150,
+                            child: FTextField(
+                              control: FTextFieldControl.managed(
+                                controller: sshScrollbackSizeController,
+                              ),
+                              keyboardType: TextInputType.number,
+                              inputFormatters: [
+                                FilteringTextInputFormatter.digitsOnly,
+                              ],
+                              onSubmit: onScrollbackSubmit,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
                     FTileGroup(
                       label: Text('SFTP'),
                       children: [

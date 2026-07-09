@@ -77,7 +77,7 @@ class TerminalController extends ChangeNotifier {
   late TerminalBuffer _back = TerminalBuffer(
     rows: rows,
     cols: cols,
-    maxScrollbackLines: 0,
+    maxScrollbackLines: TerminalBuffer.minMaxScrollbackLines,
     isBackBuffer: true,
   );
 
@@ -103,20 +103,21 @@ class TerminalController extends ChangeNotifier {
     required this._typography,
     required this._theme,
     this.cursorBlinkInterval = const Duration(milliseconds: 600),
-    this.maxScrollbackLines = 1000,
+    this.maxScrollbackLines = TerminalBuffer.defaultMaxScrollbackLines,
     this.debugLogging = false,
     this.onInput,
     this.onResize,
     this.onTitleChange,
     this.onBell,
-    this.rows = 0,
-    this.cols = 0,
+    this.rows = 24,
+    this.cols = 80,
   });
 
   TerminalTheme get theme => _theme;
   TerminalTypography get typography => _typography;
   TerminalBuffer get activeBuffer => backBufferActive ? _back : _front;
-  int get totalRows => _front.currentScrollback + rows;
+  int get totalRows =>
+      backBufferActive ? rows : (_front.currentScrollback + rows);
 
   /// Automatically resizes the terminal based on the provided [size] and current typography settings.
   void fitResize(Size size) {
@@ -263,9 +264,9 @@ class TerminalController extends ChangeNotifier {
     );
   }
 
-  /// Begin text selection at visible [row],[col]
+  /// Begin text selection at absolute [row],[col]
   void startSelection(int row, int col) {
-    final int selectionStartRow = row.clamp(0, max(0, rows - 1));
+    final int selectionStartRow = row.clamp(0, max(0, totalRows - 1));
     final int selectionStartCol = col.clamp(0, max(0, cols - 1));
 
     selection = selection.copyWith(
@@ -279,12 +280,12 @@ class TerminalController extends ChangeNotifier {
     notifyListeners();
   }
 
-  /// Update the selection end to visible [row],[col]
+  /// Update the selection end to absolute [row],[col]
   void updateSelection(int row, int col) {
     if (!selection.active) return;
 
     selection = selection.copyWith(
-      endRow: row.clamp(0, max(0, rows - 1)),
+      endRow: row.clamp(0, max(0, totalRows - 1)),
       endCol: col.clamp(0, max(0, cols - 1)),
     );
 
@@ -297,7 +298,7 @@ class TerminalController extends ChangeNotifier {
     notifyListeners();
   }
 
-  /// Return the selected text (if selection active) using visible coordinates.
+  /// Return the selected text (if selection active) using absolute coordinates.
   String? getSelectedText() {
     if (!selection.isSelectionActive) {
       return null;

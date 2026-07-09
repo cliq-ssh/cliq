@@ -38,8 +38,6 @@ class _SshSessionPageState extends ConsumerState<SshSessionPage>
   Widget build(BuildContext context) {
     super.build(context);
 
-    final size = MediaQuery.of(context).size;
-
     final session = ref
         .watch(sessionProvider.notifier)
         .getSessionById(widget.sessionId)!;
@@ -53,6 +51,7 @@ class _SshSessionPageState extends ConsumerState<SshSessionPage>
     final themes = ref.watch(terminalThemeProvider);
 
     final shortcuts = useStore(.shortcuts);
+    final sshScrollbackSize = useStore(.sshScrollbackSize);
 
     final effectiveTerminalTheme = session.connection.getEffectiveTerminalTheme(
       themes,
@@ -69,6 +68,7 @@ class _SshSessionPageState extends ConsumerState<SshSessionPage>
         theme: effectiveTerminalTheme.toTerminalTheme(),
         typography: getEffectiveTerminalTypography(),
         debugLogging: kDebugMode,
+        maxScrollbackLines: sshScrollbackSize.value,
         onResize: (rows, cols) {
           session.sshSession?.resizeTerminal(cols, rows);
           // TODO: resize overlay
@@ -123,8 +123,6 @@ class _SshSessionPageState extends ConsumerState<SshSessionPage>
             .read(sessionProvider.notifier)
             .spawnSsh(session.id, client, terminalController.value!);
 
-        terminalController.value!.fitResize(size);
-
         // close SSH session when terminal is closed
         sshSession?.done.then((_) {
           if (!context.mounted) return;
@@ -132,8 +130,6 @@ class _SshSessionPageState extends ConsumerState<SshSessionPage>
               .read(sessionProvider.notifier)
               .closeSessionAndMaybeGo(NavigationShell.of(context), session.id);
         });
-
-        terminalController.value!.fitResize(size);
 
         terminalController.value!.onInput = (s) {
           sshSession?.stdin.add(Uint8List.fromList(s.codeUnits));
