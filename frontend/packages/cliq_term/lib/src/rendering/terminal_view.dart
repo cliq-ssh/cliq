@@ -86,6 +86,15 @@ class _TerminalViewState extends State<TerminalView> {
     });
   }
 
+  void _scrollToBottom() {
+    _userScrolledAwayFromBottom = false;
+    if (!_scrollController.hasClients) return;
+    final maxExt = _scrollController.position.maxScrollExtent;
+    if (maxExt > 0) {
+      _scrollController.jumpTo(maxExt);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return LayoutBuilder(
@@ -125,6 +134,7 @@ class _TerminalViewState extends State<TerminalView> {
               }
 
               if (widget.pasteShortcut?.isPressed(event) == true) {
+                _scrollToBottom();
                 widget.controller.clearSelection();
                 Clipboard.getData(Clipboard.kTextPlain).then((clip) {
                   String text = clip?.text ?? '';
@@ -145,6 +155,7 @@ class _TerminalViewState extends State<TerminalView> {
                 return .handled;
               }
 
+              _scrollToBottom();
               widget.controller.clearSelection();
               widget.controller.handleKey(event);
               return .handled;
@@ -162,35 +173,31 @@ class _TerminalViewState extends State<TerminalView> {
             onPanStart: (details) {
               _focusNode.requestFocus();
               final (
-                visRow,
-                visCol,
-              ) = GestureSelectionHandler.calculateVisibleCoordinates(
+                absRow,
+                absCol,
+              ) = GestureSelectionHandler.calculateAbsoluteCoordinates(
                 localPosition: details.localPosition,
                 scrollOffset: _scrollController.offset,
                 cellWidth: cellW,
                 cellHeight: cellH,
-                currentScrollback:
-                    widget.controller.activeBuffer.currentScrollback,
-                maxRows: widget.controller.rows,
+                totalRows: widget.controller.totalRows,
                 maxCols: widget.controller.cols,
               );
-              widget.controller.startSelection(visRow, visCol);
+              widget.controller.startSelection(absRow, absCol);
             },
             onPanUpdate: (details) {
               final (
-                visRow,
-                visCol,
-              ) = GestureSelectionHandler.calculateVisibleCoordinates(
+                absRow,
+                absCol,
+              ) = GestureSelectionHandler.calculateAbsoluteCoordinates(
                 localPosition: details.localPosition,
                 scrollOffset: _scrollController.offset,
                 cellWidth: cellW,
                 cellHeight: cellH,
-                currentScrollback:
-                    widget.controller.activeBuffer.currentScrollback,
-                maxRows: widget.controller.rows,
+                totalRows: widget.controller.totalRows,
                 maxCols: widget.controller.cols,
               );
-              widget.controller.updateSelection(visRow, visCol);
+              widget.controller.updateSelection(absRow, absCol);
             },
             onPanEnd: (details) {
               // selection remains active until user clears or starts another selection

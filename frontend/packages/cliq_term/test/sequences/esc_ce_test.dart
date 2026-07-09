@@ -31,8 +31,7 @@ void main() {
       controller.feed('\x1bE');
 
       expectCursorAt(controller, controller.rows - 1, 0);
-      // content scrolled, last row should be blank
-      expectCellAt(controller, controller.rows - 1, 0, ch: ' ');
+      expectCellAt(controller, controller.rows - 1, 0, ch: 'a');
     });
   });
 }

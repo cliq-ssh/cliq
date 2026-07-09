@@ -36,16 +36,13 @@ dependencies:
   forui: 0.23.0
   forui_hooks: 0.23.0
   uuid: 4.5.3
-  simple_icons:
-    git:
-      url: https://github.com/jlnrrg/simple_icons.git
-      ref: 5e5a86a45ddcaacdb1a785a1593501658e12e9dd
+  simple_icons: ^16.23.0
   url_launcher: ^6.3.2
   crypto: ^3.0.7
   file_selector: ^1.1.0
   sodium: ^4.0.2+1
   pointycastle: ^4.0.0
-  window_manager: ^0.5.1
+  window_manager: ^0.5.2
   open_app_file: ^4.0.5
   easy_localization: ^3.0.8
 dev_dependencies:
@@ -54,13 +51,11 @@ dev_dependencies:
 
   flutter_lints: ^6.0.0
   drift_dev: 2.34.0
-  build_runner: ^2.15.0
+  build_runner: ^2.15.1
   flutter_launcher_icons: ^0.14.4
   flutter_native_splash: 2.4.8
 
 flutter:
-  uses-material-design: true
-
   assets:
     - assets/translations/
 
