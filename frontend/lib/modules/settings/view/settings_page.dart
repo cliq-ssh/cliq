@@ -1,5 +1,5 @@
 import 'package:cliq/modules/settings/provider/sync.provider.dart';
-import 'package:cliq/modules/settings/view/i10n_settings_page.dart';
+import 'package:cliq/modules/settings/view/i18n_settings_page.dart';
 import 'package:cliq/modules/settings/view/identities_settings_page.dart';
 import 'package:cliq/modules/settings/view/keys_settings_page.dart';
 import 'package:cliq/modules/settings/view/known_hosts_settings.dart';
@@ -124,7 +124,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                             suffix: Icon(LucideIcons.chevronRight),
                             title: Text('language'.tr()),
                             onPress: () => context.pushPath(
-                              I10nSettingsPage.pagePath.build(),
+                              I18nSettingsPage.pagePath.build(),
                             ),
                           ),
                           if (PlatformUtils.isDesktop)

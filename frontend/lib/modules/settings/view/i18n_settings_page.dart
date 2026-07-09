@@ -11,13 +11,13 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 
 import '../../../shared/model/page_path.model.dart';
 
-class I10nSettingsPage extends AbstractSettingsPage {
+class I18nSettingsPage extends AbstractSettingsPage {
   static const PagePathBuilder pagePath = PagePathBuilder.child(
     parent: SettingsPage.pagePath,
-    path: 'i10n',
+    path: 'i18n',
   );
 
-  const I10nSettingsPage({super.key});
+  const I18nSettingsPage({super.key});
 
   @override
   String get title => 'language'.tr();

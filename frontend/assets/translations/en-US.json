@@ -13,6 +13,9 @@
   },
   "select_all": "Select All",
   "deselect_all": "Deselect All",
+  "theme_mode_light": "Light",
+  "theme_mode_dark": "Dark",
+  "theme_mode_system": "System",
   "settings": "Settings",
   "sessions": "Sessions",
   "session_new": "New Session",
@@ -119,8 +122,42 @@
   "terminal_themes_import_success": "Theme imported successfully",
   "app": "App",
   "appearance": "Appearance",
+  "appearance_navigation_position": "Navigation Position",
+  "appearance_navigation_position_subtitle": "Select the position of the desktop navigation bar.",
+  "appearance_navigation_position_left": "Left",
+  "appearance_navigation_position_top": "Top",
+  "appearance_theme_mode": "Theme Mode",
+  "appearance_theme_mode_subtitle": "Select the theme mode for the application.",
+  "appearance_color_theme": "Color Theme",
+  "appearance_color_theme_subtitle": "Select the color theme for the application.",
+  "appearance_color_theme_color": {
+    "zinc": "Zinc",
+    "slate": "Slate",
+    "red": "Red",
+    "rose": "Rose",
+    "orange": "Orange",
+    "green": "Green",
+    "blue": "Blue",
+    "yellow": "Yellow",
+    "violet": "Violet"
+  },
   "language": "Language",
+  "shortcut": {
+    "copy": "Copy",
+    "paste": "Paste"
+  },
   "shortcuts": "Shortcuts",
+  "shortcuts_not_set": "Not set",
+  "shortcuts_right_click_to_unset": "Right click to unset",
+  "shortcuts_conflicts": {
+    "one": "Conflicts with shortcut: {shortcuts}",
+    "other": "Conflicts with {count} shortcuts: {shortcuts}"
+  },
+  "shortcuts_presets": "Presets",
+  "shortcuts_presets_apply": {
+    "macos": "Apply macOS shortcuts",
+    "pc": "Apply PC shortcuts"
+  },
   "ssh_sftp": "SSH & SFTP",
   "developer": "Developer",
   "licenses": "Licenses"

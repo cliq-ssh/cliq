@@ -1,7 +1,7 @@
 import 'package:cliq/modules/connections/view/connections_page.dart';
 import 'package:cliq/modules/session/view/session_page_wrapper.dart';
 import 'package:cliq/modules/settings/view/developer_settings_page.dart';
-import 'package:cliq/modules/settings/view/i10n_settings_page.dart';
+import 'package:cliq/modules/settings/view/i18n_settings_page.dart';
 import 'package:cliq/modules/settings/view/identities_settings_page.dart';
 import 'package:cliq/modules/settings/view/keys_settings_page.dart';
 import 'package:cliq/modules/settings/view/known_hosts_settings.dart';
@@ -65,8 +65,8 @@ class Router {
                     pageBuilder: _swipe(const DeveloperSettingsPage()),
                   ),
                   GoRoute(
-                    path: I10nSettingsPage.pagePath.path,
-                    pageBuilder: _swipe(const I10nSettingsPage()),
+                    path: I18nSettingsPage.pagePath.path,
+                    pageBuilder: _swipe(const I18nSettingsPage()),
                   ),
                   GoRoute(
                     path: IdentitiesSettingsPage.pagePath.path,
