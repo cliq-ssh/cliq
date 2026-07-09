@@ -19,6 +19,10 @@ class TerminalBufferRow {
 }
 
 class TerminalBuffer {
+  static const int defaultMaxScrollbackLines = 2_000;
+  static const int minMaxScrollbackLines = 0;
+  static const int maxMaxScrollbackLines = 100_000;
+
   final int rows;
   final int cols;
   final int maxScrollbackLines;
@@ -61,7 +65,7 @@ class TerminalBuffer {
   TerminalBuffer({
     required this.rows,
     required this.cols,
-    this.maxScrollbackLines = 1000,
+    this.maxScrollbackLines = defaultMaxScrollbackLines,
     this.isBackBuffer = false,
     this.isLineFeedMode = false,
     CharsetState? charset,
@@ -78,6 +82,10 @@ class TerminalBuffer {
   int get currentScrollback => _buffer.length - rows;
 
   TerminalBuffer resize({required int newRows, required int newCols}) {
+    // Assert that the new dimensions are valid
+    newRows = max(1, newRows);
+    newCols = max(1, newCols);
+
     final newBuffer = TerminalBuffer(
       rows: newRows,
       cols: newCols,
@@ -90,31 +98,55 @@ class TerminalBuffer {
     newBuffer.isAutoWrapMode = isAutoWrapMode;
     newBuffer.tabStops = Set.from(tabStops.where((s) => s < newCols));
 
-    // absolute index in old ring
-    final oldVisibleStart = currentScrollback;
-    // absolute index in new ring
-    final newVisibleStart = newBuffer.currentScrollback;
+    // Preserve history and visible rows by copying rows from the old ring buffer
+    // When shrinking, we try to discard trailing empty lines to avoid unnecessary scrollback
+    final oldCurrentScrollback = currentScrollback;
+    final absCursorRow = cursorRow + oldCurrentScrollback;
+    newBuffer._buffer.clear();
 
-    final minRows = min(rows, newRows);
-    final minCols = min(cols, newCols);
-
-    for (var r = 0; r < minRows; r++) {
-      final srcRow = _buffer[oldVisibleStart + r];
-      final dstRow = newBuffer._buffer[newVisibleStart + r];
-
-      // copy cell contents up to minCols
-      for (var c = 0; c < minCols; c++) {
-        dstRow.cells[c] = srcRow.cells[c];
+    int effectiveOldLength = _buffer.length;
+    final emptyFormat = FormattingOptions();
+    while (effectiveOldLength > newRows) {
+      final row = _buffer[effectiveOldLength - 1];
+      bool isEmpty = true;
+      for (final cell in row.cells) {
+        if (cell.ch != ' ' || cell.fmt != emptyFormat) {
+          isEmpty = false;
+          break;
+        }
       }
-      // clear remaining columns in dst row if any
-      for (var c = minCols; c < newCols; c++) {
-        dstRow.cells[c] = Cell.empty();
+      if (isEmpty && (effectiveOldLength - 1) > absCursorRow) {
+        effectiveOldLength--;
+      } else {
+        break;
       }
     }
 
-    // Adjust cursor position
-    newBuffer.cursorRow = min(cursorRow, newRows - 1);
-    newBuffer.cursorCol = min(cursorCol, newCols - 1);
+    final minCols = min(cols, newCols);
+    for (var i = 0; i < effectiveOldLength; i++) {
+      final oldRow = _buffer[i];
+      final newRow = TerminalBufferRow(newCols);
+      for (var c = 0; c < minCols; c++) {
+        newRow.cells[c] = Cell.clone(oldRow.cells[c]);
+      }
+      newBuffer._buffer.add(newRow);
+    }
+
+    // Ensure we have at least "newRows" in the buffer to satisfy currentScrollback calculations
+    while (newBuffer.length < newRows) {
+      newBuffer._buffer.add(TerminalBufferRow(newCols));
+    }
+
+    // Adjust cursor position relative to the content. If the screen grows, the visible
+    // content shifts "up" in the viewport relative to the bottom, so the cursorRow
+    // must be adjusted based on the change in currentScrollback
+    final newCurrentScrollback = newBuffer.currentScrollback;
+    newBuffer.cursorRow = (absCursorRow - newCurrentScrollback).clamp(
+      0,
+      newRows - 1,
+    );
+    newBuffer.cursorCol = cursorCol.clamp(0, newCols - 1);
+
     return newBuffer;
   }
 
@@ -123,7 +155,12 @@ class TerminalBuffer {
   void index() {
     if (isCursorInMargins()) {
       if (cursorRow == _bottomMargin) {
-        scrollUp(1);
+        // Use pushEmptyLine for full-screen scrolls to preserve history
+        if (_topMargin == 0 && _bottomMargin == rows - 1 && !isBackBuffer) {
+          pushEmptyLine();
+        } else {
+          scrollUp(1);
+        }
       } else {
         cursorDown(1);
       }
@@ -573,7 +610,7 @@ class TerminalBuffer {
       startCol: startCol,
       endRow: endRow,
       endCol: endCol,
-      maxRows: rows,
+      maxRows: length,
       maxCols: cols,
     );
 
@@ -589,7 +626,7 @@ class TerminalBuffer {
 
       final rowSb = StringBuffer();
       for (var c = rowSel.start; c <= rowSel.end; c++) {
-        rowSb.write(getCell(r, c).ch);
+        rowSb.write(getAbsoluteCell(r, c).ch);
       }
 
       String rowText = rowSb.toString();
@@ -598,7 +635,7 @@ class TerminalBuffer {
       // This preserves intentional trailing spaces within a line while removing trailing spaces at the end of a line.
       bool hasTextAfterSelection = false;
       for (var c = rowSel.end + 1; c < cols; c++) {
-        if (getCell(r, c).ch != ' ') {
+        if (getAbsoluteCell(r, c).ch != ' ') {
           hasTextAfterSelection = true;
           break;
         }
