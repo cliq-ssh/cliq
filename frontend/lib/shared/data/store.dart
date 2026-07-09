@@ -83,6 +83,12 @@ enum StoreKey<T> {
     toValue: _shortcutsToValue,
   ),
 
+  sshScrollbackSize<int>(
+    'ssh_scrollback_size',
+    type: int,
+    defaultValue: TerminalBuffer.defaultMaxScrollbackLines,
+  ),
+
   sftpShowHiddenFiles<bool>(
     'sftp_show_hidden_files',
     type: bool,
