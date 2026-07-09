@@ -83,8 +83,8 @@ enum StoreKey<T> {
     toValue: _shortcutsToValue,
   ),
 
-  sshHistorySize<int>(
-    'ssh_history_size',
+  sshScrollbackSize<int>(
+    'ssh_scrollback_size',
     type: int,
     defaultValue: TerminalBuffer.defaultMaxScrollbackLines,
   ),
