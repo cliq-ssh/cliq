@@ -31,7 +31,7 @@ class SshSftpSettingsPage extends AbstractSettingsPage {
 
   @override
   Widget buildBody(BuildContext context, WidgetRef ref) {
-    final sshHistorySize = useStore(.sshHistorySize);
+    final sshScrollbackSize = useStore(.sshScrollbackSize);
     final showHiddenFiles = useStore(.sftpShowHiddenFiles);
     final largeDownloadsWarning = useStore(.sftpLargeDownloadWarning);
     final directoryNotEmptyWarning = useStore(.sftpDirectoryNotEmptyWarning);
@@ -42,9 +42,22 @@ class SshSftpSettingsPage extends AbstractSettingsPage {
       [refreshTrigger.value],
     );
 
-    final sshHistorySizeController = useTextEditingController(
-      text: sshHistorySize.value.toString(),
+    final sshScrollbackSizeController = useTextEditingController(
+      text: sshScrollbackSize.value.toString(),
     );
+
+    onScrollbackSubmit(String value) {
+      int amount = int.tryParse(value) ?? sshScrollbackSize.value;
+
+      if (amount < TerminalBuffer.minMaxScrollbackLines) {
+        amount = TerminalBuffer.minMaxScrollbackLines;
+      }
+      if (amount > TerminalBuffer.maxMaxScrollbackLines) {
+        amount = TerminalBuffer.maxMaxScrollbackLines;
+      }
+      StoreKey.sshScrollbackSize.write(amount);
+      sshScrollbackSizeController.text = amount.toString();
+    }
 
     return SingleChildScrollView(
       child: CliqGridContainer(
@@ -60,38 +73,22 @@ class SshSftpSettingsPage extends AbstractSettingsPage {
                       label: Text('SSH'),
                       children: [
                         FTile(
-                          title: Text('History size'),
+                          title: Text('Scrollback'),
                           subtitle: Text(
-                            'The number of lines you can scroll back to.',
+                            'The maximum number of lines to keep in the terminal',
                           ),
                           prefix: Icon(LucideIcons.history),
                           suffix: SizedBox(
                             width: 150,
                             child: FTextField(
                               control: FTextFieldControl.managed(
-                                controller: sshHistorySizeController,
+                                controller: sshScrollbackSizeController,
                               ),
                               keyboardType: TextInputType.number,
                               inputFormatters: [
                                 FilteringTextInputFormatter.digitsOnly,
                               ],
-                              onSubmit: (value) {
-                                var numberOfLines = int.tryParse(value);
-                                numberOfLines ??= sshHistorySize.value;
-                                if (numberOfLines <
-                                    TerminalBuffer.minMaxScrollbackLines) {
-                                  numberOfLines =
-                                      TerminalBuffer.minMaxScrollbackLines;
-                                }
-                                if (numberOfLines >
-                                    TerminalBuffer.maxMaxScrollbackLines) {
-                                  numberOfLines =
-                                      TerminalBuffer.maxMaxScrollbackLines;
-                                }
-                                StoreKey.sshHistorySize.write(numberOfLines);
-                                sshHistorySizeController.text = numberOfLines
-                                    .toString();
-                              },
+                              onSubmit: onScrollbackSubmit,
                             ),
                           ),
                         ),

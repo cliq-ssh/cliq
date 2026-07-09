@@ -51,7 +51,7 @@ class _SshSessionPageState extends ConsumerState<SshSessionPage>
     final themes = ref.watch(terminalThemeProvider);
 
     final shortcuts = useStore(.shortcuts);
-    final sshHistorySize = useStore(.sshHistorySize);
+    final sshScrollbackSize = useStore(.sshScrollbackSize);
 
     final effectiveTerminalTheme = session.connection.getEffectiveTerminalTheme(
       themes,
@@ -68,7 +68,7 @@ class _SshSessionPageState extends ConsumerState<SshSessionPage>
         theme: effectiveTerminalTheme.toTerminalTheme(),
         typography: getEffectiveTerminalTypography(),
         debugLogging: kDebugMode,
-        maxScrollbackLines: sshHistorySize.value,
+        maxScrollbackLines: sshScrollbackSize.value,
         onResize: (rows, cols) {
           session.sshSession?.resizeTerminal(cols, rows);
           // TODO: resize overlay
