@@ -192,6 +192,7 @@ final class Commons {
   static Future<void> launchGitHubUrl() => _launchUrl(Constants.githubUrl);
   static Future<void> launchGitHubCreateIssueUrl() =>
       _launchUrl(Constants.githubCreateIssueUrl);
+  static Future<void> launchWeblateUrl() => _launchUrl(Constants.weblateUrl);
 
   static Future<void> _launchUrl(String url) async {
     if (!await launchUrl(Uri.parse(url))) {
