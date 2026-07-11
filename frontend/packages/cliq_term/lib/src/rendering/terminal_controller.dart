@@ -153,8 +153,8 @@ class TerminalController extends ChangeNotifier {
     _isDirty = false;
   }
 
-  static const int highWaterMark = 4 * 1024 * 1024; // 4 MB
-  static const int lowWaterMark = 2 * 1024 * 1024; // 2 MB
+  static const int highWaterMark = 64 * 1024; // 64 KiB
+  static const int lowWaterMark = 16 * 1024; // 16 KiB
   bool isPaused = false;
 
   TerminalController({
