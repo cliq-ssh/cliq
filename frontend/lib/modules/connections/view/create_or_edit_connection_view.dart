@@ -382,7 +382,6 @@ class CreateOrEditConnectionView extends HookConsumerWidget {
                         iconColorCtrl.text = result.toHex();
                       }
                     }
-                    ;
                   },
                   child: Icon(
                     selectedIcon.value.iconData,
