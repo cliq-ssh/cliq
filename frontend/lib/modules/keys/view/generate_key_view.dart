@@ -2,6 +2,7 @@ import 'package:cliq/modules/keys/model/ssh_key_generator.dart';
 import 'package:cliq/modules/keys/provider/key_service.provider.dart';
 import 'package:cliq/shared/ui/create_or_edit_entity_view.dart';
 import 'package:cliq/shared/utils/validators.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
@@ -86,7 +87,7 @@ class GenerateKeyView extends HookConsumerWidget {
     return CreateOrEditEntityView(
       onSave: onSave,
       isEdit: false,
-      createLabel: 'Generate Key',
+      createLabel: 'keys_generate'.tr(),
       isCreateLoading: isLoading.value,
       child: Form(
         key: formKey,
@@ -96,14 +97,14 @@ class GenerateKeyView extends HookConsumerWidget {
           children: [
             FTextFormField(
               control: .managed(controller: labelCtrl),
-              label: const Text('Label'),
-              hint: 'My Key',
-              validator: Validators.nonEmpty,
+              label: Text('keys_generate_label'.tr()),
+              hint: 'keys_generate_label_placeholder'.tr(),
+              validator: (s) => Validators.nonEmpty(context, s),
               enabled: !isLoading.value,
             ),
             FTextFormField.password(
               control: .managed(controller: passCtrl),
-              label: const Text('Passphrase (Optional)'),
+              label: Text('keys_generate_passphrase'.tr()),
               enabled: !isLoading.value,
             ),
             Column(
@@ -118,7 +119,7 @@ class GenerateKeyView extends HookConsumerWidget {
                       }
                     },
                   ),
-                  label: const Text('Key Type'),
+                  label: Text('keys_generate_type'.tr()),
                   children: [
                     for (final algorithm in SshKeyAlgorithm.values)
                       FSelectGroupItemMixin.radio(
@@ -144,7 +145,7 @@ class GenerateKeyView extends HookConsumerWidget {
                         }
                       },
                     ),
-                    label: const Text('Elliptic Curve Size (bits)'),
+                    label: Text('keys_generate_ecdsa_size'.tr()),
                     children: [
                       for (final size in [
                         SshEcdsaCurveSize.bits521,
@@ -172,7 +173,7 @@ class GenerateKeyView extends HookConsumerWidget {
                         }
                       },
                     ),
-                    label: const Text('Key Size (bits)'),
+                    label: Text('keys_generate_rsa_size'.tr()),
                     children: [
                       for (final size in [
                         SshRsaKeySize.bits4096,

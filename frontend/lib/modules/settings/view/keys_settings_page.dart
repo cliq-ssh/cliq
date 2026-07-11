@@ -4,6 +4,7 @@ import 'package:cliq/modules/settings/view/settings_page.dart';
 import 'package:cliq/shared/ui/entity_card_view.dart';
 import 'package:cliq_ui/hooks/use_memoized_future.export.dart'
     show useMemoizedFuture;
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/cupertino.dart' hide Key;
 import 'package:forui/forui.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -25,7 +26,7 @@ class KeysSettingsPage extends AbstractSettingsPage {
   const KeysSettingsPage({super.key});
 
   @override
-  String get title => 'Keys';
+  String get title => 'keys'.tr();
 
   @override
   Widget buildBody(BuildContext context, WidgetRef ref) {
@@ -41,10 +42,9 @@ class KeysSettingsPage extends AbstractSettingsPage {
           entities: keys,
           entityCardBuilder: (key) => KeyCard(keyEntity: key),
           viewTypeKey: .keysCardViewType,
-          noEntitiesTitle: 'No Keys',
-          noEntitiesSubtitle:
-              'Add your first key by clicking the button below.',
-          addEntityTitle: 'Add Key',
+          noEntitiesTitle: 'keys_empty'.tr(),
+          noEntitiesSubtitle: 'keys_empty_subtitle'.tr(),
+          addEntityTitle: 'keys_add'.tr(),
           filterableFields: (k) => [k.vault.label, k.label],
           onAddEntity: () => Commons.showResponsiveDialog(
             (_) => const KeyCreationChoiceView(),
