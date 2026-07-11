@@ -1057,7 +1057,7 @@ class _SftpSessionPageState extends ConsumerState<SftpSessionPage>
                       .toList();
 
                   return Padding(
-                    padding: const EdgeInsets.all(16),
+                    padding: EdgeInsets.all(isDesktop ? 16 : 4),
                     child: TableView.builder(
                       key: ValueKey(currentDirectory.value),
                       actions: [
