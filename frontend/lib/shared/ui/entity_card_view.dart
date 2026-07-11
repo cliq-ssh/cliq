@@ -10,6 +10,7 @@ import 'package:cliq_ui/cliq_ui.dart'
         Breakpoint,
         BreakpointMapExtension,
         useBreakpoint;
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:forui/forui.dart';
@@ -148,7 +149,7 @@ class EntityCardView<E> extends HookConsumerWidget {
                             if (filterableFields != null)
                               FTooltip(
                                 tipBuilder: (_, _) => TextWithShortcutInfo(
-                                  'Filter items',
+                                  'filter_items'.tr(),
                                   shortcut: KeyboardShortcut(
                                     .keyF,
                                     modifiers: {.control},
@@ -162,7 +163,7 @@ class EntityCardView<E> extends HookConsumerWidget {
                                           filterText.value = value.text,
                                     ),
                                     focusNode: filterFocusNode,
-                                    hint: 'Filter',
+                                    hint: 'filter',
                                     prefixBuilder: (_, _, _) => IconTheme(
                                       data: context
                                           .theme
@@ -199,8 +200,8 @@ class EntityCardView<E> extends HookConsumerWidget {
                                 FTooltip(
                                   tipBuilder: (_, _) => TextWithShortcutInfo(
                                     viewType.value == EntityCardViewType.list
-                                        ? 'List View'
-                                        : 'Grid View',
+                                        ? 'view.list'.tr()
+                                        : 'view.grid'.tr(),
                                     shortcut: KeyboardShortcut(
                                       .keyG,
                                       modifiers: {.control},

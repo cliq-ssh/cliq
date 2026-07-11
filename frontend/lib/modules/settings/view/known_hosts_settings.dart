@@ -3,6 +3,7 @@ import 'package:cliq/modules/settings/provider/known_host.provider.dart';
 import 'package:cliq/modules/settings/view/abstract_settings_page.dart';
 import 'package:cliq/modules/settings/view/settings_page.dart';
 import 'package:cliq/shared/ui/entity_card_view.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
@@ -18,7 +19,7 @@ class KnownHostsSettingsPage extends AbstractSettingsPage {
   const KnownHostsSettingsPage({super.key});
 
   @override
-  String get title => 'Known Hosts';
+  String get title => 'known_hosts'.tr();
 
   @override
   Widget buildBody(BuildContext context, WidgetRef ref) {
@@ -28,9 +29,8 @@ class KnownHostsSettingsPage extends AbstractSettingsPage {
       entities: knownHosts.entities,
       entityCardBuilder: (knownHost) => KnownHostCard(knownHost: knownHost),
       viewTypeKey: .knownHostsCardViewType,
-      noEntitiesTitle: 'No Known Hosts',
-      noEntitiesSubtitle:
-          'No known hosts have been added yet. Connect to a host to add it to your known hosts list.',
+      noEntitiesTitle: 'known_hosts_empty'.tr(),
+      noEntitiesSubtitle: 'known_hosts_empty_subtitle'.tr(),
       filterableFields: (k) => [k.vault.label, k.host],
     );
   }
