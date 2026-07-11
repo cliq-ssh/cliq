@@ -137,7 +137,9 @@ class TerminalBuffer {
     }
 
     for (var i = 0; i < effectiveOldLength; i++) {
-      newBuffer._buffer.add(_buffer[i]);
+      final row = _buffer[i];
+      row.ensureCols(newCols);
+      newBuffer._buffer.add(row);
     }
 
     // Ensure we have at least "newRows" in the buffer

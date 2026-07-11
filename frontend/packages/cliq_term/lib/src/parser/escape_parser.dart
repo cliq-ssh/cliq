@@ -34,8 +34,6 @@ class EscapeParser {
     0x0D: (buf) => buf.carriageReturn(),
     0x0E: (buf) => buf.charset.use(1),
     0x0F: (buf) => buf.charset.use(0),
-
-    // CAN and SUB; cancel the current escape sequence
     0x18: (_) {},
     0x1A: (_) {},
   };
@@ -58,44 +56,27 @@ class EscapeParser {
     'B'.codeUnitAt(0): _csiCursorDown,
     'C'.codeUnitAt(0): _csiCursorRight,
     'D'.codeUnitAt(0): _csiCursorLeft,
-    // 'E'.codeUnitAt(0): _csiCursorNextLine,
-    // 'F'.codeUnitAt(0): _csiCursorPrevLine,
-    // 'G'.codeUnitAt(0): _csiCursorHorizontalPositionAbsolute,
     'H'.codeUnitAt(0): _csiSetCursorPosition,
-    // 'I.codeUnitAt(0): _csiCursorHorizontalForwardTab,
     'J'.codeUnitAt(0): _csiEraseDisplay,
     'K'.codeUnitAt(0): _csiEraseLine,
-    // 'L'.codeUnitAt(0): _csiInsertLine,
-    // 'M'.codeUnitAt(0): _csiDeleteLine,
     'P'.codeUnitAt(0): _csiDeleteCharacter,
-    // 'S'.codeUnitAt(0): _csiScrollUp,
-    // 'T'.codeUnitAt(0): _csiScrollDown,
     'X'.codeUnitAt(0): _csiEraseCharacter,
-    // 'Z'.codeUnitAt(0): _csiCursorHorizontalBackwardTab,
-    // 'a'.codeUnitAt(0): _csiCursorHorizontalRelative,
-    // 'b'.codeUnitAt(0): _csiRepeatPrevCharacter,
-    // 'c'.codeUnitAt(0): _csiDeviceAttributes,
     'd'.codeUnitAt(0): _csiLinePositionAbsolute,
-    // 'e'.codeUnitAt(0): _csiVerticalPosRelative,
-    // 'f'.codeUnitAt(0): _csiSetCursorPosition,
-    // 'g'.codeUnitAt(0): _csiTabClear,
     'h'.codeUnitAt(0): _csiSetMode,
-    // 'i'.codeUnitAt(0): _csiMediaControl,
     'l'.codeUnitAt(0): _csiSetMode,
     'm'.codeUnitAt(0): _csiSelectGraphicRendition,
-    // 'n'.codeUnitAt(0): _csiRequestReport,
-    // 'p'.codeUnitAt(0): _csiRequestMode,
-    // 'q'.codeUnitAt(0): _csiSelectCursorStyle,
     'r'.codeUnitAt(0): _csiSetScrollingRegion,
-    // 's'.codeUnitAt(0): _csiSaveCursor,
-    // 't'.codeUnitAt(0): _csiWindowManipulation,
-    // 'u'.codeUnitAt(0): _csiRestoreCursor,
   };
 
-  /// Feeds input into the parser.
-  /// The input can contain any combination of printable characters, control characters, and escape sequences.
   void write(String input) {
     _queue.add(input);
+
+    if (_queue.length > TerminalController.highWaterMark &&
+        !controller.isPaused) {
+      controller.isPaused = true;
+      controller.onPause?.call();
+    }
+
     if (!_isProcessing) {
       _process();
     }
@@ -103,19 +84,18 @@ class EscapeParser {
 
   bool _isProcessing = false;
 
-  /// Processes the byte queue, handling control characters and escape sequences until more input is needed.
   void _process() {
     _isProcessing = true;
     final sw = Stopwatch()..start();
 
     while (_queue.isNotEmpty) {
-      // Check every 5000 characters to see if we should yield
-      for (int i = 0; i < 5000 && _queue.isNotEmpty; i++) {
+      // Process in batches
+      for (int i = 0; i < 1000 && _queue.isNotEmpty; i++) {
         _processOne();
       }
 
-      if (sw.elapsedMilliseconds > 4) {
-        // Yield to the event loop so the UI thread remains responsive.
+      // Budget of 4ms for parsing to keep UI fluid
+      if (sw.elapsedMilliseconds >= 4 && _queue.isNotEmpty) {
         Timer.run(_process);
         controller.markDirty();
         return;
@@ -123,6 +103,13 @@ class EscapeParser {
     }
 
     _isProcessing = false;
+
+    if (controller.isPaused &&
+        _queue.length < TerminalController.lowWaterMark) {
+      controller.isPaused = false;
+      controller.onResume?.call();
+    }
+
     controller.markDirty();
   }
 
@@ -151,124 +138,84 @@ class EscapeParser {
     }
   }
 
-  /// Processes an escape sequence starting after the initial ESC.
-  /// Returns true if a complete sequence was processed, false if more input is needed.
   bool _processEscape() {
     if (_queue.isEmpty) return false;
-
     final next = _queue.consume();
-
-    // multi-byte ESC sequences
-    if (next == 0x5B) return _consumeCsi(); // ESC [
-    if (next == 0x5D) return _consumeOsc(); // ESC ]
-
-    // G0 ('('), G1 (')'), G2 ('*'), G3 ('+') charset designation
+    if (next == 0x5B) return _consumeCsi();
+    if (next == 0x5D) return _consumeOsc();
     if (next == 0x28 || next == 0x29 || next == 0x2A || next == 0x2B) {
       if (_queue.isEmpty) return false;
       controller.activeBuffer.charset.designate(next - 0x28, _queue.consume());
       return true;
     }
-
-    // single-char ESC sequences
     final handler = _escHandlers[next];
     if (handler != null) {
       handler();
-    } else if (controller.debugLogging) {
-      _log.warning('[ESC] Unhandled ESC ${String.fromCharCode(next)}');
     }
     return true;
   }
 
-  /// Consumes a CSI sequence starting after the initial ESC [.
   bool _consumeCsi() {
     final start = _queue.position - 2;
     final buf = StringBuffer('[');
-
     while (_queue.isNotEmpty) {
       final cu = _queue.consume();
-
-      if (cu == 0x18 || cu == 0x1A) return true; // CAN/SUB
-
+      if (cu == 0x18 || cu == 0x1A) return true;
       buf.writeCharCode(cu);
-
       if (cu >= 0x40 && cu <= 0x7E) {
         _dispatchCsi(buf.toString());
         return true;
       }
     }
-
     _queue.savePosition(start);
     return false;
   }
 
-  /// Consumes an OSC sequence starting after the initial ESC ].
   bool _consumeOsc() {
     final start = _queue.position - 2;
     final buf = StringBuffer();
-
     while (_queue.isNotEmpty) {
       final cu = _queue.consume();
-
-      if (cu == 0x18 || cu == 0x1A) return true; // CAN/SUB
-
+      if (cu == 0x18 || cu == 0x1A) return true;
       if (cu == 0x07) {
-        // BEL
         _dispatchOsc(buf.toString());
         return true;
       }
-
       if (cu == 0x1B && _queue.isNotEmpty && _queue.peek() == 0x5C) {
-        _queue.consume(); // consume ST backslash
+        _queue.consume();
         _dispatchOsc(buf.toString());
         return true;
       }
-
       buf.writeCharCode(cu);
     }
-
     _queue.savePosition(start);
     return false;
   }
 
-  /// Dispatches a parsed CSI sequence to the appropriate handler based on the final byte.
   void _dispatchCsi(String body) {
     final parsed = _csiParser.parseCsi(body);
     final handler = _csiHandlers[parsed.finalByteCode];
     if (handler != null) {
       handler(parsed);
-    } else {
-      if (controller.debugLogging) {
-        _log.warning(
-          '\tUnimplemented CSI final=0x${parsed.finalByteCode.toRadixString(16)} (${String.fromCharCode(parsed.finalByteCode)}) body="$body"',
-        );
-      }
     }
   }
 
-  /// Dispatches a parsed OSC sequence.
   void _dispatchOsc(String body) {
-    // TODO: implement OSC handlers (title, icon name, etc.)
     if (controller.debugLogging) {
       _log.warning('[OSC] Unimplemented body="$body"');
     }
   }
 
-  /// Utility to parse a single integer parameter from a CSI sequence, with an optional default value if the
-  /// parameter is missing or empty.
   int _parseSingleParam(CsiParseResult parsed, {int defaultValue = 0}) {
     return parsed.params.isNotEmpty
         ? (parsed.params[0] ?? defaultValue)
         : defaultValue;
   }
 
-  // --- Control Character Handlers ---
-
   void _ccAnswerback(TerminalBuffer buf) {
     final response = controller.answerback;
     if (response.isNotEmpty) controller.onInput?.call(response);
   }
-
-  // --- ESC Handlers ---
 
   void _escBackIndex() => controller.activeBuffer.backIndex();
   void _escSaveCursor() => controller.activeBuffer.saveCursor();
@@ -281,26 +228,15 @@ class EscapeParser {
   void _escSingleShift2() => controller.activeBuffer.charset.singleShift(2);
   void _escSingleShift3() => controller.activeBuffer.charset.singleShift(3);
 
-  // --- CSI Handlers ---
-
-  void _csiCursorUp(CsiParseResult parsed) {
-    final amount = _parseSingleParam(parsed);
-    controller.activeBuffer.cursorUp(amount);
-  }
-
-  void _csiCursorDown(CsiParseResult parsed) {
-    final amount = _parseSingleParam(parsed);
-    controller.activeBuffer.cursorDown(amount);
-  }
-
-  void _csiLinePositionAbsolute(CsiParseResult parsed) {
-    final row = (parsed.params.isNotEmpty ? (parsed.params[0] ?? 1) : 1) - 1;
-    controller.activeBuffer.setCursorPosition(
-      row,
-      controller.activeBuffer.cursorCol,
-    );
-  }
-
+  void _csiCursorUp(CsiParseResult parsed) =>
+      controller.activeBuffer.cursorUp(_parseSingleParam(parsed));
+  void _csiCursorDown(CsiParseResult parsed) =>
+      controller.activeBuffer.cursorDown(_parseSingleParam(parsed));
+  void _csiLinePositionAbsolute(CsiParseResult parsed) =>
+      controller.activeBuffer.setCursorPosition(
+        (parsed.params.isNotEmpty ? (parsed.params[0] ?? 1) : 1) - 1,
+        controller.activeBuffer.cursorCol,
+      );
   void _csiEraseCharacter(CsiParseResult parsed) {
     final amount = _parseSingleParam(parsed, defaultValue: 1);
     final buf = controller.activeBuffer;
@@ -313,16 +249,10 @@ class EscapeParser {
     }
   }
 
-  void _csiCursorRight(CsiParseResult parsed) {
-    final amount = _parseSingleParam(parsed);
-    controller.activeBuffer.cursorRight(amount);
-  }
-
-  void _csiCursorLeft(CsiParseResult parsed) {
-    final amount = _parseSingleParam(parsed);
-    controller.activeBuffer.cursorLeft(amount);
-  }
-
+  void _csiCursorRight(CsiParseResult parsed) =>
+      controller.activeBuffer.cursorRight(_parseSingleParam(parsed));
+  void _csiCursorLeft(CsiParseResult parsed) =>
+      controller.activeBuffer.cursorLeft(_parseSingleParam(parsed));
   void _csiSetCursorPosition(CsiParseResult parsed) {
     final row = (parsed.params.isNotEmpty ? (parsed.params[0] ?? 1) : 1) - 1;
     final col = (parsed.params.length >= 2 ? (parsed.params[1] ?? 1) : 1) - 1;
@@ -334,15 +264,13 @@ class EscapeParser {
     switch (mode) {
       case 0:
         controller.activeBuffer.eraseDisplayBelow();
+        break;
       case 1:
         controller.activeBuffer.eraseDisplayAbove();
+        break;
       case 2:
         controller.activeBuffer.eraseDisplayComplete();
-      case 3:
-      // TODO: implement erase display scrollback
-      // controller.activeBuffer.eraseDisplayScrollback();
-      default:
-        _log.warning('\tUnhandled ED mode: $mode');
+        break;
     }
   }
 
@@ -351,97 +279,65 @@ class EscapeParser {
     switch (mode) {
       case 0:
         controller.activeBuffer.eraseLineRight();
+        break;
       case 1:
         controller.activeBuffer.eraseLineLeft();
+        break;
       case 2:
         controller.activeBuffer.eraseLineComplete();
-      default:
-        _log.warning('\tUnhandled EL mode: $mode');
+        break;
     }
   }
 
-  void _csiDeleteCharacter(CsiParseResult parsed) {
-    final amount = _parseSingleParam(parsed);
-    controller.activeBuffer.deleteCharacter(amount);
-  }
-
-  /// Set Mode (SM)
-  /// - https://terminalguide.namepad.de/seq/csi_sh/
-  /// - https://terminalguide.namepad.de/seq/csi_sh__p/
-  ///
-  /// Reset Mode (RM)
-  /// - https://terminalguide.namepad.de/seq/csi_sl/
-  /// - https://terminalguide.namepad.de/seq/csi_sl__p/
+  void _csiDeleteCharacter(CsiParseResult parsed) =>
+      controller.activeBuffer.deleteCharacter(_parseSingleParam(parsed));
   void _csiSetMode(CsiParseResult parsed) {
     final enabled = parsed.finalByteCode == 'h'.codeUnitAt(0);
     final isPrivate = parsed.leader == '?';
-
-    void handleMode(int mode) {
-      switch (mode) {
-        case 4:
-          controller.setInsertMode(enabled);
-          break;
-        case 20:
-          controller.setLineFeedMode(enabled);
-          break;
-        default:
-          if (controller.debugLogging) {
-            _log.warning('\tUnhandled mode set: $mode');
-          }
-          break;
-      }
-    }
-
-    void handlePrivateMode(int mode) {
-      switch (mode) {
-        case 7:
-          controller.setAutoWrapMode(enabled);
-          break;
-        case 1047:
-        case 47:
-          if (enabled) {
-            controller.useBackBuffer(saveMainAndClear: false);
-          } else {
-            controller.useMainBuffer(restoreMain: false);
-          }
-          break;
-        case 1049:
-          if (enabled) {
-            controller.useBackBuffer(saveMainAndClear: true);
-          } else {
-            controller.useMainBuffer(restoreMain: true);
-          }
-          break;
-        default:
-          if (controller.debugLogging) {
-            _log.warning('\tUnhandled private mode set: $mode');
-          }
-          break;
-      }
-    }
-
     for (final p in parsed.params) {
       final mode = p ?? 0;
       if (isPrivate) {
-        handlePrivateMode(mode);
+        switch (mode) {
+          case 7:
+            controller.setAutoWrapMode(enabled);
+            break;
+          case 1047:
+          case 47:
+            if (enabled) {
+              controller.useBackBuffer(saveMainAndClear: false);
+            } else {
+              controller.useMainBuffer(restoreMain: false);
+            }
+            break;
+          case 1049:
+            if (enabled) {
+              controller.useBackBuffer(saveMainAndClear: true);
+            } else {
+              controller.useMainBuffer(restoreMain: true);
+            }
+            break;
+        }
       } else {
-        handleMode(mode);
+        switch (mode) {
+          case 4:
+            controller.setInsertMode(enabled);
+            break;
+          case 20:
+            controller.setLineFeedMode(enabled);
+            break;
+        }
       }
     }
   }
 
-  /// https://terminalguide.namepad.de/seq/csi_sm/
   void _csiSelectGraphicRendition(CsiParseResult parsed) {
     var formatting = controller.activeBuffer.currentFormat;
-
     final List<int> codes = parsed.params.isEmpty
         ? const <int>[0]
         : parsed.params.map((p) => p ?? 0).toList(growable: false);
-
     int offset = 0;
     while (offset < codes.length) {
       int code = codes[offset++];
-
       formatting = (switch (code) {
         0 => () => FormattingOptions.defaultFormat,
         1 => () => formatting.copyWith(bold: true),
@@ -516,15 +412,9 @@ class EscapeParser {
         >= 100 && <= 107 => () => formatting.copyWith(
           bgColor: ansi16ToColor(controller.theme, (code - 100) + 8),
         ),
-        _ => () {
-          if (controller.debugLogging) {
-            _log.warning('Unhandled SGR code: $code');
-          }
-          return formatting;
-        },
+        _ => () => formatting,
       }).call();
     }
-
     controller.activeBuffer.currentFormat = formatting;
   }
 

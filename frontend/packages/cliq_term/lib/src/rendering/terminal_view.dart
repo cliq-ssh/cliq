@@ -500,11 +500,43 @@ class _SingleRowPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(covariant _SingleRowPainter oldDelegate) {
-    return oldDelegate.controller != controller ||
+    final bool basicChanged =
+        oldDelegate.controller != controller ||
         oldDelegate.absoluteRowIndex != absoluteRowIndex ||
         oldDelegate.readOnly != readOnly ||
-        oldDelegate.rowRevision != rowRevision ||
-        controller.selection.isSelectionActive ||
-        controller.cursor.visible;
+        oldDelegate.rowRevision != rowRevision;
+
+    if (basicChanged) return true;
+
+    // Repaint if cursor is in this row
+    final visibleCursorRow = controller.activeBuffer.cursorRow;
+    final absCursorRow =
+        controller.activeBuffer.currentScrollback + visibleCursorRow;
+    if (absCursorRow == absoluteRowIndex) return true;
+
+    // Repaint if selection state changed and this row is involved
+    if (controller.selection.active) {
+      final start = controller.selection.startRow ?? 0;
+      final end = controller.selection.endRow ?? 0;
+      final minR = min(start, end);
+      final maxR = max(start, end);
+      if (absoluteRowIndex >= minR && absoluteRowIndex <= maxR) {
+        return true;
+      }
+    }
+
+    // If selection WAS active and now it's not, we might need to repaint
+    if (oldDelegate.controller.selection.active !=
+        controller.selection.active) {
+      final start = oldDelegate.controller.selection.startRow ?? 0;
+      final end = oldDelegate.controller.selection.endRow ?? 0;
+      final minR = min(start, end);
+      final maxR = max(start, end);
+      if (absoluteRowIndex >= minR && absoluteRowIndex <= maxR) {
+        return true;
+      }
+    }
+
+    return false;
   }
 }

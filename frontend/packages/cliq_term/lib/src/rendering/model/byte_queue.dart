@@ -1,48 +1,40 @@
 /// A simple queue for bytes (characters) that allows peeking, consuming, and rolling back.
 class ByteQueue {
-  final StringBuffer _buf = StringBuffer();
-  String _str = '';
+  final StringBuffer _incoming = StringBuffer();
+  String _active = '';
   int _pos = 0;
 
   bool get isEmpty {
-    _ensureRead();
-    return _pos >= _str.length;
+    if (_pos < _active.length) return false;
+    if (_incoming.isEmpty) return true;
+    _active = _incoming.toString();
+    _incoming.clear();
+    _pos = 0;
+    return _active.isEmpty;
   }
 
   bool get isNotEmpty => !isEmpty;
   int get position => _pos;
 
-  /// Returns the number of characters currently in the queue (including unread string and buffer).
-  int get length => (_str.length - _pos) + _buf.length;
+  /// Returns the number of characters currently in the queue.
+  int get length => (_active.length - _pos) + _incoming.length;
 
-  void _ensureRead() {
-    if (_pos >= _str.length && _buf.isNotEmpty) {
-      _str = _buf.toString();
-      _buf.clear();
-      _pos = 0;
-    }
-  }
-
-  /// Add new input to the queue.
+  /// Add new input to the queue efficiently.
   void add(String input) {
-    _buf.write(input);
+    if (input.isEmpty) return;
+    _incoming.write(input);
   }
 
   /// Return the next byte without consuming it.
   int peek() {
-    _ensureRead();
-    return _str.codeUnitAt(_pos);
+    if (isEmpty) throw StateError('Queue is empty');
+    return _active.codeUnitAt(_pos);
   }
 
   /// Consume and return the next byte, advancing the position by 1.
   int consume() {
-    _ensureRead();
-    return _str.codeUnitAt(_pos++);
-  }
-
-  /// Move the position back by [count] characters, without going below 0.
-  void rollback(int count) {
-    _pos = (_pos - count).clamp(0, _str.length);
+    if (isEmpty) throw StateError('Queue is empty');
+    return _active.codeUnitAt(_pos++);
   }
 
   /// Save the current position to allow rolling back to it later.

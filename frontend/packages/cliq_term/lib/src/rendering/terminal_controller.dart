@@ -60,6 +60,12 @@ class TerminalController extends ChangeNotifier {
   /// A callback that is fired when a bell character (0x07) is received.
   final void Function()? onBell;
 
+  /// A callback that is fired when the input queue exceeds the high water mark.
+  void Function()? onPause;
+
+  /// A callback that is fired when the input queue drops below the low water mark.
+  void Function()? onResume;
+
   void Function(String)? onInput;
   TerminalTypography _typography;
   TerminalTheme _theme;
@@ -140,6 +146,10 @@ class TerminalController extends ChangeNotifier {
     _isDirty = false;
   }
 
+  static const int highWaterMark = 4 * 1024 * 1024; // 4 MB
+  static const int lowWaterMark = 2 * 1024 * 1024; // 2 MB
+  bool isPaused = false;
+
   TerminalController({
     required this._typography,
     required this._theme,
@@ -150,6 +160,8 @@ class TerminalController extends ChangeNotifier {
     this.onResize,
     this.onTitleChange,
     this.onBell,
+    this.onPause,
+    this.onResume,
     this.rows = 24,
     this.cols = 80,
   });
