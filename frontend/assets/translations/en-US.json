@@ -159,6 +159,18 @@
     "pc": "Apply PC shortcuts"
   },
   "ssh_sftp": "SSH & SFTP",
+  "ssh": "SSH",
+  "ssh_sftp_scrollback": "Scrollback",
+  "ssh_sftp_scrollback_subtitle": "Set the number of lines to keep in the scrollback buffer. A higher number allows you to scroll back further in your terminal history, but may use more memory.",
+  "sftp": "SFTP",
+  "ssh_sftp_show_hidden_files": "Show Hidden Files",
+  "ssh_sftp_show_hidden_files_subtitle": "Show hidden files and directories in SFTP file listings.",
+  "ssh_sftp_large_download_warning": "\"Large Download\" Warning",
+  "ssh_sftp_large_download_warning_subtitle": "Warn when downloading large files ({}) over SFTP",
+  "ssh_sftp_directory_not_empty_warning": "\"Directory Not Empty\" Warning",
+  "ssh_sftp_directory_not_empty_warning_subtitle": "Warn when attempting to delete a non-empty directory over SFTP",
+  "ssh_sftp_clear_temporary_files": "Clear Temporary Files",
+  "ssh_sftp_clear_temporary_files_subtitle": "Clear temporary files used for local editing of remote files",
   "developer": "Developer",
   "licenses": "Licenses"
 }

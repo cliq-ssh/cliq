@@ -3,7 +3,6 @@ import 'dart:io';
 import 'package:cliq/modules/settings/extension/keyboard_shortcut.extension.dart';
 import 'package:cliq_term/cliq_term.dart';
 import 'package:easy_localization/easy_localization.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/services.dart';
 
 /// A default set of keyboard shortcuts for various systems.
