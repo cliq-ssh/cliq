@@ -5,6 +5,7 @@ import 'package:cliq/shared/provider/store.provider.dart';
 import 'package:cliq/shared/ui/responsive_sidebar.dart';
 import 'package:cliq/shared/ui/shortcut_info.dart';
 import 'package:cliq/shared/ui/sidebar_tab.dart';
+import 'package:cliq/shared/utils/platform_utils.dart';
 import 'package:cliq_term/cliq_term.dart';
 import 'package:cliq_ui/cliq_ui.dart' show useBreakpoint;
 import 'package:easy_localization/easy_localization.dart';
@@ -433,7 +434,9 @@ class NavigationShellState extends ConsumerState<NavigationShell>
     return FScaffold(
       childPad: false,
       header: Container(
-        padding: const EdgeInsets.all(8),
+        padding: const EdgeInsets.all(8).copyWith(
+          top: PlatformUtils.isMobile ? 0 : null,
+        ),
         constraints: .new(minHeight: 54),
         decoration: BoxDecoration(
           color: getEffectiveSidebarColor(),
@@ -442,6 +445,7 @@ class NavigationShellState extends ConsumerState<NavigationShell>
           ),
         ),
         child: SafeArea(
+          bottom: false,
           child: Row(
             children: [
               Expanded(

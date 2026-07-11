@@ -32,6 +32,7 @@ class KeyCreationChoiceView extends HookConsumerWidget {
     );
 
     return FScaffold(
+      childPad: false,
       child: LayoutBuilder(
         builder: (context, _) {
           return SizedBox.expand(

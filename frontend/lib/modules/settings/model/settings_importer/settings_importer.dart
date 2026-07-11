@@ -4,12 +4,21 @@ import 'package:cliq/modules/settings/model/settings_importer/app_settings.model
 import 'package:cliq/modules/settings/model/settings_importer/cliq_settings_importer.dart';
 
 enum SettingsImporter {
-  cliq(CliqSettingsImporter(), fileExtension: 'txt');
+  cliq(
+    CliqSettingsImporter(),
+    fileExtension: 'txt',
+    uniformTypeIdentifier: 'public.plain-text',
+  );
 
   final AbstractSettingsImporter instance;
   final String? fileExtension;
+  final String? uniformTypeIdentifier;
 
-  const SettingsImporter(this.instance, {this.fileExtension});
+  const SettingsImporter(
+    this.instance, {
+    this.fileExtension,
+    this.uniformTypeIdentifier,
+  });
 
   static Future<AbstractSettingsImporter?> getParser(
     String path,

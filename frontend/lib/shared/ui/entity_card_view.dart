@@ -1,5 +1,6 @@
 import 'package:cliq/shared/data/store.dart';
 import 'package:cliq/shared/ui/shortcut_info.dart';
+import 'package:cliq/shared/utils/platform_utils.dart';
 import 'package:cliq_term/cliq_term.dart';
 import 'package:cliq_ui/cliq_ui.dart'
     show
@@ -118,7 +119,7 @@ class EntityCardView<E> extends HookConsumerWidget {
           final gridCount = _gridWidths[breakpoint]!;
 
           final child = entityCardBuilder(entity);
-          return viewType.value == .list
+          return PlatformUtils.isMobile ||  viewType.value == .list
               ? child
               : SizedBox(
                   width:
@@ -163,7 +164,7 @@ class EntityCardView<E> extends HookConsumerWidget {
                                           filterText.value = value.text,
                                     ),
                                     focusNode: filterFocusNode,
-                                    hint: 'filter',
+                                    hint: 'filter'.tr(),
                                     prefixBuilder: (_, _, _) => IconTheme(
                                       data: context
                                           .theme
@@ -197,28 +198,30 @@ class EntityCardView<E> extends HookConsumerWidget {
                                       ),
                                     ],
                                   ),
-                                FTooltip(
-                                  tipBuilder: (_, _) => TextWithShortcutInfo(
-                                    viewType.value == EntityCardViewType.list
-                                        ? 'view.list'.tr()
-                                        : 'view.grid'.tr(),
-                                    shortcut: KeyboardShortcut(
-                                      .keyG,
-                                      modifiers: {.control},
-                                    ),
-                                  ),
-                                  child: FButton.icon(
-                                    variant: .outline,
-                                    onPress: () => viewTypeKey.write(
-                                      viewType.value == .list ? .grid : .list,
-                                    ),
-                                    child: Icon(
+                                if (PlatformUtils.isDesktop)
+                                  FTooltip(
+                                    tipBuilder: (_, _) => TextWithShortcutInfo(
                                       viewType.value == EntityCardViewType.list
-                                          ? LucideIcons.rows3
-                                          : LucideIcons.grid3x2,
+                                          ? 'view.list'.tr()
+                                          : 'view.grid'.tr(),
+                                      shortcut: KeyboardShortcut(
+                                        .keyG,
+                                        modifiers: {.control},
+                                      ),
+                                    ),
+                                    child: FButton.icon(
+                                      variant: .outline,
+                                      onPress: () => viewTypeKey.write(
+                                        viewType.value == .list ? .grid : .list,
+                                      ),
+                                      child: Icon(
+                                        viewType.value ==
+                                                EntityCardViewType.list
+                                            ? LucideIcons.rows3
+                                            : LucideIcons.grid3x2,
+                                      ),
                                     ),
                                   ),
-                                ),
                               ],
                             ),
                           ],
