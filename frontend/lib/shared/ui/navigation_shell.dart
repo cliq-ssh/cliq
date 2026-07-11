@@ -54,6 +54,9 @@ class NavigationShellState extends ConsumerState<NavigationShell>
     final breakpoint = useBreakpoint();
     final prefDesktopNavPosition = useStore(.desktopNavigationPosition);
     final defaultTerminalTheme = useStore(.defaultTerminalThemeId);
+    final applyTerminalThemeColorToNavigation = useStore(
+      .applyTerminalThemeColorToNavigation,
+    );
     final navPosition = useState<NavigationPosition>(
       breakpoint >= .lg ? prefDesktopNavPosition.value : .top,
     );
@@ -68,6 +71,7 @@ class NavigationShellState extends ConsumerState<NavigationShell>
     final rotationAnimation = useAnimationController(
       duration: const .new(seconds: 2),
     );
+    final isDesktop = PlatformUtils.isDesktop;
 
     useEffect(() {
       selectedTab.value = sessions.selectedSession;
@@ -101,7 +105,8 @@ class NavigationShellState extends ConsumerState<NavigationShell>
 
     /// Gets the effective sidebar color based on the selected session and its terminal theme.
     Color getEffectiveSidebarColor() {
-      if (widget.shell.currentIndex == _sessionBranchIndex &&
+      if (applyTerminalThemeColorToNavigation.value &&
+          widget.shell.currentIndex == _sessionBranchIndex &&
           selectedTab.value != null &&
           selectedTab.value!.isAnyConnected) {
         return selectedTab.value!.getEffectiveSidebarColor(
@@ -381,7 +386,7 @@ class NavigationShellState extends ConsumerState<NavigationShell>
       ];
     }
 
-    if (navPosition.value == .left) {
+    if (isDesktop && navPosition.value == .left) {
       return ResponsiveExpandableSidebar(
         controller: _sidebarController,
         backgroundColor: getEffectiveSidebarColor(),
@@ -434,9 +439,7 @@ class NavigationShellState extends ConsumerState<NavigationShell>
     return FScaffold(
       childPad: false,
       header: Container(
-        padding: const EdgeInsets.all(8).copyWith(
-          top: PlatformUtils.isMobile ? 0 : null,
-        ),
+        padding: const EdgeInsets.all(8).copyWith(top: !isDesktop ? 0 : null),
         constraints: .new(minHeight: 54),
         decoration: BoxDecoration(
           color: getEffectiveSidebarColor(),
@@ -455,18 +458,43 @@ class NavigationShellState extends ConsumerState<NavigationShell>
                   child: Row(
                     spacing: 8,
                     children: [
-                      buildDashboardTab(false),
+                      if (isDesktop) buildDashboardTab(false),
                       ...buildSessionSidebarTabs(true),
                     ],
                   ),
                 ),
               ),
-              buildQueue(false),
-              buildSettingsTab(false),
+              if (isDesktop) buildQueue(false),
+              if (isDesktop) buildSettingsTab(false),
             ],
           ),
         ),
       ),
+      footer: isDesktop
+          ? null
+          : FBottomNavigationBar(
+              style: .delta(
+                decoration: .boxDelta(color: getEffectiveSidebarColor()),
+              ),
+              index: widget.shell.currentIndex - 1,
+              onChange: (index) {
+                final _ = switch (index + 1) {
+                  _dashboardBranchIndex => goToDashboardBranch(),
+                  _settingsBranchIndex => goToSettingsBranch(),
+                  _ => throw UnimplementedError(),
+                };
+              },
+              children: [
+                FBottomNavigationBarItem(
+                  icon: Icon(LucideIcons.house),
+                  label: Text('dashboard'.tr()),
+                ),
+                FBottomNavigationBarItem(
+                  icon: Icon(LucideIcons.settings),
+                  label: Text('settings'.tr()),
+                ),
+              ],
+            ),
       child: widget.shell,
     );
   }

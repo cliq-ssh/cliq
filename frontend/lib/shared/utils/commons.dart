@@ -21,7 +21,9 @@ final class Commons {
     return XTypeGroup(
       label: 'file_group.terminal_theme'.tr(context: context),
       uniformTypeIdentifiers: TerminalThemeParser.values
-          .map((e) => e.uniformTypeIdentifier)
+          .map(
+            (e) => Constants.extensionToUniformTypeIdentifier[e.fileExtension]!,
+          )
           .toList(growable: false),
       extensions: TerminalThemeParser.values
           .map((e) => e.fileExtension)
@@ -33,7 +35,9 @@ final class Commons {
     return XTypeGroup(
       label: 'file_group.settings_export'.tr(context: context),
       uniformTypeIdentifiers: SettingsImporter.values
-          .map((e) => e.uniformTypeIdentifier ?? '')
+          .map(
+            (e) => Constants.extensionToUniformTypeIdentifier[e.fileExtension]!,
+          )
           .toList(growable: false),
       extensions: SettingsImporter.values
           .map((e) => e.fileExtension ?? '')
@@ -44,6 +48,7 @@ final class Commons {
   static XTypeGroup getKeyGroup(BuildContext context) {
     return XTypeGroup(
       label: 'file_group.key'.tr(context: context),
+      uniformTypeIdentifiers: [],
       extensions: [],
     );
   }

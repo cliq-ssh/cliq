@@ -1,6 +1,7 @@
 import 'package:cliq/modules/connections/ui/connection_icon.dart';
 import 'package:cliq/modules/settings/model/navigation_position.model.dart';
 import 'package:cliq/shared/ui/sidebar_tab.dart';
+import 'package:cliq/shared/utils/platform_utils.dart';
 import 'package:cliq_term/cliq_term.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/cupertino.dart';
@@ -163,7 +164,7 @@ class SessionSidebarTab extends HookConsumerWidget {
 
         return Draggable<ShellSession>(
           data: root,
-          maxSimultaneousDrags: 1,
+          maxSimultaneousDrags: PlatformUtils.isDesktop ? 1 : 0,
           onDragStarted: () => isDragging.value = true,
           onDragEnd: (_) => isDragging.value = false,
           onDraggableCanceled: (_, _) => isDragging.value = false,

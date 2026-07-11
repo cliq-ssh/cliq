@@ -3,14 +3,13 @@ import 'kitty_terminal_theme_parser.dart';
 import 'windows_terminal_theme_parser.dart';
 
 enum TerminalThemeParser {
-  windowsTerminal(WindowsTerminalThemeParser(), 'json', 'public.json'),
-  kitty(KittyTerminalThemeParser(), 'conf', 'public.plain-text');
+  windowsTerminal(WindowsTerminalThemeParser(), 'json'),
+  kitty(KittyTerminalThemeParser(), 'conf');
 
   final String fileExtension;
-  final String uniformTypeIdentifier;
   final AbstractTerminalThemeParser instance;
 
-  const TerminalThemeParser(this.instance, this.fileExtension, this.uniformTypeIdentifier);
+  const TerminalThemeParser(this.instance, this.fileExtension);
 
   static AbstractTerminalThemeParser? getParser(
     String fileName,

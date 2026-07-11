@@ -26,4 +26,12 @@ final class Constants {
     "English (United States)": Locale('en', 'US'),
     "Deutsch": Locale('de', 'DE'),
   };
+
+  /// A map of file extensions to their corresponding Uniform Type Identifiers (UTIs).
+  static const Map<String, String> extensionToUniformTypeIdentifier = {
+    '': 'public.plain-text',
+    'txt': 'public.plain-text',
+    'json': 'public.json',
+    'conf': 'public.plain-text',
+  };
 }

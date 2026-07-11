@@ -119,7 +119,7 @@ class EntityCardView<E> extends HookConsumerWidget {
           final gridCount = _gridWidths[breakpoint]!;
 
           final child = entityCardBuilder(entity);
-          return PlatformUtils.isMobile ||  viewType.value == .list
+          return PlatformUtils.isMobile || viewType.value == .list
               ? child
               : SizedBox(
                   width:
@@ -158,26 +158,32 @@ class EntityCardView<E> extends HookConsumerWidget {
                                 ),
                                 child: ConstrainedBox(
                                   constraints: .new(maxWidth: 200),
-                                  child: FTextField(
-                                    control: .managed(
-                                      onChange: (value) =>
-                                          filterText.value = value.text,
-                                    ),
-                                    focusNode: filterFocusNode,
-                                    hint: 'filter'.tr(),
-                                    prefixBuilder: (_, _, _) => IconTheme(
-                                      data: context
-                                          .theme
-                                          .textFieldStyles
-                                          .md
-                                          .iconStyle
-                                          .base,
-                                      child: Padding(
-                                        padding: const .only(left: 8, right: 4),
-                                        child: Icon(LucideIcons.search),
+                                  child: SizedBox(
+                                    child: FTextField(
+                                      control: .managed(
+                                        onChange: (value) =>
+                                            filterText.value = value.text,
                                       ),
+                                      focusNode: filterFocusNode,
+                                      hint: 'filter'.tr(),
+                                      prefixBuilder: (_, _, _) => IconTheme(
+                                        data: context
+                                            .theme
+                                            .textFieldStyles
+                                            .md
+                                            .iconStyle
+                                            .base,
+                                        child: Padding(
+                                          padding: const .only(
+                                            left: 8,
+                                            right: 4,
+                                          ),
+                                          child: Icon(LucideIcons.search),
+                                        ),
+                                      ),
+                                      clearable: (value) =>
+                                          value.text.isNotEmpty,
                                     ),
-                                    clearable: (value) => value.text.isNotEmpty,
                                   ),
                                 ),
                               ),
