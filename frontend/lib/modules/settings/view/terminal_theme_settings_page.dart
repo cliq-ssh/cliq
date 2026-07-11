@@ -182,7 +182,9 @@ class TerminalThemeSettingsPage extends AbstractSettingsPage {
                                       .tryImportCustomTerminalTheme(
                                         await openFile(
                                           acceptedTypeGroups: [
-                                            Commons.customTerminalThemeGroup,
+                                            Commons.getCustomTerminalThemeGroup(
+                                              context,
+                                            ),
                                           ],
                                         ),
                                       );

@@ -93,7 +93,7 @@ class CreateOrEditKeyView extends HookConsumerWidget {
         child: Text('keys_import'.tr()),
         onPress: () async {
           final keyFile = await openFile(
-            acceptedTypeGroups: [Commons.keyGroup],
+            acceptedTypeGroups: [Commons.getKeyGroup(context)],
           );
           final content = await keyFile?.readAsString();
 

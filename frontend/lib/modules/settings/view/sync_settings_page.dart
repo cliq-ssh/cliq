@@ -51,7 +51,9 @@ class SyncSettingsPage extends AbstractSettingsPage {
                             AppSettings? settings;
 
                             final file = await openFile(
-                              acceptedTypeGroups: [Commons.settingsGroup],
+                              acceptedTypeGroups: [
+                                Commons.getSettingsGroup(context),
+                              ],
                             );
 
                             read({String? password}) async {
