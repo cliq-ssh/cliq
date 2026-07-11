@@ -20,7 +20,8 @@ final class Constants {
     return dir;
   }
 
-  /// A list of supported locales and their native name
+  /// A map of supported locales, where the key is the display name of the locale and the value is the
+  /// corresponding [Locale] object.
   static const Map<String, Locale> supportedLocales = {
     "English (United States)": Locale('en', 'US'),
     "Deutsch": Locale('de', 'DE'),
