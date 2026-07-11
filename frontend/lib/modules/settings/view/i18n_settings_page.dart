@@ -8,8 +8,10 @@ import 'package:flutter/cupertino.dart' hide Router;
 import 'package:flutter/material.dart';
 import 'package:forui/forui.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:lucide_flutter/lucide_flutter.dart';
 
 import '../../../shared/model/page_path.model.dart';
+import '../../../shared/utils/commons.dart';
 
 class I18nSettingsPage extends AbstractSettingsPage {
   static const PagePathBuilder pagePath = PagePathBuilder.child(
@@ -44,14 +46,25 @@ class I18nSettingsPage extends AbstractSettingsPage {
                         },
                       ),
                       children: [
-                        for (final locale in Constants.supportedLocales)
+                        for (final localeEntry in Constants.supportedLocales.entries)
                           .tile(
-                            value: locale,
-                            title: Text(locale.languageCode),
-                            subtitle: Text(locale.toLanguageTag()),
+                            value: localeEntry.value,
+                            title: Text(localeEntry.key),
+                            subtitle: Text(localeEntry.value.toLanguageTag())
                           ),
                       ],
                     ),
+                    FTileGroup(
+                      children: [
+                        .tile(
+                          title: Text('language_help_translate'.tr()),
+                          subtitle: Text('language_help_translate_subtitle'.tr()),
+                          prefix: Icon(LucideIcons.languages),
+                          suffix: Icon(LucideIcons.externalLink),
+                          onPress: () => Commons.launchWeblateUrl(),
+                        ),
+                      ],
+                    )
                   ],
                 ),
               ),

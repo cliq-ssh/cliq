@@ -48,8 +48,8 @@ void main() async {
     runApp(
       EasyLocalization(
         path: 'assets/translations',
-        supportedLocales: Constants.supportedLocales,
-        fallbackLocale: Constants.supportedLocales.first,
+        supportedLocales: Constants.supportedLocales.values.toList(),
+        fallbackLocale: Constants.supportedLocales.values.first,
         child: const ProviderScope(child: CliqApp()),
       ),
     );

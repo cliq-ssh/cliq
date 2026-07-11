@@ -6,6 +6,7 @@ final class Constants {
 
   static const String githubUrl = 'https://github.com/cliq-ssh/cliq';
   static const String githubCreateIssueUrl = '$githubUrl/issues/new';
+  static const String weblateUrl = "https://i18n.cliq.sh/projects/cliq";
 
   /// The threshold size (in bytes) for considering a file as "large" when downloading over SFTP.
   /// Files larger than this size will trigger a warning if the user has enabled the large downloads warning setting.
@@ -19,8 +20,9 @@ final class Constants {
     return dir;
   }
 
-  static const List<Locale> supportedLocales = [
-    Locale('en', 'US'),
-    Locale('de', 'DE'),
-  ];
+  /// A list of supported locales and their native name
+  static const Map<String, Locale> supportedLocales = {
+    "English (United States)": Locale('en', 'US'),
+    "Deutsch": Locale('de', 'DE'),
+  };
 }
