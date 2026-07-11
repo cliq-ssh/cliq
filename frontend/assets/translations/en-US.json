@@ -152,6 +152,7 @@
   "n_a": "N/A",
   "queue": "Queue",
   "queue_empty": "Queue is empty",
+  "retry": "Retry",
   "save": "Save",
   "select_all": "Select All",
   "session_group_title": {

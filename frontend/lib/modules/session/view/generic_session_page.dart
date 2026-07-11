@@ -175,7 +175,7 @@ class GenericSessionPage extends HookConsumerWidget {
               onPress: closeSession,
               child: Text('close'.tr()),
             ),
-            FButton(onPress: () => onRetry?.call(), child: Text('Retry')),
+            FButton(onPress: () => onRetry?.call(), child: Text('retry'.tr())),
           ],
         ),
       ];
