@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:math';
 
 import 'package:cliq_term/cliq_term.dart';
@@ -44,6 +45,12 @@ class TerminalController extends ChangeNotifier {
 
   /// Interval for cursor blinking.
   final Duration cursorBlinkInterval;
+
+  /// Time of inactivity before the cursor stops blinking.
+  final Duration cursorBlinkTimeout;
+
+  /// Whether the cursor is currently in the "on" phase of blinking.
+  final ValueNotifier<bool> cursorBlinkNotifier = ValueNotifier(true);
 
   /// Maximum number of lines to keep in the scrollback buffer. Older lines will be discarded when this limit is exceeded.
   final int maxScrollbackLines;
@@ -154,6 +161,7 @@ class TerminalController extends ChangeNotifier {
     required this._typography,
     required this._theme,
     this.cursorBlinkInterval = const Duration(milliseconds: 600),
+    this.cursorBlinkTimeout = const Duration(seconds: 10),
     this.maxScrollbackLines = TerminalBuffer.defaultMaxScrollbackLines,
     this.debugLogging = false,
     this.onInput,
@@ -212,6 +220,8 @@ class TerminalController extends ChangeNotifier {
     if (ev is! KeyDownEvent && ev is! KeyRepeatEvent) {
       return;
     }
+
+    _resetBlink();
 
     // We seem to need extra control key handling for Windows here since [ev.character] is always
     // null when Ctrl is pressed.
@@ -299,6 +309,7 @@ class TerminalController extends ChangeNotifier {
 
   void feed(String input) {
     _escapeParser.write(input);
+    _resetBlink();
   }
 
   /// Returns the number of characters currently waiting to be parsed.
@@ -308,6 +319,7 @@ class TerminalController extends ChangeNotifier {
   void setCursorPosition(int row, int col) {
     activeBuffer.cursorRow = row;
     activeBuffer.cursorCol = col;
+    _resetBlink();
     markDirty();
   }
 
@@ -318,12 +330,44 @@ class TerminalController extends ChangeNotifier {
 
   /// Starts the cursor blinking timer.
   void startCursorBlink() {
+    stopCursorBlink();
+
     cursor = cursor.copyWith(
-      visible: true,
-      //      timer: Timer.periodic(cursorBlinkInterval, (_) {
-      //        cursor = cursor.copyWith(visible: !cursor.visible);
-      //        notifyListeners();
-      //      }),
+      enabled: true,
+      blinkVisible: true,
+      timer: Timer.periodic(cursorBlinkInterval, (_) {
+        cursor = cursor.copyWith(blinkVisible: !cursor.blinkVisible);
+        cursorBlinkNotifier.value = cursor.blinkVisible;
+      }),
+    );
+    cursorBlinkNotifier.value = true;
+    _resetInactivityTimer();
+  }
+
+  void _resetBlink() {
+    if (cursor.timer != null) {
+      cursor = cursor.copyWith(blinkVisible: true);
+      cursorBlinkNotifier.value = true;
+      // Restart the periodic timer to align the blink phase with the activity
+      cursor.timer?.cancel();
+      cursor = cursor.copyWith(
+        timer: Timer.periodic(cursorBlinkInterval, (_) {
+          cursor = cursor.copyWith(blinkVisible: !cursor.blinkVisible);
+          cursorBlinkNotifier.value = cursor.blinkVisible;
+        }),
+      );
+    }
+    _resetInactivityTimer();
+  }
+
+  void _resetInactivityTimer() {
+    cursor.inactivityTimer?.cancel();
+    cursor = cursor.copyWith(
+      inactivityTimer: Timer(cursorBlinkTimeout, () {
+        cursor.timer?.cancel();
+        cursor = cursor.copyWith(blinkVisible: true, timer: null);
+        cursorBlinkNotifier.value = true;
+      }),
     );
   }
 
@@ -378,14 +422,21 @@ class TerminalController extends ChangeNotifier {
   /// Stops the cursor blinking timer.
   void stopCursorBlink() {
     cursor.timer?.cancel();
-    cursor = cursor.copyWith(visible: true, timer: null);
-
-    notifyListeners();
+    cursor.inactivityTimer?.cancel();
+    cursor = cursor.copyWith(
+      enabled: true,
+      blinkVisible: true,
+      timer: null,
+      inactivityTimer: null,
+    );
+    cursorBlinkNotifier.value = true;
   }
 
   @override
   void dispose() {
     cursor.timer?.cancel();
+    cursor.inactivityTimer?.cancel();
+    cursorBlinkNotifier.dispose();
     super.dispose();
   }
 }

@@ -265,16 +265,43 @@ class TerminalRowWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     final row = controller.activeBuffer.getAbsoluteRow(absoluteRowIndex);
 
-    return CustomPaint(
-      size: Size(controller.cols * cellWidth, cellHeight),
-      painter: _SingleRowPainter(
-        controller: controller,
-        absoluteRowIndex: absoluteRowIndex,
-        cellWidth: cellWidth,
-        cellHeight: cellHeight,
-        readOnly: readOnly,
-        rowRevision: row.revision,
-      ),
+    return Stack(
+      children: [
+        RepaintBoundary(
+          child: CustomPaint(
+            size: Size(controller.cols * cellWidth, cellHeight),
+            painter: _SingleRowPainter(
+              controller: controller,
+              absoluteRowIndex: absoluteRowIndex,
+              cellWidth: cellWidth,
+              cellHeight: cellHeight,
+              readOnly: readOnly,
+              rowRevision: row.revision,
+            ),
+          ),
+        ),
+        ValueListenableBuilder<bool>(
+          valueListenable: controller.cursorBlinkNotifier,
+          builder: (context, isBlinkVisible, child) {
+            return CustomPaint(
+              size: Size(controller.cols * cellWidth, cellHeight),
+              painter: _CursorPainter(
+                controller: controller,
+                absoluteRowIndex: absoluteRowIndex,
+                cellWidth: cellWidth,
+                cellHeight: cellHeight,
+                readOnly: readOnly,
+                isBlinkVisible: isBlinkVisible,
+                cursorRow: controller.activeBuffer.cursorRow,
+                cursorCol: controller.activeBuffer.cursorCol,
+                scrollback: controller.activeBuffer.currentScrollback,
+                cursorStyle: controller.cursor.style,
+                cursorEnabled: controller.cursor.enabled,
+              ),
+            );
+          },
+        ),
+      ],
     );
   }
 }
@@ -421,81 +448,6 @@ class _SingleRowPainter extends CustomPainter {
     if (tp != null) {
       tp.paint(canvas, Offset.zero);
     }
-
-    // 4. Cursor
-    if (!readOnly && controller.cursor.visible) {
-      final visibleCursorRow = controller.activeBuffer.cursorRow;
-      final absCursorRow =
-          controller.activeBuffer.currentScrollback + visibleCursorRow;
-
-      if (absCursorRow == absoluteRowIndex) {
-        final visibleCursorCol = controller.activeBuffer.cursorCol;
-        if (visibleCursorCol >= 0 && visibleCursorCol < cols) {
-          final cell = controller.activeBuffer.getAbsoluteCell(
-            absCursorRow,
-            visibleCursorCol,
-          );
-          final cellFg = cell.fmt.effectiveFgColor;
-          final cellBg = cell.fmt.effectiveBgColor;
-
-          final Color fillColor = cellFg ?? controller.theme.foregroundColor;
-          final Color charColor = cellBg ?? controller.theme.backgroundColor;
-
-          final cursorRect = Rect.fromLTWH(
-            visibleCursorCol * cellWidth,
-            0,
-            cellWidth,
-            cellHeight,
-          );
-
-          switch (controller.cursor.style) {
-            case .block:
-              canvas.drawRect(cursorRect, Paint()..color = fillColor);
-              final displayedChar = cell.ch.isEmpty ? ' ' : cell.ch;
-              final charStyle = TextStyle(
-                color: charColor,
-                fontSize: controller.typography.fontSize.toDouble(),
-                fontFamily: controller.typography.fontFamily,
-                fontWeight: cell.fmt.bold ? FontWeight.w700 : FontWeight.w400,
-                fontStyle: cell.fmt.italic
-                    ? FontStyle.italic
-                    : FontStyle.normal,
-              );
-              TextPainter(
-                  text: TextSpan(text: displayedChar, style: charStyle),
-                  textDirection: TextDirection.ltr,
-                )
-                ..layout(minWidth: 0, maxWidth: cellWidth)
-                ..paint(canvas, Offset(visibleCursorCol * cellWidth, 0));
-              break;
-            case .underline:
-              final underlineHeight = cellHeight * 0.18;
-              canvas.drawRect(
-                Rect.fromLTWH(
-                  visibleCursorCol * cellWidth,
-                  cellHeight - underlineHeight,
-                  cellWidth,
-                  underlineHeight,
-                ),
-                Paint()..color = fillColor,
-              );
-              break;
-            case .bar:
-              final barWidth = max(1.0, cellWidth * 0.12);
-              canvas.drawRect(
-                Rect.fromLTWH(
-                  visibleCursorCol * cellWidth,
-                  0,
-                  barWidth,
-                  cellHeight,
-                ),
-                Paint()..color = fillColor,
-              );
-              break;
-          }
-        }
-      }
-    }
   }
 
   @override
@@ -507,12 +459,6 @@ class _SingleRowPainter extends CustomPainter {
         oldDelegate.rowRevision != rowRevision;
 
     if (basicChanged) return true;
-
-    // Repaint if cursor is in this row
-    final visibleCursorRow = controller.activeBuffer.cursorRow;
-    final absCursorRow =
-        controller.activeBuffer.currentScrollback + visibleCursorRow;
-    if (absCursorRow == absoluteRowIndex) return true;
 
     // Repaint if selection state changed and this row is involved
     if (controller.selection.active) {
@@ -538,5 +484,119 @@ class _SingleRowPainter extends CustomPainter {
     }
 
     return false;
+  }
+}
+
+class _CursorPainter extends CustomPainter {
+  final TerminalController controller;
+  final int absoluteRowIndex;
+  final double cellWidth;
+  final double cellHeight;
+  final bool readOnly;
+  final bool isBlinkVisible;
+  final int cursorRow;
+  final int cursorCol;
+  final int scrollback;
+  final CursorStyle cursorStyle;
+  final bool cursorEnabled;
+
+  _CursorPainter({
+    required this.controller,
+    required this.absoluteRowIndex,
+    required this.cellWidth,
+    required this.cellHeight,
+    required this.readOnly,
+    required this.isBlinkVisible,
+    required this.cursorRow,
+    required this.cursorCol,
+    required this.scrollback,
+    required this.cursorStyle,
+    required this.cursorEnabled,
+  });
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    if (readOnly || !isBlinkVisible || !cursorEnabled) {
+      return;
+    }
+
+    final absCursorRow = scrollback + cursorRow;
+
+    if (absCursorRow != absoluteRowIndex) {
+      return;
+    }
+
+    final cols = controller.activeBuffer.cols;
+
+    if (cursorCol >= 0 && cursorCol < cols) {
+      final cell = controller.activeBuffer.getAbsoluteCell(
+        absCursorRow,
+        cursorCol,
+      );
+      final cellFg = cell.fmt.effectiveFgColor;
+      final cellBg = cell.fmt.effectiveBgColor;
+
+      final Color fillColor = cellFg ?? controller.theme.foregroundColor;
+      final Color charColor = cellBg ?? controller.theme.backgroundColor;
+
+      final cursorRect = Rect.fromLTWH(
+        cursorCol * cellWidth,
+        0,
+        cellWidth,
+        cellHeight,
+      );
+
+      switch (cursorStyle) {
+        case CursorStyle.block:
+          canvas.drawRect(cursorRect, Paint()..color = fillColor);
+          final displayedChar = cell.ch.isEmpty ? ' ' : cell.ch;
+          final charStyle = TextStyle(
+            color: charColor,
+            fontSize: controller.typography.fontSize.toDouble(),
+            fontFamily: controller.typography.fontFamily,
+            fontWeight: cell.fmt.bold ? FontWeight.w700 : FontWeight.w400,
+            fontStyle: cell.fmt.italic ? FontStyle.italic : FontStyle.normal,
+          );
+          TextPainter(
+              text: TextSpan(text: displayedChar, style: charStyle),
+              textDirection: TextDirection.ltr,
+            )
+            ..layout(minWidth: 0, maxWidth: cellWidth)
+            ..paint(canvas, Offset(cursorCol * cellWidth, 0));
+          break;
+        case CursorStyle.underline:
+          final underlineHeight = cellHeight * 0.18;
+          canvas.drawRect(
+            Rect.fromLTWH(
+              cursorCol * cellWidth,
+              cellHeight - underlineHeight,
+              cellWidth,
+              underlineHeight,
+            ),
+            Paint()..color = fillColor,
+          );
+          break;
+        case CursorStyle.bar:
+          final barWidth = max(1.0, cellWidth * 0.12);
+          canvas.drawRect(
+            Rect.fromLTWH(cursorCol * cellWidth, 0, barWidth, cellHeight),
+            Paint()..color = fillColor,
+          );
+          break;
+      }
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant _CursorPainter oldDelegate) {
+    return oldDelegate.isBlinkVisible != isBlinkVisible ||
+        oldDelegate.cursorRow != cursorRow ||
+        oldDelegate.cursorCol != cursorCol ||
+        oldDelegate.scrollback != scrollback ||
+        oldDelegate.cursorStyle != cursorStyle ||
+        oldDelegate.cursorEnabled != cursorEnabled ||
+        oldDelegate.controller != controller ||
+        oldDelegate.absoluteRowIndex != absoluteRowIndex ||
+        oldDelegate.readOnly != readOnly;
   }
 }

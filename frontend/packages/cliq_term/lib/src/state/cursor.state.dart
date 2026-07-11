@@ -4,16 +4,37 @@ import '../../cliq_term.dart';
 
 class CursorState {
   final CursorStyle style;
-  final bool visible;
+
+  /// Whether the cursor is enabled (visible) in the terminal (DECTCEM).
+  final bool enabled;
+
+  /// Whether the cursor is currently in the "on" phase of blinking.
+  final bool blinkVisible;
+
   final Timer? timer;
+  final Timer? inactivityTimer;
 
-  CursorState({this.style = .bar, this.visible = true, this.timer});
+  CursorState({
+    this.style = CursorStyle.bar,
+    this.enabled = true,
+    this.blinkVisible = true,
+    this.timer,
+    this.inactivityTimer,
+  });
 
-  CursorState copyWith({CursorStyle? style, bool? visible, Timer? timer}) {
+  CursorState copyWith({
+    CursorStyle? style,
+    bool? enabled,
+    bool? blinkVisible,
+    Timer? timer,
+    Timer? inactivityTimer,
+  }) {
     return CursorState(
       style: style ?? this.style,
-      visible: visible ?? this.visible,
+      enabled: enabled ?? this.enabled,
+      blinkVisible: blinkVisible ?? this.blinkVisible,
       timer: timer ?? this.timer,
+      inactivityTimer: inactivityTimer ?? this.inactivityTimer,
     );
   }
 }
