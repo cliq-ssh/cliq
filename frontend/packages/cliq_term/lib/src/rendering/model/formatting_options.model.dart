@@ -6,36 +6,21 @@ class FormattingOptions {
   static final FormattingOptions defaultFormat = FormattingOptions._internal();
   static final Map<int, FormattingOptions> _pool = {};
 
-  late final Color? fgColor;
-  late final Color? bgColor;
-  late final bool bold;
-  late final bool faint;
-  late final bool italic;
-  late final Underline underline;
-  late final bool concealed;
-  late final bool inverted;
+  final Color? fgColor;
+  final Color? bgColor;
+  final int _flags;
 
-  FormattingOptions._internal() {
-    fgColor = null;
-    bgColor = null;
-    bold = false;
-    faint = false;
-    italic = false;
-    underline = Underline.none;
-    concealed = false;
-    inverted = false;
-  }
+  static const int _boldMask = 1 << 0;
+  static const int _faintMask = 1 << 1;
+  static const int _italicMask = 1 << 2;
+  static const int _concealedMask = 1 << 3;
+  static const int _invertedMask = 1 << 4;
+  static const int _underlineMask = 3 << 5;
+  static const int _underlineShift = 5;
 
-  FormattingOptions._raw({
-    required this.fgColor,
-    required this.bgColor,
-    required this.bold,
-    required this.faint,
-    required this.italic,
-    required this.underline,
-    required this.concealed,
-    required this.inverted,
-  });
+  FormattingOptions._internal() : fgColor = null, bgColor = null, _flags = 0;
+
+  FormattingOptions._raw(this.fgColor, this.bgColor, this._flags);
 
   factory FormattingOptions({
     Color? fgColor,
@@ -47,31 +32,29 @@ class FormattingOptions {
     bool concealed = false,
     bool inverted = false,
   }) {
-    final hash = Object.hash(
-      fgColor,
-      bgColor,
-      bold,
-      faint,
-      italic,
-      underline,
-      concealed,
-      inverted,
-    );
+    int flags = 0;
+    if (bold) flags |= _boldMask;
+    if (faint) flags |= _faintMask;
+    if (italic) flags |= _italicMask;
+    if (concealed) flags |= _concealedMask;
+    if (inverted) flags |= _invertedMask;
+    flags |= (underline.index << _underlineShift) & _underlineMask;
+
+    final hash = Object.hash(fgColor, bgColor, flags);
 
     return _pool.putIfAbsent(
       hash,
-      () => FormattingOptions._raw(
-        fgColor: fgColor,
-        bgColor: bgColor,
-        bold: bold,
-        faint: faint,
-        italic: italic,
-        underline: underline,
-        concealed: concealed,
-        inverted: inverted,
-      ),
+      () => FormattingOptions._raw(fgColor, bgColor, flags),
     );
   }
+
+  bool get bold => (_flags & _boldMask) != 0;
+  bool get faint => (_flags & _faintMask) != 0;
+  bool get italic => (_flags & _italicMask) != 0;
+  bool get concealed => (_flags & _concealedMask) != 0;
+  bool get inverted => (_flags & _invertedMask) != 0;
+  Underline get underline =>
+      Underline.values[(_flags & _underlineMask) >> _underlineShift];
 
   Color? get effectiveFgColor =>
       inverted ? (bgColor ?? Colors.transparent) : (concealed ? null : fgColor);
@@ -119,23 +102,9 @@ class FormattingOptions {
     return other is FormattingOptions &&
         other.fgColor == fgColor &&
         other.bgColor == bgColor &&
-        other.bold == bold &&
-        other.faint == faint &&
-        other.italic == italic &&
-        other.underline == underline &&
-        other.concealed == concealed &&
-        other.inverted == inverted;
+        other._flags == _flags;
   }
 
   @override
-  int get hashCode => Object.hash(
-    fgColor,
-    bgColor,
-    bold,
-    faint,
-    italic,
-    underline,
-    concealed,
-    inverted,
-  );
+  int get hashCode => Object.hash(fgColor, bgColor, _flags);
 }
