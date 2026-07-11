@@ -7,8 +7,10 @@ import 'package:cliq/shared/provider/router.provider.dart';
 import 'package:cliq/shared/provider/store.provider.dart';
 import 'package:cliq/shared/ui/error_view.dart';
 import 'package:cliq/shared/utils/commons.dart';
+import 'package:cliq/shared/utils/constants.dart';
 import 'package:cliq/shared/utils/password_cipher.dart';
 import 'package:cliq/shared/utils/platform_utils.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart' hide Router;
 import 'package:flutter/services.dart';
@@ -37,12 +39,20 @@ void main() async {
     };
 
     SharedPreferences.setPrefix('cliq.');
+    await EasyLocalization.ensureInitialized();
     await KeyValueStore.init();
     await PasswordCipher.init();
 
     await _configureWindow();
 
-    runApp(const ProviderScope(child: CliqApp()));
+    runApp(
+      EasyLocalization(
+        path: 'assets/translations',
+        supportedLocales: Constants.supportedLocales.values.toList(),
+        fallbackLocale: Constants.supportedLocales.values.first,
+        child: const ProviderScope(child: CliqApp()),
+      ),
+    );
   }, _handleError);
 }
 
@@ -64,7 +74,7 @@ void _handleError(Object error, StackTrace stackTrace) {
   debugPrint(stackTrace.toString());
 
   String errorMessage = error is LocalizedException
-      ? (error).localize(Router.rootNavigatorKey.currentContext!)
+      ? (error).tr(Router.rootNavigatorKey.currentContext!)
       : error.toString();
   if (errorMessage.length > 150) {
     errorMessage = '${errorMessage.substring(0, 150)}...';
@@ -152,6 +162,9 @@ class _CliqAppState extends ConsumerState<CliqApp> {
     return MaterialApp.router(
       routerConfig: router.goRouter,
       debugShowCheckedModeBanner: false,
+      localizationsDelegates: context.localizationDelegates,
+      supportedLocales: context.supportedLocales,
+      locale: context.locale,
       themeMode: themeMode.value,
       theme: ThemeData(brightness: Brightness.light),
       darkTheme: ThemeData(brightness: Brightness.dark),

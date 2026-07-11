@@ -2,6 +2,7 @@ import 'package:cliq/modules/connections/ui/connection_icon.dart';
 import 'package:cliq/modules/settings/model/navigation_position.model.dart';
 import 'package:cliq/shared/ui/sidebar_tab.dart';
 import 'package:cliq_term/cliq_term.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:forui/forui.dart';
@@ -88,7 +89,7 @@ class SessionSidebarTab extends HookConsumerWidget {
       actions: [
         if (sessions.isEmpty)
           .new(
-            label: 'Duplicate',
+            label: 'duplicate'.tr(),
             icon: LucideIcons.copy,
             onPress: () {
               ref
@@ -98,7 +99,7 @@ class SessionSidebarTab extends HookConsumerWidget {
             shortcut: .new(.keyD, modifiers: {.meta}),
           ),
         .new(
-          label: sessions.isEmpty ? 'Close' : 'Close All',
+          label: sessions.isEmpty ? 'close'.tr() : 'close_all'.tr(),
           icon: LucideIcons.x,
           variant: .destructive,
           onPress: close,
@@ -115,7 +116,7 @@ class SessionSidebarTab extends HookConsumerWidget {
                 child: Text(
                   sessions.isEmpty
                       ? root.connection.label
-                      : '${sessions.length + 1} sessions',
+                      : 'session_group_title'.plural(sessions.length + 1),
                   overflow: .fade,
                   softWrap: false,
                 ),
@@ -123,7 +124,7 @@ class SessionSidebarTab extends HookConsumerWidget {
               // TODO: make shortcut functional
               FTooltip(
                 tipBuilder: (_, _) => TextWithShortcutInfo(
-                  sessions.isEmpty ? 'Close' : 'Close All',
+                  sessions.isEmpty ? 'close'.tr() : 'close_all'.tr(),
                   shortcut: KeyboardShortcut(.keyW, modifiers: {.control}),
                 ),
                 child: FTappable(

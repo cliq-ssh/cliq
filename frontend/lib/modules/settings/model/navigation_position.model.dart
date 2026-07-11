@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:lucide_flutter/lucide_flutter.dart';
 
@@ -6,17 +7,16 @@ enum NavigationPosition {
   left;
 
   String getDisplayName(BuildContext context) {
-    // TODO localization
     return switch (this) {
-      NavigationPosition.top => 'Top',
-      NavigationPosition.left => 'Left',
+      .top => 'appearance_navigation_position_top'.tr(),
+      .left => 'appearance_navigation_position_left'.tr(),
     };
   }
 
   IconData get icon {
     return switch (this) {
-      NavigationPosition.top => LucideIcons.panelTop,
-      NavigationPosition.left => LucideIcons.panelLeft,
+      .top => LucideIcons.panelTop,
+      .left => LucideIcons.panelLeft,
     };
   }
 }

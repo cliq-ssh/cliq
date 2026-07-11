@@ -1,6 +1,7 @@
 import 'package:cliq/modules/keys/view/create_or_edit_key_view.dart';
 import 'package:cliq/shared/data/database.dart';
 import 'package:cliq/shared/utils/commons.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart' hide Key;
 import 'package:forui/forui.dart';
 import 'package:forui_hooks/forui_hooks.dart';
@@ -72,12 +73,13 @@ class KeyCard extends HookConsumerWidget {
                 children: [
                   FItem(
                     prefix: Icon(LucideIcons.pencil),
-                    title: Text('Edit'),
+                    title: Text('edit'.tr()),
                     onPress: edit,
                   ),
                   FItem(
+                    variant: .destructive,
                     prefix: Icon(LucideIcons.trash),
-                    title: Text('Delete'),
+                    title: Text('delete'.tr()),
                     onPress: delete,
                   ),
                 ],
