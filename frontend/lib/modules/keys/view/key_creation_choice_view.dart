@@ -1,4 +1,5 @@
 import 'package:cliq/shared/utils/commons.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:forui/forui.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -42,28 +43,28 @@ class KeyCreationChoiceView extends HookConsumerWidget {
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   spacing: 16,
                   children: [
-                    Text('Add Key', style: context.theme.typography.body.xl2),
                     Text(
-                      'Choose whether you want to import an existing SSH key or generate a new one.',
-                      style: mutedStyle,
+                      'keys_add'.tr(),
+                      style: context.theme.typography.body.xl2,
                     ),
+                    Text('keys_add_subtitle'.tr(), style: mutedStyle),
                     FButton(
                       variant: .outline,
                       prefix: const Icon(LucideIcons.folderOpen),
                       onPress: openImport,
-                      child: const Text('Import Existing Key'),
+                      child: Text('keys_import_existing'.tr()),
                     ),
                     FButton(
                       prefix: const Icon(Icons.vpn_key),
                       onPress: openGenerate,
-                      child: const Text('Generate New Key'),
+                      child: Text('keys_generate_new'.tr()),
                     ),
                     Align(
                       alignment: Alignment.centerRight,
                       child: FButton(
                         variant: .ghost,
                         onPress: () => Navigator.of(context).pop(),
-                        child: const Text('Cancel'),
+                        child: Text('cancel'.tr()),
                       ),
                     ),
                   ],

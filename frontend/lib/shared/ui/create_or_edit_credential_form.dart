@@ -1,6 +1,7 @@
 import 'package:cliq/modules/keys/provider/key.provider.dart';
 import 'package:cliq/shared/extensions/async_snapshot.extension.dart';
 import 'package:cliq_ui/cliq_ui.dart' show useMemoizedFuture;
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:forui/forui.dart';
@@ -20,14 +21,12 @@ import '../utils/validators.dart';
 enum _AllowedCredentialType {
   password(
     type: .password,
-    label: 'Password',
     icon: LucideIcons.rectangleEllipsis,
     singleInstance: true,
   ),
-  key(type: .key, label: 'Key', icon: LucideIcons.keyRound);
+  key(type: .key, icon: LucideIcons.keyRound);
 
   final CredentialType type;
-  final String label;
   final IconData icon;
 
   /// Whether only a single instance of this credential type is allowed.
@@ -35,10 +34,16 @@ enum _AllowedCredentialType {
 
   const _AllowedCredentialType({
     required this.type,
-    required this.label,
     required this.icon,
     this.singleInstance = false,
   });
+
+  String getDisplayName(BuildContext context) {
+    return switch (this) {
+      .password => 'credentials_form_auth.password'.tr(),
+      .key => 'credentials_form_auth.private_key'.tr(),
+    };
+  }
 }
 
 final class _CredentialData {
@@ -212,7 +217,7 @@ class CreateOrEditCredentialsFormState
               (e) => e.type == credential.type,
             );
 
-            return Text(allowedType.label);
+            return Text(allowedType.getDisplayName(context));
           }
 
           buildFormFields() {
@@ -236,7 +241,7 @@ class CreateOrEditCredentialsFormState
                           ),
                           label: buildCredentialLabel(data),
                           minLines: 1,
-                          validator: Validators.nonEmpty,
+                          validator: (s) => Validators.nonEmpty(context, s),
                           autovalidateMode: .onUserInteraction,
                         ),
                         .key => FAutocomplete.textBuilder(
@@ -297,8 +302,10 @@ class CreateOrEditCredentialsFormState
                                     color: context.theme.colors.foreground,
                                   ),
                                   data.key.isEmpty
-                                      ? Text('Create Key')
-                                      : Text('Create Key "${data.key}"'),
+                                      ? Text('credentials_form_create_key'.tr())
+                                      : Text(
+                                          'credentials_form_create_key_named',
+                                        ).tr(args: [data.key]),
                                 ],
                               ),
                             ),
@@ -319,7 +326,7 @@ class CreateOrEditCredentialsFormState
                           label: buildCredentialLabel(data),
                           minLines: 1,
                           validator: (s) {
-                            final empty = Validators.nonEmpty(s);
+                            final empty = Validators.nonEmpty(context, s);
                             if (empty != null) {
                               return empty;
                             }
@@ -332,7 +339,7 @@ class CreateOrEditCredentialsFormState
                             if (id == null ||
                                 (keysFuture.hasData &&
                                     !keysFuture.data!.any((k) => k.id == id))) {
-                              return 'Please select a valid key.';
+                              return 'credentials_form_error_invalid_key'.tr();
                             }
                             return null;
                           },
@@ -384,7 +391,7 @@ class CreateOrEditCredentialsFormState
                                   ))
                                 FItem(
                                   prefix: Icon(allowed.icon),
-                                  title: Text(allowed.label),
+                                  title: Text(allowed.getDisplayName(context)),
                                   onPress: () {
                                     popoverController.hide();
                                     final updated = [
@@ -406,7 +413,7 @@ class CreateOrEditCredentialsFormState
                           prefix: const Icon(LucideIcons.plus),
                           onPress: controller.toggle,
                           child: Flexible(
-                            child: const Text('Add Authentication Method'),
+                            child: Text('credentials_form_add_auth'.tr()),
                           ),
                         );
                       },

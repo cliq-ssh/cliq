@@ -1,6 +1,7 @@
 import 'package:cliq/modules/settings/view/abstract_settings_page.dart';
 import 'package:cliq/modules/settings/view/settings_page.dart';
 import 'package:cliq_ui/cliq_ui.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:forui/forui.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lucide_flutter/lucide_flutter.dart';
@@ -19,7 +20,7 @@ class LicenseSettingsPage extends AbstractSettingsPage {
   const LicenseSettingsPage({super.key});
 
   @override
-  String get title => 'Licenses';
+  String get title => 'licenses'.tr();
 
   @override
   Widget buildBody(BuildContext context, WidgetRef ref) {
@@ -65,7 +66,9 @@ class LicenseSettingsPage extends AbstractSettingsPage {
                             child: FCard(
                               title: Text(license.key),
                               subtitle: Text(
-                                '${license.value.length} license(s)',
+                                'licenses_subtitle'.plural(
+                                  license.value.length,
+                                ),
                               ),
                               child: isExpanded
                                   ? Column(

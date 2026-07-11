@@ -1,4 +1,5 @@
 import 'package:cliq/shared/data/database.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:forui/forui.dart';
 import 'package:forui_hooks/forui_hooks.dart';
@@ -66,8 +67,9 @@ class KnownHostCard extends HookConsumerWidget {
               FItemGroup(
                 children: [
                   FItem(
+                    variant: .destructive,
                     prefix: Icon(LucideIcons.trash),
-                    title: Text('Delete'),
+                    title: Text('delete'.tr()),
                     onPress: delete,
                   ),
                 ],

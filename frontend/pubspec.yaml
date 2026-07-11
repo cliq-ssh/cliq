@@ -44,6 +44,7 @@ dependencies:
   pointycastle: ^4.0.0
   window_manager: ^0.5.2
   open_app_file: ^4.0.5
+  easy_localization: ^3.0.8
 dev_dependencies:
   flutter_test:
     sdk: flutter
@@ -55,6 +56,9 @@ dev_dependencies:
   flutter_native_splash: 2.4.8
 
 flutter:
+  assets:
+    - assets/translations/
+
   fonts:
     - family: SourceCodePro
       fonts:

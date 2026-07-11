@@ -1,4 +1,5 @@
 import 'package:cliq/modules/settings/provider/sync.provider.dart';
+import 'package:cliq/modules/settings/view/i18n_settings_page.dart';
 import 'package:cliq/modules/settings/view/identities_settings_page.dart';
 import 'package:cliq/modules/settings/view/keys_settings_page.dart';
 import 'package:cliq/modules/settings/view/known_hosts_settings.dart';
@@ -9,6 +10,7 @@ import 'package:cliq/modules/settings/view/terminal_theme_settings_page.dart';
 import 'package:cliq/shared/extensions/router.extension.dart';
 import 'package:cliq/shared/utils/commons.dart';
 import 'package:cliq/shared/utils/platform_utils.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/foundation.dart';
 import 'package:forui/forui.dart';
 import 'package:lucide_flutter/lucide_flutter.dart';
@@ -49,17 +51,19 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                     spacing: 16,
                     children: [
                       FTileGroup(
-                        label: Text('My Vault'),
+                        label: Text('my_vault'.tr()),
                         children: [
                           FTile(
                             prefix: Icon(LucideIcons.refreshCcw),
                             suffix: Icon(LucideIcons.chevronRight),
-                            title: Text('Sync'),
+                            title: Text('sync'.tr()),
                             subtitle: sync.isConnected
-                                ? Text(
-                                    'Last sync: ${sync.lastSync?.toIso8601String() ?? 'N/A'}',
+                                ? Text('sync_last_date').tr(
+                                    args: [
+                                      sync.lastSync?.toIso8601String() ?? 'n_a',
+                                    ],
                                   )
-                                : Text('Not connected'),
+                                : Text('sync_not_connected'.tr()),
                             onPress: () => context.pushPath(
                               SyncSettingsPage.pagePath.build(),
                             ),
@@ -67,7 +71,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                           FTile(
                             prefix: Icon(LucideIcons.users),
                             suffix: Icon(LucideIcons.chevronRight),
-                            title: Text('Identities'),
+                            title: Text('identities'.tr()),
                             onPress: () => context.pushPath(
                               IdentitiesSettingsPage.pagePath.build(),
                             ),
@@ -75,7 +79,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                           FTile(
                             prefix: Icon(LucideIcons.keyRound),
                             suffix: Icon(LucideIcons.chevronRight),
-                            title: Text('Keys'),
+                            title: Text('keys'.tr()),
                             onPress: () => context.pushPath(
                               KeysSettingsPage.pagePath.build(),
                             ),
@@ -83,7 +87,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                           FTile(
                             prefix: Icon(LucideIcons.fingerprintPattern),
                             suffix: Icon(LucideIcons.chevronRight),
-                            title: Text('Known Hosts'),
+                            title: Text('known_hosts'.tr()),
                             onPress: () => context.pushPath(
                               KnownHostsSettingsPage.pagePath.build(),
                             ),
@@ -91,13 +95,13 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                           FTile(
                             prefix: Icon(LucideIcons.clock),
                             suffix: Icon(LucideIcons.chevronRight),
-                            title: Text('History'),
+                            title: Text('history'.tr()),
                             onPress: null,
                           ),
                           FTile(
                             prefix: Icon(LucideIcons.swatchBook),
                             suffix: Icon(LucideIcons.chevronRight),
-                            title: Text('Terminal Theme'),
+                            title: Text('terminal_themes'.tr()),
                             onPress: () => context.pushPath(
                               TerminalThemeSettingsPage.pagePath.build(),
                             ),
@@ -105,21 +109,29 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                         ],
                       ),
                       FTileGroup(
-                        label: Text('App'),
+                        label: Text('app'.tr()),
                         children: [
                           FTile(
                             prefix: Icon(LucideIcons.palette),
                             suffix: Icon(LucideIcons.chevronRight),
-                            title: Text('Appearance'),
+                            title: Text('appearance'.tr()),
                             onPress: () => context.pushPath(
                               AppearanceSettingsPage.pagePath.build(),
+                            ),
+                          ),
+                          FTile(
+                            prefix: Icon(LucideIcons.globe),
+                            suffix: Icon(LucideIcons.chevronRight),
+                            title: Text('language'.tr()),
+                            onPress: () => context.pushPath(
+                              I18nSettingsPage.pagePath.build(),
                             ),
                           ),
                           if (PlatformUtils.isDesktop)
                             FTile(
                               prefix: Icon(LucideIcons.keyboard),
                               suffix: Icon(LucideIcons.chevronRight),
-                              title: Text('Shortcuts'),
+                              title: Text('shortcuts'.tr()),
                               onPress: () => context.pushPath(
                                 ShortcutsSettingsPage.pagePath.build(),
                               ),
@@ -127,7 +139,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                           FTile(
                             prefix: Icon(LucideIcons.terminal),
                             suffix: Icon(LucideIcons.chevronRight),
-                            title: Text('SSH & SFTP'),
+                            title: Text('ssh_sftp'.tr()),
                             onPress: () => context.pushPath(
                               SshSftpSettingsPage.pagePath.build(),
                             ),
@@ -136,7 +148,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                             FTile(
                               prefix: Icon(LucideIcons.hammer),
                               suffix: Icon(LucideIcons.chevronRight),
-                              title: Text('Developer'),
+                              title: Text('developer'.tr()),
                               onPress: () => context.pushPath(
                                 DeveloperSettingsPage.pagePath.build(),
                               ),
@@ -150,7 +162,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                           FTile(
                             prefix: Icon(LucideIcons.scale),
                             suffix: Icon(LucideIcons.chevronRight),
-                            title: Text('Licenses'),
+                            title: Text('licenses'.tr()),
                             onPress: () => context.pushPath(
                               LicenseSettingsPage.pagePath.build(),
                             ),
