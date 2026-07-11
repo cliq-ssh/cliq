@@ -97,14 +97,14 @@ class CreateOrEditIdentityView extends HookConsumerWidget {
               control: .managed(controller: labelCtrl),
               label: Text('identities_label'.tr()),
               hint: 'identities_label_placeholder'.tr(),
-              validator: Validators.nonEmpty,
+              validator: (s) => Validators.nonEmpty(context, s),
             ),
 
             FTextFormField(
               control: .managed(controller: usernameCtrl),
               label: Text('identities_username'.tr()),
               hint: 'identities_username_placeholder'.tr(),
-              validator: Validators.nonEmpty,
+              validator: (s) => Validators.nonEmpty(context, s),
             ),
 
             if (selectedVaultId.value != null)

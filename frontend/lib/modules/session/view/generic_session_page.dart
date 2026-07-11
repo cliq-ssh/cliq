@@ -1,7 +1,9 @@
 import 'package:cliq/modules/session/model/session.model.dart';
 import 'package:cliq/shared/utils/commons.dart';
+import 'package:cliq/shared/utils/text_utils.dart';
 import 'package:cliq_ui/cliq_ui.dart'
     show CliqGridColumn, CliqGridContainer, CliqGridRow, CliqFontFamily;
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart' hide LicensePage;
 import 'package:forui/forui.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -41,13 +43,10 @@ class GenericSessionPage extends HookConsumerWidget {
         const SizedBox(height: 8),
         Text.rich(
           TextSpan(
-            children: [
-              TextSpan(text: 'Connecting to '),
-              TextSpan(
-                text: session.connection.address,
-                style: typography.body.xl.copyWith(fontWeight: .bold),
-              ),
-            ],
+            children: TextUtils.renderText(
+              context,
+              'hosts_connecting_to'.tr(args: [session.connection.address]),
+            ),
           ),
           style: typography.body.xl,
         ),
@@ -61,22 +60,19 @@ class GenericSessionPage extends HookConsumerWidget {
         Text.rich(
           textAlign: .center,
           TextSpan(
-            children: [
-              session.knownHostError!.knownHost != null
-                  ? TextSpan(text: 'Update fingerprint for ')
-                  : TextSpan(text: 'Accept fingerprint for '),
-              TextSpan(
-                text: session.knownHostError!.host,
-                style: typography.body.xl.copyWith(fontWeight: .bold),
-              ),
-              TextSpan(text: '?'),
-            ],
+            children: TextUtils.renderText(
+              context,
+              (session.knownHostError!.knownHost != null
+                      ? 'hosts_update_fingerprint_title'
+                      : 'hosts_accept_fingerprint_title')
+                  .tr(args: [session.knownHostError!.host]),
+            ),
           ),
           style: typography.body.xl,
         ),
         if (session.knownHostError!.knownHost != null)
           Text(
-            'The host is known, but the saved fingerprint does not match.',
+            'hosts_update_fingerprint_subtitle'.tr(),
             style: typography.body.md.copyWith(
               color: context.theme.colors.mutedForeground,
             ),
@@ -89,7 +85,7 @@ class GenericSessionPage extends HookConsumerWidget {
             children: [
               Text('${session.knownHostError!.algorithm} (SHA256)'),
               FTooltip(
-                tipBuilder: (_, _) => Text('Click to copy'),
+                tipBuilder: (_, _) => Text('click_to_copy'.tr()),
                 child: FButton.icon(
                   onPress: () => Commons.copyToClipboard(
                     context,
@@ -109,13 +105,13 @@ class GenericSessionPage extends HookConsumerWidget {
             FButton(
               variant: .outline,
               onPress: closeSession,
-              child: Text('Close'),
+              child: Text('close'.tr()),
             ),
             const Spacer(),
             FButton(
               variant: .outline,
               onPress: () => onRetry?.call(skipHostKeyVerification: true),
-              child: Text('Accept'),
+              child: Text('hosts_update_fingerprint_accept'.tr()),
             ),
             FButton(
               onPress: () async {
@@ -128,7 +124,7 @@ class GenericSessionPage extends HookConsumerWidget {
                     );
                 onRetry?.call();
               },
-              child: Text('Save & Accept'),
+              child: Text('hosts_update_fingerprint_save_accept'.tr()),
             ),
           ],
         ),
@@ -141,13 +137,12 @@ class GenericSessionPage extends HookConsumerWidget {
         const SizedBox(height: 8),
         Text.rich(
           TextSpan(
-            children: [
-              TextSpan(text: 'Failed to connect to '),
-              TextSpan(
-                text: session.connection.addressAndPort,
-                style: typography.body.xl.copyWith(fontWeight: .bold),
+            children: TextUtils.renderText(
+              context,
+              'hosts_failed_to_connect_to'.tr(
+                args: [session.connection.addressAndPort],
               ),
-            ],
+            ),
           ),
           style: typography.body.xl,
         ),
@@ -178,7 +173,7 @@ class GenericSessionPage extends HookConsumerWidget {
             FButton(
               variant: .outline,
               onPress: closeSession,
-              child: Text('Close'),
+              child: Text('close'.tr()),
             ),
             FButton(onPress: () => onRetry?.call(), child: Text('Retry')),
           ],

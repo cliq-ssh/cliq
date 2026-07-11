@@ -116,7 +116,7 @@ class NavigationShellState extends ConsumerState<NavigationShell>
       // TODO: make shortcut functional
       return FTooltip(
         tipBuilder: (_, _) => TextWithShortcutInfo(
-          'Dashboard'.tr(),
+          'dashboard'.tr(),
           shortcut: KeyboardShortcut(.keyD, modifiers: {.control}),
         ),
         child: SidebarTab(
@@ -333,21 +333,31 @@ class NavigationShellState extends ConsumerState<NavigationShell>
                       size: 10,
                       padding: 5,
                     ),
-                    suffix: Row(
-                      mainAxisSize: .min,
-                      spacing: 4,
-                      children: [
-                        FButton.icon(
-                          size: .xs,
-                          child: Icon(LucideIcons.unplug, size: 12),
-                          onPress: () => connect(connection),
-                        ),
-                        FButton.icon(
-                          size: .xs,
-                          child: Icon(LucideIcons.folder, size: 12),
-                          onPress: () => connect(connection, isSftp: true),
-                        ),
-                      ],
+                    suffix: FTooltipGroup(
+                      child: Row(
+                        mainAxisSize: .min,
+                        spacing: 4,
+                        children: [
+                          FTooltip(
+                            tipBuilder: (_, _) =>
+                                Text('hosts_connect_ssh'.tr()),
+                            child: FButton.icon(
+                              size: .xs,
+                              child: Icon(LucideIcons.unplug, size: 12),
+                              onPress: () => connect(connection),
+                            ),
+                          ),
+                          FTooltip(
+                            tipBuilder: (_, _) =>
+                                Text('hosts_connect_sftp'.tr()),
+                            child: FButton.icon(
+                              size: .xs,
+                              child: Icon(LucideIcons.folder, size: 12),
+                              onPress: () => connect(connection, isSftp: true),
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                     title: Text(connection.label),
                   ),

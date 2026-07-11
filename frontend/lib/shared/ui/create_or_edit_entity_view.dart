@@ -79,7 +79,7 @@ class CreateOrEditEntityView extends HookConsumerWidget {
                     SizedBox(
                       width: 200,
                       child: FSelect<int>.rich(
-                        validator: (v) => Validators.chain([
+                        validator: (v) => Validators.chain(context, [
                           Validators.nonNull,
                           Validators.nonEmpty,
                         ], v),

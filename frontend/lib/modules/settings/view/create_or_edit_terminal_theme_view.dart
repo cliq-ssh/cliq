@@ -283,7 +283,7 @@ class CreateOrEditTerminalThemeView extends HookConsumerWidget {
                         ),
                         hint: 'terminal_themes_theme_add_color_placeholder'
                             .tr(),
-                        validator: (value) => Validators.chain([
+                        validator: (value) => Validators.chain(context, [
                           if (required) Validators.nonEmpty,
                           Validators.hexColor,
                         ], value),
@@ -316,7 +316,7 @@ class CreateOrEditTerminalThemeView extends HookConsumerWidget {
               control: .managed(controller: nameCtrl),
               label: Text('terminal_themes_theme_add_label'.tr()),
               hint: 'terminal_themes_theme_add_label_placeholder'.tr(),
-              validator: Validators.nonEmpty,
+              validator: (s) => Validators.nonEmpty(context, s),
             ),
             Wrap(
               spacing: 16,

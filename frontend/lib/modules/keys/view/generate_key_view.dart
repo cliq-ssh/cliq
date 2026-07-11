@@ -99,7 +99,7 @@ class GenerateKeyView extends HookConsumerWidget {
               control: .managed(controller: labelCtrl),
               label: Text('keys_generate_label'.tr()),
               hint: 'keys_generate_label_placeholder'.tr(),
-              validator: Validators.nonEmpty,
+              validator: (s) => Validators.nonEmpty(context, s),
               enabled: !isLoading.value,
             ),
             FTextFormField.password(

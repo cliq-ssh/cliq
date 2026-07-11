@@ -241,7 +241,7 @@ class CreateOrEditCredentialsFormState
                           ),
                           label: buildCredentialLabel(data),
                           minLines: 1,
-                          validator: Validators.nonEmpty,
+                          validator: (s) => Validators.nonEmpty(context, s),
                           autovalidateMode: .onUserInteraction,
                         ),
                         .key => FAutocomplete.textBuilder(
@@ -326,7 +326,7 @@ class CreateOrEditCredentialsFormState
                           label: buildCredentialLabel(data),
                           minLines: 1,
                           validator: (s) {
-                            final empty = Validators.nonEmpty(s);
+                            final empty = Validators.nonEmpty(context, s);
                             if (empty != null) {
                               return empty;
                             }

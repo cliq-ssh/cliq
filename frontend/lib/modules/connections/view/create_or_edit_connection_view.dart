@@ -17,6 +17,7 @@ import 'package:cliq/shared/utils/validators.dart';
 import 'package:cliq_term/cliq_term.dart';
 import 'package:cliq_ui/cliq_ui.dart' show useMemoizedFuture;
 import 'package:drift/drift.dart' hide Column;
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:forui/forui.dart';
@@ -276,7 +277,7 @@ class CreateOrEditConnectionView extends HookConsumerWidget {
                             onChange: (value) => onChange?.call(value.text),
                           ),
                           inputFormatters: InputFormatters.hex(),
-                          hint: '#FFFFFF',
+                          hint: 'hosts_color_placeholder'.tr(),
                         ),
                       ),
                     ],
@@ -291,7 +292,7 @@ class CreateOrEditConnectionView extends HookConsumerWidget {
                 children: [
                   if (selectedIcon.value.brandColor != null)
                     FTooltip(
-                      tipBuilder: (_, _) => Text('Brand Color'),
+                      tipBuilder: (_, _) => Text('hosts_brand_color'.tr()),
                       child: buildColorSwatch(
                         color: selectedIcon.value.brandColor!,
                         isSelected: isSelected.call(
@@ -311,7 +312,7 @@ class CreateOrEditConnectionView extends HookConsumerWidget {
                           onTap: (c) => controller.text = c.toHex(),
                         ),
                       FTooltip(
-                        tipBuilder: (_, _) => Text('Random'),
+                        tipBuilder: (_, _) => Text('hosts_random_color'.tr()),
                         child: FButton.icon(
                           onPress: () => onChange?.call(
                             ColorExtension.generateRandom().toHex(),
@@ -321,7 +322,8 @@ class CreateOrEditConnectionView extends HookConsumerWidget {
                       ),
                       if (bgColor != null)
                         FTooltip(
-                          tipBuilder: (_, _) => Text('Inverted Background'),
+                          tipBuilder: (_, _) =>
+                              Text('hosts_inverted_background_color'.tr()),
                           child: FButton.icon(
                             onPress: () =>
                                 onChange?.call(bgColor.invert().toHex()),
@@ -340,7 +342,7 @@ class CreateOrEditConnectionView extends HookConsumerWidget {
 
     FAccordionItem buildIconItem() {
       return FAccordionItem(
-        title: Text('Icon & Color'),
+        title: Text('hosts_icon_and_color'.tr()),
         child: Padding(
           padding: const .symmetric(vertical: 20),
           child: Column(
@@ -348,7 +350,7 @@ class CreateOrEditConnectionView extends HookConsumerWidget {
             crossAxisAlignment: .start,
             children: [
               FLabel(
-                label: Text('Background Color'),
+                label: Text('hosts_icon_background_color'.tr()),
                 layout: .vertical,
                 child: buildColorPicker(
                   color: selectedIconBackgroundColor.value,
@@ -358,12 +360,15 @@ class CreateOrEditConnectionView extends HookConsumerWidget {
                     final result = ColorExtension.fromHex(hex);
                     if (result != null) {
                       selectedIconBackgroundColor.value = result;
+                      if (iconBgColorCtrl.text != result.toHex()) {
+                        iconBgColorCtrl.text = result.toHex();
+                      }
                     }
                   },
                 ),
               ),
               FLabel(
-                label: Text('Icon Color'),
+                label: Text('hosts_icon_color'.tr()),
                 layout: .vertical,
                 child: buildColorPicker(
                   color: selectedIconColor.value,
@@ -371,7 +376,13 @@ class CreateOrEditConnectionView extends HookConsumerWidget {
                   isSelected: (c) => c == selectedIconColor.value,
                   onChange: (hex) {
                     final result = ColorExtension.fromHex(hex);
-                    if (result != null) selectedIconColor.value = result;
+                    if (result != null) {
+                      selectedIconColor.value = result;
+                      if (iconColorCtrl.text != result.toHex()) {
+                        iconColorCtrl.text = result.toHex();
+                      }
+                    }
+                    ;
                   },
                   child: Icon(
                     selectedIcon.value.iconData,
@@ -383,7 +394,7 @@ class CreateOrEditConnectionView extends HookConsumerWidget {
               ),
               const SizedBox(height: 12),
               FLabel(
-                label: Text('Icon'),
+                label: Text('hosts_icon'.tr()),
                 layout: .vertical,
                 child: Padding(
                   padding: const .symmetric(vertical: 16),
@@ -419,7 +430,7 @@ class CreateOrEditConnectionView extends HookConsumerWidget {
 
     FAccordionItem buildThemeItem() {
       return FAccordionItem(
-        title: Text('Terminal Appearance'),
+        title: Text('hosts_terminal_appearance'.tr()),
         child: Padding(
           padding: const .symmetric(vertical: 20),
           child: Column(
@@ -458,7 +469,7 @@ class CreateOrEditConnectionView extends HookConsumerWidget {
                     selectedTerminalThemeId.value = selected;
                   },
                 ),
-                label: Text('Terminal Theme'),
+                label: Text('hosts_terminal_theme'.tr()),
                 children: [
                   for (final theme in [
                     defaultTerminalColorTheme,
@@ -508,23 +519,23 @@ class CreateOrEditConnectionView extends HookConsumerWidget {
           children: [
             FTextFormField(
               control: .managed(controller: labelCtrl),
-              label: const Text('Label'),
+              label: Text('hosts_label'.tr()),
               hint: labelCtrl.text.isEmpty ? addressCtrl.text : null,
             ),
 
             FAutocomplete.text(
               control: .managed(controller: groupCtrl),
-              label: const Text('Group'),
+              label: Text('hosts_group'.tr()),
               clearable: (value) => value.text.isNotEmpty,
               contentEmptyBuilder: (_, _) => Padding(
                 padding: const EdgeInsets.symmetric(vertical: 12),
                 child: groupCtrl.text.isEmpty
-                    ? const Text('No groups')
-                    : Text('Create group "${groupCtrl.text}"'),
+                    ? Text('hosts_no_groups'.tr())
+                    : Text('hosts_create_group'.tr(args: [groupCtrl.text])),
               ),
               contentErrorBuilder: (_, _, _, _) => Padding(
                 padding: const EdgeInsets.symmetric(vertical: 12),
-                child: Text('Create group "${groupCtrl.text}"'),
+                child: Text('hosts_create_group'.tr(args: [groupCtrl.text])),
               ),
               items: groups.on(onData: (v) => v, onLoading: () => []),
             ),
@@ -536,18 +547,18 @@ class CreateOrEditConnectionView extends HookConsumerWidget {
                   flex: 4,
                   child: buildTextField(
                     controller: addressCtrl,
-                    label: 'Address',
-                    hint: '127.0.0.1',
-                    validator: Validators.address,
+                    label: 'hosts_address'.tr(),
+                    hint: 'hosts_address_placeholder'.tr(),
+                    validator: (s) => Validators.address(context, s),
                   ),
                 ),
                 Expanded(
                   flex: 2,
                   child: buildTextField(
                     controller: portCtrl,
-                    label: 'Port',
-                    hint: '22',
-                    validator: Validators.port,
+                    label: 'hosts_port'.tr(),
+                    hint: 'hosts_port_placeholder'.tr(),
+                    validator: (s) => Validators.port(context, s),
                   ),
                 ),
               ],
@@ -589,8 +600,8 @@ class CreateOrEditConnectionView extends HookConsumerWidget {
                     focusNode: usernameFocusNode,
                     label: Text(
                       selectedIdentityId.value == null
-                          ? 'Username'
-                          : 'Identity',
+                          ? 'hosts_username'.tr()
+                          : 'hosts_identity'.tr(),
                     ),
                     minLines: 1,
                     validator: (s) {
@@ -600,7 +611,7 @@ class CreateOrEditConnectionView extends HookConsumerWidget {
                             AutocompleteUtils.fromAutocompleteString(s!).$1;
                       });
 
-                      final empty = Validators.nonEmpty(s);
+                      final empty = Validators.nonEmpty(context, s);
                       if (empty != null) return empty;
 
                       return null;

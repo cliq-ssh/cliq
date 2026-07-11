@@ -147,7 +147,7 @@ class CreateOrEditKeyView extends HookConsumerWidget {
               control: .managed(controller: labelCtrl),
               label: Text('keys_import_label'.tr()),
               hint: 'keys_import_label_placeholder'.tr(),
-              validator: Validators.nonEmpty,
+              validator: (s) => Validators.nonEmpty(context, s),
             ),
             FTextFormField(
               control: .managed(controller: publicKeyCtrl),
@@ -177,7 +177,7 @@ class CreateOrEditKeyView extends HookConsumerWidget {
               hint: 'keys_import_private_key_placeholder'.tr(),
               minLines: 8,
               maxLines: 8,
-              validator: Validators.pem,
+              validator: (s) => Validators.pem(context, s),
               autovalidateMode: .onUserInteraction,
             ),
             FTextFormField.password(

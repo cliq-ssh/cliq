@@ -60,7 +60,7 @@ enum _SftpColumn {
   });
 
   String getDisplayName(BuildContext context) {
-    return 'sftp_row.$name'.tr(context: context);
+    return 'sftp_row.${this.name}'.tr(context: context);
   }
 
   static String _buildName(BuildContext context, SftpName file) =>
@@ -803,50 +803,53 @@ class _SftpSessionPageState extends ConsumerState<SftpSessionPage>
               child: Row(
                 spacing: 8,
                 children: [
-                  Row(
-                    spacing: 8,
-                    children: [
-                      FTooltip(
-                        tipBuilder: (_, _) => Text('sftp_navigate_back'.tr()),
-                        child: FButton.icon(
-                          variant: .outline,
-                          onPress: backStack.value.isEmpty
-                              ? null
-                              : onAction(() {
-                                  forwardStack.value = [
-                                    currentDirectory.value!,
-                                    ...forwardStack.value,
-                                  ];
-                                  currentDirectory.value = backStack.value.last;
-                                  backStack.value = backStack.value.sublist(
-                                    0,
-                                    backStack.value.length - 1,
-                                  );
-                                }),
-                          child: Icon(LucideIcons.arrowLeft),
+                  FTooltipGroup(
+                    child: Row(
+                      spacing: 8,
+                      children: [
+                        FTooltip(
+                          tipBuilder: (_, _) => Text('sftp_navigate_back'.tr()),
+                          child: FButton.icon(
+                            variant: .outline,
+                            onPress: backStack.value.isEmpty
+                                ? null
+                                : onAction(() {
+                                    forwardStack.value = [
+                                      currentDirectory.value!,
+                                      ...forwardStack.value,
+                                    ];
+                                    currentDirectory.value =
+                                        backStack.value.last;
+                                    backStack.value = backStack.value.sublist(
+                                      0,
+                                      backStack.value.length - 1,
+                                    );
+                                  }),
+                            child: Icon(LucideIcons.arrowLeft),
+                          ),
                         ),
-                      ),
-                      FTooltip(
-                        tipBuilder: (_, _) =>
-                            Text('sftp_navigate_forward'.tr()),
-                        child: FButton.icon(
-                          variant: .outline,
-                          onPress: forwardStack.value.isEmpty
-                              ? null
-                              : onAction(() {
-                                  backStack.value = [
-                                    ...backStack.value,
-                                    currentDirectory.value!,
-                                  ];
-                                  currentDirectory.value =
-                                      forwardStack.value.first;
-                                  forwardStack.value = forwardStack.value
-                                      .sublist(1);
-                                }),
-                          child: Icon(LucideIcons.arrowRight),
+                        FTooltip(
+                          tipBuilder: (_, _) =>
+                              Text('sftp_navigate_forward'.tr()),
+                          child: FButton.icon(
+                            variant: .outline,
+                            onPress: forwardStack.value.isEmpty
+                                ? null
+                                : onAction(() {
+                                    backStack.value = [
+                                      ...backStack.value,
+                                      currentDirectory.value!,
+                                    ];
+                                    currentDirectory.value =
+                                        forwardStack.value.first;
+                                    forwardStack.value = forwardStack.value
+                                        .sublist(1);
+                                  }),
+                            child: Icon(LucideIcons.arrowRight),
+                          ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
                   Expanded(
                     child: SingleChildScrollView(
