@@ -46,11 +46,12 @@ class I18nSettingsPage extends AbstractSettingsPage {
                         },
                       ),
                       children: [
-                        for (final localeEntry in Constants.supportedLocales.entries)
+                        for (final localeEntry
+                            in Constants.supportedLocales.entries)
                           .tile(
                             value: localeEntry.value,
                             title: Text(localeEntry.key),
-                            subtitle: Text(localeEntry.value.toLanguageTag())
+                            subtitle: Text(localeEntry.value.toLanguageTag()),
                           ),
                       ],
                     ),
@@ -58,13 +59,15 @@ class I18nSettingsPage extends AbstractSettingsPage {
                       children: [
                         .tile(
                           title: Text('language_help_translate'.tr()),
-                          subtitle: Text('language_help_translate_subtitle'.tr()),
+                          subtitle: Text(
+                            'language_help_translate_subtitle'.tr(),
+                          ),
                           prefix: Icon(LucideIcons.languages),
                           suffix: Icon(LucideIcons.externalLink),
                           onPress: () => Commons.launchWeblateUrl(),
                         ),
                       ],
-                    )
+                    ),
                   ],
                 ),
               ),
