@@ -495,7 +495,8 @@ class _SftpSessionPageState extends ConsumerState<SftpSessionPage>
     }
 
     openFile(SftpName file, String id) async {
-      if (!isDesktop || file.attr.isDirectory ||
+      if (!isDesktop ||
+          file.attr.isDirectory ||
           file.filename.isEmpty ||
           _ignoredSelectableFilenames.contains(file.filename)) {
         return;
@@ -1339,7 +1340,9 @@ class _SftpSessionPageState extends ConsumerState<SftpSessionPage>
                                             sessionId: session.id,
                                             files: selected,
                                           ),
-                                          maxSimultaneousDrags: isDesktop ? 1 : 0,
+                                          maxSimultaneousDrags: isDesktop
+                                              ? 1
+                                              : 0,
                                           onDragStarted: () {
                                             final isPartOfSelection =
                                                 selectedFilesIds.value.contains(
