@@ -75,11 +75,7 @@ class SessionTitleBar extends HookConsumerWidget {
     return Container(
       color: backgroundColor.value ?? context.theme.colors.background,
       child: Padding(
-        padding: const .only(
-          top: kShellSessionPagePadding,
-          left: kShellSessionPagePadding,
-          right: kShellSessionPagePadding,
-        ),
+        padding: kShellSessionPagePadding.copyWith(bottom: 0),
         child: Row(
           spacing: 8,
           crossAxisAlignment: .center,

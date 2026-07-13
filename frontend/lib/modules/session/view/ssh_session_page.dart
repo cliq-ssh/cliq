@@ -6,18 +6,26 @@ import 'package:cliq/modules/settings/extension/custom_terminal_theme.extension.
 import 'package:cliq/modules/settings/model/keyboard_shortcuts.model.dart';
 import 'package:cliq/modules/settings/provider/terminal_theme.provider.dart';
 import 'package:cliq/shared/provider/store.provider.dart';
+import 'package:cliq/shared/utils/platform_utils.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart' hide LicensePage;
 import 'package:flutter_hooks/flutter_hooks.dart';
+import 'package:forui/forui.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:cliq_term/cliq_term.dart';
+import 'package:lucide_flutter/lucide_flutter.dart';
 
 import '../../../shared/ui/navigation_shell.dart';
 import '../provider/session.provider.dart';
 import 'generic_session_page.dart';
 
 /// The padding around the terminal view in the session page.
-const kShellSessionPagePadding = 8.0;
+const kShellSessionPagePadding = EdgeInsets.symmetric(
+  horizontal: 8,
+  vertical: 4,
+);
+
+const kBottomNavigationBarHeight = 80.0;
 
 class SshSessionPage extends StatefulHookConsumerWidget {
   final String sessionId;
@@ -190,6 +198,99 @@ class _SshSessionPageState extends ConsumerState<SshSessionPage>
       return null;
     }, [defaultTerminalTypography.value, defaultTerminalTheme.value]);
 
+    buildAccessoryButton(
+      VoidCallback onPress, {
+      String? text,
+      IconData? icon,
+      FButtonVariant? variant,
+    }) {
+      assert(
+        text != null || icon != null,
+        'Either text or icon must be provided',
+      );
+      return FButton.icon(
+        variant: variant ?? .outline,
+        onPress: onPress,
+        child: text == null
+            ? Icon(icon!, size: 16)
+            : Text(
+                text,
+                style: .new().copyWith(fontSize: 12, fontWeight: .bold),
+              ),
+      );
+    }
+
+    getButtonVariantForState(AccessoryBarButtonState state) {
+      return switch (state) {
+        .inactive => FButtonVariant.outline,
+        .oneShot => FButtonVariant.secondary,
+        .active => FButtonVariant.primary,
+      };
+    }
+
+    buildAccessoryBar() {
+      if (PlatformUtils.isDesktop) return null;
+
+      // TODO: - restrict panning to desktop
+
+      return (_, TerminalAccessoryBarActions actions) {
+        return TerminalAccessoryBar(
+          backgroundColor: effectiveTerminalTheme.backgroundColor,
+          padding: .symmetric(horizontal: 8, vertical: 4),
+          items: [
+            buildAccessoryButton(
+              () => actions.sendInput(kSeqEscape),
+              text: 'ESC',
+            ),
+            buildAccessoryButton(() => actions.sendInput(kSeqTab), text: 'TAB'),
+            ValueListenableBuilder(
+              valueListenable: actions.ctrlActive,
+              builder: (_, value, _) {
+                return buildAccessoryButton(
+                  () => actions.toggleCtrl(),
+                  text: 'CTRL',
+                  variant: getButtonVariantForState(value),
+                );
+              },
+            ),
+            ValueListenableBuilder(
+              valueListenable: actions.altActive,
+              builder: (_, value, _) {
+                return buildAccessoryButton(
+                  () => actions.toggleAlt(),
+                  text: 'ALT',
+                  variant: getButtonVariantForState(value),
+                );
+              },
+            ),
+
+            buildAccessoryButton(
+              () => actions.sendInput(kSeqCursorUp),
+              icon: LucideIcons.arrowUp,
+            ),
+            buildAccessoryButton(
+              () => actions.sendInput(kSeqCursorDown),
+              icon: LucideIcons.arrowDown,
+            ),
+            buildAccessoryButton(
+              () => actions.sendInput(kSeqCursorLeft),
+              icon: LucideIcons.arrowLeft,
+            ),
+            buildAccessoryButton(
+              () => actions.sendInput(kSeqCursorRight),
+              icon: LucideIcons.arrowRight,
+            ),
+          ],
+          suffixItem: buildAccessoryButton(
+            () => actions.toggleKeyboard(),
+            icon: actions.keyboardVisible.value
+                ? LucideIcons.keyboardOff
+                : LucideIcons.keyboard,
+          ),
+        );
+      };
+    }
+
     return GenericSessionPage(
       session: session,
       isConnected: session.isConnected && terminalController.value != null,
@@ -198,10 +299,18 @@ class _SshSessionPageState extends ConsumerState<SshSessionPage>
       child: SizedBox.expand(
         child: Container(
           color: effectiveTerminalTheme.backgroundColor,
-          padding: const .all(kShellSessionPagePadding),
+          padding: kShellSessionPagePadding.copyWith(
+            bottom:
+                kShellSessionPagePadding.bottom +
+                MediaQuery.of(context).viewInsets.bottom +
+                kAccessoryBarHeight,
+          ),
           child: TerminalView(
             controller: terminalController.value!,
             focusNode: widget.focusNode,
+            accessoryBarBuilder: buildAccessoryBar(),
+            accessoryBarOffset: kBottomNavigationBarHeight,
+            allowTextSelection: PlatformUtils.isDesktop,
             copyShortcut: shortcuts.value.shortcuts[KeyboardShortcutType.copy],
             pasteShortcut:
                 shortcuts.value.shortcuts[KeyboardShortcutType.paste],

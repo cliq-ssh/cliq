@@ -2,8 +2,8 @@ import 'dart:math';
 
 import 'package:cliq_term/cliq_term.dart';
 import 'package:cliq_term/src/parser/escape_parser.dart';
-import 'package:cliq_term/src/rendering/terminal_painter.dart';
 import 'package:cliq_term/src/state/selection.state.dart';
+import 'package:cliq_term/src/widgets/terminal_painter.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -16,30 +16,30 @@ class TerminalController extends ChangeNotifier {
   static final Map<LogicalKeyboardKey, String> _keyCharacterMap = {
     .enter: '\r',
     .backspace: '\x7f',
-    .tab: '\t',
-    .escape: '\x1b',
-    .arrowUp: '\x1b[A',
-    .arrowDown: '\x1b[B',
-    .arrowRight: '\x1b[C',
-    .arrowLeft: '\x1b[D',
-    .home: '\x1b[H',
-    .end: '\x1b[F',
-    .insert: '\x1b[2~',
-    .delete: '\x1b[3~',
-    .pageUp: '\x1b[5~',
-    .pageDown: '\x1b[6~',
-    .f1: '\x1bOP',
-    .f2: '\x1bOQ',
-    .f3: '\x1bOR',
-    .f4: '\x1bOS',
-    .f5: '\x1b[15~',
-    .f6: '\x1b[17~',
-    .f7: '\x1b[18~',
-    .f8: '\x1b[19~',
-    .f9: '\x1b[20~',
-    .f10: '\x1b[21~',
-    .f11: '\x1b[23~',
-    .f12: '\x1b[24~',
+    .tab: kSeqTab,
+    .escape: kSeqEscape,
+    .arrowUp: kSeqCursorUp,
+    .arrowDown: kSeqCursorDown,
+    .arrowRight: kSeqCursorRight,
+    .arrowLeft: kSeqCursorLeft,
+    .home: '$kSeqEscape[H',
+    .end: '$kSeqEscape[F',
+    .insert: '$kSeqEscape[2~',
+    .delete: '$kSeqEscape[3~',
+    .pageUp: '$kSeqEscape[5~',
+    .pageDown: '$kSeqEscape[6~',
+    .f1: '${kSeqEscape}OP',
+    .f2: '${kSeqEscape}OQ',
+    .f3: '${kSeqEscape}OR',
+    .f4: '${kSeqEscape}OS',
+    .f5: '$kSeqEscape[15~',
+    .f6: '$kSeqEscape[17~',
+    .f7: '$kSeqEscape[18~',
+    .f8: '$kSeqEscape[19~',
+    .f9: '$kSeqEscape[20~',
+    .f10: '$kSeqEscape[21~',
+    .f11: '$kSeqEscape[23~',
+    .f12: '$kSeqEscape[24~',
   };
 
   /// Interval for cursor blinking.

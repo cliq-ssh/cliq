@@ -45,6 +45,11 @@ enum StoreKey<T> {
     fromValue: _desktopNavigationPositionFromValue,
     toValue: _enumToValue,
   ),
+  applyTerminalThemeColorToNavigation<bool>(
+    'apply_terminal_theme_to_navigation',
+    type: bool,
+    defaultValue: true,
+  ),
 
   knownHostsCardViewType<EntityCardViewType>(
     'known_hosts_card_view_type',
