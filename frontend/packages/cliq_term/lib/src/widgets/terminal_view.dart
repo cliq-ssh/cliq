@@ -1,10 +1,9 @@
 import 'dart:math';
 
 import 'package:cliq_term/cliq_term.dart';
-import 'package:cliq_term/src/rendering/terminal_painter.dart';
-import 'package:cliq_term/src/utils/selection_helper.dart';
-import 'package:cliq_term/src/utils/gesture_selection_handler.dart';
 import 'package:cliq_term/src/utils/keyboard_helper.dart';
+import 'package:cliq_term/src/utils/platform_utils.dart';
+import 'package:cliq_term/src/utils/selection_helper.dart';
 import 'package:cliq_term/src/widgets/terminal_input.dart';
 import 'package:cliq_term/src/widgets/terminal_painter.dart';
 import 'package:flutter/material.dart';
@@ -12,7 +11,7 @@ import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 
 /// The height of the accessory bar displayed above the keyboard when it is visible.
-const kAccessoryBarHeight = 48.0;
+final kAccessoryBarHeight = PlatformUtils.isMobile ? 48.0 : 0.0;
 
 class TerminalView extends StatefulWidget {
   /// The [TerminalController] used to manage the terminal state and handle input/output.
@@ -452,8 +451,6 @@ class _SingleRowPainter extends CustomPainter {
     final cells = row.cells;
     final cols = controller.activeBuffer.cols;
     final rowCols = cells.length;
-
-    // ... rest of paint method
 
     // 1. Backgrounds
     final bgPaint = Paint();
