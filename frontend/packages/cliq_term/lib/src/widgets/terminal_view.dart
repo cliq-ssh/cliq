@@ -77,7 +77,7 @@ class _TerminalViewState extends State<TerminalView> {
   bool _isUpdatePending = false;
 
   /// Whether the software keyboard is currently visible.
-  final ValueNotifier<bool> _keyboardVisible = ValueNotifier(true);
+  final ValueNotifier<bool> _keyboardVisible = ValueNotifier(PlatformUtils.isMobile);
 
   final ValueNotifier<AccessoryBarButtonState> _ctrlActive = ValueNotifier(
     .inactive,
