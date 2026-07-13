@@ -96,7 +96,7 @@ dependencies {
     implementation("com.nimbusds:srp6a:2.1.0")
 
     // Algorithm Provider & Encryption primitives
-    implementation("org.bouncycastle:bcprov-jdk18on:1.84")
+    implementation("org.bouncycastle:bcprov-jdk18on:1.85")
 
     // Serialization
     implementation("org.springframework.boot:spring-boot-starter-jackson")
