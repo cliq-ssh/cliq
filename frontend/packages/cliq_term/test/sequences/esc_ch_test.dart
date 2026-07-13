@@ -17,7 +17,7 @@ void main() {
       controller.feed('aaaa'); // cursor at (0, 4)
       controller.feed('\x1bH');
       controller.feed('\x0D');
-      controller.feed('\x09');
+      controller.feed(EscapeSequences.tab);
       expectCursorAt(controller, 0, 4);
     });
 
@@ -26,7 +26,7 @@ void main() {
       controller.feed('\x1bH');
       controller.feed('\x0D');
       // should land at col 2, not default col 8
-      controller.feed('\x09');
+      controller.feed(EscapeSequences.tab);
       expectCursorAt(controller, 0, 2);
     });
 
@@ -36,9 +36,9 @@ void main() {
       controller.feed('aaa');
       controller.feed('\x1bH');
       controller.feed('\x0D');
-      controller.feed('\x09');
+      controller.feed(EscapeSequences.tab);
       expectCursorAt(controller, 0, 2);
-      controller.feed('\x09');
+      controller.feed(EscapeSequences.tab);
       expectCursorAt(controller, 0, 5);
     });
   });

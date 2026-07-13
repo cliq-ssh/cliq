@@ -10,6 +10,7 @@ class TerminalInput extends StatefulWidget {
   final bool readOnly;
   final KeyEventResult Function(FocusNode node, KeyEvent event)? onKeyEvent;
   final ValueChanged<bool>? onFocusChange;
+  final ValueNotifier<bool>? keyboardVisible;
 
   const TerminalInput({
     super.key,
@@ -19,6 +20,7 @@ class TerminalInput extends StatefulWidget {
     this.readOnly = false,
     this.onKeyEvent,
     this.onFocusChange,
+    this.keyboardVisible,
   });
 
   @override
@@ -28,6 +30,7 @@ class TerminalInput extends StatefulWidget {
 class _TerminalInputState extends State<TerminalInput>
     implements TextInputClient {
   TextInputConnection? _inputConnection;
+  bool _lastReportedFocus = false;
 
   TextEditingValue _editingValue = const .new(
     text: ' ',
@@ -37,35 +40,46 @@ class _TerminalInputState extends State<TerminalInput>
   @override
   void initState() {
     super.initState();
-    widget.focusNode.addListener(_handleFocusChange);
-    if (widget.focusNode.hasFocus) _handleFocusChange();
+    widget.focusNode.addListener(_updateConnection);
+    widget.keyboardVisible?.addListener(_updateConnection);
+    if (widget.focusNode.hasFocus) _updateConnection();
   }
 
   @override
   void didUpdateWidget(covariant TerminalInput oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.focusNode != widget.focusNode) {
-      oldWidget.focusNode.removeListener(_handleFocusChange);
-      widget.focusNode.addListener(_handleFocusChange);
+      oldWidget.focusNode.removeListener(_updateConnection);
+      widget.focusNode.addListener(_updateConnection);
+    }
+    if (oldWidget.keyboardVisible != widget.keyboardVisible) {
+      oldWidget.keyboardVisible?.removeListener(_updateConnection);
+      widget.keyboardVisible?.addListener(_updateConnection);
     }
     if (widget.readOnly != oldWidget.readOnly) {
-      _handleFocusChange();
+      _updateConnection();
     }
   }
 
   @override
   void dispose() {
-    widget.focusNode.removeListener(_handleFocusChange);
+    widget.focusNode.removeListener(_updateConnection);
+    widget.keyboardVisible?.removeListener(_updateConnection); // NEW
     _closeInputConnection();
     super.dispose();
   }
 
-  /// Handles focus changes on the [FocusNode] and opens/closes the
-  /// software keyboard accordingly.
-  void _handleFocusChange() {
+  /// Updates the TextInputConnection based on the current focus and read-only state.
+  /// If the focus state has changed, it calls [onFocusChange] if provided.
+  void _updateConnection() {
     final hasFocus = widget.focusNode.hasFocus;
-    widget.onFocusChange?.call(hasFocus);
-    if (hasFocus && !widget.readOnly) {
+    if (hasFocus != _lastReportedFocus) {
+      _lastReportedFocus = hasFocus;
+      widget.onFocusChange?.call(hasFocus);
+    }
+
+    final wantsKeyboard = widget.keyboardVisible?.value ?? true;
+    if (hasFocus && !widget.readOnly && wantsKeyboard) {
       _openInputConnection();
     } else {
       _closeInputConnection();

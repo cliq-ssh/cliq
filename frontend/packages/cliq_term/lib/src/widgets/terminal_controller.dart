@@ -2,8 +2,8 @@ import 'dart:math';
 
 import 'package:cliq_term/cliq_term.dart';
 import 'package:cliq_term/src/parser/escape_parser.dart';
-import 'package:cliq_term/src/rendering/terminal_painter.dart';
 import 'package:cliq_term/src/state/selection.state.dart';
+import 'package:cliq_term/src/widgets/terminal_painter.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -16,12 +16,12 @@ class TerminalController extends ChangeNotifier {
   static final Map<LogicalKeyboardKey, String> _keyCharacterMap = {
     .enter: '\r',
     .backspace: '\x7f',
-    .tab: '\t',
+    .tab: EscapeSequences.tab,
     .escape: '\x1b',
-    .arrowUp: '\x1b[A',
-    .arrowDown: '\x1b[B',
-    .arrowRight: '\x1b[C',
-    .arrowLeft: '\x1b[D',
+    .arrowUp: EscapeSequences.cursorUp,
+    .arrowDown: EscapeSequences.cursorDown,
+    .arrowRight: EscapeSequences.cursorRight,
+    .arrowLeft: EscapeSequences.cursorLeft,
     .home: '\x1b[H',
     .end: '\x1b[F',
     .insert: '\x1b[2~',
