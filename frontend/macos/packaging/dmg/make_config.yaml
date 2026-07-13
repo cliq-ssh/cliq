@@ -1,5 +1,5 @@
 title: cliq
-icon: "assets/icon/cliq-dmg.icns"
+icon: cliq.app/Contents/Resources/cliq-dmg.icns
 icon-size: 128
 contents:
   - x: 448
