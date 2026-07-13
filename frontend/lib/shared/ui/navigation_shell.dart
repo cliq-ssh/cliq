@@ -438,6 +438,7 @@ class NavigationShellState extends ConsumerState<NavigationShell>
 
     return FScaffold(
       childPad: false,
+      resizeToAvoidBottomInset: false,
       header: Container(
         padding: const EdgeInsets.all(8).copyWith(top: !isDesktop ? 0 : null),
         constraints: .new(minHeight: 54),

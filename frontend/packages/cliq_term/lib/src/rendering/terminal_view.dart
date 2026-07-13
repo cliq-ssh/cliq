@@ -1,4 +1,5 @@
 import 'package:cliq_term/cliq_term.dart';
+import 'package:cliq_term/src/rendering/terminal_input.dart';
 import 'package:cliq_term/src/rendering/terminal_painter.dart';
 import 'package:cliq_term/src/utils/gesture_selection_handler.dart';
 import 'package:cliq_term/src/utils/keyboard_helper.dart';
@@ -29,7 +30,6 @@ class TerminalView extends StatefulWidget {
 class _TerminalViewState extends State<TerminalView> {
   late final FocusNode _focusNode;
   late final bool _shouldDisposeFocusNode;
-  late final VoidCallback _focusListener;
 
   final ScrollController _scrollController = ScrollController();
   bool _userScrolledAwayFromBottom = false;
@@ -40,15 +40,6 @@ class _TerminalViewState extends State<TerminalView> {
 
     _focusNode = widget.focusNode ?? FocusNode();
     _shouldDisposeFocusNode = widget.focusNode == null;
-
-    _focusListener = () {
-      if (_focusNode.hasFocus) {
-        widget.controller.startCursorBlink();
-      } else {
-        widget.controller.stopCursorBlink();
-      }
-    };
-    _focusNode.addListener(_focusListener);
 
     widget.controller.addListener(_onUpdate);
 
@@ -63,7 +54,6 @@ class _TerminalViewState extends State<TerminalView> {
   @override
   void dispose() {
     widget.controller.removeListener(_onUpdate);
-    _focusNode.removeListener(_focusListener);
     if (_shouldDisposeFocusNode) {
       _focusNode.dispose();
     }
@@ -120,8 +110,13 @@ class _TerminalViewState extends State<TerminalView> {
             ? totalRows * cellH
             : constraints.maxHeight;
 
-        return Focus(
+        return TerminalInput(
           focusNode: _focusNode,
+          onInput: (text) {
+            _scrollToBottom();
+            widget.controller.clearSelection();
+            widget.controller.onInput?.call(text);
+          },
           onKeyEvent: (node, event) {
             if (widget.readOnly) {
               return .ignored;

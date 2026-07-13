@@ -6,6 +6,7 @@ import 'package:cliq/modules/settings/extension/custom_terminal_theme.extension.
 import 'package:cliq/modules/settings/model/keyboard_shortcuts.model.dart';
 import 'package:cliq/modules/settings/provider/terminal_theme.provider.dart';
 import 'package:cliq/shared/provider/store.provider.dart';
+import 'package:cliq/shared/utils/platform_utils.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart' hide LicensePage;
 import 'package:flutter_hooks/flutter_hooks.dart';
@@ -17,7 +18,11 @@ import '../provider/session.provider.dart';
 import 'generic_session_page.dart';
 
 /// The padding around the terminal view in the session page.
-const kShellSessionPagePadding = 8.0;
+const kShellSessionPagePadding = EdgeInsets.symmetric(
+  horizontal: 8,
+  vertical: 4,
+);
+const kAccessoryBarHeight = 48.0;
 
 class SshSessionPage extends StatefulHookConsumerWidget {
   final String sessionId;
@@ -31,8 +36,36 @@ class SshSessionPage extends StatefulHookConsumerWidget {
 
 class _SshSessionPageState extends ConsumerState<SshSessionPage>
     with AutomaticKeepAliveClientMixin {
+  OverlayEntry? _accessoryBarEntry;
+
   @override
   bool get wantKeepAlive => true;
+
+  void _showAccessoryBar() {
+    _accessoryBarEntry?.remove();
+    _accessoryBarEntry = OverlayEntry(
+      builder: (context) {
+        final viewInsets = MediaQuery.of(context).viewInsets.bottom;
+        final keyboardVisible = viewInsets > 0;
+        return AnimatedPositioned(
+          duration: const Duration(milliseconds: 250),
+          curve: Curves.easeOutCubic,
+          left: 0,
+          right: 0,
+          bottom: keyboardVisible ? viewInsets : -kAccessoryBarHeight,
+          height: kAccessoryBarHeight,
+          child: Container(color: Colors.red),
+        );
+      },
+    );
+    Overlay.of(context, rootOverlay: true).insert(_accessoryBarEntry!);
+  }
+
+  @override
+  void dispose() {
+    _accessoryBarEntry?.remove();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -91,6 +124,9 @@ class _SshSessionPageState extends ConsumerState<SshSessionPage>
     useEffect(() {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         widget.focusNode?.requestFocus();
+        if (PlatformUtils.isMobile) {
+          _showAccessoryBar();
+        }
       });
       return null;
     }, []);
@@ -198,7 +234,12 @@ class _SshSessionPageState extends ConsumerState<SshSessionPage>
       child: SizedBox.expand(
         child: Container(
           color: effectiveTerminalTheme.backgroundColor,
-          padding: const .all(kShellSessionPagePadding),
+          padding: kShellSessionPagePadding.copyWith(
+            bottom:
+                kShellSessionPagePadding.bottom +
+                MediaQuery.of(context).viewInsets.bottom +
+                kAccessoryBarHeight,
+          ),
           child: TerminalView(
             controller: terminalController.value!,
             focusNode: widget.focusNode,
