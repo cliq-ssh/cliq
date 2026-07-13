@@ -6,11 +6,11 @@ import 'package:cliq/modules/settings/extension/custom_terminal_theme.extension.
 import 'package:cliq/modules/settings/model/keyboard_shortcuts.model.dart';
 import 'package:cliq/modules/settings/provider/terminal_theme.provider.dart';
 import 'package:cliq/shared/provider/store.provider.dart';
+import 'package:cliq_term/cliq_term.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart' hide LicensePage;
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:cliq_term/cliq_term.dart';
 
 import '../../../shared/ui/navigation_shell.dart';
 import '../provider/session.provider.dart';
@@ -132,7 +132,7 @@ class _SshSessionPageState extends ConsumerState<SshSessionPage>
         });
 
         terminalController.value!.onInput = (s) {
-          sshSession?.stdin.add(Uint8List.fromList(s.codeUnits));
+          sshSession?.write(Uint8List.fromList(s.codeUnits));
         };
 
         StreamSubscription? stdoutSub;
@@ -140,13 +140,13 @@ class _SshSessionPageState extends ConsumerState<SshSessionPage>
 
         // Terminal backpressure handling
         terminalController.value!.onPause = () {
+          // We only need to pause stdout as stdout & stderr share one stream
           stdoutSub?.pause();
-          stderrSub?.pause();
         };
 
         terminalController.value!.onResume = () {
+          // We only need to resume stdout as stdout & stderr share one stream
           stdoutSub?.resume();
-          stderrSub?.resume();
         };
 
         stdoutSub =

@@ -1,4 +1,3 @@
-import 'dart:async';
 import 'dart:math';
 
 import 'package:cliq_term/cliq_term.dart';
@@ -95,8 +94,7 @@ class EscapeParser {
 
     if (_queue.length > TerminalController.highWaterMark &&
         !controller.isPaused) {
-      controller.isPaused = true;
-      controller.onPause?.call();
+      controller.pause();
     }
 
     if (!_isProcessing) {
@@ -118,7 +116,10 @@ class EscapeParser {
 
       // Budget of 4ms for parsing to keep UI fluid
       if (sw.elapsedMilliseconds >= 4 && _queue.isNotEmpty) {
-        Timer.run(_process);
+        final wasPaused = controller.isPaused;
+        controller.pause();
+        _process();
+        if (!wasPaused) controller.resume();
         controller.markDirty();
         return;
       }
@@ -128,8 +129,7 @@ class EscapeParser {
 
     if (controller.isPaused &&
         _queue.length < TerminalController.lowWaterMark) {
-      controller.isPaused = false;
-      controller.onResume?.call();
+      controller.resume();
     }
 
     controller.markDirty();
@@ -240,25 +240,37 @@ class EscapeParser {
   }
 
   void _escBackIndex() => controller.activeBuffer.backIndex();
+
   void _escSaveCursor() => controller.activeBuffer.saveCursor();
+
   void _escRestoreCursor() => controller.activeBuffer.restoreCursor();
+
   void _escForwardIndex() => controller.activeBuffer.forwardIndex();
+
   void _escIndex() => controller.activeBuffer.index();
+
   void _escNextLine() => controller.activeBuffer.nextLine();
+
   void _escHorizontalTabSet() => controller.activeBuffer.horizontalTabSet();
+
   void _escReverseIndex() => controller.activeBuffer.reverseIndex();
+
   void _escSingleShift2() => controller.activeBuffer.charset.singleShift(2);
+
   void _escSingleShift3() => controller.activeBuffer.charset.singleShift(3);
 
   void _csiCursorUp(CsiParseResult parsed) =>
       controller.activeBuffer.cursorUp(_parseSingleParam(parsed));
+
   void _csiCursorDown(CsiParseResult parsed) =>
       controller.activeBuffer.cursorDown(_parseSingleParam(parsed));
+
   void _csiLinePositionAbsolute(CsiParseResult parsed) =>
       controller.activeBuffer.setCursorPosition(
         (parsed.params.isNotEmpty ? (parsed.params[0] ?? 1) : 1) - 1,
         controller.activeBuffer.cursorCol,
       );
+
   void _csiEraseCharacter(CsiParseResult parsed) {
     final amount = _parseSingleParam(parsed, defaultValue: 1);
     final buf = controller.activeBuffer;
@@ -273,8 +285,10 @@ class EscapeParser {
 
   void _csiCursorRight(CsiParseResult parsed) =>
       controller.activeBuffer.cursorRight(_parseSingleParam(parsed));
+
   void _csiCursorLeft(CsiParseResult parsed) =>
       controller.activeBuffer.cursorLeft(_parseSingleParam(parsed));
+
   void _csiSetCursorPosition(CsiParseResult parsed) {
     final row = (parsed.params.isNotEmpty ? (parsed.params[0] ?? 1) : 1) - 1;
     final col = (parsed.params.length >= 2 ? (parsed.params[1] ?? 1) : 1) - 1;
@@ -313,6 +327,7 @@ class EscapeParser {
 
   void _csiDeleteCharacter(CsiParseResult parsed) =>
       controller.activeBuffer.deleteCharacter(_parseSingleParam(parsed));
+
   void _csiSetMode(CsiParseResult parsed) {
     final enabled = parsed.finalByteCode == 'h'.codeUnitAt(0);
     final isPrivate = parsed.leader == '?';

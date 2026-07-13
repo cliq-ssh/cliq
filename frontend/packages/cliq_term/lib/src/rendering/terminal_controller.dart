@@ -154,8 +154,11 @@ class TerminalController extends ChangeNotifier {
   }
 
   static const int highWaterMark = 64 * 1024; // 64 KiB
-  static const int lowWaterMark = 16 * 1024; // 16 KiB
-  bool isPaused = false;
+  // static const int lowWaterMark = 16 * 1024; // 16 KiB
+  static const int lowWaterMark = 0;
+  bool _isPaused = false;
+
+  bool get isPaused => _isPaused;
 
   TerminalController({
     required this._typography,
@@ -179,6 +182,16 @@ class TerminalController extends ChangeNotifier {
   TerminalBuffer get activeBuffer => backBufferActive ? _back : _front;
   int get totalRows =>
       backBufferActive ? rows : (_front.currentScrollback + rows);
+
+  void pause() {
+    _isPaused = true;
+    onPause?.call();
+  }
+
+  void resume() {
+    _isPaused = false;
+    onResume?.call();
+  }
 
   /// Automatically resizes the terminal based on the provided [size] and current typography settings.
   void fitResize(Size size) {
