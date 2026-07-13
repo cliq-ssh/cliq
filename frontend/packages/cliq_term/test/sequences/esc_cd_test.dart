@@ -15,15 +15,15 @@ void main() {
   group('Index (IND)', () {
     test('moves cursor down one line without changing column', () {
       controller.feed('ab'); // cursor at (0, 2)
-      controller.feed('\x1bD');
+      controller.feed('${kSeqEscape}D');
       expectCursorAt(controller, 1, 2);
     });
 
     test('at bottom of screen, scrolls up', () {
       // move to last row
-      controller.feed('\x1b[${controller.rows};1H');
+      controller.feed('$kSeqEscape[${controller.rows};1H');
       controller.feed('abc');
-      controller.feed('\x1bD');
+      controller.feed('${kSeqEscape}D');
 
       // cursor stays on last row
       expectCursorAt(controller, controller.rows - 1, 3);
@@ -31,10 +31,10 @@ void main() {
     });
 
     test('at bottom of scroll region, scrolls region only', () {
-      controller.feed('\x1b[1;3r'); // set scroll region rows 1-3
-      controller.feed('\x1b[3;1H');
+      controller.feed('$kSeqEscape[1;3r'); // set scroll region rows 1-3
+      controller.feed('$kSeqEscape[3;1H');
       controller.feed('abc');
-      controller.feed('\x1bD');
+      controller.feed('${kSeqEscape}D');
 
       // row 2 scrolled up, row 3 (bottom of region) cleared
       expectCellAt(controller, 1, 0, ch: 'a');
@@ -42,9 +42,9 @@ void main() {
     });
 
     test('outside scroll region, just moves down', () {
-      controller.feed('\x1b[2;4r'); // scroll region rows 2-4
-      controller.feed('\x1b[1;1H'); // cursor at row 1, outside region
-      controller.feed('\x1bD');
+      controller.feed('$kSeqEscape[2;4r'); // scroll region rows 2-4
+      controller.feed('$kSeqEscape[1;1H'); // cursor at row 1, outside region
+      controller.feed('${kSeqEscape}D');
       expectCursorAt(controller, 1, 0);
     });
   });

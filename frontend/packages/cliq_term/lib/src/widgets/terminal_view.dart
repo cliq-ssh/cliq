@@ -1,16 +1,41 @@
 import 'package:cliq_term/cliq_term.dart';
-import 'package:cliq_term/src/rendering/terminal_painter.dart';
 import 'package:cliq_term/src/utils/gesture_selection_handler.dart';
 import 'package:cliq_term/src/utils/keyboard_helper.dart';
+import 'package:cliq_term/src/widgets/terminal_input.dart';
+import 'package:cliq_term/src/widgets/terminal_painter.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+/// The height of the accessory bar displayed above the keyboard when it is visible.
+const kAccessoryBarHeight = 48.0;
+
 class TerminalView extends StatefulWidget {
+  /// The [TerminalController] used to manage the terminal state and handle input/output.
   final TerminalController controller;
+
+  /// An optional [FocusNode] to manage focus for the terminal view.
+  /// If not provided, a new [FocusNode] will be created.
   final FocusNode? focusNode;
+
+  /// The accessory bar widget (such as [TerminalAccessoryBar]) to build.
+  /// Leave null to disable the accessory bar.
+  final Widget Function(BuildContext, TerminalAccessoryBarActions)?
+  accessoryBarBuilder;
+
+  /// The offset from the bottom of the screen for the accessory bar.
+  final double? accessoryBarOffset;
+
+  /// Whether the terminal view is read-only. If true, user input will be ignored.
   final bool readOnly;
 
+  /// Whether to allow text selection in the terminal view.
+  /// Usually set to false for mobile platforms.
+  final bool allowTextSelection;
+
+  /// The [KeyboardShortcut] for copying selected text from the terminal.
   final KeyboardShortcut? copyShortcut;
+
+  /// The [KeyboardShortcut] for pasting text into the terminal.
   final KeyboardShortcut? pasteShortcut;
 
   const TerminalView({
@@ -18,6 +43,9 @@ class TerminalView extends StatefulWidget {
     required this.controller,
     this.focusNode,
     this.readOnly = false,
+    this.accessoryBarBuilder,
+    this.accessoryBarOffset,
+    this.allowTextSelection = true,
     this.copyShortcut,
     this.pasteShortcut,
   });
@@ -27,12 +55,42 @@ class TerminalView extends StatefulWidget {
 }
 
 class _TerminalViewState extends State<TerminalView> {
-  late final FocusNode _focusNode;
-  late final bool _shouldDisposeFocusNode;
-  late final VoidCallback _focusListener;
+  /// The [OverlayEntry] for the accessory bar, which is displayed above the keyboard when it is visible.
+  OverlayEntry? _accessoryBarEntry;
 
+  /// The effective [FocusNode] used for managing focus in the terminal view.
+  late final FocusNode _focusNode;
+
+  /// Whether the [FocusNode] should be disposed when the widget is disposed.
+  /// This is true if the [FocusNode] was created internally (i.e., not provided by the user).
+  late final bool _shouldDisposeFocusNode;
+
+  /// The [ScrollController] used to manage scrolling in the terminal view.
   final ScrollController _scrollController = ScrollController();
+
+  /// Whether the user has scrolled away from the bottom of the terminal view.
   bool _userScrolledAwayFromBottom = false;
+
+  /// Whether the software keyboard is currently visible.
+  final ValueNotifier<bool> _keyboardVisible = ValueNotifier(true);
+
+  final ValueNotifier<AccessoryBarButtonState> _ctrlActive = ValueNotifier(
+    .inactive,
+  );
+  final ValueNotifier<AccessoryBarButtonState> _altActive = ValueNotifier(
+    .inactive,
+  );
+
+  late final TerminalAccessoryBarActions _accessoryActions = .new(
+    sendInput: _sendInput,
+    keyboardVisible: _keyboardVisible,
+    openKeyboard: () => _keyboardVisible.value = true,
+    closeKeyboard: () => _keyboardVisible.value = false,
+    ctrlActive: _ctrlActive,
+    toggleCtrl: () => _ctrlActive.value = _ctrlActive.value.next,
+    altActive: _altActive,
+    toggleAlt: () => _altActive.value = _altActive.value.next,
+  );
 
   @override
   void initState() {
@@ -40,15 +98,6 @@ class _TerminalViewState extends State<TerminalView> {
 
     _focusNode = widget.focusNode ?? FocusNode();
     _shouldDisposeFocusNode = widget.focusNode == null;
-
-    _focusListener = () {
-      if (_focusNode.hasFocus) {
-        widget.controller.startCursorBlink();
-      } else {
-        widget.controller.stopCursorBlink();
-      }
-    };
-    _focusNode.addListener(_focusListener);
 
     widget.controller.addListener(_onUpdate);
 
@@ -63,12 +112,36 @@ class _TerminalViewState extends State<TerminalView> {
   @override
   void dispose() {
     widget.controller.removeListener(_onUpdate);
-    _focusNode.removeListener(_focusListener);
     if (_shouldDisposeFocusNode) {
       _focusNode.dispose();
     }
     _scrollController.dispose();
+    _keyboardVisible.dispose();
+    _ctrlActive.dispose();
+    _altActive.dispose();
     super.dispose();
+  }
+
+  /// Sends [text] as terminal input, applying any armed one-shot
+  /// modifiers (Ctrl/Alt) first, then clearing them.
+  void _sendInput(String text) {
+    var result = text;
+    if (_ctrlActive.value.isActive && result.isNotEmpty) {
+      final code = result.codeUnitAt(0) & 0x1f;
+      result = String.fromCharCode(code) + result.substring(1);
+      if (_ctrlActive.value == .oneShot) {
+        _ctrlActive.value = .inactive;
+      }
+    }
+    if (_altActive.value.isActive) {
+      result = '$kSeqEscape$result';
+      if (_altActive.value == .oneShot) {
+        _altActive.value = .inactive;
+      }
+    }
+    _scrollToBottom();
+    widget.controller.clearSelection();
+    widget.controller.onInput?.call(result);
   }
 
   void _onUpdate() {
@@ -86,6 +159,7 @@ class _TerminalViewState extends State<TerminalView> {
     });
   }
 
+  /// Scrolls the terminal view to the bottom, ensuring that the latest output is visible.
   void _scrollToBottom() {
     _userScrolledAwayFromBottom = false;
     if (!_scrollController.hasClients) return;
@@ -93,6 +167,40 @@ class _TerminalViewState extends State<TerminalView> {
     if (maxExt > 0) {
       _scrollController.jumpTo(maxExt);
     }
+  }
+
+  /// Shows the accessory bar above the keyboard when it is visible.
+  void _showAccessoryBar() {
+    _accessoryBarEntry?.remove();
+    if (widget.accessoryBarBuilder == null) return;
+
+    buildOverlayEntry() {
+      return OverlayEntry(
+        builder: (context) {
+          final viewInsets = MediaQuery.of(context).viewInsets.bottom;
+
+          return ValueListenableBuilder<bool>(
+            valueListenable: _keyboardVisible,
+            builder: (context, wantsKeyboard, _) {
+              final restingBottom = viewInsets > 0 && wantsKeyboard
+                  ? viewInsets
+                  : (widget.accessoryBarOffset ?? 0.0);
+
+              return Positioned(
+                left: 0,
+                right: 0,
+                bottom: restingBottom,
+                height: kAccessoryBarHeight,
+                child: widget.accessoryBarBuilder!(context, _accessoryActions),
+              );
+            },
+          );
+        },
+      );
+    }
+
+    _accessoryBarEntry = buildOverlayEntry();
+    Overlay.of(context, rootOverlay: true).insert(_accessoryBarEntry!);
   }
 
   @override
@@ -120,8 +228,19 @@ class _TerminalViewState extends State<TerminalView> {
             ? totalRows * cellH
             : constraints.maxHeight;
 
-        return Focus(
+        return TerminalInput(
           focusNode: _focusNode,
+          readOnly: widget.readOnly,
+          keyboardVisible: _keyboardVisible,
+          onFocusChange: (hasFocus) {
+            if (hasFocus) {
+              _showAccessoryBar();
+              widget.controller.startCursorBlink();
+            } else {
+              widget.controller.stopCursorBlink();
+            }
+          },
+          onInput: _sendInput,
           onKeyEvent: (node, event) {
             if (widget.readOnly) {
               return .ignored;
@@ -162,7 +281,6 @@ class _TerminalViewState extends State<TerminalView> {
             }
             return .ignored;
           },
-
           child: GestureDetector(
             behavior: HitTestBehavior.translucent,
             onTap: () {
@@ -172,6 +290,7 @@ class _TerminalViewState extends State<TerminalView> {
             },
             onPanStart: (details) {
               _focusNode.requestFocus();
+              if (!widget.allowTextSelection) return;
               final (
                 absRow,
                 absCol,
@@ -186,6 +305,7 @@ class _TerminalViewState extends State<TerminalView> {
               widget.controller.startSelection(absRow, absCol);
             },
             onPanUpdate: (details) {
+              if (!widget.allowTextSelection) return;
               final (
                 absRow,
                 absCol,

@@ -1,4 +1,5 @@
 library;
 
-export 'rendering.export.dart';
+export 'model.export.dart';
 export 'theme.export.dart';
+export 'widgets.export.dart';

@@ -61,6 +61,7 @@ class I18nSettingsPage extends AbstractSettingsPage {
                           title: Text('language_help_translate'.tr()),
                           subtitle: Text(
                             'language_help_translate_subtitle'.tr(),
+                            overflow: .visible,
                           ),
                           prefix: Icon(LucideIcons.languages),
                           suffix: Icon(LucideIcons.externalLink),

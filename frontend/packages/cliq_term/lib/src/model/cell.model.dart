@@ -1,4 +1,4 @@
-import 'package:cliq_term/src/rendering/model/formatting_options.model.dart';
+import '../../../cliq_term.dart';
 
 class Cell {
   String ch;

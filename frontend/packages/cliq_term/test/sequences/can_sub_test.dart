@@ -16,7 +16,7 @@ void main() {
   /// Cancels an in-progress escape sequence, preventing it from executing.
   testCancelsSequence(String cancelByte) {
     // ESC [ cancelled, 'b' prints normally
-    controller.feed('\x1b[${cancelByte}b');
+    controller.feed('$kSeqEscape[${cancelByte}b');
     // cursor advanced past 'b'
     expectCursorAt(controller, 0, 1);
     expectCellAt(controller, 0, 0, ch: 'b');

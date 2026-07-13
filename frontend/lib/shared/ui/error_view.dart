@@ -52,6 +52,7 @@ class ErrorView extends ConsumerWidget {
     }
 
     return FScaffold(
+      childPad: false,
       child: SingleChildScrollView(
         padding: const .symmetric(horizontal: 32, vertical: 20),
         child: Column(
