@@ -28,6 +28,10 @@ class TerminalView extends StatefulWidget {
   /// Whether the terminal view is read-only. If true, user input will be ignored.
   final bool readOnly;
 
+  /// Whether to allow text selection in the terminal view.
+  /// Usually set to false for mobile platforms.
+  final bool allowTextSelection;
+
   /// The [KeyboardShortcut] for copying selected text from the terminal.
   final KeyboardShortcut? copyShortcut;
 
@@ -41,6 +45,7 @@ class TerminalView extends StatefulWidget {
     this.readOnly = false,
     this.accessoryBarBuilder,
     this.accessoryBarOffset,
+    this.allowTextSelection = true,
     this.copyShortcut,
     this.pasteShortcut,
   });
@@ -69,8 +74,12 @@ class _TerminalViewState extends State<TerminalView> {
   /// Whether the software keyboard is currently visible.
   final ValueNotifier<bool> _keyboardVisible = ValueNotifier(true);
 
-  final ValueNotifier<bool> _ctrlActive = ValueNotifier(false);
-  final ValueNotifier<bool> _altActive = ValueNotifier(false);
+  final ValueNotifier<AccessoryBarButtonState> _ctrlActive = ValueNotifier(
+    .inactive,
+  );
+  final ValueNotifier<AccessoryBarButtonState> _altActive = ValueNotifier(
+    .inactive,
+  );
 
   late final TerminalAccessoryBarActions _accessoryActions = .new(
     sendInput: _sendInput,
@@ -78,9 +87,9 @@ class _TerminalViewState extends State<TerminalView> {
     openKeyboard: () => _keyboardVisible.value = true,
     closeKeyboard: () => _keyboardVisible.value = false,
     ctrlActive: _ctrlActive,
-    toggleCtrl: () => _ctrlActive.value = !_ctrlActive.value,
+    toggleCtrl: () => _ctrlActive.value = _ctrlActive.value.next,
     altActive: _altActive,
-    toggleAlt: () => _altActive.value = !_altActive.value,
+    toggleAlt: () => _altActive.value = _altActive.value.next,
   );
 
   @override
@@ -117,14 +126,18 @@ class _TerminalViewState extends State<TerminalView> {
   /// modifiers (Ctrl/Alt) first, then clearing them.
   void _sendInput(String text) {
     var result = text;
-    if (_ctrlActive.value && result.isNotEmpty) {
+    if (_ctrlActive.value.isActive && result.isNotEmpty) {
       final code = result.codeUnitAt(0) & 0x1f;
       result = String.fromCharCode(code) + result.substring(1);
-      _ctrlActive.value = false;
+      if (_ctrlActive.value == .oneShot) {
+        _ctrlActive.value = .inactive;
+      }
     }
-    if (_altActive.value) {
+    if (_altActive.value.isActive) {
       result = '$kSeqEscape$result';
-      _altActive.value = false;
+      if (_altActive.value == .oneShot) {
+        _altActive.value = .inactive;
+      }
     }
     _scrollToBottom();
     widget.controller.clearSelection();
@@ -277,6 +290,7 @@ class _TerminalViewState extends State<TerminalView> {
             },
             onPanStart: (details) {
               _focusNode.requestFocus();
+              if (!widget.allowTextSelection) return;
               final (
                 absRow,
                 absCol,
@@ -291,6 +305,7 @@ class _TerminalViewState extends State<TerminalView> {
               widget.controller.startSelection(absRow, absCol);
             },
             onPanUpdate: (details) {
+              if (!widget.allowTextSelection) return;
               final (
                 absRow,
                 absCol,

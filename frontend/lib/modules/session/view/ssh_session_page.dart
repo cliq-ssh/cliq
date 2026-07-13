@@ -198,13 +198,18 @@ class _SshSessionPageState extends ConsumerState<SshSessionPage>
       return null;
     }, [defaultTerminalTypography.value, defaultTerminalTheme.value]);
 
-    buildAccessoryButton(VoidCallback onPress, {String? text, IconData? icon}) {
+    buildAccessoryButton(
+      VoidCallback onPress, {
+      String? text,
+      IconData? icon,
+      FButtonVariant? variant,
+    }) {
       assert(
         text != null || icon != null,
         'Either text or icon must be provided',
       );
       return FButton.icon(
-        variant: .outline,
+        variant: variant ?? .outline,
         onPress: onPress,
         child: text == null
             ? Icon(icon!, size: 16)
@@ -215,10 +220,20 @@ class _SshSessionPageState extends ConsumerState<SshSessionPage>
       );
     }
 
+    getButtonVariantForState(AccessoryBarButtonState state) {
+      return switch (state) {
+        .inactive => FButtonVariant.outline,
+        .oneShot => FButtonVariant.secondary,
+        .active => FButtonVariant.primary,
+      };
+    }
+
     buildAccessoryBar() {
       if (PlatformUtils.isDesktop) return null;
 
-      return (_, actions) {
+      // TODO: - restrict panning to desktop
+
+      return (_, TerminalAccessoryBarActions actions) {
         return TerminalAccessoryBar(
           backgroundColor: effectiveTerminalTheme.backgroundColor,
           padding: .symmetric(horizontal: 8, vertical: 4),
@@ -228,8 +243,27 @@ class _SshSessionPageState extends ConsumerState<SshSessionPage>
               text: 'ESC',
             ),
             buildAccessoryButton(() => actions.sendInput(kSeqTab), text: 'TAB'),
-            buildAccessoryButton(() => actions.toggleCtrl(), text: 'CTRL'),
-            buildAccessoryButton(() => actions.toggleAlt(), text: 'ALT'),
+            ValueListenableBuilder(
+              valueListenable: actions.ctrlActive,
+              builder: (_, value, _) {
+                return buildAccessoryButton(
+                  () => actions.toggleCtrl(),
+                  text: 'CTRL',
+                  variant: getButtonVariantForState(value),
+                );
+              },
+            ),
+            ValueListenableBuilder(
+              valueListenable: actions.altActive,
+              builder: (_, value, _) {
+                return buildAccessoryButton(
+                  () => actions.toggleAlt(),
+                  text: 'ALT',
+                  variant: getButtonVariantForState(value),
+                );
+              },
+            ),
+
             buildAccessoryButton(
               () => actions.sendInput(kSeqCursorUp),
               icon: LucideIcons.arrowUp,
@@ -276,6 +310,7 @@ class _SshSessionPageState extends ConsumerState<SshSessionPage>
             focusNode: widget.focusNode,
             accessoryBarBuilder: buildAccessoryBar(),
             accessoryBarOffset: kBottomNavigationBarHeight,
+            allowTextSelection: PlatformUtils.isDesktop,
             copyShortcut: shortcuts.value.shortcuts[KeyboardShortcutType.copy],
             pasteShortcut:
                 shortcuts.value.shortcuts[KeyboardShortcutType.paste],
