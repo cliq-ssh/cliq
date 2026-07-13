@@ -1,6 +1,5 @@
 title: cliq
-icon: cliq.app/Contents/Resources/cliq-dmg.icns
-icon-size: 128
+icon: cliq.app/Contents/Resources/icon.icns
 contents:
   - x: 448
     y: 270
