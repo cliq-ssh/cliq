@@ -1,11 +1,7 @@
-/// Contains some common escape sequences for terminal control.
-class EscapeSequences {
-  const EscapeSequences._();
+const String kSeqEscape = '\x1b';
+const String kSeqTab = '\x09';
 
-  static const String tab = '\x09';
-
-  static const String cursorUp = '\x1b[A';
-  static const String cursorDown = '\x1b[B';
-  static const String cursorRight = '\x1b[C';
-  static const String cursorLeft = '\x1b[D';
-}
+const String kSeqCursorUp = '$kSeqEscape[A';
+const String kSeqCursorDown = '$kSeqEscape[B';
+const String kSeqCursorRight = '$kSeqEscape[C';
+const String kSeqCursorLeft = '$kSeqEscape[D';

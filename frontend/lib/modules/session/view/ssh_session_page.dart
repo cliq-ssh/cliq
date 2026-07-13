@@ -223,26 +223,27 @@ class _SshSessionPageState extends ConsumerState<SshSessionPage>
           backgroundColor: effectiveTerminalTheme.backgroundColor,
           padding: .symmetric(horizontal: 8, vertical: 4),
           items: [
+            buildAccessoryButton(
+              () => actions.sendInput(kSeqEscape),
+              text: 'ESC',
+            ),
+            buildAccessoryButton(() => actions.sendInput(kSeqTab), text: 'TAB'),
             buildAccessoryButton(() => actions.toggleCtrl(), text: 'CTRL'),
             buildAccessoryButton(() => actions.toggleAlt(), text: 'ALT'),
             buildAccessoryButton(
-              () => actions.sendInput(EscapeSequences.tab),
-              text: 'TAB',
-            ),
-            buildAccessoryButton(
-              () => actions.sendInput(EscapeSequences.cursorUp),
+              () => actions.sendInput(kSeqCursorUp),
               icon: LucideIcons.arrowUp,
             ),
             buildAccessoryButton(
-              () => actions.sendInput(EscapeSequences.cursorDown),
+              () => actions.sendInput(kSeqCursorDown),
               icon: LucideIcons.arrowDown,
             ),
             buildAccessoryButton(
-              () => actions.sendInput(EscapeSequences.cursorLeft),
+              () => actions.sendInput(kSeqCursorLeft),
               icon: LucideIcons.arrowLeft,
             ),
             buildAccessoryButton(
-              () => actions.sendInput(EscapeSequences.cursorRight),
+              () => actions.sendInput(kSeqCursorRight),
               icon: LucideIcons.arrowRight,
             ),
           ],

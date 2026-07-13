@@ -123,7 +123,7 @@ class _TerminalViewState extends State<TerminalView> {
       _ctrlActive.value = false;
     }
     if (_altActive.value) {
-      result = '\x1b$result';
+      result = '$kSeqEscape$result';
       _altActive.value = false;
     }
     _scrollToBottom();

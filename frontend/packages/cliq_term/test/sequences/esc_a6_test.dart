@@ -15,28 +15,28 @@ void main() {
   group('Back Index (DECBI)', () {
     test('moves cursor left by one column', () {
       controller.feed('abc'); // cursor at (0, 3)
-      controller.feed('\x1b6');
+      controller.feed('${kSeqEscape}6');
       expectCursorAt(controller, 0, 2);
     });
 
     test('does not move cursor left of column 0', () {
-      controller.feed('\x1b6'); // already at (0, 0)
+      controller.feed('${kSeqEscape}6'); // already at (0, 0)
       expectCursorAt(controller, 0, 0);
 
-      controller.feed('\x1b6');
+      controller.feed('${kSeqEscape}6');
       expectCursorAt(controller, 0, 0);
     });
 
     test('does not affect row', () {
       controller.feed('abc\x0Aaaa'); // cursor at (1, 3)
-      controller.feed('\x1b6');
+      controller.feed('${kSeqEscape}6');
       expectCursorAt(controller, 1, 5);
     });
 
     test('at column 0, scrolls screen right and keeps cursor at col 0', () {
       controller.feed('abc');
-      controller.feed('\x1b[H');
-      controller.feed('\x1b6');
+      controller.feed('$kSeqEscape[H');
+      controller.feed('${kSeqEscape}6');
 
       expectCursorAt(controller, 0, 0);
       expectCellAt(controller, 0, 0, ch: ' ');

@@ -16,24 +16,24 @@ void main() {
   group('Save Cursor (DECSC) + Restore Cursor (DECRC)', () {
     test('saves and restores cursor position', () {
       controller.feed('abc'); // cursor at (0, 3)
-      controller.feed('\x1b7');
+      controller.feed('${kSeqEscape}7');
 
       // move to (4, 9)
-      controller.feed('\x1b[5;10H');
+      controller.feed('$kSeqEscape[5;10H');
       expectCursorAt(controller, 4, 9);
 
       // restore
-      controller.feed('\x1b8');
+      controller.feed('${kSeqEscape}8');
       expectCursorAt(controller, 0, 3);
     });
 
     test('saves and restores formatting', () {
-      controller.feed('\x1b[1m'); // bold on
-      controller.feed('\x1b7');
+      controller.feed('$kSeqEscape[1m'); // bold on
+      controller.feed('${kSeqEscape}7');
 
       // reset formatting
-      controller.feed('\x1b[0m');
-      controller.feed('\x1b8');
+      controller.feed('$kSeqEscape[0m');
+      controller.feed('${kSeqEscape}8');
 
       // print a char and verify it's bold
       controller.feed('a');
@@ -42,27 +42,27 @@ void main() {
     });
 
     test('restore without prior save does not crash', () {
-      expect(() => controller.feed('\x1b8'), returnsNormally);
+      expect(() => controller.feed('${kSeqEscape}8'), returnsNormally);
     });
 
     test('save is per-buffer (main and alternate are distinct)', () {
       controller.feed('abc'); // cursor at (0, 3)
 
       // save on main
-      controller.feed('\x1b7');
+      controller.feed('${kSeqEscape}7');
 
       // switch to alt buffer
-      controller.feed('\x1b[?1049h');
+      controller.feed('$kSeqEscape[?1049h');
 
-      controller.feed('\x1b7');
-      controller.feed('\x1b[3;3H');
+      controller.feed('${kSeqEscape}7');
+      controller.feed('$kSeqEscape[3;3H');
 
       // restore on alt should go to (3, 3)
-      controller.feed('\x1b8');
+      controller.feed('${kSeqEscape}8');
       expectCursorAt(controller, 0, 0);
 
       // restore on main should still go to (0, 3)
-      controller.feed('\x1b[?1049l');
+      controller.feed('$kSeqEscape[?1049l');
       expectCursorAt(controller, 0, 3);
     });
   });
