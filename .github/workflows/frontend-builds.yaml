@@ -134,7 +134,7 @@ jobs:
         run: |
           set -euo pipefail
           DMG_PATH=$(ls dist/**/*.dmg | head -1)
-          ICON_PATH="assets/icon/cliq-dmg.icns"
+          ICON_PATH="assets/icon/dmg.icns"
           SETFILE="/Applications/Xcode.app/Contents/Developer/Tools/SetFile"
 
           WORKDIR=$(mktemp -d)
