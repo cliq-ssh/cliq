@@ -66,8 +66,7 @@ class SyncSettingsPage extends AbstractSettingsPage {
                               settings = await read();
                             } catch (e) {
                               if (e is LocalizedException &&
-                                  e.key ==
-                                      'settings.import.error.encryptedFile') {
+                                  e.key == 'sync_import_error_encrypted') {
                                 // prompt password input
                                 final password = await showFDialog(
                                   context:

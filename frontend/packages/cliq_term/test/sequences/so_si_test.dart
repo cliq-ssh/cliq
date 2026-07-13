@@ -15,21 +15,21 @@ void main() {
 
   group('Shift Out (SO) / Shift In (SI)', () {
     test('ESC ( 0 designates DEC special graphics into G0', () {
-      controller.feed('\x1b(0'); // DEC
+      controller.feed('$kSeqEscape(0'); // DEC
       controller.feed('\x6a'); // 'j' in DEC graphics should render as ┘
       expectCellAt(controller, 0, 0, ch: String.fromCharCode(0x2518));
     });
 
     test('ESC ( B restores ASCII into G0', () {
-      controller.feed('\x1b(0'); // DEC
-      controller.feed('\x1b(B'); // back to ASCII
+      controller.feed('$kSeqEscape(0'); // DEC
+      controller.feed('$kSeqEscape(B'); // back to ASCII
       controller.feed('A');
       expectCellAt(controller, 0, 0, ch: 'A');
     });
 
     test('SO switches to G1, SI switches back to G0', () {
-      controller.feed('\x1b(B');
-      controller.feed('\x1b)0');
+      controller.feed('$kSeqEscape(B');
+      controller.feed('$kSeqEscape)0');
       controller.feed('\x0E');
       controller.feed('\x6a');
       expectCellAt(controller, 0, 0, ch: String.fromCharCode(0x2518));
@@ -39,7 +39,7 @@ void main() {
     });
 
     test('ASCII chars unaffected when G0 is ASCII', () {
-      controller.feed('\x1b(B'); // explicitly ASCII
+      controller.feed('$kSeqEscape(B'); // explicitly ASCII
       controller.feed('hello');
 
       expectCellAt(controller, 0, 0, ch: 'h');
@@ -50,10 +50,10 @@ void main() {
     });
 
     test('charset saved and restored with cursor', () {
-      controller.feed('\x1b(0'); // DEC
-      controller.feed('\x1b7'); // save cursor + charset
-      controller.feed('\x1b(B'); // ASCII
-      controller.feed('\x1b8'); // restore cursor
+      controller.feed('$kSeqEscape(0'); // DEC
+      controller.feed('${kSeqEscape}7'); // save cursor + charset
+      controller.feed('$kSeqEscape(B'); // ASCII
+      controller.feed('${kSeqEscape}8'); // restore cursor
       controller.feed('\x6a');
       expectCellAt(controller, 0, 0, ch: String.fromCharCode(0x2518));
     });

@@ -20,6 +20,8 @@
   "appearance_navigation_position_top": "Top",
   "appearance_theme_mode": "Theme Mode",
   "appearance_theme_mode_subtitle": "Select the theme mode for the application.",
+  "appearance_apply_terminal_theme_color_to_navigation": "Apply Terminal Theme Color to Navigation",
+  "appearance_apply_terminal_theme_color_to_navigation_subtitle": "Apply a tint of the terminal theme color to the navigation bar(s).",
   "cancel": "Cancel",
   "click_to_copy": "Click to copy",
   "close": "Close",

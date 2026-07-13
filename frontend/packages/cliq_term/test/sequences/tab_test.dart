@@ -15,14 +15,14 @@ void main() {
   group('Horizontal Tab (TAB)', () {
     test('moves cursor to next tab stop', () {
       // "In the reset state of the terminal tab stops are set on each 8th column, starting in column 1."
-      controller.feed('a\x09b');
+      controller.feed('a${kSeqTab}b');
       expectCellAt(controller, 0, 0, ch: 'a');
       expectCellAt(controller, 0, 8, ch: 'b');
     });
 
     test('clamps at last column', () {
       // feed enough tabs to exceed terminal width
-      controller.feed('\x09' * 20);
+      controller.feed(kSeqTab * 20);
       expect(controller.activeBuffer.cursorCol, equals(controller.cols - 1));
     });
   });

@@ -15,8 +15,8 @@ void main() {
 
   group('Single Shift 2 (SS2) / Single Shift 3 (SS3)', () {
     test('SS2 applies G2 charset for only the next character', () {
-      controller.feed('\x1b*0'); // DEC graphics into G2
-      controller.feed('\x1bN'); // SS2
+      controller.feed('$kSeqEscape*0'); // DEC graphics into G2
+      controller.feed('${kSeqEscape}N'); // SS2
       controller.feed('\x6a');
       controller.feed('\x6a');
 
@@ -26,8 +26,8 @@ void main() {
     });
 
     test('SS3 applies G3 charset for only the next character', () {
-      controller.feed('\x1b+0'); // DEC graphics into G3
-      controller.feed('\x1bO'); // SS3
+      controller.feed('$kSeqEscape+0'); // DEC graphics into G3
+      controller.feed('${kSeqEscape}O'); // SS3
       controller.feed('\x6a');
       controller.feed('\x6a');
 
@@ -37,9 +37,9 @@ void main() {
     });
 
     test('SS2/SS3 does not affect current GL charset', () {
-      controller.feed('\x1b(0'); // DEC graphics into G0
-      controller.feed('\x1b*B'); // ASCI into G2
-      controller.feed('\x1bN'); // SS2, use G2 for next char
+      controller.feed('$kSeqEscape(0'); // DEC graphics into G0
+      controller.feed('$kSeqEscape*B'); // ASCI into G2
+      controller.feed('${kSeqEscape}N'); // SS2, use G2 for next char
       controller.feed('\x6a');
       controller.feed('\x6a');
 
@@ -50,7 +50,7 @@ void main() {
     test('SS3 does not interfere with function key prefix ESC O', () {
       // ESC O followed by a CSI final byte should still work as F1-F4
       // This test just ensures 'a' after SS3 no-op prints correctly
-      controller.feed('a\x1bOb');
+      controller.feed('a${kSeqEscape}Ob');
       expectCellAt(controller, 0, 0, ch: 'a');
       expectCellAt(controller, 0, 1, ch: 'b');
     });

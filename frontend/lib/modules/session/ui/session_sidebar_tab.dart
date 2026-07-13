@@ -1,6 +1,7 @@
 import 'package:cliq/modules/connections/ui/connection_icon.dart';
 import 'package:cliq/modules/settings/model/navigation_position.model.dart';
 import 'package:cliq/shared/ui/sidebar_tab.dart';
+import 'package:cliq/shared/utils/platform_utils.dart';
 import 'package:cliq_term/cliq_term.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/cupertino.dart';
@@ -17,11 +18,24 @@ import '../model/tab.model.dart';
 import '../provider/session.provider.dart';
 
 class SessionSidebarTab extends HookConsumerWidget {
+  /// The root session for this tab.
+  /// If this is a single session tab, this will be the only session.
+  /// If this is a group tab, this will be the first session in the group.
   final ShellSession root;
+
+  /// The list of sessions in this tab.
   final List<ShellSession> sessions;
+
+  /// Whether this tab is expanded or not. If true, the label will be displayed in addition to the icon.
   final bool isExpanded;
+
+  /// The position of the navigation bar.
   final NavigationPosition navPosition;
+
+  /// Whether this tab is selected or not.
   final bool selected;
+
+  /// The ID of the tab.
   final String? tabId;
 
   SessionSidebarTab.single(
@@ -72,8 +86,8 @@ class SessionSidebarTab extends HookConsumerWidget {
         builder: (context) {
           Widget child = ConnectionIcon.fromConnection(
             root.connection,
-            size: navPosition == .left && !isExpanded ? 16 : 12,
-            padding: 5,
+            size: navPosition == .left && !isExpanded ? 16 : 14,
+            padding: 3,
           );
 
           if (!isExpanded) {
@@ -153,8 +167,10 @@ class SessionSidebarTab extends HookConsumerWidget {
           icon: buildIcon(),
           selected: selected,
           onPress: select,
-          noPadding: isExpanded,
+          forceIntrinsicWidth: PlatformUtils.isDesktop,
+          noHorizontalPadding: isExpanded,
           isTop: navPosition == .top,
+          itemPadding: PlatformUtils.isMobile ? kMobileItemPadding : null,
         );
 
         if (!isExpanded || sessions.isNotEmpty) {
@@ -163,7 +179,7 @@ class SessionSidebarTab extends HookConsumerWidget {
 
         return Draggable<ShellSession>(
           data: root,
-          maxSimultaneousDrags: 1,
+          maxSimultaneousDrags: PlatformUtils.isDesktop ? 1 : 0,
           onDragStarted: () => isDragging.value = true,
           onDragEnd: (_) => isDragging.value = false,
           onDraggableCanceled: (_, _) => isDragging.value = false,

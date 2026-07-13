@@ -12,6 +12,7 @@ import 'package:lucide_flutter/lucide_flutter.dart';
 
 import '../../../shared/data/store.dart';
 import '../../../shared/model/page_path.model.dart';
+import '../../../shared/ui/custom_toggle_tile.dart';
 import '../model/navigation_position.model.dart';
 import '../model/theme.model.dart';
 
@@ -31,6 +32,9 @@ class AppearanceSettingsPage extends AbstractSettingsPage {
     final currentTheme = useStore(.theme);
     final themeMode = useStore(.themeMode);
     final navPosition = useStore(.desktopNavigationPosition);
+    final applyTerminalThemeColorToNavigation = useStore(
+      .applyTerminalThemeColorToNavigation,
+    );
 
     getThemeModeDisplayName(ThemeMode mode) {
       return switch (mode) {
@@ -51,33 +55,6 @@ class AppearanceSettingsPage extends AbstractSettingsPage {
                   children: [
                     FTileGroup(
                       children: [
-                        if (PlatformUtils.isDesktop)
-                          FSelectMenuTile<NavigationPosition>(
-                            title: Text('appearance_navigation_position'.tr()),
-                            prefix: const Icon(LucideIcons.panelsRightBottom),
-                            subtitle: Text(
-                              'appearance_navigation_position_subtitle'.tr(),
-                            ),
-                            selectControl: .managedRadio(
-                              initial: navPosition.value,
-                              onChange: (value) => StoreKey
-                                  .desktopNavigationPosition
-                                  .write(value.first),
-                            ),
-                            detailsBuilder: (context, value, _) {
-                              if (value.isEmpty) return SizedBox.shrink();
-                              return Text(value.first.getDisplayName(context));
-                            },
-                            menu: [
-                              for (NavigationPosition position
-                                  in NavigationPosition.values) ...[
-                                .tile(
-                                  title: Text(position.getDisplayName(context)),
-                                  value: position,
-                                ),
-                              ],
-                            ],
-                          ),
                         FSelectMenuTile<ThemeMode>(
                           title: Text('appearance_theme_mode'.tr()),
                           prefix: const Icon(LucideIcons.sunMoon),
@@ -134,6 +111,50 @@ class AppearanceSettingsPage extends AbstractSettingsPage {
                               ),
                             ],
                           ],
+                        ),
+                      ],
+                    ),
+                    if (PlatformUtils.isDesktop)
+                      FTileGroup(
+                        children: [
+                          FSelectMenuTile<NavigationPosition>(
+                            title: Text('appearance_navigation_position'.tr()),
+                            prefix: const Icon(LucideIcons.panelsRightBottom),
+                            subtitle: Text(
+                              'appearance_navigation_position_subtitle'.tr(),
+                            ),
+                            selectControl: .managedRadio(
+                              initial: navPosition.value,
+                              onChange: (value) => StoreKey
+                                  .desktopNavigationPosition
+                                  .write(value.first),
+                            ),
+                            detailsBuilder: (context, value, _) {
+                              if (value.isEmpty) return SizedBox.shrink();
+                              return Text(value.first.getDisplayName(context));
+                            },
+                            menu: [
+                              for (NavigationPosition position
+                                  in NavigationPosition.values) ...[
+                                .tile(
+                                  title: Text(position.getDisplayName(context)),
+                                  value: position,
+                                ),
+                              ],
+                            ],
+                          ),
+                        ],
+                      ),
+                    FTileGroup(
+                      children: [
+                        CustomToggleTile(
+                          title:
+                              'appearance_apply_terminal_theme_color_to_navigation',
+                          subtitle:
+                              'appearance_apply_terminal_theme_color_to_navigation_subtitle',
+                          prefix: Icon(LucideIcons.paintBucket),
+                          storeKey: .applyTerminalThemeColorToNavigation,
+                          value: applyTerminalThemeColorToNavigation.value,
                         ),
                       ],
                     ),

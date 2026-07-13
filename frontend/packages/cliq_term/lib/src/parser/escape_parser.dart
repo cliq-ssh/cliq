@@ -4,7 +4,7 @@ import 'package:cliq_term/cliq_term.dart';
 import 'package:cliq_term/src/parser/csi_parser.dart';
 import 'package:logging/logging.dart';
 
-import '../rendering/model/byte_queue.dart';
+import '../model/byte_queue.dart';
 
 typedef EscHandler = void Function();
 typedef CsiHandler = void Function(CsiParseResult parsed);

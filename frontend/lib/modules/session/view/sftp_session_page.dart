@@ -26,6 +26,7 @@ import '../../../shared/ui/context_menu.dart';
 import '../../../shared/ui/navigation_shell.dart';
 import '../../../shared/ui/table_view.dart';
 import '../../../shared/utils/commons.dart';
+import '../../../shared/utils/platform_utils.dart';
 import '../provider/session.provider.dart';
 
 enum _SftpColumn {
@@ -283,6 +284,8 @@ class _SftpSessionPageState extends ConsumerState<SftpSessionPage>
     final showHiddenFiles = useStore(.sftpShowHiddenFiles);
     final isCreatingDirectory = useState(false);
 
+    final isDesktop = PlatformUtils.isDesktop;
+
     retrySession({bool skipHostKeyVerification = false}) {
       ref
           .read(sessionProvider.notifier)
@@ -492,7 +495,8 @@ class _SftpSessionPageState extends ConsumerState<SftpSessionPage>
     }
 
     openFile(SftpName file, String id) async {
-      if (file.attr.isDirectory ||
+      if (!isDesktop ||
+          file.attr.isDirectory ||
           file.filename.isEmpty ||
           _ignoredSelectableFilenames.contains(file.filename)) {
         return;
@@ -1054,7 +1058,7 @@ class _SftpSessionPageState extends ConsumerState<SftpSessionPage>
                       .toList();
 
                   return Padding(
-                    padding: const EdgeInsets.all(16),
+                    padding: EdgeInsets.all(isDesktop ? 16 : 4),
                     child: TableView.builder(
                       key: ValueKey(currentDirectory.value),
                       actions: [
@@ -1092,6 +1096,7 @@ class _SftpSessionPageState extends ConsumerState<SftpSessionPage>
                           .whereType<int>()
                           .toList(growable: false),
                       onRowTap: (index) {
+                        if (!isDesktop) return;
                         final file = getFileByIndex(index)!;
 
                         // ignore non-selectable files
@@ -1148,7 +1153,9 @@ class _SftpSessionPageState extends ConsumerState<SftpSessionPage>
                       onRowDoubleTap: (index) {
                         final file = getFileByIndex(index)!;
                         final id = getFileIdFromSftpName(file);
-                        selectedFilesIds.value = {if (file.attr.isFile) id};
+                        if (isDesktop) {
+                          selectedFilesIds.value = {if (file.attr.isFile) id};
+                        }
                         final _ = switch (file.attr.type) {
                           .directory => openFolder(file),
                           .regularFile => openFile(file, id),
@@ -1333,6 +1340,9 @@ class _SftpSessionPageState extends ConsumerState<SftpSessionPage>
                                             sessionId: session.id,
                                             files: selected,
                                           ),
+                                          maxSimultaneousDrags: isDesktop
+                                              ? 1
+                                              : 0,
                                           onDragStarted: () {
                                             final isPartOfSelection =
                                                 selectedFilesIds.value.contains(

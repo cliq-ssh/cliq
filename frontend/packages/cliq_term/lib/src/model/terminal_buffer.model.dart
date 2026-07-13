@@ -2,8 +2,8 @@ import 'dart:math';
 
 import 'package:cliq_term/cliq_term.dart';
 
-import '../../state/charset.state.dart';
-import '../../utils/selection_helper.dart';
+import '../state/charset.state.dart';
+import '../utils/selection_helper.dart';
 
 class TerminalBufferRow {
   List<Cell> cells;

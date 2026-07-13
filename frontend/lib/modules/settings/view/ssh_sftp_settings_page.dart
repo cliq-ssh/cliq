@@ -3,6 +3,7 @@ import 'package:cliq/modules/settings/view/settings_page.dart';
 import 'package:cliq/shared/data/store.dart';
 import 'package:cliq/shared/provider/file_transfer.provider.dart';
 import 'package:cliq/shared/provider/store.provider.dart';
+import 'package:cliq/shared/ui/custom_toggle_tile.dart';
 import 'package:cliq/shared/utils/constants.dart';
 import 'package:cliq/shared/utils/text_utils.dart';
 import 'package:cliq_term/cliq_term.dart';
@@ -75,7 +76,10 @@ class SshSftpSettingsPage extends AbstractSettingsPage {
                       children: [
                         FTile(
                           title: Text('ssh_sftp_scrollback'.tr()),
-                          subtitle: Text('ssh_sftp_scrollback_subtitle'.tr()),
+                          subtitle: Text(
+                            'ssh_sftp_scrollback_subtitle'.tr(),
+                            overflow: .visible,
+                          ),
                           prefix: Icon(LucideIcons.history),
                           suffix: SizedBox(
                             width: 150,
@@ -96,53 +100,33 @@ class SshSftpSettingsPage extends AbstractSettingsPage {
                     FTileGroup(
                       label: Text('sftp'.tr()),
                       children: [
-                        FTile(
-                          title: Text('ssh_sftp_show_hidden_files'.tr()),
-                          subtitle: Text(
-                            'ssh_sftp_show_hidden_files_subtitle'.tr(),
-                          ),
+                        CustomToggleTile(
+                          title: 'ssh_sftp_show_hidden_files',
+                          subtitle: 'ssh_sftp_show_hidden_files_subtitle',
                           prefix: Icon(LucideIcons.fileSearchCorner),
-                          suffix: FSwitch(
-                            value: showHiddenFiles.value,
-                            onChange: (value) =>
-                                StoreKey.sftpShowHiddenFiles.write(value),
-                          ),
+                          storeKey: .sftpShowHiddenFiles,
+                          value: showHiddenFiles.value,
                         ),
-                        FTile(
-                          title: Text('ssh_sftp_large_download_warning'.tr()),
-                          subtitle: Text(
-                            'ssh_sftp_large_download_warning_subtitle'.tr(
-                              args: [
-                                TextUtils.formatBytes(
-                                      Constants.largeFileSizeThreshold,
-                                      decimals: 0,
-                                    ) ??
-                                    'n_a'.tr(),
-                              ],
-                            ),
-                          ),
+                        CustomToggleTile(
+                          title: 'ssh_sftp_large_download_warning',
+                          subtitle: 'ssh_sftp_large_download_warning_subtitle',
+                          subtitleArgs: [
+                            TextUtils.formatBytes(
+                              Constants.largeFileSizeThreshold,
+                              decimals: 0,
+                            )!,
+                          ],
                           prefix: Icon(LucideIcons.fileExclamationPoint),
-                          suffix: FSwitch(
-                            value: largeDownloadsWarning.value,
-                            onChange: (value) =>
-                                StoreKey.sftpLargeDownloadWarning.write(value),
-                          ),
+                          storeKey: .sftpLargeDownloadWarning,
+                          value: largeDownloadsWarning.value,
                         ),
-                        FTile(
-                          title: Text(
-                            'ssh_sftp_directory_not_empty_warning'.tr(),
-                          ),
-                          subtitle: Text(
-                            'ssh_sftp_directory_not_empty_warning_subtitle'
-                                .tr(),
-                          ),
+                        CustomToggleTile(
+                          title: 'ssh_sftp_directory_not_empty_warning',
+                          subtitle:
+                              'ssh_sftp_directory_not_empty_warning_subtitle',
                           prefix: Icon(LucideIcons.folders),
-                          suffix: FSwitch(
-                            value: directoryNotEmptyWarning.value,
-                            onChange: (value) => StoreKey
-                                .sftpDirectoryNotEmptyWarning
-                                .write(value),
-                          ),
+                          storeKey: .sftpDirectoryNotEmptyWarning,
+                          value: directoryNotEmptyWarning.value,
                         ),
                         FTile(
                           title: Row(

@@ -25,5 +25,14 @@ final class Constants {
   static const Map<String, Locale> supportedLocales = {
     "English (United States)": Locale('en', 'US'),
     "Deutsch": Locale('de', 'DE'),
+    "Polski": Locale('pl'),
+  };
+
+  /// A map of file extensions to their corresponding Uniform Type Identifiers (UTIs).
+  static const Map<String, String> extensionToUniformTypeIdentifier = {
+    '': 'public.plain-text',
+    'txt': 'public.plain-text',
+    'json': 'public.json',
+    'conf': 'public.plain-text',
   };
 }
