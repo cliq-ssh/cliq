@@ -136,8 +136,9 @@ class NavigationShellState extends ConsumerState<NavigationShell>
                 .setSelectedAndMaybeGo(this, null);
             goToDashboardBranch();
           },
+          forceIntrinsicWidth: true,
           isTop: navPosition.value == .top,
-          noPadding: navPosition.value == .top,
+          noHorizontalPadding: navPosition.value == .top,
         ),
       );
     }
@@ -284,8 +285,9 @@ class NavigationShellState extends ConsumerState<NavigationShell>
                     : LucideIcons.refreshCw,
               ),
             ),
+            forceIntrinsicWidth: true,
             isTop: navPosition.value == .top,
-            noPadding: navPosition.value == .top,
+            noHorizontalPadding: navPosition.value == .top,
           );
         },
       );
@@ -309,8 +311,9 @@ class NavigationShellState extends ConsumerState<NavigationShell>
                 .setSelectedAndMaybeGo(this, null);
             goToSettingsBranch();
           },
+          forceIntrinsicWidth: true,
           isTop: navPosition.value == .top,
-          noPadding: navPosition.value == .top,
+          noHorizontalPadding: navPosition.value == .top,
         ),
       );
     }
@@ -378,9 +381,11 @@ class NavigationShellState extends ConsumerState<NavigationShell>
                 ? () => showTabs.value = !showTabs.value
                 : null,
             isTop: navPosition.value == .top,
-            noPadding:
+            forceIntrinsicWidth: true,
+            noHorizontalPadding:
                 navPosition.value == .top ||
                 (sessions.activeTabs.isNotEmpty && isExpanded),
+            itemPadding: PlatformUtils.isMobile ? kMobileItemPadding : null,
           ),
         ),
       ];

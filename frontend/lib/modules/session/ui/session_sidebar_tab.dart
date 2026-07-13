@@ -18,11 +18,24 @@ import '../model/tab.model.dart';
 import '../provider/session.provider.dart';
 
 class SessionSidebarTab extends HookConsumerWidget {
+  /// The root session for this tab.
+  /// If this is a single session tab, this will be the only session.
+  /// If this is a group tab, this will be the first session in the group.
   final ShellSession root;
+
+  /// The list of sessions in this tab.
   final List<ShellSession> sessions;
+
+  /// Whether this tab is expanded or not. If true, the label will be displayed in addition to the icon.
   final bool isExpanded;
+
+  /// The position of the navigation bar.
   final NavigationPosition navPosition;
+
+  /// Whether this tab is selected or not.
   final bool selected;
+
+  /// The ID of the tab.
   final String? tabId;
 
   SessionSidebarTab.single(
@@ -73,8 +86,8 @@ class SessionSidebarTab extends HookConsumerWidget {
         builder: (context) {
           Widget child = ConnectionIcon.fromConnection(
             root.connection,
-            size: navPosition == .left && !isExpanded ? 16 : 12,
-            padding: 5,
+            size: navPosition == .left && !isExpanded ? 16 : 14,
+            padding: 3,
           );
 
           if (!isExpanded) {
@@ -154,8 +167,10 @@ class SessionSidebarTab extends HookConsumerWidget {
           icon: buildIcon(),
           selected: selected,
           onPress: select,
-          noPadding: isExpanded,
+          forceIntrinsicWidth: PlatformUtils.isDesktop,
+          noHorizontalPadding: isExpanded,
           isTop: navPosition == .top,
+          itemPadding: PlatformUtils.isMobile ? kMobileItemPadding : null,
         );
 
         if (!isExpanded || sessions.isNotEmpty) {
