@@ -124,14 +124,38 @@ jobs:
           channel: 'stable'
           cache: true
 
-      - name: Add SetFile to PATH
-        run: echo "/Applications/Xcode.app/Contents/Developer/Tools" >> $GITHUB_PATH
-
       - *install-fastforge
       - *get-flutter-dependencies
 
       - name: Build macOS Installer
         run: fastforge package --platform macos --targets dmg
+
+      - name: Force-set DMG volume icon
+        run: |
+          set -euo pipefail
+          DMG_PATH=$(ls dist/**/*.dmg | head -1)
+          ICON_PATH="assets/icon/cliq-dmg.icns"
+          SETFILE="/Applications/Xcode.app/Contents/Developer/Tools/SetFile"
+
+          WORKDIR=$(mktemp -d)
+          hdiutil convert "$DMG_PATH" -format UDRW -o "$WORKDIR/rw.dmg"
+          mkdir -p "$WORKDIR/mount"
+          hdiutil attach "$WORKDIR/rw.dmg" -mountpoint "$WORKDIR/mount" -nobrowse -noautoopen
+
+          cp "$ICON_PATH" "$WORKDIR/mount/.VolumeIcon.icns"
+          "$SETFILE" -a V "$WORKDIR/mount/.VolumeIcon.icns"
+          "$SETFILE" -a C "$WORKDIR/mount"
+
+          hdiutil detach "$WORKDIR/mount"
+          hdiutil convert "$WORKDIR/rw.dmg" -format UDZO -o "$WORKDIR/final.dmg"
+          mv "$WORKDIR/final.dmg" "$DMG_PATH"
+
+          mkdir -p "$WORKDIR/verify"
+          hdiutil attach "$DMG_PATH" -mountpoint "$WORKDIR/verify" -nobrowse -noautoopen
+          GetFileInfo -a "$WORKDIR/verify" | grep -q 'C' || { echo "::error::Custom icon flag still not set!"; exit 1; }
+          hdiutil detach "$WORKDIR/verify"
+
+          rm -rf "$WORKDIR"
 
       - name: Rename DMG
         run: mv dist/**/*.dmg dist/cliq-macos.dmg
