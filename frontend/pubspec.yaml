@@ -71,4 +71,3 @@ flutter:
         - asset: assets/fonts/JetBrainsMono[wght].ttf
         - asset: assets/fonts/JetBrainsMono-Italic[wght].ttf
           style: italic
-
