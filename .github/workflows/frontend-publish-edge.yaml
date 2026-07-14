@@ -1,7 +1,6 @@
 name: "Frontend: Publish Edge"
 on:
   workflow_dispatch: ~
-  pull_request:
 
 concurrency:
   group: frontend-edge
@@ -55,7 +54,7 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git commit -am "chore: bump frontend build number to ${{ steps.bump.outputs.build-number }} [skip ci]"
-          git push
+          git push origin HEAD:${{ github.ref_name }}
           echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
 
   build:
