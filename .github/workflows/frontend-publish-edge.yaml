@@ -1,0 +1,67 @@
+name: "Frontend: Publish Edge"
+on:
+  workflow_dispatch: ~
+
+concurrency:
+  group: frontend-edge
+  cancel-in-progress: false
+
+# Sets a default working directory
+defaults:
+  run:
+    working-directory: ./frontend  # Change the working directory to /frontend
+
+permissions:
+  contents: read
+
+jobs:
+  checks:
+    name: Checks
+    uses: ./.github/workflows/frontend-checks.yaml
+    permissions:
+      contents: read
+      actions: read
+      checks: write
+
+  bump-version:
+    name: Bump build number
+    needs: checks
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    outputs:
+      sha: ${{ steps.commit.outputs.sha }}
+      build-number: ${{ steps.bump.outputs.build-number }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Bump build number
+        id: bump
+        run: |
+          set -euo pipefail
+          CURRENT_LINE=$(grep -E '^version:' pubspec.yaml)
+          CURRENT_BUILD=$(echo "$CURRENT_LINE" | sed -E 's/^version: [0-9]+\.[0-9]+\.[0-9]+\+([0-9]+).*/\1/')
+          NEW_BUILD=$((CURRENT_BUILD + 1))
+          sed -i -E "s/^(version: [0-9]+\.[0-9]+\.[0-9]+\+)[0-9]+/\1${NEW_BUILD}/" pubspec.yaml
+          echo "Old: $CURRENT_LINE"
+          echo "New: $(grep -E '^version:' pubspec.yaml)"
+          echo "build-number=${NEW_BUILD}" >> "$GITHUB_OUTPUT"
+
+      - name: Commit and push
+        id: commit
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git commit -am "chore: bump frontend build number to ${{ steps.bump.outputs.build-number }} [skip ci]"
+          git push
+          echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+
+  build:
+    name: Build
+    needs: bump-version
+    uses: ./.github/workflows/frontend-build.yaml
+    with:
+      ref: ${{ needs.bump-version.outputs.sha }}
+    permissions:
+      contents: read

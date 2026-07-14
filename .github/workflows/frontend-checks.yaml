@@ -1,4 +1,4 @@
-name: Frontend Checks
+name: "Frontend: Checks"
 on:
   push:
     branches:
@@ -11,6 +11,7 @@ on:
     paths:
       - 'frontend/**'
   workflow_dispatch: ~
+  workflow_call: ~
 
 # Sets a default working directory
 defaults:

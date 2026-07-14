@@ -1,4 +1,4 @@
-name: Docs Checks
+name: "Docs: Checks"
 on:
   push:
     branches:

@@ -1,4 +1,4 @@
-name: Backend Checks
+name: "Backend: Checks"
 on:
   push:
     branches:
