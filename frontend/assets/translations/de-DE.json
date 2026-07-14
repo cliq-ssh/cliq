@@ -216,5 +216,11 @@
     "ssh_sftp_large_download_warning_subtitle": "Beim Herunterladen großer Dateien ({}) über SFTP warnen",
     "ssh_sftp_scrollback_subtitle": "Legen Sie die Anzahl der Zeilen fest, die im Scrollback-Puffer gespeichert werden sollen. Ein höherer Wert ermöglicht es Ihnen, in der Terminal-Historie weiter zurückzublättern, verbraucht jedoch möglicherweise mehr Arbeitsspeicher.",
     "ssh_sftp_show_hidden_files": "Versteckte Dateien anzeigen",
-    "ssh_sftp_show_hidden_files_subtitle": "Versteckte Dateien und Verzeichnisse in SFTP-Dateilisten anzeigen."
+    "ssh_sftp_show_hidden_files_subtitle": "Versteckte Dateien und Verzeichnisse in SFTP-Dateilisten anzeigen.",
+    "sync": "Synchronisation",
+    "sync_export": "Exportieren...",
+    "sync_export_file": "Als Datei exportieren",
+    "sync_export_password": "Passwort (empfohlen)",
+    "sync_export_password_description": "Verschlüssele deine exportierten Einstellungen mit einem Passwort. Leer lassen für keine Verschlüsselung.",
+    "sync_export_password_warning": "Dieser Export enthält sensitive Daten, wie Passwörter und/oder Private Schlüssel. Es ist dringlich empfohlen ein Verschlüsselungspasswort zu setzen."
 }
