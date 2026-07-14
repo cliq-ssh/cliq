@@ -1,6 +1,12 @@
 name: "Frontend: Publish Edge"
 on:
-  workflow_dispatch: ~
+  workflow_dispatch:
+    inputs:
+      increment-build-number:
+        description: 'Increment the build number in pubspec.yaml'
+        type: boolean
+        required: false
+        default: true
 
 concurrency:
   group: frontend-edge
@@ -26,6 +32,7 @@ jobs:
   bump-version:
     name: Bump build number
     needs: checks
+    if: ${{ inputs.increment-build-number }}
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -59,9 +66,13 @@ jobs:
 
   build:
     name: Build
-    needs: bump-version
+    needs: [checks, bump-version]
+    if: |
+      always() &&
+      needs.checks.result == 'success' &&
+      (needs.bump-version.result == 'success' || needs.bump-version.result == 'skipped')
     uses: ./.github/workflows/frontend-build.yaml
     with:
-      ref: ${{ needs.bump-version.outputs.sha }}
+      ref: ${{ needs.bump-version.outputs.sha || github.sha }}
     permissions:
       contents: read
