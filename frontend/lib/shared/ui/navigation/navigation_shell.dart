@@ -6,10 +6,8 @@ import 'package:cliq/modules/connections/ui/connection_icon.dart';
 import 'package:cliq/shared/provider/store.provider.dart';
 import 'package:cliq/shared/ui/responsive_sidebar.dart';
 import 'package:cliq/shared/ui/shortcut_info.dart';
-import 'package:cliq/shared/ui/sidebar_tab.dart';
 import 'package:cliq/shared/utils/platform_utils.dart';
 import 'package:cliq_term/cliq_term.dart';
-import 'package:cliq_ui/cliq_ui.dart' show useBreakpoint;
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:forui/forui.dart';
@@ -20,13 +18,13 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:window_manager/window_manager.dart';
 
 import '../../../modules/session/provider/session.provider.dart';
-import '../../../modules/session/ui/session_sidebar_tab.dart';
-import '../../../modules/settings/model/navigation_position.model.dart';
+import '../../../modules/session/ui/session_navigation_tab.dart';
 import '../../../modules/settings/provider/terminal_theme.provider.dart';
 import '../../provider/file_transfer.provider.dart';
 import '../../utils/text_utils.dart';
+import 'navigation_tab.dart';
 
-const EdgeInsetsGeometry kMacOsNavigationPadding = .only(left: 70);
+const EdgeInsetsGeometry kMacOSNavigationPadding = .only(left: 70);
 
 class NavigationShell extends StatefulHookConsumerWidget {
   final StatefulNavigationShell shell;
@@ -56,14 +54,9 @@ class NavigationShellState extends ConsumerState<NavigationShell>
 
   @override
   Widget build(BuildContext context) {
-    final breakpoint = useBreakpoint();
-    final prefDesktopNavPosition = useStore(.desktopNavigationPosition);
     final defaultTerminalTheme = useStore(.defaultTerminalThemeId);
     final applyTerminalThemeColorToNavigation = useStore(
       .applyTerminalThemeColorToNavigation,
-    );
-    final navPosition = useState<NavigationPosition>(
-      breakpoint >= .lg ? prefDesktopNavPosition.value : .top,
     );
     final connections = ref.watch(connectionProvider);
     final sessions = ref.watch(sessionProvider);
@@ -82,13 +75,6 @@ class NavigationShellState extends ConsumerState<NavigationShell>
       selectedTab.value = sessions.selectedSession;
       return null;
     }, [sessions, sessions.selectedTabId]);
-
-    useEffect(() {
-      navPosition.value = breakpoint >= .lg
-          ? prefDesktopNavPosition.value
-          : .top;
-      return null;
-    }, [breakpoint, prefDesktopNavPosition.value]);
 
     useEffect(() {
       if (fileTransfer.isAnyPending) {
@@ -130,9 +116,7 @@ class NavigationShellState extends ConsumerState<NavigationShell>
           'dashboard'.tr(),
           shortcut: KeyboardShortcut(.keyD, modifiers: {.control}),
         ),
-        child: SidebarTab(
-          isExpanded: isExpanded,
-          label: Text('dashboard'.tr()),
+        child: NavigationTab(
           icon: Icon(LucideIcons.house),
           selected: widget.shell.currentIndex == _dashboardBranchIndex,
           onPress: () {
@@ -141,9 +125,6 @@ class NavigationShellState extends ConsumerState<NavigationShell>
                 .setSelectedAndMaybeGo(this, null);
             goToDashboardBranch();
           },
-          forceIntrinsicWidth: true,
-          isTop: navPosition.value == .top,
-          noHorizontalPadding: navPosition.value == .top,
         ),
       );
     }
@@ -278,10 +259,7 @@ class NavigationShellState extends ConsumerState<NavigationShell>
           );
         },
         builder: (_, controller, _) {
-          return SidebarTab(
-            isExpanded: isExpanded,
-            label: Text('queue'.tr()),
-            onPress: fileTransfer.isEmpty ? null : controller.toggle,
+          return NavigationTab(
             icon: RotationTransition(
               turns: rotationAnimation,
               child: Icon(
@@ -290,9 +268,8 @@ class NavigationShellState extends ConsumerState<NavigationShell>
                     : LucideIcons.refreshCw,
               ),
             ),
-            forceIntrinsicWidth: true,
-            isTop: navPosition.value == .top,
-            noHorizontalPadding: navPosition.value == .top,
+            label: Text('queue'.tr()),
+            onPress: fileTransfer.isEmpty ? null : controller.toggle,
           );
         },
       );
@@ -305,9 +282,7 @@ class NavigationShellState extends ConsumerState<NavigationShell>
           'settings'.tr(),
           shortcut: KeyboardShortcut(.comma, modifiers: {.control}),
         ),
-        child: SidebarTab(
-          isExpanded: isExpanded,
-          label: Text('settings'.tr()),
+        child: NavigationTab(
           icon: Icon(LucideIcons.settings),
           selected: widget.shell.currentIndex == _settingsBranchIndex,
           onPress: () {
@@ -316,9 +291,6 @@ class NavigationShellState extends ConsumerState<NavigationShell>
                 .setSelectedAndMaybeGo(this, null);
             goToSettingsBranch();
           },
-          forceIntrinsicWidth: true,
-          isTop: navPosition.value == .top,
-          noHorizontalPadding: navPosition.value == .top,
         ),
       );
     }
@@ -326,12 +298,7 @@ class NavigationShellState extends ConsumerState<NavigationShell>
     buildSessionSidebarTabs(bool isExpanded) {
       return [
         for (final tab in sessions.activeTabs)
-          SessionSidebarTab.tab(
-            tab,
-            isExpanded: isExpanded,
-            navPosition: navPosition.value,
-            selected: tab.id == selectedTab.value?.id,
-          ),
+          SessionNavigationTab(tab, selected: tab.id == selectedTab.value?.id),
         FPopoverMenu(
           control: .lifted(
             shown: showTabs.value,
@@ -378,18 +345,11 @@ class NavigationShellState extends ConsumerState<NavigationShell>
               ],
             ),
           ],
-          child: SidebarTab(
-            isExpanded: isExpanded && navPosition.value == .left,
-            label: Text('session_new'.tr()),
+          child: NavigationTab(
             icon: Icon(LucideIcons.plus),
             onPress: connections.entities.isNotEmpty
                 ? () => showTabs.value = !showTabs.value
                 : null,
-            isTop: navPosition.value == .top,
-            forceIntrinsicWidth: true,
-            noHorizontalPadding:
-                navPosition.value == .top ||
-                (sessions.activeTabs.isNotEmpty && isExpanded),
             itemPadding: PlatformUtils.isMobile ? kMobileItemPadding : null,
           ),
         ),
@@ -441,56 +401,6 @@ class NavigationShellState extends ConsumerState<NavigationShell>
       );
     }
 
-    if (isDesktop && navPosition.value == .left) {
-      return ResponsiveExpandableSidebar(
-        controller: _sidebarController,
-        backgroundColor: getEffectiveSidebarColor(),
-        headerBuilder: (context, isExpanded) {
-          return Padding(
-            padding: const .symmetric(horizontal: 16),
-            child: Column(
-              mainAxisAlignment: .start,
-              crossAxisAlignment: .start,
-              children: [
-                Row(
-                  mainAxisAlignment: !isExpanded ? .center : .spaceBetween,
-                  children: [
-                    FButton.icon(
-                      variant: .outline,
-                      onPress: _sidebarController.toggle,
-                      child: Icon(
-                        _sidebarController.isExpanded
-                            ? LucideIcons.panelLeftClose
-                            : LucideIcons.panelLeftOpen,
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          );
-        },
-        footerBuilder: (_, isExpanded) => Column(
-          mainAxisSize: .min,
-          children: [buildQueue(isExpanded), buildSettingsTab(isExpanded)],
-        ),
-        contentBuilder: (context, isExpanded) {
-          return [
-            buildDashboardTab(isExpanded),
-            FDivider(style: .delta(color: context.theme.colors.border)),
-            if (!isExpanded || sessions.activeTabs.isEmpty)
-              ...buildSessionSidebarTabs(isExpanded)
-            else if (sessions.activeTabs.isNotEmpty)
-              FSidebarGroup(
-                label: Text('sessions'.tr()),
-                children: buildSessionSidebarTabs(isExpanded),
-              ),
-          ];
-        },
-        child: widget.shell,
-      );
-    }
-
     return FScaffold(
       childPad: false,
       resizeToAvoidBottomInset: false,
@@ -517,7 +427,7 @@ class NavigationShellState extends ConsumerState<NavigationShell>
               Padding(
                 padding:
                     (Platform.isMacOS
-                            ? kMacOsNavigationPadding
+                            ? kMacOSNavigationPadding
                             : EdgeInsets.zero)
                         .add(.all(8)),
                 child: Row(

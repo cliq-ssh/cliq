@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:cliq/shared/data/store.dart';
 import 'package:cliq/shared/model/localized_exception.dart';
@@ -18,6 +19,7 @@ import 'package:forui/forui.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:logging/logging.dart';
 import 'package:lucide_flutter/lucide_flutter.dart';
+import 'package:macos_window_utils/macos_window_utils.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:window_manager/window_manager.dart';
 
@@ -63,6 +65,11 @@ Future<void> _configureWindow() async {
   }
 
   await windowManager.ensureInitialized();
+
+  if (Platform.isMacOS) {
+    await WindowManipulator.initialize();
+  }
+
   final windowOptions = WindowOptions(
     minimumSize: windowMinSize,
     title: 'cliq',
@@ -71,7 +78,29 @@ Future<void> _configureWindow() async {
   windowManager.waitUntilReadyToShow(windowOptions, () async {
     await windowManager.show();
     await windowManager.focus();
+
+    if (Platform.isMacOS) {
+      await _configureMacOSTrafficLights();
+    }
   });
+}
+
+Future<void> _configureMacOSTrafficLights() async {
+  const offset = Offset(10, 18);
+  const buttonGap = 23.0;
+
+  await WindowManipulator.overrideStandardWindowButtonPosition(
+    buttonType: .closeButton,
+    offset: offset,
+  );
+  await WindowManipulator.overrideStandardWindowButtonPosition(
+    buttonType: .miniaturizeButton,
+    offset: offset + const Offset(buttonGap, 0),
+  );
+  await WindowManipulator.overrideStandardWindowButtonPosition(
+    buttonType: .zoomButton,
+    offset: offset + const Offset(buttonGap * 2, 0),
+  );
 }
 
 void _handleError(Object error, StackTrace stackTrace) {

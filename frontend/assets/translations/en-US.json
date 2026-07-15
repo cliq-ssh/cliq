@@ -2,7 +2,7 @@
   "app": "App",
   "appearance": "Appearance",
   "appearance_apply_terminal_theme_color_to_navigation": "Apply Terminal Theme Color to Navigation",
-  "appearance_apply_terminal_theme_color_to_navigation_subtitle": "Apply a tint of the terminal theme color to the navigation bar(s).",
+  "appearance_apply_terminal_theme_color_to_navigation_subtitle": "Apply a tint of the terminal theme color to the navigation bar.",
   "appearance_color_theme": "Color Theme",
   "appearance_color_theme_color": {
     "blue": "Blue",
@@ -16,10 +16,6 @@
     "zinc": "Zinc"
   },
   "appearance_color_theme_subtitle": "Select the color theme for the application.",
-  "appearance_navigation_position": "Navigation Position",
-  "appearance_navigation_position_left": "Left",
-  "appearance_navigation_position_subtitle": "Select the position of the desktop navigation bar.",
-  "appearance_navigation_position_top": "Top",
   "appearance_theme_mode": "Theme Mode",
   "appearance_theme_mode_subtitle": "Select the theme mode for the application.",
   "cancel": "Cancel",

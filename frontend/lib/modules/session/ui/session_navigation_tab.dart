@@ -1,6 +1,4 @@
 import 'package:cliq/modules/connections/ui/connection_icon.dart';
-import 'package:cliq/modules/settings/model/navigation_position.model.dart';
-import 'package:cliq/shared/ui/sidebar_tab.dart';
 import 'package:cliq/shared/utils/platform_utils.dart';
 import 'package:cliq_term/cliq_term.dart';
 import 'package:easy_localization/easy_localization.dart';
@@ -12,12 +10,13 @@ import 'package:lucide_flutter/lucide_flutter.dart';
 
 import '../../../shared/ui/context_menu.dart';
 import '../../../shared/ui/navigation/navigation_shell.dart';
+import '../../../shared/ui/navigation/navigation_tab.dart';
 import '../../../shared/ui/shortcut_info.dart';
 import '../model/session.model.dart';
 import '../model/tab.model.dart';
 import '../provider/session.provider.dart';
 
-class SessionSidebarTab extends HookConsumerWidget {
+class SessionNavigationTab extends HookConsumerWidget {
   /// The root session for this tab.
   /// If this is a single session tab, this will be the only session.
   /// If this is a group tab, this will be the first session in the group.
@@ -25,12 +24,6 @@ class SessionSidebarTab extends HookConsumerWidget {
 
   /// The list of sessions in this tab.
   final List<ShellSession> sessions;
-
-  /// Whether this tab is expanded or not. If true, the label will be displayed in addition to the icon.
-  final bool isExpanded;
-
-  /// The position of the navigation bar.
-  final NavigationPosition navPosition;
 
   /// Whether this tab is selected or not.
   final bool selected;
@@ -41,16 +34,11 @@ class SessionSidebarTab extends HookConsumerWidget {
   /// The custom label for the tab. If null, the UI will fall back to the connection label or a generated label based on number of sessions.
   final String? _customLabel;
 
-  SessionSidebarTab.tab(
-    SessionTab tab, {
-    super.key,
-    required this.isExpanded,
-    required this.navPosition,
-    this.selected = false,
-  }) : root = tab.root,
-       sessions = tab.sessions,
-       _tabId = tab.id,
-       _customLabel = tab.customLabel;
+  SessionNavigationTab(SessionTab tab, {super.key, this.selected = false})
+    : root = tab.root,
+      sessions = tab.sessions,
+      _tabId = tab.id,
+      _customLabel = tab.customLabel;
 
   String get effectiveLabel {
     if (_customLabel != null && _customLabel.isNotEmpty) {
@@ -109,13 +97,9 @@ class SessionSidebarTab extends HookConsumerWidget {
         builder: (context) {
           Widget child = ConnectionIcon.fromConnection(
             root.connection,
-            size: navPosition == .left && !isExpanded ? 16 : 14,
+            size: 14,
             padding: 3,
           );
-
-          if (!isExpanded) {
-            child = AspectRatio(aspectRatio: 1, child: child);
-          }
 
           return child;
         },
@@ -213,19 +197,16 @@ class SessionSidebarTab extends HookConsumerWidget {
         ),
       ],
       builder: (_) {
-        final child = SidebarTab(
-          isExpanded: isExpanded,
-          label: isRenaming.value ? buildEditLabel() : buildLabel(),
+        final child = NavigationTab(
           icon: buildIcon(),
+          label: isRenaming.value ? buildEditLabel() : buildLabel(),
           selected: selected,
           onPress: select,
           forceIntrinsicWidth: PlatformUtils.isDesktop,
-          noHorizontalPadding: isExpanded,
-          isTop: navPosition == .top,
           itemPadding: PlatformUtils.isMobile ? kMobileItemPadding : null,
         );
 
-        if (!isExpanded || sessions.isNotEmpty) {
+        if (sessions.isNotEmpty) {
           return child;
         }
 
