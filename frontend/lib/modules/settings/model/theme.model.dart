@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:forui/forui.dart';
@@ -48,15 +49,5 @@ enum CliqTheme {
     return brightness == Brightness.light ? themeData.light : themeData.dark;
   }
 
-  String getBannerPath(ThemeMode mode) {
-    return switch (mode) {
-      ThemeMode.light => 'assets/logo/schkeip-banner_light.png',
-      ThemeMode.dark => 'assets/logo/schkeip-banner_dark.png',
-      ThemeMode.system =>
-        SchedulerBinding.instance.platformDispatcher.platformBrightness ==
-                Brightness.light
-            ? 'assets/logo/schkeip-banner_light.png'
-            : 'assets/logo/schkeip-banner_dark.png',
-    };
-  }
+  String getDisplayName() => 'appearance_color_theme_color.$name'.tr();
 }

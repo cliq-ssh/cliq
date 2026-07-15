@@ -1,6 +1,6 @@
-import 'package:cliq/shared/data/database.dart';
 import 'package:cliq/shared/model/localized_exception.dart';
 import 'package:cliq_ui/cliq_ui.dart' show CliqFontFamily;
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/widgets.dart';
 import 'package:forui/forui.dart';
 import 'package:go_router/go_router.dart';
@@ -19,7 +19,7 @@ class ErrorView extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final effectiveError = error is LocalizedException
-        ? (error as LocalizedException).localize(context)
+        ? (error as LocalizedException).tr(context)
         : error.toString();
 
     buildErrorDetailsCard(String content) {
@@ -52,6 +52,7 @@ class ErrorView extends ConsumerWidget {
     }
 
     return FScaffold(
+      childPad: false,
       child: SingleChildScrollView(
         padding: const .symmetric(horizontal: 32, vertical: 20),
         child: Column(
@@ -75,7 +76,7 @@ class ErrorView extends ConsumerWidget {
                   FAccordion(
                     children: [
                       FAccordionItem(
-                        title: Text("Stacktrace"),
+                        title: Text('error_stacktrace'.tr()),
                         child: buildErrorDetailsCard(stackTrace.toString()),
                       ),
                     ],
@@ -84,34 +85,18 @@ class ErrorView extends ConsumerWidget {
                   children: [
                     FTile(
                       prefix: Icon(LucideIcons.bug),
-                      title: Text('Copy Error Details'),
+                      title: Text('error_copy_error_details'.tr()),
                       onPress: () {
                         final details =
-                            'Error: $error\n\nStack Trace:\n${stackTrace ?? "No stack trace available."}';
+                            'Error: $error\n\nStacktrace:\n${stackTrace ?? "No stack trace available."}';
                         Commons.copyToClipboard(context, details);
                       },
                     ),
                     FTile(
                       prefix: Icon(SimpleIcons.github),
                       suffix: Icon(LucideIcons.externalLink),
-                      title: Text('Report Issue on GitHub'),
+                      title: Text('error_report_issue_on_github'.tr()),
                       onPress: () => Commons.launchGitHubCreateIssueUrl(),
-                    ),
-                  ],
-                ),
-                FTileGroup(
-                  children: [
-                    // TODO: option for opening the db directory in file explorer
-                    FTile(
-                      variant: .destructive,
-                      prefix: Icon(LucideIcons.databaseBackup),
-                      title: Text('Reset Database Tables'),
-                      onPress: () => Commons.showDeleteDialog(
-                        entity: 'ALL DATABASE TABLES',
-                        onDelete: () => CliqDatabase.instance.deleteAllTables(),
-                        canInstantDelete: false,
-                        mayNeedAppRestart: true,
-                      ),
                     ),
                   ],
                 ),

@@ -6,6 +6,7 @@ import 'package:cliq/shared/ui/shortcut_info.dart';
 import 'package:cliq_term/cliq_term.dart';
 import 'package:cliq_ui/cliq_ui.dart'
     show CliqGridContainer, CliqGridRow, CliqGridColumn;
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/cupertino.dart' hide Router;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -26,7 +27,7 @@ class ShortcutsSettingsPage extends AbstractSettingsPage {
   const ShortcutsSettingsPage({super.key});
 
   @override
-  String get title => 'Shortcuts';
+  String get title => 'shortcuts'.tr();
 
   @override
   Widget buildBody(BuildContext context, WidgetRef ref) {
@@ -118,12 +119,12 @@ class ShortcutsSettingsPage extends AbstractSettingsPage {
             size: .xs,
             variant: .outline,
             onPress: record,
-            child: Text('Not set'),
+            child: Text('shortcuts_not_set'.tr()),
           );
         }
 
         return FTooltip(
-          tipBuilder: (_, _) => Text('Right-click to unset'),
+          tipBuilder: (_, _) => Text('shortcuts_right_click_to_unset'.tr()),
           child: FTappable(
             onPress: record,
             onSecondaryPress: delete,
@@ -137,10 +138,19 @@ class ShortcutsSettingsPage extends AbstractSettingsPage {
           .toList();
 
       return FTile(
-        title: Text(type.getDisplayName(context)),
+        title: Text(type.getDisplayName()),
         subtitle: duplicates.isNotEmpty
             ? Text(
-                'Conflicts with ${duplicates.length} shortcut(s): ${duplicates.map((e) => e.key.getDisplayName(context)).join(', ')}',
+                'shortcuts_conflicts'.plural(
+                  duplicates.length,
+                  namedArgs: {
+                    "count": duplicates.length.toString(),
+                    "shortcuts": duplicates
+                        .map((e) => e.key.getDisplayName())
+                        .join(', '),
+                  },
+                  name: "amount",
+                ),
                 style: context.theme.typography.body.xs.copyWith(
                   color: context.theme.colors.error,
                 ),
@@ -180,16 +190,16 @@ class ShortcutsSettingsPage extends AbstractSettingsPage {
                       ],
                     ),
                     FTileGroup(
-                      label: Text('Presets'),
+                      label: Text('shortcuts_presets'.tr()),
                       children: [
                         FTile(
-                          title: Text('Apply macOS shortcuts'),
+                          title: Text('shortcuts_presets_apply.macos'.tr()),
                           prefix: Icon(LucideIcons.listRestart),
                           onPress: () =>
                               applyKeyboardShortcutsSet(defaultMacShortcuts),
                         ),
                         FTile(
-                          title: Text('Apply PC shortcuts'),
+                          title: Text('shortcuts_presets_apply.pc'.tr()),
                           prefix: Icon(LucideIcons.listRestart),
                           onPress: () =>
                               applyKeyboardShortcutsSet(defaultShortcuts),

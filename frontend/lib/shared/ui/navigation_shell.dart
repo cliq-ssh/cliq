@@ -5,8 +5,10 @@ import 'package:cliq/shared/provider/store.provider.dart';
 import 'package:cliq/shared/ui/responsive_sidebar.dart';
 import 'package:cliq/shared/ui/shortcut_info.dart';
 import 'package:cliq/shared/ui/sidebar_tab.dart';
+import 'package:cliq/shared/utils/platform_utils.dart';
 import 'package:cliq_term/cliq_term.dart';
 import 'package:cliq_ui/cliq_ui.dart' show useBreakpoint;
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:forui/forui.dart';
 import 'package:lucide_flutter/lucide_flutter.dart';
@@ -52,6 +54,9 @@ class NavigationShellState extends ConsumerState<NavigationShell>
     final breakpoint = useBreakpoint();
     final prefDesktopNavPosition = useStore(.desktopNavigationPosition);
     final defaultTerminalTheme = useStore(.defaultTerminalThemeId);
+    final applyTerminalThemeColorToNavigation = useStore(
+      .applyTerminalThemeColorToNavigation,
+    );
     final navPosition = useState<NavigationPosition>(
       breakpoint >= .lg ? prefDesktopNavPosition.value : .top,
     );
@@ -66,6 +71,7 @@ class NavigationShellState extends ConsumerState<NavigationShell>
     final rotationAnimation = useAnimationController(
       duration: const .new(seconds: 2),
     );
+    final isDesktop = PlatformUtils.isDesktop;
 
     useEffect(() {
       selectedTab.value = sessions.selectedSession;
@@ -99,7 +105,8 @@ class NavigationShellState extends ConsumerState<NavigationShell>
 
     /// Gets the effective sidebar color based on the selected session and its terminal theme.
     Color getEffectiveSidebarColor() {
-      if (widget.shell.currentIndex == _sessionBranchIndex &&
+      if (applyTerminalThemeColorToNavigation.value &&
+          widget.shell.currentIndex == _sessionBranchIndex &&
           selectedTab.value != null &&
           selectedTab.value!.isAnyConnected) {
         return selectedTab.value!.getEffectiveSidebarColor(
@@ -115,12 +122,12 @@ class NavigationShellState extends ConsumerState<NavigationShell>
       // TODO: make shortcut functional
       return FTooltip(
         tipBuilder: (_, _) => TextWithShortcutInfo(
-          'Dashboard',
+          'dashboard'.tr(),
           shortcut: KeyboardShortcut(.keyD, modifiers: {.control}),
         ),
         child: SidebarTab(
           isExpanded: isExpanded,
-          label: Text('Dashboard'),
+          label: Text('dashboard'.tr()),
           icon: Icon(LucideIcons.house),
           selected: widget.shell.currentIndex == _dashboardBranchIndex,
           onPress: () {
@@ -129,8 +136,9 @@ class NavigationShellState extends ConsumerState<NavigationShell>
                 .setSelectedAndMaybeGo(this, null);
             goToDashboardBranch();
           },
+          forceIntrinsicWidth: true,
           isTop: navPosition.value == .top,
-          noPadding: navPosition.value == .top,
+          noHorizontalPadding: navPosition.value == .top,
         ),
       );
     }
@@ -149,7 +157,7 @@ class NavigationShellState extends ConsumerState<NavigationShell>
               divider: .full,
               children: [
                 if (fileTransfer.isEmpty)
-                  FTile(title: Text('Nothing in queue'))
+                  FTile(title: Text('queue_empty'.tr()))
                 else
                   for (final item in items)
                     FTile(
@@ -267,7 +275,7 @@ class NavigationShellState extends ConsumerState<NavigationShell>
         builder: (_, controller, _) {
           return SidebarTab(
             isExpanded: isExpanded,
-            label: Text('Queue'),
+            label: Text('queue'.tr()),
             onPress: fileTransfer.isEmpty ? null : controller.toggle,
             icon: RotationTransition(
               turns: rotationAnimation,
@@ -277,8 +285,9 @@ class NavigationShellState extends ConsumerState<NavigationShell>
                     : LucideIcons.refreshCw,
               ),
             ),
+            forceIntrinsicWidth: true,
             isTop: navPosition.value == .top,
-            noPadding: navPosition.value == .top,
+            noHorizontalPadding: navPosition.value == .top,
           );
         },
       );
@@ -288,12 +297,12 @@ class NavigationShellState extends ConsumerState<NavigationShell>
       // TODO: make shortcut functional
       return FTooltip(
         tipBuilder: (_, _) => TextWithShortcutInfo(
-          'Settings',
+          'settings'.tr(),
           shortcut: KeyboardShortcut(.comma, modifiers: {.control}),
         ),
         child: SidebarTab(
           isExpanded: isExpanded,
-          label: Text('Settings'),
+          label: Text('settings'.tr()),
           icon: Icon(LucideIcons.settings),
           selected: widget.shell.currentIndex == _settingsBranchIndex,
           onPress: () {
@@ -302,8 +311,9 @@ class NavigationShellState extends ConsumerState<NavigationShell>
                 .setSelectedAndMaybeGo(this, null);
             goToSettingsBranch();
           },
+          forceIntrinsicWidth: true,
           isTop: navPosition.value == .top,
-          noPadding: navPosition.value == .top,
+          noHorizontalPadding: navPosition.value == .top,
         ),
       );
     }
@@ -332,21 +342,31 @@ class NavigationShellState extends ConsumerState<NavigationShell>
                       size: 10,
                       padding: 5,
                     ),
-                    suffix: Row(
-                      mainAxisSize: .min,
-                      spacing: 4,
-                      children: [
-                        FButton.icon(
-                          size: .xs,
-                          child: Icon(LucideIcons.unplug, size: 12),
-                          onPress: () => connect(connection),
-                        ),
-                        FButton.icon(
-                          size: .xs,
-                          child: Icon(LucideIcons.folder, size: 12),
-                          onPress: () => connect(connection, isSftp: true),
-                        ),
-                      ],
+                    suffix: FTooltipGroup(
+                      child: Row(
+                        mainAxisSize: .min,
+                        spacing: 4,
+                        children: [
+                          FTooltip(
+                            tipBuilder: (_, _) =>
+                                Text('hosts_connect_ssh'.tr()),
+                            child: FButton.icon(
+                              size: .xs,
+                              child: Icon(LucideIcons.unplug, size: 12),
+                              onPress: () => connect(connection),
+                            ),
+                          ),
+                          FTooltip(
+                            tipBuilder: (_, _) =>
+                                Text('hosts_connect_sftp'.tr()),
+                            child: FButton.icon(
+                              size: .xs,
+                              child: Icon(LucideIcons.folder, size: 12),
+                              onPress: () => connect(connection, isSftp: true),
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                     title: Text(connection.label),
                   ),
@@ -355,21 +375,23 @@ class NavigationShellState extends ConsumerState<NavigationShell>
           ],
           child: SidebarTab(
             isExpanded: isExpanded && navPosition.value == .left,
-            label: Text('New Session'),
+            label: Text('session_new'.tr()),
             icon: Icon(LucideIcons.plus),
             onPress: connections.entities.isNotEmpty
                 ? () => showTabs.value = !showTabs.value
                 : null,
             isTop: navPosition.value == .top,
-            noPadding:
+            forceIntrinsicWidth: true,
+            noHorizontalPadding:
                 navPosition.value == .top ||
                 (sessions.activeTabs.isNotEmpty && isExpanded),
+            itemPadding: PlatformUtils.isMobile ? kMobileItemPadding : null,
           ),
         ),
       ];
     }
 
-    if (navPosition.value == .left) {
+    if (isDesktop && navPosition.value == .left) {
       return ResponsiveExpandableSidebar(
         controller: _sidebarController,
         backgroundColor: getEffectiveSidebarColor(),
@@ -410,7 +432,7 @@ class NavigationShellState extends ConsumerState<NavigationShell>
               ...buildSessionSidebarTabs(isExpanded)
             else if (sessions.activeTabs.isNotEmpty)
               FSidebarGroup(
-                label: Text('Sessions'),
+                label: Text('sessions'.tr()),
                 children: buildSessionSidebarTabs(isExpanded),
               ),
           ];
@@ -421,8 +443,9 @@ class NavigationShellState extends ConsumerState<NavigationShell>
 
     return FScaffold(
       childPad: false,
+      resizeToAvoidBottomInset: false,
       header: Container(
-        padding: const EdgeInsets.all(8),
+        padding: const EdgeInsets.all(8).copyWith(top: !isDesktop ? 0 : null),
         constraints: .new(minHeight: 54),
         decoration: BoxDecoration(
           color: getEffectiveSidebarColor(),
@@ -431,6 +454,7 @@ class NavigationShellState extends ConsumerState<NavigationShell>
           ),
         ),
         child: SafeArea(
+          bottom: false,
           child: Row(
             children: [
               Expanded(
@@ -440,18 +464,43 @@ class NavigationShellState extends ConsumerState<NavigationShell>
                   child: Row(
                     spacing: 8,
                     children: [
-                      buildDashboardTab(false),
+                      if (isDesktop) buildDashboardTab(false),
                       ...buildSessionSidebarTabs(true),
                     ],
                   ),
                 ),
               ),
-              buildQueue(false),
-              buildSettingsTab(false),
+              if (isDesktop) buildQueue(false),
+              if (isDesktop) buildSettingsTab(false),
             ],
           ),
         ),
       ),
+      footer: isDesktop
+          ? null
+          : FBottomNavigationBar(
+              style: .delta(
+                decoration: .boxDelta(color: getEffectiveSidebarColor()),
+              ),
+              index: widget.shell.currentIndex - 1,
+              onChange: (index) {
+                final _ = switch (index + 1) {
+                  _dashboardBranchIndex => goToDashboardBranch(),
+                  _settingsBranchIndex => goToSettingsBranch(),
+                  _ => throw UnimplementedError(),
+                };
+              },
+              children: [
+                FBottomNavigationBarItem(
+                  icon: Icon(LucideIcons.house),
+                  label: Text('dashboard'.tr()),
+                ),
+                FBottomNavigationBarItem(
+                  icon: Icon(LucideIcons.settings),
+                  label: Text('settings'.tr()),
+                ),
+              ],
+            ),
       child: widget.shell,
     );
   }

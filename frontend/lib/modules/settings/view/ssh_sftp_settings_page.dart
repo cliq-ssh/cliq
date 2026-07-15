@@ -3,11 +3,13 @@ import 'package:cliq/modules/settings/view/settings_page.dart';
 import 'package:cliq/shared/data/store.dart';
 import 'package:cliq/shared/provider/file_transfer.provider.dart';
 import 'package:cliq/shared/provider/store.provider.dart';
+import 'package:cliq/shared/ui/custom_toggle_tile.dart';
 import 'package:cliq/shared/utils/constants.dart';
 import 'package:cliq/shared/utils/text_utils.dart';
 import 'package:cliq_term/cliq_term.dart';
 import 'package:cliq_ui/cliq_ui.dart'
     show CliqGridContainer, CliqGridRow, CliqGridColumn;
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/cupertino.dart' hide Router;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -27,7 +29,7 @@ class SshSftpSettingsPage extends AbstractSettingsPage {
   const SshSftpSettingsPage({super.key});
 
   @override
-  String get title => 'SSH & SFTP';
+  String get title => 'ssh_sftp'.tr();
 
   @override
   Widget buildBody(BuildContext context, WidgetRef ref) {
@@ -70,12 +72,13 @@ class SshSftpSettingsPage extends AbstractSettingsPage {
                   spacing: 16,
                   children: [
                     FTileGroup(
-                      label: Text('SSH'),
+                      label: Text('ssh'.tr()),
                       children: [
                         FTile(
-                          title: Text('Scrollback'),
+                          title: Text('ssh_sftp_scrollback'.tr()),
                           subtitle: Text(
-                            'The maximum number of lines to keep in the terminal',
+                            'ssh_sftp_scrollback_subtitle'.tr(),
+                            overflow: .visible,
                           ),
                           prefix: Icon(LucideIcons.history),
                           suffix: SizedBox(
@@ -95,51 +98,42 @@ class SshSftpSettingsPage extends AbstractSettingsPage {
                       ],
                     ),
                     FTileGroup(
-                      label: Text('SFTP'),
+                      label: Text('sftp'.tr()),
                       children: [
-                        FTile(
-                          title: Text('Show Hidden Files'),
-                          subtitle: Text(
-                            'Show hidden files in SFTP file listings',
-                          ),
+                        CustomToggleTile(
+                          title: 'ssh_sftp_show_hidden_files',
+                          subtitle: 'ssh_sftp_show_hidden_files_subtitle',
                           prefix: Icon(LucideIcons.fileSearchCorner),
-                          suffix: FSwitch(
-                            value: showHiddenFiles.value,
-                            onChange: (value) =>
-                                StoreKey.sftpShowHiddenFiles.write(value),
-                          ),
+                          storeKey: .sftpShowHiddenFiles,
+                          value: showHiddenFiles.value,
                         ),
-                        FTile(
-                          title: Text('Large Downloads Warning'),
-                          subtitle: Text(
-                            'Warn when downloading large files (${TextUtils.formatBytes(Constants.largeFileSizeThreshold, decimals: 0)}) over SFTP',
-                          ),
+                        CustomToggleTile(
+                          title: 'ssh_sftp_large_download_warning',
+                          subtitle: 'ssh_sftp_large_download_warning_subtitle',
+                          subtitleArgs: [
+                            TextUtils.formatBytes(
+                              Constants.largeFileSizeThreshold,
+                              decimals: 0,
+                            )!,
+                          ],
                           prefix: Icon(LucideIcons.fileExclamationPoint),
-                          suffix: FSwitch(
-                            value: largeDownloadsWarning.value,
-                            onChange: (value) =>
-                                StoreKey.sftpLargeDownloadWarning.write(value),
-                          ),
+                          storeKey: .sftpLargeDownloadWarning,
+                          value: largeDownloadsWarning.value,
                         ),
-                        FTile(
-                          title: Text('Directory Not Empty Warning'),
-                          subtitle: Text(
-                            'Warn when attempting to delete a non-empty directory over SFTP',
-                          ),
+                        CustomToggleTile(
+                          title: 'ssh_sftp_directory_not_empty_warning',
+                          subtitle:
+                              'ssh_sftp_directory_not_empty_warning_subtitle',
                           prefix: Icon(LucideIcons.folders),
-                          suffix: FSwitch(
-                            value: directoryNotEmptyWarning.value,
-                            onChange: (value) => StoreKey
-                                .sftpDirectoryNotEmptyWarning
-                                .write(value),
-                          ),
+                          storeKey: .sftpDirectoryNotEmptyWarning,
+                          value: directoryNotEmptyWarning.value,
                         ),
                         FTile(
                           title: Row(
                             children: [
                               Row(
                                 children: [
-                                  Text('Clear temporary files'),
+                                  Text('ssh_sftp_clear_temporary_files'.tr()),
                                   FutureBuilder(
                                     future: tempDirSizeFuture,
                                     builder: (context, snap) {
@@ -159,7 +153,7 @@ class SshSftpSettingsPage extends AbstractSettingsPage {
                             ],
                           ),
                           subtitle: Text(
-                            'Clear temporary files used for local editing of remote files',
+                            'ssh_sftp_clear_temporary_files_subtitle'.tr(),
                           ),
                           prefix: Icon(LucideIcons.brushCleaning),
                           variant: .destructive,

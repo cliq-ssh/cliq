@@ -5,6 +5,7 @@ import 'package:cliq/shared/extensions/text_controller.extension.dart';
 import 'package:cliq/shared/ui/create_or_edit_entity_view.dart';
 import 'package:cliq/shared/utils/validators.dart';
 import 'package:drift/drift.dart' hide Column;
+import 'package:easy_localization/easy_localization.dart';
 import 'package:file_selector/file_selector.dart';
 import 'package:flutter/material.dart' hide Key, Router;
 import 'package:flutter_hooks/flutter_hooks.dart';
@@ -89,10 +90,10 @@ class CreateOrEditKeyView extends HookConsumerWidget {
       return FButton(
         variant: .ghost,
         prefix: Icon(LucideIcons.folderOpen),
-        child: const Text('Import'),
+        child: Text('keys_import'.tr()),
         onPress: () async {
           final keyFile = await openFile(
-            acceptedTypeGroups: [Commons.keyGroup],
+            acceptedTypeGroups: [Commons.getKeyGroup(context)],
           );
           final content = await keyFile?.readAsString();
 
@@ -101,7 +102,7 @@ class CreateOrEditKeyView extends HookConsumerWidget {
           if (!context.mounted) return;
           if (pem == null) {
             Commons.showToast(
-              'Unsupported key format.',
+              'keys_import_error_format'.tr(),
               variant: .destructive,
               prefix: Icon(
                 LucideIcons.triangleAlert,
@@ -116,7 +117,7 @@ class CreateOrEditKeyView extends HookConsumerWidget {
           showFToast(
             context: context,
             icon: Icon(LucideIcons.circleCheck),
-            title: Text('Key imported successfully'),
+            title: Text('keys_import_success'.tr()),
           );
         },
       );
@@ -126,7 +127,7 @@ class CreateOrEditKeyView extends HookConsumerWidget {
       return FButton(
         variant: .ghost,
         prefix: Icon(LucideIcons.copy),
-        child: Text('Copy'),
+        child: Text('copy'.tr()),
         onPress: () {
           Commons.copyToClipboard(context, controller.text);
         },
@@ -144,44 +145,44 @@ class CreateOrEditKeyView extends HookConsumerWidget {
           children: [
             FTextFormField(
               control: .managed(controller: labelCtrl),
-              label: const Text('Label'),
-              hint: 'My Key',
-              validator: Validators.nonEmpty,
+              label: Text('keys_import_label'.tr()),
+              hint: 'keys_import_label_placeholder'.tr(),
+              validator: (s) => Validators.nonEmpty(context, s),
             ),
             FTextFormField(
               control: .managed(controller: publicKeyCtrl),
               label: Row(
                 crossAxisAlignment: .end,
                 children: [
-                  Text('Public Key (Optional)'),
+                  Text('keys_import_public_key'.tr()),
                   const Spacer(),
                   buildImportKeyButton(publicKeyCtrl, .public),
                   buildCopyButton(publicKeyCtrl),
                 ],
               ),
               maxLines: 1,
-              hint: 'ssh-rsa AAAAB3NzaC1yc2EAAAADAQA...',
+              hint: 'keys_import_public_key_placeholder'.tr(),
             ),
             FTextFormField(
               control: .managed(controller: privateKeyCtrl),
               label: Row(
                 crossAxisAlignment: .end,
                 children: [
-                  Text('Private Key'),
+                  Text('keys_import_private_key'.tr()),
                   const Spacer(),
                   buildImportKeyButton(privateKeyCtrl, .private),
                   buildCopyButton(privateKeyCtrl),
                 ],
               ),
-              hint: '-----BEGIN OPENSSH PRIVATE KEY--...',
+              hint: 'keys_import_private_key_placeholder'.tr(),
               minLines: 8,
               maxLines: 8,
-              validator: Validators.pem,
+              validator: (s) => Validators.pem(context, s),
               autovalidateMode: .onUserInteraction,
             ),
             FTextFormField.password(
               control: .managed(controller: passCtrl),
-              label: Text('PEM Passphrase'),
+              label: Text('keys_import_passphrase'.tr()),
               maxLines: 1,
               autovalidateMode: .onUserInteraction,
             ),

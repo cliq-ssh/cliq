@@ -7,6 +7,7 @@ import 'package:cliq/shared/utils/constants.dart';
 import 'package:cliq/shared/model/router.model.dart';
 import 'package:cliq/shared/utils/platform_utils.dart';
 import 'package:cliq/shared/utils/text_utils.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:file_selector/file_selector.dart';
 import 'package:flutter/material.dart' hide Router;
 import 'package:flutter/services.dart';
@@ -16,22 +17,41 @@ import 'package:url_launcher/url_launcher.dart';
 final class Commons {
   const Commons._();
 
-  static XTypeGroup get customTerminalThemeGroup => XTypeGroup(
-    label: 'Terminal Theme',
-    extensions: TerminalThemeParser.values
-        .map((e) => e.fileExtension)
-        .toList(growable: false),
-  );
+  static XTypeGroup getCustomTerminalThemeGroup(BuildContext context) {
+    return XTypeGroup(
+      label: 'file_group.terminal_theme'.tr(context: context),
+      uniformTypeIdentifiers: TerminalThemeParser.values
+          .map(
+            (e) => Constants.extensionToUniformTypeIdentifier[e.fileExtension]!,
+          )
+          .toList(growable: false),
+      extensions: TerminalThemeParser.values
+          .map((e) => e.fileExtension)
+          .toList(growable: false),
+    );
+  }
 
-  static XTypeGroup get settingsGroup => XTypeGroup(
-    label: 'Settings Export',
-    extensions: SettingsImporter.values
-        .map((e) => e.fileExtension ?? '')
-        .toList(growable: false),
-  );
+  static XTypeGroup getSettingsGroup(BuildContext context) {
+    return XTypeGroup(
+      label: 'file_group.settings_export'.tr(context: context),
+      uniformTypeIdentifiers: SettingsImporter.values
+          .map(
+            (e) => Constants.extensionToUniformTypeIdentifier[e.fileExtension]!,
+          )
+          .toList(growable: false),
+      extensions: SettingsImporter.values
+          .map((e) => e.fileExtension ?? '')
+          .toList(growable: false),
+    );
+  }
 
-  static XTypeGroup get keyGroup =>
-      XTypeGroup(label: 'SSH Key', extensions: []);
+  static XTypeGroup getKeyGroup(BuildContext context) {
+    return XTypeGroup(
+      label: 'file_group.key'.tr(context: context),
+      uniformTypeIdentifiers: [],
+      extensions: [],
+    );
+  }
 
   static Future<T?> showResponsiveDialog<T>(
     WidgetBuilder builder, {
@@ -72,14 +92,14 @@ final class Commons {
           actions: [
             FButton(
               variant: .outline,
-              child: const Text('Cancel'),
+              child: Text('dialog_cancel'.tr(context: context)),
               onPress: () => Navigator.of(context).pop(false),
             ),
             FButton(
               variant: .destructive,
               child: confirmButtonText != null
                   ? Text(confirmButtonText)
-                  : const Text('Confirm'),
+                  : Text('dialog_confirm'.tr(context: context)),
               onPress: () {
                 onConfirm?.call();
                 Navigator.of(context).pop(true);
@@ -99,7 +119,6 @@ final class Commons {
     BuildContext? context,
     bool canInstantDelete = true,
     bool mayNeedAppRestart = false,
-    String? term = 'delete',
   }) {
     if (PlatformUtils.isDesktop &&
         canInstantDelete &&
@@ -109,14 +128,14 @@ final class Commons {
     }
 
     return showConfirmationDialog(
-      confirmButtonText: 'Delete',
-      title: 'Are you sure?',
+      confirmButtonText: 'dialog_delete_confirm'.tr(context: context),
+      title: 'dialog_delete_title'.tr(context: context),
       onConfirm: onDelete,
       children: (context, _, _) => TextUtils.renderText(
         context,
-        'Are you sure you want to $term <b>$entity</b>? This action cannot be undone.'
-        '${PlatformUtils.isDesktop && canInstantDelete ? '\n\n<tip>TIP: Hold <shiftIcon/> to skip this dialog</tip>' : ''}'
-        '${mayNeedAppRestart ? '\n\n<tip>NOTE: You may need to restart the app after doing this.</tip>' : ''}',
+        '${'dialog_delete_body'.tr(context: context, args: [entity])}'
+        '${PlatformUtils.isDesktop && canInstantDelete ? '\n\n${'dialog_delete_body_instant_delete'.tr(context: context)}' : ''}'
+        '${mayNeedAppRestart ? '\n\n${'dialog_delete_body_may_need_relaunch'.tr(context: context)}' : ''}',
       ),
     );
   }
@@ -148,7 +167,7 @@ final class Commons {
     if (context.mounted) {
       showFToast(
         context: context,
-        title: Text('Successfully copied to clipboard!'),
+        title: Text('copy_to_clipboard_success'.tr(context: context)),
       );
     }
   }
@@ -184,6 +203,7 @@ final class Commons {
   static Future<void> launchGitHubUrl() => _launchUrl(Constants.githubUrl);
   static Future<void> launchGitHubCreateIssueUrl() =>
       _launchUrl(Constants.githubCreateIssueUrl);
+  static Future<void> launchWeblateUrl() => _launchUrl(Constants.weblateUrl);
 
   static Future<void> _launchUrl(String url) async {
     if (!await launchUrl(Uri.parse(url))) {

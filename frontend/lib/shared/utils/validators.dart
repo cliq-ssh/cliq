@@ -1,14 +1,18 @@
 import 'dart:io';
 
+import 'package:easy_localization/easy_localization.dart';
+import 'package:flutter/cupertino.dart';
+
 final class Validators {
   const Validators._();
 
   static String? chain(
-    List<String? Function(Object?)> validators,
+    BuildContext context,
+    List<String? Function(BuildContext, Object?)> validators,
     Object? value,
   ) {
     for (final validator in validators) {
-      String? error = validator(value);
+      String? error = validator(context, value);
       if (error != null) {
         return error;
       }
@@ -16,13 +20,13 @@ final class Validators {
     return null;
   }
 
-  static String? address(Object? value) {
-    String? nonEmptyError = nonEmpty(value);
+  static String? address(BuildContext context, Object? value) {
+    String? nonEmptyError = nonEmpty(context, value);
     if (nonEmptyError != null) {
       return nonEmptyError;
     }
     if (value is! String) {
-      return 'Value must be a valid host string';
+      return 'validator_error_invalid_address'.tr(context: context);
     }
     final String input = value;
 
@@ -38,11 +42,11 @@ final class Validators {
       return null;
     }
 
-    return 'Please provide a valid hostname';
+    return 'validator_error_invalid_address'.tr(context: context);
   }
 
-  static String? pem(Object? value) {
-    String? nonEmptyError = nonEmpty(value);
+  static String? pem(BuildContext context, Object? value) {
+    String? nonEmptyError = nonEmpty(context, value);
     if (nonEmptyError != null) {
       return nonEmptyError;
     }
@@ -56,41 +60,41 @@ final class Validators {
 
     final match = pemRegex.firstMatch(value as String);
     if (match == null) {
-      return 'Invalid PEM private key format';
+      return 'validator_error_invalid_pem_private_key'.tr(context: context);
     }
 
     return null;
   }
 
-  static String? port(Object? value) {
-    String? integerError = integer(value);
+  static String? port(BuildContext context, Object? value) {
+    String? integerError = integer(context, value);
     if (integerError != null) {
       return integerError;
     }
     int port = int.parse(value as String);
     if (port < 1 || port > 65535) {
-      return 'Value is not a valid port';
+      return 'validator_error_invalid_port'.tr(context: context);
     }
     return null;
   }
 
-  static String? integer(Object? value) {
-    String? nonEmptyError = nonEmpty(value);
+  static String? integer(BuildContext context, Object? value) {
+    String? nonEmptyError = nonEmpty(context, value);
     if (nonEmptyError != null) {
       return nonEmptyError;
     }
     if (value is String) {
       int? parsed = int.tryParse(value);
       if (parsed == null) {
-        return 'Value is not a valid integer';
+        return 'validator_error_invalid_integer'.tr(context: context);
       }
     } else if (value! is int) {
-      return 'Value is not a valid integer';
+      return 'validator_error_invalid_integer'.tr(context: context);
     }
     return null;
   }
 
-  static String? hexColor(Object? value) {
+  static String? hexColor(BuildContext context, Object? value) {
     if (value is String) {
       if (value.isEmpty) {
         return null;
@@ -98,28 +102,28 @@ final class Validators {
 
       final hexColorRegex = RegExp(r'^#?([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$');
       if (!hexColorRegex.hasMatch(value)) {
-        return 'Value is not a valid hex color';
+        return 'validator_error_invalid_hex_color'.tr(context: context);
       }
     } else {
-      return 'Value is not a valid hex color';
+      return 'validator_error_invalid_hex_color'.tr(context: context);
     }
     return null;
   }
 
-  static String? nonEmpty(Object? value) {
-    String? nonNullError = nonNull(value);
+  static String? nonEmpty(BuildContext context, Object? value) {
+    String? nonNullError = nonNull(context, value);
     if (nonNullError != null) {
       return nonNullError;
     }
     if (value is String && value.isEmpty) {
-      return 'Value may not be empty';
+      return 'validator_error_empty'.tr(context: context);
     }
     return null;
   }
 
-  static String? nonNull(Object? value) {
+  static String? nonNull(BuildContext context, Object? value) {
     if (value == null) {
-      return 'Value may not be null';
+      return 'validator_error_null'.tr(context: context);
     }
     return null;
   }

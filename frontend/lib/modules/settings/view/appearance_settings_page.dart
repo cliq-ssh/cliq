@@ -4,14 +4,15 @@ import 'package:cliq/shared/provider/store.provider.dart';
 import 'package:cliq/shared/utils/platform_utils.dart';
 import 'package:cliq_ui/cliq_ui.dart'
     show CliqGridContainer, CliqGridRow, CliqGridColumn;
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:forui/forui.dart';
-import 'package:forui_hooks/forui_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lucide_flutter/lucide_flutter.dart';
 
 import '../../../shared/data/store.dart';
 import '../../../shared/model/page_path.model.dart';
+import '../../../shared/ui/custom_toggle_tile.dart';
 import '../model/navigation_position.model.dart';
 import '../model/theme.model.dart';
 
@@ -24,153 +25,146 @@ class AppearanceSettingsPage extends AbstractSettingsPage {
   const AppearanceSettingsPage({super.key});
 
   @override
-  String get title => 'Appearance';
+  String get title => 'appearance'.tr();
 
   @override
   Widget buildBody(BuildContext context, WidgetRef ref) {
     final currentTheme = useStore(.theme);
     final themeMode = useStore(.themeMode);
     final navPosition = useStore(.desktopNavigationPosition);
-
-    final navPositionController =
-        useFRadioMultiValueNotifier<NavigationPosition>(
-          value: navPosition.value,
-        );
-
-    final themeModeController = useFRadioMultiValueNotifier<ThemeMode>(
-      value: themeMode.value,
+    final applyTerminalThemeColorToNavigation = useStore(
+      .applyTerminalThemeColorToNavigation,
     );
 
-    buildThemeButton(CliqTheme t) {
-      final bool isCurrentTheme = t == currentTheme.value;
-      return GestureDetector(
-        onTap: () => StoreKey.theme.write(t),
-        child: Tooltip(
-          message: t.name,
-          child: Container(
-            width: 40,
-            height: 40,
-            decoration: BoxDecoration(
-              color: t.getThemeWithMode(themeMode.value).colors.primary,
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: Padding(
-              padding: const EdgeInsets.all(8),
-              child: isCurrentTheme
-                  ? Icon(
-                      LucideIcons.check,
-                      color: t
-                          .getThemeWithMode(themeMode.value)
-                          .colors
-                          .primaryForeground,
-                    )
-                  : null,
-            ),
-          ),
-        ),
-      );
+    getThemeModeDisplayName(ThemeMode mode) {
+      return switch (mode) {
+        ThemeMode.system => 'theme_mode_system'.tr(),
+        ThemeMode.light => 'theme_mode_light'.tr(),
+        ThemeMode.dark => 'theme_mode_dark'.tr(),
+      };
     }
 
-    return CliqGridContainer(
-      children: [
-        CliqGridRow(
-          children: [
-            CliqGridColumn(
-              child: Form(
-                onChanged: () {
-                  final themeMode = themeModeController.value.firstOrNull;
-                  final navPosition = navPositionController.value.firstOrNull;
-
-                  if (themeMode != null) {
-                    StoreKey.themeMode.write(themeMode);
-                  }
-                  if (PlatformUtils.isDesktop && navPosition != null) {
-                    StoreKey.desktopNavigationPosition.write(navPosition);
-                  }
-                },
+    return SingleChildScrollView(
+      child: CliqGridContainer(
+        children: [
+          CliqGridRow(
+            children: [
+              CliqGridColumn(
                 child: Column(
                   spacing: 20,
                   children: [
-                    if (PlatformUtils.isDesktop)
-                      FSelectTileGroup<NavigationPosition>(
-                        control: .managed(controller: navPositionController),
-                        label: const Text('Navigation Position'),
-                        description: const Text(
-                          'Select the position of the desktop navigation bar.',
-                        ),
-                        children: [
-                          for (NavigationPosition position
-                              in NavigationPosition.values) ...[
-                            FSelectTile(
-                              title: Text(position.getDisplayName(context)),
-                              suffix: Icon(position.icon),
-                              value: position,
-                            ),
-                          ],
-                        ],
-                      ),
-                    FSelectTileGroup<ThemeMode>(
-                      control: .managed(controller: themeModeController),
-                      label: const Text('Theme Mode'),
-                      description: const Text(
-                        'Select the theme mode for the application.',
-                      ),
+                    FTileGroup(
                       children: [
-                        FSelectTile(
-                          title: const Text('System'),
-                          suffix: PlatformUtils.isMobile
-                              ? const Icon(LucideIcons.smartphone)
-                              : const Icon(LucideIcons.monitor),
-                          value: ThemeMode.system,
+                        FSelectMenuTile<ThemeMode>(
+                          title: Text('appearance_theme_mode'.tr()),
+                          prefix: const Icon(LucideIcons.sunMoon),
+                          subtitle: Text('appearance_theme_mode_subtitle'.tr()),
+                          selectControl: .managedRadio(
+                            initial: themeMode.value,
+                            onChange: (value) =>
+                                StoreKey.themeMode.write(value.first),
+                          ),
+                          detailsBuilder: (context, value, _) {
+                            if (value.isEmpty) return SizedBox.shrink();
+                            return Text(getThemeModeDisplayName(value.first));
+                          },
+                          menu: [
+                            for (ThemeMode mode in ThemeMode.values) ...[
+                              .tile(
+                                title: Text(getThemeModeDisplayName(mode)),
+                                value: mode,
+                              ),
+                            ],
+                          ],
                         ),
-                        FSelectTile(
-                          title: const Text('Light'),
-                          suffix: const Icon(LucideIcons.sun),
-                          value: ThemeMode.light,
-                        ),
-                        FSelectTile(
-                          title: const Text('Dark'),
-                          suffix: const Icon(LucideIcons.moon),
-                          value: ThemeMode.dark,
+                        FSelectMenuTile<CliqTheme>(
+                          title: Text('appearance_color_theme'.tr()),
+                          prefix: const Icon(LucideIcons.palette),
+                          subtitle: Text(
+                            'appearance_color_theme_subtitle'.tr(),
+                          ),
+                          selectControl: .managedRadio(
+                            initial: currentTheme.value,
+                            onChange: (value) =>
+                                StoreKey.theme.write(value.first),
+                          ),
+                          detailsBuilder: (context, value, _) {
+                            if (value.isEmpty) return SizedBox.shrink();
+                            return Text(value.first.getDisplayName());
+                          },
+                          menu: [
+                            for (CliqTheme t in CliqTheme.values) ...[
+                              .tile(
+                                title: Text(t.getDisplayName()),
+                                suffix: Container(
+                                  width: 20,
+                                  height: 20,
+                                  decoration: BoxDecoration(
+                                    shape: .circle,
+                                    color: t
+                                        .getThemeWithMode(themeMode.value)
+                                        .colors
+                                        .primary,
+                                  ),
+                                ),
+                                value: t,
+                              ),
+                            ],
+                          ],
                         ),
                       ],
                     ),
-                    Align(
-                      alignment: .centerLeft,
-                      child: FLabel(
-                        layout: .vertical,
-                        child: Text(
-                          'Color Theme',
-                          style: context.theme.typography.body.md.copyWith(
-                            color: context.theme.colors.primary,
-                            fontWeight: .bold,
-                          ),
-                        ),
-                      ),
-                    ),
-                    Row(
-                      children: [
-                        Flexible(
-                          child: Wrap(
-                            spacing: 10,
-                            runSpacing: 10,
-                            alignment: .start,
-                            children: [
-                              for (CliqTheme t in CliqTheme.values) ...[
-                                buildThemeButton(t),
+                    if (PlatformUtils.isDesktop)
+                      FTileGroup(
+                        children: [
+                          FSelectMenuTile<NavigationPosition>(
+                            title: Text('appearance_navigation_position'.tr()),
+                            prefix: const Icon(LucideIcons.panelsRightBottom),
+                            subtitle: Text(
+                              'appearance_navigation_position_subtitle'.tr(),
+                            ),
+                            selectControl: .managedRadio(
+                              initial: navPosition.value,
+                              onChange: (value) => StoreKey
+                                  .desktopNavigationPosition
+                                  .write(value.first),
+                            ),
+                            detailsBuilder: (context, value, _) {
+                              if (value.isEmpty) return SizedBox.shrink();
+                              return Text(value.first.getDisplayName(context));
+                            },
+                            menu: [
+                              for (NavigationPosition position
+                                  in NavigationPosition.values) ...[
+                                .tile(
+                                  title: Text(position.getDisplayName(context)),
+                                  value: position,
+                                ),
                               ],
                             ],
                           ),
+                        ],
+                      ),
+                    FTileGroup(
+                      children: [
+                        CustomToggleTile(
+                          title:
+                              'appearance_apply_terminal_theme_color_to_navigation',
+                          subtitle:
+                              'appearance_apply_terminal_theme_color_to_navigation_subtitle',
+                          prefix: Icon(LucideIcons.paintBucket),
+                          storeKey: .applyTerminalThemeColorToNavigation,
+                          value: applyTerminalThemeColorToNavigation.value,
                         ),
                       ],
                     ),
                   ],
                 ),
               ),
-            ),
-          ],
-        ),
-      ],
+            ],
+          ),
+        ],
+      ),
     );
   }
 }

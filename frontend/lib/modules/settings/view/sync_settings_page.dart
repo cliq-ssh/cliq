@@ -7,6 +7,7 @@ import 'package:cliq/modules/settings/view/settings_page.dart';
 import 'package:cliq/shared/model/localized_exception.dart';
 import 'package:cliq_ui/cliq_ui.dart'
     show CliqGridContainer, CliqGridRow, CliqGridColumn;
+import 'package:easy_localization/easy_localization.dart';
 import 'package:file_selector/file_selector.dart';
 import 'package:flutter/cupertino.dart' hide Router;
 import 'package:forui/forui.dart';
@@ -26,7 +27,7 @@ class SyncSettingsPage extends AbstractSettingsPage {
   const SyncSettingsPage({super.key});
 
   @override
-  String get title => 'Sync';
+  String get title => 'sync'.tr();
 
   @override
   Widget buildBody(BuildContext context, WidgetRef ref) {
@@ -45,12 +46,14 @@ class SyncSettingsPage extends AbstractSettingsPage {
                         FTile(
                           prefix: Icon(LucideIcons.download),
                           suffix: Icon(LucideIcons.folderOpen),
-                          title: Text('Import from File'),
+                          title: Text('sync_import_file'.tr()),
                           onPress: () async {
                             AppSettings? settings;
 
                             final file = await openFile(
-                              acceptedTypeGroups: [Commons.settingsGroup],
+                              acceptedTypeGroups: [
+                                Commons.getSettingsGroup(context),
+                              ],
                             );
 
                             read({String? password}) async {
@@ -63,8 +66,7 @@ class SyncSettingsPage extends AbstractSettingsPage {
                               settings = await read();
                             } catch (e) {
                               if (e is LocalizedException &&
-                                  e.key ==
-                                      'settings.import.error.encryptedFile') {
+                                  e.key == 'sync_import_error_encrypted') {
                                 // prompt password input
                                 final password = await showFDialog(
                                   context:
@@ -99,7 +101,7 @@ class SyncSettingsPage extends AbstractSettingsPage {
                         FTile(
                           prefix: Icon(LucideIcons.upload),
                           suffix: Icon(LucideIcons.chevronRight),
-                          title: Text('Export to File'),
+                          title: Text('sync_export_file'.tr()),
                           onPress: () => Commons.showResponsiveDialog(
                             (_) => ImportOrExportSettingsView.export(),
                           ),

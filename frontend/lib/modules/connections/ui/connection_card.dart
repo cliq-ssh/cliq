@@ -4,6 +4,7 @@ import 'package:cliq/modules/connections/model/connection_full.model.dart';
 import 'package:cliq/shared/ui/context_menu.dart';
 import 'package:cliq/shared/utils/commons.dart';
 import 'package:cliq_term/cliq_term.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:forui/forui.dart';
 import 'package:forui_hooks/forui_hooks.dart';
@@ -34,7 +35,7 @@ class ConnectionCard extends HookConsumerWidget {
       if (connection.effectiveUsername == null) {
         // TODO: https://github.com/cliq-ssh/cliq/issues/446
         Commons.showToast(
-          'Cannot connect because username is missing',
+          'hosts_cannot_connect_username_missing'.tr(),
           prefix: Icon(
             LucideIcons.triangleAlert,
             size: 20,
@@ -82,23 +83,23 @@ class ConnectionCard extends HookConsumerWidget {
             children: [
               FItem(
                 prefix: Icon(LucideIcons.unplug),
-                title: Text('Connect via SSH'),
+                title: Text('hosts_connect_ssh'.tr()),
                 onPress: connect,
               ),
               FItem(
                 prefix: Icon(LucideIcons.folderOpen),
-                title: Text('Connect via SFTP'),
+                title: Text('hosts_connect_sftp'.tr()),
                 onPress: () => connect(isSftp: true),
               ),
               FItem(
                 prefix: Icon(LucideIcons.pencil),
-                title: Text('Edit'),
+                title: Text('edit'.tr()),
                 onPress: edit,
               ),
               FItem(
                 variant: .destructive,
                 prefix: Icon(LucideIcons.trash),
-                title: Text('Delete'),
+                title: Text('delete'.tr()),
                 onPress: delete,
               ),
             ],
@@ -111,25 +112,25 @@ class ConnectionCard extends HookConsumerWidget {
     return CustomContextMenu(
       actions: [
         .new(
-          label: 'Connect via SSH',
+          label: 'hosts_connect_ssh'.tr(),
           icon: LucideIcons.unplug,
           onPress: connect,
           shortcut: KeyboardShortcut(.enter),
         ),
         .new(
-          label: 'Connect via SFTP',
+          label: 'hosts_connect_sftp'.tr(),
           icon: LucideIcons.folderOpen,
           onPress: () => connect(isSftp: true),
           shortcut: KeyboardShortcut(.enter, modifiers: {.shift}),
         ),
         .new(
-          label: 'Edit',
+          label: 'edit'.tr(),
           icon: LucideIcons.pencil,
           onPress: edit,
           shortcut: KeyboardShortcut(.keyE),
         ),
         .new(
-          label: 'Delete',
+          label: 'delete'.tr(),
           icon: LucideIcons.trash,
           variant: .destructive,
           onPress: delete,

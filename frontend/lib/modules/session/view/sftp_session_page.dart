@@ -10,6 +10,7 @@ import 'package:cliq/shared/provider/store.provider.dart';
 import 'package:cliq/shared/utils/constants.dart';
 import 'package:cliq/shared/utils/text_utils.dart';
 import 'package:dartssh2/dartssh2.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:file_selector/file_selector.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart' hide LicensePage;
@@ -25,6 +26,7 @@ import '../../../shared/ui/context_menu.dart';
 import '../../../shared/ui/navigation_shell.dart';
 import '../../../shared/ui/table_view.dart';
 import '../../../shared/utils/commons.dart';
+import '../../../shared/utils/platform_utils.dart';
 import '../provider/session.provider.dart';
 
 enum _SftpColumn {
@@ -47,7 +49,7 @@ enum _SftpColumn {
 
   /// Whether this column can be hidden in the context menu
   final bool permanent;
-  final String Function(SftpName) valueBuilder;
+  final String Function(BuildContext, SftpName) valueBuilder;
   final int Function(SftpName)? sortableValueBuilder;
   final Widget Function(SftpName)? prefixBuilder;
 
@@ -59,17 +61,11 @@ enum _SftpColumn {
   });
 
   String getDisplayName(BuildContext context) {
-    return switch (this) {
-      .name => 'Name',
-      .modified => 'Last Modified',
-      .size => 'Size',
-      .kind => 'Kind',
-      .accessed => 'Last Accessed',
-      .permissions => 'Permissions',
-    };
+    return 'sftp_row.${this.name}'.tr(context: context);
   }
 
-  static String _buildName(SftpName file) => file.filename;
+  static String _buildName(BuildContext context, SftpName file) =>
+      file.filename;
   static Widget _buildNamePrefix(SftpName file) {
     if (file.attr.isDirectory) {
       return Icon(LucideIcons.folder);
@@ -80,12 +76,12 @@ enum _SftpColumn {
     return Icon(LucideIcons.file);
   }
 
-  static String _buildModified(SftpName file) =>
+  static String _buildModified(BuildContext context, SftpName file) =>
       _buildTimestamp(file.attr.modifyTime);
 
   static int _buildModifiedSortable(SftpName file) => file.attr.modifyTime ?? 0;
 
-  static String _buildSize(SftpName file) {
+  static String _buildSize(BuildContext context, SftpName file) {
     if (file.attr.isDirectory) {
       return '--';
     }
@@ -94,22 +90,22 @@ enum _SftpColumn {
 
   static int _buildSizeSortable(SftpName file) => file.attr.size ?? 0;
 
-  static String _buildKind(SftpName file) {
+  static String _buildKind(BuildContext context, SftpName file) {
     if (file.attr.isDirectory) {
-      return 'Folder';
+      return 'sftp_kind.directory'.tr(context: context);
     }
     if (file.attr.isSymbolicLink) {
-      return 'Symlink';
+      return 'sftp_kind.symlink'.tr(context: context);
     }
-    return 'File';
+    return 'sftp_kind.file'.tr(context: context);
   }
 
-  static String _buildAccessed(SftpName file) =>
+  static String _buildAccessed(BuildContext context, SftpName file) =>
       _buildTimestamp(file.attr.accessTime);
 
   static int _buildAccessedSortable(SftpName file) => file.attr.accessTime ?? 0;
 
-  static String _buildPermissions(SftpName file) {
+  static String _buildPermissions(BuildContext context, SftpName file) {
     final perms = file.attr.mode;
     if (perms == null) return '--';
 
@@ -288,6 +284,8 @@ class _SftpSessionPageState extends ConsumerState<SftpSessionPage>
     final showHiddenFiles = useStore(.sftpShowHiddenFiles);
     final isCreatingDirectory = useState(false);
 
+    final isDesktop = PlatformUtils.isDesktop;
+
     retrySession({bool skipHostKeyVerification = false}) {
       ref
           .read(sessionProvider.notifier)
@@ -359,7 +357,7 @@ class _SftpSessionPageState extends ConsumerState<SftpSessionPage>
           if (!context.mounted) return;
 
           Commons.showToast(
-            'Failed to open: ${e.message}',
+            'sftp_failed_to_open'.tr(args: [e.message]),
             prefix: Icon(
               LucideIcons.folderLock,
               size: 20,
@@ -497,7 +495,8 @@ class _SftpSessionPageState extends ConsumerState<SftpSessionPage>
     }
 
     openFile(SftpName file, String id) async {
-      if (file.attr.isDirectory ||
+      if (!isDesktop ||
+          file.attr.isDirectory ||
           file.filename.isEmpty ||
           _ignoredSelectableFilenames.contains(file.filename)) {
         return;
@@ -507,12 +506,21 @@ class _SftpSessionPageState extends ConsumerState<SftpSessionPage>
       if (largeDownloadWarning.value &&
           file.attr.size! > Constants.largeFileSizeThreshold) {
         final shouldContinue = await Commons.showConfirmationDialog(
-          title: 'Large file',
+          title: 'dialog_large_file'.tr(),
           children: (context, _, _) => TextUtils.renderText(
             context,
-            'The file <b>${file.filename}</b> is larger than <b>${TextUtils.formatBytes(Constants.largeFileSizeThreshold, decimals: 0)} (${TextUtils.formatBytes(file.attr.size)})</b> and may take a long time to download. You can edit the file once it has been downloaded.\nDo you want to continue?\n\n<tip>TIP: You can disable this warning in <b>Settings > SSH & SFTP > Large Downloads Warning</b>.</tip>',
+            'dialog_large_file_body'.tr(
+              namedArgs: {
+                'name': file.filename,
+                'maxSize': TextUtils.formatBytes(
+                  Constants.largeFileSizeThreshold,
+                  decimals: 0,
+                )!,
+                'size': TextUtils.formatBytes(file.attr.size!, decimals: 0)!,
+              },
+            ),
           ),
-          confirmButtonText: 'Download & Edit',
+          confirmButtonText: 'dialog_large_file_confirm'.tr(),
         );
 
         if (shouldContinue != true) {
@@ -649,11 +657,11 @@ class _SftpSessionPageState extends ConsumerState<SftpSessionPage>
 
         String message = e.message;
         if (e.code == 4) {
-          message = 'A file with that name already exists.';
+          message = 'sftp_file_already_exists'.tr();
         }
 
         Commons.showToast(
-          'Failed to rename: $message',
+          'sftp_failed_to_rename'.tr(args: [message]),
           prefix: Icon(
             LucideIcons.pencilOff,
             size: 20,
@@ -702,12 +710,12 @@ class _SftpSessionPageState extends ConsumerState<SftpSessionPage>
             bool result = false;
             if (directoryNotEmptyWarning.value) {
               result = await Commons.showConfirmationDialog(
-                title: 'Directory not empty',
+                title: 'dialog_directory_not_empty_title'.tr(),
                 children: (context, _, _) => TextUtils.renderText(
                   context,
-                  'The directory <b>${file.filename}</b> is not empty and may contain files or subdirectories. Deleting it will remove all its contents.\nDo you want to continue?\n\n<tip>TIP: You can disable this warning in <b>Settings > SSH & SFTP > Directory Not Empty Warning</b>.</tip>',
+                  'dialog_directory_not_empty_body'.tr(args: [file.filename]),
                 ),
-                confirmButtonText: 'Delete Anyway',
+                confirmButtonText: 'dialog_directory_not_empty_confirm'.tr(),
               );
             }
             if (!directoryNotEmptyWarning.value || result) {
@@ -799,49 +807,53 @@ class _SftpSessionPageState extends ConsumerState<SftpSessionPage>
               child: Row(
                 spacing: 8,
                 children: [
-                  Row(
-                    spacing: 8,
-                    children: [
-                      FTooltip(
-                        tipBuilder: (_, _) => Text('Navigate back'),
-                        child: FButton.icon(
-                          variant: .outline,
-                          onPress: backStack.value.isEmpty
-                              ? null
-                              : onAction(() {
-                                  forwardStack.value = [
-                                    currentDirectory.value!,
-                                    ...forwardStack.value,
-                                  ];
-                                  currentDirectory.value = backStack.value.last;
-                                  backStack.value = backStack.value.sublist(
-                                    0,
-                                    backStack.value.length - 1,
-                                  );
-                                }),
-                          child: Icon(LucideIcons.arrowLeft),
+                  FTooltipGroup(
+                    child: Row(
+                      spacing: 8,
+                      children: [
+                        FTooltip(
+                          tipBuilder: (_, _) => Text('sftp_navigate_back'.tr()),
+                          child: FButton.icon(
+                            variant: .outline,
+                            onPress: backStack.value.isEmpty
+                                ? null
+                                : onAction(() {
+                                    forwardStack.value = [
+                                      currentDirectory.value!,
+                                      ...forwardStack.value,
+                                    ];
+                                    currentDirectory.value =
+                                        backStack.value.last;
+                                    backStack.value = backStack.value.sublist(
+                                      0,
+                                      backStack.value.length - 1,
+                                    );
+                                  }),
+                            child: Icon(LucideIcons.arrowLeft),
+                          ),
                         ),
-                      ),
-                      FTooltip(
-                        tipBuilder: (_, _) => Text('Navigate forward'),
-                        child: FButton.icon(
-                          variant: .outline,
-                          onPress: forwardStack.value.isEmpty
-                              ? null
-                              : onAction(() {
-                                  backStack.value = [
-                                    ...backStack.value,
-                                    currentDirectory.value!,
-                                  ];
-                                  currentDirectory.value =
-                                      forwardStack.value.first;
-                                  forwardStack.value = forwardStack.value
-                                      .sublist(1);
-                                }),
-                          child: Icon(LucideIcons.arrowRight),
+                        FTooltip(
+                          tipBuilder: (_, _) =>
+                              Text('sftp_navigate_forward'.tr()),
+                          child: FButton.icon(
+                            variant: .outline,
+                            onPress: forwardStack.value.isEmpty
+                                ? null
+                                : onAction(() {
+                                    backStack.value = [
+                                      ...backStack.value,
+                                      currentDirectory.value!,
+                                    ];
+                                    currentDirectory.value =
+                                        forwardStack.value.first;
+                                    forwardStack.value = forwardStack.value
+                                        .sublist(1);
+                                  }),
+                            child: Icon(LucideIcons.arrowRight),
+                          ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
                   Expanded(
                     child: SingleChildScrollView(
@@ -883,12 +895,12 @@ class _SftpSessionPageState extends ConsumerState<SftpSessionPage>
                           .group(
                             children: [
                               .item(
-                                title: Text('Refresh'),
+                                title: Text('sftp_refresh'.tr()),
                                 prefix: Icon(LucideIcons.refreshCw),
                                 onPress: onAction(reloadDirectory),
                               ),
                               .item(
-                                title: Text('New folder'),
+                                title: Text('sftp_new_folder'.tr()),
                                 prefix: Icon(LucideIcons.folderPlus),
                                 onPress: onAction(createDirectory),
                               ),
@@ -920,7 +932,7 @@ class _SftpSessionPageState extends ConsumerState<SftpSessionPage>
                           .group(
                             children: [
                               .item(
-                                title: Text('Hidden files'),
+                                title: Text('sftp_hidden_files'.tr()),
                                 prefix: showHiddenFiles.value
                                     ? Icon(LucideIcons.check)
                                     : SizedBox(width: 16),
@@ -987,11 +999,16 @@ class _SftpSessionPageState extends ConsumerState<SftpSessionPage>
                     // check if file exists
                     try {
                       await session.sftpClient!.stat(destinationPath);
-                      Commons.showDeleteDialog(
-                        term: 'overwrite',
-                        entity: fileEntry.value.fileName,
-                        onDelete: transfer,
-                        canInstantDelete: false,
+                      Commons.showConfirmationDialog(
+                        title: 'dialog_overwrite_title'.tr(),
+                        children: (context, _, _) => TextUtils.renderText(
+                          context,
+                          'dialog_overwrite_body'.tr(
+                            args: [fileEntry.value.fileName],
+                          ),
+                        ),
+                        onConfirm: transfer,
+                        confirmButtonText: 'dialog_overwrite_confirm'.tr(),
                       );
                     } on SftpStatusError catch (_) {
                       transfer();
@@ -1014,8 +1031,8 @@ class _SftpSessionPageState extends ConsumerState<SftpSessionPage>
                                 col.sortableValueBuilder!(b),
                               )
                             : col
-                                  .valueBuilder(a)
-                                  .compareTo(col.valueBuilder(b));
+                                  .valueBuilder(context, a)
+                                  .compareTo(col.valueBuilder(context, b));
                         if (cmp != 0) return sortColumn.value!.$2 ? cmp : -cmp;
                       }
 
@@ -1041,17 +1058,17 @@ class _SftpSessionPageState extends ConsumerState<SftpSessionPage>
                       .toList();
 
                   return Padding(
-                    padding: const EdgeInsets.all(16),
+                    padding: EdgeInsets.all(isDesktop ? 16 : 4),
                     child: TableView.builder(
                       key: ValueKey(currentDirectory.value),
                       actions: [
                         .new(
-                          label: 'Refresh',
+                          label: 'sftp_refresh'.tr(),
                           icon: LucideIcons.refreshCw,
                           onPress: reloadDirectory,
                         ),
                         .new(
-                          label: 'New folder',
+                          label: 'sftp_new_folder'.tr(),
                           icon: LucideIcons.folderPlus,
                           onPress: createDirectory,
                         ),
@@ -1079,6 +1096,7 @@ class _SftpSessionPageState extends ConsumerState<SftpSessionPage>
                           .whereType<int>()
                           .toList(growable: false),
                       onRowTap: (index) {
+                        if (!isDesktop) return;
                         final file = getFileByIndex(index)!;
 
                         // ignore non-selectable files
@@ -1135,7 +1153,9 @@ class _SftpSessionPageState extends ConsumerState<SftpSessionPage>
                       onRowDoubleTap: (index) {
                         final file = getFileByIndex(index)!;
                         final id = getFileIdFromSftpName(file);
-                        selectedFilesIds.value = {if (file.attr.isFile) id};
+                        if (isDesktop) {
+                          selectedFilesIds.value = {if (file.attr.isFile) id};
+                        }
                         final _ = switch (file.attr.type) {
                           .directory => openFolder(file),
                           .regularFile => openFile(file, id),
@@ -1161,7 +1181,7 @@ class _SftpSessionPageState extends ConsumerState<SftpSessionPage>
 
                         buildCell(_SftpColumn col) {
                           final text = Text(
-                            col.valueBuilder.call(file),
+                            col.valueBuilder.call(context, file),
                             overflow: .fade,
                             softWrap: false,
                             style: fileStyle,
@@ -1233,7 +1253,7 @@ class _SftpSessionPageState extends ConsumerState<SftpSessionPage>
                               ).length(),
                               builder: (_, snap) => Text.rich(
                                 TextSpan(
-                                  text: col.valueBuilder.call(file),
+                                  text: col.valueBuilder.call(context, file),
                                   children: [
                                     if (snap.hasData)
                                       TextSpan(
@@ -1268,7 +1288,7 @@ class _SftpSessionPageState extends ConsumerState<SftpSessionPage>
                                       FTile(
                                         title: Text(
                                           getFileFromId(id)?.filename ??
-                                              'Unknown',
+                                              'sftp_file_unknown'.tr(),
                                         ),
                                         prefix: getFileFromId(id) == null
                                             ? null
@@ -1320,6 +1340,9 @@ class _SftpSessionPageState extends ConsumerState<SftpSessionPage>
                                             sessionId: session.id,
                                             files: selected,
                                           ),
+                                          maxSimultaneousDrags: isDesktop
+                                              ? 1
+                                              : 0,
                                           onDragStarted: () {
                                             final isPartOfSelection =
                                                 selectedFilesIds.value.contains(
@@ -1347,13 +1370,13 @@ class _SftpSessionPageState extends ConsumerState<SftpSessionPage>
                           actions: [
                             if (file.attr.isFile)
                               .new(
-                                label: 'Open',
+                                label: 'sftp_file_open'.tr(),
                                 icon: LucideIcons.filePen,
                                 onPress: () => openFile(file, id),
                               ),
                             if (file.attr.isDirectory)
                               .new(
-                                label: 'Open',
+                                label: 'sftp_directory_open'.tr(),
                                 icon: LucideIcons.folderOpen,
                                 onPress: () => openFolder(file),
                               ),
@@ -1361,12 +1384,12 @@ class _SftpSessionPageState extends ConsumerState<SftpSessionPage>
                               file.filename,
                             )) ...[
                               .new(
-                                label: 'Rename',
+                                label: 'sftp_file_rename'.tr(),
                                 icon: LucideIcons.pencilLine,
                                 onPress: () => renameItemId.value = id,
                               ),
                               .new(
-                                label: 'Download',
+                                label: 'sftp_file_download'.tr(),
                                 icon: LucideIcons.download,
                                 onPress: () async {
                                   final location = await getDirectoryPath();
@@ -1375,7 +1398,7 @@ class _SftpSessionPageState extends ConsumerState<SftpSessionPage>
                                 },
                               ),
                               .new(
-                                label: 'Delete',
+                                label: 'sftp_file_delete'.tr(),
                                 icon: LucideIcons.trash,
                                 variant: .destructive,
                                 onPress: () => deleteItem(file, id),

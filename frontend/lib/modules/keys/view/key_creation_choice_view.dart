@@ -1,4 +1,5 @@
 import 'package:cliq/shared/utils/commons.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:forui/forui.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -31,47 +32,51 @@ class KeyCreationChoiceView extends HookConsumerWidget {
     );
 
     return FScaffold(
-      child: LayoutBuilder(
-        builder: (context, _) {
-          return SizedBox.expand(
-            child: Center(
-              child: SizedBox(
-                width: 520,
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  spacing: 16,
-                  children: [
-                    Text('Add Key', style: context.theme.typography.body.xl2),
-                    Text(
-                      'Choose whether you want to import an existing SSH key or generate a new one.',
-                      style: mutedStyle,
-                    ),
-                    FButton(
-                      variant: .outline,
-                      prefix: const Icon(LucideIcons.folderOpen),
-                      onPress: openImport,
-                      child: const Text('Import Existing Key'),
-                    ),
-                    FButton(
-                      prefix: const Icon(Icons.vpn_key),
-                      onPress: openGenerate,
-                      child: const Text('Generate New Key'),
-                    ),
-                    Align(
-                      alignment: Alignment.centerRight,
-                      child: FButton(
-                        variant: .ghost,
-                        onPress: () => Navigator.of(context).pop(),
-                        child: const Text('Cancel'),
+      childPad: false,
+      child: Padding(
+        padding: const .symmetric(horizontal: 32, vertical: 20),
+        child: LayoutBuilder(
+          builder: (context, _) {
+            return SizedBox.expand(
+              child: Center(
+                child: SizedBox(
+                  width: 520,
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    spacing: 16,
+                    children: [
+                      Text(
+                        'keys_add'.tr(),
+                        style: context.theme.typography.body.xl2,
                       ),
-                    ),
-                  ],
+                      Text('keys_add_subtitle'.tr(), style: mutedStyle),
+                      FButton(
+                        variant: .outline,
+                        prefix: const Icon(LucideIcons.folderOpen),
+                        onPress: openImport,
+                        child: Text('keys_import_existing'.tr()),
+                      ),
+                      FButton(
+                        prefix: const Icon(LucideIcons.rotateCcwKey),
+                        onPress: openGenerate,
+                        child: Text('keys_generate_new'.tr()),
+                      ),
+                      Align(
+                        alignment: Alignment.centerRight,
+                        child: FButton(
+                          variant: .ghost,
+                          onPress: () => Navigator.of(context).pop(),
+                          child: Text('cancel'.tr()),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
-            ),
-          );
-        },
+            );
+          },
+        ),
       ),
     );
   }

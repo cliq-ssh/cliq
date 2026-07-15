@@ -1,8 +1,10 @@
 import 'package:cliq/modules/connections/ui/connection_icon.dart';
 import 'package:cliq/modules/settings/model/navigation_position.model.dart';
 import 'package:cliq/shared/ui/sidebar_tab.dart';
+import 'package:cliq/shared/utils/platform_utils.dart';
 import 'package:cliq_term/cliq_term.dart';
-import 'package:flutter/cupertino.dart' hide Router;
+import 'package:easy_localization/easy_localization.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:forui/forui.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -11,31 +13,40 @@ import 'package:lucide_flutter/lucide_flutter.dart';
 import '../../../shared/ui/context_menu.dart';
 import '../../../shared/ui/navigation_shell.dart';
 import '../../../shared/ui/shortcut_info.dart';
-import '../../../shared/model/router.model.dart' show Router;
 import '../model/session.model.dart';
 import '../model/tab.model.dart';
 import '../provider/session.provider.dart';
 
 class SessionSidebarTab extends HookConsumerWidget {
+  /// The root session for this tab.
+  /// If this is a single session tab, this will be the only session.
+  /// If this is a group tab, this will be the first session in the group.
   final ShellSession root;
+
+  /// The list of sessions in this tab.
   final List<ShellSession> sessions;
-  final String? _label;
+
+  /// Whether this tab is expanded or not. If true, the label will be displayed in addition to the icon.
   final bool isExpanded;
+
+  /// The position of the navigation bar.
   final NavigationPosition navPosition;
+
+  /// Whether this tab is selected or not.
   final bool selected;
+
+  /// The ID of the tab.
   final String? tabId;
 
-  String get label {
-    if (_label != null && _label.isNotEmpty) {
-      return _label;
-    }
-
-    if (sessions.isEmpty) {
-      return root.connection.label;
-    }
-
-    return '${sessions.length + 1} Sessions';
-  }
+  SessionSidebarTab.single(
+    ShellSession session, {
+    super.key,
+    required this.isExpanded,
+    required this.navPosition,
+    this.selected = false,
+  }) : root = session,
+       sessions = [],
+       tabId = null;
 
   SessionSidebarTab.tab(
     SessionTab tab, {
@@ -45,9 +56,7 @@ class SessionSidebarTab extends HookConsumerWidget {
     this.selected = false,
   }) : root = tab.root,
        sessions = tab.sessions,
-       _label = tab.label,
        tabId = tab.id;
-
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final isDragging = useState(false);
@@ -77,8 +86,8 @@ class SessionSidebarTab extends HookConsumerWidget {
         builder: (context) {
           Widget child = ConnectionIcon.fromConnection(
             root.connection,
-            size: navPosition == .left && !isExpanded ? 16 : 12,
-            padding: 5,
+            size: navPosition == .left && !isExpanded ? 16 : 14,
+            padding: 3,
           );
 
           if (!isExpanded) {
@@ -92,53 +101,9 @@ class SessionSidebarTab extends HookConsumerWidget {
 
     return CustomContextMenu(
       actions: [
-        if (tabId != null)
-          .new(
-            label: 'Rename',
-            icon: LucideIcons.edit,
-            onPress: () {
-              final controller = TextEditingController(text: label);
-              showFDialog(
-                context: Router.rootNavigatorKey.currentContext ?? context,
-                builder: (dialogContext, style, animation) {
-                  return FDialog(
-                    style: style,
-                    animation: animation,
-                    title: const Text('Rename tab'),
-                    body: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        FTextField(
-                          control: .managed(controller: controller),
-                          autofocus: true,
-                        ),
-                      ],
-                    ),
-                    actions: [
-                      FButton(
-                        variant: .outline,
-                        child: const Text('Cancel'),
-                        onPress: () => Navigator.of(dialogContext).pop(),
-                      ),
-                      FButton(
-                        child: const Text('Save'),
-                        onPress: () {
-                          final newLabel = controller.text.trim();
-                          ref
-                              .read(sessionProvider.notifier)
-                              .renameTab(tabId!, newLabel);
-                          Navigator.of(dialogContext).pop();
-                        },
-                      ),
-                    ],
-                  );
-                },
-              );
-            },
-          ),
         if (sessions.isEmpty)
           .new(
-            label: 'Duplicate',
+            label: 'duplicate'.tr(),
             icon: LucideIcons.copy,
             onPress: () {
               ref
@@ -148,7 +113,7 @@ class SessionSidebarTab extends HookConsumerWidget {
             shortcut: .new(.keyD, modifiers: {.meta}),
           ),
         .new(
-          label: sessions.isEmpty ? 'Close' : 'Close All',
+          label: sessions.isEmpty ? 'close'.tr() : 'close_all'.tr(),
           icon: LucideIcons.x,
           variant: .destructive,
           onPress: close,
@@ -161,11 +126,19 @@ class SessionSidebarTab extends HookConsumerWidget {
           label: Row(
             spacing: 8,
             children: [
-              Expanded(child: Text(label, overflow: .fade, softWrap: false)),
+              Expanded(
+                child: Text(
+                  sessions.isEmpty
+                      ? root.connection.label
+                      : 'session_group_title'.plural(sessions.length + 1),
+                  overflow: .fade,
+                  softWrap: false,
+                ),
+              ),
               // TODO: make shortcut functional
               FTooltip(
                 tipBuilder: (_, _) => TextWithShortcutInfo(
-                  sessions.isEmpty ? 'Close' : 'Close All',
+                  sessions.isEmpty ? 'close'.tr() : 'close_all'.tr(),
                   shortcut: KeyboardShortcut(.keyW, modifiers: {.control}),
                 ),
                 child: FTappable(
@@ -194,8 +167,10 @@ class SessionSidebarTab extends HookConsumerWidget {
           icon: buildIcon(),
           selected: selected,
           onPress: select,
-          noPadding: isExpanded,
+          forceIntrinsicWidth: PlatformUtils.isDesktop,
+          noHorizontalPadding: isExpanded,
           isTop: navPosition == .top,
+          itemPadding: PlatformUtils.isMobile ? kMobileItemPadding : null,
         );
 
         if (!isExpanded || sessions.isNotEmpty) {
@@ -204,7 +179,7 @@ class SessionSidebarTab extends HookConsumerWidget {
 
         return Draggable<ShellSession>(
           data: root,
-          maxSimultaneousDrags: 1,
+          maxSimultaneousDrags: PlatformUtils.isDesktop ? 1 : 0,
           onDragStarted: () => isDragging.value = true,
           onDragEnd: (_) => isDragging.value = false,
           onDraggableCanceled: (_, _) => isDragging.value = false,

@@ -1,3 +1,5 @@
+import 'package:cliq/shared/utils/platform_utils.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:forui/forui.dart';
 import 'package:go_router/go_router.dart';
@@ -13,26 +15,32 @@ abstract class AbstractSettingsPage extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return FScaffold(
-      header: FHeader.nested(
-        title: FBreadcrumb(
-          children: [
-            FBreadcrumbItem(
-              onPress: context.pop,
-              child: const Text('Settings'),
+      childPad: false,
+      // FHeader for some reason adds a SafeArea, which creates a lot of unnecessary padding on mobile.
+      header: MediaQuery.removePadding(
+        context: context,
+        removeTop: true,
+        child: FHeader.nested(
+          title: FBreadcrumb(
+            children: [
+              FBreadcrumbItem(
+                onPress: context.pop,
+                child: Text('settings'.tr()),
+              ),
+              FBreadcrumbItem(current: true, child: Text(title)),
+            ],
+          ),
+          prefixes: [
+            FButton.icon(
+              variant: .outline,
+              onPress: () => context.pop(),
+              child: Icon(LucideIcons.arrowLeft),
             ),
-            FBreadcrumbItem(current: true, child: Text(title)),
           ],
         ),
-        prefixes: [
-          FButton.icon(
-            variant: .outline,
-            onPress: () => context.pop(),
-            child: Icon(LucideIcons.arrowLeft),
-          ),
-        ],
       ),
       child: Padding(
-        padding: const .only(top: 24),
+        padding: .only(top: PlatformUtils.isDesktop ? 24 : 12),
         child: buildBody(context, ref),
       ),
     );

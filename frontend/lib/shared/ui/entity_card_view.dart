@@ -1,5 +1,6 @@
 import 'package:cliq/shared/data/store.dart';
 import 'package:cliq/shared/ui/shortcut_info.dart';
+import 'package:cliq/shared/utils/platform_utils.dart';
 import 'package:cliq_term/cliq_term.dart';
 import 'package:cliq_ui/cliq_ui.dart'
     show
@@ -10,6 +11,7 @@ import 'package:cliq_ui/cliq_ui.dart'
         Breakpoint,
         BreakpointMapExtension,
         useBreakpoint;
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:forui/forui.dart';
@@ -117,7 +119,7 @@ class EntityCardView<E> extends HookConsumerWidget {
           final gridCount = _gridWidths[breakpoint]!;
 
           final child = entityCardBuilder(entity);
-          return viewType.value == .list
+          return PlatformUtils.isMobile || viewType.value == .list
               ? child
               : SizedBox(
                   width:
@@ -148,7 +150,7 @@ class EntityCardView<E> extends HookConsumerWidget {
                             if (filterableFields != null)
                               FTooltip(
                                 tipBuilder: (_, _) => TextWithShortcutInfo(
-                                  'Filter items',
+                                  'filter_items'.tr(),
                                   shortcut: KeyboardShortcut(
                                     .keyF,
                                     modifiers: {.control},
@@ -156,26 +158,32 @@ class EntityCardView<E> extends HookConsumerWidget {
                                 ),
                                 child: ConstrainedBox(
                                   constraints: .new(maxWidth: 200),
-                                  child: FTextField(
-                                    control: .managed(
-                                      onChange: (value) =>
-                                          filterText.value = value.text,
-                                    ),
-                                    focusNode: filterFocusNode,
-                                    hint: 'Filter',
-                                    prefixBuilder: (_, _, _) => IconTheme(
-                                      data: context
-                                          .theme
-                                          .textFieldStyles
-                                          .md
-                                          .iconStyle
-                                          .base,
-                                      child: Padding(
-                                        padding: const .only(left: 8, right: 4),
-                                        child: Icon(LucideIcons.search),
+                                  child: SizedBox(
+                                    child: FTextField(
+                                      control: .managed(
+                                        onChange: (value) =>
+                                            filterText.value = value.text,
                                       ),
+                                      focusNode: filterFocusNode,
+                                      hint: 'filter'.tr(),
+                                      prefixBuilder: (_, _, _) => IconTheme(
+                                        data: context
+                                            .theme
+                                            .textFieldStyles
+                                            .md
+                                            .iconStyle
+                                            .base,
+                                        child: Padding(
+                                          padding: const .only(
+                                            left: 8,
+                                            right: 4,
+                                          ),
+                                          child: Icon(LucideIcons.search),
+                                        ),
+                                      ),
+                                      clearable: (value) =>
+                                          value.text.isNotEmpty,
                                     ),
-                                    clearable: (value) => value.text.isNotEmpty,
                                   ),
                                 ),
                               ),
@@ -196,28 +204,30 @@ class EntityCardView<E> extends HookConsumerWidget {
                                       ),
                                     ],
                                   ),
-                                FTooltip(
-                                  tipBuilder: (_, _) => TextWithShortcutInfo(
-                                    viewType.value == EntityCardViewType.list
-                                        ? 'List View'
-                                        : 'Grid View',
-                                    shortcut: KeyboardShortcut(
-                                      .keyG,
-                                      modifiers: {.control},
-                                    ),
-                                  ),
-                                  child: FButton.icon(
-                                    variant: .outline,
-                                    onPress: () => viewTypeKey.write(
-                                      viewType.value == .list ? .grid : .list,
-                                    ),
-                                    child: Icon(
+                                if (PlatformUtils.isDesktop)
+                                  FTooltip(
+                                    tipBuilder: (_, _) => TextWithShortcutInfo(
                                       viewType.value == EntityCardViewType.list
-                                          ? LucideIcons.rows3
-                                          : LucideIcons.grid3x2,
+                                          ? 'view.list'.tr()
+                                          : 'view.grid'.tr(),
+                                      shortcut: KeyboardShortcut(
+                                        .keyG,
+                                        modifiers: {.control},
+                                      ),
+                                    ),
+                                    child: FButton.icon(
+                                      variant: .outline,
+                                      onPress: () => viewTypeKey.write(
+                                        viewType.value == .list ? .grid : .list,
+                                      ),
+                                      child: Icon(
+                                        viewType.value ==
+                                                EntityCardViewType.list
+                                            ? LucideIcons.rows3
+                                            : LucideIcons.grid3x2,
+                                      ),
                                     ),
                                   ),
-                                ),
                               ],
                             ),
                           ],
