@@ -396,6 +396,15 @@ class NavigationShellState extends ConsumerState<NavigationShell>
       ];
     }
 
+    toggleMaximize() async {
+      final isMaximized = await windowManager.isMaximized();
+      if (isMaximized) {
+        await windowManager.unmaximize();
+      } else {
+        await windowManager.maximize();
+      }
+    }
+
     buildCustomNavigationButtons() {
       buildButton({
         required VoidCallback onPress,
@@ -419,14 +428,7 @@ class NavigationShellState extends ConsumerState<NavigationShell>
               icon: LucideIcons.minus,
             ),
             buildButton(
-              onPress: () async {
-                final isMaximized = await windowManager.isMaximized();
-                if (isMaximized) {
-                  await windowManager.unmaximize();
-                } else {
-                  await windowManager.maximize();
-                }
-              },
+              onPress: () async => await toggleMaximize(),
               icon: LucideIcons.copy,
             ),
             buildButton(
@@ -507,6 +509,7 @@ class NavigationShellState extends ConsumerState<NavigationShell>
               Positioned.fill(
                 child: GestureDetector(
                   behavior: HitTestBehavior.opaque,
+                  onDoubleTap: () async => await toggleMaximize(),
                   onPanStart: (_) => windowManager.startDragging(),
                 ),
               ),
