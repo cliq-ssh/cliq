@@ -397,34 +397,45 @@ class NavigationShellState extends ConsumerState<NavigationShell>
     }
 
     buildCustomNavigationButtons() {
-      return Row(
-        children: [
-          FButton.icon(
-            size: .sm,
-            variant: .ghost,
-            onPress: () async => await windowManager.minimize(),
-            child: Icon(LucideIcons.minus, size: 16),
-          ),
-          FButton.icon(
-            size: .sm,
-            variant: .ghost,
-            onPress: () async {
-              final isMaximized = await windowManager.isMaximized();
-              if (isMaximized) {
-                await windowManager.unmaximize();
-              } else {
-                await windowManager.maximize();
-              }
-            },
-            child: Icon(LucideIcons.square, size: 16),
-          ),
-          FButton.icon(
-            size: .sm,
-            variant: .ghost,
-            onPress: () async => await windowManager.close(),
-            child: Icon(LucideIcons.x, size: 16),
-          ),
-        ],
+      buildButton({
+        required VoidCallback onPress,
+        required IconData icon,
+        bool flipX = false,
+      }) {
+        return FButton.icon(
+          size: .sm,
+          variant: .ghost,
+          onPress: onPress,
+          child: Transform.flip(flipX: true, child: Icon(icon, size: 14)),
+        );
+      }
+
+      return Padding(
+        padding: const .only(left: 8),
+        child: Row(
+          children: [
+            buildButton(
+              onPress: () async => await windowManager.minimize(),
+              icon: LucideIcons.minus,
+            ),
+            buildButton(
+              onPress: () async {
+                final isMaximized = await windowManager.isMaximized();
+                if (isMaximized) {
+                  await windowManager.unmaximize();
+                } else {
+                  await windowManager.maximize();
+                }
+              },
+              icon: LucideIcons.copy,
+            ),
+            buildButton(
+              onPress: () async => await windowManager.close(),
+              flipX: true,
+              icon: LucideIcons.x,
+            ),
+          ],
+        ),
       );
     }
 
@@ -482,8 +493,7 @@ class NavigationShellState extends ConsumerState<NavigationShell>
       childPad: false,
       resizeToAvoidBottomInset: false,
       header: Container(
-        padding: const EdgeInsets.all(8).copyWith(top: !isDesktop ? 0 : null),
-        constraints: .new(minHeight: 54),
+        constraints: .new(minHeight: 54 - 16),
         decoration: BoxDecoration(
           color: getEffectiveSidebarColor(),
           border: Border(
@@ -492,28 +502,45 @@ class NavigationShellState extends ConsumerState<NavigationShell>
         ),
         child: SafeArea(
           bottom: false,
-          child: Padding(
-            padding: Platform.isMacOS ? kMacOsNavigationPadding : .zero,
-            child: Row(
-              children: [
-                Expanded(
-                  // TODO: implement ReorderableListView for session tabs
-                  child: SingleChildScrollView(
-                    scrollDirection: Axis.horizontal,
-                    child: Row(
-                      spacing: 8,
-                      children: [
-                        if (isDesktop) buildDashboardTab(false),
-                        ...buildSessionSidebarTabs(true),
-                      ],
-                    ),
-                  ),
+          child: Stack(
+            children: [
+              Positioned.fill(
+                child: GestureDetector(
+                  behavior: HitTestBehavior.opaque,
+                  onPanStart: (_) => windowManager.startDragging(),
                 ),
-                if (isDesktop) buildQueue(false),
-                if (isDesktop) buildSettingsTab(false),
-                if (isDesktop && !Platform.isMacOS) buildCustomNavigationButtons(),
-              ],
-            ),
+              ),
+
+              Padding(
+                padding:
+                    (Platform.isMacOS
+                            ? kMacOsNavigationPadding
+                            : EdgeInsets.zero)
+                        .add(.all(8)),
+                child: Row(
+                  children: [
+                    Expanded(
+                      // TODO: implement ReorderableListView for session tabs
+                      child: SingleChildScrollView(
+                        hitTestBehavior: .translucent,
+                        scrollDirection: Axis.horizontal,
+                        child: Row(
+                          spacing: 8,
+                          children: [
+                            if (isDesktop) buildDashboardTab(false),
+                            ...buildSessionSidebarTabs(true),
+                          ],
+                        ),
+                      ),
+                    ),
+                    if (isDesktop && fileTransfer.isNotEmpty) buildQueue(false),
+                    if (isDesktop) buildSettingsTab(false),
+                    if (isDesktop && !Platform.isMacOS)
+                      buildCustomNavigationButtons(),
+                  ],
+                ),
+              ),
+            ],
           ),
         ),
       ),
