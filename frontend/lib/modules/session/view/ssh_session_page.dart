@@ -237,8 +237,6 @@ class _SshSessionPageState extends ConsumerState<SshSessionPage>
     buildAccessoryBar() {
       if (PlatformUtils.isDesktop) return null;
 
-      // TODO: - restrict panning to desktop
-
       return (_, TerminalAccessoryBarActions actions) {
         return TerminalAccessoryBar(
           backgroundColor: effectiveTerminalTheme.backgroundColor,
