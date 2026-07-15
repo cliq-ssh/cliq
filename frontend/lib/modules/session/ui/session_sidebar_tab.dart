@@ -36,17 +36,10 @@ class SessionSidebarTab extends HookConsumerWidget {
   final bool selected;
 
   /// The ID of the tab.
-  final String? tabId;
+  final String? _tabId;
 
-  SessionSidebarTab.single(
-    ShellSession session, {
-    super.key,
-    required this.isExpanded,
-    required this.navPosition,
-    this.selected = false,
-  }) : root = session,
-       sessions = [],
-       tabId = null;
+  /// The custom label for the tab. If null, the UI will fall back to the connection label or a generated label based on number of sessions.
+  final String? _customLabel;
 
   SessionSidebarTab.tab(
     SessionTab tab, {
@@ -56,22 +49,52 @@ class SessionSidebarTab extends HookConsumerWidget {
     this.selected = false,
   }) : root = tab.root,
        sessions = tab.sessions,
-       tabId = tab.id;
+       _tabId = tab.id,
+       _customLabel = tab.customLabel;
+
+  String get effectiveLabel {
+    if (_customLabel != null && _customLabel.isNotEmpty) {
+      return _customLabel;
+    }
+
+    if (sessions.isEmpty) {
+      return root.connection.label;
+    }
+
+    return 'session_group_title'.plural(sessions.length + 1);
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final isDragging = useState(false);
+    final isRenaming = useState(false);
+
+    final renameFocusNode = useFocusNode();
+    final renameController = useTextEditingController(
+      text: root.connection.label,
+    );
 
     select() {
-      if (tabId == null) return;
+      if (_tabId == null) return;
       ref
           .read(sessionProvider.notifier)
-          .setSelectedAndMaybeGo(NavigationShell.of(context), tabId);
+          .setSelectedAndMaybeGo(NavigationShell.of(context), _tabId);
     }
 
     close() {
       ref
           .read(sessionProvider.notifier)
-          .closeTabAndMaybeGo(NavigationShell.of(context), tabId ?? root.id);
+          .closeTabAndMaybeGo(NavigationShell.of(context), _tabId ?? root.id);
+    }
+
+    rename([String? customLabel]) {
+      ref
+          .read(sessionProvider.notifier)
+          .renameTab(_tabId ?? root.id, customLabel);
+      renameController.text = (customLabel == null || customLabel.isEmpty)
+          ? root.connection.label
+          : customLabel;
+      isRenaming.value = false;
     }
 
     buildIcon() {
@@ -99,8 +122,77 @@ class SessionSidebarTab extends HookConsumerWidget {
       );
     }
 
+    buildLabel() {
+      return Row(
+        spacing: 8,
+        children: [
+          Expanded(
+            child: Text(effectiveLabel, overflow: .fade, softWrap: false),
+          ),
+          // TODO: make shortcut functional
+          FTooltip(
+            tipBuilder: (_, _) => TextWithShortcutInfo(
+              sessions.isEmpty ? 'close'.tr() : 'close_all'.tr(),
+              shortcut: KeyboardShortcut(.keyW, modifiers: {.control}),
+            ),
+            child: FTappable(
+              onPress: close,
+              builder: (context, states, child) {
+                final isHovered =
+                    states.contains(FTappableVariant.hovered) ||
+                    states.contains(FTappableVariant.pressed);
+
+                return Container(
+                  decoration: BoxDecoration(
+                    color: isHovered ? context.theme.colors.background : null,
+                    borderRadius: .circular(8),
+                  ),
+                  padding: const .symmetric(horizontal: 4),
+                  child: child!,
+                );
+              },
+              child: const Icon(LucideIcons.x, size: 16),
+            ),
+          ),
+        ],
+      );
+    }
+
+    buildEditLabel() {
+      return CallbackShortcuts(
+        bindings: {
+          const SingleActivator(.escape): rename,
+          const SingleActivator(.enter): () {
+            rename(renameController.text);
+          },
+        },
+        child: SizedBox(
+          width: 200,
+          child: FTextField(
+            focusNode: renameFocusNode,
+            size: .sm,
+            control: .managed(controller: renameController),
+            autofocus: true,
+            onSubmit: (value) => rename(value),
+            onEditingComplete: rename,
+            onTapOutside: (_) => rename(renameController.text),
+          ),
+        ),
+      );
+    }
+
     return CustomContextMenu(
       actions: [
+        .new(
+          label: 'rename'.tr(),
+          icon: LucideIcons.penLine,
+          onPress: () {
+            isRenaming.value = true;
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              renameFocusNode.requestFocus();
+            });
+          },
+        ),
         if (sessions.isEmpty)
           .new(
             label: 'duplicate'.tr(),
@@ -123,47 +215,7 @@ class SessionSidebarTab extends HookConsumerWidget {
       builder: (_) {
         final child = SidebarTab(
           isExpanded: isExpanded,
-          label: Row(
-            spacing: 8,
-            children: [
-              Expanded(
-                child: Text(
-                  sessions.isEmpty
-                      ? root.connection.label
-                      : 'session_group_title'.plural(sessions.length + 1),
-                  overflow: .fade,
-                  softWrap: false,
-                ),
-              ),
-              // TODO: make shortcut functional
-              FTooltip(
-                tipBuilder: (_, _) => TextWithShortcutInfo(
-                  sessions.isEmpty ? 'close'.tr() : 'close_all'.tr(),
-                  shortcut: KeyboardShortcut(.keyW, modifiers: {.control}),
-                ),
-                child: FTappable(
-                  onPress: close,
-                  builder: (context, states, child) {
-                    final isHovered =
-                        states.contains(FTappableVariant.hovered) ||
-                        states.contains(FTappableVariant.pressed);
-
-                    return Container(
-                      decoration: BoxDecoration(
-                        color: isHovered
-                            ? context.theme.colors.background
-                            : null,
-                        borderRadius: .circular(8),
-                      ),
-                      padding: const .symmetric(horizontal: 4),
-                      child: child!,
-                    );
-                  },
-                  child: const Icon(LucideIcons.x, size: 16),
-                ),
-              ),
-            ],
-          ),
+          label: isRenaming.value ? buildEditLabel() : buildLabel(),
           icon: buildIcon(),
           selected: selected,
           onPress: select,
@@ -179,7 +231,9 @@ class SessionSidebarTab extends HookConsumerWidget {
 
         return Draggable<ShellSession>(
           data: root,
-          maxSimultaneousDrags: PlatformUtils.isDesktop ? 1 : 0,
+          maxSimultaneousDrags: PlatformUtils.isDesktop && !isRenaming.value
+              ? 1
+              : 0,
           onDragStarted: () => isDragging.value = true,
           onDragEnd: (_) => isDragging.value = false,
           onDraggableCanceled: (_, _) => isDragging.value = false,

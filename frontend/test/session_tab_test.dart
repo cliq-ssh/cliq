@@ -36,12 +36,12 @@ void main() {
       id: 'tab',
       root: root,
       sessions: const [],
-      label: 'Custom label',
+      customLabel: 'Custom label',
     );
 
     final updated = tab.copyWith(sessions: [root]);
 
-    expect(updated.label, 'Custom label');
+    expect(updated.customLabel, 'Custom label');
   });
 
   test('copyWith can explicitly clear the label', () {
@@ -55,11 +55,11 @@ void main() {
       id: 'tab',
       root: root,
       sessions: const [],
-      label: 'Custom label',
+      customLabel: 'Custom label',
     );
 
-    final updated = tab.copyWith(clearLabel: true);
+    final updated = tab.copyWith(customLabel: '');
 
-    expect(updated.label, isNull);
+    expect(updated.customLabel, isNull);
   });
 }

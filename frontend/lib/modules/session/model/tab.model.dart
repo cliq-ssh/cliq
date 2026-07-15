@@ -15,17 +15,20 @@ class SessionTab {
 
   /// Optional custom label for the tab. If null, the UI will fall back to the connection label or a
   /// generated label based on number of sessions.
-  final String? label;
+  final String? customLabel;
 
   const SessionTab({
     required this.id,
     required this.root,
     required this.sessions,
-    this.label,
+    this.customLabel,
   });
 
-  const SessionTab.create({required this.id, required this.root, this.label})
-    : sessions = const [];
+  const SessionTab.create({
+    required this.id,
+    required this.root,
+    this.customLabel,
+  }) : sessions = const [];
 
   void dispose() {
     for (final session in [...sessions, root]) {
@@ -62,14 +65,13 @@ class SessionTab {
     String? id,
     ShellSession? root,
     List<ShellSession>? sessions,
-    String? label,
-    bool clearLabel = false,
+    String? customLabel,
   }) {
     return SessionTab(
       id: id ?? this.id,
       root: root ?? this.root,
       sessions: sessions ?? this.sessions,
-      label: clearLabel ? null : (label ?? this.label),
+      customLabel: customLabel ?? this.customLabel,
     );
   }
 }
