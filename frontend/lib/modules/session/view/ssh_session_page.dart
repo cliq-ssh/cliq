@@ -58,6 +58,7 @@ class _SshSessionPageState extends ConsumerState<SshSessionPage>
 
     final defaultTerminalTypography = useStore(.defaultTerminalTypography);
     final defaultTerminalTheme = useStore(.defaultTerminalThemeId);
+    final bellSound = useStore(.sshBellSound);
     final themes = ref.watch(terminalThemeProvider);
 
     final shortcuts = useStore(.shortcuts);
@@ -98,13 +99,15 @@ class _SshSessionPageState extends ConsumerState<SshSessionPage>
     }
 
     buildTerminalController() {
-      // TODO: listen for onTitleChange and update tab title
       return TerminalController(
         theme: effectiveTerminalTheme.toTerminalTheme(),
         typography: getEffectiveTerminalTypography(),
         debugLogging: kDebugMode,
         maxScrollbackLines: sshScrollbackSize.value,
-        onBell: () => SystemSound.play(.alert),
+        onBell: () {
+          if (!bellSound.value) return;
+          SystemSound.play(.alert);
+        },
         onTitleChange: (title) => windowManager.setTitle(title),
         onResize: (rows, cols) {
           session.sshSession?.resizeTerminal(cols, rows);

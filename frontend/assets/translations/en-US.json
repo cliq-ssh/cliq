@@ -209,6 +209,8 @@
   "shortcuts_right_click_to_unset": "Right click to unset",
   "ssh": "SSH",
   "ssh_sftp": "SSH & SFTP",
+  "ssh_sftp_bell_sound": "Bell Sound",
+  "ssh_sftp_bell_sound_subtitle": "Whether the terminal bell should make a sound when triggered.",
   "ssh_sftp_clear_temporary_files": "Clear temporary files",
   "ssh_sftp_clear_temporary_files_subtitle": "Clear temporary files used for local editing of remote files",
   "ssh_sftp_directory_not_empty_warning": "\"Directory Not Empty\" Warning",

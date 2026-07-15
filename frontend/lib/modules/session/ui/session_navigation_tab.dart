@@ -57,6 +57,8 @@ class SessionNavigationTab extends HookConsumerWidget {
     final isDragging = useState(false);
     final isRenaming = useState(false);
 
+    final tabFocusNode = useFocusNode();
+
     final renameFocusNode = useFocusNode();
     final renameController = useTextEditingController(
       text: root.connection.label,
@@ -83,6 +85,7 @@ class SessionNavigationTab extends HookConsumerWidget {
           ? root.connection.label
           : customLabel;
       isRenaming.value = false;
+      tabFocusNode.unfocus();
     }
 
     buildIcon() {
@@ -151,7 +154,7 @@ class SessionNavigationTab extends HookConsumerWidget {
           },
         },
         child: SizedBox(
-          width: 200,
+          width: 150,
           child: FTextField(
             focusNode: renameFocusNode,
             size: .sm,
@@ -160,6 +163,7 @@ class SessionNavigationTab extends HookConsumerWidget {
             onSubmit: (value) => rename(value),
             onEditingComplete: rename,
             onTapOutside: (_) => rename(renameController.text),
+            maxLength: 32,
           ),
         ),
       );
@@ -197,13 +201,22 @@ class SessionNavigationTab extends HookConsumerWidget {
         ),
       ],
       builder: (_) {
+        EdgeInsetsGeometry? itemPadding;
+        if (PlatformUtils.isMobile) {
+          itemPadding = kMobileItemPadding;
+        } else if (isRenaming.value) {
+          itemPadding = kEditLabelPadding;
+        }
+
         final child = NavigationTab(
           icon: buildIcon(),
           label: isRenaming.value ? buildEditLabel() : buildLabel(),
           selected: selected,
           onPress: select,
           forceIntrinsicWidth: PlatformUtils.isDesktop,
-          itemPadding: PlatformUtils.isMobile ? kMobileItemPadding : null,
+          itemPadding: itemPadding,
+          hideFocusOutline: isRenaming.value,
+          focusNode: tabFocusNode
         );
 
         if (sessions.isNotEmpty) {

@@ -268,7 +268,6 @@ class NavigationShellState extends ConsumerState<NavigationShell>
                     : LucideIcons.refreshCw,
               ),
             ),
-            label: Text('queue'.tr()),
             onPress: fileTransfer.isEmpty ? null : controller.toggle,
           );
         },
