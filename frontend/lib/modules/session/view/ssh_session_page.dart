@@ -68,9 +68,34 @@ class _SshSessionPageState extends ConsumerState<SshSessionPage>
       defaultTerminalTheme.value,
     );
 
+    final isInitialResize = useState(true);
+    final resizeOverlayEntry = useState<OverlayEntry?>(null);
+    final resizeOverlayTimer = useState<Timer?>(null);
+
     getEffectiveTerminalTypography() =>
         session.connection.terminalTypographyOverride ??
         defaultTerminalTypography.value;
+
+    buildResizeOverlay(int rows, int cols) {
+      return OverlayEntry(
+        builder: (context) {
+          return Positioned(
+            left: 0,
+            right: 0,
+            child: Center(
+              child: Container(
+                color: context.theme.colors.background,
+                padding: .all(8),
+                child: Text(
+                  '$cols x $rows',
+                  style: context.theme.typography.body.md,
+                ),
+              ),
+            ),
+          );
+        },
+      );
+    }
 
     buildTerminalController() {
       // TODO: listen for onTitleChange and update tab title
@@ -79,13 +104,33 @@ class _SshSessionPageState extends ConsumerState<SshSessionPage>
         typography: getEffectiveTerminalTypography(),
         debugLogging: kDebugMode,
         maxScrollbackLines: sshScrollbackSize.value,
-        onBell: () {
-          windowManager.setTitle('${session.connection.label} - Bell');
-          SystemSound.play(.alert);
-        },
+        onBell: () => SystemSound.play(.alert),
+        onTitleChange: (title) => windowManager.setTitle(title),
         onResize: (rows, cols) {
           session.sshSession?.resizeTerminal(cols, rows);
-          // TODO: resize overlay
+
+          if (isInitialResize.value) {
+            isInitialResize.value = false;
+            return;
+          }
+
+          removeOverlay() {
+            resizeOverlayEntry.value?.remove();
+            resizeOverlayEntry.value = null;
+          }
+
+          if (resizeOverlayEntry.value != null) {
+            removeOverlay();
+          }
+
+          resizeOverlayEntry.value = buildResizeOverlay(rows, cols);
+          Overlay.of(context).insert(resizeOverlayEntry.value!);
+
+          resizeOverlayTimer.value?.cancel();
+          resizeOverlayTimer.value = Timer(
+            const .new(milliseconds: 500),
+            removeOverlay,
+          );
         },
       );
     }

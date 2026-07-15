@@ -8,6 +8,7 @@ import '../model/byte_queue.dart';
 
 typedef EscHandler = void Function();
 typedef CsiHandler = void Function(CsiParseResult parsed);
+typedef OscHandler = void Function(String params);
 typedef CcHandler = void Function(TerminalBuffer buffer);
 
 class EscapeParser {
@@ -87,6 +88,11 @@ class EscapeParser {
     // 's'.codeUnitAt(0): _csiSaveCursor,
     // 't'.codeUnitAt(0): _csiWindowManipulation,
     // 'u'.codeUnitAt(0): _csiRestoreCursor,
+  };
+
+  late final Map<int, OscHandler> _oscHandlers = {
+    0: _oscSetWindowTitle,
+    2: _oscSetWindowTitle,
   };
 
   /// Feeds input into the parser.
@@ -220,9 +226,22 @@ class EscapeParser {
 
   /// Dispatches a parsed OSC sequence.
   void _dispatchOsc(String body) {
-    // TODO: implement OSC handlers (title, icon name, etc.)
-    if (controller.debugLogging) {
-      _log.warning('[OSC] Unimplemented body="$body"');
+    final splitIndex = body.indexOf(';');
+    if (splitIndex == -1 && body.isEmpty) {
+      if (controller.debugLogging) {
+        _log.warning('[OSC] Empty body');
+      }
+      return;
+    }
+    final method = body.substring(0, splitIndex);
+    final params = body.substring(splitIndex + 1);
+    final handler = _oscHandlers[int.parse(method)];
+    if (handler != null) {
+      handler(params);
+    } else {
+      if (controller.debugLogging) {
+        _log.warning('[OSC] Unimplemented body="$body"');
+      }
     }
   }
 
@@ -505,5 +524,12 @@ class EscapeParser {
             : controller.rows) -
         1;
     controller.activeBuffer.setVerticalMargins(top, bottom);
+  }
+
+  // --- OSC Handlers ---
+
+  void _oscSetWindowTitle(String params) {
+    // TODO: implement title modes
+    controller.onTitleChange?.call(params);
   }
 }
