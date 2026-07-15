@@ -11,6 +11,9 @@ typedef CsiHandler = void Function(CsiParseResult parsed);
 typedef CcHandler = void Function(TerminalBuffer buffer);
 
 class EscapeParser {
+  static const _maxByteChunkSize = 1000;
+  static const _maxTimeBudgetInMs = 4;
+
   static final Logger _log = Logger('EscapeParser');
 
   final TerminalController controller;
@@ -110,12 +113,12 @@ class EscapeParser {
 
     while (_queue.isNotEmpty) {
       // Process in batches
-      for (int i = 0; i < 1000 && _queue.isNotEmpty; i++) {
+      for (int i = 0; i < _maxByteChunkSize && _queue.isNotEmpty; i++) {
         _processOne();
       }
 
       // Budget of 4ms for parsing to keep UI fluid
-      if (sw.elapsedMilliseconds >= 4 && _queue.isNotEmpty) {
+      if (sw.elapsedMilliseconds >= _maxTimeBudgetInMs && _queue.isNotEmpty) {
         final wasPaused = controller.isPaused;
         controller.pause();
         _process();
@@ -182,7 +185,7 @@ class EscapeParser {
     final buf = StringBuffer('[');
     while (_queue.isNotEmpty) {
       final cu = _queue.consume();
-      if (cu == 0x18 || cu == 0x1A) return true;
+      if (cu == 0x18 || cu == 0x1A) return true; // CAN/SUB
       buf.writeCharCode(cu);
       if (cu >= 0x40 && cu <= 0x7E) {
         _dispatchCsi(buf.toString());
@@ -214,30 +217,45 @@ class EscapeParser {
     return false;
   }
 
+  /// Dispatches a parsed CSI sequence to the appropriate handler based on the final byte.
   void _dispatchCsi(String body) {
     final parsed = _csiParser.parseCsi(body);
     final handler = _csiHandlers[parsed.finalByteCode];
     if (handler != null) {
       handler(parsed);
+    } else {
+      if (controller.debugLogging) {
+        _log.warning(
+          '\tUnimplemented CSI final=0x${parsed.finalByteCode.toRadixString(16)} (${String.fromCharCode(parsed.finalByteCode)}) body="$body"',
+        );
+      }
     }
   }
 
+  /// Dispatches a parsed OSC sequence.
   void _dispatchOsc(String body) {
+    // TODO: implement OSC handlers (title, icon name, etc.)
     if (controller.debugLogging) {
       _log.warning('[OSC] Unimplemented body="$body"');
     }
   }
 
+  /// Utility to parse a single integer parameter from a CSI sequence, with an optional default value if the
+  /// parameter is missing or empty.
   int _parseSingleParam(CsiParseResult parsed, {int defaultValue = 0}) {
     return parsed.params.isNotEmpty
         ? (parsed.params[0] ?? defaultValue)
         : defaultValue;
   }
 
+  // --- Control Character Handlers ---
+
   void _ccAnswerback(TerminalBuffer buf) {
     final response = controller.answerback;
     if (response.isNotEmpty) controller.onInput?.call(response);
   }
+
+  // --- ESC Handlers ---
 
   void _escBackIndex() => controller.activeBuffer.backIndex();
 
@@ -258,6 +276,8 @@ class EscapeParser {
   void _escSingleShift2() => controller.activeBuffer.charset.singleShift(2);
 
   void _escSingleShift3() => controller.activeBuffer.charset.singleShift(3);
+
+  // --- CSI Handlers ---
 
   void _csiCursorUp(CsiParseResult parsed) =>
       controller.activeBuffer.cursorUp(_parseSingleParam(parsed));
@@ -307,6 +327,12 @@ class EscapeParser {
       case 2:
         controller.activeBuffer.eraseDisplayComplete();
         break;
+      case 3:
+      // TODO: implement erase display scrollback
+      // controller.activeBuffer.eraseDisplayScrollback();
+      default:
+        _log.warning('\tUnhandled ED mode: $mode');
+        break;
     }
   }
 
@@ -322,12 +348,22 @@ class EscapeParser {
       case 2:
         controller.activeBuffer.eraseLineComplete();
         break;
+      default:
+        _log.warning('\tUnhandled EL mode: $mode');
+        break;
     }
   }
 
   void _csiDeleteCharacter(CsiParseResult parsed) =>
       controller.activeBuffer.deleteCharacter(_parseSingleParam(parsed));
 
+  /// Set Mode (SM)
+  /// - https://terminalguide.namepad.de/seq/csi_sh/
+  /// - https://terminalguide.namepad.de/seq/csi_sh__p/
+  ///
+  /// Reset Mode (RM)
+  /// - https://terminalguide.namepad.de/seq/csi_sl/
+  /// - https://terminalguide.namepad.de/seq/csi_sl__p/
   void _csiSetMode(CsiParseResult parsed) {
     final enabled = parsed.finalByteCode == 'h'.codeUnitAt(0);
     final isPrivate = parsed.leader == '?';
@@ -367,6 +403,7 @@ class EscapeParser {
     }
   }
 
+  /// https://terminalguide.namepad.de/seq/csi_sm/
   void _csiSelectGraphicRendition(CsiParseResult parsed) {
     var formatting = controller.activeBuffer.currentFormat;
     final List<int> codes = parsed.params.isEmpty

@@ -20,6 +20,7 @@ import 'package:lucide_flutter/lucide_flutter.dart';
 
 import '../../../shared/model/page_path.model.dart';
 
+//TODO: add proper error handling
 class SshSftpSettingsPage extends AbstractSettingsPage {
   static const PagePathBuilder pagePath = PagePathBuilder.child(
     parent: SettingsPage.pagePath,
@@ -74,16 +75,24 @@ class SshSftpSettingsPage extends AbstractSettingsPage {
 
     onCursorBlinkIntervalSubmit(String value) {
       int amount = int.tryParse(value) ?? cursorBlinkInterval.value;
-      if (amount < 100) amount = 100;
-      if (amount > 2000) amount = 2000;
+      if (amount < CursorState.minCursorBlinkInterval) {
+        amount = CursorState.minCursorBlinkInterval;
+      }
+      if (amount > CursorState.maxCursorBlinkInterval) {
+        amount = CursorState.maxCursorBlinkInterval;
+      }
       StoreKey.terminalCursorBlinkInterval.write(amount);
       cursorBlinkIntervalController.text = amount.toString();
     }
 
     onCursorBlinkTimeoutSubmit(String value) {
       int amount = int.tryParse(value) ?? cursorBlinkTimeout.value;
-      if (amount < 0) amount = 0;
-      if (amount > 3600) amount = 3600;
+      if (amount < CursorState.minCursorBlinkTimeout) {
+        amount = CursorState.minCursorBlinkTimeout;
+      }
+      if (amount > CursorState.maxCursorBlinkTimeout) {
+        amount = CursorState.maxCursorBlinkTimeout;
+      }
       StoreKey.terminalCursorBlinkTimeout.write(amount);
       cursorBlinkTimeoutController.text = amount.toString();
     }

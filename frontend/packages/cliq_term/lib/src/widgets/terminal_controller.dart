@@ -8,8 +8,6 @@ import 'package:cliq_term/src/widgets/terminal_painter.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
-import '../state/cursor.state.dart';
-
 enum CursorStyle { block, underline, bar }
 
 /// Controller for managing terminal state, including buffers, cursor, and input handling.
@@ -154,8 +152,7 @@ class TerminalController extends ChangeNotifier {
   }
 
   static const int highWaterMark = 64 * 1024; // 64 KiB
-  // static const int lowWaterMark = 16 * 1024; // 16 KiB
-  static const int lowWaterMark = 0;
+  static const int lowWaterMark = 0; // 0 Bytes -> clear buffer
   bool _isPaused = false;
 
   bool get isPaused => _isPaused;

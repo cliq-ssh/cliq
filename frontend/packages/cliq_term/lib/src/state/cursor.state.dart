@@ -3,6 +3,12 @@ import 'dart:async';
 import '../../cliq_term.dart';
 
 class CursorState {
+  static const minCursorBlinkInterval = 100;
+  static const maxCursorBlinkInterval = 2000;
+
+  static const minCursorBlinkTimeout = 0;
+  static const maxCursorBlinkTimeout = 3600;
+
   final CursorStyle style;
 
   /// Whether the cursor is enabled (visible) in the terminal (DECTCEM).
