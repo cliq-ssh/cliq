@@ -34,6 +34,9 @@ class SshSftpSettingsPage extends AbstractSettingsPage {
   @override
   Widget buildBody(BuildContext context, WidgetRef ref) {
     final sshScrollbackSize = useStore(.sshScrollbackSize);
+    final cursorBlinkInterval = useStore(.terminalCursorBlinkInterval);
+    final cursorBlinkTimeout = useStore(.terminalCursorBlinkTimeout);
+
     final showHiddenFiles = useStore(.sftpShowHiddenFiles);
     final largeDownloadsWarning = useStore(.sftpLargeDownloadWarning);
     final directoryNotEmptyWarning = useStore(.sftpDirectoryNotEmptyWarning);
@@ -48,6 +51,14 @@ class SshSftpSettingsPage extends AbstractSettingsPage {
       text: sshScrollbackSize.value.toString(),
     );
 
+    final cursorBlinkIntervalController = useTextEditingController(
+      text: cursorBlinkInterval.value.toString(),
+    );
+
+    final cursorBlinkTimeoutController = useTextEditingController(
+      text: cursorBlinkTimeout.value.toString(),
+    );
+
     onScrollbackSubmit(String value) {
       int amount = int.tryParse(value) ?? sshScrollbackSize.value;
 
@@ -59,6 +70,22 @@ class SshSftpSettingsPage extends AbstractSettingsPage {
       }
       StoreKey.sshScrollbackSize.write(amount);
       sshScrollbackSizeController.text = amount.toString();
+    }
+
+    onCursorBlinkIntervalSubmit(String value) {
+      int amount = int.tryParse(value) ?? cursorBlinkInterval.value;
+      if (amount < 100) amount = 100;
+      if (amount > 2000) amount = 2000;
+      StoreKey.terminalCursorBlinkInterval.write(amount);
+      cursorBlinkIntervalController.text = amount.toString();
+    }
+
+    onCursorBlinkTimeoutSubmit(String value) {
+      int amount = int.tryParse(value) ?? cursorBlinkTimeout.value;
+      if (amount < 0) amount = 0;
+      if (amount > 3600) amount = 3600;
+      StoreKey.terminalCursorBlinkTimeout.write(amount);
+      cursorBlinkTimeoutController.text = amount.toString();
     }
 
     return SingleChildScrollView(
@@ -92,6 +119,48 @@ class SshSftpSettingsPage extends AbstractSettingsPage {
                                 FilteringTextInputFormatter.digitsOnly,
                               ],
                               onSubmit: onScrollbackSubmit,
+                            ),
+                          ),
+                        ),
+                        FTile(
+                          title: Text('ssh_sftp_terminal_cursor_blink_interval'.tr()),
+                          subtitle: Text(
+                            'ssh_sftp_terminal_cursor_blink_interval_subtitle'.tr(),
+                            overflow: .visible,
+                          ),
+                          prefix: Icon(LucideIcons.timer),
+                          suffix: SizedBox(
+                            width: 150,
+                            child: FTextField(
+                              control: FTextFieldControl.managed(
+                                controller: cursorBlinkIntervalController,
+                              ),
+                              keyboardType: TextInputType.number,
+                              inputFormatters: [
+                                FilteringTextInputFormatter.digitsOnly,
+                              ],
+                              onSubmit: onCursorBlinkIntervalSubmit,
+                            ),
+                          ),
+                        ),
+                        FTile(
+                          title: Text('ssh_sftp_terminal_cursor_blink_timeout'.tr()),
+                          subtitle: Text(
+                            'ssh_sftp_terminal_cursor_blink_timeout_subtitle'.tr(),
+                            overflow: .visible,
+                          ),
+                          prefix: Icon(LucideIcons.timerOff),
+                          suffix: SizedBox(
+                            width: 150,
+                            child: FTextField(
+                              control: FTextFieldControl.managed(
+                                controller: cursorBlinkTimeoutController,
+                              ),
+                              keyboardType: TextInputType.number,
+                              inputFormatters: [
+                                FilteringTextInputFormatter.digitsOnly,
+                              ],
+                              onSubmit: onCursorBlinkTimeoutSubmit,
                             ),
                           ),
                         ),

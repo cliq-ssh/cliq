@@ -60,6 +60,8 @@ class _SshSessionPageState extends ConsumerState<SshSessionPage>
 
     final shortcuts = useStore(.shortcuts);
     final sshScrollbackSize = useStore(.sshScrollbackSize);
+    final cursorBlinkInterval = useStore(.terminalCursorBlinkInterval);
+    final cursorBlinkTimeout = useStore(.terminalCursorBlinkTimeout);
 
     final effectiveTerminalTheme = session.connection.getEffectiveTerminalTheme(
       themes,
@@ -77,6 +79,8 @@ class _SshSessionPageState extends ConsumerState<SshSessionPage>
         typography: getEffectiveTerminalTypography(),
         debugLogging: kDebugMode,
         maxScrollbackLines: sshScrollbackSize.value,
+        cursorBlinkInterval: Duration(milliseconds: cursorBlinkInterval.value),
+        cursorBlinkTimeout: Duration(seconds: cursorBlinkTimeout.value),
         onResize: (rows, cols) {
           session.sshSession?.resizeTerminal(cols, rows);
           // TODO: resize overlay
@@ -201,10 +205,21 @@ class _SshSessionPageState extends ConsumerState<SshSessionPage>
         terminalController.value!.setTerminalTheme(
           effectiveTerminalTheme.toTerminalTheme(),
         );
+        terminalController.value!.setCursorBlinkInterval(
+          Duration(milliseconds: cursorBlinkInterval.value),
+        );
+        terminalController.value!.setCursorBlinkTimeout(
+          Duration(seconds: cursorBlinkTimeout.value),
+        );
       });
 
       return null;
-    }, [defaultTerminalTypography.value, defaultTerminalTheme.value]);
+    }, [
+      defaultTerminalTypography.value,
+      defaultTerminalTheme.value,
+      cursorBlinkInterval.value,
+      cursorBlinkTimeout.value,
+    ]);
 
     buildAccessoryButton(
       VoidCallback onPress, {

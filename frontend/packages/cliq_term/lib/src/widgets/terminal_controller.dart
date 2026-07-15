@@ -44,10 +44,10 @@ class TerminalController extends ChangeNotifier {
   };
 
   /// Interval for cursor blinking.
-  final Duration cursorBlinkInterval;
+  Duration cursorBlinkInterval;
 
   /// Time of inactivity before the cursor stops blinking.
-  final Duration cursorBlinkTimeout;
+  Duration cursorBlinkTimeout;
 
   /// Whether the cursor is currently in the "on" phase of blinking.
   final ValueNotifier<bool> cursorBlinkNotifier = ValueNotifier(true);
@@ -320,6 +320,16 @@ class TerminalController extends ChangeNotifier {
     notifyListeners();
   }
 
+  void setCursorBlinkInterval(Duration interval) {
+    cursorBlinkInterval = interval;
+    _resetBlink();
+  }
+
+  void setCursorBlinkTimeout(Duration timeout) {
+    cursorBlinkTimeout = timeout;
+    _resetBlink();
+  }
+
   void feed(String input) {
     _escapeParser.write(input);
     _resetBlink();
@@ -375,6 +385,11 @@ class TerminalController extends ChangeNotifier {
 
   void _resetInactivityTimer() {
     cursor.inactivityTimer?.cancel();
+
+    if (cursorBlinkTimeout == Duration.zero) {
+      return;
+    }
+
     cursor = cursor.copyWith(
       inactivityTimer: Timer(cursorBlinkTimeout, () {
         cursor.timer?.cancel();

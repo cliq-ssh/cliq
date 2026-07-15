@@ -108,6 +108,18 @@ enum StoreKey<T> {
     'sftp_directory_not_empty_warning',
     type: bool,
     defaultValue: true,
+  ),
+
+  terminalCursorBlinkInterval<int>(
+    'terminal_cursor_blink_interval',
+    type: int,
+    defaultValue: 600,
+  ),
+
+  terminalCursorBlinkTimeout<int>(
+    'terminal_cursor_blink_timeout',
+    type: int,
+    defaultValue: 10,
   );
 
   final String key;
