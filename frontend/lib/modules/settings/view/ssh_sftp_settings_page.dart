@@ -123,9 +123,12 @@ class SshSftpSettingsPage extends AbstractSettingsPage {
                           ),
                         ),
                         FTile(
-                          title: Text('ssh_sftp_terminal_cursor_blink_interval'.tr()),
+                          title: Text(
+                            'ssh_sftp_terminal_cursor_blink_interval'.tr(),
+                          ),
                           subtitle: Text(
-                            'ssh_sftp_terminal_cursor_blink_interval_subtitle'.tr(),
+                            'ssh_sftp_terminal_cursor_blink_interval_subtitle'
+                                .tr(),
                             overflow: .visible,
                           ),
                           prefix: Icon(LucideIcons.timer),
@@ -144,9 +147,12 @@ class SshSftpSettingsPage extends AbstractSettingsPage {
                           ),
                         ),
                         FTile(
-                          title: Text('ssh_sftp_terminal_cursor_blink_timeout'.tr()),
+                          title: Text(
+                            'ssh_sftp_terminal_cursor_blink_timeout'.tr(),
+                          ),
                           subtitle: Text(
-                            'ssh_sftp_terminal_cursor_blink_timeout_subtitle'.tr(),
+                            'ssh_sftp_terminal_cursor_blink_timeout_subtitle'
+                                .tr(),
                             overflow: .visible,
                           ),
                           prefix: Icon(LucideIcons.timerOff),

@@ -19,6 +19,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lucide_flutter/lucide_flutter.dart';
 
 import '../../../shared/model/page_path.model.dart';
+import '../../../shared/utils/platform_utils.dart';
 import '../provider/terminal_theme.provider.dart';
 
 class TerminalThemeSettingsPage extends AbstractSettingsPage {
@@ -146,6 +147,7 @@ class TerminalThemeSettingsPage extends AbstractSettingsPage {
                             return TerminalView(
                               controller: terminalController.value!,
                               readOnly: true,
+                              isMobile: PlatformUtils.isMobile,
                             );
                           },
                         ),

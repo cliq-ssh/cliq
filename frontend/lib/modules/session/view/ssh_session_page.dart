@@ -193,33 +193,36 @@ class _SshSessionPageState extends ConsumerState<SshSessionPage>
     }, [terminalController.value]);
 
     // update terminal controller when typography or theme changes
-    useEffect(() {
-      if (terminalController.value == null) return null;
+    useEffect(
+      () {
+        if (terminalController.value == null) return null;
 
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (!mounted) return;
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (!mounted) return;
 
-        terminalController.value!.setTerminalTypography(
-          getEffectiveTerminalTypography(),
-        );
-        terminalController.value!.setTerminalTheme(
-          effectiveTerminalTheme.toTerminalTheme(),
-        );
-        terminalController.value!.setCursorBlinkInterval(
-          Duration(milliseconds: cursorBlinkInterval.value),
-        );
-        terminalController.value!.setCursorBlinkTimeout(
-          Duration(seconds: cursorBlinkTimeout.value),
-        );
-      });
+          terminalController.value!.setTerminalTypography(
+            getEffectiveTerminalTypography(),
+          );
+          terminalController.value!.setTerminalTheme(
+            effectiveTerminalTheme.toTerminalTheme(),
+          );
+          terminalController.value!.setCursorBlinkInterval(
+            Duration(milliseconds: cursorBlinkInterval.value),
+          );
+          terminalController.value!.setCursorBlinkTimeout(
+            Duration(seconds: cursorBlinkTimeout.value),
+          );
+        });
 
-      return null;
-    }, [
-      defaultTerminalTypography.value,
-      defaultTerminalTheme.value,
-      cursorBlinkInterval.value,
-      cursorBlinkTimeout.value,
-    ]);
+        return null;
+      },
+      [
+        defaultTerminalTypography.value,
+        defaultTerminalTheme.value,
+        cursorBlinkInterval.value,
+        cursorBlinkTimeout.value,
+      ],
+    );
 
     buildAccessoryButton(
       VoidCallback onPress, {
@@ -326,7 +329,7 @@ class _SshSessionPageState extends ConsumerState<SshSessionPage>
             bottom:
                 kShellSessionPagePadding.bottom +
                 MediaQuery.of(context).viewInsets.bottom +
-                kAccessoryBarHeight,
+                TerminalView.getAccessoryBarHeight(PlatformUtils.isMobile),
           ),
           child: TerminalView(
             controller: terminalController.value!,
@@ -337,6 +340,7 @@ class _SshSessionPageState extends ConsumerState<SshSessionPage>
             copyShortcut: shortcuts.value.shortcuts[KeyboardShortcutType.copy],
             pasteShortcut:
                 shortcuts.value.shortcuts[KeyboardShortcutType.paste],
+            isMobile: PlatformUtils.isMobile,
           ),
         ),
       ),

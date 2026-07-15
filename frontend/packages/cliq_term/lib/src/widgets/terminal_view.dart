@@ -2,16 +2,12 @@ import 'dart:math';
 
 import 'package:cliq_term/cliq_term.dart';
 import 'package:cliq_term/src/utils/keyboard_helper.dart';
-import 'package:cliq_term/src/utils/platform_utils.dart';
 import 'package:cliq_term/src/utils/selection_helper.dart';
 import 'package:cliq_term/src/widgets/terminal_input.dart';
 import 'package:cliq_term/src/widgets/terminal_painter.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
-
-/// The height of the accessory bar displayed above the keyboard when it is visible.
-final kAccessoryBarHeight = PlatformUtils.isMobile ? 48.0 : 0.0;
 
 class TerminalView extends StatefulWidget {
   /// The [TerminalController] used to manage the terminal state and handle input/output.
@@ -42,6 +38,9 @@ class TerminalView extends StatefulWidget {
   /// The [KeyboardShortcut] for pasting text into the terminal.
   final KeyboardShortcut? pasteShortcut;
 
+  /// Whether the terminal view is running on a mobile platform.
+  final bool isMobile;
+
   const TerminalView({
     super.key,
     required this.controller,
@@ -52,10 +51,16 @@ class TerminalView extends StatefulWidget {
     this.allowTextSelection = true,
     this.copyShortcut,
     this.pasteShortcut,
+    required this.isMobile,
   });
 
   @override
   State<TerminalView> createState() => _TerminalViewState();
+
+  /// The height of the accessory bar displayed above the keyboard when it is visible.
+  static double getAccessoryBarHeight(bool isMobile) {
+    return isMobile ? 48.0 : 0.0;
+  }
 }
 
 class _TerminalViewState extends State<TerminalView> {
@@ -77,8 +82,8 @@ class _TerminalViewState extends State<TerminalView> {
   bool _isUpdatePending = false;
 
   /// Whether the software keyboard is currently visible.
-  final ValueNotifier<bool> _keyboardVisible = ValueNotifier(
-    PlatformUtils.isMobile,
+  late final ValueNotifier<bool> _keyboardVisible = ValueNotifier(
+    widget.isMobile,
   );
 
   final ValueNotifier<AccessoryBarButtonState> _ctrlActive = ValueNotifier(
@@ -210,7 +215,7 @@ class _TerminalViewState extends State<TerminalView> {
                 left: 0,
                 right: 0,
                 bottom: restingBottom,
-                height: kAccessoryBarHeight,
+                height: TerminalView.getAccessoryBarHeight(widget.isMobile),
                 child: widget.accessoryBarBuilder!(context, _accessoryActions),
               );
             },
