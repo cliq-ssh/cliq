@@ -11,7 +11,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lucide_flutter/lucide_flutter.dart';
 
 import '../../../shared/ui/context_menu.dart';
-import '../../../shared/ui/navigation_shell.dart';
+import '../../../shared/ui/navigation/navigation_shell.dart';
 import '../../../shared/ui/shortcut_info.dart';
 import '../model/session.model.dart';
 import '../model/tab.model.dart';

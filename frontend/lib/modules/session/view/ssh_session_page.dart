@@ -9,13 +9,15 @@ import 'package:cliq/shared/provider/store.provider.dart';
 import 'package:cliq/shared/utils/platform_utils.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart' hide LicensePage;
+import 'package:flutter/services.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:forui/forui.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:cliq_term/cliq_term.dart';
 import 'package:lucide_flutter/lucide_flutter.dart';
+import 'package:window_manager/window_manager.dart';
 
-import '../../../shared/ui/navigation_shell.dart';
+import '../../../shared/ui/navigation/navigation_shell.dart';
 import '../provider/session.provider.dart';
 import 'generic_session_page.dart';
 
@@ -77,6 +79,10 @@ class _SshSessionPageState extends ConsumerState<SshSessionPage>
         typography: getEffectiveTerminalTypography(),
         debugLogging: kDebugMode,
         maxScrollbackLines: sshScrollbackSize.value,
+        onBell: () {
+          windowManager.setTitle('${session.connection.label} - Bell');
+          SystemSound.play(.alert);
+        },
         onResize: (rows, cols) {
           session.sshSession?.resizeTerminal(cols, rows);
           // TODO: resize overlay

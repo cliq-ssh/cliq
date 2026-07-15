@@ -3,7 +3,7 @@ import 'dart:async';
 import 'package:cliq/modules/connections/model/connection_full.model.dart';
 import 'package:cliq/modules/credentials/data/credential_service.dart';
 import 'package:cliq/modules/session/model/session.state.dart';
-import 'package:cliq/shared/ui/navigation_shell.dart';
+import 'package:cliq/shared/ui/navigation/navigation_shell.dart';
 import 'package:cliq_term/cliq_term.dart';
 import 'package:dartssh2/dartssh2.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';

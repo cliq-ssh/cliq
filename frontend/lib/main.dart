@@ -63,7 +63,11 @@ Future<void> _configureWindow() async {
   }
 
   await windowManager.ensureInitialized();
-  WindowOptions windowOptions = WindowOptions(minimumSize: windowMinSize);
+  final windowOptions = WindowOptions(
+    minimumSize: windowMinSize,
+    title: 'cliq',
+    titleBarStyle: .hidden,
+  );
   windowManager.waitUntilReadyToShow(windowOptions, () async {
     await windowManager.show();
     await windowManager.focus();

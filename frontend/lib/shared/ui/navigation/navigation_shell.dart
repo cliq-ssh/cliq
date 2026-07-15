@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:cliq/modules/connections/model/connection_full.model.dart';
 import 'package:cliq/modules/connections/provider/connection.provider.dart';
 import 'package:cliq/modules/connections/ui/connection_icon.dart';
@@ -15,13 +17,16 @@ import 'package:lucide_flutter/lucide_flutter.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:window_manager/window_manager.dart';
 
-import '../../modules/session/provider/session.provider.dart';
-import '../../modules/session/ui/session_sidebar_tab.dart';
-import '../../modules/settings/model/navigation_position.model.dart';
-import '../../modules/settings/provider/terminal_theme.provider.dart';
-import '../provider/file_transfer.provider.dart';
-import '../utils/text_utils.dart';
+import '../../../modules/session/provider/session.provider.dart';
+import '../../../modules/session/ui/session_sidebar_tab.dart';
+import '../../../modules/settings/model/navigation_position.model.dart';
+import '../../../modules/settings/provider/terminal_theme.provider.dart';
+import '../../provider/file_transfer.provider.dart';
+import '../../utils/text_utils.dart';
+
+const EdgeInsetsGeometry kMacOsNavigationPadding = .only(left: 70);
 
 class NavigationShell extends StatefulHookConsumerWidget {
   final StatefulNavigationShell shell;
@@ -391,6 +396,38 @@ class NavigationShellState extends ConsumerState<NavigationShell>
       ];
     }
 
+    buildCustomNavigationButtons() {
+      return Row(
+        children: [
+          FButton.icon(
+            size: .sm,
+            variant: .ghost,
+            onPress: () async => await windowManager.minimize(),
+            child: Icon(LucideIcons.minus, size: 16),
+          ),
+          FButton.icon(
+            size: .sm,
+            variant: .ghost,
+            onPress: () async {
+              final isMaximized = await windowManager.isMaximized();
+              if (isMaximized) {
+                await windowManager.unmaximize();
+              } else {
+                await windowManager.maximize();
+              }
+            },
+            child: Icon(LucideIcons.square, size: 16),
+          ),
+          FButton.icon(
+            size: .sm,
+            variant: .ghost,
+            onPress: () async => await windowManager.close(),
+            child: Icon(LucideIcons.x, size: 16),
+          ),
+        ],
+      );
+    }
+
     if (isDesktop && navPosition.value == .left) {
       return ResponsiveExpandableSidebar(
         controller: _sidebarController,
@@ -455,24 +492,28 @@ class NavigationShellState extends ConsumerState<NavigationShell>
         ),
         child: SafeArea(
           bottom: false,
-          child: Row(
-            children: [
-              Expanded(
-                // TODO: implement ReorderableListView for session tabs
-                child: SingleChildScrollView(
-                  scrollDirection: Axis.horizontal,
-                  child: Row(
-                    spacing: 8,
-                    children: [
-                      if (isDesktop) buildDashboardTab(false),
-                      ...buildSessionSidebarTabs(true),
-                    ],
+          child: Padding(
+            padding: Platform.isMacOS ? kMacOsNavigationPadding : .zero,
+            child: Row(
+              children: [
+                Expanded(
+                  // TODO: implement ReorderableListView for session tabs
+                  child: SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    child: Row(
+                      spacing: 8,
+                      children: [
+                        if (isDesktop) buildDashboardTab(false),
+                        ...buildSessionSidebarTabs(true),
+                      ],
+                    ),
                   ),
                 ),
-              ),
-              if (isDesktop) buildQueue(false),
-              if (isDesktop) buildSettingsTab(false),
-            ],
+                if (isDesktop) buildQueue(false),
+                if (isDesktop) buildSettingsTab(false),
+                if (isDesktop && !Platform.isMacOS) buildCustomNavigationButtons(),
+              ],
+            ),
           ),
         ),
       ),

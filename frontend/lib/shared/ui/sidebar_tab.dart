@@ -49,7 +49,6 @@ class SidebarTab extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     // TODO: if color of session tab page is too similar, add border
-
     Widget child = FSidebarItem(
       style: .delta(
         backgroundColor: .delta([
