@@ -85,11 +85,7 @@ enum StoreKey<T> {
     type: int,
     defaultValue: TerminalBuffer.defaultMaxScrollbackLines,
   ),
-  sshBellSound<bool>(
-    'ssh_bell_sound',
-    type: bool,
-    defaultValue: true,
-  ),
+  sshBellSound<bool>('ssh_bell_sound', type: bool, defaultValue: true),
 
   sftpShowHiddenFiles<bool>(
     'sftp_show_hidden_files',

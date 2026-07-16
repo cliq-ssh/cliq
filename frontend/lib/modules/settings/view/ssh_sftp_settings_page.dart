@@ -97,12 +97,12 @@ class SshSftpSettingsPage extends AbstractSettingsPage {
                           ),
                         ),
                         CustomToggleTile(
-                            title: 'ssh_sftp_bell_sound',
-                            subtitle: 'ssh_sftp_bell_sound_subtitle',
-                            prefix: Icon(LucideIcons.bellRing),
-                            storeKey: .sshBellSound,
-                            value: bellSound.value,
-                        )
+                          title: 'ssh_sftp_bell_sound',
+                          subtitle: 'ssh_sftp_bell_sound_subtitle',
+                          prefix: Icon(LucideIcons.bellRing),
+                          storeKey: .sshBellSound,
+                          value: bellSound.value,
+                        ),
                       ],
                     ),
                     FTileGroup(

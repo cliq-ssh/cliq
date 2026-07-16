@@ -4,7 +4,6 @@ import 'package:cliq/modules/connections/model/connection_full.model.dart';
 import 'package:cliq/modules/connections/provider/connection.provider.dart';
 import 'package:cliq/modules/connections/ui/connection_icon.dart';
 import 'package:cliq/shared/provider/store.provider.dart';
-import 'package:cliq/shared/ui/responsive_sidebar.dart';
 import 'package:cliq/shared/ui/shortcut_info.dart';
 import 'package:cliq/shared/utils/platform_utils.dart';
 import 'package:cliq_term/cliq_term.dart';
@@ -43,14 +42,6 @@ class NavigationShellState extends ConsumerState<NavigationShell>
   static const _sessionBranchIndex = 0;
   static const _dashboardBranchIndex = 1;
   static const _settingsBranchIndex = 2;
-
-  late final ResponsiveSidebarController _sidebarController = .new();
-
-  @override
-  void dispose() {
-    _sidebarController.dispose();
-    super.dispose();
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -109,7 +100,7 @@ class NavigationShellState extends ConsumerState<NavigationShell>
       return context.theme.colors.background;
     }
 
-    buildDashboardTab(bool isExpanded) {
+    buildDashboardTab() {
       // TODO: make shortcut functional
       return FTooltip(
         tipBuilder: (_, _) => TextWithShortcutInfo(
@@ -129,7 +120,7 @@ class NavigationShellState extends ConsumerState<NavigationShell>
       );
     }
 
-    buildQueue(bool isExpanded) {
+    buildQueue() {
       return FPopover(
         popoverBuilder: (context, controller) {
           // latest transfer on top
@@ -274,7 +265,7 @@ class NavigationShellState extends ConsumerState<NavigationShell>
       );
     }
 
-    buildSettingsTab(bool isExpanded) {
+    buildSettingsTab() {
       // TODO: make shortcut functional
       return FTooltip(
         tipBuilder: (_, _) => TextWithShortcutInfo(
@@ -294,7 +285,23 @@ class NavigationShellState extends ConsumerState<NavigationShell>
       );
     }
 
-    buildSessionSidebarTabs(bool isExpanded) {
+    buildNewSessionTab() {
+      return FTooltip(
+        tipBuilder: (_, _) => TextWithShortcutInfo(
+          'session_new'.tr(),
+          shortcut: KeyboardShortcut(.keyT, modifiers: {.meta}),
+        ),
+        child: NavigationTab(
+          icon: Icon(LucideIcons.plus),
+          onPress: connections.entities.isNotEmpty
+              ? () => showTabs.value = !showTabs.value
+              : null,
+          itemPadding: PlatformUtils.isMobile ? kMobileItemPadding : null,
+        ),
+      );
+    }
+
+    buildSessionSidebarTabs() {
       return [
         for (final tab in sessions.activeTabs)
           SessionNavigationTab(tab, selected: tab.id == selectedTab.value?.id),
@@ -344,13 +351,7 @@ class NavigationShellState extends ConsumerState<NavigationShell>
               ],
             ),
           ],
-          child: NavigationTab(
-            icon: Icon(LucideIcons.plus),
-            onPress: connections.entities.isNotEmpty
-                ? () => showTabs.value = !showTabs.value
-                : null,
-            itemPadding: PlatformUtils.isMobile ? kMobileItemPadding : null,
-          ),
+          child: buildNewSessionTab(),
         ),
       ];
     }
@@ -429,27 +430,29 @@ class NavigationShellState extends ConsumerState<NavigationShell>
                             ? kMacOSNavigationPadding
                             : EdgeInsets.zero)
                         .add(.all(8)),
-                child: Row(
-                  children: [
-                    Expanded(
-                      // TODO: implement ReorderableListView for session tabs
-                      child: SingleChildScrollView(
-                        hitTestBehavior: .translucent,
-                        scrollDirection: Axis.horizontal,
-                        child: Row(
-                          spacing: 8,
-                          children: [
-                            if (isDesktop) buildDashboardTab(false),
-                            ...buildSessionSidebarTabs(true),
-                          ],
+                child: FTooltipGroup(
+                  child: Row(
+                    children: [
+                      Expanded(
+                        // TODO: implement ReorderableListView for session tabs
+                        child: SingleChildScrollView(
+                          hitTestBehavior: .translucent,
+                          scrollDirection: .horizontal,
+                          child: Row(
+                            spacing: 8,
+                            children: [
+                              if (isDesktop) buildDashboardTab(),
+                              ...buildSessionSidebarTabs(),
+                            ],
+                          ),
                         ),
                       ),
-                    ),
-                    if (isDesktop && fileTransfer.isNotEmpty) buildQueue(false),
-                    if (isDesktop) buildSettingsTab(false),
-                    if (isDesktop && !Platform.isMacOS)
-                      buildCustomNavigationButtons(),
-                  ],
+                      if (isDesktop && fileTransfer.isNotEmpty) buildQueue(),
+                      if (isDesktop) buildSettingsTab(),
+                      if (isDesktop && !Platform.isMacOS)
+                        buildCustomNavigationButtons(),
+                    ],
+                  ),
                 ),
               ),
             ],

@@ -59,7 +59,7 @@ class NavigationTab extends HookConsumerWidget {
         padding: itemPadding == null ? null : .value(itemPadding!),
         focusedOutlineStyle: hideFocusOutline
             ? .delta(color: Colors.transparent)
-            : null
+            : null,
       ),
       label: label,
       icon: IconTheme.merge(data: IconThemeData(size: 20), child: icon),

@@ -216,35 +216,38 @@ class SessionNavigationTab extends HookConsumerWidget {
           forceIntrinsicWidth: PlatformUtils.isDesktop,
           itemPadding: itemPadding,
           hideFocusOutline: isRenaming.value,
-          focusNode: tabFocusNode
+          focusNode: tabFocusNode,
         );
 
         if (sessions.isNotEmpty) {
           return child;
         }
 
-        return Draggable<ShellSession>(
-          data: root,
-          maxSimultaneousDrags: PlatformUtils.isDesktop && !isRenaming.value
-              ? 1
-              : 0,
-          onDragStarted: () => isDragging.value = true,
-          onDragEnd: (_) => isDragging.value = false,
-          onDraggableCanceled: (_, _) => isDragging.value = false,
-          onDragCompleted: () => isDragging.value = false,
-          onDragUpdate: (_) => isDragging.value = true,
-          feedback: SizedBox(
-            width: 200,
-            child: Opacity(
-              opacity: 0.7,
+        return FTooltip(
+          tipBuilder: (_, _) => Text(effectiveLabel),
+          child: Draggable<ShellSession>(
+            data: root,
+            maxSimultaneousDrags: PlatformUtils.isDesktop && !isRenaming.value
+                ? 1
+                : 0,
+            onDragStarted: () => isDragging.value = true,
+            onDragEnd: (_) => isDragging.value = false,
+            onDraggableCanceled: (_, _) => isDragging.value = false,
+            onDragCompleted: () => isDragging.value = false,
+            onDragUpdate: (_) => isDragging.value = true,
+            feedback: SizedBox(
+              width: 200,
+              child: Opacity(
+                opacity: 0.7,
+                child: IgnorePointer(ignoring: true, child: child),
+              ),
+            ),
+            childWhenDragging: Opacity(
+              opacity: 0.5,
               child: IgnorePointer(ignoring: true, child: child),
             ),
+            child: IgnorePointer(ignoring: isDragging.value, child: child),
           ),
-          childWhenDragging: Opacity(
-            opacity: 0.5,
-            child: IgnorePointer(ignoring: true, child: child),
-          ),
-          child: IgnorePointer(ignoring: isDragging.value, child: child),
         );
       },
     );
