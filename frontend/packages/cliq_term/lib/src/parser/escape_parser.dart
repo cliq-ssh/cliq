@@ -11,19 +11,19 @@ typedef CsiHandler = void Function(CsiParseResult parsed);
 typedef CcHandler = void Function(TerminalBuffer buffer);
 
 class EscapeParser {
-  static const _maxByteChunkSize = 1000;
-  static const _maxTimeBudgetInMs = 4;
-
   static final Logger _log = Logger('EscapeParser');
+
+  /// The maximum number of bytes to process in a single batch before yielding to the event loop.
+  static const _maxByteChunkSize = 1000;
+
+  /// The maximum time budget in milliseconds for processing a batch of bytes before yielding to the event loop.
+  static const _maxTimeBudgetInMs = 4;
 
   final TerminalController controller;
 
-  late final CsiParser _csiParser = CsiParser();
-  final _queue = ByteQueue();
-
   EscapeParser({required this.controller});
 
-  int get queueLength => _queue.length;
+  late final CsiParser _csiParser = CsiParser();
 
   late final Map<int, CcHandler> _ccHandlers = {
     0x05: _ccAnswerback,
@@ -36,6 +36,8 @@ class EscapeParser {
     0x0D: (buf) => buf.carriageReturn(),
     0x0E: (buf) => buf.charset.use(1),
     0x0F: (buf) => buf.charset.use(0),
+
+    // CAN and SUB; cancel the current escape sequence
     0x18: (_) {},
     0x1A: (_) {},
   };
@@ -92,6 +94,13 @@ class EscapeParser {
     // 'u'.codeUnitAt(0): _csiRestoreCursor,
   };
 
+  final _queue = ByteQueue();
+  bool _isProcessing = false;
+
+  int get queueLength => _queue.length;
+
+  /// Feeds input into the parser.
+  /// The input can contain any combination of printable characters, control characters, and escape sequences.
   void write(String input) {
     _queue.add(input);
 
@@ -105,8 +114,9 @@ class EscapeParser {
     }
   }
 
-  bool _isProcessing = false;
-
+  /// Processes the queued input, parsing and dispatching control sequences and characters to the terminal controller.
+  /// This method processes input in batches to avoid blocking the UI thread, yielding control back to the event loop
+  /// if processing exceeds a time budget. ([_maxTimeBudgetInMs])
   void _process() {
     _isProcessing = true;
     final sw = Stopwatch()..start();
@@ -138,6 +148,7 @@ class EscapeParser {
     controller.markDirty();
   }
 
+  /// Processes a single byte from the queue, handling control characters, escape sequences, and printable characters.
   void _processOne() {
     final cu = _queue.peek();
 
@@ -163,6 +174,8 @@ class EscapeParser {
     }
   }
 
+  /// Processes an escape sequence starting after the initial ESC.
+  /// Returns true if a complete sequence was processed, false if more input is needed.
   bool _processEscape() {
     if (_queue.isEmpty) return false;
     final next = _queue.consume();
@@ -180,6 +193,7 @@ class EscapeParser {
     return true;
   }
 
+  /// Consumes a CSI sequence starting after the initial ESC [.
   bool _consumeCsi() {
     final start = _queue.position - 2;
     final buf = StringBuffer('[');
@@ -196,23 +210,29 @@ class EscapeParser {
     return false;
   }
 
+  /// Consumes an OSC sequence starting after the initial ESC ].
   bool _consumeOsc() {
     final start = _queue.position - 2;
     final buf = StringBuffer();
     while (_queue.isNotEmpty) {
       final cu = _queue.consume();
-      if (cu == 0x18 || cu == 0x1A) return true;
+      if (cu == 0x18 || cu == 0x1A) return true; // CAN/SUB
+
       if (cu == 0x07) {
+        // BEL
         _dispatchOsc(buf.toString());
         return true;
       }
+
       if (cu == 0x1B && _queue.isNotEmpty && _queue.peek() == 0x5C) {
-        _queue.consume();
+        _queue.consume(); // consume ST backslash
         _dispatchOsc(buf.toString());
         return true;
       }
+
       buf.writeCharCode(cu);
     }
+
     _queue.savePosition(start);
     return false;
   }
