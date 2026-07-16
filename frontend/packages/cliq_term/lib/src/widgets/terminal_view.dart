@@ -406,6 +406,7 @@ class TerminalRowWidget extends StatelessWidget {
               cellHeight: cellHeight,
               readOnly: readOnly,
               rowRevision: row.revision,
+              row: row,
             ),
           ),
         ),

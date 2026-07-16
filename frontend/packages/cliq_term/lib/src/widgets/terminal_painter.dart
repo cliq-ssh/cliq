@@ -14,6 +14,7 @@ class SingleRowPainter extends CustomPainter {
   final double cellHeight;
   final bool readOnly;
   final int rowRevision;
+  final TerminalBufferRow row;
 
   SingleRowPainter({
     required this.controller,
@@ -22,6 +23,7 @@ class SingleRowPainter extends CustomPainter {
     required this.cellHeight,
     required this.readOnly,
     required this.rowRevision,
+    required this.row,
   });
 
   /// Calculates the width and height of a single character cell based on the provided typography.
@@ -178,6 +180,7 @@ class SingleRowPainter extends CustomPainter {
         oldDelegate.controller != controller ||
         oldDelegate.absoluteRowIndex != absoluteRowIndex ||
         oldDelegate.readOnly != readOnly ||
+        !identical(oldDelegate.row, row) ||
         oldDelegate.rowRevision != rowRevision;
 
     if (basicChanged) return true;

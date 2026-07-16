@@ -69,11 +69,11 @@ class EscapeParser {
     // 'I.codeUnitAt(0): _csiCursorHorizontalForwardTab,
     'J'.codeUnitAt(0): _csiEraseDisplay,
     'K'.codeUnitAt(0): _csiEraseLine,
-    // 'L'.codeUnitAt(0): _csiInsertLine,
-    // 'M'.codeUnitAt(0): _csiDeleteLine,
+    'L'.codeUnitAt(0): _csiInsertLine,
+    'M'.codeUnitAt(0): _csiDeleteLine,
     'P'.codeUnitAt(0): _csiDeleteCharacter,
-    // 'S'.codeUnitAt(0): _csiScrollUp,
-    // 'T'.codeUnitAt(0): _csiScrollDown,
+    'S'.codeUnitAt(0): _csiScrollUp,
+    'T'.codeUnitAt(0): _csiScrollDown,
     'X'.codeUnitAt(0): _csiEraseCharacter,
     // 'Z'.codeUnitAt(0): _csiCursorHorizontalBackwardTab,
     // 'a'.codeUnitAt(0): _csiCursorHorizontalRelative,
@@ -81,7 +81,7 @@ class EscapeParser {
     // 'c'.codeUnitAt(0): _csiDeviceAttributes,
     'd'.codeUnitAt(0): _csiLinePositionAbsolute,
     // 'e'.codeUnitAt(0): _csiVerticalPosRelative,
-    // 'f'.codeUnitAt(0): _csiSetCursorPosition,
+    'f'.codeUnitAt(0): _csiSetCursorPosition,
     // 'g'.codeUnitAt(0): _csiTabClear,
     'h'.codeUnitAt(0): _csiSetMode,
     // 'i'.codeUnitAt(0): _csiMediaControl,
@@ -431,8 +431,21 @@ class EscapeParser {
     }
   }
 
+  void _csiInsertLine(CsiParseResult parsed) => controller.activeBuffer
+      .insertLines(_parseSingleParam(parsed, defaultValue: 1));
+
+  void _csiDeleteLine(CsiParseResult parsed) => controller.activeBuffer
+      .deleteLines(_parseSingleParam(parsed, defaultValue: 1));
+
   void _csiDeleteCharacter(CsiParseResult parsed) =>
       controller.activeBuffer.deleteCharacter(_parseSingleParam(parsed));
+
+  void _csiScrollUp(CsiParseResult parsed) => controller.activeBuffer.scrollUp(
+    _parseSingleParam(parsed, defaultValue: 1),
+  );
+
+  void _csiScrollDown(CsiParseResult parsed) => controller.activeBuffer
+      .scrollDown(_parseSingleParam(parsed, defaultValue: 1));
 
   /// Set Mode (SM)
   /// - https://terminalguide.namepad.de/seq/csi_sh/

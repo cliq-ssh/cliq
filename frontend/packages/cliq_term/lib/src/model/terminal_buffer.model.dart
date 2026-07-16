@@ -493,6 +493,58 @@ class TerminalBuffer {
     }
   }
 
+  /// Insert Line (IL)
+  /// - https://terminalguide.namepad.de/seq/csi_cl/
+  void insertLines(int amount) {
+    if (!isCursorInMargins()) return;
+    if (amount <= 0) amount = 1;
+    final available = _bottomMargin - cursorRow + 1;
+    if (amount > available) amount = available;
+
+    final visibleStart = currentScrollback;
+    final List<TerminalBufferRow> regionRows = [];
+    for (var i = cursorRow; i <= _bottomMargin; i++) {
+      regionRows.add(_buffer[visibleStart + i]);
+    }
+
+    for (var i = 0; i < regionRows.length; i++) {
+      final targetIdx = visibleStart + cursorRow + i;
+      if (i - amount >= 0) {
+        _buffer[targetIdx] = regionRows[i - amount];
+      } else {
+        final reusedRow = regionRows[i - amount + regionRows.length];
+        reusedRow.clear();
+        _buffer[targetIdx] = reusedRow;
+      }
+    }
+  }
+
+  /// Delete Line (DL)
+  /// - https://terminalguide.namepad.de/seq/csi_cm/
+  void deleteLines(int amount) {
+    if (!isCursorInMargins()) return;
+    if (amount <= 0) amount = 1;
+    final available = _bottomMargin - cursorRow + 1;
+    if (amount > available) amount = available;
+
+    final visibleStart = currentScrollback;
+    final List<TerminalBufferRow> regionRows = [];
+    for (var i = cursorRow; i <= _bottomMargin; i++) {
+      regionRows.add(_buffer[visibleStart + i]);
+    }
+
+    for (var i = 0; i < regionRows.length; i++) {
+      final targetIdx = visibleStart + cursorRow + i;
+      if (i + amount < regionRows.length) {
+        _buffer[targetIdx] = regionRows[i + amount];
+      } else {
+        final reusedRow = regionRows[i + amount - regionRows.length];
+        reusedRow.clear();
+        _buffer[targetIdx] = reusedRow;
+      }
+    }
+  }
+
   /// Set Cursor Position (CUP)
   /// - https://terminalguide.namepad.de/seq/csi_ch/
   void setCursorPosition(int row, int col) {
