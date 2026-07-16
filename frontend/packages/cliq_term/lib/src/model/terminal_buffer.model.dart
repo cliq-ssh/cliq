@@ -398,7 +398,8 @@ class TerminalBuffer {
     final r = _buffer[row + currentScrollback];
     r.ensureCols(cols);
     final cell = r.cells[col];
-    cell.reset();
+    cell.ch = Cell.emptyChar;
+    cell.fmt = currentFormat;
     r.revision++;
   }
 
@@ -465,8 +466,16 @@ class TerminalBuffer {
 
   void clear() {
     _buffer.clear();
+    final hasNonDefaultFormat =
+        currentFormat != FormattingOptions.defaultFormat;
     for (var i = 0; i < rows; i++) {
-      _buffer.add(TerminalBufferRow(cols));
+      final row = TerminalBufferRow(cols);
+      if (hasNonDefaultFormat) {
+        for (final cell in row.cells) {
+          cell.fmt = currentFormat;
+        }
+      }
+      _buffer.add(row);
     }
     // reset cursor position
     cursorRow = 0;
@@ -732,7 +741,8 @@ class TerminalBuffer {
 
     // fill the vacated space with empty cells
     for (var c = cols - amount; c < cols; c++) {
-      r.cells[c].reset();
+      r.cells[c].ch = Cell.emptyChar;
+      r.cells[c].fmt = currentFormat;
     }
     r.revision++;
   }
