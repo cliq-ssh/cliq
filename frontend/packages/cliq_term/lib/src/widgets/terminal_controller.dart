@@ -369,6 +369,9 @@ class TerminalController extends ChangeNotifier {
     _resetBlink();
   }
 
+  /// Resets the cursor blink interval to the default value of 600 milliseconds and restarts the blink timer.
+  void resetCursorBlinkInterval() => setCursorBlinkInterval(const Duration(milliseconds: 600));
+
   void setCursorBlinkTimeout(Duration timeout) {
     cursorBlinkTimeout = timeout;
     _resetBlink();

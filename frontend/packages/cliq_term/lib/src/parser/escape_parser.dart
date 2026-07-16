@@ -599,12 +599,14 @@ class EscapeParser {
           _log.warning('\tUnhandled DECSCUSR mode: $mode');
         }
     }
-    // mode 2, 4 and 6 are the blinking variants of the cursor styles,
-    // while mode 1, 3 and 5 are the steady variants.
-    // mode 0 simply default to blinking block.
-    controller.setCursorBlinkInterval(
-      mode != 0 && mode % 2 == 0 ? .zero : Duration(milliseconds: 500),
-    );
+    // mode 1, 3 and 5 are the blinking variants of the cursor styles.
+    // mode 0 simply defaults to blinking block.
+    if (mode == 0 || mode % 2 != 0) {
+      controller.resetCursorBlinkInterval();
+    } else {
+      // while mode 2, 4 and 6 are the steady variants.
+      controller.setCursorBlinkInterval(.zero);
+    }
   }
 
   void _csiSetScrollingRegion(CsiParseResult parsed) {

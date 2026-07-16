@@ -245,7 +245,10 @@ class TerminalBuffer {
 
   /// Carriage Return (CR)
   /// - https://terminalguide.namepad.de/seq/a_c0-m/
-  void carriageReturn() => cursorCol = 0;
+  void carriageReturn() {
+    cursorCol = 0;
+    pendingWrap = false;
+  }
 
   /// Backspace (BS)
   /// - https://terminalguide.namepad.de/seq/a_c0-h/
@@ -260,6 +263,7 @@ class TerminalBuffer {
     } else {
       cursorCol = stops.first;
     }
+    pendingWrap = false;
   }
 
   /// Returns a Cell by absolute index inside the ring buffer:
@@ -372,6 +376,7 @@ class TerminalBuffer {
     // reset cursor position
     cursorRow = 0;
     cursorCol = 0;
+    pendingWrap = false;
   }
 
   void pushEmptyLine() {
@@ -492,6 +497,7 @@ class TerminalBuffer {
   void setCursorPosition(int row, int col) {
     cursorRow = row.clamp(0, rows - 1);
     cursorCol = col.clamp(0, cols - 1);
+    pendingWrap = false;
   }
 
   /// Erase Line Right
@@ -611,6 +617,7 @@ class TerminalBuffer {
   void cursorLeft(int amount) {
     if (amount == 0) amount = 1;
     cursorCol = max(0, cursorCol - amount);
+    pendingWrap = false;
   }
 
   /// Cursor Right (CUF)
@@ -618,6 +625,7 @@ class TerminalBuffer {
   void cursorRight(int amount) {
     if (amount == 0) amount = 1;
     cursorCol = min(cols - 1, cursorCol + amount);
+    pendingWrap = false;
   }
 
   /// Cursor Up (CUU)
@@ -629,6 +637,7 @@ class TerminalBuffer {
     } else {
       cursorRow = max(0, cursorRow - amount);
     }
+    pendingWrap = false;
   }
 
   /// Cursor Down (CUD)
@@ -640,6 +649,7 @@ class TerminalBuffer {
     } else {
       cursorRow = min(rows - 1, cursorRow + amount);
     }
+    pendingWrap = false;
   }
 
   /// Exports the visible screen as plain text.
