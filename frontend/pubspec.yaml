@@ -76,3 +76,7 @@ flutter:
         - asset: assets/fonts/JetBrainsMono-Italic[wght].ttf
           style: italic
 
+    - family: Noto Sans Symbols2
+      fonts:
+          - asset: assets/fonts/NotoSansSymbols2-Regular.ttf
+

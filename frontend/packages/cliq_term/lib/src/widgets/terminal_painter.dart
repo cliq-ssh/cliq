@@ -111,23 +111,35 @@ class SingleRowPainter extends CustomPainter {
                 ? (fmt.bgColor ?? controller.theme.backgroundColor)
                 : (fmt.fgColor ?? controller.theme.foregroundColor));
 
-      final style = textStyle.copyWith(
-        color: effectiveFg,
-        fontWeight: fmt.bold ? FontWeight.w700 : null,
-        fontStyle: fmt.italic ? FontStyle.italic : FontStyle.normal,
-        decoration: fmt.underline == Underline.none
-            ? TextDecoration.none
-            : TextDecoration.underline,
-        decorationStyle: fmt.underline == Underline.double
-            ? TextDecorationStyle.double
-            : TextDecorationStyle.solid,
-      );
+      final codepoint = ch.length == 1 ? ch.codeUnitAt(0) : -1;
+      final isBraille = CharWidth.isBraillePattern(codepoint);
 
-      final glyph = TextPainter(
-        text: TextSpan(text: ch, style: style),
-        textDirection: TextDirection.ltr,
-        maxLines: 1,
-      )..layout(maxWidth: cellWidth);
+      final cacheKey =
+          '$ch|${effectiveFg.toARGB32()}|${fmt.bold}|${fmt.italic}|${fmt.underline}|$isBraille';
+
+      TextPainter? glyph = controller.getCachedGlyph(cacheKey);
+      if (glyph == null) {
+        final style = textStyle.copyWith(
+          color: effectiveFg,
+          fontFamily: isBraille ? 'Noto Sans Symbols2' : null,
+          fontWeight: fmt.bold ? FontWeight.w700 : null,
+          fontStyle: fmt.italic ? FontStyle.italic : FontStyle.normal,
+          decoration: fmt.underline == Underline.none
+              ? TextDecoration.none
+              : TextDecoration.underline,
+          decorationStyle: fmt.underline == Underline.double
+              ? TextDecorationStyle.double
+              : TextDecorationStyle.solid,
+        );
+
+        glyph = TextPainter(
+          text: TextSpan(text: ch, style: style),
+          textDirection: TextDirection.ltr,
+          maxLines: 1,
+        )..layout(maxWidth: cellWidth);
+
+        controller.cacheGlyph(cacheKey, glyph);
+      }
 
       // Center in the cell and hard-clip so an over-wide glyph (e.g. a
       // fallback-font substitution) can never bleed into the next column.

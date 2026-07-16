@@ -16,6 +16,7 @@ enum MouseTrackingMode { none, normal, buttonEvent, anyEvent }
 /// Controller for managing terminal state, including buffers, cursor, and input handling.
 class TerminalController extends ChangeNotifier {
   static const int _maxCacheSize = 500;
+  static const int _maxGlyphCacheSize = 4000;
   static const int highWaterMark = 64 * 1024; // 64 KiB
   static const int lowWaterMark = 0; // 0 Bytes -> clear buffer
 
@@ -111,6 +112,7 @@ class TerminalController extends ChangeNotifier {
     isBackBuffer: true,
   );
 
+  final Map<String, TextPainter> _glyphCache = {};
   final Map<TerminalBufferRow, (int revision, TextPainter painter)> _rowCache =
       {};
 
@@ -228,6 +230,21 @@ class TerminalController extends ChangeNotifier {
   /// Whether the terminal is currently paused due to high input queue length.
   bool get isPaused => _isPaused;
 
+  /// Returns a cached [TextPainter] for the given glyph key if it exists.
+  TextPainter? getCachedGlyph(String key) => _glyphCache[key];
+
+  /// Caches a [TextPainter] for the given glyph key.
+  /// If the cache exceeds the maximum size, the least recently used entry is evicted.
+  void cacheGlyph(String key, TextPainter painter) {
+    if (_glyphCache.length >= _maxGlyphCacheSize) {
+      final firstKey = _glyphCache.keys.first;
+      _glyphCache.remove(firstKey);
+    }
+    _glyphCache[key] = painter;
+  }
+
+  void clearGlyphCache() => _glyphCache.clear();
+
   /// Returns a cached [TextPainter] for the given [row] if it exists and is valid (matching the row's revision).
   TextPainter? getCachedRow(TerminalBufferRow row) {
     final cached = _rowCache.remove(row);
@@ -250,7 +267,7 @@ class TerminalController extends ChangeNotifier {
     _rowCache[row] = (row.revision, painter);
   }
 
-  void clearCache() => _rowCache.clear();
+  void clearRowCache() => _rowCache.clear();
 
   void clearDirty() => _isDirty = false;
 
@@ -302,7 +319,8 @@ class TerminalController extends ChangeNotifier {
     _front.resetVerticalMargins();
     _back.resetVerticalMargins();
 
-    clearCache();
+    clearRowCache();
+    clearGlyphCache();
     markDirty();
   }
 
@@ -500,13 +518,15 @@ class TerminalController extends ChangeNotifier {
 
   void setTerminalTheme(TerminalTheme theme) {
     _theme = theme;
-    clearCache();
+    clearRowCache();
+    clearGlyphCache();
     markDirty();
   }
 
   void setTerminalTypography(TerminalTypography newTypography) {
     _typography = newTypography;
-    clearCache();
+    clearRowCache();
+    clearGlyphCache();
     markDirty();
   }
 
