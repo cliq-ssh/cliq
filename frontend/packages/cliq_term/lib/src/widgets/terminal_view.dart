@@ -304,6 +304,7 @@ class _TerminalViewState extends State<TerminalView> {
           child: Listener(
             onPointerDown: (event) {
               if (!_mouseReportingActive) return;
+              _focusNode.requestFocus();
               final button = _mouseButtonFromEvent(event.buttons);
               if (button == null) return;
               final (row, col) = _calculateCoords(
@@ -319,6 +320,7 @@ class _TerminalViewState extends State<TerminalView> {
             },
             onPointerUp: (event) {
               if (!_mouseReportingActive) return;
+              _focusNode.requestFocus();
               final (row, col) = _calculateCoords(
                 event.localPosition,
                 cellW,
