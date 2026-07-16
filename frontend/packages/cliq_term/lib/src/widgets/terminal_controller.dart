@@ -4,7 +4,6 @@ import 'dart:math';
 import 'package:cliq_term/cliq_term.dart';
 import 'package:cliq_term/src/parser/escape_parser.dart';
 import 'package:cliq_term/src/state/selection.state.dart';
-import 'package:cliq_term/src/widgets/terminal_painter.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -262,7 +261,7 @@ class TerminalController extends ChangeNotifier {
       return;
     }
 
-    final (cellW, cellH) = SingleRowPainter.measureChar(typography);
+    final (cellW, cellH) = CharWidth.measureChar(typography);
     final newCols = max(1, (size.width / cellW).floor());
     final newRows = max(1, (size.height / cellH).floor());
 

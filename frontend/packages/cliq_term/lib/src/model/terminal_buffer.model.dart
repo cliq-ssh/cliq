@@ -9,6 +9,10 @@ class TerminalBufferRow {
   List<Cell> cells;
   int revision = 0;
 
+  /// True if this row's content is a soft-wrap continuation into the next
+  /// physical row/autowrap, as opposed to ending with a hard line break.
+  bool wrapped = false;
+
   TerminalBufferRow(int cols)
     : cells = List.generate(cols, (_) => Cell.empty(), growable: false);
 
@@ -31,6 +35,7 @@ class TerminalBufferRow {
     for (var i = 0; i < cells.length; i++) {
       cells[i].reset();
     }
+    wrapped = false;
     revision++;
   }
 }
@@ -115,14 +120,25 @@ class TerminalBuffer {
 
     newBuffer.isAutoWrapMode = isAutoWrapMode;
     newBuffer.tabStops = Set.from(tabStops.where((s) => s < newCols));
-
-    final oldCurrentScrollback = currentScrollback;
-    final absCursorRow = cursorRow + oldCurrentScrollback;
     newBuffer._buffer.clear();
 
-    int effectiveOldLength = _buffer.length;
-    while (effectiveOldLength > newRows) {
-      final row = _buffer[effectiveOldLength - 1];
+    if (_buffer.isEmpty) {
+      while (newBuffer.length < newRows) {
+        newBuffer._buffer.add(TerminalBufferRow(newCols));
+      }
+      return newBuffer;
+    }
+
+    final absCursorRow = (cursorRow + currentScrollback).clamp(
+      0,
+      _buffer.length - 1,
+    );
+
+    // Trim trailing rows that are completely blank AND sit below the
+    // cursor's row before reflowing.
+    int effectiveLength = _buffer.length;
+    while (effectiveLength > 0) {
+      final row = _buffer[effectiveLength - 1];
       bool isEmpty = true;
       for (final cell in row.cells) {
         if (cell.ch != ' ' || cell.fmt != FormattingOptions.defaultFormat) {
@@ -130,37 +146,114 @@ class TerminalBuffer {
           break;
         }
       }
-      if (isEmpty && (effectiveOldLength - 1) > absCursorRow) {
-        effectiveOldLength--;
+      if (isEmpty && (effectiveLength - 1) > absCursorRow) {
+        effectiveLength--;
       } else {
         break;
       }
     }
 
-    // Guard against effectiveOldLength exceeding the new ring's capacity,
-    // which would otherwise silently evict the oldest rows and desync
-    // the cursor math below.
-    final newCapacity = newRows + maxScrollbackLines;
-    final startIndex = max(0, effectiveOldLength - newCapacity);
+    // Reconstruct logical lines by joining rows across soft-wrap boundaries.
+    final List<List<Cell>> logicalLines = [];
+    final logicalLineIndexOf = List.filled(effectiveLength, 0);
+    final offsetWithinLine = List.filled(effectiveLength, 0);
 
-    for (var i = startIndex; i < effectiveOldLength; i++) {
+    List<Cell> current = [];
+    for (var i = 0; i < effectiveLength; i++) {
       final row = _buffer[i];
-      row.ensureCols(newCols);
-      newBuffer._buffer.add(row);
+      logicalLineIndexOf[i] = logicalLines.length;
+      offsetWithinLine[i] = current.length;
+
+      if (row.wrapped) {
+        current.addAll(row.cells.map((c) => Cell.clone(c)));
+        continue;
+      }
+
+      var lastMeaningful = -1;
+      for (var c = 0; c < row.cells.length; c++) {
+        final cell = row.cells[c];
+        if (cell.ch != ' ' || cell.fmt != FormattingOptions.defaultFormat) {
+          lastMeaningful = c;
+        }
+      }
+      if (i == absCursorRow) {
+        lastMeaningful = max(lastMeaningful, cursorCol);
+      }
+      final keepLength = lastMeaningful + 1;
+      for (var c = 0; c < keepLength; c++) {
+        current.add(Cell.clone(row.cells[c]));
+      }
+      logicalLines.add(current);
+      current = [];
+    }
+    if (current.isNotEmpty) logicalLines.add(current);
+
+    final cursorLogicalLine = logicalLineIndexOf[absCursorRow];
+    final cursorGlobalOffset = offsetWithinLine[absCursorRow] + cursorCol;
+
+    final newRowsList = <TerminalBufferRow>[];
+    int cursorRowIndexInList = 0;
+    int cursorColInList = 0;
+    bool cursorPlaced = false;
+
+    for (var li = 0; li < logicalLines.length; li++) {
+      final cells = logicalLines[li];
+
+      if (cells.isEmpty) {
+        newRowsList.add(TerminalBufferRow(newCols));
+        if (li == cursorLogicalLine) {
+          cursorRowIndexInList = newRowsList.length - 1;
+          cursorPlaced = true;
+        }
+        continue;
+      }
+
+      var idx = 0;
+      while (idx < cells.length) {
+        final chunkEnd = min(idx + newCols, cells.length);
+        final row = TerminalBufferRow(newCols);
+        for (var c = idx; c < chunkEnd; c++) {
+          row.cells[c - idx] = cells[c];
+        }
+        final isLastChunk = chunkEnd == cells.length;
+        row.wrapped = !isLastChunk;
+        newRowsList.add(row);
+
+        if (li == cursorLogicalLine && !cursorPlaced) {
+          final withinChunk = cursorGlobalOffset - idx;
+          if (withinChunk >= 0 && withinChunk < newCols) {
+            cursorRowIndexInList = newRowsList.length - 1;
+            cursorColInList = withinChunk;
+            cursorPlaced = true;
+          }
+        }
+        idx += newCols;
+      }
+
+      if (li == cursorLogicalLine && !cursorPlaced) {
+        newRowsList.add(TerminalBufferRow(newCols));
+        cursorRowIndexInList = newRowsList.length - 1;
+        cursorPlaced = true;
+      }
     }
 
-    // Ensure we have at least "newRows" in the buffer
+    final newCapacity = newRows + maxScrollbackLines;
+    final startIndex = max(0, newRowsList.length - newCapacity);
+
+    for (var i = startIndex; i < newRowsList.length; i++) {
+      newBuffer._buffer.add(newRowsList[i]);
+    }
     while (newBuffer.length < newRows) {
       newBuffer._buffer.add(TerminalBufferRow(newCols));
     }
 
-    // Adjust cursor position relative to the content. If the screen grows, the visible
-    // content shifts "up" in the viewport relative to the bottom, so the cursorRow
-    // must be adjusted based on the change in currentScrollback
     final newCurrentScrollback = newBuffer.currentScrollback;
-    newBuffer.cursorRow = (absCursorRow - startIndex - newCurrentScrollback)
-        .clamp(0, newRows - 1);
-    newBuffer.cursorCol = cursorCol.clamp(0, newCols - 1);
+    newBuffer.cursorRow =
+        (cursorRowIndexInList - startIndex - newCurrentScrollback).clamp(
+          0,
+          newRows - 1,
+        );
+    newBuffer.cursorCol = cursorColInList.clamp(0, newCols - 1);
 
     return newBuffer;
   }
@@ -326,6 +419,7 @@ class TerminalBuffer {
 
     if (pendingWrap) {
       if (isAutoWrapMode) {
+        _buffer[cursorRow + currentScrollback].wrapped = true;
         index();
         cursorCol = 0;
       }

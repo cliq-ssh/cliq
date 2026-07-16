@@ -250,7 +250,7 @@ class _TerminalViewState extends State<TerminalView> {
         );
 
         // compute char cell size
-        final (cellW, cellH) = SingleRowPainter.measureChar(
+        final (cellW, cellH) = CharWidth.measureChar(
           widget.controller.typography,
         );
 

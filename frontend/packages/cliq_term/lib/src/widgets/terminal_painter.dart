@@ -6,8 +6,6 @@ import '../../cliq_term.dart';
 import '../utils/selection_helper.dart';
 
 class SingleRowPainter extends CustomPainter {
-  static final Map<TerminalTypography, (double, double)> _measureCache = {};
-
   final TerminalController controller;
   final int absoluteRowIndex;
   final double cellWidth;
@@ -25,22 +23,6 @@ class SingleRowPainter extends CustomPainter {
     required this.rowRevision,
     required this.row,
   });
-
-  /// Calculates the width and height of a single character cell based on the provided typography.
-  static (double width, double height) measureChar(
-    TerminalTypography typography,
-  ) {
-    if (_measureCache.containsKey(typography)) {
-      return _measureCache[typography]!;
-    }
-    final probe = TextPainter(
-      text: TextSpan(text: 'MMMM', style: typography.toTextStyle()),
-      textDirection: TextDirection.ltr,
-    )..layout();
-    final res = (probe.width / 4, probe.height);
-    _measureCache[typography] = res;
-    return res;
-  }
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -115,62 +97,45 @@ class SingleRowPainter extends CustomPainter {
     }
 
     // 3. Text
-    TextPainter? tp = controller.getCachedRow(row);
-    if (tp == null) {
-      final textStyle = controller.typography.toTextStyle();
-      FormattingOptions? lastFmt;
-      final List<InlineSpan> spans = [];
-      final StringBuffer sb = StringBuffer();
+    final textStyle = controller.typography.toTextStyle();
+    for (int c = 0; c < cols; c++) {
+      final cell = (c < rowCols) ? cells[c] : null;
+      final ch = cell?.ch ?? ' ';
+      if (ch.isEmpty || ch == ' ') continue;
 
-      void flushRun() {
-        if (sb.isEmpty) return;
-        final fmt = lastFmt ?? FormattingOptions.defaultFormat;
-        final effectiveFg = fmt.concealed
-            ? controller.theme.foregroundColor.withAlpha(0)
-            : (fmt.inverted
-                  ? (fmt.bgColor ?? controller.theme.backgroundColor)
-                  : (fmt.fgColor ?? controller.theme.foregroundColor));
+      final fmt = cell?.fmt ?? FormattingOptions.defaultFormat;
 
-        final style = textStyle.copyWith(
-          color: effectiveFg,
-          fontWeight: fmt.bold ? FontWeight.w700 : null,
-          fontStyle: fmt.italic ? FontStyle.italic : FontStyle.normal,
-          decoration: fmt.underline == Underline.none
-              ? TextDecoration.none
-              : TextDecoration.underline,
-          decorationStyle: fmt.underline == Underline.double
-              ? TextDecorationStyle.double
-              : TextDecorationStyle.solid,
-        );
-        spans.add(TextSpan(text: sb.toString(), style: style));
-        sb.clear();
-      }
+      final effectiveFg = fmt.concealed
+          ? controller.theme.foregroundColor.withAlpha(0)
+          : (fmt.inverted
+                ? (fmt.bgColor ?? controller.theme.backgroundColor)
+                : (fmt.fgColor ?? controller.theme.foregroundColor));
 
-      for (int c = 0; c < cols; c++) {
-        final cell = (c < rowCols) ? cells[c] : null;
-        final fmt = cell?.fmt ?? FormattingOptions.defaultFormat;
-        if (lastFmt == null) {
-          lastFmt = fmt;
-        } else if (!identical(lastFmt, fmt) && lastFmt != fmt) {
-          flushRun();
-          lastFmt = fmt;
-        }
-        sb.write(cell?.ch ?? ' ');
-      }
-      flushRun();
+      final style = textStyle.copyWith(
+        color: effectiveFg,
+        fontWeight: fmt.bold ? FontWeight.w700 : null,
+        fontStyle: fmt.italic ? FontStyle.italic : FontStyle.normal,
+        decoration: fmt.underline == Underline.none
+            ? TextDecoration.none
+            : TextDecoration.underline,
+        decorationStyle: fmt.underline == Underline.double
+            ? TextDecorationStyle.double
+            : TextDecorationStyle.solid,
+      );
 
-      if (spans.isNotEmpty) {
-        tp = TextPainter(
-          text: TextSpan(children: spans),
-          textDirection: TextDirection.ltr,
-          maxLines: 1,
-        )..layout(minWidth: 0, maxWidth: cols * cellWidth);
-        controller.cacheRow(row, tp);
-      }
-    }
+      final glyph = TextPainter(
+        text: TextSpan(text: ch, style: style),
+        textDirection: TextDirection.ltr,
+        maxLines: 1,
+      )..layout(maxWidth: cellWidth);
 
-    if (tp != null) {
-      tp.paint(canvas, Offset.zero);
+      // Center in the cell and hard-clip so an over-wide glyph (e.g. a
+      // fallback-font substitution) can never bleed into the next column.
+      final dx = c * cellWidth + (cellWidth - glyph.width) / 2;
+      canvas.save();
+      canvas.clipRect(Rect.fromLTWH(c * cellWidth, 0, cellWidth, cellHeight));
+      glyph.paint(canvas, Offset(dx, 0));
+      canvas.restore();
     }
   }
 
@@ -255,65 +220,64 @@ class CursorPainter extends CustomPainter {
     }
 
     final cols = controller.activeBuffer.cols;
+    if (cursorCol < 0 || cursorCol >= cols) return;
 
-    if (cursorCol >= 0 && cursorCol < cols) {
-      final cell = controller.activeBuffer.getAbsoluteCell(
-        absCursorRow,
-        cursorCol,
-      );
+    final cell = controller.activeBuffer.getAbsoluteCell(
+      absCursorRow,
+      cursorCol,
+    );
 
-      final Color fillColor = cell.fmt.inverted
-          ? (cell.fmt.bgColor ?? controller.theme.backgroundColor)
-          : (cell.fmt.fgColor ?? controller.theme.foregroundColor);
-      final Color charColor = cell.fmt.inverted
-          ? (cell.fmt.fgColor ?? controller.theme.foregroundColor)
-          : (cell.fmt.bgColor ?? controller.theme.backgroundColor);
+    final Color fillColor = cell.fmt.inverted
+        ? (cell.fmt.bgColor ?? controller.theme.backgroundColor)
+        : (cell.fmt.fgColor ?? controller.theme.foregroundColor);
+    final Color charColor = cell.fmt.inverted
+        ? (cell.fmt.fgColor ?? controller.theme.foregroundColor)
+        : (cell.fmt.bgColor ?? controller.theme.backgroundColor);
 
-      final cursorRect = Rect.fromLTWH(
-        cursorCol * cellWidth,
-        0,
-        cellWidth,
-        cellHeight,
-      );
+    final cursorRect = Rect.fromLTWH(
+      cursorCol * cellWidth,
+      0,
+      cellWidth,
+      cellHeight,
+    );
 
-      switch (cursorStyle) {
-        case .block:
-          canvas.drawRect(cursorRect, Paint()..color = fillColor);
-          final displayedChar = cell.ch.isEmpty ? ' ' : cell.ch;
-          final charStyle = TextStyle(
-            color: charColor,
-            fontSize: controller.typography.fontSize.toDouble(),
-            fontFamily: controller.typography.fontFamily,
-            fontWeight: cell.fmt.bold ? FontWeight.w700 : FontWeight.w400,
-            fontStyle: cell.fmt.italic ? FontStyle.italic : FontStyle.normal,
-          );
-          TextPainter(
-              text: TextSpan(text: displayedChar, style: charStyle),
-              textDirection: TextDirection.ltr,
-            )
-            ..layout(minWidth: 0, maxWidth: cellWidth)
-            ..paint(canvas, Offset(cursorCol * cellWidth, 0));
-          break;
-        case .underline:
-          final underlineHeight = cellHeight * 0.18;
-          canvas.drawRect(
-            Rect.fromLTWH(
-              cursorCol * cellWidth,
-              cellHeight - underlineHeight,
-              cellWidth,
-              underlineHeight,
-            ),
-            Paint()..color = fillColor,
-          );
-          break;
-        case .bar:
-          final barWidth = max(1.0, cellWidth * 0.12);
-          canvas.drawRect(
-            Rect.fromLTWH(cursorCol * cellWidth, 0, barWidth, cellHeight),
-            Paint()..color = fillColor,
-          );
-          break;
-      }
+    switch (cursorStyle) {
+      case .block:
+        canvas.drawRect(cursorRect, Paint()..color = fillColor);
+        final displayedChar = cell.ch.isEmpty ? ' ' : cell.ch;
+        final charStyle = TextStyle(
+          color: charColor,
+          fontSize: controller.typography.fontSize.toDouble(),
+          fontFamily: controller.typography.fontFamily,
+          fontWeight: cell.fmt.bold ? FontWeight.w700 : FontWeight.w400,
+          fontStyle: cell.fmt.italic ? FontStyle.italic : FontStyle.normal,
+        );
+        TextPainter(
+            text: TextSpan(text: displayedChar, style: charStyle),
+            textDirection: TextDirection.ltr,
+          )
+          ..layout(minWidth: 0, maxWidth: cellWidth)
+          ..paint(canvas, Offset(cursorCol * cellWidth, 0));
+        break;
+      case .underline:
+        final underlineHeight = cellHeight * 0.18;
+        canvas.drawRect(
+          Rect.fromLTWH(
+            cursorCol * cellWidth,
+            cellHeight - underlineHeight,
+            cellWidth,
+            underlineHeight,
+          ),
+          Paint()..color = fillColor,
+        );
+        break;
+      case .bar:
+        final barWidth = max(1.0, cellWidth * 0.12);
+        canvas.drawRect(
+          Rect.fromLTWH(cursorCol * cellWidth, 0, barWidth, cellHeight),
+          Paint()..color = fillColor,
+        );
+        break;
     }
   }
 
