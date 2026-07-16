@@ -121,6 +121,7 @@ class TerminalController extends ChangeNotifier {
     isBackBuffer: true,
   );
 
+  TextStyle? _cachedTextStyle;
   final Map<GlyphKey, TextPainter> _glyphCache = {};
   final Map<TerminalBufferRow, (int revision, TextPainter painter)> _rowCache =
       {};
@@ -238,6 +239,9 @@ class TerminalController extends ChangeNotifier {
 
   /// Whether the terminal is currently paused due to high input queue length.
   bool get isPaused => _isPaused;
+
+  /// Returns a cached [TextStyle] based on the current typography settings.
+  TextStyle get cachedBaseTextStyle => _cachedTextStyle ??= _typography.toTextStyle();
 
   /// Returns a cached [TextPainter] for the given glyph key if it exists.
   TextPainter? getCachedGlyph(GlyphKey key) => _glyphCache[key];
@@ -534,6 +538,7 @@ class TerminalController extends ChangeNotifier {
 
   void setTerminalTypography(TerminalTypography newTypography) {
     _typography = newTypography;
+    _cachedTextStyle = null;
     clearRowCache();
     clearGlyphCache();
     markDirty();

@@ -99,7 +99,7 @@ class SingleRowPainter extends CustomPainter {
     }
 
     // 3. Text
-    final textStyle = controller.typography.toTextStyle();
+    final textStyle = controller.cachedBaseTextStyle;
     for (int c = 0; c < cols; c++) {
       final cell = (c < rowCols) ? cells[c] : null;
       final ch = cell?.ch ?? ' ';
