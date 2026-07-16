@@ -144,7 +144,6 @@ class EscapeParser {
         _queue.length < TerminalController.lowWaterMark) {
       controller.resume();
     }
-
     controller.markDirty();
   }
 
@@ -179,13 +178,19 @@ class EscapeParser {
   bool _processEscape() {
     if (_queue.isEmpty) return false;
     final next = _queue.consume();
-    if (next == 0x5B) return _consumeCsi();
-    if (next == 0x5D) return _consumeOsc();
+
+    // multi-byte ESC sequences
+    if (next == 0x5B) return _consumeCsi(); // ESC [
+    if (next == 0x5D) return _consumeOsc(); // ESC ]
+
+    // G0 ('('), G1 (')'), G2 ('*'), G3 ('+') charset designation
     if (next == 0x28 || next == 0x29 || next == 0x2A || next == 0x2B) {
       if (_queue.isEmpty) return false;
       controller.activeBuffer.charset.designate(next - 0x28, _queue.consume());
       return true;
     }
+
+    // single-char ESC sequences
     final handler = _escHandlers[next];
     if (handler != null) {
       handler();
@@ -197,9 +202,11 @@ class EscapeParser {
   bool _consumeCsi() {
     final start = _queue.position - 2;
     final buf = StringBuffer('[');
+
     while (_queue.isNotEmpty) {
       final cu = _queue.consume();
       if (cu == 0x18 || cu == 0x1A) return true; // CAN/SUB
+
       buf.writeCharCode(cu);
       if (cu >= 0x40 && cu <= 0x7E) {
         _dispatchCsi(buf.toString());
