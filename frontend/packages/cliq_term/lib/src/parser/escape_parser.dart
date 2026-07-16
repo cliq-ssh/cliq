@@ -58,6 +58,7 @@ class EscapeParser {
   };
 
   late final Map<int, CsiHandler> _csiHandlers = {
+    '@'.codeUnitAt(0): _csiInsertBlanks,
     'A'.codeUnitAt(0): _csiCursorUp,
     'B'.codeUnitAt(0): _csiCursorDown,
     'C'.codeUnitAt(0): _csiCursorRight,
@@ -347,6 +348,9 @@ class EscapeParser {
   void _escSingleShift3() => controller.activeBuffer.charset.singleShift(3);
 
   // --- CSI Handlers ---
+
+  void _csiInsertBlanks(CsiParseResult parsed) => controller.activeBuffer
+      .insertBlanks(_parseSingleParam(parsed, defaultValue: 1));
 
   void _csiCursorUp(CsiParseResult parsed) =>
       controller.activeBuffer.cursorUp(_parseSingleParam(parsed));

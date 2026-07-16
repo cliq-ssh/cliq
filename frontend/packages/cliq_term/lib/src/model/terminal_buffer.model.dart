@@ -737,6 +737,33 @@ class TerminalBuffer {
     r.revision++;
   }
 
+  /// Insert Blanks (ICH)
+  /// - https://terminalguide.namepad.de/seq/csi_ca_at/
+  void insertBlanks(int amount) {
+    if (!isCursorInMargins()) return;
+    final start = cursorCol.clamp(0, cols);
+    amount = min(amount, cols - start);
+    if (amount <= 0) return;
+
+    pendingWrap = false;
+
+    final r = _buffer[cursorRow + currentScrollback];
+    r.ensureCols(cols);
+
+    for (var c = cols - 1; c >= start + amount; c--) {
+      final src = r.cells[c - amount];
+      final dest = r.cells[c];
+      dest.ch = src.ch;
+      dest.fmt = src.fmt;
+    }
+
+    for (var c = start; c < start + amount; c++) {
+      r.cells[c].ch = Cell.emptyChar;
+      r.cells[c].fmt = currentFormat;
+    }
+    r.revision++;
+  }
+
   /// Sets the vertical scroll margins to the specified [top] and [bottom] rows.
   /// Both [top] and [bottom] must be within the range of the buffer's rows.
   void setVerticalMargins(int top, int bottom) {
