@@ -49,5 +49,5 @@ enum CliqTheme {
     return brightness == Brightness.light ? themeData.light : themeData.dark;
   }
 
-  String getDisplayName() => 'appearance_color_theme_color.$name'.tr();
+  String getDisplayName() => 'appearance_color_themes.$name'.tr();
 }

@@ -279,7 +279,7 @@ class CreateOrEditTerminalThemeView extends HookConsumerWidget {
                           onChange: (_) => setState(() {}),
                         ),
                         label: Text(
-                          'terminal_themes_theme_add_color.$labelKey'.tr(),
+                          'terminal_themes_theme_colors.$labelKey'.tr(),
                         ),
                         hint: 'terminal_themes_theme_add_color_placeholder'
                             .tr(),

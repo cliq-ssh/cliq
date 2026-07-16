@@ -208,8 +208,8 @@ class EntityCardView<E> extends HookConsumerWidget {
                                   FTooltip(
                                     tipBuilder: (_, _) => TextWithShortcutInfo(
                                       viewType.value == EntityCardViewType.list
-                                          ? 'view.list'.tr()
-                                          : 'view.grid'.tr(),
+                                          ? 'views.list'.tr()
+                                          : 'views.grid'.tr(),
                                       shortcut: KeyboardShortcut(
                                         .keyG,
                                         modifiers: {.control},

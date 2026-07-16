@@ -58,11 +58,13 @@ class _SshSessionPageState extends ConsumerState<SshSessionPage>
 
     final defaultTerminalTypography = useStore(.defaultTerminalTypography);
     final defaultTerminalTheme = useStore(.defaultTerminalThemeId);
-    final bellSound = useStore(.sshBellSound);
     final themes = ref.watch(terminalThemeProvider);
 
     final shortcuts = useStore(.shortcuts);
-    final sshScrollbackSize = useStore(.sshScrollbackSize);
+
+    final scrollbackSize = useStore(.sshScrollbackSize);
+    final bellSound = useStore(.terminalBellSound);
+    final cursorStyle = useStore(.terminalCursorStyle);
     final cursorBlinkInterval = useStore(.terminalCursorBlinkInterval);
     final cursorBlinkTimeout = useStore(.terminalCursorBlinkTimeout);
 
@@ -105,7 +107,7 @@ class _SshSessionPageState extends ConsumerState<SshSessionPage>
         theme: effectiveTerminalTheme.toTerminalTheme(),
         typography: getEffectiveTerminalTypography(),
         debugLogging: kDebugMode,
-        maxScrollbackLines: sshScrollbackSize.value,
+        maxScrollbackLines: scrollbackSize.value,
         onBell: () {
           if (!bellSound.value) return;
           SystemSound.play(.alert);
@@ -260,6 +262,7 @@ class _SshSessionPageState extends ConsumerState<SshSessionPage>
           terminalController.value!.setTerminalTheme(
             effectiveTerminalTheme.toTerminalTheme(),
           );
+          terminalController.value!.setCursorStyle(cursorStyle.value);
           terminalController.value!.setCursorBlinkInterval(
             Duration(milliseconds: cursorBlinkInterval.value),
           );
@@ -273,6 +276,7 @@ class _SshSessionPageState extends ConsumerState<SshSessionPage>
       [
         defaultTerminalTypography.value,
         defaultTerminalTheme.value,
+        cursorStyle.value,
         cursorBlinkInterval.value,
         cursorBlinkTimeout.value,
       ],

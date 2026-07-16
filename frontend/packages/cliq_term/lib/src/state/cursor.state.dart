@@ -21,7 +21,7 @@ class CursorState {
   final Timer? inactivityTimer;
 
   CursorState({
-    this.style = CursorStyle.bar,
+    this.style = .bar,
     this.enabled = true,
     this.blinkVisible = true,
     this.timer,

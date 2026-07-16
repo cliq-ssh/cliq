@@ -85,7 +85,6 @@ enum StoreKey<T> {
     type: int,
     defaultValue: TerminalBuffer.defaultMaxScrollbackLines,
   ),
-  sshBellSound<bool>('ssh_bell_sound', type: bool, defaultValue: true),
 
   sftpShowHiddenFiles<bool>(
     'sftp_show_hidden_files',
@@ -103,6 +102,18 @@ enum StoreKey<T> {
     defaultValue: true,
   ),
 
+  terminalBellSound<bool>(
+    'terminal_bell_sound',
+    type: bool,
+    defaultValue: true,
+  ),
+  terminalCursorStyle<CursorStyle>(
+    'terminal_cursor_style',
+    type: CursorStyle,
+    defaultValue: .bar,
+    fromValue: _cursorStyleFromValue,
+    toValue: _enumToValue,
+  ),
   terminalCursorBlinkInterval<int>(
     'terminal_cursor_blink_interval',
     type: int,
@@ -153,6 +164,8 @@ enum StoreKey<T> {
       _enumFromValue(value, ThemeMode.values);
   static EntityCardViewType? _entityCardViewTypeFromValue(String? value) =>
       _enumFromValue(value, EntityCardViewType.values);
+  static CursorStyle? _cursorStyleFromValue(String? value) =>
+      _enumFromValue(value, CursorStyle.values);
 
   static String? _typographyToValue(TerminalTypography? value) {
     if (value == null) return null;

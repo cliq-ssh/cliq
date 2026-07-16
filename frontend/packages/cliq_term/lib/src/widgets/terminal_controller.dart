@@ -317,6 +317,11 @@ class TerminalController extends ChangeNotifier {
     notifyListeners();
   }
 
+  void setCursorStyle(CursorStyle style) {
+    cursor = cursor.copyWith(style: style);
+    _resetBlink();
+  }
+
   void setCursorBlinkInterval(Duration interval) {
     cursorBlinkInterval = interval;
     _resetBlink();

@@ -4,7 +4,7 @@
   "appearance_apply_terminal_theme_color_to_navigation": "Apply Terminal Theme Color to Navigation",
   "appearance_apply_terminal_theme_color_to_navigation_subtitle": "Apply a tint of the terminal theme color to the navigation bar.",
   "appearance_color_theme": "Color Theme",
-  "appearance_color_theme_color": {
+  "appearance_color_themes": {
     "blue": "Blue",
     "green": "Green",
     "orange": "Orange",
@@ -58,7 +58,7 @@
   "error_copy_error_details": "Copy error details",
   "error_report_issue_on_github": "Report issue on GitHub",
   "error_stacktrace": "Stacktrace",
-  "file_group": {
+  "file_groups": {
     "settings_export": "Settings Export",
     "ssh_key": "SSH Key",
     "terminal_theme": "Terminal Theme"
@@ -219,12 +219,19 @@
   "ssh_sftp_large_download_warning_subtitle": "Warn when downloading large files ({}) over SFTP",
   "ssh_sftp_scrollback": "Scrollback",
   "ssh_sftp_scrollback_subtitle": "Set the number of lines to keep in the scrollback buffer. A higher number allows you to scroll back further in your terminal history, but may use more memory.",
+  "ssh_sftp_show_hidden_files": "Show Hidden Files",
+  "ssh_sftp_show_hidden_files_subtitle": "Show hidden files and directories in SFTP file listings.",
   "ssh_sftp_terminal_cursor_blink_interval": "Cursor Blink Interval (ms)",
   "ssh_sftp_terminal_cursor_blink_interval_subtitle": "Set the interval for the cursor blinking in milliseconds.",
   "ssh_sftp_terminal_cursor_blink_timeout": "Cursor Blink Timeout (s)",
   "ssh_sftp_terminal_cursor_blink_timeout_subtitle": "Set the time of inactivity before the cursor stops blinking. Set to 0 to disable timeout.",
-  "ssh_sftp_show_hidden_files": "Show Hidden Files",
-  "ssh_sftp_show_hidden_files_subtitle": "Show hidden files and directories in SFTP file listings.",
+  "ssh_sftp_terminal_cursor_style": "Cursor Style",
+  "ssh_sftp_terminal_cursor_style_subtitle": "Set the style of the cursor in the terminal.",
+  "ssh_sftp_terminal_cursor_styles": {
+    "bar": "Bar",
+    "block": "Block",
+    "underline": "Underline"
+  },
   "sync": "Sync",
   "sync_export": "Export...",
   "sync_export_file": "Export to File",
@@ -246,7 +253,7 @@
   "terminal_themes_import_success": "Theme imported successfully",
   "terminal_themes_theme": "Theme",
   "terminal_themes_theme_add": "Add Theme",
-  "terminal_themes_theme_add_color": {
+  "terminal_themes_theme_colors": {
     "background": "Background",
     "black": "Black",
     "blue": "Blue",
@@ -283,7 +290,7 @@
   "validator_error_invalid_pem_private_key": "Value is not a valid PEM private key",
   "validator_error_invalid_port": "Value is not a valid port number",
   "validator_error_null": "Value may not be null",
-  "view": {
+  "views": {
     "grid": "Grid View",
     "list": "List View"
   }

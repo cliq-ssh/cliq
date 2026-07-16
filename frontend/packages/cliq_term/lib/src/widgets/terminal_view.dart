@@ -675,7 +675,7 @@ class _CursorPainter extends CustomPainter {
       );
 
       switch (cursorStyle) {
-        case CursorStyle.block:
+        case .block:
           canvas.drawRect(cursorRect, Paint()..color = fillColor);
           final displayedChar = cell.ch.isEmpty ? ' ' : cell.ch;
           final charStyle = TextStyle(
@@ -692,7 +692,7 @@ class _CursorPainter extends CustomPainter {
             ..layout(minWidth: 0, maxWidth: cellWidth)
             ..paint(canvas, Offset(cursorCol * cellWidth, 0));
           break;
-        case CursorStyle.underline:
+        case .underline:
           final underlineHeight = cellHeight * 0.18;
           canvas.drawRect(
             Rect.fromLTWH(
@@ -704,7 +704,7 @@ class _CursorPainter extends CustomPainter {
             Paint()..color = fillColor,
           );
           break;
-        case CursorStyle.bar:
+        case .bar:
           final barWidth = max(1.0, cellWidth * 0.12);
           canvas.drawRect(
             Rect.fromLTWH(cursorCol * cellWidth, 0, barWidth, cellHeight),
