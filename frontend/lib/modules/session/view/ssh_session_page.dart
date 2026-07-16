@@ -52,6 +52,8 @@ class _SshSessionPageState extends ConsumerState<SshSessionPage>
         .watch(sessionProvider.notifier)
         .getSessionById(widget.sessionId)!;
 
+    final resizeDebounceTimer = useState<Timer?>(null);
+
     final terminalController = useState<TerminalController?>(
       session.terminalController,
     );
@@ -116,15 +118,19 @@ class _SshSessionPageState extends ConsumerState<SshSessionPage>
         cursorBlinkInterval: Duration(milliseconds: cursorBlinkInterval.value),
         cursorBlinkTimeout: Duration(seconds: cursorBlinkTimeout.value),
         onResize: (rows, cols, size) {
-          final currentSession = ref
-              .read(sessionProvider.notifier)
-              .getSessionById(widget.sessionId);
+          resizeDebounceTimer.value?.cancel();
+          resizeDebounceTimer.value = Timer(const Duration(milliseconds: 100), () {
+            final currentSession = ref
+                .read(sessionProvider.notifier)
+                .getSessionById(widget.sessionId);
 
-          if (currentSession == null || currentSession.sshSession == null) {
-            return;
-          }
-
-          currentSession.sshSession!.resizeTerminal(cols, rows);
+            currentSession?.sshSession?.resizeTerminal(
+              cols,
+              rows,
+              size.width.round(),
+              size.height.round(),
+            );
+          });
 
           if (isInitialResize.value) {
             isInitialResize.value = false;
