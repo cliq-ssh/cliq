@@ -41,6 +41,7 @@ class SshSftpSettingsPage extends AbstractSettingsPage {
     final showHiddenFiles = useStore(.sftpShowHiddenFiles);
     final largeDownloadsWarning = useStore(.sftpLargeDownloadWarning);
     final directoryNotEmptyWarning = useStore(.sftpDirectoryNotEmptyWarning);
+    final bellSound = useStore(.sshBellSound);
 
     final refreshTrigger = useState(0);
     final tempDirSizeFuture = useMemoized(
@@ -130,6 +131,13 @@ class SshSftpSettingsPage extends AbstractSettingsPage {
                               onSubmit: onScrollbackSubmit,
                             ),
                           ),
+                        ),
+                        CustomToggleTile(
+                          title: 'ssh_sftp_bell_sound',
+                          subtitle: 'ssh_sftp_bell_sound_subtitle',
+                          prefix: Icon(LucideIcons.bellRing),
+                          storeKey: .sshBellSound,
+                          value: bellSound.value,
                         ),
                         FTile(
                           title: Text(
