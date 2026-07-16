@@ -114,6 +114,9 @@ class SingleRowPainter extends CustomPainter {
       final codepoint = ch.length == 1 ? ch.codeUnitAt(0) : -1;
       final isBraille = CharWidth.isBraillePattern(codepoint);
 
+      // only clip if the character is outside the printable ASCII range (0x20 to 0x7E)
+      final needsClip = codepoint < 0x20 || codepoint > 0x7E;
+
       final cacheKey =
           '$ch|${effectiveFg.toARGB32()}|${fmt.bold}|${fmt.italic}|${fmt.underline}|$isBraille';
 
@@ -141,13 +144,19 @@ class SingleRowPainter extends CustomPainter {
         controller.cacheGlyph(cacheKey, glyph);
       }
 
-      // Center in the cell and hard-clip so an over-wide glyph (e.g. a
-      // fallback-font substitution) can never bleed into the next column.
       final dx = c * cellWidth + (cellWidth - glyph.width) / 2;
-      canvas.save();
-      canvas.clipRect(Rect.fromLTWH(c * cellWidth, 0, cellWidth, cellHeight));
-      glyph.paint(canvas, Offset(dx, 0));
-      canvas.restore();
+
+      if (needsClip) {
+        canvas.save();
+        canvas.clipRect(
+          Rect.fromLTWH(c * cellWidth, 0, cellWidth, cellHeight),
+          doAntiAlias: false,
+        );
+        glyph.paint(canvas, Offset(dx, 0));
+        canvas.restore();
+      } else {
+        glyph.paint(canvas, Offset(dx, 0));
+      }
     }
   }
 
