@@ -8,7 +8,7 @@ import 'package:flutter/material.dart' hide LicensePage;
 import 'package:forui/forui.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lucide_flutter/lucide_flutter.dart';
-import '../../../shared/ui/navigation_shell.dart';
+import '../../../shared/ui/navigation/navigation_shell.dart';
 import '../provider/session.provider.dart';
 
 class GenericSessionPage extends HookConsumerWidget {

@@ -1,7 +1,6 @@
 import 'package:cliq/modules/settings/view/abstract_settings_page.dart';
 import 'package:cliq/modules/settings/view/settings_page.dart';
 import 'package:cliq/shared/provider/store.provider.dart';
-import 'package:cliq/shared/utils/platform_utils.dart';
 import 'package:cliq_ui/cliq_ui.dart'
     show CliqGridContainer, CliqGridRow, CliqGridColumn;
 import 'package:easy_localization/easy_localization.dart';
@@ -13,7 +12,6 @@ import 'package:lucide_flutter/lucide_flutter.dart';
 import '../../../shared/data/store.dart';
 import '../../../shared/model/page_path.model.dart';
 import '../../../shared/ui/custom_toggle_tile.dart';
-import '../model/navigation_position.model.dart';
 import '../model/theme.model.dart';
 
 class AppearanceSettingsPage extends AbstractSettingsPage {
@@ -31,7 +29,6 @@ class AppearanceSettingsPage extends AbstractSettingsPage {
   Widget buildBody(BuildContext context, WidgetRef ref) {
     final currentTheme = useStore(.theme);
     final themeMode = useStore(.themeMode);
-    final navPosition = useStore(.desktopNavigationPosition);
     final applyTerminalThemeColorToNavigation = useStore(
       .applyTerminalThemeColorToNavigation,
     );
@@ -114,37 +111,6 @@ class AppearanceSettingsPage extends AbstractSettingsPage {
                         ),
                       ],
                     ),
-                    if (PlatformUtils.isDesktop)
-                      FTileGroup(
-                        children: [
-                          FSelectMenuTile<NavigationPosition>(
-                            title: Text('appearance_navigation_position'.tr()),
-                            prefix: const Icon(LucideIcons.panelsRightBottom),
-                            subtitle: Text(
-                              'appearance_navigation_position_subtitle'.tr(),
-                            ),
-                            selectControl: .managedRadio(
-                              initial: navPosition.value,
-                              onChange: (value) => StoreKey
-                                  .desktopNavigationPosition
-                                  .write(value.first),
-                            ),
-                            detailsBuilder: (context, value, _) {
-                              if (value.isEmpty) return SizedBox.shrink();
-                              return Text(value.first.getDisplayName(context));
-                            },
-                            menu: [
-                              for (NavigationPosition position
-                                  in NavigationPosition.values) ...[
-                                .tile(
-                                  title: Text(position.getDisplayName(context)),
-                                  value: position,
-                                ),
-                              ],
-                            ],
-                          ),
-                        ],
-                      ),
                     FTileGroup(
                       children: [
                         CustomToggleTile(

@@ -58,7 +58,7 @@ final class Commons {
     BuildContext? context,
   }) {
     return showFSheet(
-      context: (Router.rootNavigatorKey.currentContext ?? context)!,
+      context: (Router.shellNavigatorKey.currentContext ?? context)!,
       side: FLayout.rtl,
       mainAxisMaxRatio: 1,
       builder: (context) => ResponsiveDialog(child: builder(context)),

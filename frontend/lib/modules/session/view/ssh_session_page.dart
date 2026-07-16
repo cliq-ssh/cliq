@@ -9,13 +9,15 @@ import 'package:cliq/shared/provider/store.provider.dart';
 import 'package:cliq/shared/utils/platform_utils.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart' hide LicensePage;
+import 'package:flutter/services.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:forui/forui.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:cliq_term/cliq_term.dart';
 import 'package:lucide_flutter/lucide_flutter.dart';
+import 'package:window_manager/window_manager.dart';
 
-import '../../../shared/ui/navigation_shell.dart';
+import '../../../shared/ui/navigation/navigation_shell.dart';
 import '../provider/session.provider.dart';
 import 'generic_session_page.dart';
 
@@ -56,6 +58,7 @@ class _SshSessionPageState extends ConsumerState<SshSessionPage>
 
     final defaultTerminalTypography = useStore(.defaultTerminalTypography);
     final defaultTerminalTheme = useStore(.defaultTerminalThemeId);
+    final bellSound = useStore(.sshBellSound);
     final themes = ref.watch(terminalThemeProvider);
 
     final shortcuts = useStore(.shortcuts);
@@ -66,20 +69,71 @@ class _SshSessionPageState extends ConsumerState<SshSessionPage>
       defaultTerminalTheme.value,
     );
 
+    final isInitialResize = useState(true);
+    final resizeOverlayEntry = useState<OverlayEntry?>(null);
+    final resizeOverlayTimer = useState<Timer?>(null);
+
     getEffectiveTerminalTypography() =>
         session.connection.terminalTypographyOverride ??
         defaultTerminalTypography.value;
 
+    buildResizeOverlay(int rows, int cols) {
+      return OverlayEntry(
+        builder: (context) {
+          return Positioned(
+            left: 0,
+            right: 0,
+            child: Center(
+              child: Container(
+                color: context.theme.colors.background,
+                padding: .all(8),
+                child: Text(
+                  '$cols x $rows',
+                  style: context.theme.typography.body.md,
+                ),
+              ),
+            ),
+          );
+        },
+      );
+    }
+
     buildTerminalController() {
-      // TODO: listen for onTitleChange and update tab title
       return TerminalController(
         theme: effectiveTerminalTheme.toTerminalTheme(),
         typography: getEffectiveTerminalTypography(),
         debugLogging: kDebugMode,
         maxScrollbackLines: sshScrollbackSize.value,
+        onBell: () {
+          if (!bellSound.value) return;
+          SystemSound.play(.alert);
+        },
+        onTitleChange: (title) => windowManager.setTitle(title),
         onResize: (rows, cols) {
           session.sshSession?.resizeTerminal(cols, rows);
-          // TODO: resize overlay
+
+          if (isInitialResize.value) {
+            isInitialResize.value = false;
+            return;
+          }
+
+          removeOverlay() {
+            resizeOverlayEntry.value?.remove();
+            resizeOverlayEntry.value = null;
+          }
+
+          if (resizeOverlayEntry.value != null) {
+            removeOverlay();
+          }
+
+          resizeOverlayEntry.value = buildResizeOverlay(rows, cols);
+          Overlay.of(context).insert(resizeOverlayEntry.value!);
+
+          resizeOverlayTimer.value?.cancel();
+          resizeOverlayTimer.value = Timer(
+            const .new(milliseconds: 500),
+            removeOverlay,
+          );
         },
       );
     }
@@ -230,8 +284,6 @@ class _SshSessionPageState extends ConsumerState<SshSessionPage>
 
     buildAccessoryBar() {
       if (PlatformUtils.isDesktop) return null;
-
-      // TODO: - restrict panning to desktop
 
       return (_, TerminalAccessoryBarActions actions) {
         return TerminalAccessoryBar(

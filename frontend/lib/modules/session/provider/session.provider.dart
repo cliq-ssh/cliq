@@ -3,7 +3,7 @@ import 'dart:async';
 import 'package:cliq/modules/connections/model/connection_full.model.dart';
 import 'package:cliq/modules/credentials/data/credential_service.dart';
 import 'package:cliq/modules/session/model/session.state.dart';
-import 'package:cliq/shared/ui/navigation_shell.dart';
+import 'package:cliq/shared/ui/navigation/navigation_shell.dart';
 import 'package:cliq_term/cliq_term.dart';
 import 'package:dartssh2/dartssh2.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -178,11 +178,26 @@ class SessionNotifier extends Notifier<SessionState> {
 
     final tab = state.activeTabs.firstWhere((s) => s.id == tabId);
     final newSessions = [...tab.sessions, newSession];
-    final newTab = tab.copyWith(sessions: newSessions);
+
+    final newTab = tab.copyWith(
+      sessions: newSessions,
+      customLabel: tab.customLabel,
+    );
     final newActiveTabs = state.activeTabs.map((t) {
       if (t.id == tabId) return newTab;
       return t;
     }).toList();
+    state = state.copyWith(activeTabs: newActiveTabs);
+  }
+
+  /// Renames the tab with [tabId] to [customLabel]. If [customLabel] is null or empty the custom label will be
+  /// cleared and UI will fall back to the default connection label.
+  void renameTab(String tabId, String? customLabel) {
+    final newActiveTabs = state.activeTabs.map((t) {
+      if (t.id != tabId) return t;
+      return t.copyWith(customLabel: customLabel?.trim());
+    }).toList();
+
     state = state.copyWith(activeTabs: newActiveTabs);
   }
 
