@@ -327,15 +327,6 @@ class NavigationShellState extends ConsumerState<NavigationShell>
                         children: [
                           FTooltip(
                             tipBuilder: (_, _) =>
-                                Text('hosts_connect_ssh'.tr()),
-                            child: FButton.icon(
-                              size: .xs,
-                              child: Icon(LucideIcons.unplug, size: 12),
-                              onPress: () => connect(connection),
-                            ),
-                          ),
-                          FTooltip(
-                            tipBuilder: (_, _) =>
                                 Text('hosts_connect_sftp'.tr()),
                             child: FButton.icon(
                               size: .xs,
@@ -347,6 +338,7 @@ class NavigationShellState extends ConsumerState<NavigationShell>
                       ),
                     ),
                     title: Text(connection.label),
+                    onPress: () => connect(connection),
                   ),
               ],
             ),
