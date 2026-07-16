@@ -119,7 +119,14 @@ class SingleRowPainter extends CustomPainter {
       // only clip if the character is outside the printable ASCII range (0x20 to 0x7E)
       final needsClip = codepoint < 0x20 || codepoint > 0x7E;
 
-      final cacheKey = (ch, effectiveFg.toARGB32(), fmt.bold, fmt.italic, fmt.underline, isBraille);
+      final cacheKey = (
+        ch,
+        effectiveFg.toARGB32(),
+        fmt.bold,
+        fmt.italic,
+        fmt.underline,
+        isBraille,
+      );
 
       TextPainter? glyph = controller.getCachedGlyph(cacheKey);
 
