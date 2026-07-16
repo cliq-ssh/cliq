@@ -13,15 +13,6 @@ enum CursorStyle { block, underline, bar }
 
 enum MouseTrackingMode { none, normal, buttonEvent, anyEvent }
 
-typedef GlyphKey = (
-  String ch,
-  int color,
-  bool bold,
-  bool italic,
-  Underline underline,
-  bool braille,
-);
-
 /// Controller for managing terminal state, including buffers, cursor, and input handling.
 class TerminalController extends ChangeNotifier {
   static const int _maxCacheSize = 500;
@@ -121,7 +112,7 @@ class TerminalController extends ChangeNotifier {
     isBackBuffer: true,
   );
 
-  final Map<GlyphKey, TextPainter> _glyphCache = {};
+  final Map<String, TextPainter> _glyphCache = {};
   final Map<TerminalBufferRow, (int revision, TextPainter painter)> _rowCache =
       {};
 
@@ -240,11 +231,11 @@ class TerminalController extends ChangeNotifier {
   bool get isPaused => _isPaused;
 
   /// Returns a cached [TextPainter] for the given glyph key if it exists.
-  TextPainter? getCachedGlyph(GlyphKey key) => _glyphCache[key];
+  TextPainter? getCachedGlyph(String key) => _glyphCache[key];
 
   /// Caches a [TextPainter] for the given glyph key.
   /// If the cache exceeds the maximum size, the least recently used entry is evicted.
-  void cacheGlyph(GlyphKey key, TextPainter painter) {
+  void cacheGlyph(String key, TextPainter painter) {
     if (_glyphCache.length >= _maxGlyphCacheSize) {
       final firstKey = _glyphCache.keys.first;
       _glyphCache.remove(firstKey);
