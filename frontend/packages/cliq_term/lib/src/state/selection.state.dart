@@ -21,6 +21,25 @@ class SelectionState {
       endRow != null &&
       endCol != null;
 
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is SelectionState &&
+          runtimeType == other.runtimeType &&
+          active == other.active &&
+          startRow == other.startRow &&
+          startCol == other.startCol &&
+          endRow == other.endRow &&
+          endCol == other.endCol;
+
+  @override
+  int get hashCode =>
+      active.hashCode ^
+      startRow.hashCode ^
+      startCol.hashCode ^
+      endRow.hashCode ^
+      endCol.hashCode;
+
   SelectionState copyWith({
     bool? active,
     int? startRow,

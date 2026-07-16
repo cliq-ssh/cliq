@@ -407,6 +407,9 @@ class TerminalRowWidget extends StatelessWidget {
               cellHeight: cellHeight,
               readOnly: readOnly,
               rowRevision: row.revision,
+              selection: controller.selection,
+              theme: controller.theme,
+              typography: controller.typography,
             ),
           ),
         ),
@@ -427,6 +430,8 @@ class TerminalRowWidget extends StatelessWidget {
                 scrollback: controller.activeBuffer.currentScrollback,
                 cursorStyle: controller.cursor.style,
                 cursorEnabled: controller.cursor.enabled,
+                theme: controller.theme,
+                typography: controller.typography,
               ),
             );
           },
@@ -443,6 +448,9 @@ class _SingleRowPainter extends CustomPainter {
   final double cellHeight;
   final bool readOnly;
   final int rowRevision;
+  final SelectionState selection;
+  final TerminalTheme theme;
+  final TerminalTypography typography;
 
   _SingleRowPainter({
     required this.controller,
@@ -451,6 +459,9 @@ class _SingleRowPainter extends CustomPainter {
     required this.cellHeight,
     required this.readOnly,
     required this.rowRevision,
+    required this.selection,
+    required this.theme,
+    required this.typography,
   });
 
   @override
@@ -491,12 +502,12 @@ class _SingleRowPainter extends CustomPainter {
     flushBg(cols);
 
     // 2. Selection
-    if (controller.selection.isSelectionActive) {
+    if (selection.isSelectionActive) {
       final bounds = SelectionHelper.normalize(
-        startRow: controller.selection.startRow!,
-        startCol: controller.selection.startCol!,
-        endRow: controller.selection.endRow!,
-        endCol: controller.selection.endCol!,
+        startRow: selection.startRow!,
+        startCol: selection.startCol!,
+        endRow: selection.endRow!,
+        endCol: selection.endCol!,
         maxRows: controller.totalRows,
         maxCols: cols,
       );
@@ -515,7 +526,7 @@ class _SingleRowPainter extends CustomPainter {
             (rowSel.end - rowSel.start + 1) * cellWidth,
             cellHeight,
           ),
-          Paint()..color = controller.theme.selectionColor,
+          Paint()..color = theme.selectionColor,
         );
       }
     }
@@ -523,7 +534,7 @@ class _SingleRowPainter extends CustomPainter {
     // 3. Text
     TextPainter? tp = controller.getCachedRow(row);
     if (tp == null) {
-      final textStyle = controller.typography.toTextStyle();
+      final textStyle = typography.toTextStyle();
       FormattingOptions? lastFmt;
       final List<InlineSpan> spans = [];
       final StringBuffer sb = StringBuffer();
@@ -532,8 +543,8 @@ class _SingleRowPainter extends CustomPainter {
         if (sb.isEmpty) return;
         final fmt = lastFmt ?? FormattingOptions.defaultFormat;
         final effectiveFg = fmt.concealed
-            ? controller.theme.foregroundColor.withAlpha(0)
-            : (fmt.effectiveFgColor ?? controller.theme.foregroundColor);
+            ? theme.foregroundColor.withAlpha(0)
+            : (fmt.effectiveFgColor ?? theme.foregroundColor);
 
         final style = textStyle.copyWith(
           color: effectiveFg,
@@ -580,38 +591,12 @@ class _SingleRowPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(covariant _SingleRowPainter oldDelegate) {
-    final bool basicChanged =
-        oldDelegate.controller != controller ||
-        oldDelegate.absoluteRowIndex != absoluteRowIndex ||
+    return oldDelegate.absoluteRowIndex != absoluteRowIndex ||
         oldDelegate.readOnly != readOnly ||
-        oldDelegate.rowRevision != rowRevision;
-
-    if (basicChanged) return true;
-
-    // Repaint if selection state changed and this row is involved
-    if (controller.selection.active) {
-      final start = controller.selection.startRow ?? 0;
-      final end = controller.selection.endRow ?? 0;
-      final minR = min(start, end);
-      final maxR = max(start, end);
-      if (absoluteRowIndex >= minR && absoluteRowIndex <= maxR) {
-        return true;
-      }
-    }
-
-    // If selection WAS active and now it's not, we might need to repaint
-    if (oldDelegate.controller.selection.active !=
-        controller.selection.active) {
-      final start = oldDelegate.controller.selection.startRow ?? 0;
-      final end = oldDelegate.controller.selection.endRow ?? 0;
-      final minR = min(start, end);
-      final maxR = max(start, end);
-      if (absoluteRowIndex >= minR && absoluteRowIndex <= maxR) {
-        return true;
-      }
-    }
-
-    return false;
+        oldDelegate.rowRevision != rowRevision ||
+        oldDelegate.selection != selection ||
+        oldDelegate.theme != theme ||
+        oldDelegate.typography != typography;
   }
 }
 
@@ -627,6 +612,8 @@ class _CursorPainter extends CustomPainter {
   final int scrollback;
   final CursorStyle cursorStyle;
   final bool cursorEnabled;
+  final TerminalTheme theme;
+  final TerminalTypography typography;
 
   _CursorPainter({
     required this.controller,
@@ -640,6 +627,8 @@ class _CursorPainter extends CustomPainter {
     required this.scrollback,
     required this.cursorStyle,
     required this.cursorEnabled,
+    required this.theme,
+    required this.typography,
   });
 
   @override
@@ -664,8 +653,8 @@ class _CursorPainter extends CustomPainter {
       final cellFg = cell.fmt.effectiveFgColor;
       final cellBg = cell.fmt.effectiveBgColor;
 
-      final Color fillColor = cellFg ?? controller.theme.foregroundColor;
-      final Color charColor = cellBg ?? controller.theme.backgroundColor;
+      final Color fillColor = cellFg ?? theme.foregroundColor;
+      final Color charColor = cellBg ?? theme.backgroundColor;
 
       final cursorRect = Rect.fromLTWH(
         cursorCol * cellWidth,
@@ -680,8 +669,8 @@ class _CursorPainter extends CustomPainter {
           final displayedChar = cell.ch.isEmpty ? ' ' : cell.ch;
           final charStyle = TextStyle(
             color: charColor,
-            fontSize: controller.typography.fontSize.toDouble(),
-            fontFamily: controller.typography.fontFamily,
+            fontSize: typography.fontSize.toDouble(),
+            fontFamily: typography.fontFamily,
             fontWeight: cell.fmt.bold ? FontWeight.w700 : FontWeight.w400,
             fontStyle: cell.fmt.italic ? FontStyle.italic : FontStyle.normal,
           );
@@ -723,8 +712,9 @@ class _CursorPainter extends CustomPainter {
         oldDelegate.scrollback != scrollback ||
         oldDelegate.cursorStyle != cursorStyle ||
         oldDelegate.cursorEnabled != cursorEnabled ||
-        oldDelegate.controller != controller ||
         oldDelegate.absoluteRowIndex != absoluteRowIndex ||
-        oldDelegate.readOnly != readOnly;
+        oldDelegate.readOnly != readOnly ||
+        oldDelegate.theme != theme ||
+        oldDelegate.typography != typography;
   }
 }
