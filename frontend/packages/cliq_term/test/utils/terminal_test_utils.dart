@@ -34,6 +34,7 @@ class TerminalTestUtils {
     void Function()? onBell,
     void Function(String)? onInput,
     void Function(String)? onTitleChange,
+    bool defaultAlternateScrollMode = true,
   }) => TerminalController(
     theme: _defaultTheme,
     typography: TerminalTypography(fontFamily: 'Jetbrains Mono', fontSize: 12),
@@ -42,6 +43,7 @@ class TerminalTestUtils {
     onBell: onBell,
     onInput: onInput,
     onTitleChange: onTitleChange,
+    defaultAlternateScrollMode: defaultAlternateScrollMode,
   );
 }
 

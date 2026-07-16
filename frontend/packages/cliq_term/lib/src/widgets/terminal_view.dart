@@ -354,7 +354,7 @@ class _TerminalViewState extends State<TerminalView> {
                 row: row,
                 col: col,
                 up: event.scrollDelta.dy < 0,
-                lines: 10
+                lines: 10,
               );
             },
             child: GestureDetector(

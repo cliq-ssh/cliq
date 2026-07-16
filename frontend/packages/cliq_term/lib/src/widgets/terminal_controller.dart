@@ -70,6 +70,10 @@ class TerminalController extends ChangeNotifier {
   /// Whether to log parsed (and missing!) escape sequences and control characters to the console for debugging.
   final bool debugLogging;
 
+  /// Default for [alternateScrollMode] applied each time the alternate
+  /// screen is freshly entered (1049).
+  final bool defaultAlternateScrollMode;
+
   /// A callback that is fired when the terminal is resized, providing the new number of rows and columns
   /// and the new size in pixels.
   final void Function(int, int, Size)? onResize;
@@ -188,6 +192,7 @@ class TerminalController extends ChangeNotifier {
     this.cursorBlinkTimeout = const Duration(seconds: 10),
     this.maxScrollbackLines = TerminalBuffer.defaultMaxScrollbackLines,
     this.debugLogging = false,
+    this.defaultAlternateScrollMode = true,
     this.onInput,
     this.onResize,
     this.onTitleChange,
@@ -198,7 +203,7 @@ class TerminalController extends ChangeNotifier {
     this.cols = 80,
     this.width = 800,
     this.height = 600,
-  });
+  }) : alternateScrollMode = defaultAlternateScrollMode;
 
   /// Returns the current theme settings used for rendering the terminal, including colors and styles.
   TerminalTheme get theme => _theme;
@@ -347,6 +352,7 @@ class TerminalController extends ChangeNotifier {
       _front.saveCursor();
       _back.clear();
       _back.resetVerticalMargins();
+      alternateScrollMode = defaultAlternateScrollMode;
     }
 
     backBufferActive = true;
@@ -448,10 +454,20 @@ class TerminalController extends ChangeNotifier {
   /// tracking is active) or, per Alternate Scroll Mode, translating it into
   /// cursor key presses when on the alt screen with no tracking enabled.
   /// Returns true if the event was consumed one way or another.
-  bool handleScroll({required int row, required int col, required bool up, int lines = 1}) {
+  bool handleScroll({
+    required int row,
+    required int col,
+    required bool up,
+    int lines = 1,
+  }) {
     if (mouseTrackingMode != .none) {
       for (int i = 0; i < max(1, lines); i++) {
-        reportMouseEvent(row: row, col: col, isScroll: true, button: up ? 0 : 1);
+        reportMouseEvent(
+          row: row,
+          col: col,
+          isScroll: true,
+          button: up ? 0 : 1,
+        );
       }
       return true;
     }
