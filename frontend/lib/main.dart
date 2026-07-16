@@ -72,7 +72,7 @@ Future<void> _configureWindow() async {
 
   final windowOptions = WindowOptions(
     minimumSize: windowMinSize,
-    title: 'cliq',
+    title: Constants.defaultTitle,
     titleBarStyle: .hidden,
   );
   windowManager.waitUntilReadyToShow(windowOptions, () async {
