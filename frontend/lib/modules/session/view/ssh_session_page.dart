@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:cliq/modules/connections/model/connection_full.model.dart';
 import 'package:cliq/modules/connections/provider/connection.provider.dart';
@@ -236,14 +237,18 @@ class _SshSessionPageState extends ConsumerState<SshSessionPage>
 
         stdoutSub =
             session.stdoutSub ??
-            sshSession?.stdout.listen((data) {
-              terminalController.value?.feed(String.fromCharCodes(data));
+            const Utf8Decoder(
+              allowMalformed: true,
+            ).bind(sshSession!.stdout).listen((str) {
+              terminalController.value?.feed(str);
             });
 
         stderrSub =
             session.stderrSub ??
-            sshSession?.stderr.listen((data) {
-              terminalController.value?.feed(String.fromCharCodes(data));
+            const Utf8Decoder(
+              allowMalformed: true,
+            ).bind(sshSession!.stderr).listen((str) {
+              terminalController.value?.feed(str);
             });
 
         ref

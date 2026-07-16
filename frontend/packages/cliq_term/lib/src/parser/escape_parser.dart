@@ -405,8 +405,8 @@ class EscapeParser {
         controller.activeBuffer.eraseDisplayComplete();
         break;
       case 3:
-      // TODO: implement erase display scrollback
-      // controller.activeBuffer.eraseDisplayScrollback();
+        controller.activeBuffer.eraseDisplayScrollback();
+        break;
       default:
         _log.warning('\tUnhandled ED mode: $mode');
         break;

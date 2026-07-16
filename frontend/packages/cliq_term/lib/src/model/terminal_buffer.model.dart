@@ -66,6 +66,7 @@ class TerminalBuffer {
   int? savedCursorRow;
   int? savedCursorCol;
   FormattingOptions? savedFormat;
+  bool? savedPendingWrap;
 
   bool isLineFeedMode = false;
   bool isInsertMode = false;
@@ -530,7 +531,7 @@ class TerminalBuffer {
     for (var r = cursorRow; r < rows; r++) {
       final startCol = r == cursorRow ? cursorCol : 0;
       for (var c = startCol; c < cols; c++) {
-        eraseCell(cursorRow, c);
+        eraseCell(r, c);
       }
     }
   }
@@ -541,7 +542,7 @@ class TerminalBuffer {
     for (var r = 0; r <= cursorRow; r++) {
       final endCol = r == cursorRow ? cursorCol : cols - 1;
       for (var c = 0; c <= endCol; c++) {
-        eraseCell(cursorRow, c);
+        eraseCell(r, c);
       }
     }
   }
@@ -549,6 +550,22 @@ class TerminalBuffer {
   /// Erase Display Complete
   /// - https://terminalguide.namepad.de/seq/csi_cj-2/
   void eraseDisplayComplete() => clear();
+
+  /// Erase Display Scroll-back
+  /// - https://terminalguide.namepad.de/seq/csi_cj-3/
+  void eraseDisplayScrollback() {
+    if (currentScrollback <= 0) return;
+
+    final visibleStart = currentScrollback;
+    final visibleRows = [
+      for (var r = 0; r < rows; r++) _buffer[visibleStart + r],
+    ];
+
+    _buffer.clear();
+    for (final row in visibleRows) {
+      _buffer.add(row);
+    }
+  }
 
   /// Delete Character (DCH)
   /// - https://terminalguide.namepad.de/seq/csi_cp/
@@ -594,6 +611,7 @@ class TerminalBuffer {
     savedCursorRow = cursorRow;
     savedCursorCol = cursorCol;
     savedFormat = FormattingOptions.clone(currentFormat);
+    savedPendingWrap = pendingWrap;
     charset.save();
   }
 
@@ -608,6 +626,9 @@ class TerminalBuffer {
     }
     if (savedFormat != null) {
       currentFormat = savedFormat!;
+    }
+    if (savedPendingWrap != null) {
+      pendingWrap = savedPendingWrap!;
     }
     charset.restore();
   }
