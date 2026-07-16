@@ -119,18 +119,21 @@ class _SshSessionPageState extends ConsumerState<SshSessionPage>
         cursorBlinkTimeout: Duration(seconds: cursorBlinkTimeout.value),
         onResize: (rows, cols, size) {
           resizeDebounceTimer.value?.cancel();
-          resizeDebounceTimer.value = Timer(const Duration(milliseconds: 100), () {
-            final currentSession = ref
-                .read(sessionProvider.notifier)
-                .getSessionById(widget.sessionId);
+          resizeDebounceTimer.value = Timer(
+            const Duration(milliseconds: 100),
+            () {
+              final currentSession = ref
+                  .read(sessionProvider.notifier)
+                  .getSessionById(widget.sessionId);
 
-            currentSession?.sshSession?.resizeTerminal(
-              cols,
-              rows,
-              size.width.round(),
-              size.height.round(),
-            );
-          });
+              currentSession?.sshSession?.resizeTerminal(
+                cols,
+                rows,
+                size.width.round(),
+                size.height.round(),
+              );
+            },
+          );
 
           if (isInitialResize.value) {
             isInitialResize.value = false;

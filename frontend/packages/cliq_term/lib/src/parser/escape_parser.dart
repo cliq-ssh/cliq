@@ -89,7 +89,7 @@ class EscapeParser {
     'm'.codeUnitAt(0): _csiSelectGraphicRendition,
     // 'n'.codeUnitAt(0): _csiRequestReport,
     // 'p'.codeUnitAt(0): _csiRequestMode,
-    // 'q'.codeUnitAt(0): _csiSelectCursorStyle,
+    'q'.codeUnitAt(0): _csiSelectCursorStyle,
     'r'.codeUnitAt(0): _csiSetScrollingRegion,
     // 's'.codeUnitAt(0): _csiSaveCursor,
     't'.codeUnitAt(0): _csiWindowManipulation,
@@ -569,6 +569,44 @@ class EscapeParser {
     controller.activeBuffer.currentFormat = formatting;
   }
 
+  void _csiSelectCursorStyle(CsiParseResult parsed) {
+    if (parsed.intermediates != ' ') {
+      if (controller.debugLogging) {
+        _log.warning(
+          '\tUnhandled CSI q variant: intermediates="${parsed.intermediates}"',
+        );
+      }
+      return;
+    }
+
+    final mode = _parseSingleParam(parsed, defaultValue: 1);
+    switch (mode) {
+      case 0:
+      case 1:
+      case 2:
+        controller.setCursorStyle(.block);
+        break;
+      case 3:
+      case 4:
+        controller.setCursorStyle(.underline);
+        break;
+      case 5:
+      case 6:
+        controller.setCursorStyle(.bar);
+        break;
+      default:
+        if (controller.debugLogging) {
+          _log.warning('\tUnhandled DECSCUSR mode: $mode');
+        }
+    }
+    // mode 2, 4 and 6 are the blinking variants of the cursor styles,
+    // while mode 1, 3 and 5 are the steady variants.
+    // mode 0 simply default to blinking block.
+    controller.setCursorBlinkInterval(
+      mode != 0 && mode % 2 == 0 ? .zero : Duration(milliseconds: 500),
+    );
+  }
+
   void _csiSetScrollingRegion(CsiParseResult parsed) {
     final top = (parsed.params.isNotEmpty ? (parsed.params[0] ?? 1) : 1) - 1;
     final bottom =
@@ -590,10 +628,15 @@ class EscapeParser {
 
     switch (ps) {
       case 14:
-        _reportTextAreaSizePixels();
+        controller.emit(
+          EscapeEmitter.sizeInPixels(
+            controller.height.round(),
+            controller.width.round(),
+          ),
+        );
         break;
       case 18:
-        _reportTerminalSize();
+        controller.emit(EscapeEmitter.size(controller.rows, controller.cols));
         break;
       case 22:
         controller.pushWindowTitle(ps2);
@@ -607,19 +650,6 @@ class EscapeParser {
         }
         break;
     }
-  }
-
-  void _reportTextAreaSizePixels() {
-    controller.emit(
-      EscapeEmitter.sizeInPixels(
-        controller.height.round(),
-        controller.width.round(),
-      ),
-    );
-  }
-
-  void _reportTerminalSize() {
-    controller.emit(EscapeEmitter.size(controller.rows, controller.cols));
   }
 
   // --- OSC Handlers ---

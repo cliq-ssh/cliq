@@ -404,10 +404,12 @@ class TerminalController extends ChangeNotifier {
     cursor = cursor.copyWith(
       enabled: true,
       blinkVisible: true,
-      timer: Timer.periodic(cursorBlinkInterval, (_) {
-        cursor = cursor.copyWith(blinkVisible: !cursor.blinkVisible);
-        cursorBlinkNotifier.value = cursor.blinkVisible;
-      }),
+      timer: cursorBlinkInterval == .zero
+          ? null
+          : Timer.periodic(cursorBlinkInterval, (_) {
+              cursor = cursor.copyWith(blinkVisible: !cursor.blinkVisible);
+              cursorBlinkNotifier.value = cursor.blinkVisible;
+            }),
     );
     cursorBlinkNotifier.value = true;
     _resetInactivityTimer();
@@ -420,10 +422,12 @@ class TerminalController extends ChangeNotifier {
       // Restart the periodic timer to align the blink phase with the activity
       cursor.timer?.cancel();
       cursor = cursor.copyWith(
-        timer: Timer.periodic(cursorBlinkInterval, (_) {
-          cursor = cursor.copyWith(blinkVisible: !cursor.blinkVisible);
-          cursorBlinkNotifier.value = cursor.blinkVisible;
-        }),
+        timer: cursorBlinkInterval == .zero
+            ? null
+            : Timer.periodic(cursorBlinkInterval, (_) {
+                cursor = cursor.copyWith(blinkVisible: !cursor.blinkVisible);
+                cursorBlinkNotifier.value = cursor.blinkVisible;
+              }),
       );
     }
     _resetInactivityTimer();
