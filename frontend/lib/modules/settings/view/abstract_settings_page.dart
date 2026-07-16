@@ -40,7 +40,7 @@ abstract class AbstractSettingsPage extends HookConsumerWidget {
         ),
       ),
       child: Padding(
-        padding: .only(top: PlatformUtils.isDesktop ? 24 : 12),
+        padding: .only(top: 12),
         child: buildBody(context, ref),
       ),
     );
