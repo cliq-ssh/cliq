@@ -12,6 +12,10 @@ enum CursorStyle { block, underline, bar }
 
 /// Controller for managing terminal state, including buffers, cursor, and input handling.
 class TerminalController extends ChangeNotifier {
+  static const int _maxCacheSize = 500;
+  static const int highWaterMark = 64 * 1024; // 64 KiB
+  static const int lowWaterMark = 0; // 0 Bytes -> clear buffer
+
   static final Map<LogicalKeyboardKey, String> _keyCharacterMap = {
     .enter: '\r',
     .backspace: '\x7f',
@@ -56,8 +60,9 @@ class TerminalController extends ChangeNotifier {
   /// Whether to log parsed (and missing!) escape sequences and control characters to the console for debugging.
   final bool debugLogging;
 
-  /// A callback that is fired when the terminal is resized, providing the new number of rows and columns.
-  final void Function(int, int)? onResize;
+  /// A callback that is fired when the terminal is resized, providing the new number of rows and columns
+  /// and the new size in pixels.
+  final void Function(int, int, Size)? onResize;
 
   /// A callback that is fired when the terminal title is changed via an escape sequence, providing the new title string.
   final void Function(String)? onTitleChange;
@@ -92,9 +97,16 @@ class TerminalController extends ChangeNotifier {
     isBackBuffer: true,
   );
 
+  final Map<TerminalBufferRow, (int revision, TextPainter painter)> _rowCache =
+      {};
+
   /// Number of visible rows and columns (excluding scrollback).
   /// These are set via [resize] and used for rendering and input coordinate calculations.
   int rows, cols;
+
+  /// The current width and height of the terminal in pixels.
+  /// These are set via [resize].
+  double width, height;
 
   /// Whether to render the back buffer instead of the front buffer.
   /// This is toggled by [useBackBuffer] and [useMainBuffer].
@@ -110,10 +122,58 @@ class TerminalController extends ChangeNotifier {
   /// The cursor state.
   CursorState cursor = .new();
 
-  final Map<TerminalBufferRow, (int revision, TextPainter painter)> _rowCache =
-      {};
-  static const int _maxCacheSize = 500;
+  /// The current window title, as set via OSC 0/2 or restored from the title stack.
+  String currentTitle = '';
 
+  /// Stack used by XTWINOPS (CSI 22/23 t) to push/pop the window title.
+  final List<String> _titleStack = [];
+
+  /// Whether the terminal has been modified since the last time it was marked clean.
+  bool _isDirty = false;
+
+  /// Whether the terminal is currently paused due to high input queue length.
+  bool _isPaused = false;
+
+  TerminalController({
+    required this._typography,
+    required this._theme,
+    this.cursorBlinkInterval = const Duration(milliseconds: 600),
+    this.cursorBlinkTimeout = const Duration(seconds: 10),
+    this.maxScrollbackLines = TerminalBuffer.defaultMaxScrollbackLines,
+    this.debugLogging = false,
+    this.onInput,
+    this.onResize,
+    this.onTitleChange,
+    this.onBell,
+    this.onPause,
+    this.onResume,
+    this.rows = 24,
+    this.cols = 80,
+    this.width = 800,
+    this.height = 600,
+  });
+
+  /// Returns the current theme settings used for rendering the terminal, including colors and styles.
+  TerminalTheme get theme => _theme;
+
+  /// Returns the current typography settings used for rendering text in the terminal.
+  TerminalTypography get typography => _typography;
+
+  /// Returns the currently active buffer, which is either the front buffer or the back buffer depending on [backBufferActive].
+  TerminalBuffer get activeBuffer => backBufferActive ? _back : _front;
+
+  /// Returns the total number of rows in the terminal, including scrollback.
+  int get totalRows =>
+      backBufferActive ? rows : (_front.currentScrollback + rows);
+
+  /// Whether the terminal has been modified since the last time it was marked clean.
+  /// This is used to determine if a repaint is needed.
+  bool get isDirty => _isDirty;
+
+  /// Whether the terminal is currently paused due to high input queue length.
+  bool get isPaused => _isPaused;
+
+  /// Returns a cached [TextPainter] for the given [row] if it exists and is valid (matching the row's revision).
   TextPainter? getCachedRow(TerminalBufferRow row) {
     final cached = _rowCache.remove(row);
     if (cached != null) {
@@ -135,50 +195,14 @@ class TerminalController extends ChangeNotifier {
     _rowCache[row] = (row.revision, painter);
   }
 
-  void clearCache() {
-    _rowCache.clear();
-  }
+  void clearCache() => _rowCache.clear();
 
-  bool _isDirty = false;
-  bool get isDirty => _isDirty;
+  void clearDirty() => _isDirty = false;
 
   void markDirty() {
     _isDirty = true;
     notifyListeners();
   }
-
-  void clearDirty() {
-    _isDirty = false;
-  }
-
-  static const int highWaterMark = 64 * 1024; // 64 KiB
-  static const int lowWaterMark = 0; // 0 Bytes -> clear buffer
-  bool _isPaused = false;
-
-  bool get isPaused => _isPaused;
-
-  TerminalController({
-    required this._typography,
-    required this._theme,
-    this.cursorBlinkInterval = const Duration(milliseconds: 600),
-    this.cursorBlinkTimeout = const Duration(seconds: 10),
-    this.maxScrollbackLines = TerminalBuffer.defaultMaxScrollbackLines,
-    this.debugLogging = false,
-    this.onInput,
-    this.onResize,
-    this.onTitleChange,
-    this.onBell,
-    this.onPause,
-    this.onResume,
-    this.rows = 24,
-    this.cols = 80,
-  });
-
-  TerminalTheme get theme => _theme;
-  TerminalTypography get typography => _typography;
-  TerminalBuffer get activeBuffer => backBufferActive ? _back : _front;
-  int get totalRows =>
-      backBufferActive ? rows : (_front.currentScrollback + rows);
 
   void pause() {
     _isPaused = true;
@@ -196,22 +220,25 @@ class TerminalController extends ChangeNotifier {
       return;
     }
 
-    final (cellW, cellH) = TerminalPainter.measureChar(typography);
+    final (cellW, cellH) = SingleRowPainter.measureChar(typography);
     final newCols = max(1, (size.width / cellW).floor());
     final newRows = max(1, (size.height / cellH).floor());
 
     if (newRows == rows && newCols == cols) return;
-    resize(newRows, newCols);
+    resize(newRows, newCols, size);
   }
 
   /// Resizes the terminal to the specified number of rows and columns.
-  void resize(int newRows, int newCols) {
+  void resize(int newRows, int newCols, Size newSize) {
     // do nothing if size is unchanged
     if (newRows == rows && newCols == cols) return;
-    onResize?.call(newRows, newCols);
+    onResize?.call(newRows, newCols, newSize);
 
     rows = newRows;
     cols = newCols;
+    width = newSize.width;
+    height = newSize.height;
+
     // resize buffers
     _front = _front.resize(newRows: newRows, newCols: newCols);
     _back = _back.resize(newRows: newRows, newCols: newCols);
@@ -288,6 +315,21 @@ class TerminalController extends ChangeNotifier {
     notifyListeners();
   }
 
+  void setWindowTitle(String title) {
+    currentTitle = title;
+    onTitleChange?.call(title);
+  }
+
+  void pushWindowTitle([int mode = 0]) {
+    _titleStack.add(currentTitle);
+  }
+
+  void popWindowTitle([int mode = 0]) {
+    if (_titleStack.isNotEmpty) {
+      setWindowTitle(_titleStack.removeLast());
+    }
+  }
+
   void setTerminalTheme(TerminalTheme theme) {
     _theme = theme;
     clearCache();
@@ -336,6 +378,8 @@ class TerminalController extends ChangeNotifier {
     _escapeParser.write(input);
     _resetBlink();
   }
+
+  void emit(String input) => onInput?.call(input);
 
   /// Returns the number of characters currently waiting to be parsed.
   int get pendingInputLength => _escapeParser.queueLength;

@@ -32,6 +32,7 @@ class TerminalTestUtils {
   /// Creates a [TerminalController] with the default theme and typography for testing purposes.
   static TerminalController createController({
     void Function()? onBell,
+    void Function(String)? onInput,
     void Function(String)? onTitleChange,
   }) => TerminalController(
     theme: _defaultTheme,
@@ -39,6 +40,7 @@ class TerminalTestUtils {
     rows: 24,
     cols: 80,
     onBell: onBell,
+    onInput: onInput,
     onTitleChange: onTitleChange,
   );
 }

@@ -115,8 +115,16 @@ class _SshSessionPageState extends ConsumerState<SshSessionPage>
         onTitleChange: (title) => windowManager.setTitle(title),
         cursorBlinkInterval: Duration(milliseconds: cursorBlinkInterval.value),
         cursorBlinkTimeout: Duration(seconds: cursorBlinkTimeout.value),
-        onResize: (rows, cols) {
-          session.sshSession?.resizeTerminal(cols, rows);
+        onResize: (rows, cols, size) {
+          final currentSession = ref
+              .read(sessionProvider.notifier)
+              .getSessionById(widget.sessionId);
+
+          if (currentSession == null || currentSession.sshSession == null) {
+            return;
+          }
+
+          currentSession.sshSession!.resizeTerminal(cols, rows);
 
           if (isInitialResize.value) {
             isInitialResize.value = false;

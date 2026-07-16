@@ -2,6 +2,7 @@ import 'dart:math';
 
 import 'package:cliq_term/cliq_term.dart';
 import 'package:cliq_term/src/parser/csi_parser.dart';
+import 'package:cliq_term/src/parser/escape_emitter.dart';
 import 'package:logging/logging.dart';
 
 import '../model/byte_queue.dart';
@@ -63,7 +64,7 @@ class EscapeParser {
     'D'.codeUnitAt(0): _csiCursorLeft,
     // 'E'.codeUnitAt(0): _csiCursorNextLine,
     // 'F'.codeUnitAt(0): _csiCursorPrevLine,
-    // 'G'.codeUnitAt(0): _csiCursorHorizontalPositionAbsolute,
+    'G'.codeUnitAt(0): _csiCursorHorizontalAbsolute,
     'H'.codeUnitAt(0): _csiSetCursorPosition,
     // 'I.codeUnitAt(0): _csiCursorHorizontalForwardTab,
     'J'.codeUnitAt(0): _csiEraseDisplay,
@@ -91,7 +92,7 @@ class EscapeParser {
     // 'q'.codeUnitAt(0): _csiSelectCursorStyle,
     'r'.codeUnitAt(0): _csiSetScrollingRegion,
     // 's'.codeUnitAt(0): _csiSaveCursor,
-    // 't'.codeUnitAt(0): _csiWindowManipulation,
+    't'.codeUnitAt(0): _csiWindowManipulation,
     // 'u'.codeUnitAt(0): _csiRestoreCursor,
   };
 
@@ -130,7 +131,17 @@ class EscapeParser {
     while (_queue.isNotEmpty) {
       // Process in batches
       for (int i = 0; i < _maxByteChunkSize && _queue.isNotEmpty; i++) {
+        final positionBefore = _queue.position;
         _processOne();
+
+        if (_queue.position == positionBefore) {
+          // An incomplete sequence is waiting on bytes that haven't arrived
+          // yet. Stop here instead of spinning forever on the same input;
+          // write() will resume processing once more data is fed.
+          _isProcessing = false;
+          controller.markDirty();
+          return;
+        }
       }
 
       // Budget of 4ms for parsing to keep UI fluid
@@ -268,9 +279,9 @@ class EscapeParser {
   /// Dispatches a parsed OSC sequence.
   void _dispatchOsc(String body) {
     final splitIndex = body.indexOf(';');
-    if (splitIndex == -1 && body.isEmpty) {
+    if (splitIndex == -1) {
       if (controller.debugLogging) {
-        _log.warning('[OSC] Empty body');
+        _log.warning('[OSC] Malformed body (missing separator) body="$body"');
       }
       return;
     }
@@ -354,6 +365,14 @@ class EscapeParser {
 
   void _csiCursorLeft(CsiParseResult parsed) =>
       controller.activeBuffer.cursorLeft(_parseSingleParam(parsed));
+
+  void _csiCursorHorizontalAbsolute(CsiParseResult parsed) {
+    final col = (parsed.params.isNotEmpty ? (parsed.params[0] ?? 1) : 1) - 1;
+    controller.activeBuffer.setCursorPosition(
+      controller.activeBuffer.cursorRow,
+      col,
+    );
+  }
 
   void _csiSetCursorPosition(CsiParseResult parsed) {
     final row = (parsed.params.isNotEmpty ? (parsed.params[0] ?? 1) : 1) - 1;
@@ -548,10 +567,50 @@ class EscapeParser {
     controller.activeBuffer.setVerticalMargins(top, bottom);
   }
 
+  /// Window Manipulation (XTWINOPS)
+  /// - https://terminalguide.namepad.de/seq/csi_st-14/
+  /// - https://terminalguide.namepad.de/seq/csi_st-22/
+  /// - https://terminalguide.namepad.de/seq/csi_st-23/
+  void _csiWindowManipulation(CsiParseResult parsed) {
+    if (parsed.params.isEmpty) return;
+    final ps = parsed.params[0] ?? 0;
+    final ps2 = parsed.params.length >= 2 ? (parsed.params[1] ?? 0) : 0;
+
+    switch (ps) {
+      case 14:
+        _reportTextAreaSizePixels();
+        break;
+      case 18:
+        _reportTerminalSize();
+        break;
+      case 22:
+        controller.pushWindowTitle(ps2);
+        break;
+      case 23:
+        controller.popWindowTitle(ps2);
+        break;
+      default:
+        if (controller.debugLogging) {
+          _log.warning('\tUnhandled window manipulation Ps: $ps');
+        }
+        break;
+    }
+  }
+
+  void _reportTextAreaSizePixels() {
+    controller.emit(
+      EscapeEmitter.sizeInPixels(
+        controller.height.round(),
+        controller.width.round(),
+      ),
+    );
+  }
+
+  void _reportTerminalSize() {
+    controller.emit(EscapeEmitter.size(controller.rows, controller.cols));
+  }
+
   // --- OSC Handlers ---
 
-  void _oscSetWindowTitle(String params) {
-    // TODO: implement title modes
-    controller.onTitleChange?.call(params);
-  }
+  void _oscSetWindowTitle(String params) => controller.setWindowTitle(params);
 }

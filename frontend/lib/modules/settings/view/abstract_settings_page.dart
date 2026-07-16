@@ -38,10 +38,7 @@ abstract class AbstractSettingsPage extends HookConsumerWidget {
           ],
         ),
       ),
-      child: Padding(
-        padding: .only(top: 12),
-        child: buildBody(context, ref),
-      ),
+      child: Padding(padding: .only(top: 12), child: buildBody(context, ref)),
     );
   }
 }

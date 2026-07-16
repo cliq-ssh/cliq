@@ -330,7 +330,7 @@ class TerminalBuffer {
       }
     } else {
       if (cursorCol >= cols) {
-        cursorCol = max(0, cols);
+        cursorCol = cols - 1;
       }
     }
 
