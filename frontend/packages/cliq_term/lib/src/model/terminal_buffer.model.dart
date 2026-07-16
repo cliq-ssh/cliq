@@ -136,7 +136,13 @@ class TerminalBuffer {
       }
     }
 
-    for (var i = 0; i < effectiveOldLength; i++) {
+    // Guard against effectiveOldLength exceeding the new ring's capacity,
+    // which would otherwise silently evict the oldest rows and desync
+    // the cursor math below.
+    final newCapacity = newRows + maxScrollbackLines;
+    final startIndex = max(0, effectiveOldLength - newCapacity);
+
+    for (var i = startIndex; i < effectiveOldLength; i++) {
       final row = _buffer[i];
       row.ensureCols(newCols);
       newBuffer._buffer.add(row);
@@ -151,10 +157,8 @@ class TerminalBuffer {
     // content shifts "up" in the viewport relative to the bottom, so the cursorRow
     // must be adjusted based on the change in currentScrollback
     final newCurrentScrollback = newBuffer.currentScrollback;
-    newBuffer.cursorRow = (absCursorRow - newCurrentScrollback).clamp(
-      0,
-      newRows - 1,
-    );
+    newBuffer.cursorRow = (absCursorRow - startIndex - newCurrentScrollback)
+        .clamp(0, newRows - 1);
     newBuffer.cursorCol = cursorCol.clamp(0, newCols - 1);
 
     return newBuffer;

@@ -279,15 +279,27 @@ class EscapeParser {
   /// Dispatches a parsed OSC sequence.
   void _dispatchOsc(String body) {
     final splitIndex = body.indexOf(';');
+
+    final String method;
+    final String params;
     if (splitIndex == -1) {
+      // Some OSC sequences are sent with no ';' separator at all when there are no parameters.
+      method = body;
+      params = '';
+    } else {
+      method = body.substring(0, splitIndex);
+      params = body.substring(splitIndex + 1);
+    }
+
+    final code = int.tryParse(method);
+    if (code == null) {
       if (controller.debugLogging) {
-        _log.warning('[OSC] Malformed body (missing separator) body="$body"');
+        _log.warning('[OSC] Malformed body (non-numeric command) body="$body"');
       }
       return;
     }
-    final method = body.substring(0, splitIndex);
-    final params = body.substring(splitIndex + 1);
-    final handler = _oscHandlers[int.parse(method)];
+
+    final handler = _oscHandlers[code];
     if (handler != null) {
       handler(params);
     } else {

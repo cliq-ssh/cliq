@@ -255,11 +255,13 @@ class CursorPainter extends CustomPainter {
         absCursorRow,
         cursorCol,
       );
-      final cellFg = cell.fmt.effectiveFgColor;
-      final cellBg = cell.fmt.effectiveBgColor;
 
-      final Color fillColor = cellFg ?? controller.theme.foregroundColor;
-      final Color charColor = cellBg ?? controller.theme.backgroundColor;
+      final Color fillColor = cell.fmt.inverted
+          ? (cell.fmt.bgColor ?? controller.theme.backgroundColor)
+          : (cell.fmt.fgColor ?? controller.theme.foregroundColor);
+      final Color charColor = cell.fmt.inverted
+          ? (cell.fmt.fgColor ?? controller.theme.foregroundColor)
+          : (cell.fmt.bgColor ?? controller.theme.backgroundColor);
 
       final cursorRect = Rect.fromLTWH(
         cursorCol * cellWidth,
