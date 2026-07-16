@@ -31,7 +31,7 @@ class SingleRowPainter extends CustomPainter {
     final cols = controller.activeBuffer.cols;
     final rowCols = cells.length;
 
-    final bgPaint = Paint();
+    final bgPaint = Paint()..isAntiAlias = false;
     Color? lastColor;
     int startCol = 0;
 
@@ -91,7 +91,9 @@ class SingleRowPainter extends CustomPainter {
             (rowSel.end - rowSel.start + 1) * cellWidth,
             cellHeight,
           ),
-          Paint()..color = controller.theme.selectionColor,
+          Paint()
+            ..isAntiAlias = false
+            ..color = controller.theme.selectionColor,
         );
       }
     }
