@@ -4,6 +4,7 @@ import 'package:cliq_term/cliq_term.dart';
 import 'package:cliq_term/src/utils/keyboard_helper.dart';
 import 'package:cliq_term/src/widgets/terminal_input.dart';
 import 'package:cliq_term/src/widgets/terminal_painter.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
@@ -228,6 +229,17 @@ class _TerminalViewState extends State<TerminalView> {
     Overlay.of(context, rootOverlay: true).insert(_accessoryBarEntry!);
   }
 
+  int? _mouseButtonFromEvent(int buttons) {
+    if (buttons & kPrimaryButton != 0) return 0;
+    if (buttons & kMiddleMouseButton != 0) return 1;
+    if (buttons & kSecondaryButton != 0) return 2;
+    return null;
+  }
+
+  bool get _mouseReportingActive =>
+      widget.controller.mouseTrackingMode != MouseTrackingMode.none &&
+      !HardwareKeyboard.instance.isShiftPressed;
+
   @override
   Widget build(BuildContext context) {
     return LayoutBuilder(
@@ -289,48 +301,108 @@ class _TerminalViewState extends State<TerminalView> {
             }
             return .ignored;
           },
-          child: GestureDetector(
-            behavior: HitTestBehavior.translucent,
-            onTap: () {
-              _focusNode.requestFocus();
-              widget.controller.clearSelection();
-            },
-            onPanStart: (details) {
-              _focusNode.requestFocus();
-              if (!widget.allowTextSelection) return;
-              final (absRow, absCol) = _calculateCoords(
-                details.localPosition,
+          child: Listener(
+            onPointerDown: (event) {
+              if (!_mouseReportingActive) return;
+              final button = _mouseButtonFromEvent(event.buttons);
+              if (button == null) return;
+              final (row, col) = _calculateCoords(
+                event.localPosition,
                 cellW,
                 cellH,
               );
-              widget.controller.startSelection(absRow, absCol);
+              widget.controller.reportMouseEvent(
+                row: row,
+                col: col,
+                button: button,
+              );
             },
-            onPanUpdate: (details) {
-              if (!widget.allowTextSelection) return;
-              final (absRow, absCol) = _calculateCoords(
-                details.localPosition,
+            onPointerUp: (event) {
+              if (!_mouseReportingActive) return;
+              final (row, col) = _calculateCoords(
+                event.localPosition,
                 cellW,
                 cellH,
               );
-              widget.controller.updateSelection(absRow, absCol);
+              widget.controller.reportMouseEvent(
+                row: row,
+                col: col,
+                isRelease: true,
+              );
             },
-            child: Container(
-              color: widget.controller.theme.backgroundColor,
-              child: ListView.builder(
-                scrollCacheExtent: ScrollCacheExtent.pixels(cellH * 10),
-                controller: _scrollController,
-                itemCount: totalRows,
-                itemExtent: cellH,
-                physics: const ClampingScrollPhysics(),
-                itemBuilder: (context, index) {
-                  return TerminalRowWidget(
-                    controller: widget.controller,
-                    absoluteRowIndex: index,
-                    cellWidth: cellW,
-                    cellHeight: cellH,
-                    readOnly: widget.readOnly,
-                  );
-                },
+            onPointerMove: (event) {
+              if (!_mouseReportingActive) return;
+              final (row, col) = _calculateCoords(
+                event.localPosition,
+                cellW,
+                cellH,
+              );
+              widget.controller.reportMouseEvent(
+                row: row,
+                col: col,
+                isMotion: true,
+              );
+            },
+            onPointerSignal: (event) {
+              if (event is! PointerScrollEvent || !_mouseReportingActive) {
+                return;
+              }
+              final (row, col) = _calculateCoords(
+                event.localPosition,
+                cellW,
+                cellH,
+              );
+              widget.controller.reportMouseEvent(
+                row: row,
+                col: col,
+                isScroll: true,
+                button: event.scrollDelta.dy > 0 ? 1 : 0,
+              );
+            },
+            child: GestureDetector(
+              behavior: HitTestBehavior.translucent,
+              onTap: () {
+                if (_mouseReportingActive) return;
+                _focusNode.requestFocus();
+                widget.controller.clearSelection();
+              },
+              onPanStart: (details) {
+                _focusNode.requestFocus();
+                if (!widget.allowTextSelection || _mouseReportingActive) return;
+                final (absRow, absCol) = _calculateCoords(
+                  details.localPosition,
+                  cellW,
+                  cellH,
+                );
+                widget.controller.startSelection(absRow, absCol);
+              },
+              onPanUpdate: (details) {
+                if (!widget.allowTextSelection || _mouseReportingActive) return;
+                final (absRow, absCol) = _calculateCoords(
+                  details.localPosition,
+                  cellW,
+                  cellH,
+                );
+                widget.controller.updateSelection(absRow, absCol);
+              },
+              child: Container(
+                color: widget.controller.theme.backgroundColor,
+                child: ListView.builder(
+                  scrollCacheExtent: ScrollCacheExtent.pixels(cellH * 10),
+                  controller: _scrollController,
+                  itemCount: totalRows,
+                  itemExtent: cellH,
+                  physics: const ClampingScrollPhysics(),
+                  itemBuilder: (context, index) {
+                    return TerminalRowWidget(
+                      controller: widget.controller,
+                      absoluteRowIndex: index,
+                      cellWidth: cellW,
+                      cellHeight: cellH,
+                      readOnly: widget.readOnly,
+                    );
+                  },
+                ),
               ),
             ),
           ),

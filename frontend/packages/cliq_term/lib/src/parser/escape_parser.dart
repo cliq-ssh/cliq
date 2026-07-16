@@ -478,6 +478,24 @@ class EscapeParser {
           case 25:
             controller.setCursorVisible(enabled);
             break;
+          case 1000:
+            controller.setMouseTrackingMode(MouseTrackingMode.normal, enabled);
+            break;
+          case 1002:
+            controller.setMouseTrackingMode(
+              MouseTrackingMode.buttonEvent,
+              enabled,
+            );
+            break;
+          case 1003:
+            controller.setMouseTrackingMode(
+              MouseTrackingMode.anyEvent,
+              enabled,
+            );
+            break;
+          case 1006:
+            controller.setSgrMouseMode(enabled);
+            break;
           case 1047:
           case 47:
             if (enabled) {
@@ -506,20 +524,21 @@ class EscapeParser {
               );
             }
         }
-        return;
-      }
-
-      switch (mode) {
-        case 4:
-          controller.setInsertMode(enabled);
-          break;
-        case 20:
-          controller.setLineFeedMode(enabled);
-          break;
-        default:
-          if (controller.debugLogging) {
-            _log.warning('\tUnhandled standard mode: $mode (enabled=$enabled)');
-          }
+      } else {
+        switch (mode) {
+          case 4:
+            controller.setInsertMode(enabled);
+            break;
+          case 20:
+            controller.setLineFeedMode(enabled);
+            break;
+          default:
+            if (controller.debugLogging) {
+              _log.warning(
+                '\tUnhandled standard mode: $mode (enabled=$enabled)',
+              );
+            }
+        }
       }
     }
   }

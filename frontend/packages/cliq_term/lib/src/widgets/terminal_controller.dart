@@ -8,7 +8,11 @@ import 'package:cliq_term/src/widgets/terminal_painter.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import '../parser/escape_emitter.dart';
+
 enum CursorStyle { block, underline, bar }
+
+enum MouseTrackingMode { none, normal, buttonEvent, anyEvent }
 
 /// Controller for managing terminal state, including buffers, cursor, and input handling.
 class TerminalController extends ChangeNotifier {
@@ -129,6 +133,19 @@ class TerminalController extends ChangeNotifier {
   /// The cursor state.
   CursorState cursor = .new();
 
+  /// Active mouse tracking level, set via CSI ?1000/1002/1003 h/l.
+  MouseTrackingMode mouseTrackingMode = .none;
+
+  /// Whether SGR (1006) extended coordinate encoding is active.
+  bool sgrMouseMode = false;
+
+  int? _pressedMouseButton;
+
+  /// Whether the cursor is visible per DECTCEM (CSI ?25h/l). Independent of
+  /// [cursor.enabled] (blink-timer/focus state) — a DECTCEM-hidden cursor
+  /// must stay hidden across focus changes until explicitly re-shown.
+  bool _cursorVisible = true;
+
   /// The current window title, as set via OSC 0/2 or restored from the title stack.
   String currentTitle = '';
 
@@ -186,6 +203,9 @@ class TerminalController extends ChangeNotifier {
   /// Returns the total number of rows in the terminal, including scrollback.
   int get totalRows =>
       backBufferActive ? rows : (_front.currentScrollback + rows);
+
+  /// Whether the cursor is currently visible per DECTCEM (CSI ?25h/l).
+  bool get cursorVisible => _cursorVisible;
 
   /// Whether the terminal has been modified since the last time it was marked clean.
   /// This is used to determine if a repaint is needed.
@@ -270,7 +290,6 @@ class TerminalController extends ChangeNotifier {
 
     clearCache();
     markDirty();
-    notifyListeners();
   }
 
   /// Handles keyboard input events and translates them into terminal input.
@@ -323,7 +342,6 @@ class TerminalController extends ChangeNotifier {
 
     backBufferActive = true;
     markDirty();
-    notifyListeners();
   }
 
   /// Leave the alternate (back) screen.
@@ -336,7 +354,6 @@ class TerminalController extends ChangeNotifier {
     }
 
     markDirty();
-    notifyListeners();
   }
 
   // TODO: warn user about potential unsafe sequences
@@ -348,6 +365,73 @@ class TerminalController extends ChangeNotifier {
       } else {
         onInput?.call(text);
       }
+    }
+  }
+
+  void setMouseTrackingMode(MouseTrackingMode mode, bool enabled) {
+    if (enabled) {
+      mouseTrackingMode = mode;
+    } else if (mouseTrackingMode == mode) {
+      mouseTrackingMode = MouseTrackingMode.none;
+    }
+  }
+
+  void setSgrMouseMode(bool enabled) => sgrMouseMode = enabled;
+
+  /// Encodes and sends a mouse event, if the current tracking mode wants it.
+  /// [row]/[col] are 0-indexed grid coordinates. [button]: 0=left, 1=middle,
+  /// 2=right; for [isScroll], 0=wheel-up, 1=wheel-down.
+  void reportMouseEvent({
+    required int row,
+    required int col,
+    int button = 0,
+    bool isRelease = false,
+    bool isMotion = false,
+    bool isScroll = false,
+    bool shift = false,
+    bool alt = false,
+    bool ctrl = false,
+  }) {
+    if (mouseTrackingMode == .none) return;
+
+    if (isMotion) {
+      if (mouseTrackingMode == .normal) return;
+      if (mouseTrackingMode == .buttonEvent && _pressedMouseButton == null) {
+        return;
+      }
+    }
+
+    int cb;
+    if (isScroll) {
+      cb = 64 + button;
+    } else if (isMotion) {
+      cb = (_pressedMouseButton ?? 3) + 32;
+    } else if (isRelease) {
+      cb = sgrMouseMode ? button : 3;
+    } else {
+      cb = button;
+    }
+    if (shift) cb += 4;
+    if (alt) cb += 8;
+    if (ctrl) cb += 16;
+
+    if (!isRelease && !isMotion) {
+      _pressedMouseButton = button;
+    } else if (isRelease) {
+      _pressedMouseButton = null;
+    }
+
+    if (sgrMouseMode) {
+      onInput?.call(
+        EscapeEmitter.sgrMouseEvent(cb, col + 1, row + 1, press: !isRelease),
+      );
+    } else {
+      final cx = (col + 1 + 32).clamp(32, 255);
+      final cy = (row + 1 + 32).clamp(32, 255);
+      onInput?.call(
+        '$kSeqEscape[M${String.fromCharCode(cb + 32)}'
+        '${String.fromCharCode(cx)}${String.fromCharCode(cy)}',
+      );
     }
   }
 
@@ -370,29 +454,27 @@ class TerminalController extends ChangeNotifier {
     _theme = theme;
     clearCache();
     markDirty();
-    notifyListeners();
   }
 
   void setTerminalTypography(TerminalTypography newTypography) {
     _typography = newTypography;
     clearCache();
     markDirty();
-    notifyListeners();
   }
 
   void setInsertMode(bool enabled) {
     activeBuffer.isInsertMode = enabled;
-    notifyListeners();
+    markDirty();
   }
 
   void setLineFeedMode(bool enabled) {
     activeBuffer.isLineFeedMode = enabled;
-    notifyListeners();
+    markDirty();
   }
 
   void setAutoWrapMode(bool enabled) {
     activeBuffer.isAutoWrapMode = enabled;
-    notifyListeners();
+    markDirty();
   }
 
   void setCursorStyle(CursorStyle style) {
@@ -415,7 +497,7 @@ class TerminalController extends ChangeNotifier {
   }
 
   void setCursorVisible(bool visible) {
-    cursor = cursor.copyWith(enabled: visible);
+    _cursorVisible = visible;
     markDirty();
   }
 

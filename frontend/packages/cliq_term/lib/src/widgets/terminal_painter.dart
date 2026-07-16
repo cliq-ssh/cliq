@@ -244,7 +244,7 @@ class CursorPainter extends CustomPainter {
     if (readOnly ||
         !isBlinkVisible ||
         !cursorEnabled ||
-        !controller.cursor.enabled) {
+        !controller.cursorVisible) {
       return;
     }
 

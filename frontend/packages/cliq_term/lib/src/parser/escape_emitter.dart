@@ -16,4 +16,10 @@ class EscapeEmitter {
   static String sizeInPixels(int height, int width) {
     return '$kSeqEscape[4;$height;${width}t';
   }
+
+  /// SGR (1006) extended mouse report.
+  /// - https://terminalguide.namepad.de/mouse/
+  static String sgrMouseEvent(int cb, int col, int row, {required bool press}) {
+    return '$kSeqEscape[<$cb;$col;$row${press ? 'M' : 'm'}';
+  }
 }
