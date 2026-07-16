@@ -138,6 +138,16 @@ class TerminalController extends ChangeNotifier {
   /// Whether SGR (1006) extended coordinate encoding is active.
   bool sgrMouseMode = false;
 
+  /// Whether urxvt (1015) extended coordinate encoding is active.
+  bool urxvtMouseMode = false;
+
+  /// Whether "Alternate Scroll Mode" is active (1007).
+  /// If active, scroll-wheel events on the alt screen with no mouse tracking mode
+  /// enabled are translated into cursor up/down key sequences instead.
+  bool alternateScrollMode = false;
+
+  /// The currently pressed mouse button, if any.
+  /// This is used to determine whether motion events should be reported in button-event tracking mode.
   int? _pressedMouseButton;
 
   /// Whether the cursor is visible per DECTCEM (CSI ?25h/l). Independent of
@@ -375,8 +385,6 @@ class TerminalController extends ChangeNotifier {
     }
   }
 
-  void setSgrMouseMode(bool enabled) => sgrMouseMode = enabled;
-
   /// Encodes and sends a mouse event, if the current tracking mode wants it.
   /// [row]/[col] are 0-indexed grid coordinates. [button]: 0=left, 1=middle,
   /// 2=right; for [isScroll], 0=wheel-up, 1=wheel-down.
@@ -424,6 +432,8 @@ class TerminalController extends ChangeNotifier {
       onInput?.call(
         EscapeEmitter.sgrMouseEvent(cb, col + 1, row + 1, press: !isRelease),
       );
+    } else if (urxvtMouseMode) {
+      onInput?.call(EscapeEmitter.urxvtMouseEvent(cb, col + 1, row + 1));
     } else {
       final cx = (col + 1 + 32).clamp(32, 255);
       final cy = (row + 1 + 32).clamp(32, 255);
@@ -432,6 +442,27 @@ class TerminalController extends ChangeNotifier {
         '${String.fromCharCode(cx)}${String.fromCharCode(cy)}',
       );
     }
+  }
+
+  /// Handles a scroll-wheel event, either reporting it as a mouse event (if
+  /// tracking is active) or, per Alternate Scroll Mode, translating it into
+  /// cursor key presses when on the alt screen with no tracking enabled.
+  /// Returns true if the event was consumed one way or another.
+  bool handleScroll({required int row, required int col, required bool up}) {
+    if (mouseTrackingMode != MouseTrackingMode.none) {
+      reportMouseEvent(row: row, col: col, isScroll: true, button: up ? 0 : 1);
+      return true;
+    }
+
+    if (alternateScrollMode && backBufferActive) {
+      final key = applicationCursorKeys
+          ? (up ? '${kSeqEscape}OA' : '${kSeqEscape}OB')
+          : (up ? kSeqCursorUp : kSeqCursorDown);
+      onInput?.call(key);
+      return true;
+    }
+
+    return false;
   }
 
   void setWindowTitle(String title) {

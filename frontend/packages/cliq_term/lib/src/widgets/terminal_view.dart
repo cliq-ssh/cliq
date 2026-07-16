@@ -344,19 +344,16 @@ class _TerminalViewState extends State<TerminalView> {
               );
             },
             onPointerSignal: (event) {
-              if (event is! PointerScrollEvent || !_mouseReportingActive) {
-                return;
-              }
+              if (event is! PointerScrollEvent) return;
               final (row, col) = _calculateCoords(
                 event.localPosition,
                 cellW,
                 cellH,
               );
-              widget.controller.reportMouseEvent(
+              widget.controller.handleScroll(
                 row: row,
                 col: col,
-                isScroll: true,
-                button: event.scrollDelta.dy > 0 ? 1 : 0,
+                up: event.scrollDelta.dy < 0,
               );
             },
             child: GestureDetector(

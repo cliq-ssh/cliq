@@ -498,7 +498,13 @@ class EscapeParser {
             );
             break;
           case 1006:
-            controller.setSgrMouseMode(enabled);
+            controller.sgrMouseMode = enabled;
+            break;
+          case 1007:
+            controller.alternateScrollMode = enabled;
+            break;
+          case 1015:
+            controller.urxvtMouseMode = enabled;
             break;
           case 1047:
           case 47:
