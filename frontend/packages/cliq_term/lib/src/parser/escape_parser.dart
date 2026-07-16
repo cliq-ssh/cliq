@@ -200,7 +200,10 @@ class EscapeParser {
     final handler = _escHandlers[next];
     if (handler != null) {
       handler();
+    } else if (controller.debugLogging) {
+      _log.warning('[ESC] Unhandled ESC ${String.fromCharCode(next)}');
     }
+
     return true;
   }
 
