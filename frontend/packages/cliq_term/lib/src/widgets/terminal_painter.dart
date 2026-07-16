@@ -13,6 +13,8 @@ class SingleRowPainter extends CustomPainter {
   final bool readOnly;
   final int rowRevision;
   final TerminalBufferRow row;
+  final SelectionState selection;
+  final TerminalTheme theme;
 
   SingleRowPainter({
     required this.controller,
@@ -22,6 +24,8 @@ class SingleRowPainter extends CustomPainter {
     required this.readOnly,
     required this.rowRevision,
     required this.row,
+    required this.selection,
+    required this.theme,
   });
 
   @override
@@ -55,7 +59,7 @@ class SingleRowPainter extends CustomPainter {
       if (c < rowCols) {
         final fmt = cells[c].fmt;
         cellBg = fmt.inverted
-            ? (fmt.fgColor ?? controller.theme.foregroundColor)
+            ? (fmt.fgColor ?? theme.foregroundColor)
             : fmt.bgColor;
       }
       if (cellBg != lastColor) {
@@ -67,12 +71,12 @@ class SingleRowPainter extends CustomPainter {
     flushBg(cols);
 
     // Draw selection overlay if active (selection coordinates are in absolute rows)
-    if (controller.selection.isSelectionActive) {
+    if (selection.isSelectionActive) {
       final bounds = SelectionHelper.normalize(
-        startRow: controller.selection.startRow!,
-        startCol: controller.selection.startCol!,
-        endRow: controller.selection.endRow!,
-        endCol: controller.selection.endCol!,
+        startRow: selection.startRow!,
+        startCol: selection.startCol!,
+        endRow: selection.endRow!,
+        endCol: selection.endCol!,
         maxRows: controller.totalRows,
         maxCols: cols,
       );
@@ -93,7 +97,7 @@ class SingleRowPainter extends CustomPainter {
           ),
           Paint()
             ..isAntiAlias = false
-            ..color = controller.theme.selectionColor,
+            ..color = theme.selectionColor,
         );
       }
     }
@@ -108,10 +112,10 @@ class SingleRowPainter extends CustomPainter {
       final fmt = cell?.fmt ?? FormattingOptions.defaultFormat;
 
       final effectiveFg = fmt.concealed
-          ? controller.theme.foregroundColor.withAlpha(0)
+          ? theme.foregroundColor.withAlpha(0)
           : (fmt.inverted
-                ? (fmt.bgColor ?? controller.theme.backgroundColor)
-                : (fmt.fgColor ?? controller.theme.foregroundColor));
+                ? (fmt.bgColor ?? theme.backgroundColor)
+                : (fmt.fgColor ?? theme.foregroundColor));
 
       final codepoint = ch.length == 1 ? ch.codeUnitAt(0) : -1;
       final isBraille = CharWidth.isBraillePattern(codepoint);
@@ -203,7 +207,9 @@ class SingleRowPainter extends CustomPainter {
       }
     }
 
-    return false;
+    return oldDelegate.rowRevision != rowRevision ||
+        oldDelegate.selection != selection ||
+        oldDelegate.theme != theme;
   }
 }
 
@@ -219,6 +225,8 @@ class CursorPainter extends CustomPainter {
   final int scrollback;
   final CursorStyle cursorStyle;
   final bool cursorEnabled;
+  final TerminalTheme theme;
+  final TerminalTypography typography;
 
   CursorPainter({
     required this.controller,
@@ -232,6 +240,8 @@ class CursorPainter extends CustomPainter {
     required this.scrollback,
     required this.cursorStyle,
     required this.cursorEnabled,
+    required this.theme,
+    required this.typography,
   });
 
   @override
@@ -258,11 +268,11 @@ class CursorPainter extends CustomPainter {
     );
 
     final Color fillColor = cell.fmt.inverted
-        ? (cell.fmt.bgColor ?? controller.theme.backgroundColor)
-        : (cell.fmt.fgColor ?? controller.theme.foregroundColor);
+        ? (cell.fmt.bgColor ?? theme.backgroundColor)
+        : (cell.fmt.fgColor ?? theme.foregroundColor);
     final Color charColor = cell.fmt.inverted
-        ? (cell.fmt.fgColor ?? controller.theme.foregroundColor)
-        : (cell.fmt.bgColor ?? controller.theme.backgroundColor);
+        ? (cell.fmt.fgColor ?? theme.foregroundColor)
+        : (cell.fmt.bgColor ?? theme.backgroundColor);
 
     final cursorRect = Rect.fromLTWH(
       cursorCol * cellWidth,
@@ -277,8 +287,8 @@ class CursorPainter extends CustomPainter {
         final displayedChar = cell.ch.isEmpty ? ' ' : cell.ch;
         final charStyle = TextStyle(
           color: charColor,
-          fontSize: controller.typography.fontSize.toDouble(),
-          fontFamily: controller.typography.fontFamily,
+          fontSize: typography.fontSize.toDouble(),
+          fontFamily: typography.fontFamily,
           fontWeight: cell.fmt.bold ? FontWeight.w700 : FontWeight.w400,
           fontStyle: cell.fmt.italic ? FontStyle.italic : FontStyle.normal,
         );

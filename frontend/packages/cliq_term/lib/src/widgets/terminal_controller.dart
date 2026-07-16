@@ -3,7 +3,6 @@ import 'dart:math';
 
 import 'package:cliq_term/cliq_term.dart';
 import 'package:cliq_term/src/parser/escape_parser.dart';
-import 'package:cliq_term/src/state/selection.state.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -241,7 +240,8 @@ class TerminalController extends ChangeNotifier {
   bool get isPaused => _isPaused;
 
   /// Returns a cached [TextStyle] based on the current typography settings.
-  TextStyle get cachedBaseTextStyle => _cachedTextStyle ??= _typography.toTextStyle();
+  TextStyle get cachedBaseTextStyle =>
+      _cachedTextStyle ??= _typography.toTextStyle();
 
   /// Returns a cached [TextPainter] for the given glyph key if it exists.
   TextPainter? getCachedGlyph(GlyphKey key) => _glyphCache[key];

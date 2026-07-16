@@ -464,6 +464,8 @@ class TerminalRowWidget extends StatelessWidget {
               readOnly: readOnly,
               rowRevision: row.revision,
               row: row,
+              selection: controller.selection,
+              theme: controller.theme,
             ),
           ),
         ),
@@ -484,6 +486,8 @@ class TerminalRowWidget extends StatelessWidget {
                 scrollback: controller.activeBuffer.currentScrollback,
                 cursorStyle: controller.cursor.style,
                 cursorEnabled: controller.cursor.enabled,
+                theme: controller.theme,
+                typography: controller.typography,
               ),
             );
           },
