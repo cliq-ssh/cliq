@@ -1,13 +1,13 @@
+import 'dart:math';
+
 import 'package:cliq_term/cliq_term.dart';
-import 'package:cliq_term/src/utils/gesture_selection_handler.dart';
 import 'package:cliq_term/src/utils/keyboard_helper.dart';
+import 'package:cliq_term/src/utils/selection_helper.dart';
 import 'package:cliq_term/src/widgets/terminal_input.dart';
 import 'package:cliq_term/src/widgets/terminal_painter.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
-
-/// The height of the accessory bar displayed above the keyboard when it is visible.
-const kAccessoryBarHeight = 48.0;
 
 class TerminalView extends StatefulWidget {
   /// The [TerminalController] used to manage the terminal state and handle input/output.
@@ -38,6 +38,9 @@ class TerminalView extends StatefulWidget {
   /// The [KeyboardShortcut] for pasting text into the terminal.
   final KeyboardShortcut? pasteShortcut;
 
+  /// Whether the terminal view is running on a mobile platform.
+  final bool isMobile;
+
   const TerminalView({
     super.key,
     required this.controller,
@@ -48,10 +51,16 @@ class TerminalView extends StatefulWidget {
     this.allowTextSelection = true,
     this.copyShortcut,
     this.pasteShortcut,
+    required this.isMobile,
   });
 
   @override
   State<TerminalView> createState() => _TerminalViewState();
+
+  /// The height of the accessory bar displayed above the keyboard when it is visible.
+  static double getAccessoryBarHeight(bool isMobile) {
+    return isMobile ? 48.0 : 0.0;
+  }
 }
 
 class _TerminalViewState extends State<TerminalView> {
@@ -70,9 +79,12 @@ class _TerminalViewState extends State<TerminalView> {
 
   /// Whether the user has scrolled away from the bottom of the terminal view.
   bool _userScrolledAwayFromBottom = false;
+  bool _isUpdatePending = false;
 
   /// Whether the software keyboard is currently visible.
-  final ValueNotifier<bool> _keyboardVisible = ValueNotifier(true);
+  late final ValueNotifier<bool> _keyboardVisible = ValueNotifier(
+    widget.isMobile,
+  );
 
   final ValueNotifier<AccessoryBarButtonState> _ctrlActive = ValueNotifier(
     .inactive,
@@ -107,6 +119,15 @@ class _TerminalViewState extends State<TerminalView> {
       final atBottom = _scrollController.offset >= (maxExt - 20);
       _userScrolledAwayFromBottom = !atBottom;
     });
+  }
+
+  @override
+  void didUpdateWidget(TerminalView oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.controller != widget.controller) {
+      oldWidget.controller.removeListener(_onUpdate);
+      widget.controller.addListener(_onUpdate);
+    }
   }
 
   @override
@@ -146,16 +167,20 @@ class _TerminalViewState extends State<TerminalView> {
   }
 
   void _onUpdate() {
+    if (!mounted || _isUpdatePending) return;
+    _isUpdatePending = true;
+
     setState(() {});
+
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!_scrollController.hasClients) return;
-      if (_userScrolledAwayFromBottom) {
-        return; // user is viewing history; don't yank them
-      }
-      // jump to bottom
-      final maxExt = _scrollController.position.maxScrollExtent;
-      if (maxExt > 0) {
-        _scrollController.jumpTo(maxExt);
+      _isUpdatePending = false;
+      if (!mounted || !_scrollController.hasClients) return;
+
+      if (!_userScrolledAwayFromBottom) {
+        final maxExt = _scrollController.position.maxScrollExtent;
+        if (maxExt > 0) {
+          _scrollController.jumpTo(maxExt);
+        }
       }
     });
   }
@@ -191,7 +216,7 @@ class _TerminalViewState extends State<TerminalView> {
                 left: 0,
                 right: 0,
                 bottom: restingBottom,
-                height: kAccessoryBarHeight,
+                height: TerminalView.getAccessoryBarHeight(widget.isMobile),
                 child: widget.accessoryBarBuilder!(context, _accessoryActions),
               );
             },
@@ -213,21 +238,12 @@ class _TerminalViewState extends State<TerminalView> {
           (_) => widget.controller.fitResize(constraints.biggest),
         );
 
-        // compute char cell size to compute overall canvas size
+        // compute char cell size
         final (cellW, cellH) = TerminalPainter.measureChar(
           widget.controller.typography,
         );
 
-        // total rows available in front buffer (visible + scrollback)
         final totalRows = widget.controller.totalRows;
-        final totalCols = widget.controller.cols;
-
-        final canvasWidth = (totalCols > 0)
-            ? totalCols * cellW
-            : constraints.maxWidth;
-        final canvasHeight = (totalRows > 0)
-            ? totalRows * cellH
-            : constraints.maxHeight;
 
         return TerminalInput(
           focusNode: _focusNode,
@@ -243,12 +259,9 @@ class _TerminalViewState extends State<TerminalView> {
           },
           onInput: _sendInput,
           onKeyEvent: (node, event) {
-            if (widget.readOnly) {
-              return .ignored;
-            }
+            if (widget.readOnly) return .ignored;
 
             if (event is KeyDownEvent || event is KeyRepeatEvent) {
-              // Do not clear selection on modifier-only key presses.
               if (KeyboardHelper.isModifierOnlyKey(event.logicalKey)) {
                 return .handled;
               }
@@ -259,7 +272,6 @@ class _TerminalViewState extends State<TerminalView> {
                 Clipboard.getData(Clipboard.kTextPlain).then((clip) {
                   String text = clip?.text ?? '';
                   if (text.isNotEmpty) {
-                    // Strip trailing newlines to prevent auto-execution on multiline paste
                     text = _stripTrailingNewlines(text);
                     widget.controller.onInput?.call(text);
                   }
@@ -286,63 +298,68 @@ class _TerminalViewState extends State<TerminalView> {
             behavior: HitTestBehavior.translucent,
             onTap: () {
               _focusNode.requestFocus();
-              // clear any existing selection on simple click
               widget.controller.clearSelection();
             },
             onPanStart: (details) {
               _focusNode.requestFocus();
               if (!widget.allowTextSelection) return;
-              final (
-                absRow,
-                absCol,
-              ) = GestureSelectionHandler.calculateAbsoluteCoordinates(
-                localPosition: details.localPosition,
-                scrollOffset: _scrollController.offset,
-                cellWidth: cellW,
-                cellHeight: cellH,
-                totalRows: widget.controller.totalRows,
-                maxCols: widget.controller.cols,
+              final (absRow, absCol) = _calculateCoords(
+                details.localPosition,
+                cellW,
+                cellH,
               );
               widget.controller.startSelection(absRow, absCol);
             },
             onPanUpdate: (details) {
               if (!widget.allowTextSelection) return;
-              final (
-                absRow,
-                absCol,
-              ) = GestureSelectionHandler.calculateAbsoluteCoordinates(
-                localPosition: details.localPosition,
-                scrollOffset: _scrollController.offset,
-                cellWidth: cellW,
-                cellHeight: cellH,
-                totalRows: widget.controller.totalRows,
-                maxCols: widget.controller.cols,
+              final (absRow, absCol) = _calculateCoords(
+                details.localPosition,
+                cellW,
+                cellH,
               );
               widget.controller.updateSelection(absRow, absCol);
             },
-            onPanEnd: (details) {
-              // selection remains active until user clears or starts another selection
-            },
-            child: SingleChildScrollView(
-              controller: _scrollController,
-              scrollDirection: Axis.vertical,
-              physics: ClampingScrollPhysics(),
-              child: SizedBox(
-                width: canvasWidth,
-                height: canvasHeight < constraints.maxHeight
-                    ? constraints.maxHeight
-                    : canvasHeight,
-                child: CustomPaint(
-                  painter: TerminalPainter(
-                    widget.controller,
+            child: Container(
+              color: widget.controller.theme.backgroundColor,
+              child: ListView.builder(
+                scrollCacheExtent: ScrollCacheExtent.pixels(cellH * 10),
+                controller: _scrollController,
+                itemCount: totalRows,
+                itemExtent: cellH,
+                physics: const ClampingScrollPhysics(),
+                itemBuilder: (context, index) {
+                  return TerminalRowWidget(
+                    controller: widget.controller,
+                    absoluteRowIndex: index,
+                    cellWidth: cellW,
+                    cellHeight: cellH,
                     readOnly: widget.readOnly,
-                  ),
-                ),
+                  );
+                },
               ),
             ),
           ),
         );
       },
+    );
+  }
+
+  (int, int) _calculateCoords(
+    Offset localPosition,
+    double cellW,
+    double cellH,
+  ) {
+    final scrollOffset = _scrollController.hasClients
+        ? _scrollController.offset
+        : 0.0;
+    final totalLocalY = localPosition.dy + scrollOffset;
+
+    final absRow = (totalLocalY / cellH).floor();
+    final col = (localPosition.dx / cellW).floor();
+
+    return (
+      absRow.clamp(0, max(0, widget.controller.totalRows - 1)),
+      col.clamp(0, widget.controller.cols - 1),
     );
   }
 
@@ -355,5 +372,349 @@ class _TerminalViewState extends State<TerminalView> {
       return text.trimRight();
     }
     return text;
+  }
+}
+
+class TerminalRowWidget extends StatelessWidget {
+  final TerminalController controller;
+  final int absoluteRowIndex;
+  final double cellWidth;
+  final double cellHeight;
+  final bool readOnly;
+
+  const TerminalRowWidget({
+    super.key,
+    required this.controller,
+    required this.absoluteRowIndex,
+    required this.cellWidth,
+    required this.cellHeight,
+    required this.readOnly,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final row = controller.activeBuffer.getAbsoluteRow(absoluteRowIndex);
+
+    return Stack(
+      children: [
+        RepaintBoundary(
+          child: CustomPaint(
+            size: Size(controller.cols * cellWidth, cellHeight),
+            painter: _SingleRowPainter(
+              controller: controller,
+              absoluteRowIndex: absoluteRowIndex,
+              cellWidth: cellWidth,
+              cellHeight: cellHeight,
+              readOnly: readOnly,
+              rowRevision: row.revision,
+              selection: controller.selection,
+              theme: controller.theme,
+              typography: controller.typography,
+            ),
+          ),
+        ),
+        ValueListenableBuilder<bool>(
+          valueListenable: controller.cursorBlinkNotifier,
+          builder: (context, isBlinkVisible, child) {
+            return CustomPaint(
+              size: Size(controller.cols * cellWidth, cellHeight),
+              painter: _CursorPainter(
+                controller: controller,
+                absoluteRowIndex: absoluteRowIndex,
+                cellWidth: cellWidth,
+                cellHeight: cellHeight,
+                readOnly: readOnly,
+                isBlinkVisible: isBlinkVisible,
+                cursorRow: controller.activeBuffer.cursorRow,
+                cursorCol: controller.activeBuffer.cursorCol,
+                scrollback: controller.activeBuffer.currentScrollback,
+                cursorStyle: controller.cursor.style,
+                cursorEnabled: controller.cursor.enabled,
+                theme: controller.theme,
+                typography: controller.typography,
+              ),
+            );
+          },
+        ),
+      ],
+    );
+  }
+}
+
+class _SingleRowPainter extends CustomPainter {
+  final TerminalController controller;
+  final int absoluteRowIndex;
+  final double cellWidth;
+  final double cellHeight;
+  final bool readOnly;
+  final int rowRevision;
+  final SelectionState selection;
+  final TerminalTheme theme;
+  final TerminalTypography typography;
+
+  _SingleRowPainter({
+    required this.controller,
+    required this.absoluteRowIndex,
+    required this.cellWidth,
+    required this.cellHeight,
+    required this.readOnly,
+    required this.rowRevision,
+    required this.selection,
+    required this.theme,
+    required this.typography,
+  });
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final row = controller.activeBuffer.getAbsoluteRow(absoluteRowIndex);
+    final cells = row.cells;
+    final cols = controller.activeBuffer.cols;
+    final rowCols = cells.length;
+
+    // 1. Backgrounds
+    final bgPaint = Paint();
+    Color? lastColor;
+    int startCol = 0;
+
+    void flushBg(int endCol) {
+      if (lastColor != null) {
+        bgPaint.color = lastColor;
+        canvas.drawRect(
+          Rect.fromLTWH(
+            startCol * cellWidth,
+            0,
+            (endCol - startCol) * cellWidth,
+            cellHeight,
+          ),
+          bgPaint,
+        );
+      }
+    }
+
+    for (int c = 0; c < cols; c++) {
+      final cellBg = (c < rowCols) ? cells[c].fmt.bgColor : null;
+      if (cellBg != lastColor) {
+        flushBg(c);
+        lastColor = cellBg;
+        startCol = c;
+      }
+    }
+    flushBg(cols);
+
+    // 2. Selection
+    if (selection.isSelectionActive) {
+      final bounds = SelectionHelper.normalize(
+        startRow: selection.startRow!,
+        startCol: selection.startCol!,
+        endRow: selection.endRow!,
+        endCol: selection.endCol!,
+        maxRows: controller.totalRows,
+        maxCols: cols,
+      );
+
+      final rowSel = SelectionHelper.getRowSelection(
+        row: absoluteRowIndex,
+        bounds: bounds,
+        maxCols: cols,
+      );
+
+      if (!rowSel.isEmpty) {
+        canvas.drawRect(
+          Rect.fromLTWH(
+            rowSel.start * cellWidth,
+            0,
+            (rowSel.end - rowSel.start + 1) * cellWidth,
+            cellHeight,
+          ),
+          Paint()..color = theme.selectionColor,
+        );
+      }
+    }
+
+    // 3. Text
+    TextPainter? tp = controller.getCachedRow(row);
+    if (tp == null) {
+      final textStyle = typography.toTextStyle();
+      FormattingOptions? lastFmt;
+      final List<InlineSpan> spans = [];
+      final StringBuffer sb = StringBuffer();
+
+      void flushRun() {
+        if (sb.isEmpty) return;
+        final fmt = lastFmt ?? FormattingOptions.defaultFormat;
+        final effectiveFg = fmt.concealed
+            ? theme.foregroundColor.withAlpha(0)
+            : (fmt.effectiveFgColor ?? theme.foregroundColor);
+
+        final style = textStyle.copyWith(
+          color: effectiveFg,
+          fontWeight: fmt.bold ? FontWeight.w700 : null,
+          fontStyle: fmt.italic ? FontStyle.italic : FontStyle.normal,
+          decoration: fmt.underline == Underline.none
+              ? TextDecoration.none
+              : TextDecoration.underline,
+          decorationStyle: fmt.underline == Underline.double
+              ? TextDecorationStyle.double
+              : TextDecorationStyle.solid,
+        );
+        spans.add(TextSpan(text: sb.toString(), style: style));
+        sb.clear();
+      }
+
+      for (int c = 0; c < cols; c++) {
+        final cell = (c < rowCols) ? cells[c] : null;
+        final fmt = cell?.fmt ?? FormattingOptions.defaultFormat;
+        if (lastFmt == null) {
+          lastFmt = fmt;
+        } else if (!identical(lastFmt, fmt) && lastFmt != fmt) {
+          flushRun();
+          lastFmt = fmt;
+        }
+        sb.write(cell?.ch ?? ' ');
+      }
+      flushRun();
+
+      if (spans.isNotEmpty) {
+        tp = TextPainter(
+          text: TextSpan(children: spans),
+          textDirection: TextDirection.ltr,
+          maxLines: 1,
+        )..layout(minWidth: 0, maxWidth: cols * cellWidth);
+        controller.cacheRow(row, tp);
+      }
+    }
+
+    if (tp != null) {
+      tp.paint(canvas, Offset.zero);
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant _SingleRowPainter oldDelegate) {
+    return oldDelegate.absoluteRowIndex != absoluteRowIndex ||
+        oldDelegate.readOnly != readOnly ||
+        oldDelegate.rowRevision != rowRevision ||
+        oldDelegate.selection != selection ||
+        oldDelegate.theme != theme ||
+        oldDelegate.typography != typography;
+  }
+}
+
+class _CursorPainter extends CustomPainter {
+  final TerminalController controller;
+  final int absoluteRowIndex;
+  final double cellWidth;
+  final double cellHeight;
+  final bool readOnly;
+  final bool isBlinkVisible;
+  final int cursorRow;
+  final int cursorCol;
+  final int scrollback;
+  final CursorStyle cursorStyle;
+  final bool cursorEnabled;
+  final TerminalTheme theme;
+  final TerminalTypography typography;
+
+  _CursorPainter({
+    required this.controller,
+    required this.absoluteRowIndex,
+    required this.cellWidth,
+    required this.cellHeight,
+    required this.readOnly,
+    required this.isBlinkVisible,
+    required this.cursorRow,
+    required this.cursorCol,
+    required this.scrollback,
+    required this.cursorStyle,
+    required this.cursorEnabled,
+    required this.theme,
+    required this.typography,
+  });
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    if (readOnly || !isBlinkVisible || !cursorEnabled) {
+      return;
+    }
+
+    final absCursorRow = scrollback + cursorRow;
+
+    if (absCursorRow != absoluteRowIndex) {
+      return;
+    }
+
+    final cols = controller.activeBuffer.cols;
+
+    if (cursorCol >= 0 && cursorCol < cols) {
+      final cell = controller.activeBuffer.getAbsoluteCell(
+        absCursorRow,
+        cursorCol,
+      );
+      final cellFg = cell.fmt.effectiveFgColor;
+      final cellBg = cell.fmt.effectiveBgColor;
+
+      final Color fillColor = cellFg ?? theme.foregroundColor;
+      final Color charColor = cellBg ?? theme.backgroundColor;
+
+      final cursorRect = Rect.fromLTWH(
+        cursorCol * cellWidth,
+        0,
+        cellWidth,
+        cellHeight,
+      );
+
+      switch (cursorStyle) {
+        case .block:
+          canvas.drawRect(cursorRect, Paint()..color = fillColor);
+          final displayedChar = cell.ch.isEmpty ? ' ' : cell.ch;
+          final charStyle = TextStyle(
+            color: charColor,
+            fontSize: typography.fontSize.toDouble(),
+            fontFamily: typography.fontFamily,
+            fontWeight: cell.fmt.bold ? FontWeight.w700 : FontWeight.w400,
+            fontStyle: cell.fmt.italic ? FontStyle.italic : FontStyle.normal,
+          );
+          TextPainter(
+              text: TextSpan(text: displayedChar, style: charStyle),
+              textDirection: TextDirection.ltr,
+            )
+            ..layout(minWidth: 0, maxWidth: cellWidth)
+            ..paint(canvas, Offset(cursorCol * cellWidth, 0));
+          break;
+        case .underline:
+          final underlineHeight = cellHeight * 0.18;
+          canvas.drawRect(
+            Rect.fromLTWH(
+              cursorCol * cellWidth,
+              cellHeight - underlineHeight,
+              cellWidth,
+              underlineHeight,
+            ),
+            Paint()..color = fillColor,
+          );
+          break;
+        case .bar:
+          final barWidth = max(1.0, cellWidth * 0.12);
+          canvas.drawRect(
+            Rect.fromLTWH(cursorCol * cellWidth, 0, barWidth, cellHeight),
+            Paint()..color = fillColor,
+          );
+          break;
+      }
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant _CursorPainter oldDelegate) {
+    return oldDelegate.isBlinkVisible != isBlinkVisible ||
+        oldDelegate.cursorRow != cursorRow ||
+        oldDelegate.cursorCol != cursorCol ||
+        oldDelegate.scrollback != scrollback ||
+        oldDelegate.cursorStyle != cursorStyle ||
+        oldDelegate.cursorEnabled != cursorEnabled ||
+        oldDelegate.absoluteRowIndex != absoluteRowIndex ||
+        oldDelegate.readOnly != readOnly ||
+        oldDelegate.theme != theme ||
+        oldDelegate.typography != typography;
   }
 }

@@ -12,19 +12,29 @@ class TerminalPainter extends CustomPainter {
   const TerminalPainter(this.controller, {this.readOnly = false})
     : super(repaint: controller);
 
+  static final Map<TerminalTypography, (double, double)> _measureCache = {};
+
   /// Calculates the width and height of a single character cell based on the provided typography.
   static (double width, double height) measureChar(
     TerminalTypography typography,
   ) {
+    if (_measureCache.containsKey(typography)) {
+      return _measureCache[typography]!;
+    }
     final probe = TextPainter(
       text: TextSpan(text: 'MMMM', style: typography.toTextStyle()),
       textDirection: TextDirection.ltr,
     )..layout();
-    return (probe.width / 4, probe.height);
+    final res = (probe.width / 4, probe.height);
+    _measureCache[typography] = res;
+    return res;
   }
 
   @override
   void paint(Canvas canvas, Size size) {
+    final clip = canvas.getLocalClipBounds();
+    if (clip.isEmpty) return;
+
     // set background
     final bgPaint = Paint()..color = controller.theme.backgroundColor;
     canvas.drawRect(Offset.zero & size, bgPaint);
@@ -37,17 +47,42 @@ class TerminalPainter extends CustomPainter {
 
     if (totalRows == 0 || cols == 0) return;
 
+    final firstRow = (clip.top / cellH).floor().clamp(0, totalRows - 1);
+    final lastRow = (clip.bottom / cellH).ceil().clamp(0, totalRows - 1);
+
     // draw cell backgrounds for every buffer row
-    for (int r = 0; r < totalRows; r++) {
-      for (int c = 0; c < cols; c++) {
-        final cell = controller.activeBuffer.getAbsoluteCell(r, c);
-        final cellBg = cell.fmt.bgColor;
-        if (cellBg != null) {
-          final rect = Rect.fromLTWH(c * cellW, r * cellH, cellW, cellH);
-          final p = Paint()..color = cellBg;
-          canvas.drawRect(rect, p);
+    final cellBgPaint = Paint();
+    for (int r = firstRow; r <= lastRow; r++) {
+      final row = controller.activeBuffer.getAbsoluteRow(r);
+      final cells = row.cells;
+      final rowCols = cells.length;
+      Color? lastColor;
+      int startCol = 0;
+
+      void flushBg(int endCol) {
+        if (lastColor != null) {
+          cellBgPaint.color = lastColor;
+          canvas.drawRect(
+            Rect.fromLTWH(
+              startCol * cellW,
+              r * cellH,
+              (endCol - startCol) * cellW,
+              cellH,
+            ),
+            cellBgPaint,
+          );
         }
       }
+
+      for (int c = 0; c < cols; c++) {
+        final cellBg = (c < rowCols) ? cells[c].fmt.bgColor : null;
+        if (cellBg != lastColor) {
+          flushBg(c);
+          lastColor = cellBg;
+          startCol = c;
+        }
+      }
+      flushBg(cols);
     }
 
     // Draw selection overlay if active (selection coordinates are in absolute rows)
@@ -86,56 +121,66 @@ class TerminalPainter extends CustomPainter {
     }
 
     // paint text for each buffer row
-    for (int r = 0; r < totalRows; r++) {
-      FormattingOptions? lastFmt;
-      final List<InlineSpan> spans = [];
-      final StringBuffer sb = StringBuffer();
+    final textStyle = controller.typography.toTextStyle();
+    for (int r = firstRow; r <= lastRow; r++) {
+      final row = controller.activeBuffer.getAbsoluteRow(r);
 
-      void flushRun() {
-        if (sb.isEmpty) return;
-        final fmt = lastFmt ?? FormattingOptions();
-        final effectiveFg = fmt.concealed
-            ? controller.theme.foregroundColor.withAlpha(0)
-            : (fmt.effectiveFgColor ?? controller.theme.foregroundColor);
+      TextPainter? tp = controller.getCachedRow(row);
+      if (tp == null) {
+        final cells = row.cells;
+        final rowCols = cells.length;
+        FormattingOptions? lastFmt;
+        final List<InlineSpan> spans = [];
+        final StringBuffer sb = StringBuffer();
 
-        final style = controller.typography.toTextStyle().copyWith(
-          color: effectiveFg,
-          fontWeight: fmt.bold ? FontWeight.w700 : null,
-          fontStyle: fmt.italic ? FontStyle.italic : FontStyle.normal,
-          decoration: fmt.underline == Underline.none
-              ? TextDecoration.none
-              : TextDecoration.underline,
-          decorationStyle: fmt.underline == Underline.double
-              ? TextDecorationStyle.double
-              : TextDecorationStyle.solid,
-        );
-        spans.add(TextSpan(text: sb.toString(), style: style));
-        sb.clear();
-      }
+        void flushRun() {
+          if (sb.isEmpty) return;
+          final fmt = lastFmt ?? FormattingOptions.defaultFormat;
+          final effectiveFg = fmt.concealed
+              ? controller.theme.foregroundColor.withAlpha(0)
+              : (fmt.effectiveFgColor ?? controller.theme.foregroundColor);
 
-      for (int c = 0; c < cols; c++) {
-        final cell = controller.activeBuffer.getAbsoluteCell(r, c);
-        final fmt = cell.fmt;
-        if (lastFmt == null) {
-          lastFmt = fmt;
-        } else if (lastFmt != fmt) {
-          flushRun();
-          lastFmt = fmt;
+          final style = textStyle.copyWith(
+            color: effectiveFg,
+            fontWeight: fmt.bold ? FontWeight.w700 : null,
+            fontStyle: fmt.italic ? FontStyle.italic : FontStyle.normal,
+            decoration: fmt.underline == Underline.none
+                ? TextDecoration.none
+                : TextDecoration.underline,
+            decorationStyle: fmt.underline == Underline.double
+                ? TextDecorationStyle.double
+                : TextDecorationStyle.solid,
+          );
+          spans.add(TextSpan(text: sb.toString(), style: style));
+          sb.clear();
         }
-        sb.write(cell.ch);
+
+        for (int c = 0; c < cols; c++) {
+          final cell = (c < rowCols) ? cells[c] : null;
+          final fmt = cell?.fmt ?? FormattingOptions.defaultFormat;
+          if (lastFmt == null) {
+            lastFmt = fmt;
+          } else if (!identical(lastFmt, fmt) && lastFmt != fmt) {
+            flushRun();
+            lastFmt = fmt;
+          }
+          sb.write(cell?.ch ?? ' ');
+        }
+        flushRun();
+
+        if (spans.isNotEmpty) {
+          tp = TextPainter(
+            text: TextSpan(children: spans),
+            textDirection: TextDirection.ltr,
+            maxLines: 1,
+          )..layout(minWidth: 0, maxWidth: cols * cellW);
+          controller.cacheRow(row, tp);
+        }
       }
-      flushRun();
 
-      // skip empty rows
-      if (spans.isEmpty) continue;
-
-      TextPainter(
-          text: TextSpan(children: spans),
-          textDirection: TextDirection.ltr,
-          maxLines: 1,
-        )
-        ..layout(minWidth: 0, maxWidth: cols * cellW)
-        ..paint(canvas, Offset(0, r * cellH));
+      if (tp != null) {
+        tp.paint(canvas, Offset(0, r * cellH));
+      }
     }
 
     // don't draw cursor in read-only mode
@@ -148,7 +193,8 @@ class TerminalPainter extends CustomPainter {
     final absCursorRow =
         controller.activeBuffer.currentScrollback + visibleCursorRow;
 
-    if (controller.cursor.visible &&
+    if (controller.cursor.enabled &&
+        controller.cursor.blinkVisible &&
         absCursorRow >= 0 &&
         absCursorRow < totalRows &&
         visibleCursorCol >= 0 &&
@@ -219,5 +265,8 @@ class TerminalPainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(covariant TerminalPainter oldDelegate) => false;
+  bool shouldRepaint(covariant TerminalPainter oldDelegate) {
+    return oldDelegate.controller != controller ||
+        oldDelegate.readOnly != readOnly;
+  }
 }

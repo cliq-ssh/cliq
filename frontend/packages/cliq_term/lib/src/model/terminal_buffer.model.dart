@@ -6,15 +6,32 @@ import '../state/charset.state.dart';
 import '../utils/selection_helper.dart';
 
 class TerminalBufferRow {
-  final List<Cell> cells;
+  List<Cell> cells;
+  int revision = 0;
 
   TerminalBufferRow(int cols)
     : cells = List.generate(cols, (_) => Cell.empty(), growable: false);
 
+  void ensureCols(int cols) {
+    if (cells.length == cols) return;
+    if (cells.length > cols) {
+      cells = cells.sublist(0, cols);
+    } else {
+      final oldLen = cells.length;
+      final newCells = List<Cell>.generate(
+        cols,
+        (i) => i < oldLen ? cells[i] : Cell.empty(),
+        growable: false,
+      );
+      cells = newCells;
+    }
+  }
+
   void clear() {
     for (var i = 0; i < cells.length; i++) {
-      cells[i] = Cell.empty();
+      cells[i].reset();
     }
+    revision++;
   }
 }
 
@@ -31,7 +48,7 @@ class TerminalBuffer {
   final RingBuffer<TerminalBufferRow> _buffer;
 
   /// The current formatting options.
-  FormattingOptions currentFormat = FormattingOptions();
+  FormattingOptions currentFormat = FormattingOptions.defaultFormat;
 
   /// The current cursor row position.
   int cursorRow = 0;
@@ -98,19 +115,16 @@ class TerminalBuffer {
     newBuffer.isAutoWrapMode = isAutoWrapMode;
     newBuffer.tabStops = Set.from(tabStops.where((s) => s < newCols));
 
-    // Preserve history and visible rows by copying rows from the old ring buffer
-    // When shrinking, we try to discard trailing empty lines to avoid unnecessary scrollback
     final oldCurrentScrollback = currentScrollback;
     final absCursorRow = cursorRow + oldCurrentScrollback;
     newBuffer._buffer.clear();
 
     int effectiveOldLength = _buffer.length;
-    final emptyFormat = FormattingOptions();
     while (effectiveOldLength > newRows) {
       final row = _buffer[effectiveOldLength - 1];
       bool isEmpty = true;
       for (final cell in row.cells) {
-        if (cell.ch != ' ' || cell.fmt != emptyFormat) {
+        if (cell.ch != ' ' || cell.fmt != FormattingOptions.defaultFormat) {
           isEmpty = false;
           break;
         }
@@ -122,17 +136,13 @@ class TerminalBuffer {
       }
     }
 
-    final minCols = min(cols, newCols);
     for (var i = 0; i < effectiveOldLength; i++) {
-      final oldRow = _buffer[i];
-      final newRow = TerminalBufferRow(newCols);
-      for (var c = 0; c < minCols; c++) {
-        newRow.cells[c] = Cell.clone(oldRow.cells[c]);
-      }
-      newBuffer._buffer.add(newRow);
+      final row = _buffer[i];
+      row.ensureCols(newCols);
+      newBuffer._buffer.add(row);
     }
 
-    // Ensure we have at least "newRows" in the buffer to satisfy currentScrollback calculations
+    // Ensure we have at least "newRows" in the buffer
     while (newBuffer.length < newRows) {
       newBuffer._buffer.add(TerminalBufferRow(newCols));
     }
@@ -251,13 +261,19 @@ class TerminalBuffer {
   /// Returns a Cell by absolute index inside the ring buffer:
   /// index 0 is the oldest row; index `length-1` is the newest
   Cell getAbsoluteCell(int absRow, int col) {
+    final row = getAbsoluteRow(absRow);
+    if (col < 0 || col >= row.cells.length) {
+      return Cell.empty();
+    }
+    return row.cells[col];
+  }
+
+  TerminalBufferRow getAbsoluteRow(int absRow) {
     if (absRow < 0 || absRow >= _buffer.length) {
-      return Cell.empty();
+      // Return a dummy empty row to avoid crashes
+      return TerminalBufferRow(cols);
     }
-    if (col < 0 || col >= cols) {
-      return Cell.empty();
-    }
-    return _buffer[absRow].cells[col];
+    return _buffer[absRow];
   }
 
   Cell getCell(int row, int col) {
@@ -267,12 +283,25 @@ class TerminalBuffer {
     return _buffer[abs].cells[col];
   }
 
-  void setCell(int row, int col, Cell cell) {
-    _buffer[row + currentScrollback].cells[col] = cell;
+  void setCell(int row, int col, String ch, FormattingOptions fmt) {
+    final r = _buffer[row + currentScrollback];
+    r.ensureCols(cols);
+    final cell = r.cells[col];
+    cell.ch = ch;
+    cell.fmt = fmt;
+    r.revision++;
   }
 
-  void setCellAtCursor(Cell cell) {
-    setCell(cursorRow, cursorCol, cell);
+  void eraseCell(int row, int col) {
+    final r = _buffer[row + currentScrollback];
+    r.ensureCols(cols);
+    final cell = r.cells[col];
+    cell.reset();
+    r.revision++;
+  }
+
+  void setCellAtCursor(String ch, FormattingOptions fmt) {
+    setCell(cursorRow, cursorCol, ch, fmt);
   }
 
   void printString(String str) {
@@ -306,21 +335,19 @@ class TerminalBuffer {
     }
 
     if (isInsertMode) {
+      final r = _buffer[cursorRow + currentScrollback];
+      r.ensureCols(cols);
       for (var c = cols - 1; c >= cursorCol + 1; c--) {
-        final src = getCell(cursorRow, c - 1);
-        setCell(cursorRow, c, src);
+        final src = r.cells[c - 1];
+        final dest = r.cells[c];
+        dest.ch = src.ch;
+        dest.fmt = src.fmt;
       }
-      for (var c = cursorCol; c < min(cols, cursorCol + 1); c++) {
-        setCell(cursorRow, c, Cell.empty());
-      }
+      r.cells[cursorCol].reset();
+      r.revision++;
     }
 
-    setCellAtCursor(
-      Cell(
-        String.fromCharCode(translated),
-        FormattingOptions.clone(currentFormat),
-      ),
-    );
+    setCellAtCursor(String.fromCharCode(translated), currentFormat);
 
     // whether the cursor is at the last column before printing
     final endsAtLastColumn = (cursorCol + 1 - 1) == (cols - 1);
@@ -344,7 +371,13 @@ class TerminalBuffer {
   }
 
   void pushEmptyLine() {
-    _buffer.add(TerminalBufferRow(cols));
+    final oldRow = _buffer.nextToOverwrite;
+    if (oldRow != null) {
+      oldRow.clear();
+      _buffer.add(oldRow);
+    } else {
+      _buffer.add(TerminalBufferRow(cols));
+    }
     cursorRow = rows - 1;
   }
 
@@ -358,10 +391,15 @@ class TerminalBuffer {
       final visibleStart = currentScrollback;
       for (var r = _topMargin; r <= _bottomMargin; r++) {
         final row = _buffer[visibleStart + r];
+        row.ensureCols(cols);
         for (var c = 0; c < cols - 1; c++) {
-          row.cells[c] = row.cells[c + 1];
+          final next = row.cells[c + 1];
+          final curr = row.cells[c];
+          curr.ch = next.ch;
+          curr.fmt = next.fmt;
         }
-        row.cells[cols - 1] = Cell.empty();
+        row.cells[cols - 1].reset();
+        row.revision++;
       }
     }
   }
@@ -377,28 +415,43 @@ class TerminalBuffer {
     final visibleStart = currentScrollback;
     for (var r = 0; r < rows; r++) {
       final row = _buffer[visibleStart + r];
+      row.ensureCols(cols);
       for (var c = cols - 1; c > 0; c--) {
-        row.cells[c] = row.cells[c - 1];
+        final prev = row.cells[c - 1];
+        final curr = row.cells[c];
+        curr.ch = prev.ch;
+        curr.fmt = prev.fmt;
       }
       // blank the leftmost column
-      row.cells[0] = Cell.empty();
+      row.cells[0].reset();
+      row.revision++;
     }
   }
 
   /// Scroll Up (SU)
   /// - https://terminalguide.namepad.de/seq/csi_cs/
   void scrollUp(int amount) {
-    if (amount == 0) amount = 1;
+    if (amount <= 0) amount = 1;
+    if (amount > (_bottomMargin - _topMargin + 1)) {
+      amount = _bottomMargin - _topMargin + 1;
+    }
 
     final visibleStart = currentScrollback;
+
+    // To avoid aliasing and unnecessary allocations, we rotate the rows in the scroll region
+    final List<TerminalBufferRow> regionRows = [];
     for (var i = _topMargin; i <= _bottomMargin; i++) {
-      final destIdx = visibleStart + i;
-      final srcRow = i + amount;
-      if (srcRow <= _bottomMargin) {
-        final srcIdx = visibleStart + srcRow;
-        _buffer[destIdx] = _buffer[srcIdx];
+      regionRows.add(_buffer[visibleStart + i]);
+    }
+
+    for (var i = 0; i < regionRows.length; i++) {
+      final targetIdx = visibleStart + _topMargin + i;
+      if (i + amount < regionRows.length) {
+        _buffer[targetIdx] = regionRows[i + amount];
       } else {
-        _buffer[destIdx] = TerminalBufferRow(cols);
+        final reusedRow = regionRows[i + amount - regionRows.length];
+        reusedRow.clear();
+        _buffer[targetIdx] = reusedRow;
       }
     }
   }
@@ -406,18 +459,26 @@ class TerminalBuffer {
   /// Scroll Down (SD)
   /// - https://terminalguide.namepad.de/seq/csi_ct_1param/
   void scrollDown(int amount) {
-    // first param is always != 0, otherwise it would be Track Mouse (https://terminalguide.namepad.de/seq/csi_ct_5param/)
-    if (amount == 0) return;
+    if (amount <= 0) return;
+    if (amount > (_bottomMargin - _topMargin + 1)) {
+      amount = _bottomMargin - _topMargin + 1;
+    }
 
     final visibleStart = currentScrollback;
-    for (var i = _bottomMargin; i >= _topMargin; i--) {
-      final destIdx = visibleStart + i;
-      final srcRow = i - amount;
-      if (srcRow >= _topMargin) {
-        final srcIdx = visibleStart + srcRow;
-        _buffer[destIdx] = _buffer[srcIdx];
+
+    final List<TerminalBufferRow> regionRows = [];
+    for (var i = _topMargin; i <= _bottomMargin; i++) {
+      regionRows.add(_buffer[visibleStart + i]);
+    }
+
+    for (var i = 0; i < regionRows.length; i++) {
+      final targetIdx = visibleStart + _topMargin + i;
+      if (i - amount >= 0) {
+        _buffer[targetIdx] = regionRows[i - amount];
       } else {
-        _buffer[destIdx] = TerminalBufferRow(cols);
+        final reusedRow = regionRows[i - amount + regionRows.length];
+        reusedRow.clear();
+        _buffer[targetIdx] = reusedRow;
       }
     }
   }
@@ -433,7 +494,7 @@ class TerminalBuffer {
   /// - https://terminalguide.namepad.de/seq/csi_ck-0/
   void eraseLineRight() {
     for (var c = cursorCol; c < cols; c++) {
-      setCell(cursorRow, c, Cell.empty());
+      eraseCell(cursorRow, c);
     }
   }
 
@@ -441,7 +502,7 @@ class TerminalBuffer {
   /// - https://terminalguide.namepad.de/seq/csi_ck-1/
   void eraseLineLeft() {
     for (var c = 0; c <= cursorCol; c++) {
-      setCell(cursorRow, c, Cell.empty());
+      eraseCell(cursorRow, c);
     }
   }
 
@@ -449,7 +510,7 @@ class TerminalBuffer {
   /// - https://terminalguide.namepad.de/seq/csi_ck-2/
   void eraseLineComplete() {
     for (var c = 0; c < cols; c++) {
-      setCell(cursorRow, c, Cell.empty());
+      eraseCell(cursorRow, c);
     }
   }
 
@@ -459,7 +520,7 @@ class TerminalBuffer {
     for (var r = cursorRow; r < rows; r++) {
       final startCol = r == cursorRow ? cursorCol : 0;
       for (var c = startCol; c < cols; c++) {
-        setCell(r, c, Cell.empty());
+        eraseCell(cursorRow, c);
       }
     }
   }
@@ -470,7 +531,7 @@ class TerminalBuffer {
     for (var r = 0; r <= cursorRow; r++) {
       final endCol = r == cursorRow ? cursorCol : cols - 1;
       for (var c = 0; c <= endCol; c++) {
-        setCell(r, c, Cell.empty());
+        eraseCell(cursorRow, c);
       }
     }
   }
@@ -486,16 +547,21 @@ class TerminalBuffer {
     final start = cursorCol.clamp(0, cols);
     amount = min(amount, cols - start);
 
+    final r = _buffer[cursorRow + currentScrollback];
+    r.ensureCols(cols);
     // shift characters to the left
     for (var c = start; c < cols - amount; c++) {
-      final cell = getCell(cursorRow, c + amount);
-      setCell(cursorRow, c, cell);
+      final cell = r.cells[c + amount];
+      final target = r.cells[c];
+      target.ch = cell.ch;
+      target.fmt = cell.fmt;
     }
 
     // fill the vacated space with empty cells
     for (var c = cols - amount; c < cols; c++) {
-      setCell(cursorRow, c, Cell.empty());
+      r.cells[c].reset();
     }
+    r.revision++;
   }
 
   /// Sets the vertical scroll margins to the specified [top] and [bottom] rows.

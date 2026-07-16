@@ -14,12 +14,17 @@ typedef CcHandler = void Function(TerminalBuffer buffer);
 class EscapeParser {
   static final Logger _log = Logger('EscapeParser');
 
+  /// The maximum number of bytes to process in a single batch before yielding to the event loop.
+  static const _maxByteChunkSize = 1000;
+
+  /// The maximum time budget in milliseconds for processing a batch of bytes before yielding to the event loop.
+  static const _maxTimeBudgetInMs = 4;
+
   final TerminalController controller;
 
-  late final CsiParser _csiParser = CsiParser();
-  final _queue = ByteQueue();
-
   EscapeParser({required this.controller});
+
+  late final CsiParser _csiParser = CsiParser();
 
   late final Map<int, CcHandler> _ccHandlers = {
     0x05: _ccAnswerback,
@@ -95,38 +100,82 @@ class EscapeParser {
     2: _oscSetWindowTitle,
   };
 
+  final _queue = ByteQueue();
+  bool _isProcessing = false;
+
+  int get queueLength => _queue.length;
+
   /// Feeds input into the parser.
   /// The input can contain any combination of printable characters, control characters, and escape sequences.
   void write(String input) {
     _queue.add(input);
-    _process();
+
+    if (_queue.length > TerminalController.highWaterMark &&
+        !controller.isPaused) {
+      controller.pause();
+    }
+
+    if (!_isProcessing) {
+      _process();
+    }
   }
 
-  /// Processes the byte queue, handling control characters and escape sequences until more input is needed.
+  /// Processes the queued input, parsing and dispatching control sequences and characters to the terminal controller.
+  /// This method processes input in batches to avoid blocking the UI thread, yielding control back to the event loop
+  /// if processing exceeds a time budget. ([_maxTimeBudgetInMs])
   void _process() {
+    _isProcessing = true;
+    final sw = Stopwatch()..start();
+
     while (_queue.isNotEmpty) {
-      final cu = _queue.peek();
-
-      if (cu == 0x1B) {
-        final saved = _queue.position;
-        _queue.consume();
-        if (!_processEscape()) {
-          _queue.savePosition(saved);
-          return;
-        }
-        continue;
+      // Process in batches
+      for (int i = 0; i < _maxByteChunkSize && _queue.isNotEmpty; i++) {
+        _processOne();
       }
 
+      // Budget of 4ms for parsing to keep UI fluid
+      if (sw.elapsedMilliseconds >= _maxTimeBudgetInMs && _queue.isNotEmpty) {
+        final wasPaused = controller.isPaused;
+        controller.pause();
+        _process();
+        if (!wasPaused) controller.resume();
+        controller.markDirty();
+        return;
+      }
+    }
+
+    _isProcessing = false;
+
+    if (controller.isPaused &&
+        _queue.length < TerminalController.lowWaterMark) {
+      controller.resume();
+    }
+    controller.markDirty();
+  }
+
+  /// Processes a single byte from the queue, handling control characters, escape sequences, and printable characters.
+  void _processOne() {
+    final cu = _queue.peek();
+
+    if (cu == 0x1B) {
+      final saved = _queue.position;
       _queue.consume();
-
-      final ccHandler = _ccHandlers[cu];
-      if (ccHandler != null) {
-        ccHandler(controller.activeBuffer);
-      } else if (cu >= 0x20) {
-        controller.activeBuffer.printChar(cu);
-      } else if (controller.debugLogging) {
-        _log.warning('[CC] Unhandled 0x${cu.toRadixString(16)}');
+      if (!_processEscape()) {
+        _queue.savePosition(saved);
+        return;
       }
+      return;
+    }
+
+    _queue.consume();
+
+    final ccHandler = _ccHandlers[cu];
+    if (ccHandler != null) {
+      ccHandler(controller.activeBuffer);
+    } else if (cu >= 0x20) {
+      controller.activeBuffer.printChar(cu);
+    } else if (controller.debugLogging) {
+      _log.warning('[CC] Unhandled 0x${cu.toRadixString(16)}');
     }
   }
 
@@ -134,7 +183,6 @@ class EscapeParser {
   /// Returns true if a complete sequence was processed, false if more input is needed.
   bool _processEscape() {
     if (_queue.isEmpty) return false;
-
     final next = _queue.consume();
 
     // multi-byte ESC sequences
@@ -155,6 +203,7 @@ class EscapeParser {
     } else if (controller.debugLogging) {
       _log.warning('[ESC] Unhandled ESC ${String.fromCharCode(next)}');
     }
+
     return true;
   }
 
@@ -165,17 +214,14 @@ class EscapeParser {
 
     while (_queue.isNotEmpty) {
       final cu = _queue.consume();
-
       if (cu == 0x18 || cu == 0x1A) return true; // CAN/SUB
 
       buf.writeCharCode(cu);
-
       if (cu >= 0x40 && cu <= 0x7E) {
         _dispatchCsi(buf.toString());
         return true;
       }
     }
-
     _queue.savePosition(start);
     return false;
   }
@@ -184,10 +230,8 @@ class EscapeParser {
   bool _consumeOsc() {
     final start = _queue.position - 2;
     final buf = StringBuffer();
-
     while (_queue.isNotEmpty) {
       final cu = _queue.consume();
-
       if (cu == 0x18 || cu == 0x1A) return true; // CAN/SUB
 
       if (cu == 0x07) {
@@ -263,35 +307,38 @@ class EscapeParser {
   // --- ESC Handlers ---
 
   void _escBackIndex() => controller.activeBuffer.backIndex();
+
   void _escSaveCursor() => controller.activeBuffer.saveCursor();
+
   void _escRestoreCursor() => controller.activeBuffer.restoreCursor();
+
   void _escForwardIndex() => controller.activeBuffer.forwardIndex();
+
   void _escIndex() => controller.activeBuffer.index();
+
   void _escNextLine() => controller.activeBuffer.nextLine();
+
   void _escHorizontalTabSet() => controller.activeBuffer.horizontalTabSet();
+
   void _escReverseIndex() => controller.activeBuffer.reverseIndex();
+
   void _escSingleShift2() => controller.activeBuffer.charset.singleShift(2);
+
   void _escSingleShift3() => controller.activeBuffer.charset.singleShift(3);
 
   // --- CSI Handlers ---
 
-  void _csiCursorUp(CsiParseResult parsed) {
-    final amount = _parseSingleParam(parsed);
-    controller.activeBuffer.cursorUp(amount);
-  }
+  void _csiCursorUp(CsiParseResult parsed) =>
+      controller.activeBuffer.cursorUp(_parseSingleParam(parsed));
 
-  void _csiCursorDown(CsiParseResult parsed) {
-    final amount = _parseSingleParam(parsed);
-    controller.activeBuffer.cursorDown(amount);
-  }
+  void _csiCursorDown(CsiParseResult parsed) =>
+      controller.activeBuffer.cursorDown(_parseSingleParam(parsed));
 
-  void _csiLinePositionAbsolute(CsiParseResult parsed) {
-    final row = (parsed.params.isNotEmpty ? (parsed.params[0] ?? 1) : 1) - 1;
-    controller.activeBuffer.setCursorPosition(
-      row,
-      controller.activeBuffer.cursorCol,
-    );
-  }
+  void _csiLinePositionAbsolute(CsiParseResult parsed) =>
+      controller.activeBuffer.setCursorPosition(
+        (parsed.params.isNotEmpty ? (parsed.params[0] ?? 1) : 1) - 1,
+        controller.activeBuffer.cursorCol,
+      );
 
   void _csiEraseCharacter(CsiParseResult parsed) {
     final amount = _parseSingleParam(parsed, defaultValue: 1);
@@ -301,19 +348,15 @@ class EscapeParser {
       c < min(buf.cursorCol + amount, controller.cols);
       c++
     ) {
-      buf.setCell(buf.cursorRow, c, Cell.empty());
+      buf.eraseCell(buf.cursorRow, c);
     }
   }
 
-  void _csiCursorRight(CsiParseResult parsed) {
-    final amount = _parseSingleParam(parsed);
-    controller.activeBuffer.cursorRight(amount);
-  }
+  void _csiCursorRight(CsiParseResult parsed) =>
+      controller.activeBuffer.cursorRight(_parseSingleParam(parsed));
 
-  void _csiCursorLeft(CsiParseResult parsed) {
-    final amount = _parseSingleParam(parsed);
-    controller.activeBuffer.cursorLeft(amount);
-  }
+  void _csiCursorLeft(CsiParseResult parsed) =>
+      controller.activeBuffer.cursorLeft(_parseSingleParam(parsed));
 
   void _csiSetCursorPosition(CsiParseResult parsed) {
     final row = (parsed.params.isNotEmpty ? (parsed.params[0] ?? 1) : 1) - 1;
@@ -326,15 +369,19 @@ class EscapeParser {
     switch (mode) {
       case 0:
         controller.activeBuffer.eraseDisplayBelow();
+        break;
       case 1:
         controller.activeBuffer.eraseDisplayAbove();
+        break;
       case 2:
         controller.activeBuffer.eraseDisplayComplete();
+        break;
       case 3:
       // TODO: implement erase display scrollback
       // controller.activeBuffer.eraseDisplayScrollback();
       default:
         _log.warning('\tUnhandled ED mode: $mode');
+        break;
     }
   }
 
@@ -343,19 +390,21 @@ class EscapeParser {
     switch (mode) {
       case 0:
         controller.activeBuffer.eraseLineRight();
+        break;
       case 1:
         controller.activeBuffer.eraseLineLeft();
+        break;
       case 2:
         controller.activeBuffer.eraseLineComplete();
+        break;
       default:
         _log.warning('\tUnhandled EL mode: $mode');
+        break;
     }
   }
 
-  void _csiDeleteCharacter(CsiParseResult parsed) {
-    final amount = _parseSingleParam(parsed);
-    controller.activeBuffer.deleteCharacter(amount);
-  }
+  void _csiDeleteCharacter(CsiParseResult parsed) =>
+      controller.activeBuffer.deleteCharacter(_parseSingleParam(parsed));
 
   /// Set Mode (SM)
   /// - https://terminalguide.namepad.de/seq/csi_sh/
@@ -367,153 +416,129 @@ class EscapeParser {
   void _csiSetMode(CsiParseResult parsed) {
     final enabled = parsed.finalByteCode == 'h'.codeUnitAt(0);
     final isPrivate = parsed.leader == '?';
-
-    void handleMode(int mode) {
-      switch (mode) {
-        case 4:
-          controller.setInsertMode(enabled);
-          break;
-        case 20:
-          controller.setLineFeedMode(enabled);
-          break;
-        default:
-          if (controller.debugLogging) {
-            _log.warning('\tUnhandled mode set: $mode');
-          }
-          break;
-      }
-    }
-
-    void handlePrivateMode(int mode) {
-      switch (mode) {
-        case 7:
-          controller.setAutoWrapMode(enabled);
-          break;
-        case 1047:
-        case 47:
-          if (enabled) {
-            controller.useBackBuffer(saveMainAndClear: false);
-          } else {
-            controller.useMainBuffer(restoreMain: false);
-          }
-          break;
-        case 1049:
-          if (enabled) {
-            controller.useBackBuffer(saveMainAndClear: true);
-          } else {
-            controller.useMainBuffer(restoreMain: true);
-          }
-          break;
-        default:
-          if (controller.debugLogging) {
-            _log.warning('\tUnhandled private mode set: $mode');
-          }
-          break;
-      }
-    }
-
     for (final p in parsed.params) {
       final mode = p ?? 0;
       if (isPrivate) {
-        handlePrivateMode(mode);
+        switch (mode) {
+          case 7:
+            controller.setAutoWrapMode(enabled);
+            break;
+          case 1047:
+          case 47:
+            if (enabled) {
+              controller.useBackBuffer(saveMainAndClear: false);
+            } else {
+              controller.useMainBuffer(restoreMain: false);
+            }
+            break;
+          case 1049:
+            if (enabled) {
+              controller.useBackBuffer(saveMainAndClear: true);
+            } else {
+              controller.useMainBuffer(restoreMain: true);
+            }
+            break;
+        }
       } else {
-        handleMode(mode);
+        switch (mode) {
+          case 4:
+            controller.setInsertMode(enabled);
+            break;
+          case 20:
+            controller.setLineFeedMode(enabled);
+            break;
+        }
       }
     }
   }
 
   /// https://terminalguide.namepad.de/seq/csi_sm/
   void _csiSelectGraphicRendition(CsiParseResult parsed) {
-    final formatting = controller.activeBuffer.currentFormat;
-
+    var formatting = controller.activeBuffer.currentFormat;
     final List<int> codes = parsed.params.isEmpty
         ? const <int>[0]
         : parsed.params.map((p) => p ?? 0).toList(growable: false);
-
     int offset = 0;
     while (offset < codes.length) {
       int code = codes[offset++];
-
-      (switch (code) {
-        0 => () => formatting.reset(),
-        1 => () => formatting.bold = true,
-        2 => () => formatting.faint = true,
-        3 => () => formatting.italic = true,
-        4 => () => formatting.underline = Underline.single,
-        7 => () => formatting.inverted = true,
-        8 => () => formatting.concealed = true,
-        21 => () => formatting.underline = Underline.double,
-        22 => () {
-          formatting.bold = false;
-          formatting.faint = false;
-        },
-        23 => () => formatting.italic = false,
-        24 => () => formatting.underline = Underline.none,
-        27 => () => formatting.inverted = false,
-        28 => () => formatting.concealed = false,
-        >= 30 && <= 37 => () => formatting.fgColor = ansi16ToColor(
-          controller.theme,
-          code - 30,
+      formatting = (switch (code) {
+        0 => () => FormattingOptions.defaultFormat,
+        1 => () => formatting.copyWith(bold: true),
+        2 => () => formatting.copyWith(faint: true),
+        3 => () => formatting.copyWith(italic: true),
+        4 => () => formatting.copyWith(underline: Underline.single),
+        7 => () => formatting.copyWith(inverted: true),
+        8 => () => formatting.copyWith(concealed: true),
+        21 => () => formatting.copyWith(underline: Underline.double),
+        22 => () => formatting.copyWith(bold: false, faint: false),
+        23 => () => formatting.copyWith(italic: false),
+        24 => () => formatting.copyWith(underline: Underline.none),
+        27 => () => formatting.copyWith(inverted: false),
+        28 => () => formatting.copyWith(concealed: false),
+        >= 30 && <= 37 => () => formatting.copyWith(
+          fgColor: ansi16ToColor(controller.theme, code - 30),
         ),
         38 => () {
-          if (offset >= codes.length) return;
+          if (offset >= codes.length) return formatting;
           switch (codes[offset++]) {
             case 5:
-              if (offset >= codes.length) return;
-              formatting.fgColor = xterm256ToColor(
-                controller.theme,
-                codes[offset++],
+              if (offset >= codes.length) return formatting;
+              return formatting.copyWith(
+                fgColor: xterm256ToColor(controller.theme, codes[offset++]),
               );
             case 2:
-              if (offset + 2 >= codes.length) return;
-              formatting.fgColor = rgbToColor(
-                codes[offset],
-                codes[offset + 1],
-                codes[offset + 2],
+              if (offset + 2 >= codes.length) return formatting;
+              final res = formatting.copyWith(
+                fgColor: rgbToColor(
+                  codes[offset],
+                  codes[offset + 1],
+                  codes[offset + 2],
+                ),
               );
               offset += 3;
+              return res;
+            default:
+              return formatting;
           }
         },
-        39 => () => formatting.fgColor = null,
-        >= 40 && <= 47 => () => formatting.bgColor = ansi16ToColor(
-          controller.theme,
-          code - 40,
+        39 => () => formatting.copyWith(fgColor: null),
+        >= 40 && <= 47 => () => formatting.copyWith(
+          bgColor: ansi16ToColor(controller.theme, code - 40),
         ),
         48 => () {
-          if (offset >= codes.length) return;
+          if (offset >= codes.length) return formatting;
           switch (codes[offset++]) {
             case 5:
-              if (offset >= codes.length) return;
-              formatting.bgColor = xterm256ToColor(
-                controller.theme,
-                codes[offset++],
+              if (offset >= codes.length) return formatting;
+              return formatting.copyWith(
+                bgColor: xterm256ToColor(controller.theme, codes[offset++]),
               );
             case 2:
-              if (offset + 2 >= codes.length) return;
-              formatting.bgColor = rgbToColor(
-                codes[offset],
-                codes[offset + 1],
-                codes[offset + 2],
+              if (offset + 2 >= codes.length) return formatting;
+              final res = formatting.copyWith(
+                bgColor: rgbToColor(
+                  codes[offset],
+                  codes[offset + 1],
+                  codes[offset + 2],
+                ),
               );
               offset += 3;
+              return res;
+            default:
+              return formatting;
           }
         },
-        49 => () => formatting.bgColor = null,
-        >= 90 && <= 97 => () => formatting.fgColor = ansi16ToColor(
-          controller.theme,
-          (code - 90) + 8,
+        49 => () => formatting.copyWith(bgColor: null),
+        >= 90 && <= 97 => () => formatting.copyWith(
+          fgColor: ansi16ToColor(controller.theme, (code - 90) + 8),
         ),
-        >= 100 && <= 107 => () => formatting.bgColor = ansi16ToColor(
-          controller.theme,
-          (code - 100) + 8,
+        >= 100 && <= 107 => () => formatting.copyWith(
+          bgColor: ansi16ToColor(controller.theme, (code - 100) + 8),
         ),
-        _ => () {
-          if (controller.debugLogging) {
-            _log.warning('Unhandled SGR code: $code');
-          }
-        },
+        _ => () => formatting,
       }).call();
     }
+    controller.activeBuffer.currentFormat = formatting;
   }
 
   void _csiSetScrollingRegion(CsiParseResult parsed) {

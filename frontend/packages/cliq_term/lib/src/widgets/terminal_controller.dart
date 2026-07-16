@@ -1,13 +1,11 @@
+import 'dart:async';
 import 'dart:math';
 
 import 'package:cliq_term/cliq_term.dart';
 import 'package:cliq_term/src/parser/escape_parser.dart';
-import 'package:cliq_term/src/state/selection.state.dart';
 import 'package:cliq_term/src/widgets/terminal_painter.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-
-import '../state/cursor.state.dart';
 
 enum CursorStyle { block, underline, bar }
 
@@ -43,7 +41,13 @@ class TerminalController extends ChangeNotifier {
   };
 
   /// Interval for cursor blinking.
-  final Duration cursorBlinkInterval;
+  Duration cursorBlinkInterval;
+
+  /// Time of inactivity before the cursor stops blinking.
+  Duration cursorBlinkTimeout;
+
+  /// Whether the cursor is currently in the "on" phase of blinking.
+  final ValueNotifier<bool> cursorBlinkNotifier = ValueNotifier(true);
 
   /// Maximum number of lines to keep in the scrollback buffer. Older lines will be discarded when this limit is exceeded.
   final int maxScrollbackLines;
@@ -59,6 +63,12 @@ class TerminalController extends ChangeNotifier {
 
   /// A callback that is fired when a bell character (0x07) is received.
   final void Function()? onBell;
+
+  /// A callback that is fired when the input queue exceeds the high water mark.
+  void Function()? onPause;
+
+  /// A callback that is fired when the input queue drops below the low water mark.
+  void Function()? onResume;
 
   void Function(String)? onInput;
   TerminalTypography _typography;
@@ -99,16 +109,66 @@ class TerminalController extends ChangeNotifier {
   /// The cursor state.
   CursorState cursor = .new();
 
+  final Map<TerminalBufferRow, (int revision, TextPainter painter)> _rowCache =
+      {};
+  static const int _maxCacheSize = 500;
+
+  TextPainter? getCachedRow(TerminalBufferRow row) {
+    final cached = _rowCache.remove(row);
+    if (cached != null) {
+      if (cached.$1 == row.revision) {
+        _rowCache[row] = cached; // Move to end (MRU)
+        return cached.$2;
+      }
+      // Revision mismatch, don't put it back, effectively evicting it
+    }
+    return null;
+  }
+
+  void cacheRow(TerminalBufferRow row, TextPainter painter) {
+    if (_rowCache.length >= _maxCacheSize) {
+      // LinkedHashMap iterates in insertion order, so the first element is the LRU
+      final firstKey = _rowCache.keys.first;
+      _rowCache.remove(firstKey);
+    }
+    _rowCache[row] = (row.revision, painter);
+  }
+
+  void clearCache() {
+    _rowCache.clear();
+  }
+
+  bool _isDirty = false;
+  bool get isDirty => _isDirty;
+
+  void markDirty() {
+    _isDirty = true;
+    notifyListeners();
+  }
+
+  void clearDirty() {
+    _isDirty = false;
+  }
+
+  static const int highWaterMark = 64 * 1024; // 64 KiB
+  static const int lowWaterMark = 0; // 0 Bytes -> clear buffer
+  bool _isPaused = false;
+
+  bool get isPaused => _isPaused;
+
   TerminalController({
     required this._typography,
     required this._theme,
     this.cursorBlinkInterval = const Duration(milliseconds: 600),
+    this.cursorBlinkTimeout = const Duration(seconds: 10),
     this.maxScrollbackLines = TerminalBuffer.defaultMaxScrollbackLines,
     this.debugLogging = false,
     this.onInput,
     this.onResize,
     this.onTitleChange,
     this.onBell,
+    this.onPause,
+    this.onResume,
     this.rows = 24,
     this.cols = 80,
   });
@@ -118,6 +178,16 @@ class TerminalController extends ChangeNotifier {
   TerminalBuffer get activeBuffer => backBufferActive ? _back : _front;
   int get totalRows =>
       backBufferActive ? rows : (_front.currentScrollback + rows);
+
+  void pause() {
+    _isPaused = true;
+    onPause?.call();
+  }
+
+  void resume() {
+    _isPaused = false;
+    onResume?.call();
+  }
 
   /// Automatically resizes the terminal based on the provided [size] and current typography settings.
   void fitResize(Size size) {
@@ -148,6 +218,8 @@ class TerminalController extends ChangeNotifier {
     _front.resetVerticalMargins();
     _back.resetVerticalMargins();
 
+    clearCache();
+    markDirty();
     notifyListeners();
   }
 
@@ -157,6 +229,8 @@ class TerminalController extends ChangeNotifier {
     if (ev is! KeyDownEvent && ev is! KeyRepeatEvent) {
       return;
     }
+
+    _resetBlink();
 
     // We seem to need extra control key handling for Windows here since [ev.character] is always
     // null when Ctrl is pressed.
@@ -196,6 +270,7 @@ class TerminalController extends ChangeNotifier {
     }
 
     backBufferActive = true;
+    markDirty();
     notifyListeners();
   }
 
@@ -208,16 +283,21 @@ class TerminalController extends ChangeNotifier {
       _front.restoreCursor();
     }
 
+    markDirty();
     notifyListeners();
   }
 
   void setTerminalTheme(TerminalTheme theme) {
     _theme = theme;
+    clearCache();
+    markDirty();
     notifyListeners();
   }
 
   void setTerminalTypography(TerminalTypography newTypography) {
     _typography = newTypography;
+    clearCache();
+    markDirty();
     notifyListeners();
   }
 
@@ -236,16 +316,35 @@ class TerminalController extends ChangeNotifier {
     notifyListeners();
   }
 
+  void setCursorStyle(CursorStyle style) {
+    cursor = cursor.copyWith(style: style);
+    _resetBlink();
+  }
+
+  void setCursorBlinkInterval(Duration interval) {
+    cursorBlinkInterval = interval;
+    _resetBlink();
+  }
+
+  void setCursorBlinkTimeout(Duration timeout) {
+    cursorBlinkTimeout = timeout;
+    _resetBlink();
+  }
+
   void feed(String input) {
     _escapeParser.write(input);
-    notifyListeners();
+    _resetBlink();
   }
+
+  /// Returns the number of characters currently waiting to be parsed.
+  int get pendingInputLength => _escapeParser.queueLength;
 
   /// Sets the cursor position to the specified [row] and [col].
   void setCursorPosition(int row, int col) {
     activeBuffer.cursorRow = row;
     activeBuffer.cursorCol = col;
-    notifyListeners();
+    _resetBlink();
+    markDirty();
   }
 
   void setCursorPositionRow(int row) =>
@@ -255,12 +354,49 @@ class TerminalController extends ChangeNotifier {
 
   /// Starts the cursor blinking timer.
   void startCursorBlink() {
+    stopCursorBlink();
+
     cursor = cursor.copyWith(
-      visible: true,
-      //      timer: Timer.periodic(cursorBlinkInterval, (_) {
-      //        cursor = cursor.copyWith(visible: !cursor.visible);
-      //        notifyListeners();
-      //      }),
+      enabled: true,
+      blinkVisible: true,
+      timer: Timer.periodic(cursorBlinkInterval, (_) {
+        cursor = cursor.copyWith(blinkVisible: !cursor.blinkVisible);
+        cursorBlinkNotifier.value = cursor.blinkVisible;
+      }),
+    );
+    cursorBlinkNotifier.value = true;
+    _resetInactivityTimer();
+  }
+
+  void _resetBlink() {
+    if (cursor.timer != null) {
+      cursor = cursor.copyWith(blinkVisible: true);
+      cursorBlinkNotifier.value = true;
+      // Restart the periodic timer to align the blink phase with the activity
+      cursor.timer?.cancel();
+      cursor = cursor.copyWith(
+        timer: Timer.periodic(cursorBlinkInterval, (_) {
+          cursor = cursor.copyWith(blinkVisible: !cursor.blinkVisible);
+          cursorBlinkNotifier.value = cursor.blinkVisible;
+        }),
+      );
+    }
+    _resetInactivityTimer();
+  }
+
+  void _resetInactivityTimer() {
+    cursor.inactivityTimer?.cancel();
+
+    if (cursorBlinkTimeout == Duration.zero) {
+      return;
+    }
+
+    cursor = cursor.copyWith(
+      inactivityTimer: Timer(cursorBlinkTimeout, () {
+        cursor.timer?.cancel();
+        cursor = cursor.copyWith(blinkVisible: true, timer: null);
+        cursorBlinkNotifier.value = true;
+      }),
     );
   }
 
@@ -277,7 +413,7 @@ class TerminalController extends ChangeNotifier {
       endCol: selectionStartCol,
     );
 
-    notifyListeners();
+    markDirty();
   }
 
   /// Update the selection end to absolute [row],[col]
@@ -289,13 +425,13 @@ class TerminalController extends ChangeNotifier {
       endCol: col.clamp(0, max(0, cols - 1)),
     );
 
-    notifyListeners();
+    markDirty();
   }
 
   /// Clear the active selection
   void clearSelection() {
     selection = .new();
-    notifyListeners();
+    markDirty();
   }
 
   /// Return the selected text (if selection active) using absolute coordinates.
@@ -315,14 +451,21 @@ class TerminalController extends ChangeNotifier {
   /// Stops the cursor blinking timer.
   void stopCursorBlink() {
     cursor.timer?.cancel();
-    cursor = cursor.copyWith(visible: true, timer: null);
-
-    notifyListeners();
+    cursor.inactivityTimer?.cancel();
+    cursor = cursor.copyWith(
+      enabled: true,
+      blinkVisible: true,
+      timer: null,
+      inactivityTimer: null,
+    );
+    cursorBlinkNotifier.value = true;
   }
 
   @override
   void dispose() {
     cursor.timer?.cancel();
+    cursor.inactivityTimer?.cancel();
+    cursorBlinkNotifier.dispose();
     super.dispose();
   }
 }
