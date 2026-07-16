@@ -2,7 +2,7 @@ import dev.detekt.gradle.Detekt
 import dev.detekt.gradle.DetektCreateBaselineTask
 
 plugins {
-    val kotlinVersion = "2.4.0"
+    val kotlinVersion = "2.4.10"
     // Kotlin
     kotlin("jvm") version kotlinVersion
     kotlin("plugin.spring") version kotlinVersion
@@ -140,7 +140,7 @@ dependencies {
     testImplementation("org.springframework.boot:spring-boot-starter-data-jpa-test")
 
     // Greenmail
-    val greenmailVersion = "2.1.9"
+    val greenmailVersion = "2.1.11"
     testImplementation("com.icegreen:greenmail-spring:$greenmailVersion")
     testImplementation("com.icegreen:greenmail:$greenmailVersion")
     testImplementation("com.icegreen:greenmail-junit5:$greenmailVersion")

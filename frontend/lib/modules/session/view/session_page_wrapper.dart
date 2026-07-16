@@ -4,7 +4,7 @@ import 'package:cliq/modules/session/ui/session_title_bar.dart';
 import 'package:cliq/modules/session/view/sftp_session_page.dart';
 import 'package:cliq/modules/session/view/ssh_session_page.dart';
 import 'package:cliq/shared/ui/hover_builder.dart';
-import 'package:cliq/shared/ui/navigation_shell.dart';
+import 'package:cliq/shared/ui/navigation/navigation_shell.dart';
 import 'package:cliq/shared/ui/split_view.dart';
 import 'package:flutter/material.dart' hide LicensePage;
 import 'package:flutter_hooks/flutter_hooks.dart';
