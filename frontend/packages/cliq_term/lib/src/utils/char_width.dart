@@ -23,5 +23,6 @@ class CharWidth {
   }
 
   /// Whether [codepoint] is a Unicode Braille Pattern (U+2800-U+28FF).
-  static bool isBraillePattern(int codepoint) => codepoint >= 0x2800 && codepoint <= 0x28FF;
+  static bool isBraillePattern(int codepoint) =>
+      codepoint >= 0x2800 && codepoint <= 0x28FF;
 }
