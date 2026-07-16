@@ -79,12 +79,16 @@ class ShortcutInfo extends StatelessWidget {
         child: Builder(
           builder: (_) {
             if (info.icon != null) {
-              return Icon(info.icon, size: size - padding * 2);
+              return Icon(
+                info.icon,
+                size: size - padding * 2,
+                color: DefaultTextStyle.of(context).style.color,
+              );
             }
             return Text(
               info.label!,
               textAlign: TextAlign.center,
-              style: TextStyle(
+              style: .new(
                 fontSize: (size - 2) - padding * 2,
                 fontWeight: .bold,
               ),

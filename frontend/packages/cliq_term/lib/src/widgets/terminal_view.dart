@@ -115,6 +115,7 @@ class _TerminalViewState extends State<TerminalView> {
     if (_shouldDisposeFocusNode) {
       _focusNode.dispose();
     }
+    _accessoryBarEntry?.remove();
     _scrollController.dispose();
     _keyboardVisible.dispose();
     _ctrlActive.dispose();

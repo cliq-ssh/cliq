@@ -6,7 +6,7 @@ import 'package:forui/forui.dart';
 import 'package:lucide_flutter/lucide_flutter.dart';
 
 import '../../../shared/provider/store.provider.dart';
-import '../../../shared/ui/navigation_shell.dart';
+import '../../../shared/ui/navigation/navigation_shell.dart';
 import '../../connections/provider/connection.provider.dart';
 import '../../connections/ui/connection_icon.dart';
 import '../../settings/provider/terminal_theme.provider.dart';

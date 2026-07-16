@@ -1,13 +1,12 @@
+import 'dart:io';
+
 import 'package:cliq/modules/connections/model/connection_full.model.dart';
 import 'package:cliq/modules/connections/provider/connection.provider.dart';
 import 'package:cliq/modules/connections/ui/connection_icon.dart';
 import 'package:cliq/shared/provider/store.provider.dart';
-import 'package:cliq/shared/ui/responsive_sidebar.dart';
 import 'package:cliq/shared/ui/shortcut_info.dart';
-import 'package:cliq/shared/ui/sidebar_tab.dart';
 import 'package:cliq/shared/utils/platform_utils.dart';
 import 'package:cliq_term/cliq_term.dart';
-import 'package:cliq_ui/cliq_ui.dart' show useBreakpoint;
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:forui/forui.dart';
@@ -15,13 +14,16 @@ import 'package:lucide_flutter/lucide_flutter.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:window_manager/window_manager.dart';
 
-import '../../modules/session/provider/session.provider.dart';
-import '../../modules/session/ui/session_sidebar_tab.dart';
-import '../../modules/settings/model/navigation_position.model.dart';
-import '../../modules/settings/provider/terminal_theme.provider.dart';
-import '../provider/file_transfer.provider.dart';
-import '../utils/text_utils.dart';
+import '../../../modules/session/provider/session.provider.dart';
+import '../../../modules/session/ui/session_navigation_tab.dart';
+import '../../../modules/settings/provider/terminal_theme.provider.dart';
+import '../../provider/file_transfer.provider.dart';
+import '../../utils/text_utils.dart';
+import 'navigation_tab.dart';
+
+const EdgeInsetsGeometry kMacOSNavigationPadding = .only(left: 70);
 
 class NavigationShell extends StatefulHookConsumerWidget {
   final StatefulNavigationShell shell;
@@ -41,24 +43,11 @@ class NavigationShellState extends ConsumerState<NavigationShell>
   static const _dashboardBranchIndex = 1;
   static const _settingsBranchIndex = 2;
 
-  late final ResponsiveSidebarController _sidebarController = .new();
-
-  @override
-  void dispose() {
-    _sidebarController.dispose();
-    super.dispose();
-  }
-
   @override
   Widget build(BuildContext context) {
-    final breakpoint = useBreakpoint();
-    final prefDesktopNavPosition = useStore(.desktopNavigationPosition);
     final defaultTerminalTheme = useStore(.defaultTerminalThemeId);
     final applyTerminalThemeColorToNavigation = useStore(
       .applyTerminalThemeColorToNavigation,
-    );
-    final navPosition = useState<NavigationPosition>(
-      breakpoint >= .lg ? prefDesktopNavPosition.value : .top,
     );
     final connections = ref.watch(connectionProvider);
     final sessions = ref.watch(sessionProvider);
@@ -77,13 +66,6 @@ class NavigationShellState extends ConsumerState<NavigationShell>
       selectedTab.value = sessions.selectedSession;
       return null;
     }, [sessions, sessions.selectedTabId]);
-
-    useEffect(() {
-      navPosition.value = breakpoint >= .lg
-          ? prefDesktopNavPosition.value
-          : .top;
-      return null;
-    }, [breakpoint, prefDesktopNavPosition.value]);
 
     useEffect(() {
       if (fileTransfer.isAnyPending) {
@@ -118,16 +100,14 @@ class NavigationShellState extends ConsumerState<NavigationShell>
       return context.theme.colors.background;
     }
 
-    buildDashboardTab(bool isExpanded) {
+    buildDashboardTab() {
       // TODO: make shortcut functional
       return FTooltip(
         tipBuilder: (_, _) => TextWithShortcutInfo(
           'dashboard'.tr(),
           shortcut: KeyboardShortcut(.keyD, modifiers: {.control}),
         ),
-        child: SidebarTab(
-          isExpanded: isExpanded,
-          label: Text('dashboard'.tr()),
+        child: NavigationTab(
           icon: Icon(LucideIcons.house),
           selected: widget.shell.currentIndex == _dashboardBranchIndex,
           onPress: () {
@@ -136,14 +116,11 @@ class NavigationShellState extends ConsumerState<NavigationShell>
                 .setSelectedAndMaybeGo(this, null);
             goToDashboardBranch();
           },
-          forceIntrinsicWidth: true,
-          isTop: navPosition.value == .top,
-          noHorizontalPadding: navPosition.value == .top,
         ),
       );
     }
 
-    buildQueue(bool isExpanded) {
+    buildQueue() {
       return FPopover(
         popoverBuilder: (context, controller) {
           // latest transfer on top
@@ -273,10 +250,7 @@ class NavigationShellState extends ConsumerState<NavigationShell>
           );
         },
         builder: (_, controller, _) {
-          return SidebarTab(
-            isExpanded: isExpanded,
-            label: Text('queue'.tr()),
-            onPress: fileTransfer.isEmpty ? null : controller.toggle,
+          return NavigationTab(
             icon: RotationTransition(
               turns: rotationAnimation,
               child: Icon(
@@ -285,24 +259,20 @@ class NavigationShellState extends ConsumerState<NavigationShell>
                     : LucideIcons.refreshCw,
               ),
             ),
-            forceIntrinsicWidth: true,
-            isTop: navPosition.value == .top,
-            noHorizontalPadding: navPosition.value == .top,
+            onPress: fileTransfer.isEmpty ? null : controller.toggle,
           );
         },
       );
     }
 
-    buildSettingsTab(bool isExpanded) {
+    buildSettingsTab() {
       // TODO: make shortcut functional
       return FTooltip(
         tipBuilder: (_, _) => TextWithShortcutInfo(
           'settings'.tr(),
           shortcut: KeyboardShortcut(.comma, modifiers: {.control}),
         ),
-        child: SidebarTab(
-          isExpanded: isExpanded,
-          label: Text('settings'.tr()),
+        child: NavigationTab(
           icon: Icon(LucideIcons.settings),
           selected: widget.shell.currentIndex == _settingsBranchIndex,
           onPress: () {
@@ -311,22 +281,30 @@ class NavigationShellState extends ConsumerState<NavigationShell>
                 .setSelectedAndMaybeGo(this, null);
             goToSettingsBranch();
           },
-          forceIntrinsicWidth: true,
-          isTop: navPosition.value == .top,
-          noHorizontalPadding: navPosition.value == .top,
         ),
       );
     }
 
-    buildSessionSidebarTabs(bool isExpanded) {
+    buildNewSessionTab() {
+      return FTooltip(
+        tipBuilder: (_, _) => TextWithShortcutInfo(
+          'session_new'.tr(),
+          shortcut: KeyboardShortcut(.keyT, modifiers: {.meta}),
+        ),
+        child: NavigationTab(
+          icon: Icon(LucideIcons.plus),
+          onPress: connections.entities.isNotEmpty
+              ? () => showTabs.value = !showTabs.value
+              : null,
+          itemPadding: PlatformUtils.isMobile ? kMobileItemPadding : null,
+        ),
+      );
+    }
+
+    buildSessionSidebarTabs() {
       return [
         for (final tab in sessions.activeTabs)
-          SessionSidebarTab.tab(
-            tab,
-            isExpanded: isExpanded,
-            navPosition: navPosition.value,
-            selected: tab.id == selectedTab.value?.id,
-          ),
+          SessionNavigationTab(tab, selected: tab.id == selectedTab.value?.id),
         FPopoverMenu(
           control: .lifted(
             shown: showTabs.value,
@@ -349,15 +327,6 @@ class NavigationShellState extends ConsumerState<NavigationShell>
                         children: [
                           FTooltip(
                             tipBuilder: (_, _) =>
-                                Text('hosts_connect_ssh'.tr()),
-                            child: FButton.icon(
-                              size: .xs,
-                              child: Icon(LucideIcons.unplug, size: 12),
-                              onPress: () => connect(connection),
-                            ),
-                          ),
-                          FTooltip(
-                            tipBuilder: (_, _) =>
                                 Text('hosts_connect_sftp'.tr()),
                             child: FButton.icon(
                               size: .xs,
@@ -369,75 +338,58 @@ class NavigationShellState extends ConsumerState<NavigationShell>
                       ),
                     ),
                     title: Text(connection.label),
+                    onPress: () => connect(connection),
                   ),
               ],
             ),
           ],
-          child: SidebarTab(
-            isExpanded: isExpanded && navPosition.value == .left,
-            label: Text('session_new'.tr()),
-            icon: Icon(LucideIcons.plus),
-            onPress: connections.entities.isNotEmpty
-                ? () => showTabs.value = !showTabs.value
-                : null,
-            isTop: navPosition.value == .top,
-            forceIntrinsicWidth: true,
-            noHorizontalPadding:
-                navPosition.value == .top ||
-                (sessions.activeTabs.isNotEmpty && isExpanded),
-            itemPadding: PlatformUtils.isMobile ? kMobileItemPadding : null,
-          ),
+          child: buildNewSessionTab(),
         ),
       ];
     }
 
-    if (isDesktop && navPosition.value == .left) {
-      return ResponsiveExpandableSidebar(
-        controller: _sidebarController,
-        backgroundColor: getEffectiveSidebarColor(),
-        headerBuilder: (context, isExpanded) {
-          return Padding(
-            padding: const .symmetric(horizontal: 16),
-            child: Column(
-              mainAxisAlignment: .start,
-              crossAxisAlignment: .start,
-              children: [
-                Row(
-                  mainAxisAlignment: !isExpanded ? .center : .spaceBetween,
-                  children: [
-                    FButton.icon(
-                      variant: .outline,
-                      onPress: _sidebarController.toggle,
-                      child: Icon(
-                        _sidebarController.isExpanded
-                            ? LucideIcons.panelLeftClose
-                            : LucideIcons.panelLeftOpen,
-                      ),
-                    ),
-                  ],
-                ),
-              ],
+    toggleMaximize() async {
+      final isMaximized = await windowManager.isMaximized();
+      if (isMaximized) {
+        await windowManager.unmaximize();
+      } else {
+        await windowManager.maximize();
+      }
+    }
+
+    buildCustomNavigationButtons() {
+      buildButton({
+        required VoidCallback onPress,
+        required IconData icon,
+        bool flipX = false,
+      }) {
+        return FButton.icon(
+          size: .sm,
+          variant: .ghost,
+          onPress: onPress,
+          child: Transform.flip(flipX: true, child: Icon(icon, size: 14)),
+        );
+      }
+
+      return Padding(
+        padding: const .only(left: 8),
+        child: Row(
+          children: [
+            buildButton(
+              onPress: () async => await windowManager.minimize(),
+              icon: LucideIcons.minus,
             ),
-          );
-        },
-        footerBuilder: (_, isExpanded) => Column(
-          mainAxisSize: .min,
-          children: [buildQueue(isExpanded), buildSettingsTab(isExpanded)],
+            buildButton(
+              onPress: () async => await toggleMaximize(),
+              icon: LucideIcons.copy,
+            ),
+            buildButton(
+              onPress: () async => await windowManager.close(),
+              flipX: true,
+              icon: LucideIcons.x,
+            ),
+          ],
         ),
-        contentBuilder: (context, isExpanded) {
-          return [
-            buildDashboardTab(isExpanded),
-            FDivider(style: .delta(color: context.theme.colors.border)),
-            if (!isExpanded || sessions.activeTabs.isEmpty)
-              ...buildSessionSidebarTabs(isExpanded)
-            else if (sessions.activeTabs.isNotEmpty)
-              FSidebarGroup(
-                label: Text('sessions'.tr()),
-                children: buildSessionSidebarTabs(isExpanded),
-              ),
-          ];
-        },
-        child: widget.shell,
       );
     }
 
@@ -445,8 +397,7 @@ class NavigationShellState extends ConsumerState<NavigationShell>
       childPad: false,
       resizeToAvoidBottomInset: false,
       header: Container(
-        padding: const EdgeInsets.all(8).copyWith(top: !isDesktop ? 0 : null),
-        constraints: .new(minHeight: 54),
+        constraints: .new(minHeight: 54 - 16),
         decoration: BoxDecoration(
           color: getEffectiveSidebarColor(),
           border: Border(
@@ -455,23 +406,47 @@ class NavigationShellState extends ConsumerState<NavigationShell>
         ),
         child: SafeArea(
           bottom: false,
-          child: Row(
+          child: Stack(
             children: [
-              Expanded(
-                // TODO: implement ReorderableListView for session tabs
-                child: SingleChildScrollView(
-                  scrollDirection: Axis.horizontal,
+              Positioned.fill(
+                child: GestureDetector(
+                  behavior: HitTestBehavior.opaque,
+                  onDoubleTap: () async => await toggleMaximize(),
+                  onPanStart: (_) => windowManager.startDragging(),
+                ),
+              ),
+
+              Padding(
+                padding:
+                    (Platform.isMacOS
+                            ? kMacOSNavigationPadding
+                            : EdgeInsets.zero)
+                        .add(.all(8)),
+                child: FTooltipGroup(
                   child: Row(
-                    spacing: 8,
                     children: [
-                      if (isDesktop) buildDashboardTab(false),
-                      ...buildSessionSidebarTabs(true),
+                      Expanded(
+                        // TODO: implement ReorderableListView for session tabs
+                        child: SingleChildScrollView(
+                          hitTestBehavior: .translucent,
+                          scrollDirection: .horizontal,
+                          child: Row(
+                            spacing: 8,
+                            children: [
+                              if (isDesktop) buildDashboardTab(),
+                              ...buildSessionSidebarTabs(),
+                            ],
+                          ),
+                        ),
+                      ),
+                      if (isDesktop && fileTransfer.isNotEmpty) buildQueue(),
+                      if (isDesktop) buildSettingsTab(),
+                      if (isDesktop && !Platform.isMacOS)
+                        buildCustomNavigationButtons(),
                     ],
                   ),
                 ),
               ),
-              if (isDesktop) buildQueue(false),
-              if (isDesktop) buildSettingsTab(false),
             ],
           ),
         ),

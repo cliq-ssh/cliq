@@ -11,7 +11,7 @@ import 'package:forui_hooks/forui_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lucide_flutter/lucide_flutter.dart';
 
-import '../../../shared/ui/navigation_shell.dart';
+import '../../../shared/ui/navigation/navigation_shell.dart';
 import '../../session/provider/session.provider.dart';
 import '../provider/connection_service.provider.dart';
 import '../view/create_or_edit_connection_view.dart';
