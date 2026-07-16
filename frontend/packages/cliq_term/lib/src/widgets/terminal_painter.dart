@@ -241,7 +241,10 @@ class CursorPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    if (readOnly || !isBlinkVisible || !cursorEnabled) {
+    if (readOnly ||
+        !isBlinkVisible ||
+        !cursorEnabled ||
+        !controller.cursor.enabled) {
       return;
     }
 

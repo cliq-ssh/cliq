@@ -269,11 +269,7 @@ class _TerminalViewState extends State<TerminalView> {
                 _scrollToBottom();
                 widget.controller.clearSelection();
                 Clipboard.getData(Clipboard.kTextPlain).then((clip) {
-                  String text = clip?.text ?? '';
-                  if (text.isNotEmpty) {
-                    text = _stripTrailingNewlines(text);
-                    widget.controller.onInput?.call(text);
-                  }
+                  widget.controller.paste(clip?.text ?? '');
                 });
                 return .handled;
               }
@@ -360,17 +356,6 @@ class _TerminalViewState extends State<TerminalView> {
       absRow.clamp(0, max(0, widget.controller.totalRows - 1)),
       col.clamp(0, widget.controller.cols - 1),
     );
-  }
-
-  /// Strip trailing newlines from multiline text to prevent auto-execution.
-  /// Returns trimmed text if multiline, otherwise returns original text.
-  ///
-  /// TODO: There is a escape code that prevents auto-execution of pasted commands, but it is not implemented atm.
-  static String _stripTrailingNewlines(String text) {
-    if (text.contains('\n') && text.endsWith('\n')) {
-      return text.trimRight();
-    }
-    return text;
   }
 }
 

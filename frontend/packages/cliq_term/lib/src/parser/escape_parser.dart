@@ -459,10 +459,24 @@ class EscapeParser {
     final isPrivate = parsed.leader == '?';
     for (final p in parsed.params) {
       final mode = p ?? 0;
+
       if (isPrivate) {
         switch (mode) {
+          case 1:
+            controller.applicationCursorKeys = enabled;
+            break;
           case 7:
             controller.setAutoWrapMode(enabled);
+            break;
+          case 12:
+            if (enabled) {
+              controller.resetCursorBlinkInterval();
+            } else {
+              controller.setCursorBlinkInterval(.zero);
+            }
+            break;
+          case 25:
+            controller.setCursorVisible(enabled);
             break;
           case 1047:
           case 47:
@@ -479,16 +493,30 @@ class EscapeParser {
               controller.useMainBuffer(restoreMain: true);
             }
             break;
-        }
-      } else {
-        switch (mode) {
-          case 4:
-            controller.setInsertMode(enabled);
+          case 2004:
+            controller.bracketedPasteMode = enabled;
             break;
-          case 20:
-            controller.setLineFeedMode(enabled);
-            break;
+          default:
+            if (controller.debugLogging) {
+              _log.warning(
+                '\tUnhandled private mode: $mode (enabled=$enabled)',
+              );
+            }
         }
+        return;
+      }
+
+      switch (mode) {
+        case 4:
+          controller.setInsertMode(enabled);
+          break;
+        case 20:
+          controller.setLineFeedMode(enabled);
+          break;
+        default:
+          if (controller.debugLogging) {
+            _log.warning('\tUnhandled standard mode: $mode (enabled=$enabled)');
+          }
       }
     }
   }

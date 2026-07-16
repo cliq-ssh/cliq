@@ -45,6 +45,13 @@ class TerminalController extends ChangeNotifier {
     .f12: '$kSeqEscape[24~',
   };
 
+  static final Map<LogicalKeyboardKey, String> _appCursorKeyMap = {
+    .arrowUp: '${kSeqEscape}OA',
+    .arrowDown: '${kSeqEscape}OB',
+    .arrowRight: '${kSeqEscape}OC',
+    .arrowLeft: '${kSeqEscape}OD',
+  };
+
   /// Interval for cursor blinking.
   Duration cursorBlinkInterval;
 
@@ -127,6 +134,13 @@ class TerminalController extends ChangeNotifier {
 
   /// Stack used by XTWINOPS (CSI 22/23 t) to push/pop the window title.
   final List<String> _titleStack = [];
+
+  /// Whether arrow keys send application-mode sequences (ESC O x) instead of
+  /// the normal cursor-key sequences (ESC [ x), per DECCKM (CSI ?1h/l).
+  bool applicationCursorKeys = false;
+
+  /// Whether the terminal is currently in bracketed paste mode, which affects how pasted text is handled.
+  bool bracketedPasteMode = false;
 
   /// Whether the terminal has been modified since the last time it was marked clean.
   bool _isDirty = false;
@@ -282,7 +296,9 @@ class TerminalController extends ChangeNotifier {
     }
 
     // otherwise check for special keys
-    final key = _keyCharacterMap[ev.logicalKey];
+    final key = applicationCursorKeys
+        ? (_appCursorKeyMap[ev.logicalKey] ?? _keyCharacterMap[ev.logicalKey])
+        : _keyCharacterMap[ev.logicalKey];
     if (key != null) {
       onInput?.call(key);
     }
@@ -313,6 +329,18 @@ class TerminalController extends ChangeNotifier {
 
     markDirty();
     notifyListeners();
+  }
+
+  // TODO: warn user about potential unsafe sequences
+  void paste(String text) {
+    if (text.isNotEmpty) {
+      text = _stripTrailingNewlines(text);
+      if (bracketedPasteMode) {
+        onInput?.call('$kSeqEscape[200~$text$kSeqEscape[201~');
+      } else {
+        onInput?.call(text);
+      }
+    }
   }
 
   void setWindowTitle(String title) {
@@ -376,6 +404,11 @@ class TerminalController extends ChangeNotifier {
   void setCursorBlinkTimeout(Duration timeout) {
     cursorBlinkTimeout = timeout;
     _resetBlink();
+  }
+
+  void setCursorVisible(bool visible) {
+    cursor = cursor.copyWith(enabled: visible);
+    markDirty();
   }
 
   void feed(String input) {
@@ -520,5 +553,16 @@ class TerminalController extends ChangeNotifier {
     cursor.inactivityTimer?.cancel();
     cursorBlinkNotifier.dispose();
     super.dispose();
+  }
+
+  /// Strip trailing newlines from multiline text to prevent auto-execution.
+  /// Returns trimmed text if multiline, otherwise returns original text.
+  ///
+  /// TODO: There is a escape code that prevents auto-execution of pasted commands, but it is not implemented atm.
+  static String _stripTrailingNewlines(String text) {
+    if (text.contains('\n') && text.endsWith('\n')) {
+      return text.trimRight();
+    }
+    return text;
   }
 }
