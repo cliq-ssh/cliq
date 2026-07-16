@@ -142,6 +142,13 @@ class TerminalController extends ChangeNotifier {
   /// Whether the terminal is currently in bracketed paste mode, which affects how pasted text is handled.
   bool bracketedPasteMode = false;
 
+  /// Whether the terminal is currently in synchronized output mode, which affects how output is handled.
+  bool synchronizedOutputActive = false;
+
+  /// A watchdog timer that is used to detect when synchronized output mode has been active for too long and
+  /// should be automatically disabled.
+  Timer? _synchronizedOutputWatchdog;
+
   /// Whether the terminal has been modified since the last time it was marked clean.
   bool _isDirty = false;
 
@@ -215,6 +222,7 @@ class TerminalController extends ChangeNotifier {
 
   void markDirty() {
     _isDirty = true;
+    if (synchronizedOutputActive) return;
     notifyListeners();
   }
 
@@ -547,10 +555,31 @@ class TerminalController extends ChangeNotifier {
     cursorBlinkNotifier.value = true;
   }
 
+  /// Enables or disables synchronized output mode, which affects how output is handled.
+  /// https://github.com/contour-terminal/vt-extensions/blob/master/synchronized-output.md
+  void setSynchronizedOutput(bool enabled) {
+    if (enabled) {
+      synchronizedOutputActive = true;
+      _synchronizedOutputWatchdog?.cancel();
+
+      // safety measure; if this is enabled and the program crashes/hangs before
+      // disabling it, the display would otherwise freeze indefinitely
+      _synchronizedOutputWatchdog = Timer(const Duration(seconds: 2), () {
+        setSynchronizedOutput(false);
+      });
+    } else {
+      synchronizedOutputActive = false;
+      _synchronizedOutputWatchdog?.cancel();
+      _synchronizedOutputWatchdog = null;
+      markDirty();
+    }
+  }
+
   @override
   void dispose() {
     cursor.timer?.cancel();
     cursor.inactivityTimer?.cancel();
+    _synchronizedOutputWatchdog?.cancel();
     cursorBlinkNotifier.dispose();
     super.dispose();
   }

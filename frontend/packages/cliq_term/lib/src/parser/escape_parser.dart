@@ -496,6 +496,9 @@ class EscapeParser {
           case 2004:
             controller.bracketedPasteMode = enabled;
             break;
+          case 2026:
+            controller.setSynchronizedOutput(enabled);
+            break;
           default:
             if (controller.debugLogging) {
               _log.warning(
