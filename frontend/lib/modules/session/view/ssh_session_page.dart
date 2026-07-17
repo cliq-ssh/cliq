@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:cliq/modules/connections/model/connection_full.model.dart';
 import 'package:cliq/modules/connections/provider/connection.provider.dart';
@@ -51,6 +52,8 @@ class _SshSessionPageState extends ConsumerState<SshSessionPage>
     final session = ref
         .watch(sessionProvider.notifier)
         .getSessionById(widget.sessionId)!;
+
+    final resizeDebounceTimer = useState<Timer?>(null);
 
     final terminalController = useState<TerminalController?>(
       session.terminalController,
@@ -113,10 +116,29 @@ class _SshSessionPageState extends ConsumerState<SshSessionPage>
           SystemSound.play(.alert);
         },
         onTitleChange: (title) => windowManager.setTitle(title),
+        onHyperlinkTap: (hyperlink) {
+          print('Hyperlink tapped: $hyperlink');
+          // TODO: handle hyperlinks?
+        },
         cursorBlinkInterval: Duration(milliseconds: cursorBlinkInterval.value),
         cursorBlinkTimeout: Duration(seconds: cursorBlinkTimeout.value),
-        onResize: (rows, cols) {
-          session.sshSession?.resizeTerminal(cols, rows);
+        onResize: (rows, cols, size) {
+          resizeDebounceTimer.value?.cancel();
+          resizeDebounceTimer.value = Timer(
+            const Duration(milliseconds: 100),
+            () {
+              final currentSession = ref
+                  .read(sessionProvider.notifier)
+                  .getSessionById(widget.sessionId);
+
+              currentSession?.sshSession?.resizeTerminal(
+                cols,
+                rows,
+                size.width.round(),
+                size.height.round(),
+              );
+            },
+          );
 
           if (isInitialResize.value) {
             isInitialResize.value = false;
@@ -219,14 +241,18 @@ class _SshSessionPageState extends ConsumerState<SshSessionPage>
 
         stdoutSub =
             session.stdoutSub ??
-            sshSession?.stdout.listen((data) {
-              terminalController.value?.feed(String.fromCharCodes(data));
+            const Utf8Decoder(
+              allowMalformed: true,
+            ).bind(sshSession!.stdout).listen((str) {
+              terminalController.value?.feed(str);
             });
 
         stderrSub =
             session.stderrSub ??
-            sshSession?.stderr.listen((data) {
-              terminalController.value?.feed(String.fromCharCodes(data));
+            const Utf8Decoder(
+              allowMalformed: true,
+            ).bind(sshSession!.stderr).listen((str) {
+              terminalController.value?.feed(str);
             });
 
         ref

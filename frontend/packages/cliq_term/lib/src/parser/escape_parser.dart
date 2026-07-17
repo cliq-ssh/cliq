@@ -2,6 +2,7 @@ import 'dart:math';
 
 import 'package:cliq_term/cliq_term.dart';
 import 'package:cliq_term/src/parser/csi_parser.dart';
+import 'package:cliq_term/src/parser/escape_emitter.dart';
 import 'package:logging/logging.dart';
 
 import '../model/byte_queue.dart';
@@ -57,22 +58,23 @@ class EscapeParser {
   };
 
   late final Map<int, CsiHandler> _csiHandlers = {
+    '@'.codeUnitAt(0): _csiInsertBlanks,
     'A'.codeUnitAt(0): _csiCursorUp,
     'B'.codeUnitAt(0): _csiCursorDown,
     'C'.codeUnitAt(0): _csiCursorRight,
     'D'.codeUnitAt(0): _csiCursorLeft,
     // 'E'.codeUnitAt(0): _csiCursorNextLine,
     // 'F'.codeUnitAt(0): _csiCursorPrevLine,
-    // 'G'.codeUnitAt(0): _csiCursorHorizontalPositionAbsolute,
+    'G'.codeUnitAt(0): _csiCursorHorizontalAbsolute,
     'H'.codeUnitAt(0): _csiSetCursorPosition,
     // 'I.codeUnitAt(0): _csiCursorHorizontalForwardTab,
     'J'.codeUnitAt(0): _csiEraseDisplay,
     'K'.codeUnitAt(0): _csiEraseLine,
-    // 'L'.codeUnitAt(0): _csiInsertLine,
-    // 'M'.codeUnitAt(0): _csiDeleteLine,
+    'L'.codeUnitAt(0): _csiInsertLine,
+    'M'.codeUnitAt(0): _csiDeleteLine,
     'P'.codeUnitAt(0): _csiDeleteCharacter,
-    // 'S'.codeUnitAt(0): _csiScrollUp,
-    // 'T'.codeUnitAt(0): _csiScrollDown,
+    'S'.codeUnitAt(0): _csiScrollUp,
+    'T'.codeUnitAt(0): _csiScrollDown,
     'X'.codeUnitAt(0): _csiEraseCharacter,
     // 'Z'.codeUnitAt(0): _csiCursorHorizontalBackwardTab,
     // 'a'.codeUnitAt(0): _csiCursorHorizontalRelative,
@@ -80,7 +82,7 @@ class EscapeParser {
     // 'c'.codeUnitAt(0): _csiDeviceAttributes,
     'd'.codeUnitAt(0): _csiLinePositionAbsolute,
     // 'e'.codeUnitAt(0): _csiVerticalPosRelative,
-    // 'f'.codeUnitAt(0): _csiSetCursorPosition,
+    'f'.codeUnitAt(0): _csiSetCursorPosition,
     // 'g'.codeUnitAt(0): _csiTabClear,
     'h'.codeUnitAt(0): _csiSetMode,
     // 'i'.codeUnitAt(0): _csiMediaControl,
@@ -88,16 +90,17 @@ class EscapeParser {
     'm'.codeUnitAt(0): _csiSelectGraphicRendition,
     // 'n'.codeUnitAt(0): _csiRequestReport,
     // 'p'.codeUnitAt(0): _csiRequestMode,
-    // 'q'.codeUnitAt(0): _csiSelectCursorStyle,
+    'q'.codeUnitAt(0): _csiSelectCursorStyle,
     'r'.codeUnitAt(0): _csiSetScrollingRegion,
     // 's'.codeUnitAt(0): _csiSaveCursor,
-    // 't'.codeUnitAt(0): _csiWindowManipulation,
+    't'.codeUnitAt(0): _csiWindowManipulation,
     // 'u'.codeUnitAt(0): _csiRestoreCursor,
   };
 
   late final Map<int, OscHandler> _oscHandlers = {
     0: _oscSetWindowTitle,
     2: _oscSetWindowTitle,
+    8: _oscHyperlink,
   };
 
   final _queue = ByteQueue();
@@ -130,7 +133,17 @@ class EscapeParser {
     while (_queue.isNotEmpty) {
       // Process in batches
       for (int i = 0; i < _maxByteChunkSize && _queue.isNotEmpty; i++) {
+        final positionBefore = _queue.position;
         _processOne();
+
+        if (_queue.position == positionBefore) {
+          // An incomplete sequence is waiting on bytes that haven't arrived
+          // yet. Stop here instead of spinning forever on the same input;
+          // write() will resume processing once more data is fed.
+          _isProcessing = false;
+          controller.markDirty();
+          return;
+        }
       }
 
       // Budget of 4ms for parsing to keep UI fluid
@@ -271,15 +284,27 @@ class EscapeParser {
   /// Dispatches a parsed OSC sequence.
   void _dispatchOsc(String body) {
     final splitIndex = body.indexOf(';');
-    if (splitIndex == -1 && body.isEmpty) {
+
+    final String method;
+    final String params;
+    if (splitIndex == -1) {
+      // Some OSC sequences are sent with no ';' separator at all when there are no parameters.
+      method = body;
+      params = '';
+    } else {
+      method = body.substring(0, splitIndex);
+      params = body.substring(splitIndex + 1);
+    }
+
+    final code = int.tryParse(method);
+    if (code == null) {
       if (controller.debugLogging) {
-        _log.warning('[OSC] Empty body');
+        _log.warning('[OSC] Malformed body (non-numeric command) body="$body"');
       }
       return;
     }
-    final method = body.substring(0, splitIndex);
-    final params = body.substring(splitIndex + 1);
-    final handler = _oscHandlers[int.parse(method)];
+
+    final handler = _oscHandlers[code];
     if (handler != null) {
       handler(params);
     } else {
@@ -328,6 +353,9 @@ class EscapeParser {
 
   // --- CSI Handlers ---
 
+  void _csiInsertBlanks(CsiParseResult parsed) => controller.activeBuffer
+      .insertBlanks(_parseSingleParam(parsed, defaultValue: 1));
+
   void _csiCursorUp(CsiParseResult parsed) =>
       controller.activeBuffer.cursorUp(_parseSingleParam(parsed));
 
@@ -358,6 +386,14 @@ class EscapeParser {
   void _csiCursorLeft(CsiParseResult parsed) =>
       controller.activeBuffer.cursorLeft(_parseSingleParam(parsed));
 
+  void _csiCursorHorizontalAbsolute(CsiParseResult parsed) {
+    final col = (parsed.params.isNotEmpty ? (parsed.params[0] ?? 1) : 1) - 1;
+    controller.activeBuffer.setCursorPosition(
+      controller.activeBuffer.cursorRow,
+      col,
+    );
+  }
+
   void _csiSetCursorPosition(CsiParseResult parsed) {
     final row = (parsed.params.isNotEmpty ? (parsed.params[0] ?? 1) : 1) - 1;
     final col = (parsed.params.length >= 2 ? (parsed.params[1] ?? 1) : 1) - 1;
@@ -377,8 +413,8 @@ class EscapeParser {
         controller.activeBuffer.eraseDisplayComplete();
         break;
       case 3:
-      // TODO: implement erase display scrollback
-      // controller.activeBuffer.eraseDisplayScrollback();
+        controller.activeBuffer.eraseDisplayScrollback();
+        break;
       default:
         _log.warning('\tUnhandled ED mode: $mode');
         break;
@@ -403,8 +439,21 @@ class EscapeParser {
     }
   }
 
+  void _csiInsertLine(CsiParseResult parsed) => controller.activeBuffer
+      .insertLines(_parseSingleParam(parsed, defaultValue: 1));
+
+  void _csiDeleteLine(CsiParseResult parsed) => controller.activeBuffer
+      .deleteLines(_parseSingleParam(parsed, defaultValue: 1));
+
   void _csiDeleteCharacter(CsiParseResult parsed) =>
       controller.activeBuffer.deleteCharacter(_parseSingleParam(parsed));
+
+  void _csiScrollUp(CsiParseResult parsed) => controller.activeBuffer.scrollUp(
+    _parseSingleParam(parsed, defaultValue: 1),
+  );
+
+  void _csiScrollDown(CsiParseResult parsed) => controller.activeBuffer
+      .scrollDown(_parseSingleParam(parsed, defaultValue: 1));
 
   /// Set Mode (SM)
   /// - https://terminalguide.namepad.de/seq/csi_sh/
@@ -418,10 +467,51 @@ class EscapeParser {
     final isPrivate = parsed.leader == '?';
     for (final p in parsed.params) {
       final mode = p ?? 0;
+
       if (isPrivate) {
         switch (mode) {
+          case 1:
+            controller.applicationCursorKeys = enabled;
+            break;
           case 7:
             controller.setAutoWrapMode(enabled);
+            break;
+          case 12:
+            if (enabled) {
+              controller.resetCursorBlinkInterval();
+            } else {
+              controller.setCursorBlinkInterval(.zero);
+            }
+            break;
+          case 25:
+            controller.setCursorVisible(enabled);
+            break;
+          case 1000:
+            controller.setMouseTrackingMode(MouseTrackingMode.normal, enabled);
+            break;
+          case 1002:
+            controller.setMouseTrackingMode(
+              MouseTrackingMode.buttonEvent,
+              enabled,
+            );
+            break;
+          case 1003:
+            controller.setMouseTrackingMode(
+              MouseTrackingMode.anyEvent,
+              enabled,
+            );
+            break;
+          case 1006:
+            controller.sgrMouseMode = enabled;
+            break;
+          case 1004:
+            controller.focusReportingEnabled = enabled;
+            break;
+          case 1007:
+            controller.alternateScrollMode = enabled;
+            break;
+          case 1015:
+            controller.urxvtMouseMode = enabled;
             break;
           case 1047:
           case 47:
@@ -438,6 +528,18 @@ class EscapeParser {
               controller.useMainBuffer(restoreMain: true);
             }
             break;
+          case 2004:
+            controller.bracketedPasteMode = enabled;
+            break;
+          case 2026:
+            controller.setSynchronizedOutput(enabled);
+            break;
+          default:
+            if (controller.debugLogging) {
+              _log.warning(
+                '\tUnhandled private mode: $mode (enabled=$enabled)',
+              );
+            }
         }
       } else {
         switch (mode) {
@@ -447,6 +549,12 @@ class EscapeParser {
           case 20:
             controller.setLineFeedMode(enabled);
             break;
+          default:
+            if (controller.debugLogging) {
+              _log.warning(
+                '\tUnhandled standard mode: $mode (enabled=$enabled)',
+              );
+            }
         }
       }
     }
@@ -541,6 +649,46 @@ class EscapeParser {
     controller.activeBuffer.currentFormat = formatting;
   }
 
+  void _csiSelectCursorStyle(CsiParseResult parsed) {
+    if (parsed.intermediates != ' ') {
+      if (controller.debugLogging) {
+        _log.warning(
+          '\tUnhandled CSI q variant: intermediates="${parsed.intermediates}"',
+        );
+      }
+      return;
+    }
+
+    final mode = _parseSingleParam(parsed, defaultValue: 1);
+    switch (mode) {
+      case 0:
+      case 1:
+      case 2:
+        controller.setCursorStyle(.block);
+        break;
+      case 3:
+      case 4:
+        controller.setCursorStyle(.underline);
+        break;
+      case 5:
+      case 6:
+        controller.setCursorStyle(.bar);
+        break;
+      default:
+        if (controller.debugLogging) {
+          _log.warning('\tUnhandled DECSCUSR mode: $mode');
+        }
+    }
+    // mode 1, 3 and 5 are the blinking variants of the cursor styles.
+    // mode 0 simply defaults to blinking block.
+    if (mode == 0 || mode % 2 != 0) {
+      controller.resetCursorBlinkInterval();
+    } else {
+      // while mode 2, 4 and 6 are the steady variants.
+      controller.setCursorBlinkInterval(.zero);
+    }
+  }
+
   void _csiSetScrollingRegion(CsiParseResult parsed) {
     final top = (parsed.params.isNotEmpty ? (parsed.params[0] ?? 1) : 1) - 1;
     final bottom =
@@ -551,10 +699,48 @@ class EscapeParser {
     controller.activeBuffer.setVerticalMargins(top, bottom);
   }
 
+  /// Window Manipulation (XTWINOPS)
+  /// - https://terminalguide.namepad.de/seq/csi_st-14/
+  /// - https://terminalguide.namepad.de/seq/csi_st-22/
+  /// - https://terminalguide.namepad.de/seq/csi_st-23/
+  void _csiWindowManipulation(CsiParseResult parsed) {
+    if (parsed.params.isEmpty) return;
+    final ps = parsed.params[0] ?? 0;
+    final ps2 = parsed.params.length >= 2 ? (parsed.params[1] ?? 0) : 0;
+
+    switch (ps) {
+      case 14:
+        controller.emit(
+          EscapeEmitter.sizeInPixels(
+            controller.height.round(),
+            controller.width.round(),
+          ),
+        );
+        break;
+      case 18:
+        controller.emit(EscapeEmitter.size(controller.rows, controller.cols));
+        break;
+      case 22:
+        controller.pushWindowTitle(ps2);
+        break;
+      case 23:
+        controller.popWindowTitle(ps2);
+        break;
+      default:
+        if (controller.debugLogging) {
+          _log.warning('\tUnhandled window manipulation Ps: $ps');
+        }
+        break;
+    }
+  }
+
   // --- OSC Handlers ---
 
-  void _oscSetWindowTitle(String params) {
-    // TODO: implement title modes
-    controller.onTitleChange?.call(params);
+  void _oscSetWindowTitle(String params) => controller.setWindowTitle(params);
+
+  void _oscHyperlink(String params) {
+    final idx = params.indexOf(';');
+    final uri = idx == -1 ? '' : params.substring(idx + 1);
+    controller.activeBuffer.setHyperlink(uri.isEmpty ? null : uri);
   }
 }

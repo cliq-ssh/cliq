@@ -9,6 +9,10 @@ class TerminalBufferRow {
   List<Cell> cells;
   int revision = 0;
 
+  /// True if this row's content is a soft-wrap continuation into the next
+  /// physical row/autowrap, as opposed to ending with a hard line break.
+  bool wrapped = false;
+
   TerminalBufferRow(int cols)
     : cells = List.generate(cols, (_) => Cell.empty(), growable: false);
 
@@ -31,6 +35,7 @@ class TerminalBufferRow {
     for (var i = 0; i < cells.length; i++) {
       cells[i].reset();
     }
+    wrapped = false;
     revision++;
   }
 }
@@ -66,6 +71,7 @@ class TerminalBuffer {
   int? savedCursorRow;
   int? savedCursorCol;
   FormattingOptions? savedFormat;
+  bool? savedPendingWrap;
 
   bool isLineFeedMode = false;
   bool isInsertMode = false;
@@ -114,14 +120,25 @@ class TerminalBuffer {
 
     newBuffer.isAutoWrapMode = isAutoWrapMode;
     newBuffer.tabStops = Set.from(tabStops.where((s) => s < newCols));
-
-    final oldCurrentScrollback = currentScrollback;
-    final absCursorRow = cursorRow + oldCurrentScrollback;
     newBuffer._buffer.clear();
 
-    int effectiveOldLength = _buffer.length;
-    while (effectiveOldLength > newRows) {
-      final row = _buffer[effectiveOldLength - 1];
+    if (_buffer.isEmpty) {
+      while (newBuffer.length < newRows) {
+        newBuffer._buffer.add(TerminalBufferRow(newCols));
+      }
+      return newBuffer;
+    }
+
+    final absCursorRow = (cursorRow + currentScrollback).clamp(
+      0,
+      _buffer.length - 1,
+    );
+
+    // Trim trailing rows that are completely blank AND sit below the
+    // cursor's row before reflowing.
+    int effectiveLength = _buffer.length;
+    while (effectiveLength > 0) {
+      final row = _buffer[effectiveLength - 1];
       bool isEmpty = true;
       for (final cell in row.cells) {
         if (cell.ch != ' ' || cell.fmt != FormattingOptions.defaultFormat) {
@@ -129,33 +146,114 @@ class TerminalBuffer {
           break;
         }
       }
-      if (isEmpty && (effectiveOldLength - 1) > absCursorRow) {
-        effectiveOldLength--;
+      if (isEmpty && (effectiveLength - 1) > absCursorRow) {
+        effectiveLength--;
       } else {
         break;
       }
     }
 
-    for (var i = 0; i < effectiveOldLength; i++) {
+    // Reconstruct logical lines by joining rows across soft-wrap boundaries.
+    final List<List<Cell>> logicalLines = [];
+    final logicalLineIndexOf = List.filled(effectiveLength, 0);
+    final offsetWithinLine = List.filled(effectiveLength, 0);
+
+    List<Cell> current = [];
+    for (var i = 0; i < effectiveLength; i++) {
       final row = _buffer[i];
-      row.ensureCols(newCols);
-      newBuffer._buffer.add(row);
+      logicalLineIndexOf[i] = logicalLines.length;
+      offsetWithinLine[i] = current.length;
+
+      if (row.wrapped) {
+        current.addAll(row.cells.map((c) => Cell.clone(c)));
+        continue;
+      }
+
+      var lastMeaningful = -1;
+      for (var c = 0; c < row.cells.length; c++) {
+        final cell = row.cells[c];
+        if (cell.ch != ' ' || cell.fmt != FormattingOptions.defaultFormat) {
+          lastMeaningful = c;
+        }
+      }
+      if (i == absCursorRow) {
+        lastMeaningful = max(lastMeaningful, cursorCol);
+      }
+      final keepLength = lastMeaningful + 1;
+      for (var c = 0; c < keepLength; c++) {
+        current.add(Cell.clone(row.cells[c]));
+      }
+      logicalLines.add(current);
+      current = [];
+    }
+    if (current.isNotEmpty) logicalLines.add(current);
+
+    final cursorLogicalLine = logicalLineIndexOf[absCursorRow];
+    final cursorGlobalOffset = offsetWithinLine[absCursorRow] + cursorCol;
+
+    final newRowsList = <TerminalBufferRow>[];
+    int cursorRowIndexInList = 0;
+    int cursorColInList = 0;
+    bool cursorPlaced = false;
+
+    for (var li = 0; li < logicalLines.length; li++) {
+      final cells = logicalLines[li];
+
+      if (cells.isEmpty) {
+        newRowsList.add(TerminalBufferRow(newCols));
+        if (li == cursorLogicalLine) {
+          cursorRowIndexInList = newRowsList.length - 1;
+          cursorPlaced = true;
+        }
+        continue;
+      }
+
+      var idx = 0;
+      while (idx < cells.length) {
+        final chunkEnd = min(idx + newCols, cells.length);
+        final row = TerminalBufferRow(newCols);
+        for (var c = idx; c < chunkEnd; c++) {
+          row.cells[c - idx] = cells[c];
+        }
+        final isLastChunk = chunkEnd == cells.length;
+        row.wrapped = !isLastChunk;
+        newRowsList.add(row);
+
+        if (li == cursorLogicalLine && !cursorPlaced) {
+          final withinChunk = cursorGlobalOffset - idx;
+          if (withinChunk >= 0 && withinChunk < newCols) {
+            cursorRowIndexInList = newRowsList.length - 1;
+            cursorColInList = withinChunk;
+            cursorPlaced = true;
+          }
+        }
+        idx += newCols;
+      }
+
+      if (li == cursorLogicalLine && !cursorPlaced) {
+        newRowsList.add(TerminalBufferRow(newCols));
+        cursorRowIndexInList = newRowsList.length - 1;
+        cursorPlaced = true;
+      }
     }
 
-    // Ensure we have at least "newRows" in the buffer
+    final newCapacity = newRows + maxScrollbackLines;
+    final startIndex = max(0, newRowsList.length - newCapacity);
+
+    for (var i = startIndex; i < newRowsList.length; i++) {
+      newBuffer._buffer.add(newRowsList[i]);
+    }
     while (newBuffer.length < newRows) {
       newBuffer._buffer.add(TerminalBufferRow(newCols));
     }
 
-    // Adjust cursor position relative to the content. If the screen grows, the visible
-    // content shifts "up" in the viewport relative to the bottom, so the cursorRow
-    // must be adjusted based on the change in currentScrollback
     final newCurrentScrollback = newBuffer.currentScrollback;
-    newBuffer.cursorRow = (absCursorRow - newCurrentScrollback).clamp(
-      0,
-      newRows - 1,
-    );
-    newBuffer.cursorCol = cursorCol.clamp(0, newCols - 1);
+    newBuffer.cursorRow =
+        (cursorRowIndexInList - startIndex - newCurrentScrollback).clamp(
+          0,
+          newRows - 1,
+        );
+    newBuffer.cursorCol = cursorColInList.clamp(0, newCols - 1);
 
     return newBuffer;
   }
@@ -241,7 +339,10 @@ class TerminalBuffer {
 
   /// Carriage Return (CR)
   /// - https://terminalguide.namepad.de/seq/a_c0-m/
-  void carriageReturn() => cursorCol = 0;
+  void carriageReturn() {
+    cursorCol = 0;
+    pendingWrap = false;
+  }
 
   /// Backspace (BS)
   /// - https://terminalguide.namepad.de/seq/a_c0-h/
@@ -256,6 +357,7 @@ class TerminalBuffer {
     } else {
       cursorCol = stops.first;
     }
+    pendingWrap = false;
   }
 
   /// Returns a Cell by absolute index inside the ring buffer:
@@ -296,7 +398,8 @@ class TerminalBuffer {
     final r = _buffer[row + currentScrollback];
     r.ensureCols(cols);
     final cell = r.cells[col];
-    cell.reset();
+    cell.ch = Cell.emptyChar;
+    cell.fmt = currentFormat;
     r.revision++;
   }
 
@@ -317,6 +420,7 @@ class TerminalBuffer {
 
     if (pendingWrap) {
       if (isAutoWrapMode) {
+        _buffer[cursorRow + currentScrollback].wrapped = true;
         index();
         cursorCol = 0;
       }
@@ -330,7 +434,7 @@ class TerminalBuffer {
       }
     } else {
       if (cursorCol >= cols) {
-        cursorCol = max(0, cols);
+        cursorCol = cols - 1;
       }
     }
 
@@ -362,12 +466,21 @@ class TerminalBuffer {
 
   void clear() {
     _buffer.clear();
+    final hasNonDefaultFormat =
+        currentFormat != FormattingOptions.defaultFormat;
     for (var i = 0; i < rows; i++) {
-      _buffer.add(TerminalBufferRow(cols));
+      final row = TerminalBufferRow(cols);
+      if (hasNonDefaultFormat) {
+        for (final cell in row.cells) {
+          cell.fmt = currentFormat;
+        }
+      }
+      _buffer.add(row);
     }
     // reset cursor position
     cursorRow = 0;
     cursorCol = 0;
+    pendingWrap = false;
   }
 
   void pushEmptyLine() {
@@ -483,11 +596,64 @@ class TerminalBuffer {
     }
   }
 
+  /// Insert Line (IL)
+  /// - https://terminalguide.namepad.de/seq/csi_cl/
+  void insertLines(int amount) {
+    if (!isCursorInMargins()) return;
+    if (amount <= 0) amount = 1;
+    final available = _bottomMargin - cursorRow + 1;
+    if (amount > available) amount = available;
+
+    final visibleStart = currentScrollback;
+    final List<TerminalBufferRow> regionRows = [];
+    for (var i = cursorRow; i <= _bottomMargin; i++) {
+      regionRows.add(_buffer[visibleStart + i]);
+    }
+
+    for (var i = 0; i < regionRows.length; i++) {
+      final targetIdx = visibleStart + cursorRow + i;
+      if (i - amount >= 0) {
+        _buffer[targetIdx] = regionRows[i - amount];
+      } else {
+        final reusedRow = regionRows[i - amount + regionRows.length];
+        reusedRow.clear();
+        _buffer[targetIdx] = reusedRow;
+      }
+    }
+  }
+
+  /// Delete Line (DL)
+  /// - https://terminalguide.namepad.de/seq/csi_cm/
+  void deleteLines(int amount) {
+    if (!isCursorInMargins()) return;
+    if (amount <= 0) amount = 1;
+    final available = _bottomMargin - cursorRow + 1;
+    if (amount > available) amount = available;
+
+    final visibleStart = currentScrollback;
+    final List<TerminalBufferRow> regionRows = [];
+    for (var i = cursorRow; i <= _bottomMargin; i++) {
+      regionRows.add(_buffer[visibleStart + i]);
+    }
+
+    for (var i = 0; i < regionRows.length; i++) {
+      final targetIdx = visibleStart + cursorRow + i;
+      if (i + amount < regionRows.length) {
+        _buffer[targetIdx] = regionRows[i + amount];
+      } else {
+        final reusedRow = regionRows[i + amount - regionRows.length];
+        reusedRow.clear();
+        _buffer[targetIdx] = reusedRow;
+      }
+    }
+  }
+
   /// Set Cursor Position (CUP)
   /// - https://terminalguide.namepad.de/seq/csi_ch/
   void setCursorPosition(int row, int col) {
     cursorRow = row.clamp(0, rows - 1);
     cursorCol = col.clamp(0, cols - 1);
+    pendingWrap = false;
   }
 
   /// Erase Line Right
@@ -520,7 +686,7 @@ class TerminalBuffer {
     for (var r = cursorRow; r < rows; r++) {
       final startCol = r == cursorRow ? cursorCol : 0;
       for (var c = startCol; c < cols; c++) {
-        eraseCell(cursorRow, c);
+        eraseCell(r, c);
       }
     }
   }
@@ -531,7 +697,7 @@ class TerminalBuffer {
     for (var r = 0; r <= cursorRow; r++) {
       final endCol = r == cursorRow ? cursorCol : cols - 1;
       for (var c = 0; c <= endCol; c++) {
-        eraseCell(cursorRow, c);
+        eraseCell(r, c);
       }
     }
   }
@@ -539,6 +705,22 @@ class TerminalBuffer {
   /// Erase Display Complete
   /// - https://terminalguide.namepad.de/seq/csi_cj-2/
   void eraseDisplayComplete() => clear();
+
+  /// Erase Display Scroll-back
+  /// - https://terminalguide.namepad.de/seq/csi_cj-3/
+  void eraseDisplayScrollback() {
+    if (currentScrollback <= 0) return;
+
+    final visibleStart = currentScrollback;
+    final visibleRows = [
+      for (var r = 0; r < rows; r++) _buffer[visibleStart + r],
+    ];
+
+    _buffer.clear();
+    for (final row in visibleRows) {
+      _buffer.add(row);
+    }
+  }
 
   /// Delete Character (DCH)
   /// - https://terminalguide.namepad.de/seq/csi_cp/
@@ -559,9 +741,43 @@ class TerminalBuffer {
 
     // fill the vacated space with empty cells
     for (var c = cols - amount; c < cols; c++) {
-      r.cells[c].reset();
+      r.cells[c].ch = Cell.emptyChar;
+      r.cells[c].fmt = currentFormat;
     }
     r.revision++;
+  }
+
+  /// Insert Blanks (ICH)
+  /// - https://terminalguide.namepad.de/seq/csi_ca_at/
+  void insertBlanks(int amount) {
+    if (!isCursorInMargins()) return;
+    final start = cursorCol.clamp(0, cols);
+    amount = min(amount, cols - start);
+    if (amount <= 0) return;
+
+    pendingWrap = false;
+
+    final r = _buffer[cursorRow + currentScrollback];
+    r.ensureCols(cols);
+
+    for (var c = cols - 1; c >= start + amount; c--) {
+      final src = r.cells[c - amount];
+      final dest = r.cells[c];
+      dest.ch = src.ch;
+      dest.fmt = src.fmt;
+    }
+
+    for (var c = start; c < start + amount; c++) {
+      r.cells[c].ch = Cell.emptyChar;
+      r.cells[c].fmt = currentFormat;
+    }
+    r.revision++;
+  }
+
+  /// Set or clear the active hyperlink (OSC 8). Subsequent printed
+  /// characters carry this link until it's cleared with an empty URI.
+  void setHyperlink(String? url) {
+    currentFormat = currentFormat.copyWithHyperlink(url);
   }
 
   /// Sets the vertical scroll margins to the specified [top] and [bottom] rows.
@@ -584,6 +800,7 @@ class TerminalBuffer {
     savedCursorRow = cursorRow;
     savedCursorCol = cursorCol;
     savedFormat = FormattingOptions.clone(currentFormat);
+    savedPendingWrap = pendingWrap;
     charset.save();
   }
 
@@ -599,6 +816,9 @@ class TerminalBuffer {
     if (savedFormat != null) {
       currentFormat = savedFormat!;
     }
+    if (savedPendingWrap != null) {
+      pendingWrap = savedPendingWrap!;
+    }
     charset.restore();
   }
 
@@ -607,6 +827,7 @@ class TerminalBuffer {
   void cursorLeft(int amount) {
     if (amount == 0) amount = 1;
     cursorCol = max(0, cursorCol - amount);
+    pendingWrap = false;
   }
 
   /// Cursor Right (CUF)
@@ -614,6 +835,7 @@ class TerminalBuffer {
   void cursorRight(int amount) {
     if (amount == 0) amount = 1;
     cursorCol = min(cols - 1, cursorCol + amount);
+    pendingWrap = false;
   }
 
   /// Cursor Up (CUU)
@@ -625,6 +847,7 @@ class TerminalBuffer {
     } else {
       cursorRow = max(0, cursorRow - amount);
     }
+    pendingWrap = false;
   }
 
   /// Cursor Down (CUD)
@@ -636,6 +859,7 @@ class TerminalBuffer {
     } else {
       cursorRow = min(rows - 1, cursorRow + amount);
     }
+    pendingWrap = false;
   }
 
   /// Exports the visible screen as plain text.
