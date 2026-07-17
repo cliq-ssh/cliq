@@ -7,6 +7,7 @@ import 'package:cliq/modules/settings/extension/custom_terminal_theme.extension.
 import 'package:cliq/modules/settings/model/keyboard_shortcuts.model.dart';
 import 'package:cliq/modules/settings/provider/terminal_theme.provider.dart';
 import 'package:cliq/shared/provider/store.provider.dart';
+import 'package:cliq/shared/ui/repeatable_button.dart';
 import 'package:cliq_term/cliq_term.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart' hide LicensePage;
@@ -115,7 +116,10 @@ class _SshSessionPageState extends ConsumerState<SshSessionPage>
           if (!bellSound.value) return;
           SystemSound.play(.alert);
         },
-        onTitleChange: (title) => windowManager.setTitle(title),
+        onTitleChange: (title) {
+          if (!PlatformUtils.isDesktop) return;
+          windowManager.setTitle(title);
+        },
         onHyperlinkTap: (hyperlink) {
           debugPrint('Hyperlink tapped: $hyperlink');
           // TODO: handle hyperlinks?
@@ -313,14 +317,15 @@ class _SshSessionPageState extends ConsumerState<SshSessionPage>
       String? text,
       IconData? icon,
       FButtonVariant? variant,
+      bool repeatable = false,
     }) {
       assert(
         text != null || icon != null,
         'Either text or icon must be provided',
       );
-      return FButton.icon(
+      Widget child = FButton.icon(
         variant: variant ?? .outline,
-        onPress: onPress,
+        onPress: repeatable ? () {} : onPress,
         child: text == null
             ? Icon(icon!, size: 16)
             : Text(
@@ -328,6 +333,12 @@ class _SshSessionPageState extends ConsumerState<SshSessionPage>
                 style: .new().copyWith(fontSize: 12, fontWeight: .bold),
               ),
       );
+
+      if (repeatable) {
+        child = RepeatableButton(onPress: onPress, child: child);
+      }
+
+      return child;
     }
 
     getButtonVariantForState(AccessoryBarButtonState state) {
@@ -375,18 +386,22 @@ class _SshSessionPageState extends ConsumerState<SshSessionPage>
             buildAccessoryButton(
               () => actions.sendInput(kSeqCursorUp),
               icon: LucideIcons.arrowUp,
+              repeatable: true,
             ),
             buildAccessoryButton(
               () => actions.sendInput(kSeqCursorDown),
               icon: LucideIcons.arrowDown,
+              repeatable: true,
             ),
             buildAccessoryButton(
               () => actions.sendInput(kSeqCursorLeft),
               icon: LucideIcons.arrowLeft,
+              repeatable: true,
             ),
             buildAccessoryButton(
               () => actions.sendInput(kSeqCursorRight),
               icon: LucideIcons.arrowRight,
+              repeatable: true,
             ),
           ],
           suffixItem: buildAccessoryButton(
