@@ -1,6 +1,7 @@
 import 'dart:math';
 
 import 'package:cliq_term/cliq_term.dart';
+import 'package:cliq_term/src/parser/escape_emitter.dart';
 import 'package:cliq_term/src/utils/keyboard_helper.dart';
 import 'package:cliq_term/src/widgets/terminal_input.dart';
 import 'package:cliq_term/src/widgets/terminal_painter.dart';
@@ -266,6 +267,12 @@ class _TerminalViewState extends State<TerminalView> {
               widget.controller.startCursorBlink();
             } else {
               widget.controller.stopCursorBlink();
+            }
+
+            if (widget.controller.focusReportingEnabled) {
+              widget.controller.onInput?.call(
+                hasFocus ? EscapeEmitter.focusIn() : EscapeEmitter.focusOut(),
+              );
             }
           },
           onInput: _sendInput,

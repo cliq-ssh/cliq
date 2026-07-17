@@ -28,4 +28,7 @@ class EscapeEmitter {
   static String sgrMouseEvent(int cb, int col, int row, {required bool press}) {
     return '$kSeqEscape[<$cb;$col;$row${press ? 'M' : 'm'}';
   }
+
+  static String focusIn() => '$kSeqEscape[I';
+  static String focusOut() => '$kSeqEscape[O';
 }

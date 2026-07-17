@@ -194,6 +194,9 @@ class TerminalController extends ChangeNotifier {
   /// should be automatically disabled.
   Timer? _synchronizedOutputWatchdog;
 
+  /// Whether focus reporting (1004) is enabled, which affects how focus events are reported to the terminal.
+  bool focusReportingEnabled = false;
+
   /// Whether the terminal has been modified since the last time it was marked clean.
   bool _isDirty = false;
 
