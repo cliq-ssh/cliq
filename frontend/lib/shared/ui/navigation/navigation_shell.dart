@@ -408,13 +408,14 @@ class NavigationShellState extends ConsumerState<NavigationShell>
           bottom: false,
           child: Stack(
             children: [
-              Positioned.fill(
-                child: GestureDetector(
-                  behavior: HitTestBehavior.opaque,
-                  onDoubleTap: () async => await toggleMaximize(),
-                  onPanStart: (_) => windowManager.startDragging(),
+              if (PlatformUtils.isDesktop)
+                Positioned.fill(
+                  child: GestureDetector(
+                    behavior: HitTestBehavior.opaque,
+                    onDoubleTap: () async => await toggleMaximize(),
+                    onPanStart: (_) => windowManager.startDragging(),
+                  ),
                 ),
-              ),
 
               Padding(
                 padding:

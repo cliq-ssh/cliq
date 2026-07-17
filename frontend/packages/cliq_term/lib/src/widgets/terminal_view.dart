@@ -1,5 +1,3 @@
-import 'dart:math';
-
 import 'package:cliq_term/cliq_term.dart';
 import 'package:cliq_term/src/parser/escape_emitter.dart';
 import 'package:cliq_term/src/utils/keyboard_helper.dart';
@@ -9,6 +7,8 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
+
+import '../utils/gesture_selection_handler.dart';
 
 class TerminalView extends StatefulWidget {
   /// The [TerminalController] used to manage the terminal state and handle input/output.
@@ -65,8 +65,14 @@ class TerminalView extends StatefulWidget {
 }
 
 class _TerminalViewState extends State<TerminalView> {
+  /// Multiplier applied to raw pan distance before converting to lines
+  static const double _panScrollSensitivity = 2.5;
+
   /// The [OverlayEntry] for the accessory bar, which is displayed above the keyboard when it is visible.
   OverlayEntry? _accessoryBarEntry;
+
+  /// The accumulated scroll delta for pan gestures.
+  double _panScrollAccumulator = 0;
 
   /// The effective [FocusNode] used for managing focus in the terminal view.
   late final FocusNode _focusNode;
@@ -257,6 +263,48 @@ class _TerminalViewState extends State<TerminalView> {
 
         final totalRows = widget.controller.totalRows;
 
+        coordsFor(Offset localPosition) {
+          return GestureSelectionHandler.calculateAbsoluteCoordinates(
+            localPosition: localPosition,
+            scrollOffset: _scrollController.hasClients
+                ? _scrollController.offset
+                : 0.0,
+            cellWidth: cellW,
+            cellHeight: cellH,
+            totalRows: totalRows,
+            maxCols: widget.controller.cols,
+          );
+        }
+
+        dispatchPanScroll(
+          double dy,
+          double cellH,
+          Offset localPosition,
+          (int, int) Function(Offset) coordsFor,
+        ) {
+          if (!widget.controller.backBufferActive &&
+              widget.controller.mouseTrackingMode == .none) {
+            return false;
+          }
+          if (dy == 0) return false;
+
+          _panScrollAccumulator += dy * _panScrollSensitivity;
+
+          final lines = (_panScrollAccumulator.abs() / cellH).floor();
+          if (lines <= 0) return true;
+
+          _panScrollAccumulator -= lines * cellH * _panScrollAccumulator.sign;
+
+          final (row, col) = coordsFor(localPosition);
+          widget.controller.handleScroll(
+            row: row,
+            col: col,
+            up: dy > 0,
+            lines: lines,
+          );
+          return true;
+        }
+
         return TerminalInput(
           focusNode: _focusNode,
           readOnly: widget.readOnly,
@@ -264,9 +312,12 @@ class _TerminalViewState extends State<TerminalView> {
           onFocusChange: (hasFocus) {
             if (hasFocus) {
               _showAccessoryBar();
+              _keyboardVisible.value = true;
               widget.controller.startCursorBlink();
             } else {
               widget.controller.stopCursorBlink();
+              _accessoryBarEntry?.remove();
+              _accessoryBarEntry = null;
             }
 
             if (widget.controller.focusReportingEnabled) {
@@ -314,25 +365,31 @@ class _TerminalViewState extends State<TerminalView> {
               _focusNode.requestFocus();
               final button = _mouseButtonFromEvent(event.buttons);
               if (button == null) return;
-              final (row, col) = _calculateCoords(
-                event.localPosition,
-                cellW,
-                cellH,
-              );
+              final (row, col) = coordsFor(event.localPosition);
               widget.controller.reportMouseEvent(
                 row: row,
                 col: col,
                 button: button,
               );
             },
+            onPointerPanZoomStart: (event) {
+              _panScrollAccumulator = 0;
+            },
+            onPointerPanZoomUpdate: (event) {
+              dispatchPanScroll(
+                event.panDelta.dy,
+                cellH,
+                event.localPosition,
+                coordsFor,
+              );
+            },
+            onPointerPanZoomEnd: (event) {
+              _panScrollAccumulator = 0;
+            },
             onPointerUp: (event) {
               if (!_mouseReportingActive) return;
               _focusNode.requestFocus();
-              final (row, col) = _calculateCoords(
-                event.localPosition,
-                cellW,
-                cellH,
-              );
+              final (row, col) = coordsFor(event.localPosition);
               widget.controller.reportMouseEvent(
                 row: row,
                 col: col,
@@ -340,25 +397,35 @@ class _TerminalViewState extends State<TerminalView> {
               );
             },
             onPointerMove: (event) {
-              if (!_mouseReportingActive) return;
-              final (row, col) = _calculateCoords(
-                event.localPosition,
-                cellW,
-                cellH,
-              );
-              widget.controller.reportMouseEvent(
-                row: row,
-                col: col,
-                isMotion: true,
-              );
+              // Touch-drag scroll on mobile takes priority over raw motion
+              // reporting: a vertical drag should scroll (translated to
+              // wheel events or arrow keys by handleScroll) even when the
+              // program has mouse tracking enabled for other purposes
+              // (e.g. btop's clickable process list) — matching how
+              // desktop trackpad/wheel scrolling already behaves
+              // regardless of mouse-tracking state.
+              if (!widget.allowTextSelection) {
+                dispatchPanScroll(
+                  event.delta.dy,
+                  cellH,
+                  event.localPosition,
+                  coordsFor,
+                );
+                return;
+              }
+
+              if (_mouseReportingActive) {
+                final (row, col) = coordsFor(event.localPosition);
+                widget.controller.reportMouseEvent(
+                  row: row,
+                  col: col,
+                  isMotion: true,
+                );
+              }
             },
             onPointerSignal: (event) {
               if (event is! PointerScrollEvent) return;
-              final (row, col) = _calculateCoords(
-                event.localPosition,
-                cellW,
-                cellH,
-              );
+              final (row, col) = coordsFor(event.localPosition);
               widget.controller.handleScroll(
                 row: row,
                 col: col,
@@ -375,10 +442,18 @@ class _TerminalViewState extends State<TerminalView> {
               },
               onTapUp: (details) {
                 if (_mouseReportingActive) return;
-                final (row, col) = _calculateCoords(
-                  details.localPosition,
-                  cellW,
-                  cellH,
+                final (
+                  row,
+                  col,
+                ) = GestureSelectionHandler.calculateAbsoluteCoordinates(
+                  localPosition: details.localPosition,
+                  scrollOffset: _scrollController.hasClients
+                      ? _scrollController.offset
+                      : 0.0,
+                  cellWidth: cellW,
+                  cellHeight: cellH,
+                  totalRows: totalRows,
+                  maxCols: widget.controller.cols,
                 );
                 final url = widget.controller.hyperlinkAt(row, col);
                 if (url != null) {
@@ -387,21 +462,23 @@ class _TerminalViewState extends State<TerminalView> {
               },
               onPanStart: (details) {
                 _focusNode.requestFocus();
+                _panScrollAccumulator = 0;
                 if (!widget.allowTextSelection || _mouseReportingActive) return;
-                final (absRow, absCol) = _calculateCoords(
-                  details.localPosition,
-                  cellW,
-                  cellH,
-                );
+                final (absRow, absCol) = coordsFor(details.localPosition);
                 widget.controller.startSelection(absRow, absCol);
               },
               onPanUpdate: (details) {
-                if (!widget.allowTextSelection || _mouseReportingActive) return;
-                final (absRow, absCol) = _calculateCoords(
-                  details.localPosition,
-                  cellW,
-                  cellH,
-                );
+                if (!widget.allowTextSelection) {
+                  dispatchPanScroll(
+                    details.delta.dy,
+                    cellH,
+                    details.localPosition,
+                    coordsFor,
+                  );
+                  return;
+                }
+                if (_mouseReportingActive) return;
+                final (absRow, absCol) = coordsFor(details.localPosition);
                 widget.controller.updateSelection(absRow, absCol);
               },
               child: Container(
@@ -411,7 +488,10 @@ class _TerminalViewState extends State<TerminalView> {
                   controller: _scrollController,
                   itemCount: totalRows,
                   itemExtent: cellH,
-                  physics: const ClampingScrollPhysics(),
+                  padding: .zero,
+                  physics: const AlwaysScrollableScrollPhysics(
+                    parent: ClampingScrollPhysics(),
+                  ),
                   itemBuilder: (context, index) {
                     return TerminalRowWidget(
                       controller: widget.controller,
@@ -427,25 +507,6 @@ class _TerminalViewState extends State<TerminalView> {
           ),
         );
       },
-    );
-  }
-
-  (int, int) _calculateCoords(
-    Offset localPosition,
-    double cellW,
-    double cellH,
-  ) {
-    final scrollOffset = _scrollController.hasClients
-        ? _scrollController.offset
-        : 0.0;
-    final totalLocalY = localPosition.dy + scrollOffset;
-
-    final absRow = (totalLocalY / cellH).floor();
-    final col = (localPosition.dx / cellW).floor();
-
-    return (
-      absRow.clamp(0, max(0, widget.controller.totalRows - 1)),
-      col.clamp(0, widget.controller.cols - 1),
     );
   }
 }

@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:cliq/modules/connections/model/connection_full.model.dart';
 import 'package:cliq/shared/ui/context_menu.dart';
 import 'package:cliq/shared/utils/commons.dart';
+import 'package:cliq/shared/utils/platform_utils.dart';
 import 'package:cliq_term/cliq_term.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
@@ -148,7 +149,8 @@ class ConnectionCard extends HookConsumerWidget {
             children: [
               Flexible(
                 child: GestureDetector(
-                  onDoubleTap: connect,
+                  onTap: PlatformUtils.isMobile ? connect : null,
+                  onDoubleTap: PlatformUtils.isDesktop ? connect : null,
                   child: Row(
                     spacing: 16,
                     children: [
