@@ -8,6 +8,7 @@ class FormattingOptions {
 
   final Color? fgColor;
   final Color? bgColor;
+  final String? hyperlink;
   final int _flags;
 
   static const int _boldMask = 1 << 0;
@@ -18,13 +19,23 @@ class FormattingOptions {
   static const int _underlineMask = 3 << 5;
   static const int _underlineShift = 5;
 
-  FormattingOptions._internal() : fgColor = null, bgColor = null, _flags = 0;
+  FormattingOptions._internal()
+    : fgColor = null,
+      bgColor = null,
+      hyperlink = null,
+      _flags = 0;
 
-  FormattingOptions._raw(this.fgColor, this.bgColor, this._flags);
+  FormattingOptions._raw(
+    this.fgColor,
+    this.bgColor,
+    this.hyperlink,
+    this._flags,
+  );
 
   factory FormattingOptions({
     Color? fgColor,
     Color? bgColor,
+    String? hyperlink,
     bool bold = false,
     bool faint = false,
     bool italic = false,
@@ -40,11 +51,11 @@ class FormattingOptions {
     if (inverted) flags |= _invertedMask;
     flags |= (underline.index << _underlineShift) & _underlineMask;
 
-    final hash = Object.hash(fgColor, bgColor, flags);
+    final hash = Object.hash(fgColor, bgColor, hyperlink, flags);
 
     return _pool.putIfAbsent(
       hash,
-      () => FormattingOptions._raw(fgColor, bgColor, flags),
+      () => FormattingOptions._raw(fgColor, bgColor, hyperlink, flags),
     );
   }
 
@@ -65,6 +76,7 @@ class FormattingOptions {
     return FormattingOptions(
       fgColor: other.fgColor,
       bgColor: other.bgColor,
+      hyperlink: other.hyperlink,
       bold: other.bold,
       faint: other.faint,
       italic: other.italic,
@@ -87,6 +99,7 @@ class FormattingOptions {
     return FormattingOptions(
       fgColor: fgColor ?? this.fgColor,
       bgColor: bgColor ?? this.bgColor,
+      hyperlink: hyperlink, // preserved through normal SGR copyWith calls
       bold: bold ?? this.bold,
       faint: faint ?? this.faint,
       italic: italic ?? this.italic,
@@ -96,15 +109,33 @@ class FormattingOptions {
     );
   }
 
+  /// Separate from [copyWith] because the hyperlink needs to be explicitly
+  /// clearable to null (closing a link), which the `??`-based copyWith
+  /// pattern can't express.
+  FormattingOptions copyWithHyperlink(String? hyperlink) {
+    return FormattingOptions(
+      fgColor: fgColor,
+      bgColor: bgColor,
+      hyperlink: hyperlink,
+      bold: bold,
+      faint: faint,
+      italic: italic,
+      underline: underline,
+      concealed: concealed,
+      inverted: inverted,
+    );
+  }
+
   @override
   bool operator ==(Object other) {
     if (identical(this, other)) return true;
     return other is FormattingOptions &&
         other.fgColor == fgColor &&
         other.bgColor == bgColor &&
+        other.hyperlink == hyperlink &&
         other._flags == _flags;
   }
 
   @override
-  int get hashCode => Object.hash(fgColor, bgColor, _flags);
+  int get hashCode => Object.hash(fgColor, bgColor, hyperlink, _flags);
 }

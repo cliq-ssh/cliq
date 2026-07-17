@@ -116,6 +116,10 @@ class _SshSessionPageState extends ConsumerState<SshSessionPage>
           SystemSound.play(.alert);
         },
         onTitleChange: (title) => windowManager.setTitle(title),
+        onHyperlinkTap: (hyperlink) {
+          print('Hyperlink tapped: $hyperlink');
+          // TODO: handle hyperlinks?
+        },
         cursorBlinkInterval: Duration(milliseconds: cursorBlinkInterval.value),
         cursorBlinkTimeout: Duration(seconds: cursorBlinkTimeout.value),
         onResize: (rows, cols, size) {

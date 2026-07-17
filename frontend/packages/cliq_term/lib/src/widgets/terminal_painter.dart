@@ -107,9 +107,16 @@ class SingleRowPainter extends CustomPainter {
     for (int c = 0; c < cols; c++) {
       final cell = (c < rowCols) ? cells[c] : null;
       final ch = cell?.ch ?? ' ';
-      if (ch.isEmpty || ch == ' ') continue;
-
       final fmt = cell?.fmt ?? FormattingOptions.defaultFormat;
+
+      final isBlank = ch.isEmpty || ch == ' ';
+      final hasLink = fmt.hyperlink != null;
+      // A blank cell can still carry an active underline or hyperlink
+      // decoration (e.g. Back Color Erase extending a link's underline
+      // to the edge of a line) — only skip cells with truly nothing to
+      // paint.
+      final hasDecoration = fmt.underline != Underline.none || hasLink;
+      if (isBlank && !hasDecoration) continue;
 
       final effectiveFg = fmt.concealed
           ? theme.foregroundColor.withAlpha(0)
@@ -130,6 +137,7 @@ class SingleRowPainter extends CustomPainter {
         fmt.italic,
         fmt.underline,
         isBraille,
+        hasLink,
       );
 
       TextPainter? glyph = controller.getCachedGlyph(cacheKey);
@@ -138,14 +146,10 @@ class SingleRowPainter extends CustomPainter {
         final style = textStyle.copyWith(
           color: effectiveFg,
           fontFamily: isBraille ? 'Noto Sans Symbols2' : null,
-          fontWeight: fmt.bold ? FontWeight.w700 : null,
-          fontStyle: fmt.italic ? FontStyle.italic : FontStyle.normal,
-          decoration: fmt.underline == Underline.none
-              ? TextDecoration.none
-              : TextDecoration.underline,
-          decorationStyle: fmt.underline == Underline.double
-              ? TextDecorationStyle.double
-              : TextDecorationStyle.solid,
+          fontWeight: fmt.bold ? .w700 : null,
+          fontStyle: fmt.italic ? .italic : .normal,
+          decoration: (fmt.underline == .none && !hasLink) ? .none : .underline,
+          decorationStyle: fmt.underline == .double ? .double : .solid,
         );
 
         glyph = TextPainter(

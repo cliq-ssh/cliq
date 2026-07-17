@@ -100,6 +100,7 @@ class EscapeParser {
   late final Map<int, OscHandler> _oscHandlers = {
     0: _oscSetWindowTitle,
     2: _oscSetWindowTitle,
+    8: _oscHyperlink,
   };
 
   final _queue = ByteQueue();
@@ -733,4 +734,10 @@ class EscapeParser {
   // --- OSC Handlers ---
 
   void _oscSetWindowTitle(String params) => controller.setWindowTitle(params);
+
+  void _oscHyperlink(String params) {
+    final idx = params.indexOf(';');
+    final uri = idx == -1 ? '' : params.substring(idx + 1);
+    controller.activeBuffer.setHyperlink(uri.isEmpty ? null : uri);
+  }
 }

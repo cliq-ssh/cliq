@@ -774,6 +774,12 @@ class TerminalBuffer {
     r.revision++;
   }
 
+  /// Set or clear the active hyperlink (OSC 8). Subsequent printed
+  /// characters carry this link until it's cleared with an empty URI.
+  void setHyperlink(String? url) {
+    currentFormat = currentFormat.copyWithHyperlink(url);
+  }
+
   /// Sets the vertical scroll margins to the specified [top] and [bottom] rows.
   /// Both [top] and [bottom] must be within the range of the buffer's rows.
   void setVerticalMargins(int top, int bottom) {

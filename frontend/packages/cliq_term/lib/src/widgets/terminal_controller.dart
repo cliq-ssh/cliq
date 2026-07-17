@@ -19,6 +19,7 @@ typedef GlyphKey = (
   bool italic,
   Underline underline,
   bool braille,
+  bool link,
 );
 
 /// Controller for managing terminal state, including buffers, cursor, and input handling.
@@ -92,6 +93,9 @@ class TerminalController extends ChangeNotifier {
 
   /// A callback that is fired when a bell character (0x07) is received.
   final void Function()? onBell;
+
+  /// Fired when the user taps a cell that carries an active hyperlink.
+  void Function(String url)? onHyperlinkTap;
 
   /// A callback that is fired when the input queue exceeds the high water mark.
   void Function()? onPause;
@@ -207,6 +211,7 @@ class TerminalController extends ChangeNotifier {
     this.onInput,
     this.onResize,
     this.onTitleChange,
+    this.onHyperlinkTap,
     this.onBell,
     this.onPause,
     this.onResume,
@@ -513,6 +518,10 @@ class TerminalController extends ChangeNotifier {
 
     return false;
   }
+
+  /// Returns the hyperlink URL at the given absolute row/col, if any.
+  String? hyperlinkAt(int row, int col) =>
+      activeBuffer.getAbsoluteCell(row, col).fmt.hyperlink;
 
   void setWindowTitle(String title) {
     currentTitle = title;

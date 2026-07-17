@@ -366,6 +366,18 @@ class _TerminalViewState extends State<TerminalView> {
                 _focusNode.requestFocus();
                 widget.controller.clearSelection();
               },
+              onTapUp: (details) {
+                if (_mouseReportingActive) return;
+                final (row, col) = _calculateCoords(
+                  details.localPosition,
+                  cellW,
+                  cellH,
+                );
+                final url = widget.controller.hyperlinkAt(row, col);
+                if (url != null) {
+                  widget.controller.onHyperlinkTap?.call(url);
+                }
+              },
               onPanStart: (details) {
                 _focusNode.requestFocus();
                 if (!widget.allowTextSelection || _mouseReportingActive) return;
