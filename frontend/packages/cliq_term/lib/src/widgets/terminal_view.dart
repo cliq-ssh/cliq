@@ -1,5 +1,3 @@
-import 'dart:math';
-
 import 'package:cliq_term/cliq_term.dart';
 import 'package:cliq_term/src/parser/escape_emitter.dart';
 import 'package:cliq_term/src/utils/keyboard_helper.dart';
@@ -278,6 +276,35 @@ class _TerminalViewState extends State<TerminalView> {
           );
         }
 
+        dispatchPanScroll(
+          double dy,
+          double cellH,
+          Offset localPosition,
+          (int, int) Function(Offset) coordsFor,
+        ) {
+          if (!widget.controller.backBufferActive &&
+              widget.controller.mouseTrackingMode == .none) {
+            return false;
+          }
+          if (dy == 0) return false;
+
+          _panScrollAccumulator += dy * _panScrollSensitivity;
+
+          final lines = (_panScrollAccumulator.abs() / cellH).floor();
+          if (lines <= 0) return true;
+
+          _panScrollAccumulator -= lines * cellH * _panScrollAccumulator.sign;
+
+          final (row, col) = coordsFor(localPosition);
+          widget.controller.handleScroll(
+            row: row,
+            col: col,
+            up: dy > 0,
+            lines: lines,
+          );
+          return true;
+        }
+
         return TerminalInput(
           focusNode: _focusNode,
           readOnly: widget.readOnly,
@@ -285,9 +312,12 @@ class _TerminalViewState extends State<TerminalView> {
           onFocusChange: (hasFocus) {
             if (hasFocus) {
               _showAccessoryBar();
+              _keyboardVisible.value = true;
               widget.controller.startCursorBlink();
             } else {
               widget.controller.stopCursorBlink();
+              _accessoryBarEntry?.remove();
+              _accessoryBarEntry = null;
             }
 
             if (widget.controller.focusReportingEnabled) {
@@ -342,30 +372,15 @@ class _TerminalViewState extends State<TerminalView> {
                 button: button,
               );
             },
+            onPointerPanZoomStart: (event) {
+              _panScrollAccumulator = 0;
+            },
             onPointerPanZoomUpdate: (event) {
-              if (!widget.controller.backBufferActive &&
-                  widget.controller.mouseTrackingMode == .none) {
-                return;
-              }
-
-              final dy = event.panDelta.dy;
-              if (dy == 0) return;
-
-              _panScrollAccumulator += dy * _panScrollSensitivity;
-
-              final lines = (_panScrollAccumulator.abs() / cellH).floor();
-              if (lines <= 0) return;
-
-              // consume only the whole lines we're about to send, keep leftover fraction
-              _panScrollAccumulator -=
-                  lines * cellH * _panScrollAccumulator.sign;
-
-              final (row, col) = coordsFor(event.localPosition);
-              widget.controller.handleScroll(
-                row: row,
-                col: col,
-                up: dy > 0,
-                lines: lines,
+              dispatchPanScroll(
+                event.panDelta.dy,
+                cellH,
+                event.localPosition,
+                coordsFor,
               );
             },
             onPointerPanZoomEnd: (event) {
@@ -382,13 +397,31 @@ class _TerminalViewState extends State<TerminalView> {
               );
             },
             onPointerMove: (event) {
-              if (!_mouseReportingActive) return;
-              final (row, col) = coordsFor(event.localPosition);
-              widget.controller.reportMouseEvent(
-                row: row,
-                col: col,
-                isMotion: true,
-              );
+              // Touch-drag scroll on mobile takes priority over raw motion
+              // reporting: a vertical drag should scroll (translated to
+              // wheel events or arrow keys by handleScroll) even when the
+              // program has mouse tracking enabled for other purposes
+              // (e.g. btop's clickable process list) — matching how
+              // desktop trackpad/wheel scrolling already behaves
+              // regardless of mouse-tracking state.
+              if (!widget.allowTextSelection) {
+                dispatchPanScroll(
+                  event.delta.dy,
+                  cellH,
+                  event.localPosition,
+                  coordsFor,
+                );
+                return;
+              }
+
+              if (_mouseReportingActive) {
+                final (row, col) = coordsFor(event.localPosition);
+                widget.controller.reportMouseEvent(
+                  row: row,
+                  col: col,
+                  isMotion: true,
+                );
+              }
             },
             onPointerSignal: (event) {
               if (event is! PointerScrollEvent) return;
@@ -429,37 +462,23 @@ class _TerminalViewState extends State<TerminalView> {
               },
               onPanStart: (details) {
                 _focusNode.requestFocus();
+                _panScrollAccumulator = 0;
                 if (!widget.allowTextSelection || _mouseReportingActive) return;
-                final (
-                  absRow,
-                  absCol,
-                ) = GestureSelectionHandler.calculateAbsoluteCoordinates(
-                  localPosition: details.localPosition,
-                  scrollOffset: _scrollController.hasClients
-                      ? _scrollController.offset
-                      : 0.0,
-                  cellWidth: cellW,
-                  cellHeight: cellH,
-                  totalRows: totalRows,
-                  maxCols: widget.controller.cols,
-                );
+                final (absRow, absCol) = coordsFor(details.localPosition);
                 widget.controller.startSelection(absRow, absCol);
               },
               onPanUpdate: (details) {
-                if (!widget.allowTextSelection || _mouseReportingActive) return;
-                final (
-                  absRow,
-                  absCol,
-                ) = GestureSelectionHandler.calculateAbsoluteCoordinates(
-                  localPosition: details.localPosition,
-                  scrollOffset: _scrollController.hasClients
-                      ? _scrollController.offset
-                      : 0.0,
-                  cellWidth: cellW,
-                  cellHeight: cellH,
-                  totalRows: totalRows,
-                  maxCols: widget.controller.cols,
-                );
+                if (!widget.allowTextSelection) {
+                  dispatchPanScroll(
+                    details.delta.dy,
+                    cellH,
+                    details.localPosition,
+                    coordsFor,
+                  );
+                  return;
+                }
+                if (_mouseReportingActive) return;
+                final (absRow, absCol) = coordsFor(details.localPosition);
                 widget.controller.updateSelection(absRow, absCol);
               },
               child: Container(
@@ -469,6 +488,7 @@ class _TerminalViewState extends State<TerminalView> {
                   controller: _scrollController,
                   itemCount: totalRows,
                   itemExtent: cellH,
+                  padding: .zero,
                   physics: const AlwaysScrollableScrollPhysics(
                     parent: ClampingScrollPhysics(),
                   ),

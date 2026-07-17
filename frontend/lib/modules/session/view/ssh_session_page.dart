@@ -414,6 +414,14 @@ class _SshSessionPageState extends ConsumerState<SshSessionPage>
       };
     }
 
+    final rawKeyboardInset = MediaQuery.of(context).viewInsets.bottom;
+    final adjustedKeyboardInset = PlatformUtils.isMobile
+        ? (rawKeyboardInset - kBottomNavigationBarHeight).clamp(
+            0.0,
+            double.infinity,
+          )
+        : rawKeyboardInset;
+
     return GenericSessionPage(
       session: session,
       isConnected: session.isConnected && terminalController.value != null,
@@ -425,7 +433,7 @@ class _SshSessionPageState extends ConsumerState<SshSessionPage>
           padding: kShellSessionPagePadding.copyWith(
             bottom:
                 kShellSessionPagePadding.bottom +
-                MediaQuery.of(context).viewInsets.bottom +
+                adjustedKeyboardInset +
                 TerminalView.getAccessoryBarHeight(PlatformUtils.isMobile),
           ),
           child: TerminalView(

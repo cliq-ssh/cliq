@@ -53,13 +53,14 @@ class _RepeatableButtonState extends State<RepeatableButton> {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTapDown: (_) {
-        widget.onPress(); // immediate feedback on first press
+    return Listener(
+      behavior: HitTestBehavior.opaque,
+      onPointerDown: (_) {
+        widget.onPress();
         _start();
       },
-      onTapUp: (_) => _stop(),
-      onTapCancel: () => _stop(),
+      onPointerUp: (_) => _stop(),
+      onPointerCancel: (_) => _stop(),
       child: widget.child,
     );
   }
