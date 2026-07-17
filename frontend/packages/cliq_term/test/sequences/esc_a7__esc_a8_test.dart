@@ -41,6 +41,30 @@ void main() {
       expect(cell.fmt.bold, isTrue);
     });
 
+    test('restoring after a pending wrap re-arms the wrap on next print', () {
+      controller.feed('$kSeqEscape[?7h'); // autowrap on
+      controller.feed('a' * controller.cols); // arm pendingWrap
+      controller.feed('${kSeqEscape}7'); // DECSC snapshots pendingWrap=true
+
+      controller.feed('$kSeqEscape[1;1H');
+      controller.feed('x');
+
+      controller.feed('${kSeqEscape}8'); // DECRC restores pendingWrap=true
+      controller.feed('y');
+
+      // 'y' should wrap to the next row at col 0, not overwrite the last col.
+      expect(controller.activeBuffer.getCell(1, 0).ch, 'y');
+    });
+
+    test('restoring without a pending wrap does not spuriously wrap', () {
+      controller.feed('$kSeqEscape[?7h');
+      controller.feed('${kSeqEscape}7'); // DECSC, no pending wrap armed
+      controller.feed('$kSeqEscape[1;1H');
+      controller.feed('${kSeqEscape}8'); // DECRC
+      controller.feed('z');
+      expect(controller.activeBuffer.getCell(0, 0).ch, 'z');
+    });
+
     test('restore without prior save does not crash', () {
       expect(() => controller.feed('${kSeqEscape}8'), returnsNormally);
     });

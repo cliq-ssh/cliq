@@ -33,8 +33,7 @@ class CsiParser {
       final cu = body.codeUnitAt(i);
       if (cu == '?'.codeUnitAt(0) ||
           cu == '>'.codeUnitAt(0) ||
-          cu == '='.codeUnitAt(0) ||
-          cu == '!'.codeUnitAt(0)) {
+          cu == '='.codeUnitAt(0)) {
         result.leader = String.fromCharCode(cu);
         i++;
       }

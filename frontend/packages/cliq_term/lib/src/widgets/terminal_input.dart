@@ -123,7 +123,12 @@ class _TerminalInputState extends State<TerminalInput>
       text: ' ',
       selection: TextSelection.collapsed(offset: 1),
     );
-    _inputConnection?.setEditingState(_editingValue);
+    // Use a post-frame callback to avoid engine-side race conditions
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted && (_inputConnection?.attached ?? false)) {
+        _inputConnection!.setEditingState(_editingValue);
+      }
+    });
   }
 
   @override

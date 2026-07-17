@@ -20,6 +20,7 @@ import 'package:lucide_flutter/lucide_flutter.dart';
 
 import '../../../shared/model/page_path.model.dart';
 
+//TODO: add proper error handling
 class SshSftpSettingsPage extends AbstractSettingsPage {
   static const PagePathBuilder pagePath = PagePathBuilder.child(
     parent: SettingsPage.pagePath,
@@ -33,11 +34,15 @@ class SshSftpSettingsPage extends AbstractSettingsPage {
 
   @override
   Widget buildBody(BuildContext context, WidgetRef ref) {
-    final sshScrollbackSize = useStore(.sshScrollbackSize);
+    final scrollbackSize = useStore(.sshScrollbackSize);
+    final bellSound = useStore(.terminalBellSound);
+    final cursorStyle = useStore(.terminalCursorStyle);
+    final cursorBlinkInterval = useStore(.terminalCursorBlinkInterval);
+    final cursorBlinkTimeout = useStore(.terminalCursorBlinkTimeout);
+
     final showHiddenFiles = useStore(.sftpShowHiddenFiles);
     final largeDownloadsWarning = useStore(.sftpLargeDownloadWarning);
     final directoryNotEmptyWarning = useStore(.sftpDirectoryNotEmptyWarning);
-    final bellSound = useStore(.sshBellSound);
 
     final refreshTrigger = useState(0);
     final tempDirSizeFuture = useMemoized(
@@ -46,11 +51,19 @@ class SshSftpSettingsPage extends AbstractSettingsPage {
     );
 
     final sshScrollbackSizeController = useTextEditingController(
-      text: sshScrollbackSize.value.toString(),
+      text: scrollbackSize.value.toString(),
+    );
+
+    final cursorBlinkIntervalController = useTextEditingController(
+      text: cursorBlinkInterval.value.toString(),
+    );
+
+    final cursorBlinkTimeoutController = useTextEditingController(
+      text: cursorBlinkTimeout.value.toString(),
     );
 
     onScrollbackSubmit(String value) {
-      int amount = int.tryParse(value) ?? sshScrollbackSize.value;
+      int amount = int.tryParse(value) ?? scrollbackSize.value;
 
       if (amount < TerminalBuffer.minMaxScrollbackLines) {
         amount = TerminalBuffer.minMaxScrollbackLines;
@@ -60,6 +73,30 @@ class SshSftpSettingsPage extends AbstractSettingsPage {
       }
       StoreKey.sshScrollbackSize.write(amount);
       sshScrollbackSizeController.text = amount.toString();
+    }
+
+    onCursorBlinkIntervalSubmit(String value) {
+      int amount = int.tryParse(value) ?? cursorBlinkInterval.value;
+      if (amount < CursorState.minCursorBlinkInterval) {
+        amount = CursorState.minCursorBlinkInterval;
+      }
+      if (amount > CursorState.maxCursorBlinkInterval) {
+        amount = CursorState.maxCursorBlinkInterval;
+      }
+      StoreKey.terminalCursorBlinkInterval.write(amount);
+      cursorBlinkIntervalController.text = amount.toString();
+    }
+
+    onCursorBlinkTimeoutSubmit(String value) {
+      int amount = int.tryParse(value) ?? cursorBlinkTimeout.value;
+      if (amount < CursorState.minCursorBlinkTimeout) {
+        amount = CursorState.minCursorBlinkTimeout;
+      }
+      if (amount > CursorState.maxCursorBlinkTimeout) {
+        amount = CursorState.maxCursorBlinkTimeout;
+      }
+      StoreKey.terminalCursorBlinkTimeout.write(amount);
+      cursorBlinkTimeoutController.text = amount.toString();
     }
 
     return SingleChildScrollView(
@@ -100,8 +137,86 @@ class SshSftpSettingsPage extends AbstractSettingsPage {
                           title: 'ssh_sftp_bell_sound',
                           subtitle: 'ssh_sftp_bell_sound_subtitle',
                           prefix: Icon(LucideIcons.bellRing),
-                          storeKey: .sshBellSound,
+                          storeKey: .terminalBellSound,
                           value: bellSound.value,
+                        ),
+                        FSelectMenuTile<CursorStyle>(
+                          title: Text('ssh_sftp_terminal_cursor_style'.tr()),
+                          prefix: const Icon(LucideIcons.textCursorInput),
+                          subtitle: Text(
+                            'ssh_sftp_terminal_cursor_style_subtitle'.tr(),
+                          ),
+                          selectControl: .managedRadio(
+                            initial: cursorStyle.value,
+                            onChange: (value) =>
+                                StoreKey.terminalCursorStyle.write(value.first),
+                          ),
+                          detailsBuilder: (context, value, _) {
+                            if (value.isEmpty) return SizedBox.shrink();
+                            return Text(
+                              'ssh_sftp_terminal_cursor_styles.${value.first.name}'
+                                  .tr(),
+                            );
+                          },
+                          menu: [
+                            for (CursorStyle t in CursorStyle.values) ...[
+                              .tile(
+                                title: Text(
+                                  'ssh_sftp_terminal_cursor_styles.${t.name}'
+                                      .tr(),
+                                ),
+                                value: t,
+                              ),
+                            ],
+                          ],
+                        ),
+                        FTile(
+                          title: Text(
+                            'ssh_sftp_terminal_cursor_blink_interval'.tr(),
+                          ),
+                          subtitle: Text(
+                            'ssh_sftp_terminal_cursor_blink_interval_subtitle'
+                                .tr(),
+                            overflow: .visible,
+                          ),
+                          prefix: Icon(LucideIcons.timer),
+                          suffix: SizedBox(
+                            width: 150,
+                            child: FTextField(
+                              control: FTextFieldControl.managed(
+                                controller: cursorBlinkIntervalController,
+                              ),
+                              keyboardType: TextInputType.number,
+                              inputFormatters: [
+                                FilteringTextInputFormatter.digitsOnly,
+                              ],
+                              onSubmit: onCursorBlinkIntervalSubmit,
+                            ),
+                          ),
+                        ),
+                        FTile(
+                          title: Text(
+                            'ssh_sftp_terminal_cursor_blink_timeout'.tr(),
+                          ),
+                          subtitle: Text(
+                            'ssh_sftp_terminal_cursor_blink_timeout_subtitle'
+                                .tr(),
+                            overflow: .visible,
+                          ),
+                          prefix: Icon(LucideIcons.timerOff),
+                          suffix: SizedBox(
+                            width: 150,
+                            child: FTextField(
+                              control: FTextFieldControl.managed(
+                                controller: cursorBlinkTimeoutController,
+                              ),
+                              keyboardType: TextInputType.number,
+                              inputFormatters: [
+                                FilteringTextInputFormatter.digitsOnly,
+                              ],
+                              onSubmit: onCursorBlinkTimeoutSubmit,
+                            ),
+                          ),
                         ),
                       ],
                     ),

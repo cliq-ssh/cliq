@@ -13,6 +13,11 @@ class RingBuffer<T> {
   bool get isFull => _length == maxSize;
   bool get isEmpty => _length == 0;
 
+  T? get nextToOverwrite {
+    if (!isFull) return null;
+    return _buffer[_start];
+  }
+
   void add(T item) {
     final end = (_start + _length) % maxSize;
     _buffer[end] = item;

@@ -1,13 +1,14 @@
+import 'dart:math';
+
 import 'package:cliq_term/cliq_term.dart';
-import 'package:cliq_term/src/utils/gesture_selection_handler.dart';
+import 'package:cliq_term/src/parser/escape_emitter.dart';
 import 'package:cliq_term/src/utils/keyboard_helper.dart';
 import 'package:cliq_term/src/widgets/terminal_input.dart';
 import 'package:cliq_term/src/widgets/terminal_painter.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
-
-/// The height of the accessory bar displayed above the keyboard when it is visible.
-const kAccessoryBarHeight = 48.0;
 
 class TerminalView extends StatefulWidget {
   /// The [TerminalController] used to manage the terminal state and handle input/output.
@@ -38,6 +39,9 @@ class TerminalView extends StatefulWidget {
   /// The [KeyboardShortcut] for pasting text into the terminal.
   final KeyboardShortcut? pasteShortcut;
 
+  /// Whether the terminal view is running on a mobile platform.
+  final bool isMobile;
+
   const TerminalView({
     super.key,
     required this.controller,
@@ -48,10 +52,16 @@ class TerminalView extends StatefulWidget {
     this.allowTextSelection = true,
     this.copyShortcut,
     this.pasteShortcut,
+    required this.isMobile,
   });
 
   @override
   State<TerminalView> createState() => _TerminalViewState();
+
+  /// The height of the accessory bar displayed above the keyboard when it is visible.
+  static double getAccessoryBarHeight(bool isMobile) {
+    return isMobile ? 48.0 : 0.0;
+  }
 }
 
 class _TerminalViewState extends State<TerminalView> {
@@ -70,9 +80,12 @@ class _TerminalViewState extends State<TerminalView> {
 
   /// Whether the user has scrolled away from the bottom of the terminal view.
   bool _userScrolledAwayFromBottom = false;
+  bool _isUpdatePending = false;
 
   /// Whether the software keyboard is currently visible.
-  final ValueNotifier<bool> _keyboardVisible = ValueNotifier(true);
+  late final ValueNotifier<bool> _keyboardVisible = ValueNotifier(
+    widget.isMobile,
+  );
 
   final ValueNotifier<AccessoryBarButtonState> _ctrlActive = ValueNotifier(
     .inactive,
@@ -107,6 +120,15 @@ class _TerminalViewState extends State<TerminalView> {
       final atBottom = _scrollController.offset >= (maxExt - 20);
       _userScrolledAwayFromBottom = !atBottom;
     });
+  }
+
+  @override
+  void didUpdateWidget(TerminalView oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.controller != widget.controller) {
+      oldWidget.controller.removeListener(_onUpdate);
+      widget.controller.addListener(_onUpdate);
+    }
   }
 
   @override
@@ -146,16 +168,20 @@ class _TerminalViewState extends State<TerminalView> {
   }
 
   void _onUpdate() {
+    if (!mounted || _isUpdatePending) return;
+    _isUpdatePending = true;
+
     setState(() {});
+
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!_scrollController.hasClients) return;
-      if (_userScrolledAwayFromBottom) {
-        return; // user is viewing history; don't yank them
-      }
-      // jump to bottom
-      final maxExt = _scrollController.position.maxScrollExtent;
-      if (maxExt > 0) {
-        _scrollController.jumpTo(maxExt);
+      _isUpdatePending = false;
+      if (!mounted || !_scrollController.hasClients) return;
+
+      if (!_userScrolledAwayFromBottom) {
+        final maxExt = _scrollController.position.maxScrollExtent;
+        if (maxExt > 0) {
+          _scrollController.jumpTo(maxExt);
+        }
       }
     });
   }
@@ -191,7 +217,7 @@ class _TerminalViewState extends State<TerminalView> {
                 left: 0,
                 right: 0,
                 bottom: restingBottom,
-                height: kAccessoryBarHeight,
+                height: TerminalView.getAccessoryBarHeight(widget.isMobile),
                 child: widget.accessoryBarBuilder!(context, _accessoryActions),
               );
             },
@@ -204,6 +230,17 @@ class _TerminalViewState extends State<TerminalView> {
     Overlay.of(context, rootOverlay: true).insert(_accessoryBarEntry!);
   }
 
+  int? _mouseButtonFromEvent(int buttons) {
+    if (buttons & kPrimaryButton != 0) return 0;
+    if (buttons & kMiddleMouseButton != 0) return 1;
+    if (buttons & kSecondaryButton != 0) return 2;
+    return null;
+  }
+
+  bool get _mouseReportingActive =>
+      widget.controller.mouseTrackingMode != MouseTrackingMode.none &&
+      !HardwareKeyboard.instance.isShiftPressed;
+
   @override
   Widget build(BuildContext context) {
     return LayoutBuilder(
@@ -213,21 +250,12 @@ class _TerminalViewState extends State<TerminalView> {
           (_) => widget.controller.fitResize(constraints.biggest),
         );
 
-        // compute char cell size to compute overall canvas size
-        final (cellW, cellH) = TerminalPainter.measureChar(
+        // compute char cell size
+        final (cellW, cellH) = CharWidth.measureChar(
           widget.controller.typography,
         );
 
-        // total rows available in front buffer (visible + scrollback)
         final totalRows = widget.controller.totalRows;
-        final totalCols = widget.controller.cols;
-
-        final canvasWidth = (totalCols > 0)
-            ? totalCols * cellW
-            : constraints.maxWidth;
-        final canvasHeight = (totalRows > 0)
-            ? totalRows * cellH
-            : constraints.maxHeight;
 
         return TerminalInput(
           focusNode: _focusNode,
@@ -240,15 +268,18 @@ class _TerminalViewState extends State<TerminalView> {
             } else {
               widget.controller.stopCursorBlink();
             }
+
+            if (widget.controller.focusReportingEnabled) {
+              widget.controller.onInput?.call(
+                hasFocus ? EscapeEmitter.focusIn() : EscapeEmitter.focusOut(),
+              );
+            }
           },
           onInput: _sendInput,
           onKeyEvent: (node, event) {
-            if (widget.readOnly) {
-              return .ignored;
-            }
+            if (widget.readOnly) return .ignored;
 
             if (event is KeyDownEvent || event is KeyRepeatEvent) {
-              // Do not clear selection on modifier-only key presses.
               if (KeyboardHelper.isModifierOnlyKey(event.logicalKey)) {
                 return .handled;
               }
@@ -257,12 +288,7 @@ class _TerminalViewState extends State<TerminalView> {
                 _scrollToBottom();
                 widget.controller.clearSelection();
                 Clipboard.getData(Clipboard.kTextPlain).then((clip) {
-                  String text = clip?.text ?? '';
-                  if (text.isNotEmpty) {
-                    // Strip trailing newlines to prevent auto-execution on multiline paste
-                    text = _stripTrailingNewlines(text);
-                    widget.controller.onInput?.call(text);
-                  }
+                  widget.controller.paste(clip?.text ?? '');
                 });
                 return .handled;
               }
@@ -282,61 +308,119 @@ class _TerminalViewState extends State<TerminalView> {
             }
             return .ignored;
           },
-          child: GestureDetector(
-            behavior: HitTestBehavior.translucent,
-            onTap: () {
+          child: Listener(
+            onPointerDown: (event) {
+              if (!_mouseReportingActive) return;
               _focusNode.requestFocus();
-              // clear any existing selection on simple click
-              widget.controller.clearSelection();
+              final button = _mouseButtonFromEvent(event.buttons);
+              if (button == null) return;
+              final (row, col) = _calculateCoords(
+                event.localPosition,
+                cellW,
+                cellH,
+              );
+              widget.controller.reportMouseEvent(
+                row: row,
+                col: col,
+                button: button,
+              );
             },
-            onPanStart: (details) {
+            onPointerUp: (event) {
+              if (!_mouseReportingActive) return;
               _focusNode.requestFocus();
-              if (!widget.allowTextSelection) return;
-              final (
-                absRow,
-                absCol,
-              ) = GestureSelectionHandler.calculateAbsoluteCoordinates(
-                localPosition: details.localPosition,
-                scrollOffset: _scrollController.offset,
-                cellWidth: cellW,
-                cellHeight: cellH,
-                totalRows: widget.controller.totalRows,
-                maxCols: widget.controller.cols,
+              final (row, col) = _calculateCoords(
+                event.localPosition,
+                cellW,
+                cellH,
               );
-              widget.controller.startSelection(absRow, absCol);
-            },
-            onPanUpdate: (details) {
-              if (!widget.allowTextSelection) return;
-              final (
-                absRow,
-                absCol,
-              ) = GestureSelectionHandler.calculateAbsoluteCoordinates(
-                localPosition: details.localPosition,
-                scrollOffset: _scrollController.offset,
-                cellWidth: cellW,
-                cellHeight: cellH,
-                totalRows: widget.controller.totalRows,
-                maxCols: widget.controller.cols,
+              widget.controller.reportMouseEvent(
+                row: row,
+                col: col,
+                isRelease: true,
               );
-              widget.controller.updateSelection(absRow, absCol);
             },
-            onPanEnd: (details) {
-              // selection remains active until user clears or starts another selection
+            onPointerMove: (event) {
+              if (!_mouseReportingActive) return;
+              final (row, col) = _calculateCoords(
+                event.localPosition,
+                cellW,
+                cellH,
+              );
+              widget.controller.reportMouseEvent(
+                row: row,
+                col: col,
+                isMotion: true,
+              );
             },
-            child: SingleChildScrollView(
-              controller: _scrollController,
-              scrollDirection: Axis.vertical,
-              physics: ClampingScrollPhysics(),
-              child: SizedBox(
-                width: canvasWidth,
-                height: canvasHeight < constraints.maxHeight
-                    ? constraints.maxHeight
-                    : canvasHeight,
-                child: CustomPaint(
-                  painter: TerminalPainter(
-                    widget.controller,
-                    readOnly: widget.readOnly,
-                  ),
+            onPointerSignal: (event) {
+              if (event is! PointerScrollEvent) return;
+              final (row, col) = _calculateCoords(
+                event.localPosition,
+                cellW,
+                cellH,
+              );
+              widget.controller.handleScroll(
+                row: row,
+                col: col,
+                up: event.scrollDelta.dy < 0,
+                lines: 10,
+              );
+            },
+            child: GestureDetector(
+              behavior: HitTestBehavior.translucent,
+              onTap: () {
+                if (_mouseReportingActive) return;
+                _focusNode.requestFocus();
+                widget.controller.clearSelection();
+              },
+              onTapUp: (details) {
+                if (_mouseReportingActive) return;
+                final (row, col) = _calculateCoords(
+                  details.localPosition,
+                  cellW,
+                  cellH,
+                );
+                final url = widget.controller.hyperlinkAt(row, col);
+                if (url != null) {
+                  widget.controller.onHyperlinkTap?.call(url);
+                }
+              },
+              onPanStart: (details) {
+                _focusNode.requestFocus();
+                if (!widget.allowTextSelection || _mouseReportingActive) return;
+                final (absRow, absCol) = _calculateCoords(
+                  details.localPosition,
+                  cellW,
+                  cellH,
+                );
+                widget.controller.startSelection(absRow, absCol);
+              },
+              onPanUpdate: (details) {
+                if (!widget.allowTextSelection || _mouseReportingActive) return;
+                final (absRow, absCol) = _calculateCoords(
+                  details.localPosition,
+                  cellW,
+                  cellH,
+                );
+                widget.controller.updateSelection(absRow, absCol);
+              },
+              child: Container(
+                color: widget.controller.theme.backgroundColor,
+                child: ListView.builder(
+                  scrollCacheExtent: ScrollCacheExtent.pixels(cellH * 10),
+                  controller: _scrollController,
+                  itemCount: totalRows,
+                  itemExtent: cellH,
+                  physics: const ClampingScrollPhysics(),
+                  itemBuilder: (context, index) {
+                    return TerminalRowWidget(
+                      controller: widget.controller,
+                      absoluteRowIndex: index,
+                      cellWidth: cellW,
+                      cellHeight: cellH,
+                      readOnly: widget.readOnly,
+                    );
+                  },
                 ),
               ),
             ),
@@ -346,14 +430,88 @@ class _TerminalViewState extends State<TerminalView> {
     );
   }
 
-  /// Strip trailing newlines from multiline text to prevent auto-execution.
-  /// Returns trimmed text if multiline, otherwise returns original text.
-  ///
-  /// TODO: There is a escape code that prevents auto-execution of pasted commands, but it is not implemented atm.
-  static String _stripTrailingNewlines(String text) {
-    if (text.contains('\n') && text.endsWith('\n')) {
-      return text.trimRight();
-    }
-    return text;
+  (int, int) _calculateCoords(
+    Offset localPosition,
+    double cellW,
+    double cellH,
+  ) {
+    final scrollOffset = _scrollController.hasClients
+        ? _scrollController.offset
+        : 0.0;
+    final totalLocalY = localPosition.dy + scrollOffset;
+
+    final absRow = (totalLocalY / cellH).floor();
+    final col = (localPosition.dx / cellW).floor();
+
+    return (
+      absRow.clamp(0, max(0, widget.controller.totalRows - 1)),
+      col.clamp(0, widget.controller.cols - 1),
+    );
+  }
+}
+
+class TerminalRowWidget extends StatelessWidget {
+  final TerminalController controller;
+  final int absoluteRowIndex;
+  final double cellWidth;
+  final double cellHeight;
+  final bool readOnly;
+
+  const TerminalRowWidget({
+    super.key,
+    required this.controller,
+    required this.absoluteRowIndex,
+    required this.cellWidth,
+    required this.cellHeight,
+    required this.readOnly,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final row = controller.activeBuffer.getAbsoluteRow(absoluteRowIndex);
+
+    return Stack(
+      children: [
+        RepaintBoundary(
+          child: CustomPaint(
+            size: Size(controller.cols * cellWidth, cellHeight),
+            painter: SingleRowPainter(
+              controller: controller,
+              absoluteRowIndex: absoluteRowIndex,
+              cellWidth: cellWidth,
+              cellHeight: cellHeight,
+              readOnly: readOnly,
+              rowRevision: row.revision,
+              row: row,
+              selection: controller.selection,
+              theme: controller.theme,
+            ),
+          ),
+        ),
+        ValueListenableBuilder<bool>(
+          valueListenable: controller.cursorBlinkNotifier,
+          builder: (context, isBlinkVisible, child) {
+            return CustomPaint(
+              size: Size(controller.cols * cellWidth, cellHeight),
+              painter: CursorPainter(
+                controller: controller,
+                absoluteRowIndex: absoluteRowIndex,
+                cellWidth: cellWidth,
+                cellHeight: cellHeight,
+                readOnly: readOnly,
+                isBlinkVisible: isBlinkVisible,
+                cursorRow: controller.activeBuffer.cursorRow,
+                cursorCol: controller.activeBuffer.cursorCol,
+                scrollback: controller.activeBuffer.currentScrollback,
+                cursorStyle: controller.cursor.style,
+                cursorEnabled: controller.cursor.enabled,
+                theme: controller.theme,
+                typography: controller.typography,
+              ),
+            );
+          },
+        ),
+      ],
+    );
   }
 }

@@ -283,7 +283,14 @@ class SessionNotifier extends Notifier<SessionState> {
       await client.authenticated.onError(
         (e, _) => _close(sessionId, e.toString()),
       );
-      final sshSession = await client.shell();
+      final sshSession = await client.shell(
+        pty: SSHPtyConfig(
+          width: controller.cols,
+          height: controller.rows,
+          pixelHeight: controller.height.toInt(),
+          pixelWidth: controller.width.toInt(),
+        ),
+      );
       _modifySession(
         sessionId,
         (session) => session.copyWith(
