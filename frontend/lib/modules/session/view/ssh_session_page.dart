@@ -117,7 +117,7 @@ class _SshSessionPageState extends ConsumerState<SshSessionPage>
         },
         onTitleChange: (title) => windowManager.setTitle(title),
         onHyperlinkTap: (hyperlink) {
-          print('Hyperlink tapped: $hyperlink');
+          debugPrint('Hyperlink tapped: $hyperlink');
           // TODO: handle hyperlinks?
         },
         cursorBlinkInterval: Duration(milliseconds: cursorBlinkInterval.value),
