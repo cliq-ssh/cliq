@@ -49,7 +49,11 @@ class ConnectionCard extends HookConsumerWidget {
 
       return ref
           .read(sessionProvider.notifier)
-          .createAndGo(NavigationShell.of(context), connection, isSftp: isSftp);
+          .createAndGo(
+            NavigationShell.of(context),
+            connection,
+            isSftp ? .sftp : .ssh,
+          );
     }
 
     edit() async {

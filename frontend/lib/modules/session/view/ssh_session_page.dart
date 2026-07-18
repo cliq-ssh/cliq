@@ -33,9 +33,15 @@ const kBottomNavigationBarHeight = 80.0;
 
 class SshSessionPage extends StatefulHookConsumerWidget {
   final String sessionId;
+  final bool isLocal;
   final FocusNode? focusNode;
 
-  const SshSessionPage({super.key, required this.sessionId, this.focusNode});
+  const SshSessionPage({
+    super.key,
+    required this.sessionId,
+    required this.isLocal,
+    this.focusNode,
+  });
 
   @override
   ConsumerState<ConsumerStatefulWidget> createState() => _SshSessionPageState();
@@ -135,12 +141,16 @@ class _SshSessionPageState extends ConsumerState<SshSessionPage>
                   .read(sessionProvider.notifier)
                   .getSessionById(widget.sessionId);
 
-              currentSession?.sshSession?.resizeTerminal(
-                cols,
-                rows,
-                size.width.round(),
-                size.height.round(),
-              );
+              if (widget.isLocal) {
+                currentSession?.pty?.resize(cols, rows);
+              } else {
+                currentSession?.sshSession?.resizeTerminal(
+                  cols,
+                  rows,
+                  size.width.round(),
+                  size.height.round(),
+                );
+              }
             },
           );
 
@@ -196,7 +206,7 @@ class _SshSessionPageState extends ConsumerState<SshSessionPage>
       return null;
     }, []);
 
-    // open SSH connection when terminal controller is set
+    // open local/SSH connection when terminal controller is set
     useEffect(() {
       if (terminalController.value == null) return null;
 
@@ -264,15 +274,57 @@ class _SshSessionPageState extends ConsumerState<SshSessionPage>
             .setStreamListeners(session.id, stdoutSub, stderrSub);
       }
 
-      final connectionFull = ref
-          .read(connectionProvider.notifier)
-          .findById(session.connection.id);
+      Future<void> openLocal() async {
+        final pty = await ref
+            .read(sessionProvider.notifier)
+            .spawnLocal(session.id, terminalController.value!);
 
-      if (connectionFull != null) {
+        if (pty == null || !mounted) return;
+
+        terminalController.value!.onInput = (s) {
+          pty.write(const Utf8Encoder().convert(s));
+        };
+
+        StreamSubscription? sub;
+
+        terminalController.value!.onPause = () => sub?.pause();
+        terminalController.value!.onResume = () => sub?.resume();
+
+        sub = const Utf8Decoder(
+          allowMalformed: true,
+        ).bind(pty.output).listen((str) => terminalController.value?.feed(str));
+
+        pty.exitCode.then((exitCode) {
+          print(
+            'PTY exited: ${pty.arguments} / ${pty.executable}, exit code: $exitCode',
+          );
+          if (!context.mounted) return;
+          ref
+              .read(sessionProvider.notifier)
+              .closeSessionAndMaybeGo(NavigationShell.of(context), session.id);
+        });
+
+        ref
+            .read(sessionProvider.notifier)
+            .setStreamListeners(session.id, sub, null);
+      }
+
+      if (widget.isLocal) {
         WidgetsBinding.instance.addPostFrameCallback((_) {
           if (!mounted) return;
-          openSsh(connectionFull);
+          openLocal();
         });
+      } else {
+        final connectionFull = ref
+            .read(connectionProvider.notifier)
+            .findById(session.connection.id);
+
+        if (connectionFull != null) {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (!mounted) return;
+            openSsh(connectionFull);
+          });
+        }
       }
 
       return null;

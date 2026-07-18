@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:cliq/modules/connections/model/connection_full.model.dart';
 import 'package:cliq/modules/connections/provider/connection.provider.dart';
 import 'package:cliq/modules/connections/ui/connection_icon.dart';
+import 'package:cliq/modules/session/model/session.model.dart';
 import 'package:cliq/shared/provider/store.provider.dart';
 import 'package:cliq/shared/ui/shortcut_info.dart';
 import 'package:cliq/shared/utils/platform_utils.dart';
@@ -78,10 +79,8 @@ class NavigationShellState extends ConsumerState<NavigationShell>
       return null;
     }, [fileTransfer.pending]);
 
-    connect(ConnectionFull connection, {bool isSftp = false}) {
-      ref
-          .read(sessionProvider.notifier)
-          .createAndGo(this, connection, isSftp: isSftp);
+    connect(ConnectionFull connection, SessionType type) {
+      ref.read(sessionProvider.notifier).createAndGo(this, connection, type);
       showTabs.value = false;
     }
 
@@ -301,6 +300,32 @@ class NavigationShellState extends ConsumerState<NavigationShell>
       );
     }
 
+    buildConnectionItem(ConnectionFull connection, {bool isLocal = false}) {
+      return FItem(
+        prefix: ConnectionIcon.fromConnection(connection, size: 10, padding: 5),
+        suffix: isLocal
+            ? null
+            : FTooltipGroup(
+                child: Row(
+                  mainAxisSize: .min,
+                  spacing: 4,
+                  children: [
+                    FTooltip(
+                      tipBuilder: (_, _) => Text('hosts_connect_sftp'.tr()),
+                      child: FButton.icon(
+                        size: .xs,
+                        child: Icon(LucideIcons.folder, size: 12),
+                        onPress: () => connect(connection, .sftp),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+        title: Text(connection.label),
+        onPress: () => connect(connection, isLocal ? .local : .ssh),
+      );
+    }
+
     buildSessionSidebarTabs() {
       return [
         for (final tab in sessions.activeTabs)
@@ -313,33 +338,12 @@ class NavigationShellState extends ConsumerState<NavigationShell>
           menu: [
             FItemGroup(
               children: [
+                buildConnectionItem(
+                  ConnectionFull.buildLocalConnection(context),
+                  isLocal: true,
+                ),
                 for (final connection in connections.entities)
-                  FItem(
-                    prefix: ConnectionIcon.fromConnection(
-                      connection,
-                      size: 10,
-                      padding: 5,
-                    ),
-                    suffix: FTooltipGroup(
-                      child: Row(
-                        mainAxisSize: .min,
-                        spacing: 4,
-                        children: [
-                          FTooltip(
-                            tipBuilder: (_, _) =>
-                                Text('hosts_connect_sftp'.tr()),
-                            child: FButton.icon(
-                              size: .xs,
-                              child: Icon(LucideIcons.folder, size: 12),
-                              onPress: () => connect(connection, isSftp: true),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    title: Text(connection.label),
-                    onPress: () => connect(connection),
-                  ),
+                  buildConnectionItem(connection),
               ],
             ),
           ],
