@@ -1,0 +1,31 @@
+package sh.cliq.backend.end2end
+
+import org.junit.jupiter.api.AfterEach
+import org.junit.jupiter.api.BeforeAll
+import org.junit.jupiter.api.Tag
+import org.junit.jupiter.api.TestInstance
+import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.boot.context.properties.ConfigurationPropertiesScan
+import org.springframework.boot.test.context.SpringBootTest
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc
+import org.springframework.context.annotation.ComponentScan
+import org.springframework.test.context.ActiveProfiles
+import sh.cliq.backend.support.DatabaseCleanupService
+
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@ConfigurationPropertiesScan(basePackages = ["sh.cliq.backend.support"])
+@ComponentScan(basePackages = ["sh.cliq.backend.support"])
+@AutoConfigureMockMvc
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
+@ActiveProfiles("test")
+@Tag("end2end")
+annotation class End2EndTest
+
+@End2EndTest
+abstract class End2EndTester {
+    @BeforeAll
+    @AfterEach
+    fun clearDatabase(@Autowired cleaner: DatabaseCleanupService) {
+        cleaner.truncate()
+    }
+}
