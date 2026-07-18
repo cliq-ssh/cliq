@@ -1,8 +1,8 @@
 {
     "app": "App",
     "appearance": "Erscheinungsbild",
-    "appearance_apply_terminal_theme_color_to_navigation": "Terminal-Designfarbe auf Navigation anwenden",
-    "appearance_apply_terminal_theme_color_to_navigation_subtitle": "Weisen Sie der Navigationsleiste einen Farbton der Terminal-Designfarbe zu.",
+    "appearance_apply_terminal_theme_color_to_navigation": "Terminal-Thema auf Navigation anwenden",
+    "appearance_apply_terminal_theme_color_to_navigation_subtitle": "Weise der Navigationsleiste einen Farbton des Terminal-Themas zu.",
     "appearance_color_theme": "Farbschema",
     "appearance_color_theme_color": {
         "blue": "Blau",
@@ -20,14 +20,19 @@
         "blue": "Blau",
         "green": "Grün",
         "orange": "Orange",
-        "red": "Rot"
+        "red": "Rot",
+        "rose": "Rosé",
+        "slate": "Schiefer",
+        "violet": "Violett",
+        "yellow": "Gelb",
+        "zinc": "Zink"
     },
     "appearance_navigation_position": "Navigationsposition",
     "appearance_navigation_position_left": "Links",
     "appearance_navigation_position_subtitle": "Wähle die position der Desktop-Navigationsleiste aus.",
     "appearance_navigation_position_top": "Oben",
-    "appearance_theme_mode": "Thema",
-    "appearance_theme_mode_subtitle": "Wähle das Thema für die App aus.",
+    "appearance_theme_mode": "Design-Modus",
+    "appearance_theme_mode_subtitle": "Wähle den Design-Modus für die App aus.",
     "cancel": "Abbrechen",
     "click_to_copy": "Klicke zum kopieren",
     "close": "Schließen",
@@ -72,6 +77,11 @@
         "settings_export": "Einstellungsexport",
         "ssh_key": "SSH-Schlüssel",
         "terminal_theme": "Terminal-Thema"
+    },
+    "file_groups": {
+        "settings_export": "Einstellungsexport",
+        "ssh_key": "SSH-Schlüssel",
+        "terminal_theme": "Terminalthema"
     },
     "filter": "Filter",
     "filter_items": "Objekte filtern",
@@ -152,7 +162,7 @@
     "known_hosts_empty_subtitle": "Es wurden noch keine bekannten Hosts hinzugefügt. Verbinden Sie sich mit einem Host, um ihn Ihrer Liste bekannter Hosts hinzuzufügen.",
     "language": "Sprache",
     "language_help_translate": "Hilf mit beim Übersetzen!",
-    "language_help_translate_subtitle": "Wenn Sie bei der Übersetzung von cliq in Ihre Sprache mitwirken möchten, besuchen Sie bitte unsere Weblate-Instanz.",
+    "language_help_translate_subtitle": "Wenn du bei der Übersetzung von cliq mitwirken möchtest, besuche bitte unsere Weblate-Instanz.",
     "licenses": "Lizenzen",
     "licenses_subtitle": {
         "one": "1 Lizenz",
@@ -220,7 +230,7 @@
     "ssh": "SSH",
     "ssh_sftp": "SSH & SFTP",
     "ssh_sftp_bell_sound": "Glockenklang",
-    "ssh_sftp_bell_sound_subtitle": "Ob die Terminalglocke beim Auslösen einen Ton von sich geben soll.",
+    "ssh_sftp_bell_sound_subtitle": "Ob die Terminal Bell-Steuerzeichen beim Auslösen einen Ton von sich geben soll.",
     "ssh_sftp_clear_temporary_files": "Temporäre Dateien löschen",
     "ssh_sftp_clear_temporary_files_subtitle": "Temporäre Dateien löschen, die für die lokale Bearbeitung von Remote-Dateien verwendet wurden",
     "ssh_sftp_directory_not_empty_warning": "\"Verzeichnis nicht leer\" Warnung",
@@ -231,6 +241,17 @@
     "ssh_sftp_scrollback_subtitle": "Legen Sie die Anzahl der Zeilen fest, die im Scrollback-Puffer gespeichert werden sollen. Ein höherer Wert ermöglicht es Ihnen, in der Terminal-Historie weiter zurückzublättern, verbraucht jedoch möglicherweise mehr Arbeitsspeicher.",
     "ssh_sftp_show_hidden_files": "Versteckte Dateien anzeigen",
     "ssh_sftp_show_hidden_files_subtitle": "Versteckte Dateien und Verzeichnisse in SFTP-Dateilisten anzeigen.",
+    "ssh_sftp_terminal_cursor_blink_interval": "Cursor Blinkintervall (ms)",
+    "ssh_sftp_terminal_cursor_blink_interval_subtitle": "Setze den Cursor-Blinkintervall in Millisekunden.",
+    "ssh_sftp_terminal_cursor_blink_timeout": "Cursor-Blink-Timeout (s)",
+    "ssh_sftp_terminal_cursor_blink_timeout_subtitle": "Lege die Zeit der Inaktivität fest, nach der der Cursor aufhört zu blinken. Stelle den Wert auf 0, um das Zeitlimit zu deaktivieren.",
+    "ssh_sftp_terminal_cursor_style": "Cursorstil",
+    "ssh_sftp_terminal_cursor_style_subtitle": "Setze den Cursorstil im Terminal.",
+    "ssh_sftp_terminal_cursor_styles": {
+        "bar": "Balken",
+        "block": "Block",
+        "underline": "Unterstrichen"
+    },
     "sync": "Synchronisation",
     "sync_export": "Exportieren...",
     "sync_export_file": "Als Datei exportieren",
@@ -248,7 +269,7 @@
     "terminal_themes_font_family": "Schriftfamilie",
     "terminal_themes_font_size": "Schriftgröße",
     "terminal_themes_import": "Import",
-    "terminal_themes_import_error": "Design konnte nicht importiert werden",
+    "terminal_themes_import_error": "Thema konnte nicht importiert werden",
     "terminal_themes_import_success": "Design erfolgreich importiert",
     "terminal_themes_theme": "Thema",
     "terminal_themes_theme_add": "Thema hinzufügen",
@@ -277,6 +298,30 @@
     "terminal_themes_theme_add_color_placeholder": "#RRGGBB",
     "terminal_themes_theme_add_label": "Etikett",
     "terminal_themes_theme_add_label_placeholder": "Mein Design",
+    "terminal_themes_theme_colors": {
+        "background": "Hintergrund",
+        "black": "Schwarz",
+        "blue": "Blau",
+        "bright_black": "Helles Schwarz",
+        "bright_blue": "Helles Blau",
+        "bright_cyan": "Helles Türkis",
+        "bright_green": "Helles Grün",
+        "bright_purple": "Helles Violett",
+        "bright_red": "Helles Rot",
+        "bright_white": "Helles Weiß",
+        "bright_yellow": "Helles Gelb",
+        "cursor": "Cursor",
+        "cursor_text": "Cursortext",
+        "cyan": "Türkis",
+        "foreground": "Vordergrund",
+        "green": "Grün",
+        "purple": "Violett",
+        "red": "Rot",
+        "selection_background": "Auswahlhintergund",
+        "selection_foreground": "Auswahlvordergrund",
+        "white": "Weiß",
+        "yellow": "Gelb"
+    },
     "theme_mode_dark": "Dunkel",
     "theme_mode_light": "Hell",
     "theme_mode_system": "System",
@@ -290,5 +335,9 @@
     "view": {
         "grid": "Rasteransicht",
         "list": "Listendarstellung"
+    },
+    "views": {
+        "grid": "Rasteransicht",
+        "list": "Listenansicht"
     }
 }
