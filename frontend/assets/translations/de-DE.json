@@ -1,19 +1,27 @@
 {
     "app": "App",
     "appearance": "Erscheinungsbild",
+    "appearance_apply_terminal_theme_color_to_navigation": "Terminal-Designfarbe auf Navigation anwenden",
+    "appearance_apply_terminal_theme_color_to_navigation_subtitle": "Weisen Sie der Navigationsleiste einen Farbton der Terminal-Designfarbe zu.",
     "appearance_color_theme": "Farbschema",
     "appearance_color_theme_color": {
-        "zinc": "Zink",
-        "slate": "Schiefer",
+        "blue": "Blau",
+        "green": "Grün",
+        "orange": "Orange",
         "red": "Rot",
         "rose": "Rose",
-        "orange": "Orange",
-        "green": "Grün",
-        "blue": "Blau",
+        "slate": "Schiefer",
+        "violet": "Violett",
         "yellow": "Gelb",
-        "violet": "Violett"
+        "zinc": "Zink"
     },
     "appearance_color_theme_subtitle": "Wähle das Farbschema für die App aus.",
+    "appearance_color_themes": {
+        "blue": "Blau",
+        "green": "Grün",
+        "orange": "Orange",
+        "red": "Rot"
+    },
     "appearance_navigation_position": "Navigationsposition",
     "appearance_navigation_position_left": "Links",
     "appearance_navigation_position_subtitle": "Wähle die position der Desktop-Navigationsleiste aus.",
@@ -61,9 +69,9 @@
     "error_report_issue_on_github": "Problem auf GitHub melden",
     "error_stacktrace": "Stapel(speicher)zurückverfolgung",
     "file_group": {
-        "terminal_theme": "Terminal-Thema",
         "settings_export": "Einstellungsexport",
-        "ssh_key": "SSH-Schlüssel"
+        "ssh_key": "SSH-Schlüssel",
+        "terminal_theme": "Terminal-Thema"
     },
     "filter": "Filter",
     "filter_items": "Objekte filtern",
@@ -143,6 +151,8 @@
     "known_hosts_empty": "Keine bekannten Hosts gefunden",
     "known_hosts_empty_subtitle": "Es wurden noch keine bekannten Hosts hinzugefügt. Verbinden Sie sich mit einem Host, um ihn Ihrer Liste bekannter Hosts hinzuzufügen.",
     "language": "Sprache",
+    "language_help_translate": "Hilf mit beim Übersetzen!",
+    "language_help_translate_subtitle": "Wenn Sie bei der Übersetzung von cliq in Ihre Sprache mitwirken möchten, besuchen Sie bitte unsere Weblate-Instanz.",
     "licenses": "Lizenzen",
     "licenses_subtitle": {
         "one": "1 Lizenz",
@@ -152,6 +162,7 @@
     "n_a": "N/A",
     "queue": "Warteschlange",
     "queue_empty": "Warteschlange ist leer",
+    "rename": "Umbenennen",
     "retry": "Erneut versuchen",
     "save": "Speichern",
     "select_all": "Alle auswählen",
@@ -174,8 +185,8 @@
     "sftp_file_unknown": "Unbekannte Datei",
     "sftp_hidden_files": "Versteckte Dateien",
     "sftp_kind": {
-        "file": "Datei",
         "directory": "Ordner",
+        "file": "Datei",
         "symlink": "Symbolischer Link"
     },
     "sftp_navigate_back": "Zurück",
@@ -183,12 +194,12 @@
     "sftp_new_folder": "Neuer Ordner",
     "sftp_refresh": "Aktualisieren",
     "sftp_row": {
-        "name": "Name",
-        "modified": "Zuletzt geändert",
-        "size": "Größe",
-        "kind": "Art",
         "accessed": "Zuletzt aufgerufen",
-        "permissions": "Berechtigungen"
+        "kind": "Art",
+        "modified": "Zuletzt geändert",
+        "name": "Name",
+        "permissions": "Berechtigungen",
+        "size": "Größe"
     },
     "shortcut": {
         "copy": "Kopieren",
@@ -208,12 +219,15 @@
     "shortcuts_right_click_to_unset": "Rechtsklick zum Aufheben",
     "ssh": "SSH",
     "ssh_sftp": "SSH & SFTP",
+    "ssh_sftp_bell_sound": "Glockenklang",
+    "ssh_sftp_bell_sound_subtitle": "Ob die Terminalglocke beim Auslösen einen Ton von sich geben soll.",
     "ssh_sftp_clear_temporary_files": "Temporäre Dateien löschen",
     "ssh_sftp_clear_temporary_files_subtitle": "Temporäre Dateien löschen, die für die lokale Bearbeitung von Remote-Dateien verwendet wurden",
     "ssh_sftp_directory_not_empty_warning": "\"Verzeichnis nicht leer\" Warnung",
     "ssh_sftp_directory_not_empty_warning_subtitle": "Warne, beim Versuch ein nicht leeres Verzeichnis über SFTP zu löschen",
     "ssh_sftp_large_download_warning": "\"Großer Download\" Warnung",
     "ssh_sftp_large_download_warning_subtitle": "Beim Herunterladen großer Dateien ({}) über SFTP warnen",
+    "ssh_sftp_scrollback": "Zurückscrollen",
     "ssh_sftp_scrollback_subtitle": "Legen Sie die Anzahl der Zeilen fest, die im Scrollback-Puffer gespeichert werden sollen. Ein höherer Wert ermöglicht es Ihnen, in der Terminal-Historie weiter zurückzublättern, verbraucht jedoch möglicherweise mehr Arbeitsspeicher.",
     "ssh_sftp_show_hidden_files": "Versteckte Dateien anzeigen",
     "ssh_sftp_show_hidden_files_subtitle": "Versteckte Dateien und Verzeichnisse in SFTP-Dateilisten anzeigen.",
@@ -223,13 +237,6 @@
     "sync_export_password": "Passwort (empfohlen)",
     "sync_export_password_description": "Verschlüssele deine exportierten Einstellungen mit einem Passwort. Leer lassen für keine Verschlüsselung.",
     "sync_export_password_warning": "Dieser Export enthält sensitive Daten, wie Passwörter und/oder Private Schlüssel. Es ist dringlich empfohlen ein Verschlüsselungspasswort zu setzen.",
-    "appearance_apply_terminal_theme_color_to_navigation": "Terminal-Designfarbe auf Navigation anwenden",
-    "language_help_translate": "Hilf mit beim Übersetzen!",
-    "language_help_translate_subtitle": "Wenn Sie bei der Übersetzung von cliq in Ihre Sprache mitwirken möchten, besuchen Sie bitte unsere Weblate-Instanz.",
-    "rename": "Umbenennen",
-    "ssh_sftp_bell_sound": "Glockenklang",
-    "ssh_sftp_bell_sound_subtitle": "Ob die Terminalglocke beim Auslösen einen Ton von sich geben soll.",
-    "ssh_sftp_scrollback": "Zurückscrollen",
     "sync_import": "Import",
     "sync_import_error_encrypted": "Die Datei konnte nicht geöffnet werden, da sie verschlüsselt ist",
     "sync_import_error_incorrect_password": "Die Datei konnte nicht geöffnet werden, da das Passwort ungültig ist",
@@ -283,6 +290,5 @@
     "view": {
         "grid": "Rasteransicht",
         "list": "Listendarstellung"
-    },
-    "appearance_apply_terminal_theme_color_to_navigation_subtitle": "Weisen Sie der Navigationsleiste einen Farbton der Terminal-Designfarbe zu."
+    }
 }
