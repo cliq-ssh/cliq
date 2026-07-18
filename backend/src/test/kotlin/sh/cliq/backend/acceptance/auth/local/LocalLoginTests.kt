@@ -1,0 +1,215 @@
+package sh.cliq.backend.acceptance.auth.local
+
+import com.nimbusds.srp6.BigIntegerUtils
+import com.nimbusds.srp6.SRP6ClientSession
+import org.junit.jupiter.api.Assertions
+import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertDoesNotThrow
+import org.junit.jupiter.api.assertNotNull
+import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.http.MediaType
+import org.springframework.security.oauth2.jwt.JwtDecoder
+import org.springframework.test.web.servlet.MockMvc
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders
+import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
+import sh.cliq.backend.acceptance.AcceptanceTest
+import sh.cliq.backend.acceptance.AcceptanceTester
+import sh.cliq.backend.auth.jwt.JwtClaims
+import sh.cliq.backend.auth.params.DeviceRegistrationParams
+import sh.cliq.backend.auth.params.login.LoginFinishParams
+import sh.cliq.backend.auth.params.login.LoginStartParams
+import sh.cliq.backend.auth.service.SrpService
+import sh.cliq.backend.auth.view.TokenResponse
+import sh.cliq.backend.auth.view.login.LocalLoginFinishResponse
+import sh.cliq.backend.auth.view.login.LoginStartResponse
+import sh.cliq.backend.config.properties.JwtProperties
+import sh.cliq.backend.constants.DEFAULT_EMAIL
+import sh.cliq.backend.constants.DEFAULT_SESSION_NAME
+import sh.cliq.backend.error.ErrorCode
+import sh.cliq.backend.session.SessionRepository
+import sh.cliq.backend.support.ErrorResponseClient
+import sh.cliq.backend.support.UserCreationHelper
+import sh.cliq.backend.user.UserRepository
+import tools.jackson.databind.ObjectMapper
+import kotlin.test.assertEquals
+
+@AcceptanceTest
+class LocalLoginTests(
+    @Autowired
+    private val mockMvc: MockMvc,
+    @Autowired
+    private val objectMapper: ObjectMapper,
+    @Autowired
+    private val sessionRepository: SessionRepository,
+    @Autowired
+    private val jwtDecoder: JwtDecoder,
+    @Autowired
+    private val jwtProperties: JwtProperties,
+    @Autowired
+    private val userCreationHelper: UserCreationHelper,
+    @Autowired
+    private val userRepository: UserRepository,
+    @Autowired
+    private val srpService: SrpService,
+) : AcceptanceTester() {
+    @Test
+    fun `test login flow`() {
+        val userCreationData = userCreationHelper.createRandomUser()
+        val user = userCreationData.user
+        val sessionName = DEFAULT_SESSION_NAME
+
+        val srpClientSession = SRP6ClientSession()
+        srpClientSession.step1(user.email, userCreationData.password)
+
+        val loginStartParams = LoginStartParams(user.email)
+        val startResult =
+            mockMvc
+                .perform(
+                    MockMvcRequestBuilders
+                        .post("/api/auth/login/start")
+                        .contentType(MediaType.APPLICATION_JSON_VALUE)
+                        .content(objectMapper.writeValueAsString(loginStartParams)),
+                ).andExpect(status().isOk)
+                .andReturn()
+
+        val startContent = startResult.response.contentAsString
+        assertNotNull(startContent)
+        val startResponse = objectMapper.readValue(startContent, LoginStartResponse::class.java)
+
+        val publicBBigInteger = BigIntegerUtils.fromHex(startResponse.publicB)
+        val saltBigInteger = BigIntegerUtils.fromHex(startResponse.salt)
+
+        val credentials =
+            assertDoesNotThrow { srpClientSession.step2(srpService.params, saltBigInteger, publicBBigInteger) }
+
+        val publicA = BigIntegerUtils.toHex(credentials.A)
+        val publicM1 = BigIntegerUtils.toHex(credentials.M1)
+        val loginFinishParams =
+            LoginFinishParams(startResponse.authenticationSessionToken, publicA, publicM1)
+
+        val finishResult =
+            mockMvc
+                .perform(
+                    MockMvcRequestBuilders
+                        .post("/api/auth/login/finish")
+                        .contentType(MediaType.APPLICATION_JSON_VALUE)
+                        .content(objectMapper.writeValueAsString(loginFinishParams)),
+                ).andExpect(status().isOk)
+                .andReturn()
+        val finishContent = finishResult.response.contentAsString
+        val finishResponse = objectMapper.readValue(finishContent, LocalLoginFinishResponse::class.java)
+
+        // Verify Server Response
+        val step3BigInteger = BigIntegerUtils.fromHex(finishResponse.publicM2)
+        assertDoesNotThrow { srpClientSession.step3(step3BigInteger) }
+
+        // Register device
+        val deviceRegistrationParams =
+            DeviceRegistrationParams(
+                finishResponse.authExchangeCode,
+                "",
+                "",
+                sessionName,
+            )
+        val deviceRegistrationResult =
+            mockMvc
+                .perform(
+                    MockMvcRequestBuilders
+                        .post("/api/auth/device/register")
+                        .contentType(MediaType.APPLICATION_JSON_VALUE)
+                        .content(objectMapper.writeValueAsString(deviceRegistrationParams)),
+                ).andExpect(status().isOk)
+                .andReturn()
+        val deviceRegistrationContent = deviceRegistrationResult.response.contentAsString
+        val tokenResponse = objectMapper.readValue(deviceRegistrationContent, TokenResponse::class.java)
+
+        // Session assertions
+        val sessionOpt = sessionRepository.findById(tokenResponse.id)
+        Assertions.assertTrue(sessionOpt.isPresent)
+
+        // Decode jwt
+        val jwt = jwtDecoder.decode(tokenResponse.accessToken)
+        val sub = jwt.subject
+        val sid = jwt.getClaim<Long>(JwtClaims.SID)
+        val issuer = jwt.getClaim<String>(JwtClaims.ISS)
+        assertEquals(user.id.toString(), sub)
+        assertEquals(tokenResponse.id, sid)
+        assertEquals(jwtProperties.issuer, issuer.toString())
+        assertNotNull(jwt.expiresAt)
+        Assertions.assertTrue(jwt.expiresAt!! > jwt.issuedAt)
+    }
+
+    @Test
+    fun `test invalid credentials`() {
+        val sessionCount = sessionRepository.count()
+
+        val loginStartParams = LoginStartParams(DEFAULT_EMAIL)
+        mockMvc
+            .perform(
+                MockMvcRequestBuilders
+                    .post("/api/auth/login/start")
+                    .contentType(MediaType.APPLICATION_JSON_VALUE)
+                    .content(objectMapper.writeValueAsString(loginStartParams)),
+            ).andExpect(status().isBadRequest)
+
+        val loginFinishParams = LoginFinishParams("invalid_token", "0", "0")
+        mockMvc
+            .perform(
+                MockMvcRequestBuilders
+                    .post("/api/auth/login/finish")
+                    .contentType(MediaType.APPLICATION_JSON_VALUE)
+                    .content(objectMapper.writeValueAsString(loginFinishParams)),
+            ).andExpect(status().isBadRequest)
+
+        val newSessionCount = sessionRepository.count()
+        assertEquals(sessionCount, newSessionCount)
+    }
+
+    @Test
+    fun `test unverified email cannot login`() {
+        val sessionCount = sessionRepository.count()
+        val creationData = userCreationHelper.createRandomUser(verified = false)
+        val user = creationData.user
+
+        val loginStartParams = LoginStartParams(user.email)
+
+        val result =
+            mockMvc
+                .perform(
+                    MockMvcRequestBuilders
+                        .post("/api/auth/login/start")
+                        .contentType(MediaType.APPLICATION_JSON_VALUE)
+                        .content(objectMapper.writeValueAsString(loginStartParams)),
+                ).andExpect(status().isBadRequest)
+                .andReturn()
+
+        val content = result.response.contentAsString
+        val response = objectMapper.readValue(content, ErrorResponseClient::class.java)
+        assertEquals(ErrorCode.EMAIL_NOT_VERIFIED, response.errorCode)
+
+        val newSessionCount = sessionRepository.count()
+        assertEquals(sessionCount, newSessionCount)
+    }
+
+    @Test
+    fun `test cannot use local login when user is oidc`() {
+        // Mock oidc user
+        val creationData = userCreationHelper.createRandomUser()
+        var user = creationData.user
+        user.oidcSub = "123"
+        user = userRepository.save(user)
+
+        // Try to log in with local credentials
+        val loginStartParams = LoginStartParams(user.email)
+        mockMvc
+            .perform(
+                MockMvcRequestBuilders
+                    .post("/api/auth/login/start")
+                    .contentType(MediaType.APPLICATION_JSON_VALUE)
+                    .content(objectMapper.writeValueAsString(loginStartParams)),
+            ).andExpect(status().isForbidden)
+
+        // Assert no session was created
+        assertEquals(0, sessionRepository.count())
+    }
+}
