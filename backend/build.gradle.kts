@@ -29,7 +29,7 @@ dependencyManagement {
     }
 }
 
-group = "app.cliq"
+group = "sh.cliq"
 version = "0.0.1"
 description = "Open source SSH & SFTP client with focus on security and portability"
 
