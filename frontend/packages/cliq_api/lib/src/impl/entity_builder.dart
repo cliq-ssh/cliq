@@ -7,7 +7,7 @@ import 'entities/vault_impl.dart';
 class EntityBuilder {
   final CliqClientImpl api;
 
-  const EntityBuilder({required this.api});
+  const EntityBuilder(this.api);
 
   Vault buildVault(Map<String, dynamic> json) {
     return VaultImpl(

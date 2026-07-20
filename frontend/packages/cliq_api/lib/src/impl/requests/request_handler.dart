@@ -144,4 +144,16 @@ class RequestHandler {
     body: body,
     contentType: contentType,
   );
+
+  Future<RestResponse<bool>> authenticatedNoResponseRequest({
+    required CompiledRoute route,
+    dynamic body,
+    String contentType = 'application/json',
+  }) => noResponseRequest(
+    route: route,
+    routeOptions: apiImpl.routeOptions,
+    bearerToken: apiImpl.accessToken,
+    body: body,
+    contentType: contentType,
+  );
 }

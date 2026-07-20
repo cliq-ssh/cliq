@@ -42,4 +42,10 @@ abstract class CliqClient {
   }
 
   Future<User> retrieveSelfUser();
+
+  Future<Vault> retrieveVault();
+
+  Future<DateTime?> retrieveVaultLastUpdated();
+
+  Future<void> upsertVault({required String? configuration});
 }

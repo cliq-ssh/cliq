@@ -10,7 +10,6 @@ import 'package:dsrp/dsrp.dart' as dsrp;
 
 import '../impl/cliq_client_impl.dart';
 import '../impl/utils/encryption_helper.dart';
-import '../impl/utils/string_utils.dart';
 
 class CliqClientBuilder {
   final RouteOptions routeOptions;

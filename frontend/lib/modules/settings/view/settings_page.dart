@@ -61,7 +61,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                                 ? Text('sync_last_date').tr(
                                     args: [
                                       // TODO:
-                                      'n_a',
+                                      'n_a'.tr(),
                                     ],
                                   )
                                 : Text('sync_not_connected'.tr()),

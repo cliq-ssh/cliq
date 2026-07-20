@@ -21,6 +21,7 @@ enum StoreKey<T> {
   syncDevicePrivateKey<String?>('sync_dpk', type: String, isSecure: true),
   syncDataEncryptionKey<String?>('sync_dek', type: String, isSecure: true),
   syncRefreshToken<String?>('sync_refresh_token', type: String, isSecure: true),
+  syncLastSynced<int?>('sync_last_synced', type: int, defaultValue: 0),
 
   theme<CliqTheme>(
     'theme',

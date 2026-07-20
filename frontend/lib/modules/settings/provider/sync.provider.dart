@@ -1,9 +1,11 @@
+import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:cliq/modules/settings/model/settings_importer/app_settings.model.dart';
 import 'package:cliq/modules/settings/model/settings_importer/settings_importer.dart';
 import 'package:cliq/shared/data/store.dart';
 import 'package:cliq/shared/model/localized_exception.dart';
+import 'package:cliq/shared/utils/password_cipher.dart';
 import 'package:cliq_api/cliq_api.dart';
 import 'package:file_selector/file_selector.dart';
 import 'package:flutter/cupertino.dart';
@@ -11,12 +13,15 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:logging/logging.dart';
 
 import '../../../shared/data/database.dart';
+import '../../connections/provider/connection.provider.dart';
 import '../../connections/provider/connection_service.provider.dart';
 import '../../credentials/provider/credential_service.provider.dart';
+import '../../identities/provider/identity.provider.dart';
 import '../../identities/provider/identity_service.provider.dart';
 import '../../keys/provider/key_service.provider.dart';
 import '../model/settings_importer/cliq_settings_importer.dart';
 import '../model/sync.state.dart';
+import 'known_host.provider.dart';
 import 'known_host_service.provider.dart';
 
 final syncProvider = NotifierProvider(SyncProviderNotifier.new);
@@ -64,22 +69,18 @@ class SyncProviderNotifier extends Notifier<SyncState> {
     required String email,
     required Uint8List password,
   }) async {
-    final api =
-        await _getDefaultClientBuilder(
-          routeOptions,
-          // TODO: adjust session name
-        ).login(
-          email: email,
-          password: password,
-          sessionName: 'cliq-client',
-          onDataEncryptionKeyDecrypted: (dek) =>
-              StoreKey.syncDataEncryptionKey.write(dek),
-          onDevicePrivateKeyGenerated: (dpk) =>
-              StoreKey.syncDevicePrivateKey.write(dpk),
-          onRefreshTokenReceived: (token) =>
-              StoreKey.syncRefreshToken.write(token),
-        );
+    final api = await _getDefaultClientBuilder(routeOptions).login(
+      email: email,
+      password: password,
+      sessionName: 'cliq-client', // TODO: adjust session name
+      onDataEncryptionKeyDecrypted: (dek) =>
+          StoreKey.syncDataEncryptionKey.write(dek),
+      onDevicePrivateKeyGenerated: (dpk) =>
+          StoreKey.syncDevicePrivateKey.write(dpk),
+      onRefreshTokenReceived: (token) => StoreKey.syncRefreshToken.write(token),
+    );
 
+    StoreKey.syncHost.write(routeOptions);
     state = state.copyWith(api: api);
   }
 
@@ -120,6 +121,77 @@ class SyncProviderNotifier extends Notifier<SyncState> {
     await _getDefaultClientBuilder(
       routeOptions,
     ).verifyEmail(email: email, verificationToken: verificationToken);
+  }
+
+  /// Whether our current state is the latest version of the vault on the server.
+  /// This is done by simply comparing the last updated timestamp of the vault on the server with the last updated
+  /// timestamp of the vault in our local state.
+  Future<bool> isLocalLatest() async {
+    final remote = await state.api?.retrieveVaultLastUpdated();
+    // this would only ever be the case if the user has never synced before, so we
+    // can consider their local vault to be the latest version in that case
+    if (remote == null) return true;
+    final localMillis = await StoreKey.syncLastSynced.readAsync();
+    final local = DateTime.fromMillisecondsSinceEpoch(localMillis!);
+
+    // we apply the updatedAt time in [pullVault], which can be off a few places/milliseconds
+    const millisecondsThreshold = 20;
+    return ((local.millisecondsSinceEpoch - remote.millisecondsSinceEpoch)
+                .abs() <
+            millisecondsThreshold) ||
+        local.isAfter(remote);
+  }
+
+  Future<void> sync() async {
+    final latest = await isLocalLatest();
+    if (!latest) {
+      _log.finest(
+        'Local vault is not the latest version, pulling from server...',
+      );
+      await pullVault();
+    }
+    _log.finest('Local vault is the latest version, pushing to server...');
+    await pushVault();
+  }
+
+  Future<void> pullVault() async {
+    if (state.api == null) return;
+    final vault = await state.api!.retrieveVault();
+
+    final json = await PasswordCipher.instance.decrypt(
+      base64Decode(vault.configuration),
+      StringUtils.hexToArray(
+        (await StoreKey.syncDataEncryptionKey.readAsync())!,
+      ),
+    );
+
+    final settings = AppSettings.tryFromJson(jsonDecode(utf8.decode(json)));
+    if (settings == null) {
+      throw StateError('Failed to parse vault configuration from server.');
+    }
+    import(settings, 1);
+    StoreKey.syncLastSynced.write(vault.updatedAt.millisecondsSinceEpoch);
+  }
+
+  Future<bool> pushVault() async {
+    if (state.api == null) {
+      // we can't push if there are remote changes that we haven't pulled yet.
+      return false;
+    }
+
+    final dek = await StoreKey.syncDataEncryptionKey.readAsync();
+    if (dek == null) {
+      // this should never happen, dek is set on login
+      throw StateError('Data encryption key is missing, cannot push vault.');
+    }
+
+    final encrypted = await PasswordCipher.instance.encrypt(
+      utf8.encode(jsonEncode((await export()).toJson())),
+      StringUtils.hexToArray(dek),
+    );
+
+    await state.api!.upsertVault(configuration: base64Encode(encrypted));
+    return true;
   }
 
   /// Attempts to parse the given [file] as [AppSettings].
@@ -249,6 +321,33 @@ class SyncProviderNotifier extends Notifier<SyncState> {
         fingerprint: knownHost.hostKey.value,
       );
     }
+  }
+
+  /// Exports the current vault settings as an [AppSettings] object.
+  Future<AppSettings> export() async {
+    final connections = ref.read(connectionProvider);
+    final identities = ref.read(identityProvider);
+    final knownHosts = ref.read(knownHostProvider);
+    final credentials = await ref.read(credentialServiceProvider).findAll();
+    final keys = await ref.read(keyServiceProvider).findAll();
+    final identitiesCredentialIds = identities.entities.asMap().map(
+      (_, entity) => MapEntry(entity.id, entity.credentialIds),
+    );
+    final connectionsCredentialIds = connections.entities.asMap().map(
+      (_, entity) => MapEntry(entity.id, entity.credentialIds),
+    );
+
+    return AppSettings(
+      connections: connections.entities
+          .map((e) => e.toCompanion(true))
+          .toList(),
+      identities: identities.entities.map((e) => e.toCompanion(true)).toList(),
+      knownHosts: knownHosts.entities.map((e) => e.toCompanion(true)).toList(),
+      credentials: credentials.map((e) => e.toCompanion(true)).toList(),
+      keys: keys.map((e) => e.toCompanion(true)).toList(),
+      identitiesCredentialIds: identitiesCredentialIds,
+      connectionsCredentialIds: connectionsCredentialIds,
+    );
   }
 
   CliqClientBuilder _getDefaultClientBuilder(RouteOptions routeOptions) {

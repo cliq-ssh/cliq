@@ -6,11 +6,13 @@ import 'package:cliq/modules/settings/view/import_or_export_settings_view.dart';
 import 'package:cliq/modules/settings/view/register_or_login_view.dart';
 import 'package:cliq/modules/settings/view/settings_page.dart';
 import 'package:cliq/shared/model/localized_exception.dart';
+import 'package:cliq/shared/provider/store.provider.dart';
 import 'package:cliq_ui/cliq_ui.dart'
     show CliqGridContainer, CliqGridRow, CliqGridColumn;
 import 'package:easy_localization/easy_localization.dart';
 import 'package:file_selector/file_selector.dart';
 import 'package:flutter/cupertino.dart' hide Router;
+import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:forui/forui.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lucide_flutter/lucide_flutter.dart';
@@ -34,6 +36,17 @@ class SyncSettingsPage extends AbstractSettingsPage {
   @override
   Widget buildBody(BuildContext context, WidgetRef ref) {
     final api = ref.watch(syncProvider).api;
+    final lastSynced = useStore(.syncLastSynced);
+
+    final isLocalLatest = useState(false);
+
+    useEffect(() {
+      if (api == null) return;
+      ref.watch(syncProvider.notifier).isLocalLatest().then((value) {
+        isLocalLatest.value = value;
+      });
+      return null;
+    }, [api, lastSynced.value]);
 
     return SingleChildScrollView(
       child: CliqGridContainer(
@@ -82,7 +95,8 @@ class SyncSettingsPage extends AbstractSettingsPage {
                               'sync_last_synced'.tr(args: ['n_a'.tr()]),
                               overflow: .visible,
                             ),
-                            onPress: () {},
+                            onPress: () =>
+                                ref.read(syncProvider.notifier).sync(),
                           ),
                           .tile(
                             variant: .destructive,

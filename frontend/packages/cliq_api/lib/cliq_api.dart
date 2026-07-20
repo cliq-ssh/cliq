@@ -11,3 +11,5 @@ export 'src/api/exceptions/cliq_api_exception.dart';
 export 'src/api/requests/routes.dart';
 
 export 'src/api/responses/server_configuration_response.dart';
+
+export 'src/impl/utils/string_utils.dart';
