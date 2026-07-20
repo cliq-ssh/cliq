@@ -3,7 +3,6 @@ import 'dart:async';
 import 'package:cliq/modules/vaults/provider/vault_service.provider.dart';
 import 'package:cliq/shared/provider/abstract_entity.notifier.dart';
 import 'package:easy_localization/easy_localization.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
 import '../../../shared/data/database.dart';
@@ -28,7 +27,7 @@ class VaultNotifier extends AbstractEntityNotifier<Vault, VaultEntityState> {
   }
 
   /// Finds or creates the user's default vault called "My Vault".
-  Future<Vault> findOrCreateDefaultVault(BuildContext context) async {
+  Future<Vault> findOrCreateDefaultVault() async {
     await initialized;
 
     for (final vault in state.entities) {

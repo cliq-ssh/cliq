@@ -163,6 +163,52 @@ final class ConnectionService {
     return connectionId;
   }
 
+  Future<int> createOrUpdate({
+    required DbId id,
+    required DbId vaultId,
+    required String label,
+    required String address,
+    required int port,
+    required DbId? identityId,
+    required String? username,
+    required String? groupName,
+    required ConnectionIcons icon,
+    required Color iconColor,
+    required Color iconBackgroundColor,
+    required TerminalTypography? terminalTypographyOverride,
+    required String? terminalThemeOverrideId,
+    required bool usesDefaultThemeOverride,
+    required List<DbId> credentialIds,
+  }) async {
+    final result = await _connectionRepository.db.createOrUpdateConnection(
+      id,
+      vaultId,
+      label,
+      address,
+      port,
+      identityId,
+      username,
+      groupName,
+      icon,
+      iconColor,
+      iconBackgroundColor,
+      terminalTypographyOverride,
+      terminalThemeOverrideId,
+      usesDefaultThemeOverride,
+    );
+
+    await _credentialService.insertAllWithRelation(
+      credentialIds,
+      relationRepository: _connectionCredentialsRepository,
+      builder: (cid) => ConnectionCredentialsCompanion.insert(
+        connectionId: id,
+        credentialId: cid,
+      ),
+    );
+
+    return result;
+  }
+
   Future<void> deleteById(DbId id, List<DbId> credentialIds) async {
     await _credentialService.deleteByIds(credentialIds);
     return _connectionRepository.deleteById(id);

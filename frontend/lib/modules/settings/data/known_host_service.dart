@@ -84,5 +84,21 @@ final class KnownHostService {
     ),
   );
 
+  Future<int> createOrUpdate({
+    required DbId id,
+    required DbId vaultId,
+    required String host,
+    required Uint8List fingerprint,
+    required DateTime createdAt,
+  }) async {
+    return _knownHostsRepository.db.createOrUpdateKnownHost(
+      id,
+      vaultId,
+      host,
+      fingerprint,
+      createdAt,
+    );
+  }
+
   Future<void> deleteById(DbId id) => _knownHostsRepository.deleteById(id);
 }

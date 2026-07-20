@@ -19,6 +19,7 @@ import '../../credentials/provider/credential_service.provider.dart';
 import '../../identities/provider/identity.provider.dart';
 import '../../identities/provider/identity_service.provider.dart';
 import '../../keys/provider/key_service.provider.dart';
+import '../../vaults/provider/vault.provider.dart';
 import '../model/settings_importer/cliq_settings_importer.dart';
 import '../model/sync.state.dart';
 import 'known_host.provider.dart';
@@ -126,7 +127,10 @@ class SyncProviderNotifier extends Notifier<SyncState> {
   /// Whether our current state is the latest version of the vault on the server.
   /// This is done by simply comparing the last updated timestamp of the vault on the server with the last updated
   /// timestamp of the vault in our local state.
-  Future<bool> isLocalLatest() async {
+  ///
+  /// Returns either true (local is latest), false (remote is latest),
+  /// or null (both are the same, no need to sync).
+  Future<bool?> isLocalLatest() async {
     final remote = await state.api?.retrieveVaultLastUpdated();
     // this would only ever be the case if the user has never synced before, so we
     // can consider their local vault to be the latest version in that case
@@ -135,27 +139,35 @@ class SyncProviderNotifier extends Notifier<SyncState> {
     final local = DateTime.fromMillisecondsSinceEpoch(localMillis!);
 
     // we apply the updatedAt time in [pullVault], which can be off a few places/milliseconds
-    const millisecondsThreshold = 20;
-    return ((local.millisecondsSinceEpoch - remote.millisecondsSinceEpoch)
-                .abs() <
-            millisecondsThreshold) ||
-        local.isAfter(remote);
+    const millisecondsThreshold = 100;
+    if ((local.millisecondsSinceEpoch - remote.millisecondsSinceEpoch).abs() <
+        millisecondsThreshold) {
+      return null;
+    }
+
+    return local.isAfter(remote);
   }
 
   Future<void> sync() async {
     final latest = await isLocalLatest();
+    if (latest == null) {
+      _log.finest('Vault is up-to-date, no sync needed.');
+      return;
+    }
+
     if (!latest) {
-      _log.finest(
-        'Local vault is not the latest version, pulling from server...',
-      );
+      _log.finest('Pulling vault from server...');
       await pullVault();
     }
-    _log.finest('Local vault is the latest version, pushing to server...');
+    _log.finest('Pushing vault to server...');
     await pushVault();
   }
 
   Future<void> pullVault() async {
     if (state.api == null) return;
+    final defaultVault = await ref
+        .read(vaultProvider.notifier)
+        .findOrCreateDefaultVault();
     final vault = await state.api!.retrieveVault();
 
     final json = await PasswordCipher.instance.decrypt(
@@ -169,7 +181,7 @@ class SyncProviderNotifier extends Notifier<SyncState> {
     if (settings == null) {
       throw StateError('Failed to parse vault configuration from server.');
     }
-    import(settings, "1"); // TODO:
+    await import(settings, defaultVault.id);
     StoreKey.syncLastSynced.write(vault.updatedAt.millisecondsSinceEpoch);
   }
 
@@ -191,6 +203,10 @@ class SyncProviderNotifier extends Notifier<SyncState> {
     );
 
     await state.api!.upsertVault(configuration: base64Encode(encrypted));
+    final lastUpdated = await state.api!.retrieveVaultLastUpdated();
+    if (lastUpdated != null) {
+      StoreKey.syncLastSynced.write(lastUpdated.millisecondsSinceEpoch);
+    }
     return true;
   }
 
@@ -241,57 +257,50 @@ class SyncProviderNotifier extends Notifier<SyncState> {
     return null;
   }
 
-  /// Imports the given [settings] into the vault with [vaultId].
+  /// Imports the given [toImport] settings into the vault with [vaultId].
   /// This method assumes that the settings have already been validated.
-  Future<void> import(AppSettings settings, DbId vaultId) async {
+  Future<void> import(AppSettings toImport, DbId vaultId) async {
     final connectionService = ref.read(connectionServiceProvider);
     final identityService = ref.read(identityServiceProvider);
     final knownHostService = ref.read(knownHostServiceProvider);
     final credentialService = ref.read(credentialServiceProvider);
     final keyService = ref.read(keyServiceProvider);
 
-    final newKeyIds = <DbId, DbId>{}; // old id, new id
-    final newCredentialIds = <DbId, DbId>{};
-    final newIdentityIds = <DbId, DbId>{};
-
-    for (final key in settings.keys ?? <KeysCompanion>[]) {
-      final newId = await keyService.createKey(
+    for (final key in toImport.keys ?? <KeysCompanion>[]) {
+      await keyService.createOrUpdate(
+        id: key.id.value,
         vaultId: vaultId,
         label: key.label.value,
         privateKey: key.privateKey.value,
         publicKey: key.publicKey.value,
         passphrase: key.passphrase.value,
       );
-      newKeyIds[key.id.value] = newId;
     }
 
-    for (final credential in settings.credentials ?? <CredentialsCompanion>[]) {
-      final newId = await credentialService.createCredential(
+    for (final credential in toImport.credentials ?? <CredentialsCompanion>[]) {
+      await credentialService.createOrUpdate(
+        id: credential.id.value,
         vaultId: vaultId,
         type: credential.type.value,
-        data:
-            credential.password.value ??
-            newKeyIds[credential.keyId.value]!.toString(),
+        data: credential.password.value ?? credential.keyId.value!,
       );
-      newCredentialIds[credential.id.value] = newId;
     }
 
-    for (final identity in settings.identities ?? <IdentitiesCompanion>[]) {
-      final newId = await identityService.createIdentity(
+    for (final identity in toImport.identities ?? <IdentitiesCompanion>[]) {
+      await identityService.createOrUpdate(
+        id: identity.id.value,
         vaultId: vaultId,
         label: identity.label.value,
         username: identity.username.value,
         credentialIds:
-            settings.identitiesCredentialIds?[identity.id.value]
-                ?.map((oldId) => newCredentialIds[oldId]!)
-                .toList() ??
+            toImport.identitiesCredentialIds?[identity.id.value]?.toList() ??
             [],
       );
-      newIdentityIds[identity.id.value] = newId;
     }
 
-    for (final connection in settings.connections ?? <ConnectionsCompanion>[]) {
-      await connectionService.createConnection(
+    for (final connection in toImport.connections ?? <ConnectionsCompanion>[]) {
+      await connectionService.createOrUpdate(
+        id: connection.id.value,
         vaultId: vaultId,
         address: connection.address.value,
         iconColor: connection.iconColor.value,
@@ -301,24 +310,23 @@ class SyncProviderNotifier extends Notifier<SyncState> {
         port: connection.port.value,
         username: connection.username.value,
         icon: connection.icon.value,
-        identityId: connection.identityId.value != null
-            ? newIdentityIds[connection.identityId.value!]
-            : null,
+        identityId: connection.identityId.value,
         terminalTypographyOverride: connection.terminalTypographyOverride.value,
         terminalThemeOverrideId: connection.terminalThemeOverrideId.value,
+        usesDefaultThemeOverride: connection.usesDefaultThemeOverride.value,
         credentialIds:
-            settings.connectionsCredentialIds?[connection.id.value]
-                ?.map((oldId) => newCredentialIds[oldId]!)
-                .toList() ??
+            toImport.connectionsCredentialIds?[connection.id.value]?.toList() ??
             [],
       );
     }
 
-    for (final knownHost in settings.knownHosts ?? <KnownHostsCompanion>[]) {
-      await knownHostService.createKnownHost(
+    for (final knownHost in toImport.knownHosts ?? <KnownHostsCompanion>[]) {
+      await knownHostService.createOrUpdate(
+        id: knownHost.id.value,
         vaultId: vaultId,
         host: knownHost.host.value,
         fingerprint: knownHost.hostKey.value,
+        createdAt: knownHost.createdAt.value,
       );
     }
   }

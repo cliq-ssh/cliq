@@ -38,7 +38,7 @@ class SyncSettingsPage extends AbstractSettingsPage {
     final api = ref.watch(syncProvider).api;
     final lastSynced = useStore(.syncLastSynced);
 
-    final isLocalLatest = useState(false);
+    final isLocalLatest = useState<bool?>(false);
 
     useEffect(() {
       if (api == null) return;

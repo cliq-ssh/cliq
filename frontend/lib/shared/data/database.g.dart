@@ -4440,6 +4440,26 @@ abstract class _$CliqDatabase extends GeneratedDatabase {
   late final Connections connections = Connections(this);
   late final ConnectionCredentials connectionCredentials =
       ConnectionCredentials(this);
+  Future<int> createOrUpdateKnownHost(
+    String id,
+    String vaultId,
+    String host,
+    Uint8List hostKey,
+    DateTime createdAt,
+  ) {
+    return customInsert(
+      'INSERT INTO known_hosts (id, vault_id, host, hostKey, created_at) VALUES (?1, ?2, ?3, ?4, ?5) ON CONFLICT (id) DO UPDATE SET vault_id = excluded.vault_id, host = excluded.host, hostKey = excluded.hostKey, created_at = excluded.created_at',
+      variables: [
+        Variable<String>(id),
+        Variable<String>(vaultId),
+        Variable<String>(host),
+        Variable<Uint8List>(hostKey),
+        Variable<DateTime>(createdAt),
+      ],
+      updates: {knownHosts},
+    );
+  }
+
   Selectable<FindAllKnownHostsFullResult> findAllKnownHostsFull() {
     return customSelect(
       'SELECT"k"."id" AS "nested_0.id", "k"."vault_id" AS "nested_0.vault_id", "k"."host" AS "nested_0.host", "k"."hostKey" AS "nested_0.hostKey", "k"."created_at" AS "nested_0.created_at","v"."id" AS "nested_1.id", "v"."label" AS "nested_1.label", "v"."is_default" AS "nested_1.is_default" FROM known_hosts AS k INNER JOIN vaults AS v ON k.vault_id = v.id',
@@ -4459,6 +4479,28 @@ abstract class _$CliqDatabase extends GeneratedDatabase {
       variables: [Variable<String>(var1)],
       readsFrom: {knownHosts},
     ).asyncMap(knownHosts.mapFromRow);
+  }
+
+  Future<int> createOrUpdateKey(
+    String id,
+    String vaultId,
+    String label,
+    String privateKey,
+    String? publicKey,
+    String? passphrase,
+  ) {
+    return customInsert(
+      'INSERT INTO keys (id, vault_id, label, private_key, public_key, passphrase) VALUES (?1, ?2, ?3, ?4, ?5, ?6) ON CONFLICT (id) DO UPDATE SET vault_id = excluded.vault_id, label = excluded.label, private_key = excluded.private_key, public_key = excluded.public_key, passphrase = excluded.passphrase',
+      variables: [
+        Variable<String>(id),
+        Variable<String>(vaultId),
+        Variable<String>(label),
+        Variable<String>(privateKey),
+        Variable<String>(publicKey),
+        Variable<String>(passphrase),
+      ],
+      updates: {keys},
+    );
   }
 
   Selectable<String> findAllKeyIds() {
@@ -4485,6 +4527,24 @@ abstract class _$CliqDatabase extends GeneratedDatabase {
     );
   }
 
+  Future<int> createOrUpdateIdentity(
+    String id,
+    String vaultId,
+    String label,
+    String username,
+  ) {
+    return customInsert(
+      'INSERT INTO identities (id, vault_id, label, username) VALUES (?1, ?2, ?3, ?4) ON CONFLICT (id) DO UPDATE SET vault_id = excluded.vault_id, label = excluded.label, username = excluded.username',
+      variables: [
+        Variable<String>(id),
+        Variable<String>(vaultId),
+        Variable<String>(label),
+        Variable<String>(username),
+      ],
+      updates: {identities},
+    );
+  }
+
   Selectable<FindAllIdentityFullResult> findAllIdentityFull() {
     return customSelect(
       'SELECT"i"."id" AS "nested_0.id", "i"."vault_id" AS "nested_0.vault_id", "i"."label" AS "nested_0.label", "i"."username" AS "nested_0.username","v"."id" AS "nested_1.id", "v"."label" AS "nested_1.label", "v"."is_default" AS "nested_1.is_default", i.id AS "\$n_0" FROM identities AS i INNER JOIN vaults AS v ON i.vault_id = v.id',
@@ -4500,6 +4560,26 @@ abstract class _$CliqDatabase extends GeneratedDatabase {
           readsFrom: {credentials, identityCredentials, identities},
         ).map((QueryRow row) => row.read<String>('id')).get(),
       ),
+    );
+  }
+
+  Future<int> createOrUpdateCredential(
+    String id,
+    String vaultId,
+    CredentialType type,
+    String? keyId,
+    String? password,
+  ) {
+    return customInsert(
+      'INSERT INTO credentials (id, vault_id, type, key_id, password) VALUES (?1, ?2, ?3, ?4, ?5) ON CONFLICT (id) DO UPDATE SET vault_id = excluded.vault_id, type = excluded.type, key_id = excluded.key_id, password = excluded.password',
+      variables: [
+        Variable<String>(id),
+        Variable<String>(vaultId),
+        Variable<String>(Credentials.$convertertype.toSql(type)),
+        Variable<String>(keyId),
+        Variable<String>(password),
+      ],
+      updates: {credentials},
     );
   }
 
@@ -4530,6 +4610,50 @@ abstract class _$CliqDatabase extends GeneratedDatabase {
           tablePrefix: 'nested_2',
         ),
       ),
+    );
+  }
+
+  Future<int> createOrUpdateConnection(
+    String id,
+    String vaultId,
+    String label,
+    String address,
+    int port,
+    String? identityId,
+    String? username,
+    String? groupName,
+    ConnectionIcons icon,
+    Color iconColor,
+    Color iconBackgroundColor,
+    TerminalTypography? terminalTypographyOverride,
+    String? terminalThemeOverrideId,
+    bool usesDefaultThemeOverride,
+  ) {
+    return customInsert(
+      'INSERT INTO connections (id, vault_id, label, address, port, identity_id, username, group_name, icon, icon_color, icon_background_color, terminal_typography_override, terminal_theme_override_id, uses_default_theme_override) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13, ?14) ON CONFLICT (id) DO UPDATE SET vault_id = excluded.vault_id, label = excluded.label, address = excluded.address, port = excluded.port, identity_id = excluded.identity_id, username = excluded.username, group_name = excluded.group_name, icon = excluded.icon, icon_color = excluded.icon_color, icon_background_color = excluded.icon_background_color, terminal_typography_override = excluded.terminal_typography_override, terminal_theme_override_id = excluded.terminal_theme_override_id, uses_default_theme_override = excluded.uses_default_theme_override',
+      variables: [
+        Variable<String>(id),
+        Variable<String>(vaultId),
+        Variable<String>(label),
+        Variable<String>(address),
+        Variable<int>(port),
+        Variable<String>(identityId),
+        Variable<String>(username),
+        Variable<String>(groupName),
+        Variable<int>(Connections.$convertericon.toSql(icon)),
+        Variable<int>(Connections.$convertericonColor.toSql(iconColor)),
+        Variable<int>(
+          Connections.$convertericonBackgroundColor.toSql(iconBackgroundColor),
+        ),
+        Variable<String>(
+          Connections.$converterterminalTypographyOverriden.toSql(
+            terminalTypographyOverride,
+          ),
+        ),
+        Variable<String>(terminalThemeOverrideId),
+        Variable<bool>(usesDefaultThemeOverride),
+      ],
+      updates: {connections},
     );
   }
 

@@ -83,6 +83,32 @@ final class IdentityService {
     return identityId;
   }
 
+  Future<int> createOrUpdate({
+    required DbId id,
+    required DbId vaultId,
+    required String label,
+    required String username,
+    required List<DbId> credentialIds,
+  }) async {
+    final result = await _identityRepository.db.createOrUpdateIdentity(
+      id,
+      vaultId,
+      label,
+      username,
+    );
+
+    await _credentialService.insertAllWithRelation(
+      credentialIds,
+      relationRepository: _identityCredentialsRepository,
+      builder: (cid) => IdentityCredentialsCompanion.insert(
+        identityId: id,
+        credentialId: cid,
+      ),
+    );
+
+    return result;
+  }
+
   Future<void> deleteById(DbId id, List<DbId> credentialIds) async {
     await _credentialService.deleteByIds(credentialIds);
     return _identityRepository.deleteById(id);

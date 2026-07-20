@@ -51,15 +51,15 @@ class CreateOrEditEntityView extends HookConsumerWidget {
     final defaultVault = useState<Vault?>(null);
     useEffect(() {
       if (withVaultSelector) {
-        ref.read(vaultProvider.notifier).findOrCreateDefaultVault(context).then(
-          (vault) {
-            WidgetsBinding.instance.addPostFrameCallback((_) {
-              defaultVault.value = vault;
-              vaultSelectController.value = vault.id;
-              onVaultSelected?.call(vault.id);
-            });
-          },
-        );
+        ref.read(vaultProvider.notifier).findOrCreateDefaultVault().then((
+          vault,
+        ) {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            defaultVault.value = vault;
+            vaultSelectController.value = vault.id;
+            onVaultSelected?.call(vault.id);
+          });
+        });
       }
       return null;
     }, []);

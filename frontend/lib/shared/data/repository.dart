@@ -45,7 +45,10 @@ abstract class Repository<T extends Table, R> {
     return inserted;
   }
 
-  Future<void> insertAllBatch(List<UpdateCompanion<R>> rows) {
+  Future<void> insertAllBatch(
+    List<UpdateCompanion<R>> rows, {
+    InsertMode mode = .insertOrAbort,
+  }) {
     _log.finest('Inserting ${rows.length} rows');
     final idColumn = table.columnsByName['id'];
 
@@ -60,7 +63,7 @@ abstract class Repository<T extends Table, R> {
       return row;
     }).toList();
 
-    return db.batch((batch) => batch.insertAll(table, toInsert));
+    return db.batch((batch) => batch.insertAll(table, toInsert, mode: mode));
   }
 
   Future<int> updateById(DbId id, UpdateCompanion<R> row) {

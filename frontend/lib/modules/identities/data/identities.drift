@@ -14,6 +14,14 @@ CREATE TABLE identity_credentials (
     PRIMARY KEY (identity_id, credential_id)
 );
 
+createOrUpdateIdentity:
+  INSERT INTO identities (id, vault_id, label, username)
+  VALUES (:id, :vaultId, :label, :username)
+  ON CONFLICT(id) DO UPDATE SET
+    vault_id = excluded.vault_id,
+    label = excluded.label,
+    username = excluded.username;
+
 findAllIdentityFull:
   SELECT
     i.** AS identity,

@@ -95,13 +95,14 @@ final class CredentialService {
     )).id;
   }
 
-  Future<List<String>> insertAllWithRelation<T extends Table, R>(
-    List<String> credentialIds, {
+  Future<List<DbId>> insertAllWithRelation<T extends Table, R>(
+    List<DbId> credentialIds, {
     required Repository<T, R> relationRepository,
-    required UpdateCompanion<R> Function(String) builder,
+    required UpdateCompanion<R> Function(DbId) builder,
   }) async {
     await relationRepository.insertAllBatch(
       credentialIds.map((credentialId) => builder(credentialId)).toList(),
+      mode: .insertOrIgnore,
     );
 
     return credentialIds;
@@ -128,6 +129,22 @@ final class CredentialService {
     );
 
     return credentialId;
+  }
+
+  Future<int> createOrUpdate({
+    required DbId id,
+    required DbId vaultId,
+    required CredentialType type,
+    required String data,
+  }) {
+    final (password, keyId) = extractCredentialData(type, data);
+    return _credentialRepository.db.createOrUpdateCredential(
+      id,
+      vaultId,
+      type,
+      keyId,
+      password,
+    );
   }
 
   Future<void> deleteByIds(List<DbId> ids) =>

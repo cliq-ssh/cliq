@@ -9,6 +9,16 @@ CREATE TABLE keys (
     passphrase      TEXT
 );
 
+createOrUpdateKey:
+    INSERT INTO keys (id, vault_id, label, private_key, public_key, passphrase)
+    VALUES (:id, :vaultId, :label, :privateKey, :publicKey, :passphrase)
+    ON CONFLICT(id) DO UPDATE SET
+        vault_id = excluded.vault_id,
+        label = excluded.label,
+        private_key = excluded.private_key,
+        public_key = excluded.public_key,
+        passphrase = excluded.passphrase;
+
 findAllKeyIds:
     SELECT id FROM keys;
 

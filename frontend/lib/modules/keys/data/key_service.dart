@@ -69,5 +69,23 @@ final class KeyService {
     ),
   );
 
+  Future<int> createOrUpdate({
+    required DbId id,
+    required DbId vaultId,
+    required String label,
+    required String privateKey,
+    required String? publicKey,
+    required String? passphrase,
+  }) async {
+    return _keyRepository.db.createOrUpdateKey(
+      id,
+      vaultId,
+      label,
+      privateKey,
+      publicKey,
+      passphrase,
+    );
+  }
+
   Future<void> deleteById(DbId id) => _keyRepository.deleteById(id);
 }
