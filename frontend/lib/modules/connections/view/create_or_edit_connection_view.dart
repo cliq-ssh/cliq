@@ -502,7 +502,7 @@ class CreateOrEditConnectionView extends HookConsumerWidget {
         obscureText: obscure,
         maxLines: maxLines,
         minLines: minLines,
-        autovalidateMode: AutovalidateMode.onUserInteraction,
+        autovalidateMode: .onUserInteraction,
       );
     }
 

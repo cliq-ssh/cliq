@@ -117,6 +117,7 @@ class TerminalThemeSettingsPage extends AbstractSettingsPage {
 
     create() => Commons.showResponsiveDialog(
       (_) => CreateOrEditTerminalThemeView.create(),
+      context: context,
     );
 
     return SingleChildScrollView(

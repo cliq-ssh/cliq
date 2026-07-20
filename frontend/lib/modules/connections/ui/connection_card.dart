@@ -37,11 +37,7 @@ class ConnectionCard extends HookConsumerWidget {
         // TODO: https://github.com/cliq-ssh/cliq/issues/446
         Commons.showToast(
           'hosts_cannot_connect_username_missing'.tr(),
-          prefix: Icon(
-            LucideIcons.triangleAlert,
-            size: 20,
-            color: context.theme.colors.destructive,
-          ),
+          prefix: Icon(LucideIcons.triangleAlert),
           variant: .destructive,
         );
         return;
@@ -55,8 +51,11 @@ class ConnectionCard extends HookConsumerWidget {
     edit() async {
       await primaryPopoverController.hide();
       await secondaryPopoverController.hide();
+      if (!context.mounted) return;
+
       return Commons.showResponsiveDialog(
         (_) => CreateOrEditConnectionView.edit(connection),
+        context: context,
       );
     }
 

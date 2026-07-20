@@ -82,9 +82,11 @@ class TerminalThemeCard extends HookConsumerWidget {
     edit() async {
       await primaryPopoverController.hide();
       await secondaryPopoverController.hide();
+      if (!context.mounted) return;
 
       return Commons.showResponsiveDialog(
         (_) => CreateOrEditTerminalThemeView.edit(theme),
+        context: context,
       ).then((_) => onEdit?.call());
     }
 

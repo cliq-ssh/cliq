@@ -48,6 +48,7 @@ class KeysSettingsPage extends AbstractSettingsPage {
           filterableFields: (k) => [k.vault.label, k.label],
           onAddEntity: () => Commons.showResponsiveDialog(
             (_) => const KeyCreationChoiceView(),
+            context: context,
           ),
         );
       },

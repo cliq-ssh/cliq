@@ -358,11 +358,7 @@ class _SftpSessionPageState extends ConsumerState<SftpSessionPage>
 
           Commons.showToast(
             'sftp_failed_to_open'.tr(args: [e.message]),
-            prefix: Icon(
-              LucideIcons.folderLock,
-              size: 20,
-              color: context.theme.colors.destructive,
-            ),
+            prefix: Icon(LucideIcons.folderLock),
             variant: .destructive,
           );
 
@@ -662,11 +658,7 @@ class _SftpSessionPageState extends ConsumerState<SftpSessionPage>
 
         Commons.showToast(
           'sftp_failed_to_rename'.tr(args: [message]),
-          prefix: Icon(
-            LucideIcons.pencilOff,
-            size: 20,
-            color: context.theme.colors.destructive,
-          ),
+          prefix: Icon(LucideIcons.pencilOff),
           variant: .destructive,
         );
 

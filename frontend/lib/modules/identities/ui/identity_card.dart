@@ -20,8 +20,11 @@ class IdentityCard extends HookConsumerWidget {
 
     edit() async {
       await popoverController.hide();
+      if (!context.mounted) return;
+
       return Commons.showResponsiveDialog(
         (_) => CreateOrEditIdentityView.edit(identity),
+        context: context,
       );
     }
 

@@ -9,11 +9,11 @@ class RouteOptions {
 
 abstract class CliqClient {
   RouteOptions get routeOptions;
-  Session get session;
+  User get selfUser;
 
   static Future<String> retrieveHealthStatus(RouteOptions routeOptions) async {
     final RestResponse<String> response = await RequestHandler.request(
-      route: ServerRoutes.getHealth.compile(),
+      route: ActuatorRoutes.getHealth.compile(),
       mapper: (json) => json['status'] as String,
       routeOptions: routeOptions,
     );
@@ -22,14 +22,4 @@ abstract class CliqClient {
     }
     return response.data!;
   }
-
-  Future<User> createUser({
-    required String email,
-    required String password,
-    required String username,
-    String locale = 'en',
-  });
-
-  Future<UserConfig> retrieveUserConfig();
-  Future<DateTime?> retrieveUserConfigLastUpdated();
 }

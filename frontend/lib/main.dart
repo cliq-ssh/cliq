@@ -126,6 +126,7 @@ void _handleError(Object error, StackTrace stackTrace) {
               entry.dismiss();
               Commons.showResponsiveDialog(
                 (_) => ErrorView(error: error, stackTrace: stackTrace),
+                context: context,
               );
             },
             child: Icon(

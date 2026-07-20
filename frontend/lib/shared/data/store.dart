@@ -10,6 +10,9 @@ import '../../modules/settings/model/keyboard_shortcuts.model.dart';
 import '../../modules/settings/model/theme.model.dart';
 
 enum StoreKey<T> {
+  syncHostUrl<String?>('sync_host_url', type: String),
+  syncHostUsername<String?>('sync_host_email', type: String, isSecure: true),
+
   theme<CliqTheme>(
     'theme',
     type: CliqTheme,
@@ -132,6 +135,7 @@ enum StoreKey<T> {
   final T Function()? defaultFactory;
   final T? Function(String?)? fromValue;
   final String? Function(T?)? toValue;
+  final bool isSecure;
 
   const StoreKey(
     this.key, {
@@ -140,6 +144,7 @@ enum StoreKey<T> {
     this.defaultFactory,
     this.fromValue,
     this.toValue,
+    this.isSecure = false,
   }) : assert(defaultValue == null || defaultFactory == null);
 
   T? readSync() => KeyValueStore._instance.readSync(this);
@@ -234,6 +239,7 @@ class KeyValueStore {
     for (StoreKey key in StoreKey.values) {
       // initializes all default values for keys that do not exist &
       // populate local cache
+      if (key.isSecure) continue;
       _localCache[key.key] = await key.readAsync();
     }
   }
@@ -255,6 +261,12 @@ class KeyValueStore {
   /// Reads the value of the key from the local cache.
   /// If the key does not exist in the cache, it will return null.
   T readSync<T>(StoreKey<T> key) {
+    if (key.isSecure) {
+      throw StateError(
+        'Cannot read secure key ${key.key} from cache! Use readAsync() instead.',
+      );
+    }
+
     _checkInitialized();
     return _fromStringOrValue<T>(_localCache[key.key], key);
   }
@@ -270,7 +282,13 @@ class KeyValueStore {
   /// If the key does not exist in the cache, it will be read from the storage.
   Future<T?> readAsync<T>(StoreKey<T> key) async {
     _checkInitialized();
-    return await _readOrInitSharedPrefsKey(key);
+
+    if (key.isSecure) {
+      // TODO: read from secure storage
+      throw UnimplementedError('Secure storage is not implemented yet!');
+    } else {
+      return await _readOrInitSharedPrefsKey(key);
+    }
   }
 
   /// Reads the value of the key from the local cache and converts it to a string,
@@ -289,10 +307,10 @@ class KeyValueStore {
   }) async {
     _checkInitialized();
     // simplify enums to strings
-    if (storeLocal) {
+    if (!key.isSecure && storeLocal) {
       _localCache[key.key] = value;
     }
-    if (triggerChange) {
+    if (!key.isSecure && triggerChange) {
       _changesController.add(StoreChange(key.key, value: value));
     }
     if (value is Enum) {
@@ -304,15 +322,20 @@ class KeyValueStore {
       );
     }
     final dynamic effectiveValue = _toStringOrValue<T?>(value, key);
-    await switch (effectiveValue) {
-      (String value) => _preferences.setString(key.key, value),
-      (int value) => _preferences.setInt(key.key, value),
-      (bool value) => _preferences.setBool(key.key, value),
-      (double value) => _preferences.setDouble(key.key, value),
-      _ => throw StateError(
-        'Invalid value for key ${key.key}! Got: ${effectiveValue.runtimeType}, Expected either String, int, bool or double',
-      ),
-    };
+
+    if (key.isSecure) {
+      // TODO: write to secure storage
+    } else {
+      await switch (effectiveValue) {
+        (String value) => _preferences.setString(key.key, value),
+        (int value) => _preferences.setInt(key.key, value),
+        (bool value) => _preferences.setBool(key.key, value),
+        (double value) => _preferences.setDouble(key.key, value),
+        _ => throw StateError(
+          'Invalid value for key ${key.key}! Got: ${effectiveValue.runtimeType}, Expected either String, int, bool or double',
+        ),
+      };
+    }
   }
 
   /// Deletes the key from the local cache and the storage.
@@ -320,9 +343,13 @@ class KeyValueStore {
   FutureOr<void> delete<T>(StoreKey<T> key) {
     _checkInitialized();
     if (key.defaultValue == null) {
-      _localCache.remove(key.key);
-      _preferences.remove(key.key);
-      _changesController.add(StoreChange(key.key, value: null));
+      if (key.isSecure) {
+        // TODO: delete from secure storage
+      } else {
+        _localCache.remove(key.key);
+        _preferences.remove(key.key);
+        _changesController.add(StoreChange(key.key, value: null));
+      }
     } else {
       write(key, key.defaultValue);
     }

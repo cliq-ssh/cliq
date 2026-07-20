@@ -1,6 +1,10 @@
+import 'dart:typed_data';
+
 import 'package:cliq/modules/settings/model/settings_importer/app_settings.model.dart';
 import 'package:cliq/modules/settings/model/settings_importer/settings_importer.dart';
+import 'package:cliq/shared/data/store.dart';
 import 'package:cliq/shared/model/localized_exception.dart';
+import 'package:cliq_api/cliq_api.dart';
 import 'package:file_selector/file_selector.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
@@ -18,6 +22,54 @@ final syncProvider = NotifierProvider(SyncProviderNotifier.new);
 class SyncProviderNotifier extends Notifier<SyncState> {
   @override
   SyncState build() => .initial();
+
+  Future<void> logout() async {
+    StoreKey.syncHostUrl.delete();
+    StoreKey.syncHostUsername.delete();
+    state = state.copyWith(api: null);
+  }
+
+  Future<void> login(
+    RouteOptions routeOptions, {
+    required String email,
+    required Uint8List password,
+  }) async {
+    final api = await _getDefaultClientBuilder(
+      routeOptions,
+      // TODO: adjust session name
+    ).login(email: email, password: password, sessionName: 'cliq-client');
+    state = state.copyWith(api: api);
+  }
+
+  Future<void> register(
+    RouteOptions routeOptions, {
+    required String username,
+    required String email,
+    required Uint8List password,
+  }) async {
+    await _getDefaultClientBuilder(
+      routeOptions,
+    ).createUser(username: username, email: email, password: password);
+  }
+
+  Future<void> resendVerificationEmail(
+    RouteOptions routeOptions, {
+    required String email,
+  }) async {
+    await _getDefaultClientBuilder(
+      routeOptions,
+    ).resendVerificationEmail(email: email);
+  }
+
+  Future<void> verifyRegistration(
+    RouteOptions routeOptions, {
+    required String verificationToken,
+    required String email,
+  }) async {
+    await _getDefaultClientBuilder(
+      routeOptions,
+    ).verifyEmail(email: email, verificationToken: verificationToken);
+  }
 
   /// Attempts to parse the given [file] as [AppSettings].
   /// If the file is null, not parsable, or fails for any reason, this method throws the i18n key of the error message.
@@ -146,5 +198,9 @@ class SyncProviderNotifier extends Notifier<SyncState> {
         fingerprint: knownHost.hostKey.value,
       );
     }
+  }
+
+  CliqClientBuilder _getDefaultClientBuilder(RouteOptions routeOptions) {
+    return CliqClientBuilder(routeOptions: routeOptions);
   }
 }

@@ -104,11 +104,7 @@ class CreateOrEditKeyView extends HookConsumerWidget {
             Commons.showToast(
               'keys_import_error_format'.tr(),
               variant: .destructive,
-              prefix: Icon(
-                LucideIcons.triangleAlert,
-                size: 20,
-                color: context.theme.colors.destructive,
-              ),
+              prefix: Icon(LucideIcons.triangleAlert),
             );
             return;
           }

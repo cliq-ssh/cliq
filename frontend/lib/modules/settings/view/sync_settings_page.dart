@@ -3,6 +3,7 @@ import 'package:cliq/modules/settings/provider/sync.provider.dart';
 import 'package:cliq/modules/settings/ui/password_dialog.dart';
 import 'package:cliq/modules/settings/view/abstract_settings_page.dart';
 import 'package:cliq/modules/settings/view/import_or_export_settings_view.dart';
+import 'package:cliq/modules/settings/view/register_or_login_view.dart';
 import 'package:cliq/modules/settings/view/settings_page.dart';
 import 'package:cliq/shared/model/localized_exception.dart';
 import 'package:cliq_ui/cliq_ui.dart'
@@ -43,7 +44,25 @@ class SyncSettingsPage extends AbstractSettingsPage {
                   children: [
                     FTileGroup(
                       children: [
-                        FTile(
+                        .tile(
+                          prefix: Icon(LucideIcons.cloudSync),
+                          suffix: Icon(LucideIcons.chevronRight),
+                          title: Text('sync_setup_sync'.tr()),
+                          subtitle: Text(
+                            'sync_setup_sync_subtitle'.tr(),
+                            overflow: .visible,
+                          ),
+                          onPress: () => Commons.showResponsiveDialog(
+                            (_) => RegisterOrLoginView(),
+                            context: context,
+                            dismissable: false,
+                          ),
+                        ),
+                      ],
+                    ),
+                    FTileGroup(
+                      children: [
+                        .tile(
                           prefix: Icon(LucideIcons.download),
                           suffix: Icon(LucideIcons.folderOpen),
                           title: Text('sync_import_file'.tr()),
@@ -86,24 +105,28 @@ class SyncSettingsPage extends AbstractSettingsPage {
                             if (settings.isEmpty) {
                               Commons.showToast(
                                 'settings.import.error.invalidOrEmptyFile',
-                                prefix: Icon(LucideIcons.fileX, size: 20),
+                                prefix: Icon(LucideIcons.fileX),
                               );
                               return;
                             }
+
+                            if (!context.mounted) return;
 
                             Commons.showResponsiveDialog(
                               (_) => ImportOrExportSettingsView.import(
                                 current: settings,
                               ),
+                              context: context,
                             );
                           },
                         ),
-                        FTile(
+                        .tile(
                           prefix: Icon(LucideIcons.upload),
                           suffix: Icon(LucideIcons.chevronRight),
                           title: Text('sync_export_file'.tr()),
                           onPress: () => Commons.showResponsiveDialog(
                             (_) => ImportOrExportSettingsView.export(),
+                            context: context,
                           ),
                         ),
                       ],

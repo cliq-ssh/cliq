@@ -57,6 +57,7 @@ class _ConnectionsPageState extends ConsumerState<ConnectionsPage> {
         ],
         onAddEntity: () => Commons.showResponsiveDialog(
           (_) => CreateOrEditConnectionView.create(),
+          context: context,
         ),
       ),
     );
