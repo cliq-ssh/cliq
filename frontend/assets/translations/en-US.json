@@ -32,7 +32,6 @@
   "connections": "Connections",
   "copy": "Copy",
   "copy_to_clipboard_success": "Successfully copied to clipboard",
-  "create_an_account": "Create an account",
   "credentials_form_add_auth": "Add Authentication Method",
   "credentials_form_auth": {
     "password": "Password",
@@ -158,7 +157,6 @@
     "one": "1 license",
     "other": "{} licenses"
   },
-  "log_in_instead": "Log in instead",
   "login": "Login",
   "logout": "Logout",
   "my_vault": "My Vault",
@@ -253,6 +251,8 @@
   "sync_export_password": "Password (recommended)",
   "sync_export_password_description": "Encrypt exported settings with a password. Leave empty for no encryption.",
   "sync_export_password_warning": "This export contains sensitive data, such as passwords and/or private keys. Setting an encryption password is highly recommended.",
+  "sync_go_login": "I already have an Account",
+  "sync_go_register": "Create an Account",
   "sync_host_url": "Sync Server URL",
   "sync_host_url_http_warning": "It is highly recommended to use HTTPS for your sync server to ensure the security of your data. If you are using HTTP, please make sure that your server is properly secured and that you understand the risks involved.",
   "sync_host_url_placeholder": "https://example.com",

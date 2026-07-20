@@ -21,6 +21,18 @@ class ServerConfigurationResponse {
       authExchangeDurationSeconds: json['authExchangeDurationSeconds'] as int,
     );
   }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'serverVersion': serverVersion,
+      'oidcUrl': oidcUrl,
+      'localAuthProperties': localAuthProperties.toJson(),
+      'authExchangeDurationSeconds': authExchangeDurationSeconds,
+    };
+  }
+
+  @override
+  String toString() => toJson().toString();
 }
 
 class LocalAuthProperties {
@@ -35,4 +47,11 @@ class LocalAuthProperties {
       login: json['login'] as bool,
     );
   }
+
+  Map<String, dynamic> toJson() {
+    return {'registration': registration, 'login': login};
+  }
+
+  @override
+  String toString() => toJson().toString();
 }

@@ -8,6 +8,7 @@ import 'package:cliq_api/cliq_api.dart';
 import 'package:file_selector/file_selector.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:logging/logging.dart';
 
 import '../../../shared/data/database.dart';
 import '../../connections/provider/connection_service.provider.dart';
@@ -21,16 +22,41 @@ import 'known_host_service.provider.dart';
 final syncProvider = NotifierProvider(SyncProviderNotifier.new);
 
 class SyncProviderNotifier extends Notifier<SyncState> {
+  late final Logger _log = Logger('SyncProviderNotifier');
+
   @override
   SyncState build() => .initial();
 
-  Future<void> logout() async {
-    await StoreKey.syncHost.delete();
-    await StoreKey.syncEmail.delete();
-    await StoreKey.syncDPK.delete();
-    await StoreKey.syncDEK.delete();
-    await StoreKey.syncRefreshToken.delete();
-    state = .initial();
+  Future<void> retrieveConfig(RouteOptions routeOptions) async {
+    // check if the URI is valid and the API is healthy
+    final config = await CliqClient.retrieveConfiguration(routeOptions);
+    _log.config(
+      'Successfully connected to: ${routeOptions.hostUri}, config: $config',
+    );
+    state = state.copyWith(config: config);
+  }
+
+  Future<void> attemptRecovery() async {
+    final routeOptions = await StoreKey.syncHost.readAsync();
+    if (routeOptions == null) return;
+
+    await retrieveConfig(routeOptions);
+
+    try {
+      final refreshToken = await StoreKey.syncRefreshToken.readAsync();
+      if (refreshToken == null) return;
+
+      final api = await _getDefaultClientBuilder(routeOptions).refresh(
+        refreshToken: refreshToken,
+        onRefreshTokenReceived: (token) =>
+            StoreKey.syncRefreshToken.write(token),
+      );
+
+      state = state.copyWith(api: api);
+    } catch (e) {
+      debugPrint('Failed to recover session: $e');
+      await logout();
+    }
   }
 
   Future<void> login(
@@ -46,35 +72,15 @@ class SyncProviderNotifier extends Notifier<SyncState> {
           email: email,
           password: password,
           sessionName: 'cliq-client',
-          onDataEncryptionKeyDecrypted: (dek) => StoreKey.syncDEK.write(dek),
-          onDevicePrivateKeyGenerated: (dpk) => StoreKey.syncDPK.write(dpk),
+          onDataEncryptionKeyDecrypted: (dek) =>
+              StoreKey.syncDataEncryptionKey.write(dek),
+          onDevicePrivateKeyGenerated: (dpk) =>
+              StoreKey.syncDevicePrivateKey.write(dpk),
           onRefreshTokenReceived: (token) =>
               StoreKey.syncRefreshToken.write(token),
         );
 
-    StoreKey.syncHost.write(routeOptions);
-    state = .new(api: api);
-  }
-
-  Future<void> attemptRecover() async {
-    final routeOptions = await StoreKey.syncHost.readAsync();
-    if (routeOptions == null) return;
-
-    try {
-      final refreshToken = await StoreKey.syncRefreshToken.readAsync();
-      if (refreshToken == null) return;
-
-      final api = await _getDefaultClientBuilder(routeOptions).refresh(
-        refreshToken: refreshToken,
-        onRefreshTokenReceived: (token) =>
-            StoreKey.syncRefreshToken.write(token),
-      );
-
-      state = .new(api: api);
-    } catch (e) {
-      debugPrint('Failed to recover session: $e');
-      await logout();
-    }
+    state = state.copyWith(api: api);
   }
 
   Future<void> register(
@@ -83,9 +89,18 @@ class SyncProviderNotifier extends Notifier<SyncState> {
     required String email,
     required Uint8List password,
   }) async {
+    await retrieveConfig(routeOptions);
     await _getDefaultClientBuilder(
       routeOptions,
     ).createUser(username: username, email: email, password: password);
+  }
+
+  Future<void> logout() async {
+    await StoreKey.syncHost.delete();
+    await StoreKey.syncDevicePrivateKey.delete();
+    await StoreKey.syncDataEncryptionKey.delete();
+    await StoreKey.syncRefreshToken.delete();
+    state = .initial();
   }
 
   Future<void> resendVerificationEmail(

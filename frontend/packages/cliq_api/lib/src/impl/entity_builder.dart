@@ -1,7 +1,6 @@
 import 'package:cliq_api/cliq_api.dart';
 
 import 'cliq_client_impl.dart';
-import 'entities/session_impl.dart';
 import 'entities/user_impl.dart';
 import 'entities/vault_impl.dart';
 
@@ -28,17 +27,6 @@ class EntityBuilder {
       username: json['username'],
       createdAt: DateTime.parse(json['createdAt']),
       updatedAt: DateTime.parse(json['updatedAt']),
-    );
-  }
-
-  Session buildSession(Map<String, dynamic> json) {
-    return SessionImpl(
-      api,
-      id: json['id'],
-      token: json['token'],
-      name: json['name'],
-      userAgent: json['userAgent'],
-      createdAt: DateTime.parse(json['createdAt']),
     );
   }
 }

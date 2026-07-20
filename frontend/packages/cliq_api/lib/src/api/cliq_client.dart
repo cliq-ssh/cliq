@@ -17,18 +17,24 @@ class RouteOptions {
   Map<String, dynamic> toJson() {
     return {'hostUri': hostUri?.toString()};
   }
+
+  @override
+  String toString() => 'RouteOptions(hostUri: $hostUri)';
 }
 
 abstract class CliqClient {
   RouteOptions get routeOptions;
   User get selfUser;
 
-  static Future<String> retrieveHealthStatus(RouteOptions routeOptions) async {
-    final RestResponse<String> response = await RequestHandler.request(
-      route: ActuatorRoutes.getHealth.compile(),
-      mapper: (json) => json['status'] as String,
-      routeOptions: routeOptions,
-    );
+  static Future<ServerConfigurationResponse> retrieveConfiguration(
+    RouteOptions routeOptions,
+  ) async {
+    final RestResponse<ServerConfigurationResponse> response =
+        await RequestHandler.request(
+          route: ServerConfigurationRoutes.get.compile(),
+          mapper: (json) => .fromJson(json),
+          routeOptions: routeOptions,
+        );
     if (response.hasError) {
       throw response.error!;
     }

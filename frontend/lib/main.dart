@@ -127,7 +127,7 @@ void _handleError(Object error, StackTrace stackTrace) {
               entry.dismiss();
               Commons.showResponsiveDialog(
                 (_) => ErrorView(error: error, stackTrace: stackTrace),
-                context: context,
+                context: null,
               );
             },
             child: Icon(
@@ -187,7 +187,7 @@ class _CliqAppState extends ConsumerState<CliqApp> {
       const SystemUiOverlayStyle(systemNavigationBarColor: Colors.transparent),
     );
 
-    ref.refresh(syncProvider.notifier).attemptRecover();
+    ref.refresh(syncProvider.notifier).attemptRecovery();
   }
 
   @override

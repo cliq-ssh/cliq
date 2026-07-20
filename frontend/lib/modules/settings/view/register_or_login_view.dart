@@ -5,6 +5,7 @@ import 'package:cliq/shared/ui/error_card.dart';
 import 'package:cliq/shared/utils/input_formatters.dart';
 import 'package:cliq/shared/utils/validators.dart';
 import 'package:cliq_api/cliq_api.dart';
+import 'package:cliq_ui/cliq_ui.dart' show CliqFontFamily;
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
@@ -23,6 +24,7 @@ class RegisterOrLoginView extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final formKey = useMemoized(() => GlobalKey<FormState>());
+    final config = ref.watch(syncProvider).config;
     final step = useState<_Step>(.hostUrl);
 
     final hostCtrl = useTextEditingController();
@@ -72,7 +74,9 @@ class RegisterOrLoginView extends HookConsumerWidget {
 
       if (routeOptions.value == null) return;
       try {
-        await CliqClient.retrieveHealthStatus(routeOptions.value!);
+        await ref
+            .read(syncProvider.notifier)
+            .retrieveConfig(routeOptions.value!);
         step.value = .login;
       } on CliqException catch (e) {
         Commons.showCliqException(e);
@@ -238,13 +242,13 @@ class RegisterOrLoginView extends HookConsumerWidget {
               child: isLoading.value ? FCircularProgress() : Text('login'.tr()),
             ),
             FButton(
-              variant: .ghost,
+              variant: .outline,
               onPress: isLoading.value
                   ? null
                   : () {
                       step.value = .register;
                     },
-              child: Text('create_an_account'.tr()),
+              child: Text('sync_go_register'.tr()),
             ),
           ],
         ),
@@ -302,13 +306,13 @@ class RegisterOrLoginView extends HookConsumerWidget {
                   : Text('register'.tr()),
             ),
             FButton(
-              variant: .ghost,
+              variant: .outline,
               onPress: isLoading.value
                   ? null
                   : () {
                       step.value = .login;
                     },
-              child: Text('log_in_instead'.tr()),
+              child: Text('sync_go_login'.tr()),
             ),
           ],
         ),
@@ -395,6 +399,14 @@ class RegisterOrLoginView extends HookConsumerWidget {
                   .registerVerify => buildRegisterVerifyStep(),
                 },
               ),
+              if (config != null)
+                Text(
+                  'backend:${config.serverVersion}',
+                  style: context.theme.typography.body.xs.copyWith(
+                    fontFamily: CliqFontFamily.secondary.fontFamily,
+                    color: context.theme.colors.mutedForeground,
+                  ),
+                ),
             ],
           ),
         ),

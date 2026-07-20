@@ -18,9 +18,8 @@ enum StoreKey<T> {
     fromValue: _routeOptionsFromValue,
     toValue: _routeOptionsToValue,
   ),
-  syncEmail<String?>('sync_email', type: String, isSecure: true),
-  syncDPK<String?>('sync_dpk', type: String, isSecure: true),
-  syncDEK<String?>('sync_dek', type: String, isSecure: true),
+  syncDevicePrivateKey<String?>('sync_dpk', type: String, isSecure: true),
+  syncDataEncryptionKey<String?>('sync_dek', type: String, isSecure: true),
   syncRefreshToken<String?>('sync_refresh_token', type: String, isSecure: true),
 
   theme<CliqTheme>(

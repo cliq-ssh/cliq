@@ -3,10 +3,9 @@ import 'dart:typed_data';
 
 import 'package:cliq_api/cliq_api.dart';
 import 'package:cliq_api/src/impl/requests/request_handler.dart';
-import 'package:cliq_api/src/impl/responses/login_finish_response.dart';
-import 'package:cliq_api/src/impl/responses/login_start_response.dart';
-import 'package:cliq_api/src/impl/responses/token_response.dart';
-import 'package:logging/logging.dart';
+import 'package:cliq_api/src/api/responses/login_finish_response.dart';
+import 'package:cliq_api/src/api/responses/login_start_response.dart';
+import 'package:cliq_api/src/api/responses/token_response.dart';
 import 'package:dsrp/dsrp.dart' as dsrp;
 
 import '../impl/cliq_client_impl.dart';
@@ -14,8 +13,6 @@ import '../impl/utils/encryption_helper.dart';
 import '../impl/utils/string_utils.dart';
 
 class CliqClientBuilder {
-  static final Logger _log = Logger('CliqClientBuilder');
-
   final RouteOptions routeOptions;
 
   CliqClientBuilder({required this.routeOptions});
@@ -54,12 +51,6 @@ class CliqClientBuilder {
     Function(String)? onDevicePrivateKeyGenerated,
     Function(String)? onDataEncryptionKeyDecrypted,
   }) async {
-    // check if the URI is valid and the API is healthy
-    final String status = await CliqClient.retrieveHealthStatus(routeOptions);
-    _log.config(
-      'Successfully connected to: ${routeOptions.hostUri}, status: $status',
-    );
-
     final apiImpl = buildApiImpl();
 
     // initialize the login process by requesting the server for a challenge
