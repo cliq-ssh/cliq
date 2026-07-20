@@ -1,4 +1,10 @@
 {
+  "api_error_codes": {
+    "2000": "Validation failed",
+    "2007": "Invalid verification code",
+    "2008": "Verification code expired",
+    "2104": "Invalid credentials"
+  },
   "app": "App",
   "appearance": "Appearance",
   "appearance_apply_terminal_theme_color_to_navigation": "Apply Terminal Theme Color to Navigation",
@@ -154,6 +160,7 @@
   },
   "log_in_instead": "Log in instead",
   "login": "Login",
+  "logout": "Logout",
   "my_vault": "My Vault",
   "n_a": "N/A",
   "password": "Password",
@@ -256,7 +263,14 @@
   "sync_import_error_one_entity": "Please select at least one entity to import.",
   "sync_import_file": "Import from File",
   "sync_last_date": "Last sync: {}",
+  "sync_last_synced": "Last synced: {}",
+  "sync_login_success": "Login successful! You are now logged in.",
+  "sync_logout_body": "Logging out will erase all synced data (connections, identities, keys) from this device. You will need to log in again to access your synced data.",
+  "sync_logout_title": "Are you sure you want to log out?",
+  "sync_manual_import_export": "Manual Import/Export",
   "sync_not_connected": "Not connected",
+  "sync_now": "Sync Now",
+  "sync_resend_verify_code": "Resend verification code",
   "sync_setup_sync": "Setup Sync",
   "sync_setup_sync_subtitle": "Sync your connections, identities, keys and other settings across multiple devices using a self hosted server. For more information on how to set up such server, please visit the wiki.",
   "sync_test_host_url": "Test Sync Server URL",
@@ -275,14 +289,6 @@
   "terminal_themes_theme_add_color_placeholder": "#RRGGBB",
   "terminal_themes_theme_add_label": "Label",
   "terminal_themes_theme_add_label_placeholder": "My Theme",
-  "sync_login_success": "Login successful! You are now logged in.",
-  "api_error_codes": {
-    "2000": "Validation failed",
-    "2104": "Invalid credentials",
-    "2007": "Invalid verification code",
-    "2008": "Verification code expired"
-  },
-  "sync_resend_verify_code": "Resend verification code",
   "terminal_themes_theme_colors": {
     "background": "Background",
     "black": "Black",

@@ -14,5 +14,20 @@ class CliqClientImpl implements CliqClient {
   @override
   late final User selfUser;
 
+  late String accessToken;
+
   final EncryptionHelper encryptionHelper = EncryptionHelper();
+
+  @override
+  Future<User> retrieveSelfUser() async {
+    final result = await requestHandler.authenticatedRequest(
+      route: UserRoutes.getMe.compile(),
+      mapper: (data) => entityBuilder.buildUser(data),
+    );
+
+    if (result.hasError) {
+      throw result.error!;
+    }
+    return result.data!;
+  }
 }

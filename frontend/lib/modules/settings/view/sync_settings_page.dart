@@ -18,6 +18,7 @@ import 'package:lucide_flutter/lucide_flutter.dart';
 import '../../../shared/model/page_path.model.dart';
 import '../../../shared/model/router.model.dart';
 import '../../../shared/utils/commons.dart';
+import '../../../shared/utils/text_utils.dart';
 
 class SyncSettingsPage extends AbstractSettingsPage {
   static const PagePathBuilder pagePath = PagePathBuilder.child(
@@ -32,6 +33,8 @@ class SyncSettingsPage extends AbstractSettingsPage {
 
   @override
   Widget buildBody(BuildContext context, WidgetRef ref) {
+    final api = ref.watch(syncProvider).api;
+
     return SingleChildScrollView(
       child: CliqGridContainer(
         children: [
@@ -44,23 +47,69 @@ class SyncSettingsPage extends AbstractSettingsPage {
                   children: [
                     FTileGroup(
                       children: [
-                        .tile(
-                          prefix: Icon(LucideIcons.cloudSync),
-                          suffix: Icon(LucideIcons.chevronRight),
-                          title: Text('sync_setup_sync'.tr()),
-                          subtitle: Text(
-                            'sync_setup_sync_subtitle'.tr(),
-                            overflow: .visible,
+                        if (api == null)
+                          .tile(
+                            prefix: Icon(LucideIcons.cloudSync),
+                            suffix: Icon(LucideIcons.chevronRight),
+                            title: Text('sync_setup_sync'.tr()),
+                            subtitle: Text(
+                              'sync_setup_sync_subtitle'.tr(),
+                              overflow: .visible,
+                            ),
+                            onPress: () => Commons.showResponsiveDialog(
+                              (_) => RegisterOrLoginView(),
+                              context: context,
+                              dismissable: false,
+                            ),
+                          )
+                        else ...[
+                          .tile(
+                            prefix: FAvatar.raw(
+                              child: Text(
+                                api.selfUser.username
+                                    .substring(0, 1)
+                                    .toUpperCase(),
+                              ),
+                            ),
+                            title: Text(api.selfUser.username),
+                            subtitle: Text(api.selfUser.email),
                           ),
-                          onPress: () => Commons.showResponsiveDialog(
-                            (_) => RegisterOrLoginView(),
-                            context: context,
-                            dismissable: false,
+                          .tile(
+                            prefix: Icon(LucideIcons.refreshCw),
+                            suffix: Icon(LucideIcons.chevronRight),
+                            title: Text('sync_now'.tr()),
+                            subtitle: Text(
+                              'sync_last_synced'.tr(args: ['n_a'.tr()]),
+                              overflow: .visible,
+                            ),
+                            onPress: () {},
                           ),
-                        ),
+                          .tile(
+                            variant: .destructive,
+                            prefix: Icon(LucideIcons.logOut),
+                            title: Text('logout'.tr()),
+                            onPress: () {
+                              Commons.showConfirmationDialog(
+                                confirmButtonText: 'logout'.tr(),
+                                title: 'sync_logout_title'.tr(),
+                                onConfirm: () async {
+                                  await ref
+                                      .read(syncProvider.notifier)
+                                      .logout();
+                                },
+                                children: (context, _, _) =>
+                                    TextUtils.renderText(
+                                      context,
+                                      'sync_logout_body'.tr(),
+                                    ),
+                              );
+                            },
+                          ),
+                        ],
                       ],
                     ),
                     FTileGroup(
+                      label: Text('sync_manual_import_export'.tr()),
                       children: [
                         .tile(
                           prefix: Icon(LucideIcons.download),

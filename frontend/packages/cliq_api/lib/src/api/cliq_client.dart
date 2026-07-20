@@ -5,6 +5,18 @@ import '../impl/requests/request_handler.dart';
 
 class RouteOptions {
   Uri? hostUri;
+
+  RouteOptions({this.hostUri});
+
+  factory RouteOptions.fromJson(Map<String, dynamic> json) {
+    return RouteOptions(
+      hostUri: json['hostUri'] != null ? Uri.parse(json['hostUri']) : null,
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {'hostUri': hostUri?.toString()};
+  }
 }
 
 abstract class CliqClient {
@@ -22,4 +34,6 @@ abstract class CliqClient {
     }
     return response.data!;
   }
+
+  Future<User> retrieveSelfUser();
 }

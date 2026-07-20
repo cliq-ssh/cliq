@@ -23,13 +23,36 @@ class CliqClientBuilder {
   CliqClientImpl buildApiImpl() =>
       CliqClientImpl()..routeOptions = routeOptions;
 
+  Future<CliqClient> refresh({
+    required String refreshToken,
+    Function(String)? onRefreshTokenReceived,
+  }) async {
+    final apiImpl = buildApiImpl();
+
+    final tokenResponse = await RequestHandler.request<TokenResponse>(
+      route: AuthenticationRoutes.postRefresh.compile(),
+      routeOptions: routeOptions,
+      mapper: (data) => .fromJson(data),
+      body: {'refreshToken': refreshToken},
+    );
+    if (tokenResponse.hasError) {
+      throw tokenResponse.error!;
+    }
+    final tokens = tokenResponse.data!;
+    onRefreshTokenReceived?.call(tokens.refreshToken);
+
+    apiImpl.accessToken = tokens.accessToken;
+    apiImpl.selfUser = await apiImpl.retrieveSelfUser();
+    return apiImpl;
+  }
+
   Future<CliqClient> login({
     required String email,
     required Uint8List password,
     required String sessionName,
-    Function(String, String)? onJwtTokenReceived,
-    Function(Uint8List)? onDevicePrivateKeyGenerated,
-    Function(Uint8List)? onDataEncryptionKeyDecrypted,
+    Function(String)? onRefreshTokenReceived,
+    Function(String)? onDevicePrivateKeyGenerated,
+    Function(String)? onDataEncryptionKeyDecrypted,
   }) async {
     // check if the URI is valid and the API is healthy
     final String status = await CliqClient.retrieveHealthStatus(routeOptions);
@@ -43,7 +66,7 @@ class CliqClientBuilder {
     final startResponse = await RequestHandler.request<LoginStartResponse>(
       route: AuthenticationRoutes.postLoginStart.compile(),
       routeOptions: routeOptions,
-      mapper: (data) => LoginStartResponse.fromJson(data),
+      mapper: (data) => .fromJson(data),
       body: {'email': email},
     );
 
@@ -75,7 +98,7 @@ class CliqClientBuilder {
     final finishResponse = await RequestHandler.request<LoginFinishResponse>(
       route: AuthenticationRoutes.postLoginFinish.compile(),
       routeOptions: routeOptions,
-      mapper: (data) => LoginFinishResponse.fromJson(data),
+      mapper: (data) => .fromJson(data),
       body: {
         'authenticationSessionToken': start.authenticationSessionToken,
         'publicA': StringUtils.arrayToHex(verifiers.ephemeralUserPublicKey),
@@ -101,12 +124,12 @@ class CliqClientBuilder {
       base64Decode(finish.dataEncryptionKeyUmkWrapped),
       umk,
     );
-    onDataEncryptionKeyDecrypted?.call(dek);
+    onDataEncryptionKeyDecrypted?.call(StringUtils.arrayToHex(dek));
     umk.overwriteWithZeros();
 
     final (devicePublicKey, devicePrivateKey) = await apiImpl.encryptionHelper
         .generateX25519KeyPair();
-    onDevicePrivateKeyGenerated?.call(devicePrivateKey);
+    onDevicePrivateKeyGenerated?.call(StringUtils.arrayToHex(devicePrivateKey));
 
     // Encrypt the DEK with the device's public key to securely store it on the server
     final encryptedDekWithDeviceKeyPair = await apiImpl.encryptionHelper
@@ -131,20 +154,11 @@ class CliqClientBuilder {
       throw deviceRegistrationResponse.error!;
     }
     final tokens = deviceRegistrationResponse.data!;
-    onJwtTokenReceived?.call(tokens.accessToken, tokens.refreshToken);
+    onRefreshTokenReceived?.call(tokens.refreshToken);
 
-    apiImpl.selfUser =
-        await RequestHandler.request(
-          route: UserRoutes.getMe.compile(),
-          bearerToken: tokens.accessToken,
-          routeOptions: routeOptions,
-          mapper: (data) => apiImpl.entityBuilder.buildUser(data),
-        ).then((response) {
-          if (response.hasError) {
-            throw response.error!;
-          }
-          return response.data!;
-        });
+    // set the access token in the API implementation to be used for subsequent requests
+    apiImpl.accessToken = tokens.accessToken;
+    apiImpl.selfUser = await apiImpl.retrieveSelfUser();
 
     return apiImpl;
   }

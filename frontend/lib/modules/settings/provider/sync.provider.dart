@@ -6,6 +6,7 @@ import 'package:cliq/shared/data/store.dart';
 import 'package:cliq/shared/model/localized_exception.dart';
 import 'package:cliq_api/cliq_api.dart';
 import 'package:file_selector/file_selector.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
 import '../../../shared/data/database.dart';
@@ -24,9 +25,12 @@ class SyncProviderNotifier extends Notifier<SyncState> {
   SyncState build() => .initial();
 
   Future<void> logout() async {
-    StoreKey.syncHostUrl.delete();
-    StoreKey.syncHostUsername.delete();
-    state = state.copyWith(api: null);
+    await StoreKey.syncHost.delete();
+    await StoreKey.syncEmail.delete();
+    await StoreKey.syncDPK.delete();
+    await StoreKey.syncDEK.delete();
+    await StoreKey.syncRefreshToken.delete();
+    state = .initial();
   }
 
   Future<void> login(
@@ -34,11 +38,43 @@ class SyncProviderNotifier extends Notifier<SyncState> {
     required String email,
     required Uint8List password,
   }) async {
-    final api = await _getDefaultClientBuilder(
-      routeOptions,
-      // TODO: adjust session name
-    ).login(email: email, password: password, sessionName: 'cliq-client');
-    state = state.copyWith(api: api);
+    final api =
+        await _getDefaultClientBuilder(
+          routeOptions,
+          // TODO: adjust session name
+        ).login(
+          email: email,
+          password: password,
+          sessionName: 'cliq-client',
+          onDataEncryptionKeyDecrypted: (dek) => StoreKey.syncDEK.write(dek),
+          onDevicePrivateKeyGenerated: (dpk) => StoreKey.syncDPK.write(dpk),
+          onRefreshTokenReceived: (token) =>
+              StoreKey.syncRefreshToken.write(token),
+        );
+
+    StoreKey.syncHost.write(routeOptions);
+    state = .new(api: api);
+  }
+
+  Future<void> attemptRecover() async {
+    final routeOptions = await StoreKey.syncHost.readAsync();
+    if (routeOptions == null) return;
+
+    try {
+      final refreshToken = await StoreKey.syncRefreshToken.readAsync();
+      if (refreshToken == null) return;
+
+      final api = await _getDefaultClientBuilder(routeOptions).refresh(
+        refreshToken: refreshToken,
+        onRefreshTokenReceived: (token) =>
+            StoreKey.syncRefreshToken.write(token),
+      );
+
+      state = .new(api: api);
+    } catch (e) {
+      debugPrint('Failed to recover session: $e');
+      await logout();
+    }
   }
 
   Future<void> register(

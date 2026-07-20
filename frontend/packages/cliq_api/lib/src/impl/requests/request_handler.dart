@@ -1,5 +1,6 @@
 import 'package:cliq_api/src/api/cliq_client.dart';
 import 'package:cliq_api/src/api/exceptions/cliq_api_exception.dart';
+import 'package:cliq_api/src/impl/cliq_client_impl.dart';
 import 'package:dio/dio.dart';
 import 'package:logging/logging.dart';
 
@@ -12,9 +13,9 @@ import 'model/route.dart';
 class RequestHandler {
   static final Logger _log = Logger('RequestHandler');
 
-  final CliqClient api;
+  final CliqClientImpl apiImpl;
 
-  const RequestHandler(this.api);
+  const RequestHandler(this.apiImpl);
 
   /// Tries to execute a request, using the [CompiledRoute] and maps the received data using the
   /// specified [mapper] function, ultimately returning the entity in an [RestResponse].
@@ -129,4 +130,18 @@ class RequestHandler {
     _log.warning('Unknown error occurred: ${ex.message}, ${ex.stackTrace}');
     return LocalErrors.unknown.toResponse(statusCode: statusCode);
   }
+
+  Future<RestResponse<T>> authenticatedRequest<T>({
+    required CompiledRoute route,
+    required T Function(dynamic) mapper,
+    dynamic body,
+    String contentType = 'application/json',
+  }) => request(
+    route: route,
+    mapper: mapper,
+    routeOptions: apiImpl.routeOptions,
+    bearerToken: apiImpl.accessToken,
+    body: body,
+    contentType: contentType,
+  );
 }
