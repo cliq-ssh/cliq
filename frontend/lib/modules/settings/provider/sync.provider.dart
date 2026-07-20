@@ -169,7 +169,7 @@ class SyncProviderNotifier extends Notifier<SyncState> {
     if (settings == null) {
       throw StateError('Failed to parse vault configuration from server.');
     }
-    import(settings, 1);
+    import(settings, "1"); // TODO:
     StoreKey.syncLastSynced.write(vault.updatedAt.millisecondsSinceEpoch);
   }
 
@@ -243,16 +243,16 @@ class SyncProviderNotifier extends Notifier<SyncState> {
 
   /// Imports the given [settings] into the vault with [vaultId].
   /// This method assumes that the settings have already been validated.
-  Future<void> import(AppSettings settings, int vaultId) async {
+  Future<void> import(AppSettings settings, DbId vaultId) async {
     final connectionService = ref.read(connectionServiceProvider);
     final identityService = ref.read(identityServiceProvider);
     final knownHostService = ref.read(knownHostServiceProvider);
     final credentialService = ref.read(credentialServiceProvider);
     final keyService = ref.read(keyServiceProvider);
 
-    final newKeyIds = <int, int>{}; // old id, new id
-    final newCredentialIds = <int, int>{};
-    final newIdentityIds = <int, int>{};
+    final newKeyIds = <DbId, DbId>{}; // old id, new id
+    final newCredentialIds = <DbId, DbId>{};
+    final newIdentityIds = <DbId, DbId>{};
 
     for (final key in settings.keys ?? <KeysCompanion>[]) {
       final newId = await keyService.createKey(

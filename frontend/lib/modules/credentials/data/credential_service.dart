@@ -72,33 +72,33 @@ final class CredentialService {
     );
   }
 
-  Future<List<CredentialFull>> findByIds(List<int> ids) {
+  Future<List<CredentialFull>> findByIds(List<DbId> ids) {
     return _credentialRepository.db
         .findCredentialFullByIds(ids)
         .map(CredentialFull.fromResult)
         .get();
   }
 
-  Future<int> createCredential({
-    required int vaultId,
+  Future<DbId> createCredential({
+    required DbId vaultId,
     required CredentialType type,
     required String data,
   }) async {
     final (password, keyId) = extractCredentialData(type, data);
-    return await _credentialRepository.insert(
+    return (await _credentialRepository.insert(
       CredentialsCompanion.insert(
         vaultId: vaultId,
         type: type,
         keyId: Value.absentIfNull(keyId),
         password: Value.absentIfNull(password),
       ),
-    );
+    )).id;
   }
 
-  Future<List<int>> insertAllWithRelation<T extends Table, R>(
-    List<int> credentialIds, {
+  Future<List<String>> insertAllWithRelation<T extends Table, R>(
+    List<String> credentialIds, {
     required Repository<T, R> relationRepository,
-    required UpdateCompanion<R> Function(int) builder,
+    required UpdateCompanion<R> Function(String) builder,
   }) async {
     await relationRepository.insertAllBatch(
       credentialIds.map((credentialId) => builder(credentialId)).toList(),
@@ -107,9 +107,9 @@ final class CredentialService {
     return credentialIds;
   }
 
-  Future<int> update(
-    int credentialId, {
-    required int? vaultId,
+  Future<DbId> update(
+    DbId credentialId, {
+    required DbId? vaultId,
     required CredentialType? type,
     required String? data,
     CredentialsCompanion? compareTo,
@@ -130,17 +130,17 @@ final class CredentialService {
     return credentialId;
   }
 
-  Future<void> deleteByIds(List<int> ids) =>
+  Future<void> deleteByIds(List<DbId> ids) =>
       _credentialRepository.deleteByIds(ids);
 
-  (String?, int?) extractCredentialData(CredentialType? type, String? data) {
+  (String?, DbId?) extractCredentialData(CredentialType? type, String? data) {
     if (type == null || data == null) {
       return (null, null);
     }
 
     return switch (type) {
       .password => (data, null),
-      .key => (null, int.parse(data)),
+      .key => (null, data),
     };
   }
 }

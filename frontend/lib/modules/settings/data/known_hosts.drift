@@ -1,8 +1,8 @@
 import '../../vaults/data/vaults.drift';
 
 CREATE TABLE known_hosts (
-    id          INTEGER PRIMARY KEY AUTOINCREMENT,
-    vault_id    INTEGER NOT NULL REFERENCES vaults(id),
+    id          TEXT NOT NULL PRIMARY KEY DEFAULT '',
+    vault_id    TEXT NOT NULL REFERENCES vaults(id),
     host        TEXT NOT NULL,
     hostKey     BLOB NOT NULL,
     created_at  DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP

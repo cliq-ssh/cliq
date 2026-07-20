@@ -10,6 +10,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../modules/settings/model/keyboard_shortcuts.model.dart';
 import '../../modules/settings/model/theme.model.dart';
+import 'database.dart';
 
 enum StoreKey<T> {
   syncHost<RouteOptions?>(
@@ -45,10 +46,10 @@ enum StoreKey<T> {
     fromValue: _typographyFromValue,
     toValue: _typographyToValue,
   ),
-  defaultTerminalThemeId<int>(
+  defaultTerminalThemeId<DbId>(
     'default_terminal_theme',
     type: int,
-    defaultValue: -1,
+    defaultValue: '-1',
   ),
   applyTerminalThemeColorToNavigation<bool>(
     'apply_terminal_theme_to_navigation',

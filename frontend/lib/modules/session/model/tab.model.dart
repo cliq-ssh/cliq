@@ -3,6 +3,8 @@ import 'package:cliq/modules/settings/model/terminal_theme.state.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:forui/forui.dart';
 
+import '../../../shared/data/database.dart';
+
 class SessionTab {
   /// Unique identifier for the session tab, used for tracking and state management.
   final String id;
@@ -42,7 +44,7 @@ class SessionTab {
   Color getEffectiveSidebarColor(
     BuildContext context,
     CustomTerminalThemeState terminalThemes,
-    int defaultTerminalTheme,
+    DbId defaultTerminalTheme,
   ) {
     if (sessions.isEmpty && root.type == .ssh) {
       final hsl = HSLColor.fromColor(

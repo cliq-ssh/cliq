@@ -11,12 +11,12 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lucide_flutter/lucide_flutter.dart';
 
 class CreateOrEditEntityView extends HookConsumerWidget {
-  final Function(int?) onSave;
+  final Function(DbId?) onSave;
   final bool isEdit;
   final Widget child;
   final String? editLabel;
   final String? createLabel;
-  final Function(int)? onVaultSelected;
+  final Function(DbId)? onVaultSelected;
 
   /// Whether to show the vault selector in the form. If this is false, [onSave] will be called with null.
   final bool withVaultSelector;
@@ -46,7 +46,7 @@ class CreateOrEditEntityView extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final formKey = useMemoized(() => GlobalKey<FormState>());
     final vaults = ref.watch(vaultProvider);
-    final vaultSelectController = useFSelectController<int>();
+    final vaultSelectController = useFSelectController<DbId>();
 
     final defaultVault = useState<Vault?>(null);
     useEffect(() {
@@ -79,14 +79,14 @@ class CreateOrEditEntityView extends HookConsumerWidget {
                   if (withVaultSelector && defaultVault.value != null)
                     SizedBox(
                       width: 200,
-                      child: FSelect<int>.rich(
+                      child: FSelect<DbId>.rich(
                         validator: (v) => Validators.chain(context, [
                           Validators.nonNull,
                           Validators.nonEmpty,
                         ], v),
                         control: .managed(
                           controller: vaultSelectController,
-                          onChange: (int? vaultId) {
+                          onChange: (DbId? vaultId) {
                             if (vaultId != null) {
                               onVaultSelected?.call(vaultId);
                             }

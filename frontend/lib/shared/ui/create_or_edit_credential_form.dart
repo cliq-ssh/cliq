@@ -13,6 +13,7 @@ import '../../modules/credentials/model/credential_type.dart';
 import '../../modules/credentials/provider/credential_service.provider.dart';
 import '../../modules/keys/provider/key_service.provider.dart';
 import '../../modules/keys/view/create_or_edit_key_view.dart';
+import '../data/database.dart';
 import '../utils/autocomplete_utils.dart';
 import '../utils/commons.dart';
 import '../utils/validators.dart';
@@ -47,7 +48,7 @@ enum _AllowedCredentialType {
 }
 
 final class _CredentialData {
-  final int? id;
+  final DbId? id;
   final CredentialType type;
   final TextEditingController _passwordTextController = TextEditingController();
   final FAutocompleteController _keyAutocompleteController =
@@ -84,8 +85,8 @@ final class _CredentialData {
 }
 
 class CreateOrEditCredentialsForm extends StatefulHookConsumerWidget {
-  final List<int>? current;
-  final int vaultId;
+  final List<DbId>? current;
+  final DbId vaultId;
   final bool isEdit;
 
   const CreateOrEditCredentialsForm.create({super.key, required this.vaultId})
@@ -117,15 +118,15 @@ class CreateOrEditCredentialsFormState
   /// Saves the current state of the form.
   /// Validates the form and creates or updates credentials as necessary.
   /// Returns a list of created credential IDs, or null if validation fails.
-  Future<List<int>?> save() async {
+  Future<List<DbId>?> save() async {
     if (!(_formKey.currentState?.validate() ?? false)) {
       return null;
     }
 
     final credentialService = ref.read(credentialServiceProvider);
 
-    final createdIds = <int>[];
-    final modifiedIds = <int>[];
+    final createdIds = <DbId>[];
+    final modifiedIds = <DbId>[];
     for (final data in _selectedCredentials.value) {
       final controllerData = switch (data.type) {
         .key => AutocompleteUtils.fromAutocompleteString(

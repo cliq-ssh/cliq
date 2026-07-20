@@ -55,22 +55,22 @@ final class KnownHostService {
     return knownHosts.first.hostKey;
   }
 
-  Future<int> createKnownHost({
-    required int vaultId,
+  Future<DbId> createKnownHost({
+    required DbId vaultId,
     required String host,
     required Uint8List fingerprint,
-  }) => _knownHostsRepository.insert(
+  }) async => (await _knownHostsRepository.insert(
     KnownHostsCompanion.insert(
       vaultId: vaultId,
       host: host.trim(),
       hostKey: fingerprint,
       createdAt: Value(DateTime.now()),
     ),
-  );
+  )).id;
 
   Future<int> update(
-    int id, {
-    required int? vaultId,
+    DbId id, {
+    required DbId? vaultId,
     required Uint8List? fingerprint,
     KnownHostsCompanion? compareTo,
   }) => _knownHostsRepository.updateById(
@@ -84,5 +84,5 @@ final class KnownHostService {
     ),
   );
 
-  Future<void> deleteById(int id) => _knownHostsRepository.deleteById(id);
+  Future<void> deleteById(DbId id) => _knownHostsRepository.deleteById(id);
 }

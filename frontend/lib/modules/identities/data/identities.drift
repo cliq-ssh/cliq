@@ -2,15 +2,15 @@ import '../../credentials/data/credentials.drift';
 import '../../vaults/data/vaults.drift';
 
 CREATE TABLE identities (
-    id              INTEGER PRIMARY KEY AUTOINCREMENT,
-    vault_id        INTEGER NOT NULL REFERENCES vaults(id),
+    id              TEXT NOT NULL PRIMARY KEY DEFAULT '',
+    vault_id        TEXT NOT NULL REFERENCES vaults(id),
     label           TEXT NOT NULL,
     username        TEXT NOT NULL
 );
 
 CREATE TABLE identity_credentials (
-    identity_id     INTEGER NOT NULL REFERENCES identities(id) ON DELETE CASCADE,
-    credential_id   INTEGER NOT NULL REFERENCES credentials(id) ON DELETE CASCADE,
+    identity_id     TEXT NOT NULL REFERENCES identities(id) ON DELETE CASCADE,
+    credential_id   TEXT NOT NULL REFERENCES credentials(id) ON DELETE CASCADE,
     PRIMARY KEY (identity_id, credential_id)
 );
 

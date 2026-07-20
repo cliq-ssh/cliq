@@ -36,7 +36,7 @@ class TerminalThemeCard extends HookConsumerWidget {
     final primaryPopoverController = useFPopoverController();
     final secondaryPopoverController = useFPopoverController();
 
-    final isBuiltIn = theme.id == -1;
+    final isBuiltIn = theme.id == "-1";
 
     buildColor(Color color) {
       return Container(width: 8, height: 16, color: color);
@@ -197,7 +197,7 @@ class TerminalThemeCard extends HookConsumerWidget {
                   crossAxisAlignment: .start,
                   children: [
                     Text(theme.name),
-                    if (theme.id == -1)
+                    if (theme.id == '-1')
                       Text(
                         'built-in',
                         style: context.theme.typography.body.xs.copyWith(

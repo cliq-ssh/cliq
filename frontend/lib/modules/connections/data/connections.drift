@@ -1,31 +1,31 @@
 import '../../identities/data/identities.drift';
 import '../../credentials/data/credentials.drift';
-import '../../connections/model/connection_icon.dart';
+import '../../connections/model/connection_icons.dart';
 import '../../vaults/data/vaults.drift';
 import '../../settings/data/custom_terminal_themes.drift';
 import '../../../shared/data/converters/color_converter.dart';
 import '../../../shared/data/converters/terminal_typography_converter.dart';
 
 CREATE TABLE connections (
-    id                              INTEGER PRIMARY KEY AUTOINCREMENT,
-    vault_id                        INTEGER NOT NULL REFERENCES vaults(id),
+    id                              TEXT NOT NULL PRIMARY KEY DEFAULT '',
+    vault_id                        TEXT NOT NULL REFERENCES vaults(id),
     label                           TEXT NOT NULL,
     address                         TEXT NOT NULL,
     port                            INTEGER NOT NULL,
-    identity_id                     INTEGER REFERENCES identities(id) ON DELETE SET NULL,
+    identity_id                     TEXT REFERENCES identities(id) ON DELETE SET NULL,
     username                        TEXT,
     group_name                      TEXT,
-    icon                            ENUM(ConnectionIcon) NOT NULL DEFAULT 'unknown',
+    icon                            ENUM(ConnectionIcons) NOT NULL DEFAULT 'unknown',
     icon_color                      INTEGER NOT NULL MAPPED BY `const ColorConverter()`,
     icon_background_color           INTEGER NOT NULL MAPPED BY `const ColorConverter()`,
     terminal_typography_override    TEXT MAPPED BY `const TerminalTypographyConverter()`,
-    terminal_theme_override_id      INTEGER REFERENCES custom_terminal_themes(id) ON DELETE SET NULL,
+    terminal_theme_override_id      TEXT REFERENCES custom_terminal_themes(id) ON DELETE SET NULL,
     uses_default_theme_override     BOOLEAN NOT NULL DEFAULT FALSE
 );
 
 CREATE TABLE connection_credentials (
-    connection_id   INTEGER NOT NULL REFERENCES connections(id) ON DELETE CASCADE,
-    credential_id   INTEGER NOT NULL REFERENCES credentials(id) ON DELETE CASCADE,
+    connection_id   TEXT NOT NULL REFERENCES connections(id) ON DELETE CASCADE,
+    credential_id   TEXT NOT NULL REFERENCES credentials(id) ON DELETE CASCADE,
     PRIMARY KEY (connection_id, credential_id)
 );
 

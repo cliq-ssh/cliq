@@ -9,6 +9,8 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:forui/forui.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
+import '../../../shared/data/database.dart';
+
 class _KeyGenerationParams {
   final SshKeyAlgorithm algorithm;
   final SshEcdsaCurveSize ecdsaCurveSize;
@@ -48,7 +50,7 @@ class GenerateKeyView extends HookConsumerWidget {
     final rsaSize = useState(SshRsaKeySize.bits2048);
     final isLoading = useState(false);
 
-    Future<void> onSave(int? vaultId) async {
+    Future<void> onSave(DbId? vaultId) async {
       if (!(formKey.currentState?.validate() ?? false)) return;
       if (isLoading.value) return;
 

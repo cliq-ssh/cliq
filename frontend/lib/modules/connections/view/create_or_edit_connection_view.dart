@@ -50,7 +50,7 @@ class CreateOrEditConnectionView extends HookConsumerWidget {
   ];
 
   final ConnectionsCompanion? current;
-  final List<int>? currentCredentialIds;
+  final List<DbId>? currentCredentialIds;
   final bool isEdit;
 
   const CreateOrEditConnectionView.create({super.key})
@@ -94,7 +94,7 @@ class CreateOrEditConnectionView extends HookConsumerWidget {
       () => GlobalKey<CreateOrEditCredentialsFormState>(),
     );
     final usernameFocusNode = useFocusNode();
-    final selectedVaultId = useState<int?>(current?.vaultId.value);
+    final selectedVaultId = useState<DbId?>(current?.vaultId.value);
 
     final defaultTerminalTypography = useStore(.defaultTerminalTypography);
     final defaultTerminalThemeId = useStore(.defaultTerminalThemeId);
@@ -133,16 +133,16 @@ class CreateOrEditConnectionView extends HookConsumerWidget {
     final selectedTypographyOverride = useState<TerminalTypography?>(
       current?.terminalTypographyOverride.value,
     );
-    final selectedTerminalThemeId = useState<int?>(
+    final selectedTerminalThemeId = useState<DbId?>(
       current?.terminalThemeOverrideId.value,
     );
-    final selectedIdentityId = useState<int?>(current?.identityId.value);
+    final selectedIdentityId = useState<DbId?>(current?.identityId.value);
 
     final groups = useMemoizedFuture(() async {
       return await connectionService.findAllGroupNamesDistinct();
     }, []);
 
-    Future<void> onSave(int? vaultId) async {
+    Future<void> onSave(DbId? vaultId) async {
       if (!(formKey.currentState?.validate() ?? false)) return;
       final newCredentialIds = await credentialsKey.currentState?.save();
       // null is only returned when validation fails
@@ -449,7 +449,7 @@ class CreateOrEditConnectionView extends HookConsumerWidget {
                 onChange: (selected) => selectedTypographyOverride.value =
                     getEffectiveTypography(null, selected),
               ),
-              FSelect<int>.rich(
+              FSelect<DbId>.rich(
                 format: (s) => terminalThemes.entities
                     .firstWhere(
                       (t) => t.id == s,

@@ -18,6 +18,7 @@ import 'package:forui/forui.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lucide_flutter/lucide_flutter.dart';
 
+import '../../../shared/data/database.dart';
 import '../../../shared/model/page_path.model.dart';
 import '../../../shared/utils/platform_utils.dart';
 import '../provider/terminal_theme.provider.dart';
@@ -74,7 +75,7 @@ class TerminalThemeSettingsPage extends AbstractSettingsPage {
     final selectedFontSize = useState<int>(
       StoreKey.defaultTerminalTypography.readSync()!.fontSize,
     );
-    final selectedThemeId = useState<int>(
+    final selectedThemeId = useState<DbId>(
       StoreKey.defaultTerminalThemeId.readSync()!,
     );
 

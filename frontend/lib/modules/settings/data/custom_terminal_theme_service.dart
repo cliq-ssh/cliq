@@ -14,14 +14,14 @@ final class CustomTerminalThemeService {
     return _customTerminalThemesRepository.selectAll().watch();
   }
 
-  Future<int> createCustomTerminalTheme(
+  Future<DbId> createCustomTerminalTheme(
     CustomTerminalThemesCompanion insert,
   ) async {
-    return await _customTerminalThemesRepository.insert(insert);
+    return (await _customTerminalThemesRepository.insert(insert)).id;
   }
 
-  Future<int> update(
-    int themeId, {
+  Future<DbId> update(
+    DbId themeId, {
     required String? name,
     required Color? black,
     required Color? red,
@@ -141,6 +141,6 @@ final class CustomTerminalThemeService {
     return themeId;
   }
 
-  Future<void> deleteById(int id) =>
+  Future<void> deleteById(DbId id) =>
       _customTerminalThemesRepository.deleteById(id);
 }

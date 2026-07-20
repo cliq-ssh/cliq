@@ -9,12 +9,12 @@ final class VaultService {
 
   Stream<List<Vault>> watchAll() => _vaultsRepository.selectAll().watch();
 
-  Future<int> createVault({
+  Future<DbId> createVault({
     required String label,
     required bool isDefault,
   }) async {
-    return await _vaultsRepository.insert(
+    return (await _vaultsRepository.insert(
       VaultsCompanion.insert(label: label, isDefault: Value(isDefault)),
-    );
+    )).id;
   }
 }

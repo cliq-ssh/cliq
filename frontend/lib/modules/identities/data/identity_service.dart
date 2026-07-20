@@ -24,13 +24,13 @@ final class IdentityService {
     );
   }
 
-  Future<int> createIdentity({
-    required int vaultId,
+  Future<DbId> createIdentity({
+    required DbId vaultId,
     required String label,
     required String username,
-    required List<int> credentialIds,
+    required List<DbId> credentialIds,
   }) async {
-    final identityId = await _identityRepository.insert(
+    final identity = await _identityRepository.insert(
       IdentitiesCompanion.insert(
         vaultId: vaultId,
         label: label.trim(),
@@ -42,20 +42,20 @@ final class IdentityService {
       credentialIds,
       relationRepository: _identityCredentialsRepository,
       builder: (id) => IdentityCredentialsCompanion.insert(
-        identityId: identityId,
+        identityId: identity.id,
         credentialId: id,
       ),
     );
 
-    return identityId;
+    return identity.id;
   }
 
-  Future<int> update(
-    int identityId, {
-    required int? vaultId,
+  Future<DbId> update(
+    DbId identityId, {
+    required DbId? vaultId,
     required String? label,
     required String? username,
-    List<int>? newCredentialIds,
+    List<DbId>? newCredentialIds,
     IdentitiesCompanion? compareTo,
   }) async {
     await _identityRepository.updateById(
@@ -83,7 +83,7 @@ final class IdentityService {
     return identityId;
   }
 
-  Future<void> deleteById(int id, List<int> credentialIds) async {
+  Future<void> deleteById(DbId id, List<DbId> credentialIds) async {
     await _credentialService.deleteByIds(credentialIds);
     return _identityRepository.deleteById(id);
   }

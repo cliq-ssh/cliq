@@ -19,7 +19,7 @@ import '../provider/identity_service.provider.dart';
 class CreateOrEditIdentityView extends HookConsumerWidget {
   final String? initialLabel;
   final IdentitiesCompanion? current;
-  final List<int>? currentCredentialIds;
+  final List<DbId>? currentCredentialIds;
   final bool isEdit;
 
   const CreateOrEditIdentityView.create({super.key, this.initialLabel})
@@ -44,7 +44,7 @@ class CreateOrEditIdentityView extends HookConsumerWidget {
     final credentialsKey = useMemoized(
       () => GlobalKey<CreateOrEditCredentialsFormState>(),
     );
-    final selectedVaultId = useState<int?>(current?.vaultId.value);
+    final selectedVaultId = useState<DbId?>(current?.vaultId.value);
 
     final labelCtrl = useTextEditingController(
       text: initialLabel ?? current?.label.value,
@@ -56,7 +56,7 @@ class CreateOrEditIdentityView extends HookConsumerWidget {
     /// Handles the save action for the form.
     /// Validates the form, inserts any additional credentials, and either updates
     /// or creates a new connection based on the [isEdit] flag.
-    Future<void> onSave(int? vaultId) async {
+    Future<void> onSave(DbId? vaultId) async {
       if (!(formKey.currentState?.validate() ?? false)) return;
       final newCredentialIds = await credentialsKey.currentState?.save();
       // null is only returned when validation fails

@@ -18,7 +18,7 @@ class VaultNotifier extends AbstractEntityNotifier<Vault, VaultEntityState> {
   Stream<List<Vault>> get entityStream =>
       ref.read(vaultServiceProvider).watchAll();
 
-  Vault? findById(int id) {
+  Vault? findById(DbId id) {
     for (final vault in state.entities) {
       if (vault.id == id) {
         return vault;

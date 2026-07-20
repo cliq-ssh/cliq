@@ -37,8 +37,8 @@ final class ConnectionService {
     );
   }
 
-  Future<int> createConnection({
-    required int vaultId,
+  Future<DbId> createConnection({
+    required DbId vaultId,
     required String address,
     required Color iconColor,
     required Color iconBackgroundColor,
@@ -47,16 +47,16 @@ final class ConnectionService {
     required int? port,
     required String? username,
     required ConnectionIcons? icon,
-    required int? identityId,
+    required DbId? identityId,
     required TerminalTypography? terminalTypographyOverride,
-    required int? terminalThemeOverrideId,
-    required List<int> credentialIds,
+    required String? terminalThemeOverrideId,
+    required List<DbId> credentialIds,
   }) async {
     final usesDefaultThemeOverride =
         terminalThemeOverrideId == defaultTerminalColorTheme.id;
     if (usesDefaultThemeOverride) terminalThemeOverrideId = null;
 
-    final connectionId = await _connectionRepository.insert(
+    final connection = await _connectionRepository.insert(
       ConnectionsCompanion.insert(
         vaultId: vaultId,
         label: (label ?? address).trim(),
@@ -81,16 +81,16 @@ final class ConnectionService {
       credentialIds,
       relationRepository: _connectionCredentialsRepository,
       builder: (id) => ConnectionCredentialsCompanion.insert(
-        connectionId: connectionId,
+        connectionId: connection.id,
         credentialId: id,
       ),
     );
-    return connectionId;
+    return connection.id;
   }
 
-  Future<int> update(
-    int connectionId, {
-    required int? vaultId,
+  Future<DbId> update(
+    DbId connectionId, {
+    required DbId? vaultId,
     required String? address,
     required Color? iconColor,
     required Color? iconBackgroundColor,
@@ -99,10 +99,10 @@ final class ConnectionService {
     required int? port,
     required String? username,
     required ConnectionIcons? icon,
-    required int? identityId,
+    required DbId? identityId,
     required TerminalTypography? terminalTypographyOverride,
-    required int? terminalThemeOverrideId,
-    List<int>? newCredentialIds,
+    required DbId? terminalThemeOverrideId,
+    List<DbId>? newCredentialIds,
     ConnectionsCompanion? compareTo,
   }) async {
     final usesDefaultThemeOverride =
@@ -163,7 +163,7 @@ final class ConnectionService {
     return connectionId;
   }
 
-  Future<void> deleteById(int id, List<int> credentialIds) async {
+  Future<void> deleteById(DbId id, List<DbId> credentialIds) async {
     await _credentialService.deleteByIds(credentialIds);
     return _connectionRepository.deleteById(id);
   }

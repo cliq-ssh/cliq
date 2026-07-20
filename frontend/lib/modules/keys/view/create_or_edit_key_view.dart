@@ -57,7 +57,7 @@ class CreateOrEditKeyView extends HookConsumerWidget {
     /// Handles the save action for the form.
     /// Validates the form, inserts any additional credentials, and either updates
     /// or creates a new connection based on the [isEdit] flag.
-    Future<void> onSave(int? vaultId) async {
+    Future<void> onSave(DbId? vaultId) async {
       if (!(formKey.currentState?.validate() ?? false)) return;
 
       final keyService = ref.read(keyServiceProvider);

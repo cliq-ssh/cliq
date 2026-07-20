@@ -49,14 +49,14 @@ class _ImportOrExportSettingsViewState
     final identities = ref.read(identityProvider);
     final knownHosts = ref.read(knownHostProvider);
 
-    final connectionsTileController = useFMultiValueNotifier<int>();
-    final identitiesTileController = useFMultiValueNotifier<int>();
-    final knownHostsTileController = useFMultiValueNotifier<int>();
-    final keysTileController = useFMultiValueNotifier<int>();
+    final connectionsTileController = useFMultiValueNotifier<DbId>();
+    final identitiesTileController = useFMultiValueNotifier<DbId>();
+    final knownHostsTileController = useFMultiValueNotifier<DbId>();
+    final keysTileController = useFMultiValueNotifier<DbId>();
 
-    final relatedIdentityIds = useState<Set<int>>({});
-    final relatedConnectionKeyIds = useState<Set<int>>({});
-    final relatedIdentityKeyIds = useState<Set<int>>({});
+    final relatedIdentityIds = useState<Set<DbId>>({});
+    final relatedConnectionKeyIds = useState<Set<DbId>>({});
+    final relatedIdentityKeyIds = useState<Set<DbId>>({});
 
     final passwordController = useTextEditingController();
     final error = useState<String?>(null);
@@ -96,7 +96,7 @@ class _ImportOrExportSettingsViewState
       return null;
     }, [widget.isImport]);
 
-    onSave(int vaultId) async {
+    onSave(DbId vaultId) async {
       // check if at least one is selected
       if (connectionsTileController.value.isEmpty &&
           identitiesTileController.value.isEmpty &&
@@ -121,9 +121,9 @@ class _ImportOrExportSettingsViewState
       }
       showExportWarning.value = false;
 
-      Map<int, List<int>>? mapCredentialIds(
-        Map<int, List<int>>? credentialIds,
-        FMultiValueNotifier<int> controller,
+      Map<DbId, List<DbId>>? mapCredentialIds(
+        Map<DbId, List<DbId>>? credentialIds,
+        FMultiValueNotifier<DbId> controller,
       ) {
         return credentialIds?.map((id, credentialIds) {
           if (controller.value.contains(id)) {
@@ -198,11 +198,11 @@ class _ImportOrExportSettingsViewState
       context.pop();
     }
 
-    getConnectionById(int id) {
+    getConnectionById(DbId id) {
       return settings.value?.connections?.firstWhere((c) => c.id.value == id);
     }
 
-    getCredentialById(int id) {
+    getCredentialById(DbId id) {
       return settings.value?.credentials?.firstWhere((c) => c.id.value == id);
     }
 
@@ -287,15 +287,15 @@ class _ImportOrExportSettingsViewState
                     ),
 
                   if (settings.value!.connections?.isNotEmpty == true)
-                    buildEntityTiles<ConnectionsCompanion, int>(
+                    buildEntityTiles<ConnectionsCompanion, DbId>(
                       controller: connectionsTileController,
                       label: 'connections'.tr(),
                       entities: settings.value!.connections,
                       idSelector: (c) => c.id.value,
                       titleBuilder: (c) => c.label.value,
                       onChange: (selectedIds) {
-                        final newRelatedIdentityIds = <int>{};
-                        final newRelatedKeyIds = <int>{};
+                        final newRelatedIdentityIds = <DbId>{};
+                        final newRelatedKeyIds = <DbId>{};
 
                         for (final id in selectedIds) {
                           final connection = getConnectionById(id);
@@ -334,7 +334,7 @@ class _ImportOrExportSettingsViewState
                     ),
 
                   if (settings.value!.identities?.isNotEmpty == true)
-                    buildEntityTiles<IdentitiesCompanion, int>(
+                    buildEntityTiles<IdentitiesCompanion, DbId>(
                       controller: identitiesTileController,
                       label: 'identities'.tr(),
                       entities: settings.value!.identities,
@@ -343,7 +343,7 @@ class _ImportOrExportSettingsViewState
                       isRelated: (i) =>
                           relatedIdentityIds.value.contains(i.id.value),
                       onChange: (selectedIds) {
-                        final newRelatedKeyIds = <int>{};
+                        final newRelatedKeyIds = <DbId>{};
 
                         for (final id in selectedIds) {
                           // also select all credentials
@@ -367,7 +367,7 @@ class _ImportOrExportSettingsViewState
                     ),
 
                   if (settings.value!.keys?.isNotEmpty == true)
-                    buildEntityTiles<KeysCompanion, int>(
+                    buildEntityTiles<KeysCompanion, DbId>(
                       controller: keysTileController,
                       label: 'keys'.tr(),
                       entities: settings.value!.keys,
@@ -379,7 +379,7 @@ class _ImportOrExportSettingsViewState
                     ),
 
                   if (settings.value!.knownHosts?.isNotEmpty == true)
-                    buildEntityTiles<KnownHostsCompanion, int>(
+                    buildEntityTiles<KnownHostsCompanion, DbId>(
                       controller: knownHostsTileController,
                       label: 'known_hosts'.tr(),
                       entities: settings.value!.knownHosts,
