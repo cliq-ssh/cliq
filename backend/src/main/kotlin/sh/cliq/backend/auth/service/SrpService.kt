@@ -42,9 +42,6 @@ class SrpService(
             throw IllegalStateException("Salt or verifier is null for user ${user.id}")
         }
 
-        session.setClientEvidenceRoutine(Rfc5054AppendixBClientEvidenceRoutine)
-        session.setServerEvidenceRoutine(Rfc5054AppendixBServerEvidenceRoutine)
-
         val publicB = session.step1(loginStartParams.email, salt, verifier)
 
         val publicBString = BigIntegerUtils.toHex(publicB)
