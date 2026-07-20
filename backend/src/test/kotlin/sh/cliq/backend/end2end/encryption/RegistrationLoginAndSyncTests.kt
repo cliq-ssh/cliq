@@ -243,7 +243,7 @@ class RegistrationLoginAndSyncTests(
         val encryptedConfig =
             encryptionHelper.encryptDataWithKey(
                 configString.toByteArray(),
-                userMasterKey,
+                dataEncryptionKey,
             )
         val encryptedConfigString = Base64.getEncoder().encodeToString(encryptedConfig)
         val vaultParams =
