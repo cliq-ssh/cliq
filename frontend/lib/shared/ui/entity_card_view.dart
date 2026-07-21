@@ -75,7 +75,17 @@ class EntityCardView<E> extends HookConsumerWidget {
     final filterFocusNode = useFocusNode();
     final filterVaultId = useState<List<DbId>?>(null);
 
+    final defaultVault = useState<Vault?>(null);
     final vaults = ref.watch(vaultProvider);
+
+    useEffect(() {
+      ref.read(vaultProvider.notifier).findOrCreateDefaultVault().then((vault) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          defaultVault.value = vault;
+        });
+      });
+      return null;
+    }, []);
 
     isFilteredOut(E entity) {
       if (filterableVaultId != null && filterVaultId.value != null) {
@@ -195,8 +205,6 @@ class EntityCardView<E> extends HookConsumerWidget {
     }
 
     buildMenu() {
-      final defaultVault = vaults.entities.firstWhere((v) => v.isDefault);
-
       onVaultTap(DbId vaultId) {
         final current = filterVaultId.value ?? [];
         if (current.contains(vaultId)) {
@@ -224,14 +232,16 @@ class EntityCardView<E> extends HookConsumerWidget {
           if (filterVaultId.value != null)
             .group(
               children: [
-                .item(
-                  prefix:
-                      filterVaultId.value?.contains(defaultVault.id) ?? false
-                      ? Icon(LucideIcons.check)
-                      : SizedBox(width: 16),
-                  title: Text('local_vault'.tr()),
-                  onPress: () => onVaultTap(defaultVault.id),
-                ),
+                if (defaultVault.value != null)
+                  .item(
+                    prefix:
+                        filterVaultId.value?.contains(defaultVault.value!.id) ??
+                            false
+                        ? Icon(LucideIcons.check)
+                        : SizedBox(width: 16),
+                    title: Text('local_vault'.tr()),
+                    onPress: () => onVaultTap(defaultVault.value!.id),
+                  ),
                 for (final v in vaults.entities.where((v) => !v.isDefault))
                   .item(
                     prefix: filterVaultId.value?.contains(v.id) ?? false

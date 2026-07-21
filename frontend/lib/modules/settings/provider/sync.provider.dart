@@ -30,8 +30,11 @@ import 'known_host_service.provider.dart';
 
 final syncProvider = NotifierProvider(SyncProviderNotifier.new);
 
+const kPullIntervalSeconds = 30;
+
 class SyncProviderNotifier extends Notifier<SyncState> {
   late final Logger _log = Logger('SyncProviderNotifier');
+  bool _isPulling = false;
 
   @override
   SyncState build() => .initial();
@@ -78,6 +81,7 @@ class SyncProviderNotifier extends Notifier<SyncState> {
       await ref.read(vaultProvider.notifier).findOrCreateUserVault(api);
       state = state.copyWith(api: api, refreshTimer: refreshTimer);
       await pullVault();
+      _startPullTimer();
     } catch (e) {
       debugPrint('Failed to recover session: $e');
       await logout();
@@ -104,6 +108,7 @@ class SyncProviderNotifier extends Notifier<SyncState> {
     await ref.read(vaultProvider.notifier).findOrCreateUserVault(api);
     state = state.copyWith(api: api);
     await pullVault();
+    _startPullTimer();
   }
 
   Future<void> register(
@@ -434,5 +439,24 @@ class SyncProviderNotifier extends Notifier<SyncState> {
 
   CliqClientBuilder _getDefaultClientBuilder(RouteOptions routeOptions) {
     return CliqClientBuilder(routeOptions: routeOptions);
+  }
+
+  void _startPullTimer() {
+    state.pullTimer?.cancel();
+    final pullTimer = Timer.periodic(
+      const Duration(seconds: kPullIntervalSeconds),
+      (_) async {
+        if (_isPulling) return;
+        _isPulling = true;
+        try {
+          await pullVault();
+        } catch (e) {
+          _log.warning('Periodic vault pull failed: $e');
+        } finally {
+          _isPulling = false;
+        }
+      },
+    );
+    state = state.copyWith(pullTimer: pullTimer);
   }
 }
