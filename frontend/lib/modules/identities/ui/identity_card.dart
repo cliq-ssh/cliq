@@ -9,6 +9,8 @@ import 'package:forui_hooks/forui_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lucide_flutter/lucide_flutter.dart';
 
+import '../../settings/provider/sync.provider.dart';
+
 class IdentityCard extends HookConsumerWidget {
   final IdentityFull identity;
 
@@ -32,10 +34,11 @@ class IdentityCard extends HookConsumerWidget {
       await popoverController.hide();
       return Commons.showDeleteDialog(
         entity: identity.label,
-        onDelete: () {
-          ref
+        onDelete: () async {
+          await ref
               .read(identityServiceProvider)
               .deleteById(identity.id, identity.credentialIds);
+          await ref.read(syncProvider.notifier).pullAndPushVault();
         },
       );
     }

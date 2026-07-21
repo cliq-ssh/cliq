@@ -14,6 +14,7 @@ import 'package:lucide_flutter/lucide_flutter.dart';
 
 import '../../../shared/ui/navigation/navigation_shell.dart';
 import '../../session/provider/session.provider.dart';
+import '../../settings/provider/sync.provider.dart';
 import '../provider/connection_service.provider.dart';
 import '../view/create_or_edit_connection_view.dart';
 import 'connection_icon.dart';
@@ -64,10 +65,11 @@ class ConnectionCard extends HookConsumerWidget {
       await secondaryPopoverController.hide();
       return Commons.showDeleteDialog(
         entity: connection.label,
-        onDelete: () {
-          ref
+        onDelete: () async {
+          await ref
               .read(connectionServiceProvider)
               .deleteById(connection.id, connection.credentialIds);
+          await ref.read(syncProvider.notifier).pullAndPushVault();
         },
       );
     }
