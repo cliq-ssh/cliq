@@ -76,6 +76,21 @@ createOrUpdateConnection:
       terminal_theme_override_id = excluded.terminal_theme_override_id,
       uses_default_theme_override = excluded.uses_default_theme_override;
 
+moveConnectionsByIds:
+  UPDATE connections SET vault_id = :vaultId WHERE id IN ?;
+
+findConnectionsByIdentityIds:
+  SELECT id FROM connections WHERE identity_id IN ?;
+
+findConnectionIdsByCredentialIds:
+  SELECT connection_id FROM connection_credentials WHERE credential_id IN ?;
+
+findCredentialIdsByConnectionIds:
+  SELECT credential_id FROM connection_credentials WHERE connection_id IN ?;
+
+findIdentityIdByConnectionId:
+  SELECT identity_id FROM connections WHERE id = :id AND identity_id IS NOT NULL;
+
 findAllConnectionFull:
   SELECT
     c.** AS connection,

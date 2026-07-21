@@ -79,6 +79,20 @@ final class CredentialService {
         .get();
   }
 
+  Future<List<DbId>> findKeyIdsByCredentialIds(Set<DbId> credentialIds) async {
+    return await _credentialRepository.db
+        .findKeyIdsByCredentialIds(credentialIds.toList())
+        .get()
+        .then((keys) => keys.whereType<DbId>().toList());
+  }
+
+  Future<List<DbId>> findCredentialIdsByKeyIds(Set<DbId> keyIds) async {
+    return await _credentialRepository.db
+        .findCredentialIdsByKeyIds(keyIds.toList())
+        .get()
+        .then((credentials) => credentials.whereType<DbId>().toList());
+  }
+
   Future<DbId> createCredential({
     required DbId vaultId,
     required CredentialType type,
@@ -146,6 +160,9 @@ final class CredentialService {
       password,
     );
   }
+
+  Future<void> moveToVault(Set<DbId> ids, DbId vaultId) =>
+      _credentialRepository.db.moveCredentialsByIds(vaultId, ids.toList());
 
   Future<void> deleteByIds(List<DbId> ids) =>
       _credentialRepository.deleteByIds(ids);

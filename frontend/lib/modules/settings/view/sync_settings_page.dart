@@ -7,6 +7,7 @@ import 'package:cliq/modules/settings/view/register_or_login_view.dart';
 import 'package:cliq/modules/settings/view/settings_page.dart';
 import 'package:cliq/modules/vaults/provider/vault_service.provider.dart';
 import 'package:cliq/shared/data/database.dart';
+import 'package:cliq/shared/model/entity_type.dart';
 import 'package:cliq/shared/model/localized_exception.dart';
 import 'package:cliq/shared/provider/store.provider.dart';
 import 'package:cliq_api/cliq_api.dart';
@@ -61,10 +62,10 @@ class SyncSettingsPage extends AbstractSettingsPage {
       return null;
     }, [api, lastUpdated.value]);
 
-    buildIconCount(IconData icon, int count) {
+    buildIconCount(EntityType type, int count) {
       return Row(
         spacing: 4,
-        children: [Icon(icon, size: 16), Text(count.toString())],
+        children: [Icon(type.icon, size: 16), Text(count.toString())],
       );
     }
 
@@ -101,16 +102,10 @@ class SyncSettingsPage extends AbstractSettingsPage {
                   spacing: 12,
                   mainAxisSize: .min,
                   children: [
-                    buildIconCount(LucideIcons.server, entitiesCount.value!.$1),
-                    buildIconCount(LucideIcons.users, entitiesCount.value!.$2),
-                    buildIconCount(
-                      LucideIcons.keyRound,
-                      entitiesCount.value!.$3,
-                    ),
-                    buildIconCount(
-                      LucideIcons.fingerprint,
-                      entitiesCount.value!.$4,
-                    ),
+                    buildIconCount(.connection, entitiesCount.value!.$1),
+                    buildIconCount(.identity, entitiesCount.value!.$2),
+                    buildIconCount(.key, entitiesCount.value!.$3),
+                    buildIconCount(.knownHost, entitiesCount.value!.$4),
                   ],
                 ),
           title: Text('sync_now'.tr()),

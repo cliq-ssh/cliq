@@ -5,15 +5,22 @@ import 'package:cliq/shared/extensions/text_controller.extension.dart';
 import 'package:cliq/shared/utils/validators.dart';
 import 'package:drift/drift.dart' hide Column;
 import 'package:easy_localization/easy_localization.dart';
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' hide Router;
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:forui/forui.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
 import '../../../shared/data/database.dart';
+import '../../../shared/model/entity_type.dart';
+import '../../../shared/model/router.model.dart';
 import '../../../shared/ui/create_or_edit_credential_form.dart';
 import '../../../shared/ui/create_or_edit_entity_view.dart';
+import '../../connections/provider/connection.provider.dart';
+import '../../settings/provider/sync.provider.dart';
+import '../../vaults/provider/vault_move_service.provider.dart';
+import '../../vaults/ui/vault_transfer_dialog.dart';
+import '../provider/identity.provider.dart';
 import '../provider/identity_service.provider.dart';
 
 class CreateOrEditIdentityView extends HookConsumerWidget {
@@ -87,6 +94,53 @@ class CreateOrEditIdentityView extends HookConsumerWidget {
       onSave: onSave,
       initialVaultId: selectedVaultId.value,
       onVaultSelected: (vaultId) => selectedVaultId.value = vaultId,
+      onOpenVaultTransferDialog: () async {
+        final vaultMoveService = ref.read(vaultMoveServiceProvider);
+        final preview = await vaultMoveService.previewMove(
+          seedIdentityIds: {current!.id.value},
+        );
+
+        final otherIdentityIds = preview.identityIds.difference({
+          current!.id.value,
+        });
+        final allIdentities = ref.read(identityProvider).entities;
+        final allConnections = ref.read(connectionProvider).entities;
+
+        final relations = <EntityType, List<String>>{
+          if (otherIdentityIds.isNotEmpty)
+            .identity: allIdentities
+                .where((i) => otherIdentityIds.contains(i.id))
+                .map((i) => i.label)
+                .toList(),
+          if (preview.connectionIds.isNotEmpty)
+            .connection: allConnections
+                .where((c) => preview.connectionIds.contains(c.id))
+                .map((c) => c.label)
+                .toList(),
+          if (preview.keyIds.isNotEmpty)
+            .key: ['keys_label'.plural(preview.keyIds.length)],
+        };
+
+        if (!context.mounted) return;
+
+        await showFDialog(
+          context: Router.rootNavigatorKey.currentContext ?? context,
+          builder: (_, style, animation) => VaultTransferDialog(
+            style: style,
+            animation: animation,
+            currentVault: selectedVaultId.value!,
+            entityName: current?.label.value ?? labelCtrl.text,
+            relations: relations.isEmpty ? null : relations,
+            onTransfer: (targetVaultId) async {
+              await vaultMoveService.commitMove(preview, targetVaultId);
+              await ref.read(syncProvider.notifier).pullAndPushVault();
+              selectedVaultId.value = targetVaultId;
+              if (!context.mounted) return;
+              Navigator.of(context).pop(); // close edit view after transfer
+            },
+          ),
+        );
+      },
       isEdit: isEdit,
       child: Form(
         key: formKey,

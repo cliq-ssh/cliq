@@ -4548,6 +4548,21 @@ abstract class _$CliqDatabase extends GeneratedDatabase {
     );
   }
 
+  Future<int> moveKeysByIds(String vaultId, List<String> var2) {
+    var $arrayStartIndex = 2;
+    final expandedvar2 = $expandVar($arrayStartIndex, var2.length);
+    $arrayStartIndex += var2.length;
+    return customUpdate(
+      'UPDATE keys SET vault_id = ?1 WHERE id IN ($expandedvar2)',
+      variables: [
+        Variable<String>(vaultId),
+        for (var $ in var2) Variable<String>($),
+      ],
+      updates: {keys},
+      updateKind: UpdateKind.update,
+    );
+  }
+
   Selectable<String> findAllKeyIds() {
     return customSelect(
       'SELECT id FROM keys',
@@ -4590,6 +4605,43 @@ abstract class _$CliqDatabase extends GeneratedDatabase {
     );
   }
 
+  Future<int> moveIdentitiesByIds(String vaultId, List<String> var2) {
+    var $arrayStartIndex = 2;
+    final expandedvar2 = $expandVar($arrayStartIndex, var2.length);
+    $arrayStartIndex += var2.length;
+    return customUpdate(
+      'UPDATE identities SET vault_id = ?1 WHERE id IN ($expandedvar2)',
+      variables: [
+        Variable<String>(vaultId),
+        for (var $ in var2) Variable<String>($),
+      ],
+      updates: {identities},
+      updateKind: UpdateKind.update,
+    );
+  }
+
+  Selectable<String> findCredentialIdsByIdentityIds(List<String> var1) {
+    var $arrayStartIndex = 1;
+    final expandedvar1 = $expandVar($arrayStartIndex, var1.length);
+    $arrayStartIndex += var1.length;
+    return customSelect(
+      'SELECT credential_id FROM identity_credentials WHERE identity_id IN ($expandedvar1)',
+      variables: [for (var $ in var1) Variable<String>($)],
+      readsFrom: {identityCredentials},
+    ).map((QueryRow row) => row.read<String>('credential_id'));
+  }
+
+  Selectable<String> findIdentityIdsByCredentialIds(List<String> var1) {
+    var $arrayStartIndex = 1;
+    final expandedvar1 = $expandVar($arrayStartIndex, var1.length);
+    $arrayStartIndex += var1.length;
+    return customSelect(
+      'SELECT identity_id FROM identity_credentials WHERE credential_id IN ($expandedvar1)',
+      variables: [for (var $ in var1) Variable<String>($)],
+      readsFrom: {identityCredentials},
+    ).map((QueryRow row) => row.read<String>('identity_id'));
+  }
+
   Selectable<FindAllIdentityFullResult> findAllIdentityFull() {
     return customSelect(
       'SELECT"i"."id" AS "nested_0.id", "i"."vault_id" AS "nested_0.vault_id", "i"."label" AS "nested_0.label", "i"."username" AS "nested_0.username","v"."id" AS "nested_1.id", "v"."label" AS "nested_1.label", "v"."is_default" AS "nested_1.is_default", i.id AS "\$n_0" FROM identities AS i INNER JOIN vaults AS v ON i.vault_id = v.id',
@@ -4626,6 +4678,43 @@ abstract class _$CliqDatabase extends GeneratedDatabase {
       ],
       updates: {credentials},
     );
+  }
+
+  Future<int> moveCredentialsByIds(String vaultId, List<String> var2) {
+    var $arrayStartIndex = 2;
+    final expandedvar2 = $expandVar($arrayStartIndex, var2.length);
+    $arrayStartIndex += var2.length;
+    return customUpdate(
+      'UPDATE credentials SET vault_id = ?1 WHERE id IN ($expandedvar2)',
+      variables: [
+        Variable<String>(vaultId),
+        for (var $ in var2) Variable<String>($),
+      ],
+      updates: {credentials},
+      updateKind: UpdateKind.update,
+    );
+  }
+
+  Selectable<String?> findKeyIdsByCredentialIds(List<String> var1) {
+    var $arrayStartIndex = 1;
+    final expandedvar1 = $expandVar($arrayStartIndex, var1.length);
+    $arrayStartIndex += var1.length;
+    return customSelect(
+      'SELECT key_id FROM credentials WHERE id IN ($expandedvar1) AND key_id IS NOT NULL',
+      variables: [for (var $ in var1) Variable<String>($)],
+      readsFrom: {credentials},
+    ).map((QueryRow row) => row.readNullable<String>('key_id'));
+  }
+
+  Selectable<String> findCredentialIdsByKeyIds(List<String?> var1) {
+    var $arrayStartIndex = 1;
+    final expandedvar1 = $expandVar($arrayStartIndex, var1.length);
+    $arrayStartIndex += var1.length;
+    return customSelect(
+      'SELECT id FROM credentials WHERE key_id IN ($expandedvar1)',
+      variables: [for (var $ in var1) Variable<String>($)],
+      readsFrom: {credentials},
+    ).map((QueryRow row) => row.read<String>('id'));
   }
 
   Selectable<String> findAllCredentialIds() {
@@ -4700,6 +4789,62 @@ abstract class _$CliqDatabase extends GeneratedDatabase {
       ],
       updates: {connections},
     );
+  }
+
+  Future<int> moveConnectionsByIds(String vaultId, List<String> var2) {
+    var $arrayStartIndex = 2;
+    final expandedvar2 = $expandVar($arrayStartIndex, var2.length);
+    $arrayStartIndex += var2.length;
+    return customUpdate(
+      'UPDATE connections SET vault_id = ?1 WHERE id IN ($expandedvar2)',
+      variables: [
+        Variable<String>(vaultId),
+        for (var $ in var2) Variable<String>($),
+      ],
+      updates: {connections},
+      updateKind: UpdateKind.update,
+    );
+  }
+
+  Selectable<String> findConnectionsByIdentityIds(List<String?> var1) {
+    var $arrayStartIndex = 1;
+    final expandedvar1 = $expandVar($arrayStartIndex, var1.length);
+    $arrayStartIndex += var1.length;
+    return customSelect(
+      'SELECT id FROM connections WHERE identity_id IN ($expandedvar1)',
+      variables: [for (var $ in var1) Variable<String>($)],
+      readsFrom: {connections},
+    ).map((QueryRow row) => row.read<String>('id'));
+  }
+
+  Selectable<String> findConnectionIdsByCredentialIds(List<String> var1) {
+    var $arrayStartIndex = 1;
+    final expandedvar1 = $expandVar($arrayStartIndex, var1.length);
+    $arrayStartIndex += var1.length;
+    return customSelect(
+      'SELECT connection_id FROM connection_credentials WHERE credential_id IN ($expandedvar1)',
+      variables: [for (var $ in var1) Variable<String>($)],
+      readsFrom: {connectionCredentials},
+    ).map((QueryRow row) => row.read<String>('connection_id'));
+  }
+
+  Selectable<String> findCredentialIdsByConnectionIds(List<String> var1) {
+    var $arrayStartIndex = 1;
+    final expandedvar1 = $expandVar($arrayStartIndex, var1.length);
+    $arrayStartIndex += var1.length;
+    return customSelect(
+      'SELECT credential_id FROM connection_credentials WHERE connection_id IN ($expandedvar1)',
+      variables: [for (var $ in var1) Variable<String>($)],
+      readsFrom: {connectionCredentials},
+    ).map((QueryRow row) => row.read<String>('credential_id'));
+  }
+
+  Selectable<String?> findIdentityIdByConnectionId(String id) {
+    return customSelect(
+      'SELECT identity_id FROM connections WHERE id = ?1 AND identity_id IS NOT NULL',
+      variables: [Variable<String>(id)],
+      readsFrom: {connections},
+    ).map((QueryRow row) => row.readNullable<String>('identity_id'));
   }
 
   Selectable<FindAllConnectionFullResult> findAllConnectionFull() {

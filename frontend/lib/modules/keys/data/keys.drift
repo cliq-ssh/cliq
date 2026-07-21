@@ -19,6 +19,9 @@ createOrUpdateKey:
         public_key = excluded.public_key,
         passphrase = excluded.passphrase;
 
+moveKeysByIds:
+  UPDATE keys SET vault_id = :vaultId WHERE id IN ?;
+
 findAllKeyIds:
     SELECT id FROM keys;
 

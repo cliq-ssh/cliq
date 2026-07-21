@@ -24,6 +24,37 @@ final class ConnectionService {
     this._credentialService,
   );
 
+  Future<List<DbId>> findConnectionsByIdentityIds(Set<DbId> identityIds) async {
+    return await _connectionRepository.db
+        .findConnectionsByIdentityIds(identityIds.toList())
+        .get()
+        .then((connections) => connections.whereType<DbId>().toList());
+  }
+
+  Future<List<DbId>> findConnectionIdsByCredentialIds(
+    Set<DbId> credentialIds,
+  ) async {
+    return await _connectionRepository.db
+        .findConnectionIdsByCredentialIds(credentialIds.toList())
+        .get()
+        .then((connections) => connections.whereType<DbId>().toList());
+  }
+
+  Future<List<DbId>> findCredentialIdsByConnectionIds(
+    Set<DbId> connectionIds,
+  ) async {
+    return await _connectionRepository.db
+        .findCredentialIdsByConnectionIds(connectionIds.toList())
+        .get()
+        .then((credentials) => credentials.whereType<DbId>().toList());
+  }
+
+  Future<DbId?> findIdentityIdByConnectionId(DbId connectionId) {
+    return _connectionRepository.db
+        .findIdentityIdByConnectionId(connectionId)
+        .getSingleOrNull();
+  }
+
   Future<List<String>> findAllGroupNamesDistinct() async {
     return await _connectionRepository.db
         .findAllConnectionGroupNames()
@@ -208,6 +239,9 @@ final class ConnectionService {
 
     return result;
   }
+
+  Future<void> moveToVault(Set<DbId> ids, DbId vaultId) =>
+      _connectionRepository.db.moveConnectionsByIds(vaultId, ids.toList());
 
   Future<void> deleteById(DbId id, List<DbId> credentialIds) async {
     await _credentialService.deleteByIds(credentialIds);

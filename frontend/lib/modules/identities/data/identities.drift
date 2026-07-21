@@ -22,6 +22,15 @@ createOrUpdateIdentity:
     label = excluded.label,
     username = excluded.username;
 
+moveIdentitiesByIds:
+  UPDATE identities SET vault_id = :vaultId WHERE id IN ?;
+
+findCredentialIdsByIdentityIds:
+  SELECT credential_id FROM identity_credentials WHERE identity_id IN ?;
+
+findIdentityIdsByCredentialIds:
+  SELECT identity_id FROM identity_credentials WHERE credential_id IN ?;
+
 findAllIdentityFull:
   SELECT
     i.** AS identity,

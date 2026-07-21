@@ -87,5 +87,8 @@ final class KeyService {
     );
   }
 
+  Future<void> moveToVault(Set<DbId> ids, DbId vaultId) =>
+      _keyRepository.db.moveKeysByIds(vaultId, ids.toList());
+
   Future<void> deleteById(DbId id) => _keyRepository.deleteById(id);
 }

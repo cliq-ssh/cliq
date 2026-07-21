@@ -19,6 +19,7 @@ class CreateOrEditEntityView extends HookConsumerWidget {
   final String? createLabel;
   final DbId? initialVaultId;
   final Function(DbId)? onVaultSelected;
+  final Function()? onOpenVaultTransferDialog;
 
   /// Whether to show the vault selector in the form. If this is false, [onSave] will be called with null.
   final bool withVaultSelector;
@@ -36,6 +37,7 @@ class CreateOrEditEntityView extends HookConsumerWidget {
     required this.child,
     this.initialVaultId,
     this.onVaultSelected,
+    this.onOpenVaultTransferDialog,
     this.editLabel,
     this.createLabel,
     this.withVaultSelector = true,
@@ -83,34 +85,49 @@ class CreateOrEditEntityView extends HookConsumerWidget {
     }, [api]);
 
     buildVaultSelector() {
-      return FSelect<DbId>.rich(
-        validator: (v) => Validators.chain(context, [
-          Validators.nonNull,
-          Validators.nonEmpty,
-        ], v),
-        control: .managed(
-          controller: vaultSelectController,
-          onChange: (DbId? vaultId) {
-            if (vaultId != null) {
-              onVaultSelected?.call(vaultId);
-            }
-          },
+      if (isEdit) {
+        return FTooltip(
+          tipBuilder: (_, _) => Text('entity_edit_vault'.tr()),
+          child: FButton.icon(
+            variant: .outline,
+            onPress: onOpenVaultTransferDialog,
+            child: Icon(LucideIcons.folderPen, size: 16),
+          ),
+        );
+      }
+
+      return SizedBox(
+        width: 200,
+        child: FSelect<DbId>.rich(
+          enabled: !isEdit,
+          validator: (v) => Validators.chain(context, [
+            Validators.nonNull,
+            Validators.nonEmpty,
+          ], v),
+          control: .managed(
+            controller: vaultSelectController,
+            onChange: (DbId? vaultId) {
+              if (vaultId != null) {
+                onVaultSelected?.call(vaultId);
+              }
+            },
+          ),
+          format: (s) => vaults.entities.firstWhere((v) => v.id == s).label,
+          children: [
+            // local vault on top
+            if (defaultVault.value != null)
+              .item(
+                title: Text('local_vault'.tr()),
+                value: defaultVault.value!.id,
+              ),
+            for (final vault in vaults.entities.where((v) => !v.isDefault))
+              .item(
+                prefix: Icon(LucideIcons.cloudSync),
+                title: Text(vault.label),
+                value: vault.id,
+              ),
+          ],
         ),
-        format: (s) => vaults.entities.firstWhere((v) => v.id == s).label,
-        children: [
-          // local vault on top
-          if (defaultVault.value != null)
-            .item(
-              title: Text('local_vault'.tr()),
-              value: defaultVault.value!.id,
-            ),
-          for (final vault in vaults.entities.where((v) => !v.isDefault))
-            .item(
-              prefix: Icon(LucideIcons.cloudSync),
-              title: Text(vault.label),
-              value: vault.id,
-            ),
-        ],
       );
     }
 
@@ -127,7 +144,7 @@ class CreateOrEditEntityView extends HookConsumerWidget {
                 spacing: 8,
                 children: [
                   if (withVaultSelector && defaultVault.value != null)
-                    SizedBox(width: 200, child: buildVaultSelector()),
+                    buildVaultSelector(),
                   FButton.icon(
                     variant: .outline,
                     onPress: () => context.pop(),

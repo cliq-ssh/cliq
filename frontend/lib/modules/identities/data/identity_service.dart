@@ -18,6 +18,24 @@ final class IdentityService {
     this._credentialService,
   );
 
+  Future<List<DbId>> findCredentialIdsByIdentityIds(
+    Set<DbId> identityIds,
+  ) async {
+    return await _identityRepository.db
+        .findCredentialIdsByIdentityIds(identityIds.toList())
+        .get()
+        .then((credentials) => credentials.whereType<DbId>().toList());
+  }
+
+  Future<List<DbId>> findIdentityIdsByCredentialIds(
+    Set<DbId> credentialIds,
+  ) async {
+    return await _identityRepository.db
+        .findIdentityIdsByCredentialIds(credentialIds.toList())
+        .get()
+        .then((identities) => identities.whereType<DbId>().toList());
+  }
+
   Stream<List<IdentityFull>> watchAll() {
     return _identityRepository.db.findAllIdentityFull().watch().map(
       (c) => c.map(IdentityFull.fromFindAllResult).toList(),
@@ -108,6 +126,9 @@ final class IdentityService {
 
     return result;
   }
+
+  Future<void> moveToVault(Set<DbId> ids, DbId vaultId) =>
+      _identityRepository.db.moveIdentitiesByIds(vaultId, ids.toList());
 
   Future<void> deleteById(DbId id, List<DbId> credentialIds) async {
     await _credentialService.deleteByIds(credentialIds);
