@@ -208,7 +208,7 @@ class _SshSessionPageState extends ConsumerState<SshSessionPage>
       if (terminalController.value == null) return null;
 
       Future<void> openSsh(ConnectionFull connection) async {
-        if (terminalController.value == null) return;
+        if (!mounted || terminalController.value == null) return;
 
         final client =
             session.client ??
