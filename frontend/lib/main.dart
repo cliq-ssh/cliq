@@ -138,7 +138,7 @@ void _handleError(Object error, StackTrace stackTrace) {
           ),
         );
       },
-      duration: null,
+      duration: .new(seconds: 5),
     );
   });
 }

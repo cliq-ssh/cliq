@@ -34,7 +34,8 @@ jobs:
           channel: 'stable'
           cache: true
 
-      - name: Get dependencies
+      - &get-flutter-dependencies
+        name: Get dependencies
         run: flutter pub get
 
       - name: Build iOS
@@ -53,8 +54,7 @@ jobs:
           channel: 'stable'
           cache: true
 
-      - name: Get dependencies
-        run: flutter pub get
+      - *get-flutter-dependencies
 
       - name: Build Android APK
         run: flutter build apk --release
@@ -73,11 +73,15 @@ jobs:
           - arch: x64
             runner: windows-latest
             flutter-channel: stable
-          - arch: arm64
-            runner: windows-11-arm
-            flutter-channel: main # Remove when https://github.com/subosito/flutter-action/issues/345
+# Removed until https://github.com/fastforgedev/fastforge/issues/354 is resolved            
+#          - arch: arm64
+#            runner: windows-11-arm
+#            flutter-channel: main # Remove when https://github.com/subosito/flutter-action/issues/345
     steps:
       - uses: actions/checkout@v7
+
+      - name: Install Inno Setup
+        run: choco install innosetup -y
 
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
@@ -85,17 +89,25 @@ jobs:
           channel: ${{ matrix.flutter-channel }}
           cache: true
 
-      - name: Get dependencies
-        run: flutter pub get
+      - &install-fastforge
+        name: Install fastforge
+        run: dart pub global activate fastforge
 
-      - name: Build Windows (${{ matrix.arch }})
-        run: flutter build windows --release
+      - *get-flutter-dependencies
 
-      - name: Upload Windows artifacts
+      - name: Build Windows Installer (${{ matrix.arch }})
+        run: fastforge package --platform windows --targets exe
+
+      - name: Rename MSIX
+        run: mv dist/**/*.exe dist/cliqsetup-windows-${{ matrix.arch }}.exe
+
+      - name: Upload Windows installer artifacts
         uses: actions/upload-artifact@v7
         with:
-          name: windows-${{ matrix.arch }}-build
-          path: frontend/build/windows/${{ matrix.arch }}/runner/release/
+          name: windows-${{ matrix.arch }}-installer
+          path: frontend/dist/cliqsetup-windows-${{ matrix.arch }}.exe
+          archive: false
+          if-no-files-found: error
 
   # macOS Build (No need to separate out ARM64 flutter builds dual arch by default)
   build-macos:
@@ -104,23 +116,31 @@ jobs:
     steps:
       - uses: actions/checkout@v7
 
+      - name: Install dependencies
+        run: npm install -g appdmg
+
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
           channel: 'stable'
           cache: true
 
-      - name: Get dependencies
-        run: flutter pub get
+      - *install-fastforge
+      - *get-flutter-dependencies
 
-      - name: Build macOS
-        run: flutter build macos --release
+      - name: Build macOS Installer
+        run: fastforge package --platform macos --targets dmg
+
+      - name: Rename DMG
+        run: mv dist/**/*.dmg dist/cliq-macos.dmg
 
       - name: Upload macOS artifacts
         uses: actions/upload-artifact@v7
         with:
-          name: macos-build
-          path: frontend/build/macos/Build/Products/Release/cliq.app/Contents
+          name: macos-installer
+          path: frontend/dist/cliq-macos.dmg
+          archive: false
+          if-no-files-found: error
 
   # Linux Build (x64 and ARM64)
   build-linux:
@@ -133,9 +153,11 @@ jobs:
           - arch: x64
             runner: ubuntu-latest
             flutter-channel: stable
+            appimagetool-name: appimagetool-x86_64.AppImage
           - arch: arm64
             runner: ubuntu-24.04-arm
             flutter-channel: main # Remove when https://github.com/subosito/flutter-action/issues/345
+            appimagetool-name: appimagetool-aarch64.AppImage
     steps:
       - uses: actions/checkout@v7
 
@@ -143,6 +165,7 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y \
+            locate \
             pkg-config \
             libgtk-3-dev \
             libglib2.0-0 \
@@ -157,20 +180,31 @@ jobs:
             libglu1-mesa \
             libglu1-mesa-dev
 
+      - name: Install appimagetool
+        run: |
+          wget -O appimagetool "https://github.com/AppImage/appimagetool/releases/download/continuous/${{ matrix.appimagetool-name }}"
+          chmod +x appimagetool
+          sudo mv appimagetool /usr/local/bin/
+
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
           channel: ${{ matrix.flutter-channel }}
           cache: true
 
-      - name: Get dependencies
-        run: flutter pub get
+      - *install-fastforge
+      - *get-flutter-dependencies
 
-      - name: Build Linux (${{ matrix.arch }})
-        run: flutter build linux --release --target-platform linux-${{ matrix.arch }}
+      - name: Build Linux AppImage
+        run: fastforge package --platform linux --targets appimage
+
+      - name: Rename AppImage
+        run: mv dist/**/*.AppImage dist/cliq-linux-${{ matrix.arch }}.AppImage
 
       - name: Upload Linux artifacts
         uses: actions/upload-artifact@v7
         with:
-          name: linux-${{ matrix.arch }}-build
-          path: frontend/build/linux/${{ matrix.arch }}/release/bundle/
+          name: linux-${{ matrix.arch }}-installer
+          path: frontend/dist/cliq-linux-${{ matrix.arch }}.AppImage
+          archive: false
+          if-no-files-found: error

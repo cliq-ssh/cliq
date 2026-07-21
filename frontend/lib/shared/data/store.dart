@@ -4,6 +4,7 @@ import 'dart:convert';
 import 'package:cliq/shared/ui/entity_card_view.dart';
 import 'package:cliq_api/cliq_api.dart';
 import 'package:cliq_term/cliq_term.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -13,6 +14,8 @@ import '../../modules/settings/model/theme.model.dart';
 import 'database.dart';
 
 enum StoreKey<T> {
+  developerMode<bool>('developer_mode', type: bool, defaultValue: kDebugMode),
+
   syncHost<RouteOptions?>(
     'sync_host',
     type: RouteOptions,
