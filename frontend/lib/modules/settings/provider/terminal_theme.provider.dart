@@ -14,7 +14,7 @@ final terminalThemeProvider = NotifierProvider(CustomTerminalThemeNotifier.new);
 
 // TODO: replace this with custom "cliq" theme or other open source terminal theme
 const CustomTerminalTheme defaultTerminalColorTheme = .new(
-  id: -1,
+  id: "-1",
   name: 'Darcula',
   blackColor: Color(0xFF21222C),
   redColor: Color(0xFFFF5555),

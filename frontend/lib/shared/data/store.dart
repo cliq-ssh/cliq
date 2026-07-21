@@ -2,16 +2,30 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:cliq/shared/ui/entity_card_view.dart';
+import 'package:cliq_api/cliq_api.dart';
 import 'package:cliq_term/cliq_term.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../modules/settings/model/keyboard_shortcuts.model.dart';
 import '../../modules/settings/model/theme.model.dart';
+import 'database.dart';
 
 enum StoreKey<T> {
   developerMode<bool>('developer_mode', type: bool, defaultValue: kDebugMode),
+
+  syncHost<RouteOptions?>(
+    'sync_host',
+    type: RouteOptions,
+    fromValue: _routeOptionsFromValue,
+    toValue: _routeOptionsToValue,
+  ),
+  syncDevicePrivateKey<String?>('sync_dpk', type: String, isSecure: true),
+  syncDataEncryptionKey<String?>('sync_dek', type: String, isSecure: true),
+  syncRefreshToken<String?>('sync_refresh_token', type: String, isSecure: true),
+  syncLastUpdated<int?>('sync_last_updated', type: int, defaultValue: 0),
 
   theme<CliqTheme>(
     'theme',
@@ -35,10 +49,10 @@ enum StoreKey<T> {
     fromValue: _typographyFromValue,
     toValue: _typographyToValue,
   ),
-  defaultTerminalThemeId<int>(
+  defaultTerminalThemeId<DbId>(
     'default_terminal_theme',
     type: int,
-    defaultValue: -1,
+    defaultValue: '-1',
   ),
   applyTerminalThemeColorToNavigation<bool>(
     'apply_terminal_theme_to_navigation',
@@ -135,6 +149,7 @@ enum StoreKey<T> {
   final T Function()? defaultFactory;
   final T? Function(String?)? fromValue;
   final String? Function(T?)? toValue;
+  final bool isSecure;
 
   const StoreKey(
     this.key, {
@@ -143,6 +158,7 @@ enum StoreKey<T> {
     this.defaultFactory,
     this.fromValue,
     this.toValue,
+    this.isSecure = false,
   }) : assert(defaultValue == null || defaultFactory == null);
 
   T? readSync() => KeyValueStore._instance.readSync(this);
@@ -170,6 +186,17 @@ enum StoreKey<T> {
   static CursorStyle? _cursorStyleFromValue(String? value) =>
       _enumFromValue(value, CursorStyle.values);
 
+  static String? _routeOptionsToValue(RouteOptions? value) {
+    if (value == null) return null;
+    return jsonEncode(value.toJson());
+  }
+
+  static RouteOptions? _routeOptionsFromValue(String? value) {
+    if (value == null) return null;
+    final Map<String, dynamic> json = .from(jsonDecode(value) as Map);
+    return RouteOptions.fromJson(json);
+  }
+
   static String? _typographyToValue(TerminalTypography? value) {
     if (value == null) return null;
     return [value.fontSize, value.fontFamily].join(';');
@@ -192,9 +219,7 @@ enum StoreKey<T> {
       shortcuts != null ? jsonEncode(shortcuts.toJson()) : null;
 
   static KeyboardShortcuts? _shortcutsFromValue(String? value) => value != null
-      ? KeyboardShortcuts.fromJson(
-          Map<String, dynamic>.from(jsonDecode(value) as Map),
-        )
+      ? KeyboardShortcuts.fromJson(.from(jsonDecode(value) as Map))
       : null;
 }
 
@@ -216,6 +241,7 @@ class KeyValueStore {
   static final Map<String, dynamic> _localCache = {};
 
   late final SharedPreferences _preferences;
+  late final FlutterSecureStorage _secureStorage;
   bool _initialized = false;
 
   factory KeyValueStore() => _instance;
@@ -233,10 +259,17 @@ class KeyValueStore {
       throw StateError('Store has already been initialized!');
     }
     _instance._preferences = await SharedPreferences.getInstance();
+    _instance._secureStorage = const FlutterSecureStorage(
+      mOptions: MacOsOptions(
+        accessibility: KeychainAccessibility.first_unlock_this_device,
+        usesDataProtectionKeychain: false,
+      ),
+    );
     _instance._initialized = true;
     for (StoreKey key in StoreKey.values) {
       // initializes all default values for keys that do not exist &
       // populate local cache
+      if (key.isSecure) continue;
       _localCache[key.key] = await key.readAsync();
     }
   }
@@ -258,6 +291,12 @@ class KeyValueStore {
   /// Reads the value of the key from the local cache.
   /// If the key does not exist in the cache, it will return null.
   T readSync<T>(StoreKey<T> key) {
+    if (key.isSecure) {
+      throw StateError(
+        'Cannot read secure key ${key.key} from cache! Use readAsync() instead.',
+      );
+    }
+
     _checkInitialized();
     return _fromStringOrValue<T>(_localCache[key.key], key);
   }
@@ -273,7 +312,12 @@ class KeyValueStore {
   /// If the key does not exist in the cache, it will be read from the storage.
   Future<T?> readAsync<T>(StoreKey<T> key) async {
     _checkInitialized();
-    return await _readOrInitSharedPrefsKey(key);
+
+    if (key.isSecure) {
+      return await _readOrInitSecureStorageKey(key);
+    } else {
+      return await _readOrInitSharedPrefsKey(key);
+    }
   }
 
   /// Reads the value of the key from the local cache and converts it to a string,
@@ -292,10 +336,10 @@ class KeyValueStore {
   }) async {
     _checkInitialized();
     // simplify enums to strings
-    if (storeLocal) {
+    if (!key.isSecure && storeLocal) {
       _localCache[key.key] = value;
     }
-    if (triggerChange) {
+    if (!key.isSecure && triggerChange) {
       _changesController.add(StoreChange(key.key, value: value));
     }
     if (value is Enum) {
@@ -307,15 +351,23 @@ class KeyValueStore {
       );
     }
     final dynamic effectiveValue = _toStringOrValue<T?>(value, key);
-    await switch (effectiveValue) {
-      (String value) => _preferences.setString(key.key, value),
-      (int value) => _preferences.setInt(key.key, value),
-      (bool value) => _preferences.setBool(key.key, value),
-      (double value) => _preferences.setDouble(key.key, value),
-      _ => throw StateError(
-        'Invalid value for key ${key.key}! Got: ${effectiveValue.runtimeType}, Expected either String, int, bool or double',
-      ),
-    };
+
+    if (key.isSecure) {
+      await _secureStorage.write(
+        key: key.key,
+        value: effectiveValue.toString(),
+      );
+    } else {
+      await switch (effectiveValue) {
+        (String value) => _preferences.setString(key.key, value),
+        (int value) => _preferences.setInt(key.key, value),
+        (bool value) => _preferences.setBool(key.key, value),
+        (double value) => _preferences.setDouble(key.key, value),
+        _ => throw StateError(
+          'Invalid value for key ${key.key}! Got: ${effectiveValue.runtimeType}, Expected either String, int, bool or double',
+        ),
+      };
+    }
   }
 
   /// Deletes the key from the local cache and the storage.
@@ -323,9 +375,13 @@ class KeyValueStore {
   FutureOr<void> delete<T>(StoreKey<T> key) {
     _checkInitialized();
     if (key.defaultValue == null) {
-      _localCache.remove(key.key);
-      _preferences.remove(key.key);
-      _changesController.add(StoreChange(key.key, value: null));
+      if (key.isSecure) {
+        _secureStorage.delete(key: key.key);
+      } else {
+        _localCache.remove(key.key);
+        _preferences.remove(key.key);
+        _changesController.add(StoreChange(key.key, value: null));
+      }
     } else {
       write(key, key.defaultValue);
     }
@@ -341,6 +397,19 @@ class KeyValueStore {
       return null;
     }
     return write(key, defaultValue).then((_) => defaultValue);
+  }
+
+  Future<T?> _readOrInitSecureStorageKey<T>(StoreKey<T> key) async {
+    final String? value = await _secureStorage.read(key: key.key);
+    if (value != null) {
+      return _fromStringOrValue(value, key);
+    }
+    final T? defaultValue = _getDefault(key);
+    if (defaultValue == null) {
+      return null;
+    }
+    await write(key, defaultValue);
+    return defaultValue;
   }
 
   void _checkInitialized() {

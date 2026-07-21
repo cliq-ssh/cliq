@@ -10,7 +10,7 @@ class CustomTerminalThemeState
 
   CustomTerminalThemeState.initial() : super.initial();
 
-  CustomTerminalTheme? findById(int id, {bool isDefaultTheme = false}) {
+  CustomTerminalTheme? findById(DbId id, {bool isDefaultTheme = false}) {
     if (id == defaultTerminalColorTheme.id) {
       return defaultTerminalColorTheme;
     }

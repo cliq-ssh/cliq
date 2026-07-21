@@ -43,6 +43,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
     final info = useMemoizedFuture(() => PackageInfo.fromPlatform(), []);
 
     final developerMode = useStore(.developerMode);
+    final lastUpdated = useStore(.syncLastUpdated);
 
     return SingleChildScrollView(
       child: CliqGridContainer(
@@ -64,9 +65,15 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                             suffix: Icon(LucideIcons.chevronRight),
                             title: Text('sync'.tr()),
                             subtitle: sync.isConnected
-                                ? Text('sync_last_date').tr(
+                                ? Text('sync_last_updated').tr(
                                     args: [
-                                      sync.lastSync?.toIso8601String() ?? 'n_a',
+                                      lastUpdated.value == null ||
+                                              lastUpdated.value == 0
+                                          ? 'n_a'.tr()
+                                          : DateTime.fromMillisecondsSinceEpoch(
+                                              lastUpdated.value!,
+                                              isUtc: true,
+                                            ).toIso8601String(),
                                     ],
                                   )
                                 : Text('sync_not_connected'.tr()),

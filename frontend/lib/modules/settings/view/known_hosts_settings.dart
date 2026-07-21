@@ -32,6 +32,7 @@ class KnownHostsSettingsPage extends AbstractSettingsPage {
       noEntitiesTitle: 'known_hosts_empty'.tr(),
       noEntitiesSubtitle: 'known_hosts_empty_subtitle'.tr(),
       filterableFields: (k) => [k.vault.label, k.host],
+      filterableVaultId: (k) => k.vaultId,
     );
   }
 }

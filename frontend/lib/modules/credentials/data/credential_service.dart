@@ -72,44 +72,59 @@ final class CredentialService {
     );
   }
 
-  Future<List<CredentialFull>> findByIds(List<int> ids) {
+  Future<List<CredentialFull>> findByIds(List<DbId> ids) {
     return _credentialRepository.db
         .findCredentialFullByIds(ids)
         .map(CredentialFull.fromResult)
         .get();
   }
 
-  Future<int> createCredential({
-    required int vaultId,
+  Future<List<DbId>> findKeyIdsByCredentialIds(Set<DbId> credentialIds) async {
+    return await _credentialRepository.db
+        .findKeyIdsByCredentialIds(credentialIds.toList())
+        .get()
+        .then((keys) => keys.whereType<DbId>().toList());
+  }
+
+  Future<List<DbId>> findCredentialIdsByKeyIds(Set<DbId> keyIds) async {
+    return await _credentialRepository.db
+        .findCredentialIdsByKeyIds(keyIds.toList())
+        .get()
+        .then((credentials) => credentials.whereType<DbId>().toList());
+  }
+
+  Future<DbId> createCredential({
+    required DbId vaultId,
     required CredentialType type,
     required String data,
   }) async {
     final (password, keyId) = extractCredentialData(type, data);
-    return await _credentialRepository.insert(
+    return (await _credentialRepository.insert(
       CredentialsCompanion.insert(
         vaultId: vaultId,
         type: type,
         keyId: Value.absentIfNull(keyId),
         password: Value.absentIfNull(password),
       ),
-    );
+    )).id;
   }
 
-  Future<List<int>> insertAllWithRelation<T extends Table, R>(
-    List<int> credentialIds, {
+  Future<List<DbId>> insertAllWithRelation<T extends Table, R>(
+    List<DbId> credentialIds, {
     required Repository<T, R> relationRepository,
-    required UpdateCompanion<R> Function(int) builder,
+    required UpdateCompanion<R> Function(DbId) builder,
   }) async {
     await relationRepository.insertAllBatch(
       credentialIds.map((credentialId) => builder(credentialId)).toList(),
+      mode: .insertOrIgnore,
     );
 
     return credentialIds;
   }
 
-  Future<int> update(
-    int credentialId, {
-    required int? vaultId,
+  Future<DbId> update(
+    DbId credentialId, {
+    required DbId? vaultId,
     required CredentialType? type,
     required String? data,
     CredentialsCompanion? compareTo,
@@ -130,17 +145,36 @@ final class CredentialService {
     return credentialId;
   }
 
-  Future<void> deleteByIds(List<int> ids) =>
+  Future<int> createOrUpdate({
+    required DbId id,
+    required DbId vaultId,
+    required CredentialType type,
+    required String data,
+  }) {
+    final (password, keyId) = extractCredentialData(type, data);
+    return _credentialRepository.db.createOrUpdateCredential(
+      id,
+      vaultId,
+      type,
+      keyId,
+      password,
+    );
+  }
+
+  Future<void> moveToVault(Set<DbId> ids, DbId vaultId) =>
+      _credentialRepository.db.moveCredentialsByIds(vaultId, ids.toList());
+
+  Future<void> deleteByIds(List<DbId> ids) =>
       _credentialRepository.deleteByIds(ids);
 
-  (String?, int?) extractCredentialData(CredentialType? type, String? data) {
+  (String?, DbId?) extractCredentialData(CredentialType? type, String? data) {
     if (type == null || data == null) {
       return (null, null);
     }
 
     return switch (type) {
       .password => (data, null),
-      .key => (null, int.parse(data)),
+      .key => (null, data),
     };
   }
 }

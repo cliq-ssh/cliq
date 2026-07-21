@@ -2,6 +2,7 @@ package sh.cliq.backend.config
 
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
+import org.springframework.core.annotation.Order
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity
 import org.springframework.security.config.annotation.web.builders.HttpSecurity
 import org.springframework.security.config.http.SessionCreationPolicy
@@ -20,6 +21,7 @@ class SecurityConfig(
 ) {
     @FeatureOidc
     @Bean
+    @Order(1)
     fun oidcFilterChain(
         http: HttpSecurity,
         oidcLoginSuccessHandler: OidcLoginSuccessHandler,
@@ -35,6 +37,7 @@ class SecurityConfig(
         }.build()
 
     @Bean
+    @Order(2)
     fun securityFilterChain(http: HttpSecurity): SecurityFilterChain {
         http
             .securityMatcher("/api/**")

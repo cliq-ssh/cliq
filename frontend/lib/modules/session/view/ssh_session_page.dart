@@ -217,8 +217,10 @@ class _SshSessionPageState extends ConsumerState<SshSessionPage>
             .read(sessionProvider.notifier)
             .spawnSsh(session.id, client, terminalController.value!);
 
+        if (sshSession == null) return;
+
         // close SSH session when terminal is closed
-        sshSession?.done.then((_) {
+        sshSession.done.then((_) {
           if (!context.mounted) return;
           ref
               .read(sessionProvider.notifier)
@@ -226,7 +228,7 @@ class _SshSessionPageState extends ConsumerState<SshSessionPage>
         });
 
         terminalController.value!.onInput = (s) {
-          sshSession?.write(Uint8List.fromList(s.codeUnits));
+          sshSession.write(Uint8List.fromList(s.codeUnits));
         };
 
         StreamSubscription? stdoutSub;
@@ -247,7 +249,7 @@ class _SshSessionPageState extends ConsumerState<SshSessionPage>
             session.stdoutSub ??
             const Utf8Decoder(
               allowMalformed: true,
-            ).bind(sshSession!.stdout).listen((str) {
+            ).bind(sshSession.stdout).listen((str) {
               terminalController.value?.feed(str);
             });
 
@@ -255,7 +257,7 @@ class _SshSessionPageState extends ConsumerState<SshSessionPage>
             session.stderrSub ??
             const Utf8Decoder(
               allowMalformed: true,
-            ).bind(sshSession!.stderr).listen((str) {
+            ).bind(sshSession.stderr).listen((str) {
               terminalController.value?.feed(str);
             });
 

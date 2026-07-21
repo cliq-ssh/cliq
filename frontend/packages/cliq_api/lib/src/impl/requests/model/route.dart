@@ -2,34 +2,30 @@ import 'package:dio/dio.dart';
 import 'package:logging/logging.dart';
 
 import '../../../api/cliq_client.dart';
-import '../../utils/string_utils.dart';
+
+enum HttpMethod {
+  get,
+  post,
+  put,
+  delete,
+  patch;
+
+  @override
+  String toString() => name.toUpperCase();
+}
 
 class Route {
-  /// The HTTP method of this route.
-  final String method;
+  /// The [HttpMethod] of this route.
+  final HttpMethod method;
 
   /// The path of this route.
   final String path;
 
   /// The amount of parameters this route expects.
+  /// Defaults to 0.
   final int paramCount;
 
-  /// If true, this route is relative to /api
-  final bool isApiRoute;
-
-  Route(this.method, this.path, {this.isApiRoute = true})
-    : assert(StringUtils.count(path, '{') == StringUtils.count(path, '}')),
-      paramCount = StringUtils.count(path, '{');
-
-  Route.get(String path) : this('GET', path);
-
-  Route.post(String path) : this('POST', path);
-
-  Route.put(String path) : this('PUT', path);
-
-  Route.delete(String path) : this('DELETE', path);
-
-  Route.patch(String path) : this('PATCH', path);
+  const Route(this.method, this.path, {this.paramCount = 0});
 
   CompiledRoute compile({List<dynamic> params = const []}) {
     if (params.length != paramCount) {
@@ -103,7 +99,7 @@ class CompiledRoute {
             path: compiledRoute,
             headers: headers,
             data: body,
-            method: baseRoute.method,
+            method: baseRoute.method.toString(),
             baseUrl: _buildBaseUrl(routeOptions),
           ),
         )
@@ -112,6 +108,12 @@ class CompiledRoute {
             '${baseRoute.method} $compiledRoute => ${response.statusCode} ${response.statusMessage}',
           );
           return response;
+        })
+        .onError((DioException? error, stackTrace) {
+          _log.severe(
+            '${baseRoute.method} $compiledRoute => ${error?.response?.statusCode} ${error?.response?.statusMessage} ${error?.response?.data}',
+          );
+          throw error!;
         });
   }
 
@@ -120,6 +122,6 @@ class CompiledRoute {
     if (effective.endsWith('/')) {
       effective = effective.substring(0, effective.length - 1);
     }
-    return baseRoute.isApiRoute ? '$effective/api/v1' : effective;
+    return effective;
   }
 }

@@ -1,8 +1,9 @@
-abstract class CliqApiException implements Exception {
-  final String? message;
+class CliqException implements Exception {
+  final int errorCode;
+  final String? description;
 
-  CliqApiException(this.message);
+  CliqException(this.errorCode, this.description);
 
   @override
-  String toString() => '${runtimeType.toString()}: $message';
+  String toString() => '${runtimeType.toString()}: $description';
 }

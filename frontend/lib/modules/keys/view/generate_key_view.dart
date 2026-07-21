@@ -9,6 +9,8 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:forui/forui.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
+import '../../../shared/data/database.dart';
+
 class _KeyGenerationParams {
   final SshKeyAlgorithm algorithm;
   final SshEcdsaCurveSize ecdsaCurveSize;
@@ -43,12 +45,14 @@ class GenerateKeyView extends HookConsumerWidget {
     final formKey = useMemoized(() => GlobalKey<FormState>());
     final labelCtrl = useTextEditingController();
     final passCtrl = useTextEditingController();
+    final selectedVaultId = useState<DbId?>(null);
+
     final keyType = useState(SshKeyAlgorithm.ed25519);
     final ecdsaSize = useState(SshEcdsaCurveSize.bits256);
     final rsaSize = useState(SshRsaKeySize.bits2048);
     final isLoading = useState(false);
 
-    Future<void> onSave(int? vaultId) async {
+    Future<void> onSave(DbId? vaultId) async {
       if (!(formKey.currentState?.validate() ?? false)) return;
       if (isLoading.value) return;
 
@@ -87,6 +91,8 @@ class GenerateKeyView extends HookConsumerWidget {
     return CreateOrEditEntityView(
       onSave: onSave,
       isEdit: false,
+      initialVaultId: selectedVaultId.value,
+      onVaultSelected: (vaultId) => selectedVaultId.value = vaultId,
       createLabel: 'keys_generate'.tr(),
       isCreateLoading: isLoading.value,
       child: Form(

@@ -5,6 +5,7 @@ import 'package:cliq/modules/identities/provider/identity_service.provider.dart'
 import 'package:cliq/shared/provider/abstract_entity.notifier.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
+import '../../../shared/data/database.dart';
 import '../model/identity.state.dart';
 
 final identityProvider = NotifierProvider(IdentityNotifier.new);
@@ -17,7 +18,7 @@ class IdentityNotifier
   Stream<List<IdentityFull>> get entityStream =>
       ref.read(identityServiceProvider).watchAll();
 
-  IdentityFull? findById(int id) {
+  IdentityFull? findById(DbId id) {
     for (final identities in state.entities) {
       if (identities.id == id) {
         return identities;

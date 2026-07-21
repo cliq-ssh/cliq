@@ -35,8 +35,10 @@ class IdentitiesSettingsPage extends AbstractSettingsPage {
       addEntityTitle: 'identities_add'.tr(),
       onAddEntity: () => Commons.showResponsiveDialog(
         (_) => CreateOrEditIdentityView.create(),
+        context: context,
       ),
       filterableFields: (i) => [i.vault.label, i.label, i.username],
+      filterableVaultId: (i) => i.vaultId,
       entityCardBuilder: (identity) => IdentityCard(identity: identity),
     );
   }
