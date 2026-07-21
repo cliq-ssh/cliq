@@ -8,6 +8,7 @@ import 'package:lucide_flutter/lucide_flutter.dart';
 
 import '../../../shared/utils/commons.dart';
 import '../provider/known_host_service.provider.dart';
+import '../provider/sync.provider.dart';
 
 class KnownHostCard extends HookConsumerWidget {
   final KnownHost knownHost;
@@ -22,8 +23,10 @@ class KnownHostCard extends HookConsumerWidget {
       await popoverController.hide();
       return Commons.showDeleteDialog(
         entity: knownHost.host,
-        onDelete: () =>
-            ref.read(knownHostServiceProvider).deleteById(knownHost.id),
+        onDelete: () async {
+          await ref.read(knownHostServiceProvider).deleteById(knownHost.id);
+          await ref.read(syncProvider.notifier).pullAndPushVault();
+        },
       );
     }
 

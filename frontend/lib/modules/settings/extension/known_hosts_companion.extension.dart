@@ -13,7 +13,7 @@ extension KnownHostsCompanionExtension on KnownHostsCompanion {
     }
 
     return KnownHostsCompanion(
-      id: Value(json['id'] as int),
+      id: Value(json['id'] as DbId),
       host: Value(json['host'] as String),
       hostKey: Value(
         Uint8List.fromList((List<int>.from(json['hostKey'] as List<dynamic>))),

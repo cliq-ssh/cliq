@@ -3,12 +3,13 @@ import 'dart:async';
 import 'package:cliq/modules/connections/model/connection_full.model.dart';
 import 'package:cliq/modules/credentials/data/credential_service.dart';
 import 'package:cliq/modules/session/model/session.state.dart';
-import 'package:cliq/shared/ui/navigation_shell.dart';
+import 'package:cliq/shared/ui/navigation/navigation_shell.dart';
 import 'package:cliq_term/cliq_term.dart';
 import 'package:dartssh2/dartssh2.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:uuid/v4.dart';
 
+import '../../../shared/data/database.dart';
 import '../../credentials/provider/credential_service.provider.dart';
 import '../../settings/model/known_host_error.model.dart';
 import '../../settings/provider/known_host_service.provider.dart';
@@ -178,11 +179,26 @@ class SessionNotifier extends Notifier<SessionState> {
 
     final tab = state.activeTabs.firstWhere((s) => s.id == tabId);
     final newSessions = [...tab.sessions, newSession];
-    final newTab = tab.copyWith(sessions: newSessions);
+
+    final newTab = tab.copyWith(
+      sessions: newSessions,
+      customLabel: tab.customLabel,
+    );
     final newActiveTabs = state.activeTabs.map((t) {
       if (t.id == tabId) return newTab;
       return t;
     }).toList();
+    state = state.copyWith(activeTabs: newActiveTabs);
+  }
+
+  /// Renames the tab with [tabId] to [customLabel]. If [customLabel] is null or empty the custom label will be
+  /// cleared and UI will fall back to the default connection label.
+  void renameTab(String tabId, String? customLabel) {
+    final newActiveTabs = state.activeTabs.map((t) {
+      if (t.id != tabId) return t;
+      return t.copyWith(customLabel: customLabel?.trim());
+    }).toList();
+
     state = state.copyWith(activeTabs: newActiveTabs);
   }
 
@@ -268,7 +284,14 @@ class SessionNotifier extends Notifier<SessionState> {
       await client.authenticated.onError(
         (e, _) => _close(sessionId, e.toString()),
       );
-      final sshSession = await client.shell();
+      final sshSession = await client.shell(
+        pty: SSHPtyConfig(
+          width: controller.cols,
+          height: controller.rows,
+          pixelHeight: controller.height.toInt(),
+          pixelWidth: controller.width.toInt(),
+        ),
+      );
       _modifySession(
         sessionId,
         (session) => session.copyWith(
@@ -317,13 +340,13 @@ class SessionNotifier extends Notifier<SessionState> {
     );
   }
 
-  Future<int> acceptFingerprint(
-    int vaultId,
+  Future<void> acceptFingerprint(
+    DbId vaultId,
     String sessionId,
     KnownHostError error,
-  ) {
+  ) async {
     if (error.knownHost != null) {
-      return ref
+      await ref
           .read(knownHostServiceProvider)
           .update(
             error.knownHost!.id.value,
@@ -332,7 +355,7 @@ class SessionNotifier extends Notifier<SessionState> {
             compareTo: error.knownHost,
           );
     }
-    return ref
+    await ref
         .read(knownHostServiceProvider)
         .createKnownHost(
           vaultId: vaultId,

@@ -3,6 +3,8 @@ import 'package:cliq/modules/settings/model/terminal_theme.state.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:forui/forui.dart';
 
+import '../../../shared/data/database.dart';
+
 class SessionTab {
   /// Unique identifier for the session tab, used for tracking and state management.
   final String id;
@@ -13,14 +15,22 @@ class SessionTab {
   /// The list of sessions contained in this tab, including the root and any additional sessions from splits.
   final List<ShellSession> sessions;
 
+  /// Optional custom label for the tab. If null, the UI will fall back to the connection label or a
+  /// generated label based on number of sessions.
+  final String? customLabel;
+
   const SessionTab({
     required this.id,
     required this.root,
     required this.sessions,
+    this.customLabel,
   });
 
-  const SessionTab.create({required this.id, required this.root})
-    : sessions = const [];
+  const SessionTab.create({
+    required this.id,
+    required this.root,
+    this.customLabel,
+  }) : sessions = const [];
 
   void dispose() {
     for (final session in [...sessions, root]) {
@@ -34,7 +44,7 @@ class SessionTab {
   Color getEffectiveSidebarColor(
     BuildContext context,
     CustomTerminalThemeState terminalThemes,
-    int defaultTerminalTheme,
+    DbId defaultTerminalTheme,
   ) {
     if (sessions.isEmpty && root.type == .ssh) {
       final hsl = HSLColor.fromColor(
@@ -57,11 +67,13 @@ class SessionTab {
     String? id,
     ShellSession? root,
     List<ShellSession>? sessions,
+    String? customLabel,
   }) {
     return SessionTab(
       id: id ?? this.id,
       root: root ?? this.root,
       sessions: sessions ?? this.sessions,
+      customLabel: customLabel ?? this.customLabel,
     );
   }
 }

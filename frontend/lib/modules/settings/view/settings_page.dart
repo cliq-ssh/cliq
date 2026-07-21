@@ -1,4 +1,5 @@
 import 'package:cliq/modules/settings/provider/sync.provider.dart';
+import 'package:cliq/modules/settings/ui/version_indicator.dart';
 import 'package:cliq/modules/settings/view/i18n_settings_page.dart';
 import 'package:cliq/modules/settings/view/identities_settings_page.dart';
 import 'package:cliq/modules/settings/view/keys_settings_page.dart';
@@ -8,17 +9,19 @@ import 'package:cliq/modules/settings/view/ssh_sftp_settings_page.dart';
 import 'package:cliq/modules/settings/view/sync_settings_page.dart';
 import 'package:cliq/modules/settings/view/terminal_theme_settings_page.dart';
 import 'package:cliq/shared/extensions/router.extension.dart';
+import 'package:cliq/shared/provider/store.provider.dart';
 import 'package:cliq/shared/utils/commons.dart';
 import 'package:cliq/shared/utils/platform_utils.dart';
 import 'package:easy_localization/easy_localization.dart';
-import 'package:flutter/foundation.dart';
 import 'package:forui/forui.dart';
 import 'package:lucide_flutter/lucide_flutter.dart';
 import 'package:cliq_ui/cliq_ui.dart';
 import 'package:flutter/material.dart' hide LicensePage;
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 import 'package:simple_icons/simple_icons.dart';
 
+import '../../../shared/extensions/async_snapshot.extension.dart';
 import 'appearance_settings_page.dart';
 import 'developer_settings_page.dart';
 import 'license_page.dart';
@@ -37,6 +40,10 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
   @override
   Widget build(BuildContext context) {
     final sync = ref.watch(syncProvider);
+    final info = useMemoizedFuture(() => PackageInfo.fromPlatform(), []);
+
+    final developerMode = useStore(.developerMode);
+    final lastUpdated = useStore(.syncLastUpdated);
 
     return SingleChildScrollView(
       child: CliqGridContainer(
@@ -58,9 +65,15 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                             suffix: Icon(LucideIcons.chevronRight),
                             title: Text('sync'.tr()),
                             subtitle: sync.isConnected
-                                ? Text('sync_last_date').tr(
+                                ? Text('sync_last_updated').tr(
                                     args: [
-                                      sync.lastSync?.toIso8601String() ?? 'n_a',
+                                      lastUpdated.value == null ||
+                                              lastUpdated.value == 0
+                                          ? 'n_a'.tr()
+                                          : DateTime.fromMillisecondsSinceEpoch(
+                                              lastUpdated.value!,
+                                              isUtc: true,
+                                            ).toIso8601String(),
                                     ],
                                   )
                                 : Text('sync_not_connected'.tr()),
@@ -144,7 +157,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                               SshSftpSettingsPage.pagePath.build(),
                             ),
                           ),
-                          if (kDebugMode)
+                          if (developerMode.value)
                             FTile(
                               prefix: Icon(LucideIcons.hammer),
                               suffix: Icon(LucideIcons.chevronRight),
@@ -174,6 +187,16 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                             onPress: () => Commons.launchGitHubUrl(),
                           ),
                         ],
+                      ),
+
+                      info.on(
+                        onData: (data) {
+                          return Padding(
+                            padding: const .only(top: 12),
+                            child: VersionIndicator(packageInfo: data),
+                          );
+                        },
+                        defaultValue: SizedBox.shrink(),
                       ),
                     ],
                   ),

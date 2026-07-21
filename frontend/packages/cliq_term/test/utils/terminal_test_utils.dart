@@ -30,17 +30,21 @@ class TerminalTestUtils {
   const TerminalTestUtils._();
 
   /// Creates a [TerminalController] with the default theme and typography for testing purposes.
-  static TerminalController createController({void Function()? onBell}) =>
-      TerminalController(
-        theme: _defaultTheme,
-        typography: TerminalTypography(
-          fontFamily: 'Jetbrains Mono',
-          fontSize: 12,
-        ),
-        rows: 24,
-        cols: 80,
-        onBell: onBell,
-      );
+  static TerminalController createController({
+    void Function()? onBell,
+    void Function(String)? onInput,
+    void Function(String)? onTitleChange,
+    bool defaultAlternateScrollMode = true,
+  }) => TerminalController(
+    theme: _defaultTheme,
+    typography: TerminalTypography(fontFamily: 'Jetbrains Mono', fontSize: 12),
+    rows: 24,
+    cols: 80,
+    onBell: onBell,
+    onInput: onInput,
+    onTitleChange: onTitleChange,
+    defaultAlternateScrollMode: defaultAlternateScrollMode,
+  );
 }
 
 /// Asserts that the cursor is at the expected position in the terminal.

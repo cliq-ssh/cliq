@@ -7,11 +7,13 @@ import 'package:cliq/shared/utils/constants.dart';
 import 'package:cliq/shared/model/router.model.dart';
 import 'package:cliq/shared/utils/platform_utils.dart';
 import 'package:cliq/shared/utils/text_utils.dart';
+import 'package:cliq_api/cliq_api.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:file_selector/file_selector.dart';
 import 'package:flutter/material.dart' hide Router;
 import 'package:flutter/services.dart';
 import 'package:forui/forui.dart';
+import 'package:lucide_flutter/lucide_flutter.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 final class Commons {
@@ -19,7 +21,7 @@ final class Commons {
 
   static XTypeGroup getCustomTerminalThemeGroup(BuildContext context) {
     return XTypeGroup(
-      label: 'file_group.terminal_theme'.tr(context: context),
+      label: 'file_groups.terminal_theme'.tr(context: context),
       uniformTypeIdentifiers: TerminalThemeParser.values
           .map(
             (e) => Constants.extensionToUniformTypeIdentifier[e.fileExtension]!,
@@ -33,7 +35,7 @@ final class Commons {
 
   static XTypeGroup getSettingsGroup(BuildContext context) {
     return XTypeGroup(
-      label: 'file_group.settings_export'.tr(context: context),
+      label: 'file_groups.settings_export'.tr(context: context),
       uniformTypeIdentifiers: SettingsImporter.values
           .map(
             (e) => Constants.extensionToUniformTypeIdentifier[e.fileExtension]!,
@@ -47,7 +49,7 @@ final class Commons {
 
   static XTypeGroup getKeyGroup(BuildContext context) {
     return XTypeGroup(
-      label: 'file_group.key'.tr(context: context),
+      label: 'file_groups.key'.tr(context: context),
       uniformTypeIdentifiers: [],
       extensions: [],
     );
@@ -55,12 +57,16 @@ final class Commons {
 
   static Future<T?> showResponsiveDialog<T>(
     WidgetBuilder builder, {
-    BuildContext? context,
+    required BuildContext? context,
+    bool dismissable = true,
   }) {
     return showFSheet(
-      context: (Router.rootNavigatorKey.currentContext ?? context)!,
+      useRootNavigator: true,
+      context: (context ?? Router.shellNavigatorKey.currentContext)!,
       side: FLayout.rtl,
       mainAxisMaxRatio: 1,
+      draggable: false,
+      barrierDismissible: dismissable,
       builder: (context) => ResponsiveDialog(child: builder(context)),
     );
   }
@@ -154,12 +160,29 @@ final class Commons {
           spacing: 8,
           mainAxisSize: .min,
           children: [
-            ?prefix,
+            if (prefix != null)
+              IconTheme.merge(
+                data: .new(
+                  size: 20,
+                  color: variant == .destructive
+                      ? context.theme.colors.destructive
+                      : null,
+                ),
+                child: prefix,
+              ),
             Flexible(child: Text(message)),
           ],
         ),
       );
     }
+  }
+
+  static Future<void> showCliqException(CliqException exception) async {
+    return showToast(
+      'api_error_codes.${exception.errorCode}'.tr(),
+      prefix: Icon(LucideIcons.alertCircle),
+      variant: .destructive,
+    );
   }
 
   static Future<void> copyToClipboard(BuildContext context, String text) async {

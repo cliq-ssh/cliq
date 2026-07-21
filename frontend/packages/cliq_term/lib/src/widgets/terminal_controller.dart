@@ -1,18 +1,34 @@
+import 'dart:async';
 import 'dart:math';
 
 import 'package:cliq_term/cliq_term.dart';
 import 'package:cliq_term/src/parser/escape_parser.dart';
-import 'package:cliq_term/src/state/selection.state.dart';
-import 'package:cliq_term/src/widgets/terminal_painter.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
-import '../state/cursor.state.dart';
+import '../parser/escape_emitter.dart';
 
 enum CursorStyle { block, underline, bar }
 
+enum MouseTrackingMode { none, normal, buttonEvent, anyEvent }
+
+typedef GlyphKey = (
+  String ch,
+  int color,
+  bool bold,
+  bool italic,
+  Underline underline,
+  bool braille,
+  bool link,
+);
+
 /// Controller for managing terminal state, including buffers, cursor, and input handling.
 class TerminalController extends ChangeNotifier {
+  static const int _maxCacheSize = 500;
+  static const int _maxGlyphCacheSize = 4000;
+  static const int highWaterMark = 64 * 1024; // 64 KiB
+  static const int lowWaterMark = 0; // 0 Bytes -> clear buffer
+
   static final Map<LogicalKeyboardKey, String> _keyCharacterMap = {
     .enter: '\r',
     .backspace: '\x7f',
@@ -42,8 +58,21 @@ class TerminalController extends ChangeNotifier {
     .f12: '$kSeqEscape[24~',
   };
 
+  static final Map<LogicalKeyboardKey, String> _appCursorKeyMap = {
+    .arrowUp: '${kSeqEscape}OA',
+    .arrowDown: '${kSeqEscape}OB',
+    .arrowRight: '${kSeqEscape}OC',
+    .arrowLeft: '${kSeqEscape}OD',
+  };
+
   /// Interval for cursor blinking.
-  final Duration cursorBlinkInterval;
+  Duration cursorBlinkInterval;
+
+  /// Time of inactivity before the cursor stops blinking.
+  Duration cursorBlinkTimeout;
+
+  /// Whether the cursor is currently in the "on" phase of blinking.
+  final ValueNotifier<bool> cursorBlinkNotifier = ValueNotifier(true);
 
   /// Maximum number of lines to keep in the scrollback buffer. Older lines will be discarded when this limit is exceeded.
   final int maxScrollbackLines;
@@ -51,14 +80,28 @@ class TerminalController extends ChangeNotifier {
   /// Whether to log parsed (and missing!) escape sequences and control characters to the console for debugging.
   final bool debugLogging;
 
-  /// A callback that is fired when the terminal is resized, providing the new number of rows and columns.
-  final void Function(int, int)? onResize;
+  /// Default for [alternateScrollMode] applied each time the alternate
+  /// screen is freshly entered (1049).
+  final bool defaultAlternateScrollMode;
+
+  /// A callback that is fired when the terminal is resized, providing the new number of rows and columns
+  /// and the new size in pixels.
+  final void Function(int, int, Size)? onResize;
 
   /// A callback that is fired when the terminal title is changed via an escape sequence, providing the new title string.
   final void Function(String)? onTitleChange;
 
   /// A callback that is fired when a bell character (0x07) is received.
   final void Function()? onBell;
+
+  /// Fired when the user taps a cell that carries an active hyperlink.
+  void Function(String url)? onHyperlinkTap;
+
+  /// A callback that is fired when the input queue exceeds the high water mark.
+  void Function()? onPause;
+
+  /// A callback that is fired when the input queue drops below the low water mark.
+  void Function()? onResume;
 
   void Function(String)? onInput;
   TerminalTypography _typography;
@@ -81,9 +124,18 @@ class TerminalController extends ChangeNotifier {
     isBackBuffer: true,
   );
 
+  TextStyle? _cachedTextStyle;
+  final Map<GlyphKey, TextPainter> _glyphCache = {};
+  final Map<TerminalBufferRow, (int revision, TextPainter painter)> _rowCache =
+      {};
+
   /// Number of visible rows and columns (excluding scrollback).
   /// These are set via [resize] and used for rendering and input coordinate calculations.
   int rows, cols;
+
+  /// The current width and height of the terminal in pixels.
+  /// These are set via [resize].
+  double width, height;
 
   /// Whether to render the back buffer instead of the front buffer.
   /// This is toggled by [useBackBuffer] and [useMainBuffer].
@@ -99,25 +151,162 @@ class TerminalController extends ChangeNotifier {
   /// The cursor state.
   CursorState cursor = .new();
 
+  /// Active mouse tracking level, set via CSI ?1000/1002/1003 h/l.
+  MouseTrackingMode mouseTrackingMode = .none;
+
+  /// Whether SGR (1006) extended coordinate encoding is active.
+  bool sgrMouseMode = false;
+
+  /// Whether urxvt (1015) extended coordinate encoding is active.
+  bool urxvtMouseMode = false;
+
+  /// Whether "Alternate Scroll Mode" is active (1007).
+  /// If active, scroll-wheel events on the alt screen with no mouse tracking mode
+  /// enabled are translated into cursor up/down key sequences instead.
+  bool alternateScrollMode = true;
+
+  /// The currently pressed mouse button, if any.
+  /// This is used to determine whether motion events should be reported in button-event tracking mode.
+  int? _pressedMouseButton;
+
+  /// Whether the cursor is visible per DECTCEM (CSI ?25h/l). Independent of
+  /// [cursor.enabled] (blink-timer/focus state) — a DECTCEM-hidden cursor
+  /// must stay hidden across focus changes until explicitly re-shown.
+  bool _cursorVisible = true;
+
+  /// The current window title, as set via OSC 0/2 or restored from the title stack.
+  String currentTitle = '';
+
+  /// Stack used by XTWINOPS (CSI 22/23 t) to push/pop the window title.
+  final List<String> _titleStack = [];
+
+  /// Whether arrow keys send application-mode sequences (ESC O x) instead of
+  /// the normal cursor-key sequences (ESC [ x), per DECCKM (CSI ?1h/l).
+  bool applicationCursorKeys = false;
+
+  /// Whether the terminal is currently in bracketed paste mode, which affects how pasted text is handled.
+  bool bracketedPasteMode = false;
+
+  /// Whether the terminal is currently in synchronized output mode, which affects how output is handled.
+  bool synchronizedOutputActive = false;
+
+  /// A watchdog timer that is used to detect when synchronized output mode has been active for too long and
+  /// should be automatically disabled.
+  Timer? _synchronizedOutputWatchdog;
+
+  /// Whether focus reporting (1004) is enabled, which affects how focus events are reported to the terminal.
+  bool focusReportingEnabled = false;
+
+  /// Whether the terminal has been modified since the last time it was marked clean.
+  bool _isDirty = false;
+
+  /// Whether the terminal is currently paused due to high input queue length.
+  bool _isPaused = false;
+
   TerminalController({
     required this._typography,
     required this._theme,
     this.cursorBlinkInterval = const Duration(milliseconds: 600),
+    this.cursorBlinkTimeout = const Duration(seconds: 10),
     this.maxScrollbackLines = TerminalBuffer.defaultMaxScrollbackLines,
     this.debugLogging = false,
+    this.defaultAlternateScrollMode = true,
     this.onInput,
     this.onResize,
     this.onTitleChange,
+    this.onHyperlinkTap,
     this.onBell,
+    this.onPause,
+    this.onResume,
     this.rows = 24,
     this.cols = 80,
-  });
+    this.width = 800,
+    this.height = 600,
+  }) : alternateScrollMode = defaultAlternateScrollMode;
 
+  /// Returns the current theme settings used for rendering the terminal, including colors and styles.
   TerminalTheme get theme => _theme;
+
+  /// Returns the current typography settings used for rendering text in the terminal.
   TerminalTypography get typography => _typography;
+
+  /// Returns the currently active buffer, which is either the front buffer or the back buffer depending on [backBufferActive].
   TerminalBuffer get activeBuffer => backBufferActive ? _back : _front;
+
+  /// Returns the total number of rows in the terminal, including scrollback.
   int get totalRows =>
       backBufferActive ? rows : (_front.currentScrollback + rows);
+
+  /// Whether the cursor is currently visible per DECTCEM (CSI ?25h/l).
+  bool get cursorVisible => _cursorVisible;
+
+  /// Whether the terminal has been modified since the last time it was marked clean.
+  /// This is used to determine if a repaint is needed.
+  bool get isDirty => _isDirty;
+
+  /// Whether the terminal is currently paused due to high input queue length.
+  bool get isPaused => _isPaused;
+
+  /// Returns a cached [TextStyle] based on the current typography settings.
+  TextStyle get cachedBaseTextStyle =>
+      _cachedTextStyle ??= _typography.toTextStyle();
+
+  /// Returns a cached [TextPainter] for the given glyph key if it exists.
+  TextPainter? getCachedGlyph(GlyphKey key) => _glyphCache[key];
+
+  /// Caches a [TextPainter] for the given glyph key.
+  /// If the cache exceeds the maximum size, the least recently used entry is evicted.
+  void cacheGlyph(GlyphKey key, TextPainter painter) {
+    if (_glyphCache.length >= _maxGlyphCacheSize) {
+      final firstKey = _glyphCache.keys.first;
+      _glyphCache.remove(firstKey);
+    }
+    _glyphCache[key] = painter;
+  }
+
+  void clearGlyphCache() => _glyphCache.clear();
+
+  /// Returns a cached [TextPainter] for the given [row] if it exists and is valid (matching the row's revision).
+  TextPainter? getCachedRow(TerminalBufferRow row) {
+    final cached = _rowCache.remove(row);
+    if (cached != null) {
+      if (cached.$1 == row.revision) {
+        _rowCache[row] = cached; // Move to end (MRU)
+        return cached.$2;
+      }
+      // Revision mismatch, don't put it back, effectively evicting it
+    }
+    return null;
+  }
+
+  void cacheRow(TerminalBufferRow row, TextPainter painter) {
+    if (_rowCache.length >= _maxCacheSize) {
+      // LinkedHashMap iterates in insertion order, so the first element is the LRU
+      final firstKey = _rowCache.keys.first;
+      _rowCache.remove(firstKey);
+    }
+    _rowCache[row] = (row.revision, painter);
+  }
+
+  void clearRowCache() => _rowCache.clear();
+
+  void clearDirty() => _isDirty = false;
+
+  void markDirty() {
+    _isDirty = true;
+    if (synchronizedOutputActive) return;
+    notifyListeners();
+  }
+
+  void pause() {
+    _isPaused = true;
+    onPause?.call();
+  }
+
+  void resume() {
+    _isPaused = false;
+    onResume?.call();
+  }
 
   /// Automatically resizes the terminal based on the provided [size] and current typography settings.
   void fitResize(Size size) {
@@ -125,22 +314,25 @@ class TerminalController extends ChangeNotifier {
       return;
     }
 
-    final (cellW, cellH) = TerminalPainter.measureChar(typography);
+    final (cellW, cellH) = CharWidth.measureChar(typography);
     final newCols = max(1, (size.width / cellW).floor());
     final newRows = max(1, (size.height / cellH).floor());
 
     if (newRows == rows && newCols == cols) return;
-    resize(newRows, newCols);
+    resize(newRows, newCols, size);
   }
 
   /// Resizes the terminal to the specified number of rows and columns.
-  void resize(int newRows, int newCols) {
+  void resize(int newRows, int newCols, Size newSize) {
     // do nothing if size is unchanged
     if (newRows == rows && newCols == cols) return;
-    onResize?.call(newRows, newCols);
+    onResize?.call(newRows, newCols, newSize);
 
     rows = newRows;
     cols = newCols;
+    width = newSize.width;
+    height = newSize.height;
+
     // resize buffers
     _front = _front.resize(newRows: newRows, newCols: newCols);
     _back = _back.resize(newRows: newRows, newCols: newCols);
@@ -148,7 +340,9 @@ class TerminalController extends ChangeNotifier {
     _front.resetVerticalMargins();
     _back.resetVerticalMargins();
 
-    notifyListeners();
+    clearRowCache();
+    clearGlyphCache();
+    markDirty();
   }
 
   /// Handles keyboard input events and translates them into terminal input.
@@ -157,6 +351,8 @@ class TerminalController extends ChangeNotifier {
     if (ev is! KeyDownEvent && ev is! KeyRepeatEvent) {
       return;
     }
+
+    _resetBlink();
 
     // We seem to need extra control key handling for Windows here since [ev.character] is always
     // null when Ctrl is pressed.
@@ -180,7 +376,9 @@ class TerminalController extends ChangeNotifier {
     }
 
     // otherwise check for special keys
-    final key = _keyCharacterMap[ev.logicalKey];
+    final key = applicationCursorKeys
+        ? (_appCursorKeyMap[ev.logicalKey] ?? _keyCharacterMap[ev.logicalKey])
+        : _keyCharacterMap[ev.logicalKey];
     if (key != null) {
       onInput?.call(key);
     }
@@ -193,10 +391,11 @@ class TerminalController extends ChangeNotifier {
       _front.saveCursor();
       _back.clear();
       _back.resetVerticalMargins();
+      alternateScrollMode = defaultAlternateScrollMode;
     }
 
     backBufferActive = true;
-    notifyListeners();
+    markDirty();
   }
 
   /// Leave the alternate (back) screen.
@@ -208,44 +407,210 @@ class TerminalController extends ChangeNotifier {
       _front.restoreCursor();
     }
 
-    notifyListeners();
+    markDirty();
+  }
+
+  // TODO: warn user about potential unsafe sequences
+  void paste(String text) {
+    if (text.isNotEmpty) {
+      text = _stripTrailingNewlines(text);
+      if (bracketedPasteMode) {
+        onInput?.call('$kSeqEscape[200~$text$kSeqEscape[201~');
+      } else {
+        onInput?.call(text);
+      }
+    }
+  }
+
+  void setMouseTrackingMode(MouseTrackingMode mode, bool enabled) {
+    if (enabled) {
+      mouseTrackingMode = mode;
+    } else if (mouseTrackingMode == mode) {
+      mouseTrackingMode = MouseTrackingMode.none;
+    }
+  }
+
+  /// Encodes and sends a mouse event, if the current tracking mode wants it.
+  /// [row]/[col] are 0-indexed grid coordinates. [button]: 0=left, 1=middle,
+  /// 2=right; for [isScroll], 0=wheel-up, 1=wheel-down.
+  void reportMouseEvent({
+    required int row,
+    required int col,
+    int button = 0,
+    bool isRelease = false,
+    bool isMotion = false,
+    bool isScroll = false,
+    bool shift = false,
+    bool alt = false,
+    bool ctrl = false,
+  }) {
+    if (mouseTrackingMode == .none) return;
+
+    if (isMotion) {
+      if (mouseTrackingMode == .normal) return;
+      if (mouseTrackingMode == .buttonEvent && _pressedMouseButton == null) {
+        return;
+      }
+    }
+
+    int cb;
+    if (isScroll) {
+      cb = 64 + button;
+    } else if (isMotion) {
+      cb = (_pressedMouseButton ?? 3) + 32;
+    } else if (isRelease) {
+      cb = sgrMouseMode ? button : 3;
+    } else {
+      cb = button;
+    }
+    if (shift) cb += 4;
+    if (alt) cb += 8;
+    if (ctrl) cb += 16;
+
+    if (!isRelease && !isMotion) {
+      _pressedMouseButton = button;
+    } else if (isRelease) {
+      _pressedMouseButton = null;
+    }
+
+    if (sgrMouseMode) {
+      onInput?.call(
+        EscapeEmitter.sgrMouseEvent(cb, col + 1, row + 1, press: !isRelease),
+      );
+    } else if (urxvtMouseMode) {
+      onInput?.call(EscapeEmitter.urxvtMouseEvent(cb, col + 1, row + 1));
+    } else {
+      final cx = (col + 1 + 32).clamp(32, 255);
+      final cy = (row + 1 + 32).clamp(32, 255);
+      onInput?.call(
+        '$kSeqEscape[M${String.fromCharCode(cb + 32)}'
+        '${String.fromCharCode(cx)}${String.fromCharCode(cy)}',
+      );
+    }
+  }
+
+  /// Handles a scroll-wheel event, either reporting it as a mouse event (if
+  /// tracking is active) or, per Alternate Scroll Mode, translating it into
+  /// cursor key presses when on the alt screen with no tracking enabled.
+  /// Returns true if the event was consumed one way or another.
+  bool handleScroll({
+    required int row,
+    required int col,
+    required bool up,
+    int lines = 1,
+  }) {
+    if (mouseTrackingMode != .none) {
+      for (int i = 0; i < max(1, lines); i++) {
+        reportMouseEvent(
+          row: row,
+          col: col,
+          isScroll: true,
+          button: up ? 0 : 1,
+        );
+      }
+      return true;
+    }
+
+    if (alternateScrollMode && backBufferActive) {
+      final key = applicationCursorKeys
+          ? (up ? '${kSeqEscape}OA' : '${kSeqEscape}OB')
+          : (up ? kSeqCursorUp : kSeqCursorDown);
+      onInput?.call(key * max(1, lines));
+      return true;
+    }
+
+    return false;
+  }
+
+  /// Returns the hyperlink URL at the given absolute row/col, if any.
+  String? hyperlinkAt(int row, int col) =>
+      activeBuffer.getAbsoluteCell(row, col).fmt.hyperlink;
+
+  void setWindowTitle(String title) {
+    currentTitle = title;
+    onTitleChange?.call(title);
+  }
+
+  void pushWindowTitle([int mode = 0]) {
+    _titleStack.add(currentTitle);
+  }
+
+  void popWindowTitle([int mode = 0]) {
+    if (_titleStack.isNotEmpty) {
+      setWindowTitle(_titleStack.removeLast());
+    }
   }
 
   void setTerminalTheme(TerminalTheme theme) {
     _theme = theme;
-    notifyListeners();
+    clearRowCache();
+    clearGlyphCache();
+    markDirty();
   }
 
   void setTerminalTypography(TerminalTypography newTypography) {
     _typography = newTypography;
-    notifyListeners();
+    _cachedTextStyle = null;
+    clearRowCache();
+    clearGlyphCache();
+    markDirty();
   }
 
   void setInsertMode(bool enabled) {
     activeBuffer.isInsertMode = enabled;
-    notifyListeners();
+    markDirty();
   }
 
   void setLineFeedMode(bool enabled) {
     activeBuffer.isLineFeedMode = enabled;
-    notifyListeners();
+    markDirty();
   }
 
   void setAutoWrapMode(bool enabled) {
     activeBuffer.isAutoWrapMode = enabled;
-    notifyListeners();
+    markDirty();
+  }
+
+  void setCursorStyle(CursorStyle style) {
+    cursor = cursor.copyWith(style: style);
+    _resetBlink();
+  }
+
+  void setCursorBlinkInterval(Duration interval) {
+    cursorBlinkInterval = interval;
+    _resetBlink();
+  }
+
+  /// Resets the cursor blink interval to the default value of 600 milliseconds and restarts the blink timer.
+  void resetCursorBlinkInterval() =>
+      setCursorBlinkInterval(const Duration(milliseconds: 600));
+
+  void setCursorBlinkTimeout(Duration timeout) {
+    cursorBlinkTimeout = timeout;
+    _resetBlink();
+  }
+
+  void setCursorVisible(bool visible) {
+    _cursorVisible = visible;
+    markDirty();
   }
 
   void feed(String input) {
     _escapeParser.write(input);
-    notifyListeners();
+    _resetBlink();
   }
+
+  void emit(String input) => onInput?.call(input);
+
+  /// Returns the number of characters currently waiting to be parsed.
+  int get pendingInputLength => _escapeParser.queueLength;
 
   /// Sets the cursor position to the specified [row] and [col].
   void setCursorPosition(int row, int col) {
     activeBuffer.cursorRow = row;
     activeBuffer.cursorCol = col;
-    notifyListeners();
+    _resetBlink();
+    markDirty();
   }
 
   void setCursorPositionRow(int row) =>
@@ -255,12 +620,53 @@ class TerminalController extends ChangeNotifier {
 
   /// Starts the cursor blinking timer.
   void startCursorBlink() {
+    stopCursorBlink();
+
     cursor = cursor.copyWith(
-      visible: true,
-      //      timer: Timer.periodic(cursorBlinkInterval, (_) {
-      //        cursor = cursor.copyWith(visible: !cursor.visible);
-      //        notifyListeners();
-      //      }),
+      enabled: true,
+      blinkVisible: true,
+      timer: cursorBlinkInterval == .zero
+          ? null
+          : Timer.periodic(cursorBlinkInterval, (_) {
+              cursor = cursor.copyWith(blinkVisible: !cursor.blinkVisible);
+              cursorBlinkNotifier.value = cursor.blinkVisible;
+            }),
+    );
+    cursorBlinkNotifier.value = true;
+    _resetInactivityTimer();
+  }
+
+  void _resetBlink() {
+    if (cursor.timer != null) {
+      cursor = cursor.copyWith(blinkVisible: true);
+      cursorBlinkNotifier.value = true;
+      // Restart the periodic timer to align the blink phase with the activity
+      cursor.timer?.cancel();
+      cursor = cursor.copyWith(
+        timer: cursorBlinkInterval == .zero
+            ? null
+            : Timer.periodic(cursorBlinkInterval, (_) {
+                cursor = cursor.copyWith(blinkVisible: !cursor.blinkVisible);
+                cursorBlinkNotifier.value = cursor.blinkVisible;
+              }),
+      );
+    }
+    _resetInactivityTimer();
+  }
+
+  void _resetInactivityTimer() {
+    cursor.inactivityTimer?.cancel();
+
+    if (cursorBlinkTimeout == Duration.zero) {
+      return;
+    }
+
+    cursor = cursor.copyWith(
+      inactivityTimer: Timer(cursorBlinkTimeout, () {
+        cursor.timer?.cancel();
+        cursor = cursor.copyWith(blinkVisible: true, timer: null);
+        cursorBlinkNotifier.value = true;
+      }),
     );
   }
 
@@ -277,7 +683,7 @@ class TerminalController extends ChangeNotifier {
       endCol: selectionStartCol,
     );
 
-    notifyListeners();
+    markDirty();
   }
 
   /// Update the selection end to absolute [row],[col]
@@ -289,13 +695,13 @@ class TerminalController extends ChangeNotifier {
       endCol: col.clamp(0, max(0, cols - 1)),
     );
 
-    notifyListeners();
+    markDirty();
   }
 
   /// Clear the active selection
   void clearSelection() {
     selection = .new();
-    notifyListeners();
+    markDirty();
   }
 
   /// Return the selected text (if selection active) using absolute coordinates.
@@ -315,14 +721,53 @@ class TerminalController extends ChangeNotifier {
   /// Stops the cursor blinking timer.
   void stopCursorBlink() {
     cursor.timer?.cancel();
-    cursor = cursor.copyWith(visible: true, timer: null);
+    cursor.inactivityTimer?.cancel();
+    cursor = cursor.copyWith(
+      enabled: true,
+      blinkVisible: true,
+      timer: null,
+      inactivityTimer: null,
+    );
+    cursorBlinkNotifier.value = true;
+  }
 
-    notifyListeners();
+  /// Enables or disables synchronized output mode, which affects how output is handled.
+  /// https://github.com/contour-terminal/vt-extensions/blob/master/synchronized-output.md
+  void setSynchronizedOutput(bool enabled) {
+    if (enabled) {
+      synchronizedOutputActive = true;
+      _synchronizedOutputWatchdog?.cancel();
+
+      // safety measure; if this is enabled and the program crashes/hangs before
+      // disabling it, the display would otherwise freeze indefinitely
+      _synchronizedOutputWatchdog = Timer(const Duration(seconds: 2), () {
+        setSynchronizedOutput(false);
+      });
+    } else {
+      synchronizedOutputActive = false;
+      _synchronizedOutputWatchdog?.cancel();
+      _synchronizedOutputWatchdog = null;
+      markDirty();
+    }
   }
 
   @override
   void dispose() {
     cursor.timer?.cancel();
+    cursor.inactivityTimer?.cancel();
+    _synchronizedOutputWatchdog?.cancel();
+    cursorBlinkNotifier.dispose();
     super.dispose();
+  }
+
+  /// Strip trailing newlines from multiline text to prevent auto-execution.
+  /// Returns trimmed text if multiline, otherwise returns original text.
+  ///
+  /// TODO: There is a escape code that prevents auto-execution of pasted commands, but it is not implemented atm.
+  static String _stripTrailingNewlines(String text) {
+    if (text.contains('\n') && text.endsWith('\n')) {
+      return text.trimRight();
+    }
+    return text;
   }
 }

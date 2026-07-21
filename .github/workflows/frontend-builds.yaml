@@ -73,9 +73,10 @@ jobs:
           - arch: x64
             runner: windows-latest
             flutter-channel: stable
-          - arch: arm64
-            runner: windows-11-arm
-            flutter-channel: main # Remove when https://github.com/subosito/flutter-action/issues/345
+# Removed until https://github.com/fastforgedev/fastforge/issues/354 is resolved            
+#          - arch: arm64
+#            runner: windows-11-arm
+#            flutter-channel: main # Remove when https://github.com/subosito/flutter-action/issues/345
     steps:
       - uses: actions/checkout@v7
 
@@ -171,6 +172,7 @@ jobs:
             libglib2.0-dev \
             libx11-dev \
             libxext-dev \
+            libsecret-1-dev \
             libxinerama-dev \
             libxrandr-dev \
             libxrender-dev \

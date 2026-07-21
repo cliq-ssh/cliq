@@ -1,4 +1,3 @@
-import 'package:cliq/shared/utils/platform_utils.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:forui/forui.dart';
@@ -39,10 +38,7 @@ abstract class AbstractSettingsPage extends HookConsumerWidget {
           ],
         ),
       ),
-      child: Padding(
-        padding: .only(top: PlatformUtils.isDesktop ? 24 : 12),
-        child: buildBody(context, ref),
-      ),
+      child: Padding(padding: .only(top: 12), child: buildBody(context, ref)),
     );
   }
 }

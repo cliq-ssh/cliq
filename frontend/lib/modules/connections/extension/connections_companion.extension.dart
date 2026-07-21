@@ -29,7 +29,7 @@ extension ConnectionsCompanionExtension on ConnectionsCompanion {
     }
 
     return ConnectionsCompanion(
-      id: Value(json['id'] as int),
+      id: Value(json['id'] as DbId),
       label: Value(json['label'] as String),
       address: Value(json['address'] as String),
       port: Value(json['port'] as int),
@@ -43,11 +43,11 @@ extension ConnectionsCompanionExtension on ConnectionsCompanion {
       ),
       username: Value(json['username'] as String?),
       groupName: Value(json['groupName'] as String?),
-      identityId: Value(json['identityId'] as int?),
+      identityId: Value(json['identityId'] as DbId?),
       terminalTypographyOverride: Value.absentIfNull(
         TerminalTypography.fromJson(json['terminalTypographyOverride']),
       ),
-      terminalThemeOverrideId: Value(json['terminalThemeOverrideId'] as int?),
+      terminalThemeOverrideId: Value(json['terminalThemeOverrideId'] as DbId?),
       usesDefaultThemeOverride: Value(json['usesDefaultThemeOverride'] as bool),
     );
   }

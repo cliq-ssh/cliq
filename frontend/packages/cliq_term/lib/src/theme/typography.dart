@@ -22,11 +22,11 @@ class TerminalTypography {
     return TextStyle(
       fontFamily: fontFamily,
       fontSize: fontSize.toDouble(),
-      fontWeight: .w500,
-      fontVariations: [
-        // TODO: figure out a way to use the normal font weight
-        // TODO: see https://docs.flutter.dev/release/breaking-changes/font-weight-variation
-        FontVariation('wght', 500),
+      fontWeight: FontWeight.w400,
+      fontFeatures: const [
+        FontFeature.disable('liga'),
+        FontFeature.disable('clig'),
+        FontFeature.disable('calt'),
       ],
     );
   }
@@ -44,7 +44,7 @@ class TerminalTypography {
   }
 
   @override
-  int get hashCode => fontFamily.hashCode ^ fontSize.hashCode;
+  int get hashCode => Object.hash(fontFamily, fontSize);
 
   Map<String, dynamic> toJson() => {
     'fontFamily': fontFamily,

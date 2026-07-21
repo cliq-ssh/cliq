@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:cliq/modules/connections/model/connection_full.model.dart';
 import 'package:cliq/shared/ui/context_menu.dart';
 import 'package:cliq/shared/utils/commons.dart';
+import 'package:cliq/shared/utils/platform_utils.dart';
 import 'package:cliq_term/cliq_term.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
@@ -11,8 +12,9 @@ import 'package:forui_hooks/forui_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lucide_flutter/lucide_flutter.dart';
 
-import '../../../shared/ui/navigation_shell.dart';
+import '../../../shared/ui/navigation/navigation_shell.dart';
 import '../../session/provider/session.provider.dart';
+import '../../settings/provider/sync.provider.dart';
 import '../provider/connection_service.provider.dart';
 import '../view/create_or_edit_connection_view.dart';
 import 'connection_icon.dart';
@@ -36,11 +38,7 @@ class ConnectionCard extends HookConsumerWidget {
         // TODO: https://github.com/cliq-ssh/cliq/issues/446
         Commons.showToast(
           'hosts_cannot_connect_username_missing'.tr(),
-          prefix: Icon(
-            LucideIcons.triangleAlert,
-            size: 20,
-            color: context.theme.colors.destructive,
-          ),
+          prefix: Icon(LucideIcons.triangleAlert),
           variant: .destructive,
         );
         return;
@@ -54,8 +52,11 @@ class ConnectionCard extends HookConsumerWidget {
     edit() async {
       await primaryPopoverController.hide();
       await secondaryPopoverController.hide();
+      if (!context.mounted) return;
+
       return Commons.showResponsiveDialog(
         (_) => CreateOrEditConnectionView.edit(connection),
+        context: context,
       );
     }
 
@@ -64,10 +65,11 @@ class ConnectionCard extends HookConsumerWidget {
       await secondaryPopoverController.hide();
       return Commons.showDeleteDialog(
         entity: connection.label,
-        onDelete: () {
-          ref
+        onDelete: () async {
+          await ref
               .read(connectionServiceProvider)
               .deleteById(connection.id, connection.credentialIds);
+          await ref.read(syncProvider.notifier).pullAndPushVault();
         },
       );
     }
@@ -148,7 +150,8 @@ class ConnectionCard extends HookConsumerWidget {
             children: [
               Flexible(
                 child: GestureDetector(
-                  onDoubleTap: connect,
+                  onTap: PlatformUtils.isMobile ? connect : null,
+                  onDoubleTap: PlatformUtils.isDesktop ? connect : null,
                   child: Row(
                     spacing: 16,
                     children: [

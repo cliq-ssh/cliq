@@ -23,7 +23,7 @@ import 'package:open_app_file/open_app_file.dart';
 
 import '../../../shared/provider/file_transfer.provider.dart';
 import '../../../shared/ui/context_menu.dart';
-import '../../../shared/ui/navigation_shell.dart';
+import '../../../shared/ui/navigation/navigation_shell.dart';
 import '../../../shared/ui/table_view.dart';
 import '../../../shared/utils/commons.dart';
 import '../../../shared/utils/platform_utils.dart';
@@ -358,11 +358,7 @@ class _SftpSessionPageState extends ConsumerState<SftpSessionPage>
 
           Commons.showToast(
             'sftp_failed_to_open'.tr(args: [e.message]),
-            prefix: Icon(
-              LucideIcons.folderLock,
-              size: 20,
-              color: context.theme.colors.destructive,
-            ),
+            prefix: Icon(LucideIcons.folderLock),
             variant: .destructive,
           );
 
@@ -662,11 +658,7 @@ class _SftpSessionPageState extends ConsumerState<SftpSessionPage>
 
         Commons.showToast(
           'sftp_failed_to_rename'.tr(args: [message]),
-          prefix: Icon(
-            LucideIcons.pencilOff,
-            size: 20,
-            color: context.theme.colors.destructive,
-          ),
+          prefix: Icon(LucideIcons.pencilOff),
           variant: .destructive,
         );
 

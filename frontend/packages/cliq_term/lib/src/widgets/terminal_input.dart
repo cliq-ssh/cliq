@@ -88,10 +88,17 @@ class _TerminalInputState extends State<TerminalInput>
 
   /// Opens a TextInputConnection to the software keyboard if not already open.
   void _openInputConnection() {
+    final int? viewId = View.maybeOf(context)?.viewId;
+    if (viewId == null) {
+      // if the viewId is not available, we cannot open the input connection.
+      return;
+    }
+
     if (_inputConnection == null || !_inputConnection!.attached) {
       _inputConnection = TextInput.attach(
         this,
         TextInputConfiguration(
+          viewId: viewId,
           inputType: .text,
           keyboardAppearance: Theme.of(context).brightness,
           autocorrect: false,
@@ -123,7 +130,12 @@ class _TerminalInputState extends State<TerminalInput>
       text: ' ',
       selection: TextSelection.collapsed(offset: 1),
     );
-    _inputConnection?.setEditingState(_editingValue);
+    // Use a post-frame callback to avoid engine-side race conditions
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted && (_inputConnection?.attached ?? false)) {
+        _inputConnection!.setEditingState(_editingValue);
+      }
+    });
   }
 
   @override

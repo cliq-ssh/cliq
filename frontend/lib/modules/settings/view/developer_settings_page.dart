@@ -84,7 +84,15 @@ class DeveloperSettingsPage extends AbstractSettingsPage {
                         for (final key in StoreKey.values)
                           FTile(
                             title: Text(key.name),
-                            subtitle: Text(key.readAsStringSync() ?? 'null'),
+                            subtitle: FutureBuilder(
+                              future: key.readAsync(),
+                              builder: (context, snap) => Text(
+                                !snap.hasData ? '--' : snap.data.toString(),
+                              ),
+                            ),
+                            prefix: Icon(
+                              key.isSecure ? LucideIcons.lock : LucideIcons.key,
+                            ),
                             suffix: FButton.icon(
                               variant: .destructive,
                               onPress: () => key.delete(),

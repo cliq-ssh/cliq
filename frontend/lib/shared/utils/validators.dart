@@ -45,6 +45,84 @@ final class Validators {
     return 'validator_error_invalid_address'.tr(context: context);
   }
 
+  static String? username(BuildContext context, Object? value) {
+    String? nonEmptyError = nonEmpty(context, value);
+    if (nonEmptyError != null) {
+      return nonEmptyError;
+    }
+    if (value is! String) {
+      return 'validator_error_invalid_username'.tr(context: context);
+    }
+    final String input = value;
+
+    final usernameRegex = RegExp(r'^[a-zA-Z0-9._-]{3,20}$');
+
+    if (!usernameRegex.hasMatch(input)) {
+      return 'validator_error_invalid_username'.tr(context: context);
+    }
+
+    return null;
+  }
+
+  static String? email(BuildContext context, Object? value) {
+    String? nonEmptyError = nonEmpty(context, value);
+    if (nonEmptyError != null) {
+      return nonEmptyError;
+    }
+    if (value is! String) {
+      return 'validator_error_invalid_email'.tr(context: context);
+    }
+    final String input = value;
+
+    final emailRegex = RegExp(r'^[\w-]+(\.[\w-]+)*@([\w-]+\.)+[a-zA-Z]{2,7}$');
+
+    if (!emailRegex.hasMatch(input)) {
+      return 'validator_error_invalid_email'.tr(context: context);
+    }
+
+    return null;
+  }
+
+  static String? passwordConfirm(
+    BuildContext context,
+    Object? value,
+    String? password,
+  ) {
+    String? nonEmptyError = nonEmpty(context, value);
+    if (nonEmptyError != null) {
+      return nonEmptyError;
+    }
+    if (value is! String) {
+      return 'validator_error_invalid_password_confirm'.tr(context: context);
+    }
+    final String input = value;
+
+    if (input != password) {
+      return 'validator_error_invalid_password_confirm'.tr(context: context);
+    }
+
+    return null;
+  }
+
+  static String? syncServerUrl(BuildContext context, Object? value) {
+    String? nonEmptyError = nonEmpty(context, value);
+    if (nonEmptyError != null) {
+      return nonEmptyError;
+    }
+    if (value is! String) {
+      return 'validator_error_invalid_sync_server_url'.tr(context: context);
+    }
+    final String input = value;
+
+    if (!input.startsWith('http://') && !input.startsWith('https://')) {
+      return 'validator_error_invalid_sync_server_url_missing_schema'.tr(
+        context: context,
+      );
+    }
+
+    return null;
+  }
+
   static String? pem(BuildContext context, Object? value) {
     String? nonEmptyError = nonEmpty(context, value);
     if (nonEmptyError != null) {

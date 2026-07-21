@@ -1,12 +1,21 @@
 import '../../vaults/data/vaults.drift';
 
 CREATE TABLE known_hosts (
-    id          INTEGER PRIMARY KEY AUTOINCREMENT,
-    vault_id    INTEGER NOT NULL REFERENCES vaults(id),
+    id          TEXT NOT NULL PRIMARY KEY DEFAULT '',
+    vault_id    TEXT NOT NULL REFERENCES vaults(id) ON DELETE CASCADE,
     host        TEXT NOT NULL,
     hostKey     BLOB NOT NULL,
     created_at  DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
+
+createOrUpdateKnownHost:
+  INSERT INTO known_hosts (id, vault_id, host, hostKey, created_at)
+  VALUES (:id, :vaultId, :host, :hostKey, :createdAt)
+  ON CONFLICT(id) DO UPDATE SET
+    vault_id = excluded.vault_id,
+    host = excluded.host,
+    hostKey = excluded.hostKey,
+    created_at = excluded.created_at;
 
 findAllKnownHostsFull:
   SELECT

@@ -5,31 +5,47 @@ import '../impl/requests/request_handler.dart';
 
 class RouteOptions {
   Uri? hostUri;
+
+  RouteOptions({this.hostUri});
+
+  factory RouteOptions.fromJson(Map<String, dynamic> json) {
+    return RouteOptions(
+      hostUri: json['hostUri'] != null ? Uri.parse(json['hostUri']) : null,
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {'hostUri': hostUri?.toString()};
+  }
+
+  @override
+  String toString() => 'RouteOptions(hostUri: $hostUri)';
 }
 
 abstract class CliqClient {
   RouteOptions get routeOptions;
-  Session get session;
+  User get selfUser;
 
-  static Future<String> retrieveHealthStatus(RouteOptions routeOptions) async {
-    final RestResponse<String> response = await RequestHandler.request(
-      route: ServerRoutes.getHealth.compile(),
-      mapper: (json) => json['status'] as String,
-      routeOptions: routeOptions,
-    );
+  static Future<ServerConfigurationResponse> retrieveConfiguration(
+    RouteOptions routeOptions,
+  ) async {
+    final RestResponse<ServerConfigurationResponse> response =
+        await RequestHandler.request(
+          route: ServerConfigurationRoutes.get.compile(),
+          mapper: (json) => .fromJson(json),
+          routeOptions: routeOptions,
+        );
     if (response.hasError) {
       throw response.error!;
     }
     return response.data!;
   }
 
-  Future<User> createUser({
-    required String email,
-    required String password,
-    required String username,
-    String locale = 'en',
-  });
+  Future<User> retrieveSelfUser();
 
-  Future<UserConfig> retrieveUserConfig();
-  Future<DateTime?> retrieveUserConfigLastUpdated();
+  Future<Vault> retrieveVault();
+
+  Future<DateTime?> retrieveVaultLastUpdated();
+
+  Future<void> upsertVault({required String configuration});
 }

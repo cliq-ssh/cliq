@@ -1,0 +1,71 @@
+package sh.cliq.backend.user.service
+
+import org.slf4j.LoggerFactory
+import org.springframework.context.MessageSource
+import org.springframework.mail.MailException
+import org.springframework.stereotype.Service
+import sh.cliq.backend.email.EmailSender
+import sh.cliq.backend.user.User
+import sh.cliq.backend.user.UserRepository
+import sh.cliq.backend.utils.TokenGenerator
+import java.time.Clock
+import java.time.OffsetDateTime
+import java.util.Locale
+
+@Service
+class UserService(
+    private val userRepository: UserRepository,
+    private val clock: Clock,
+    private val tokenGenerator: TokenGenerator,
+    private val emailSender: EmailSender,
+    private val messageSource: MessageSource,
+) {
+    private val logger = LoggerFactory.getLogger(this::class.java)
+
+    fun verifyUserEmail(user: User): User {
+        user.emailVerifiedAt = OffsetDateTime.now(clock)
+        user.emailVerificationToken = null
+
+        val updatedUser = userRepository.save(user)
+        userRepository.flush()
+
+        return updatedUser
+    }
+
+    @Suppress("TooGenericExceptionCaught")
+    fun sendVerificationEmail(user: User) {
+        if (user.isEmailVerified()) {
+            throw IllegalStateException("User email is already verified")
+        }
+
+        val token = tokenGenerator.generateEmailVerificationToken()
+        user.emailVerificationToken = token
+        user.emailVerificationSentAt = OffsetDateTime.now(clock)
+        userRepository.save(user)
+
+        val locale = Locale.forLanguageTag(user.locale)
+
+        val context =
+            mapOf(
+                "name" to user.name,
+                "verificationToken" to token,
+            )
+
+        try {
+            emailSender.sendEmail(
+                user.email,
+                messageSource.getMessage("email.verification.subject", null, locale),
+                context,
+                locale,
+                "emailVerificationMail",
+            )
+        } catch (e: MailException) {
+            user.emailVerificationSentAt = null
+            userRepository.save(user)
+
+            logger.error("Failed to send verification email to user ${user.id} (${user.email})", e)
+
+            throw e
+        }
+    }
+}

@@ -30,6 +30,13 @@
             "matchPackagePatterns": [
                 "^dev\\.detekt($|:)"
             ]
+        },
+        {
+            "matchPackageNames": [
+                "react",
+                "react-dom"
+            ],
+            "groupName": "react"
         }
     ]
 }

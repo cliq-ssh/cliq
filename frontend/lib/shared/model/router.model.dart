@@ -16,7 +16,7 @@ import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
 import '../../modules/settings/view/appearance_settings_page.dart';
-import '../ui/navigation_shell.dart';
+import '../ui/navigation/navigation_shell.dart';
 
 class Router {
   final Ref ref;

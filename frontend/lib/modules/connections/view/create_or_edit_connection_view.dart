@@ -3,6 +3,8 @@ import 'dart:async';
 import 'package:cliq/modules/connections/model/connection_full.model.dart';
 import 'package:cliq/modules/connections/model/connection_icons.dart';
 import 'package:cliq/modules/identities/provider/identity.provider.dart';
+import 'package:cliq/modules/settings/provider/sync.provider.dart';
+import 'package:cliq/modules/vaults/ui/vault_transfer_dialog.dart';
 import 'package:cliq/shared/extensions/text_controller.extension.dart';
 import 'package:cliq/shared/ui/create_or_edit_credential_form.dart';
 import 'package:cliq/shared/ui/create_or_edit_entity_view.dart';
@@ -18,7 +20,7 @@ import 'package:cliq_term/cliq_term.dart';
 import 'package:cliq_ui/cliq_ui.dart' show useMemoizedFuture;
 import 'package:drift/drift.dart' hide Column;
 import 'package:easy_localization/easy_localization.dart';
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' hide Router;
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:forui/forui.dart';
 import 'package:forui_hooks/forui_hooks.dart';
@@ -27,8 +29,12 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lucide_flutter/lucide_flutter.dart';
 
 import '../../../shared/data/database.dart';
+import '../../../shared/model/entity_type.dart';
+import '../../../shared/model/router.model.dart';
 import '../../credentials/model/credential_type.dart';
 import '../../settings/provider/terminal_theme.provider.dart';
+import '../../vaults/provider/vault_move_service.provider.dart';
+import '../provider/connection.provider.dart';
 import '../provider/connection_service.provider.dart';
 
 class CreateOrEditConnectionView extends HookConsumerWidget {
@@ -50,7 +56,7 @@ class CreateOrEditConnectionView extends HookConsumerWidget {
   ];
 
   final ConnectionsCompanion? current;
-  final List<int>? currentCredentialIds;
+  final List<DbId>? currentCredentialIds;
   final bool isEdit;
 
   const CreateOrEditConnectionView.create({super.key})
@@ -94,7 +100,7 @@ class CreateOrEditConnectionView extends HookConsumerWidget {
       () => GlobalKey<CreateOrEditCredentialsFormState>(),
     );
     final usernameFocusNode = useFocusNode();
-    final selectedVaultId = useState<int?>(current?.vaultId.value);
+    final selectedVaultId = useState<DbId?>(current?.vaultId.value);
 
     final defaultTerminalTypography = useStore(.defaultTerminalTypography);
     final defaultTerminalThemeId = useStore(.defaultTerminalThemeId);
@@ -133,16 +139,16 @@ class CreateOrEditConnectionView extends HookConsumerWidget {
     final selectedTypographyOverride = useState<TerminalTypography?>(
       current?.terminalTypographyOverride.value,
     );
-    final selectedTerminalThemeId = useState<int?>(
+    final selectedTerminalThemeId = useState<DbId?>(
       current?.terminalThemeOverrideId.value,
     );
-    final selectedIdentityId = useState<int?>(current?.identityId.value);
+    final selectedIdentityId = useState<DbId?>(current?.identityId.value);
 
     final groups = useMemoizedFuture(() async {
       return await connectionService.findAllGroupNamesDistinct();
     }, []);
 
-    Future<void> onSave(int? vaultId) async {
+    Future<void> onSave(DbId? vaultId) async {
       if (!(formKey.currentState?.validate() ?? false)) return;
       final newCredentialIds = await credentialsKey.currentState?.save();
       // null is only returned when validation fails
@@ -449,7 +455,7 @@ class CreateOrEditConnectionView extends HookConsumerWidget {
                 onChange: (selected) => selectedTypographyOverride.value =
                     getEffectiveTypography(null, selected),
               ),
-              FSelect<int>.rich(
+              FSelect<DbId>.rich(
                 format: (s) => terminalThemes.entities
                     .firstWhere(
                       (t) => t.id == s,
@@ -502,13 +508,61 @@ class CreateOrEditConnectionView extends HookConsumerWidget {
         obscureText: obscure,
         maxLines: maxLines,
         minLines: minLines,
-        autovalidateMode: AutovalidateMode.onUserInteraction,
+        autovalidateMode: .onUserInteraction,
       );
     }
 
     return CreateOrEditEntityView(
       onSave: onSave,
+      initialVaultId: selectedVaultId.value,
       onVaultSelected: (vaultId) => selectedVaultId.value = vaultId,
+      onOpenVaultTransferDialog: () async {
+        final vaultMoveService = ref.read(vaultMoveServiceProvider);
+        final preview = await vaultMoveService.previewMove(
+          seedConnectionIds: {current!.id.value},
+        );
+
+        final otherConnectionIds = preview.connectionIds.difference({
+          current!.id.value,
+        });
+        final allConnections = ref.read(connectionProvider).entities;
+        final allIdentities = ref.read(identityProvider).entities;
+
+        final relations = <EntityType, List<String>>{
+          if (otherConnectionIds.isNotEmpty)
+            .connection: allConnections
+                .where((c) => otherConnectionIds.contains(c.id))
+                .map((c) => c.label)
+                .toList(),
+          if (preview.identityIds.isNotEmpty)
+            .identity: allIdentities
+                .where((i) => preview.identityIds.contains(i.id))
+                .map((i) => i.label)
+                .toList(),
+          if (preview.keyIds.isNotEmpty)
+            .key: ['keys_label'.plural(preview.keyIds.length)],
+        };
+
+        if (!context.mounted) return;
+
+        return showFDialog(
+          context: Router.rootNavigatorKey.currentContext ?? context,
+          builder: (_, style, animation) => VaultTransferDialog(
+            style: style,
+            animation: animation,
+            currentVault: selectedVaultId.value!,
+            entityName: current?.label.value ?? labelCtrl.text,
+            relations: relations.isEmpty ? null : relations,
+            onTransfer: (targetVaultId) async {
+              await vaultMoveService.commitMove(preview, targetVaultId);
+              await ref.read(syncProvider.notifier).pullAndPushVault();
+              selectedVaultId.value = targetVaultId;
+              if (!context.mounted) return;
+              Navigator.of(context).pop(); // close edit view after transfer
+            },
+          ),
+        );
+      },
       isEdit: isEdit,
       child: Form(
         key: formKey,
@@ -569,12 +623,14 @@ class CreateOrEditConnectionView extends HookConsumerWidget {
                   child: FAutocomplete.textBuilder(
                     control: .managed(controller: usernameCtrl),
                     filter: (query) {
-                      final values = identities.entities.map(
-                        (i) => AutocompleteUtils.toAutocompleteString(
-                          i.id,
-                          i.label,
-                        ),
-                      );
+                      final values = identities.entities
+                          .where((i) => i.vaultId == selectedVaultId.value)
+                          .map(
+                            (i) => AutocompleteUtils.toAutocompleteString(
+                              i.id,
+                              i.label,
+                            ),
+                          );
                       if (query.isEmpty) {
                         return values;
                       }

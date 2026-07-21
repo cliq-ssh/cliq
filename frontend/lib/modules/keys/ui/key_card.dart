@@ -8,6 +8,7 @@ import 'package:forui_hooks/forui_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lucide_flutter/lucide_flutter.dart';
 
+import '../../settings/provider/sync.provider.dart';
 import '../provider/key_service.provider.dart';
 
 class KeyCard extends HookConsumerWidget {
@@ -21,8 +22,11 @@ class KeyCard extends HookConsumerWidget {
 
     edit() async {
       await popoverController.hide();
+      if (!context.mounted) return;
+
       return Commons.showResponsiveDialog(
         (_) => CreateOrEditKeyView.edit(keyEntity),
+        context: context,
       );
     }
 
@@ -30,7 +34,10 @@ class KeyCard extends HookConsumerWidget {
       await popoverController.hide();
       return Commons.showDeleteDialog(
         entity: keyEntity.label,
-        onDelete: () => ref.read(keyServiceProvider).deleteById(keyEntity.id),
+        onDelete: () async {
+          await ref.read(keyServiceProvider).deleteById(keyEntity.id);
+          await ref.read(syncProvider.notifier).pullAndPushVault();
+        },
       );
     }
 
