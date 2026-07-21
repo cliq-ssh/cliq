@@ -7,6 +7,7 @@ import 'package:cliq_api/src/api/responses/login_finish_response.dart';
 import 'package:cliq_api/src/api/responses/login_start_response.dart';
 import 'package:cliq_api/src/api/responses/token_response.dart';
 import 'package:dsrp/dsrp.dart' as dsrp;
+import 'package:jwt_decoder/jwt_decoder.dart';
 
 import '../impl/cliq_client_impl.dart';
 import '../impl/utils/encryption_helper.dart';
@@ -19,7 +20,7 @@ class CliqClientBuilder {
   CliqClientImpl buildApiImpl() =>
       CliqClientImpl()..routeOptions = routeOptions;
 
-  Future<CliqClient> refresh({
+  Future<(CliqClient, DateTime)> refresh({
     required String refreshToken,
     Function(String)? onRefreshTokenReceived,
   }) async {
@@ -39,7 +40,7 @@ class CliqClientBuilder {
 
     apiImpl.accessToken = tokens.accessToken;
     apiImpl.selfUser = await apiImpl.retrieveSelfUser();
-    return apiImpl;
+    return (apiImpl, JwtDecoder.getExpirationDate(tokens.accessToken));
   }
 
   Future<CliqClient> login({

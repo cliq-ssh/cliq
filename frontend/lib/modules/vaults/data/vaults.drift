@@ -1,5 +1,26 @@
+import '../../connections/data/connections.drift';
+import '../../identities/data/identities.drift';
+import '../../credentials/data/credentials.drift';
+import '../../keys/data/keys.drift';
+import '../../settings/data/known_hosts.drift';
+
 CREATE TABLE vaults (
     id          TEXT NOT NULL PRIMARY KEY DEFAULT '',
     label       TEXT NOT NULL UNIQUE,
     is_default  BOOLEAN NOT NULL DEFAULT FALSE
 );
+
+clearConnectionsByVaultId:
+  DELETE FROM connections WHERE vault_id = :vaultId;
+
+clearIdentitiesByVaultId:
+  DELETE FROM identities WHERE vault_id = :vaultId;
+
+clearCredentialsByVaultId:
+  DELETE FROM credentials WHERE vault_id = :vaultId;
+
+clearKeysByVaultId:
+  DELETE FROM keys WHERE vault_id = :vaultId;
+
+clearKnownHostsByVaultId:
+  DELETE FROM known_hosts WHERE vault_id = :vaultId;

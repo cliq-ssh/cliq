@@ -2,7 +2,7 @@ import '../../vaults/data/vaults.drift';
 
 CREATE TABLE keys (
     id              TEXT NOT NULL PRIMARY KEY DEFAULT '',
-    vault_id        TEXT NOT NULL REFERENCES vaults(id),
+    vault_id        TEXT NOT NULL REFERENCES vaults(id) ON DELETE CASCADE,
     label           TEXT NOT NULL,
     private_key     TEXT NOT NULL,
     public_key      TEXT,

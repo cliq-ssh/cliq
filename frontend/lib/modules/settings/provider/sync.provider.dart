@@ -1,13 +1,15 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:cliq/modules/settings/model/settings_importer/app_settings.model.dart';
 import 'package:cliq/modules/settings/model/settings_importer/settings_importer.dart';
+import 'package:cliq/modules/vaults/provider/vault_service.provider.dart';
 import 'package:cliq/shared/data/store.dart';
 import 'package:cliq/shared/model/localized_exception.dart';
 import 'package:cliq/shared/provider/database.provider.dart';
 import 'package:cliq/shared/utils/password_cipher.dart';
-import 'package:cliq_api/cliq_api.dart';
+import 'package:cliq_api/cliq_api.dart' hide Vault;
 import 'package:file_selector/file_selector.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -53,14 +55,29 @@ class SyncProviderNotifier extends Notifier<SyncState> {
       final refreshToken = await StoreKey.syncRefreshToken.readAsync();
       if (refreshToken == null) return;
 
-      final api = await _getDefaultClientBuilder(routeOptions).refresh(
-        refreshToken: refreshToken,
-        onRefreshTokenReceived: (token) =>
-            StoreKey.syncRefreshToken.write(token),
+      final (api, expiresAt) = await _getDefaultClientBuilder(routeOptions)
+          .refresh(
+            refreshToken: refreshToken,
+            onRefreshTokenReceived: (token) =>
+                StoreKey.syncRefreshToken.write(token),
+          );
+
+      final durationTillRefresh = expiresAt.difference(DateTime.now());
+      final refreshIn = durationTillRefresh - Duration(seconds: 10);
+      _log.info(
+        'Successfully refreshed session, refreshing in ${durationTillRefresh.inSeconds} seconds',
       );
 
-      ref.read(vaultProvider.notifier).findOrCreateUserVault(api);
-      state = state.copyWith(api: api);
+      state.refreshTimer?.cancel();
+      // Schedule a timer to refresh the session 10 seconds before the refresh token expires
+      final refreshTimer = Timer(refreshIn, () async {
+        _log.info('Refresh token expired, attempting to refresh session...');
+        await attemptRecovery();
+      });
+
+      await ref.read(vaultProvider.notifier).findOrCreateUserVault(api);
+      state = state.copyWith(api: api, refreshTimer: refreshTimer);
+      await pullVault();
     } catch (e) {
       debugPrint('Failed to recover session: $e');
       await logout();
@@ -84,8 +101,9 @@ class SyncProviderNotifier extends Notifier<SyncState> {
     );
 
     StoreKey.syncHost.write(routeOptions);
-    ref.read(vaultProvider.notifier).findOrCreateUserVault(api);
+    await ref.read(vaultProvider.notifier).findOrCreateUserVault(api);
     state = state.copyWith(api: api);
+    await pullVault();
   }
 
   Future<void> register(
@@ -106,7 +124,13 @@ class SyncProviderNotifier extends Notifier<SyncState> {
     await StoreKey.syncDataEncryptionKey.delete();
     await StoreKey.syncRefreshToken.delete();
     await StoreKey.syncLastUpdated.delete();
-    // TODO: delete user vault and all associated data from local storage
+    state.refreshTimer?.cancel();
+
+    final userVault = await ref
+        .read(vaultProvider.notifier)
+        .findOrCreateUserVault(state.api!);
+    await ref.read(vaultServiceProvider).deleteById(userVault.id);
+
     state = .initial();
   }
 
@@ -150,7 +174,7 @@ class SyncProviderNotifier extends Notifier<SyncState> {
   /// Pulls the latest vault from the server and updates our local vault with it.
   /// Returns true if the vault was pulled and updated, false if it was not pulled because our local vault is
   /// already up to date.
-  Future<bool> pullVault() async {
+  Future<bool> pullVault({Vault? userVaultOverride}) async {
     if (state.api == null) {
       throw StateError('Cannot pull vault, API is not initialized.');
     }
@@ -158,15 +182,17 @@ class SyncProviderNotifier extends Notifier<SyncState> {
       return false;
     }
 
-    final userVault = await ref
-        .read(vaultProvider.notifier)
-        .findOrCreateUserVault(state.api!);
+    final userVault =
+        userVaultOverride ??
+        (await ref
+            .read(vaultProvider.notifier)
+            .findOrCreateUserVault(state.api!));
     final vault = await state.api!.retrieveVault();
 
     final dek = await StoreKey.syncDataEncryptionKey.readAsync();
     if (dek == null) {
       // this should never happen, dek is set on login
-      throw StateError('Data encryption key is missing, cannot push vault.');
+      throw StateError('Data encryption key is missing, cannot pull vault.');
     }
 
     final json = await PasswordCipher.instance.decrypt(
@@ -178,7 +204,7 @@ class SyncProviderNotifier extends Notifier<SyncState> {
     if (settings == null) {
       throw StateError('Failed to parse vault configuration from server.');
     }
-    await import(settings, userVault.id);
+    await import(settings, userVault.id, cleanImport: true);
     StoreKey.syncLastUpdated.write(vault.updatedAt.millisecondsSinceEpoch);
     return true;
   }
@@ -191,7 +217,11 @@ class SyncProviderNotifier extends Notifier<SyncState> {
       throw StateError('Cannot pull vault, API is not initialized.');
     }
 
-    await pullVault();
+    final userVault = await ref
+        .read(vaultProvider.notifier)
+        .findOrCreateUserVault(state.api!);
+
+    await pullVault(userVaultOverride: userVault);
 
     final dek = await StoreKey.syncDataEncryptionKey.readAsync();
     if (dek == null) {
@@ -199,7 +229,7 @@ class SyncProviderNotifier extends Notifier<SyncState> {
       throw StateError('Data encryption key is missing, cannot push vault.');
     }
 
-    final content = jsonEncode((await export()).toJson());
+    final content = jsonEncode((await export(userVault.id)).toJson());
 
     final encrypted = await PasswordCipher.instance.encrypt(
       utf8.encode(content),
@@ -266,14 +296,25 @@ class SyncProviderNotifier extends Notifier<SyncState> {
 
   /// Imports the given [toImport] settings into the vault with [vaultId].
   /// This method assumes that the settings have already been validated.
-  Future<void> import(AppSettings toImport, DbId vaultId) async {
+  /// If [cleanImport] is true, the existing settings in the vault will be cleared before importing
+  /// the new settings.
+  Future<void> import(
+    AppSettings toImport,
+    DbId vaultId, {
+    bool cleanImport = false,
+  }) async {
     final connectionService = ref.read(connectionServiceProvider);
     final identityService = ref.read(identityServiceProvider);
     final knownHostService = ref.read(knownHostServiceProvider);
     final credentialService = ref.read(credentialServiceProvider);
     final keyService = ref.read(keyServiceProvider);
+    final vaultService = ref.read(vaultServiceProvider);
 
     await ref.read(databaseProvider).transaction(() async {
+      if (cleanImport) {
+        await vaultService.clearByVaultId(vaultId);
+      }
+
       for (final key in toImport.keys ?? <KeysCompanion>[]) {
         await keyService.createOrUpdate(
           id: key.id.value,
@@ -345,27 +386,45 @@ class SyncProviderNotifier extends Notifier<SyncState> {
   }
 
   /// Exports the current vault settings as an [AppSettings] object.
-  Future<AppSettings> export() async {
+  Future<AppSettings> export(DbId vaultId) async {
     final connections = ref.read(connectionProvider);
     final identities = ref.read(identityProvider);
     final knownHosts = ref.read(knownHostProvider);
     final credentials = await ref.read(credentialServiceProvider).findAll();
     final keys = await ref.read(keyServiceProvider).findAll();
-    final identitiesCredentialIds = identities.entities.asMap().map(
-      (_, entity) => MapEntry(entity.id, entity.credentialIds),
-    );
-    final connectionsCredentialIds = connections.entities.asMap().map(
-      (_, entity) => MapEntry(entity.id, entity.credentialIds),
-    );
+
+    final identitiesCredentialIds = identities.entities
+        .where((e) => e.vaultId == vaultId)
+        .toList()
+        .asMap()
+        .map((_, entity) => MapEntry(entity.id, entity.credentialIds));
+    final connectionsCredentialIds = connections.entities
+        .where((e) => e.vaultId == vaultId)
+        .toList()
+        .asMap()
+        .map((_, entity) => MapEntry(entity.id, entity.credentialIds));
 
     return AppSettings(
       connections: connections.entities
+          .where((e) => e.vaultId == vaultId)
           .map((e) => e.toCompanion(true))
           .toList(),
-      identities: identities.entities.map((e) => e.toCompanion(true)).toList(),
-      knownHosts: knownHosts.entities.map((e) => e.toCompanion(true)).toList(),
-      credentials: credentials.map((e) => e.toCompanion(true)).toList(),
-      keys: keys.map((e) => e.toCompanion(true)).toList(),
+      identities: identities.entities
+          .where((e) => e.vaultId == vaultId)
+          .map((e) => e.toCompanion(true))
+          .toList(),
+      knownHosts: knownHosts.entities
+          .where((e) => e.vaultId == vaultId)
+          .map((e) => e.toCompanion(true))
+          .toList(),
+      credentials: credentials
+          .where((e) => e.vaultId == vaultId)
+          .map((e) => e.toCompanion(true))
+          .toList(),
+      keys: keys
+          .where((e) => e.vaultId == vaultId)
+          .map((e) => e.toCompanion(true))
+          .toList(),
       identitiesCredentialIds: identitiesCredentialIds,
       connectionsCredentialIds: connectionsCredentialIds,
     );

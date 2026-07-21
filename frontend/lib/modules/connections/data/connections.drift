@@ -8,7 +8,7 @@ import '../../../shared/data/converters/terminal_typography_converter.dart';
 
 CREATE TABLE connections (
     id                              TEXT NOT NULL PRIMARY KEY DEFAULT '',
-    vault_id                        TEXT NOT NULL REFERENCES vaults(id),
+    vault_id                        TEXT NOT NULL REFERENCES vaults(id) ON DELETE CASCADE,
     label                           TEXT NOT NULL,
     address                         TEXT NOT NULL,
     port                            INTEGER NOT NULL,

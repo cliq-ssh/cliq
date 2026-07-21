@@ -50,4 +50,14 @@ final class VaultService {
     );
     return (connectionsCount, identitiesCount, keysCount, knownHostsCount);
   }
+
+  Future<void> clearByVaultId(DbId vaultId) async {
+    await _vaultsRepository.db.clearConnectionsByVaultId(vaultId);
+    await _vaultsRepository.db.clearIdentitiesByVaultId(vaultId);
+    await _vaultsRepository.db.clearCredentialsByVaultId(vaultId);
+    await _vaultsRepository.db.clearKeysByVaultId(vaultId);
+    await _vaultsRepository.db.clearKnownHostsByVaultId(vaultId);
+  }
+
+  Future<void> deleteById(DbId id) => _vaultsRepository.deleteById(id);
 }

@@ -165,8 +165,7 @@ class CreateOrEditEntityView extends HookConsumerWidget {
                                 ? vaultSelectController.value
                                 : null;
 
-                            if (withVaultSelector &&
-                                vaultId == userVault.value?.id) {
+                            if (withVaultSelector) {
                               ref
                                   .read(syncProvider.notifier)
                                   .pullAndPushVault();
