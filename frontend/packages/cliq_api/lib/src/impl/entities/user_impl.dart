@@ -5,17 +5,20 @@ class UserImpl extends CliqEntityImpl implements User {
   @override
   final int id;
   @override
-  final String name;
+  final String username;
   @override
   final String email;
   @override
   final DateTime createdAt;
+  @override
+  final DateTime updatedAt;
 
   const UserImpl(
     super.api, {
     required this.id,
-    required this.name,
+    required this.username,
     required this.email,
     required this.createdAt,
+    required this.updatedAt,
   });
 }

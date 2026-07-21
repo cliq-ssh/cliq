@@ -1,46 +1,35 @@
-import 'api_error.dart';
+import '../../../../cliq_api.dart';
+import 'rest_response.dart';
 
 class ErrorResponse {
-  final String details;
-  final dynamic reference;
-  final ApiError? error;
-  final ApiCode apiCode;
+  final ErrorCode errorCode;
 
-  const ErrorResponse({
-    required this.details,
-    required this.reference,
-    required this.error,
-    required this.apiCode,
-  });
+  const ErrorResponse({required this.errorCode});
 
   static ErrorResponse? tryFromJson(Map<String, dynamic>? json) {
-    final ApiCode? apiCode = ApiCode.tryFromJson(json?['api_code']);
-    if (json == null ||
-        json.isEmpty ||
-        apiCode == null ||
-        json['details'] == null) {
+    final ErrorCode? errorCode = .tryFromJson(json?['errorCode']);
+    if (errorCode == null) {
       return null;
     }
-    final ApiError? error = ApiError.fromCode(apiCode.code);
-    return ErrorResponse(
-      details: json['details'],
-      reference: json['reference'],
-      error: error,
-      apiCode: apiCode,
-    );
+    return ErrorResponse(errorCode: errorCode);
   }
+
+  CliqException toException() =>
+      CliqException(errorCode.code, errorCode.description);
+  RestResponse<T> toResponse<T>({required int? httpStatusCode}) =>
+      .new(error: toException(), httpStatusCode: httpStatusCode);
 }
 
-class ApiCode {
+class ErrorCode {
   final int code;
-  final String message;
+  final String? description;
 
-  const ApiCode(this.code, this.message);
+  const ErrorCode(this.code, this.description);
 
-  static ApiCode? tryFromJson(Map<String, dynamic>? json) {
+  static ErrorCode? tryFromJson(Map<String, dynamic>? json) {
     if (json == null || json.isEmpty || json['code'] == null) {
       return null;
     }
-    return ApiCode(json['code'], json['message']);
+    return ErrorCode(json['code'], json['description']);
   }
 }

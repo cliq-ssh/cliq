@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:cliq/modules/settings/provider/sync.provider.dart';
 import 'package:cliq/shared/data/store.dart';
 import 'package:cliq/shared/model/localized_exception.dart';
 import 'package:cliq/shared/model/router.model.dart';
@@ -126,6 +127,7 @@ void _handleError(Object error, StackTrace stackTrace) {
               entry.dismiss();
               Commons.showResponsiveDialog(
                 (_) => ErrorView(error: error, stackTrace: stackTrace),
+                context: null,
               );
             },
             child: Icon(
@@ -184,6 +186,8 @@ class _CliqAppState extends ConsumerState<CliqApp> {
     SystemChrome.setSystemUIOverlayStyle(
       const SystemUiOverlayStyle(systemNavigationBarColor: Colors.transparent),
     );
+
+    ref.refresh(syncProvider.notifier).attemptRecovery();
   }
 
   @override

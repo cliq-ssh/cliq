@@ -9,6 +9,7 @@ import 'package:dartssh2/dartssh2.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:uuid/v4.dart';
 
+import '../../../shared/data/database.dart';
 import '../../credentials/provider/credential_service.provider.dart';
 import '../../settings/model/known_host_error.model.dart';
 import '../../settings/provider/known_host_service.provider.dart';
@@ -339,13 +340,13 @@ class SessionNotifier extends Notifier<SessionState> {
     );
   }
 
-  Future<int> acceptFingerprint(
-    int vaultId,
+  Future<void> acceptFingerprint(
+    DbId vaultId,
     String sessionId,
     KnownHostError error,
-  ) {
+  ) async {
     if (error.knownHost != null) {
-      return ref
+      await ref
           .read(knownHostServiceProvider)
           .update(
             error.knownHost!.id.value,
@@ -354,7 +355,7 @@ class SessionNotifier extends Notifier<SessionState> {
             compareTo: error.knownHost,
           );
     }
-    return ref
+    await ref
         .read(knownHostServiceProvider)
         .createKnownHost(
           vaultId: vaultId,

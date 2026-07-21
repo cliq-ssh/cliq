@@ -14,8 +14,8 @@ class AppSettings {
   final List<CredentialsCompanion>? credentials;
   final List<KeysCompanion>? keys;
 
-  final Map<int, List<int>>? connectionsCredentialIds;
-  final Map<int, List<int>>? identitiesCredentialIds;
+  final Map<DbId, List<DbId>>? connectionsCredentialIds;
+  final Map<DbId, List<DbId>>? identitiesCredentialIds;
 
   const AppSettings({
     required this.connections,
@@ -49,10 +49,7 @@ class AppSettings {
     parseCredentialIds(String key) {
       return json[key] is Map<String, dynamic>
           ? (json[key] as Map<String, dynamic>).map(
-              (k, v) => MapEntry(
-                int.tryParse(k) ?? -1,
-                (v as List).map((e) => e as int).toList(),
-              ),
+              (k, v) => MapEntry(k, (v as List).map((e) => e as DbId).toList()),
             )
           : null;
     }

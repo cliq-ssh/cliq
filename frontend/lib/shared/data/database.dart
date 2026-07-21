@@ -21,6 +21,9 @@ import 'converters/terminal_typography_converter.dart';
 
 part 'database.g.dart';
 
+/// A type alias for database identifiers, represented as strings (uuids)
+typedef DbId = String;
+
 @DriftDatabase(
   include: {
     '../../modules/connections/data/connections.drift',

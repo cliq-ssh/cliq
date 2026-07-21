@@ -149,6 +149,7 @@ jobs:
             libglib2.0-dev \
             libx11-dev \
             libxext-dev \
+            libsecret-1-dev \
             libxinerama-dev \
             libxrandr-dev \
             libxrender-dev \

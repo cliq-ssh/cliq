@@ -10,7 +10,7 @@ final class KeyService {
 
   const KeyService(this._keyRepository);
 
-  Stream<List<int>> watchAll() => _keyRepository.db.findAllKeyIds().watch();
+  Stream<List<DbId>> watchAll() => _keyRepository.db.findAllKeyIds().watch();
 
   Future<List<KeyFull>> findAll() {
     return _keyRepository.db.findAllKeyIds().get().then(
@@ -18,20 +18,20 @@ final class KeyService {
     );
   }
 
-  Future<List<KeyFull>> findByIds(List<int> ids) {
+  Future<List<KeyFull>> findByIds(List<DbId> ids) {
     return _keyRepository.db
         .findAllKeyFullByIds(ids)
         .get()
         .then((keys) => keys.map(KeyFull.fromFindAllResult).toList());
   }
 
-  Future<int> createKey({
-    required int vaultId,
+  Future<DbId> createKey({
+    required DbId vaultId,
     required String label,
     required String privateKey,
     required String? publicKey,
     required String? passphrase,
-  }) => _keyRepository.insert(
+  }) async => (await _keyRepository.insert(
     KeysCompanion.insert(
       vaultId: vaultId,
       label: label.trim(),
@@ -39,11 +39,11 @@ final class KeyService {
       publicKey: Value.absentIfNull(publicKey?.trim()),
       passphrase: Value.absentIfNull(passphrase),
     ),
-  );
+  )).id;
 
   Future<int> update(
-    int id, {
-    required int? vaultId,
+    DbId id, {
+    required DbId? vaultId,
     required String? label,
     required String? privateKey,
     required String? publicKey,
@@ -69,5 +69,26 @@ final class KeyService {
     ),
   );
 
-  Future<void> deleteById(int id) => _keyRepository.deleteById(id);
+  Future<int> createOrUpdate({
+    required DbId id,
+    required DbId vaultId,
+    required String label,
+    required String privateKey,
+    required String? publicKey,
+    required String? passphrase,
+  }) async {
+    return _keyRepository.db.createOrUpdateKey(
+      id,
+      vaultId,
+      label,
+      privateKey,
+      publicKey,
+      passphrase,
+    );
+  }
+
+  Future<void> moveToVault(Set<DbId> ids, DbId vaultId) =>
+      _keyRepository.db.moveKeysByIds(vaultId, ids.toList());
+
+  Future<void> deleteById(DbId id) => _keyRepository.deleteById(id);
 }
