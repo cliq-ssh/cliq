@@ -15,8 +15,6 @@
 
 default_platform(:mac)
 
-default_platform(:mac)
-
 platform :mac do
     desc "Push a new edge build to TestFlight"
     lane :edge do
