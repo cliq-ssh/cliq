@@ -1,6 +1,7 @@
 import 'package:cliq/modules/settings/view/abstract_settings_page.dart';
 import 'package:cliq/modules/settings/view/settings_page.dart';
 import 'package:cliq/shared/data/store.dart';
+import 'package:cliq/shared/provider/database.provider.dart';
 import 'package:cliq_ui/cliq_ui.dart'
     show CliqGridColumn, CliqGridRow, CliqGridContainer;
 import 'package:flutter/cupertino.dart';
@@ -8,7 +9,6 @@ import 'package:forui/forui.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lucide_flutter/lucide_flutter.dart';
 
-import '../../../shared/data/database.dart';
 import '../../../shared/model/page_path.model.dart';
 import '../../../shared/utils/commons.dart' show Commons;
 
@@ -56,7 +56,7 @@ class DeveloperSettingsPage extends AbstractSettingsPage {
                           onPress: () => Commons.showDeleteDialog(
                             entity: 'ALL DATABASE TABLES',
                             onDelete: () =>
-                                CliqDatabase.instance.deleteAllTables(),
+                                ref.read(databaseProvider).deleteAllTables(),
                             canInstantDelete: false,
                             mayNeedAppRestart: true,
                           ),
