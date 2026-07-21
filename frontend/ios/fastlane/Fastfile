@@ -28,12 +28,26 @@ platform :ios do
         )
 
         match(
-          type: "appstore",
-          readonly: true,
-          git_basic_authorization: Base64.strict_encode64("jasonlessenich:#{ENV['MATCH_GIT_PAT']}")
+            type: "appstore",
+            readonly: true,
+            git_basic_authorization: Base64.strict_encode64("jasonlessenich:#{ENV['MATCH_GIT_PAT']}")
         )
 
-        build_app(workspace: "Runner.xcworkspace", scheme: "Runner", export_method: "app-store")
+        update_code_signing_settings(
+            use_automatic_signing: false,
+            path: "Runner.xcodeproj",
+            code_sign_identity: "iPhone Distribution",
+            bundle_identifier: "sh.cliq.cliq",
+            profile_name: "match AppStore sh.cliq.cliq",
+            team_id: ENV['APPLE_TEAM_ID']
+        )
+
+        build_app(
+            workspace: "Runner.xcworkspace",
+            scheme: "Runner",
+            export_method: "app-store",
+            export_team_id: ENV['APPLE_TEAM_ID']
+        )
         upload_to_testflight(skip_waiting_for_build_processing: true)
     end
 end
