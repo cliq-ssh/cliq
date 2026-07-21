@@ -182,9 +182,7 @@ class SyncProviderNotifier extends Notifier<SyncState> {
   /// Returns true if the vault was pulled and updated, false if it was not pulled because our local vault is
   /// already up to date.
   Future<bool> pullVault({Vault? userVaultOverride}) async {
-    if (state.api == null) {
-      throw StateError('Cannot pull vault, API is not initialized.');
-    }
+    if (state.api == null) return false;
     if (!(await shouldPull())) {
       return false;
     }
@@ -220,9 +218,7 @@ class SyncProviderNotifier extends Notifier<SyncState> {
   /// then pushes our local vault to the server.
   /// This is done to ensure that we don't overwrite any changes that may have been made on the server since our last sync.
   Future<bool> pullAndPushVault() async {
-    if (state.api == null) {
-      throw StateError('Cannot pull vault, API is not initialized.');
-    }
+    if (state.api == null) return false;
 
     final userVault = await ref
         .read(vaultProvider.notifier)
