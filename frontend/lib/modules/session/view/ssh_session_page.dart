@@ -106,70 +106,72 @@ class _SshSessionPageState extends ConsumerState<SshSessionPage>
       );
     }
 
+    void rebindTerminalControllerCallbacks(TerminalController controller) {
+      controller.onBell = () {
+        if (!bellSound.value) return;
+        SystemSound.play(.alert);
+      };
+      controller.onTitleChange = (title) {
+        if (!PlatformUtils.isDesktop) return;
+        windowManager.setTitle(title);
+      };
+      controller.onHyperlinkTap = (hyperlink) {
+        debugPrint('Hyperlink tapped: $hyperlink');
+        // TODO: handle hyperlinks?
+      };
+      controller.onResize = (rows, cols, size) {
+        resizeDebounceTimer.value?.cancel();
+        resizeDebounceTimer.value = Timer(
+          const Duration(milliseconds: 100),
+          () {
+            if (!mounted) return;
+            final currentSession = ref
+                .read(sessionProvider.notifier)
+                .getSessionById(widget.sessionId);
+            currentSession?.sshSession?.resizeTerminal(
+              cols,
+              rows,
+              size.width.round(),
+              size.height.round(),
+            );
+          },
+        );
+
+        if (isInitialResize.value) {
+          isInitialResize.value = false;
+          return;
+        }
+
+        removeOverlay() {
+          if (!mounted) return;
+          resizeOverlayEntry.value?.remove();
+          resizeOverlayEntry.value = null;
+        }
+
+        if (resizeOverlayEntry.value != null) removeOverlay();
+
+        resizeOverlayEntry.value = buildResizeOverlay(rows, cols);
+        Overlay.of(context).insert(resizeOverlayEntry.value!);
+
+        resizeOverlayTimer.value?.cancel();
+        resizeOverlayTimer.value = Timer(
+          const Duration(milliseconds: 500),
+          removeOverlay,
+        );
+      };
+    }
+
     buildTerminalController() {
-      return TerminalController(
+      final controller = TerminalController(
         theme: effectiveTerminalTheme.toTerminalTheme(),
         typography: getEffectiveTerminalTypography(),
         debugLogging: kDebugMode,
         maxScrollbackLines: scrollbackSize.value,
-        onBell: () {
-          if (!bellSound.value) return;
-          SystemSound.play(.alert);
-        },
-        onTitleChange: (title) {
-          if (!PlatformUtils.isDesktop) return;
-          windowManager.setTitle(title);
-        },
-        onHyperlinkTap: (hyperlink) {
-          debugPrint('Hyperlink tapped: $hyperlink');
-          // TODO: handle hyperlinks?
-        },
         cursorBlinkInterval: Duration(milliseconds: cursorBlinkInterval.value),
         cursorBlinkTimeout: Duration(seconds: cursorBlinkTimeout.value),
-        onResize: (rows, cols, size) {
-          resizeDebounceTimer.value?.cancel();
-          resizeDebounceTimer.value = Timer(
-            const Duration(milliseconds: 100),
-            () {
-              if (!mounted) return;
-              final currentSession = ref
-                  .read(sessionProvider.notifier)
-                  .getSessionById(widget.sessionId);
-
-              currentSession?.sshSession?.resizeTerminal(
-                cols,
-                rows,
-                size.width.round(),
-                size.height.round(),
-              );
-            },
-          );
-
-          if (isInitialResize.value) {
-            isInitialResize.value = false;
-            return;
-          }
-
-          removeOverlay() {
-            if (!mounted) return;
-            resizeOverlayEntry.value?.remove();
-            resizeOverlayEntry.value = null;
-          }
-
-          if (resizeOverlayEntry.value != null) {
-            removeOverlay();
-          }
-
-          resizeOverlayEntry.value = buildResizeOverlay(rows, cols);
-          Overlay.of(context).insert(resizeOverlayEntry.value!);
-
-          resizeOverlayTimer.value?.cancel();
-          resizeOverlayTimer.value = Timer(
-            const .new(milliseconds: 500),
-            removeOverlay,
-          );
-        },
       );
+      rebindTerminalControllerCallbacks(controller);
+      return controller;
     }
 
     retrySession({bool skipHostKeyVerification = false}) {
@@ -193,17 +195,12 @@ class _SshSessionPageState extends ConsumerState<SshSessionPage>
 
     // initial setup of terminal controller
     useEffect(() {
-      if (terminalController.value != null) return null;
-      terminalController.value = buildTerminalController();
+      if (terminalController.value == null) {
+        terminalController.value = buildTerminalController();
+      } else {
+        rebindTerminalControllerCallbacks(terminalController.value!);
+      }
       return null;
-    }, []);
-
-    useEffect(() {
-      return () {
-        resizeDebounceTimer.value?.cancel();
-        resizeOverlayTimer.value?.cancel();
-        resizeOverlayEntry.value?.remove();
-      };
     }, []);
 
     // open SSH connection when terminal controller is set
@@ -218,25 +215,29 @@ class _SshSessionPageState extends ConsumerState<SshSessionPage>
             await ref
                 .read(sessionProvider.notifier)
                 .createSSHClient(session, connection);
+        if (client == null || !mounted) return;
 
-        if (client == null || !mounted) {
-          return;
-        }
-
-        final sshSession = await ref
-            .read(sessionProvider.notifier)
-            .spawnSsh(session.id, client, terminalController.value!);
-
+        final sshSession =
+            session.sshSession ??
+            await ref
+                .read(sessionProvider.notifier)
+                .spawnSsh(session.id, client, terminalController.value!);
         if (sshSession == null) return;
 
-        // close SSH session when terminal is closed
-        sshSession.done.then((_) {
-          if (!context.mounted) return;
-          ref
-              .read(sessionProvider.notifier)
-              .closeSessionAndMaybeGo(NavigationShell.of(context), session.id);
-        });
+        if (session.sshSession == null) {
+          // only wire this once, the first time this session is actually spawned
+          sshSession.done.then((_) {
+            if (!context.mounted) return;
+            ref
+                .read(sessionProvider.notifier)
+                .closeSessionAndMaybeGo(
+                  NavigationShell.of(context),
+                  session.id,
+                );
+          });
+        }
 
+        // always rebind, regardless of whether the shell was just spawned or already existed
         terminalController.value!.onInput = (s) {
           sshSession.write(Uint8List.fromList(s.codeUnits));
         };
@@ -244,16 +245,8 @@ class _SshSessionPageState extends ConsumerState<SshSessionPage>
         StreamSubscription? stdoutSub;
         StreamSubscription? stderrSub;
 
-        // Terminal backpressure handling
-        terminalController.value!.onPause = () {
-          // We only need to pause stdout as stdout & stderr share one stream
-          stdoutSub?.pause();
-        };
-
-        terminalController.value!.onResume = () {
-          // We only need to resume stdout as stdout & stderr share one stream
-          stdoutSub?.resume();
-        };
+        terminalController.value!.onPause = () => stdoutSub?.pause();
+        terminalController.value!.onResume = () => stdoutSub?.resume();
 
         stdoutSub =
             session.stdoutSub ??

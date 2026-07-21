@@ -56,7 +56,8 @@ class DeveloperSettingsPage extends AbstractSettingsPage {
                           title: Text('Reset Database Tables'),
                           onPress: () => Commons.showDeleteDialog(
                             entity: 'ALL DATABASE TABLES',
-                            onDelete: () => ref.read(databaseProvider).deleteAllTables(),
+                            onDelete: () =>
+                                ref.read(databaseProvider).deleteAllTables(),
                             canInstantDelete: false,
                             mayNeedAppRestart: true,
                           ),
