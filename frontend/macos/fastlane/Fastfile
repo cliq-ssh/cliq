@@ -38,7 +38,7 @@ platform :mac do
         update_code_signing_settings(
             use_automatic_signing: false,
             path: "Runner.xcodeproj",
-            code_sign_identity: "Mac App Distribution",
+            code_sign_identity: "Apple Distribution",
             bundle_identifier: "sh.cliq.cliq",
             profile_name: "match AppStore sh.cliq.cliq macos",
             team_id: ENV['APPLE_TEAM_ID']
