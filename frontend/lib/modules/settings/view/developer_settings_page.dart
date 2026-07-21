@@ -1,6 +1,7 @@
 import 'package:cliq/modules/settings/view/abstract_settings_page.dart';
 import 'package:cliq/modules/settings/view/settings_page.dart';
 import 'package:cliq/shared/data/store.dart';
+import 'package:cliq/shared/provider/database.provider.dart';
 import 'package:cliq_ui/cliq_ui.dart'
     show CliqGridColumn, CliqGridRow, CliqGridContainer;
 import 'package:flutter/cupertino.dart';
@@ -55,8 +56,7 @@ class DeveloperSettingsPage extends AbstractSettingsPage {
                           title: Text('Reset Database Tables'),
                           onPress: () => Commons.showDeleteDialog(
                             entity: 'ALL DATABASE TABLES',
-                            onDelete: () =>
-                                CliqDatabase.instance.deleteAllTables(),
+                            onDelete: () => ref.read(databaseProvider).deleteAllTables(),
                             canInstantDelete: false,
                             mayNeedAppRestart: true,
                           ),

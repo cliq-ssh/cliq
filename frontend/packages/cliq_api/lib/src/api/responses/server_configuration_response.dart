@@ -1,6 +1,6 @@
 class ServerConfigurationResponse {
   final String serverVersion;
-  final String oidcUrl;
+  final String? oidcUrl;
   final LocalAuthProperties localAuthProperties;
   final int authExchangeDurationSeconds;
 
@@ -14,7 +14,7 @@ class ServerConfigurationResponse {
   factory ServerConfigurationResponse.fromJson(Map<String, dynamic> json) {
     return ServerConfigurationResponse(
       serverVersion: json['serverVersion'] as String,
-      oidcUrl: json['oidcUrl'] as String,
+      oidcUrl: json['oidcUrl'],
       localAuthProperties: LocalAuthProperties.fromJson(
         json['localAuthProperties'],
       ),

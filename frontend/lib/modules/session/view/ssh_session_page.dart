@@ -131,6 +131,7 @@ class _SshSessionPageState extends ConsumerState<SshSessionPage>
           resizeDebounceTimer.value = Timer(
             const Duration(milliseconds: 100),
             () {
+              if (!mounted) return;
               final currentSession = ref
                   .read(sessionProvider.notifier)
                   .getSessionById(widget.sessionId);
