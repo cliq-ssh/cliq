@@ -4,6 +4,7 @@
   "appearance_apply_terminal_theme_color_to_navigation": "Apply Terminal Theme Color to Navigation",
   "appearance_apply_terminal_theme_color_to_navigation_subtitle": "Apply a tint of the terminal theme color to the navigation bar.",
   "appearance_color_theme": "Color Theme",
+  "appearance_color_theme_subtitle": "Select the color theme for the application.",
   "appearance_color_themes": {
     "blue": "Blue",
     "green": "Green",
@@ -15,7 +16,6 @@
     "yellow": "Yellow",
     "zinc": "Zinc"
   },
-  "appearance_color_theme_subtitle": "Select the color theme for the application.",
   "appearance_theme_mode": "Theme Mode",
   "appearance_theme_mode_subtitle": "Select the theme mode for the application.",
   "cancel": "Cancel",
@@ -148,6 +148,7 @@
     "one": "1 license",
     "other": "{} licenses"
   },
+  "local_terminal": "Local Terminal",
   "my_vault": "My Vault",
   "n_a": "N/A",
   "queue": "Queue",
@@ -253,6 +254,9 @@
   "terminal_themes_import_success": "Theme imported successfully",
   "terminal_themes_theme": "Theme",
   "terminal_themes_theme_add": "Add Theme",
+  "terminal_themes_theme_add_color_placeholder": "#RRGGBB",
+  "terminal_themes_theme_add_label": "Label",
+  "terminal_themes_theme_add_label_placeholder": "My Theme",
   "terminal_themes_theme_colors": {
     "background": "Background",
     "black": "Black",
@@ -277,9 +281,6 @@
     "white": "White",
     "yellow": "Yellow"
   },
-  "terminal_themes_theme_add_color_placeholder": "#RRGGBB",
-  "terminal_themes_theme_add_label": "Label",
-  "terminal_themes_theme_add_label_placeholder": "My Theme",
   "theme_mode_dark": "Dark",
   "theme_mode_light": "Light",
   "theme_mode_system": "System",

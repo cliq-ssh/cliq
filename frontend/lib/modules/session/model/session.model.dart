@@ -3,10 +3,11 @@ import 'dart:async';
 import 'package:cliq/modules/connections/model/connection_full.model.dart';
 import 'package:cliq_term/cliq_term.dart';
 import 'package:dartssh2/dartssh2.dart';
+import 'package:flutter_pty_new/flutter_pty_new.dart';
 
 import '../../settings/model/known_host_error.model.dart';
 
-enum SessionType { ssh, sftp }
+enum SessionType { ssh, sftp, local }
 
 class ShellSession {
   /// A unique identifier for this session, used for state management and UI tracking.
@@ -33,6 +34,9 @@ class ShellSession {
   /// The SSH session associated with this session, only set if connected.
   final SSHSession? sshSession;
 
+  /// The pseudo-terminal (PTY) associated with this session, only set for [SessionType.local] sessions.
+  final Pty? pty;
+
   /// The terminal controller associated with this session, only set if connected.
   final TerminalController? terminalController;
 
@@ -55,6 +59,7 @@ class ShellSession {
     this.client,
     this.sftpClient,
     this.sshSession,
+    this.pty,
     this.terminalController,
     this.stdoutSub,
     this.stderrSub,
@@ -72,13 +77,15 @@ class ShellSession {
        client = null,
        sftpClient = null,
        sshSession = null,
+       pty = null,
        terminalController = null,
        stdoutSub = null,
        stderrSub = null,
        knownHostError = null;
 
   bool get isConnected =>
-      client != null && (sshSession != null || sftpClient != null);
+      (client != null && (sshSession != null || sftpClient != null)) ||
+      pty != null;
 
   /// Whether the session is likely in the process of connecting, since it is not connected and has no error.
   bool get isLikelyLoading => !isConnected && connectionError == null;
@@ -91,6 +98,7 @@ class ShellSession {
     terminalController?.dispose();
     stdoutSub?.cancel();
     stderrSub?.cancel();
+    pty?.kill();
   }
 
   ShellSession copyWith({
@@ -99,6 +107,7 @@ class ShellSession {
     SSHClient? client,
     SftpClient? sftpClient,
     SSHSession? sshSession,
+    Pty? pty,
     TerminalController? terminalController,
     StreamSubscription? stdoutSub,
     StreamSubscription? stderrSub,
@@ -113,6 +122,7 @@ class ShellSession {
       client: client ?? this.client,
       sftpClient: sftpClient ?? this.sftpClient,
       sshSession: sshSession ?? this.sshSession,
+      pty: pty ?? this.pty,
       terminalController: terminalController ?? this.terminalController,
       stdoutSub: stdoutSub ?? this.stdoutSub,
       stderrSub: stderrSub ?? this.stderrSub,

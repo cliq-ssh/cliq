@@ -41,10 +41,11 @@ class _SessionPageState extends ConsumerState<SessionPageWrapper> {
       value: s,
       builder: (context, focus) {
         return switch (s.type) {
-          .ssh => SshSessionPage(
+          .ssh || .local => SshSessionPage(
             key: leaf.pageKey,
             sessionId: s.id,
             focusNode: focus,
+            isLocal: s.type == .local,
           ),
           .sftp => SftpSessionPage(key: leaf.pageKey, sessionId: s.id),
         };

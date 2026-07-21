@@ -188,7 +188,11 @@ class SessionNavigationTab extends HookConsumerWidget {
             onPress: () {
               ref
                   .read(sessionProvider.notifier)
-                  .createAndGo(NavigationShell.of(context), root.connection);
+                  .createAndGo(
+                    NavigationShell.of(context),
+                    root.connection,
+                    root.type,
+                  );
             },
             shortcut: .new(.keyD, modifiers: {.meta}),
           ),

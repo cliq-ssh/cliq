@@ -1,5 +1,8 @@
+import 'package:cliq/modules/connections/model/connection_icons.dart';
 import 'package:cliq/modules/settings/model/terminal_theme.state.dart';
 import 'package:cliq/modules/settings/provider/terminal_theme.provider.dart';
+import 'package:easy_localization/easy_localization.dart';
+import 'package:flutter/material.dart';
 
 import '../../../shared/data/database.dart';
 import '../../identities/model/identity_full.model.dart';
@@ -67,6 +70,26 @@ class ConnectionFull extends Connection {
           ? defaultTerminalColorTheme
           : result.terminalThemeOverride,
       credentialIds: result.connectionCredentials,
+    );
+  }
+
+  static ConnectionFull buildLocalConnection(BuildContext context) {
+    return .fromConnection(
+      Connection(
+        id: -1,
+        vaultId: -1,
+        label: 'local_connection'.tr(context: context),
+        address: 'localhost',
+        port: 22,
+        username: '',
+        identityId: null,
+        icon: ConnectionIcons.laptop,
+        iconColor: Colors.white,
+        iconBackgroundColor: Colors.grey,
+        usesDefaultThemeOverride: false,
+      ),
+      vault: Vault(id: -1, label: "My Vault", isDefault: true),
+      credentialIds: [],
     );
   }
 }

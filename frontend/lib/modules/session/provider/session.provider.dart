@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:cliq/modules/connections/model/connection_full.model.dart';
 import 'package:cliq/modules/credentials/data/credential_service.dart';
@@ -6,6 +7,7 @@ import 'package:cliq/modules/session/model/session.state.dart';
 import 'package:cliq/shared/ui/navigation/navigation_shell.dart';
 import 'package:cliq_term/cliq_term.dart';
 import 'package:dartssh2/dartssh2.dart';
+import 'package:flutter_pty_new/flutter_pty_new.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:uuid/v4.dart';
 
@@ -19,6 +21,7 @@ final sessionProvider = NotifierProvider(SessionNotifier.new);
 
 class SessionNotifier extends Notifier<SessionState> {
   final UuidV4 uuid = UuidV4();
+  Map<String, String> _inheritedEnv() => .of(Platform.environment);
 
   @override
   SessionState build() => SessionState.initial();
@@ -26,12 +29,15 @@ class SessionNotifier extends Notifier<SessionState> {
   /// Creates a new session and navigates to the session branch, where the tab is selected.
   void createAndGo(
     NavigationShellState shellState,
-    ConnectionFull connection, {
-    bool isSftp = false,
-  }) {
+    ConnectionFull connection,
+    SessionType type,
+  ) {
+    print(
+      'Creating new session for connection: ${connection.label}, type: $type',
+    );
     final newSession = ShellSession.disconnected(
       id: uuid.generate(),
-      type: isSftp ? .sftp : .ssh,
+      type: type,
       connection: connection,
     );
 
@@ -328,6 +334,29 @@ class SessionNotifier extends Notifier<SessionState> {
     }
   }
 
+  Future<Pty?> spawnLocal(
+    String sessionId,
+    TerminalController controller,
+  ) async {
+    try {
+      final pty = Pty.start(
+        _defaultShellForPlatform(),
+        columns: controller.cols,
+        rows: controller.rows,
+        environment: {..._inheritedEnv(), 'TERM': 'xterm-256color'},
+      );
+
+      _modifySession(
+        sessionId,
+        (session) => session.copyWith(connectedAt: DateTime.now(), pty: pty),
+      );
+      return pty;
+    } catch (e) {
+      _close(sessionId, e.toString());
+      return null;
+    }
+  }
+
   void setStreamListeners(
     String sessionId,
     StreamSubscription? stdoutSub,
@@ -430,5 +459,27 @@ class SessionNotifier extends Notifier<SessionState> {
       pageIndices[tabs[i].id] = i;
     }
     return pageIndices;
+  }
+
+  String _defaultShellForPlatform() {
+    if (Platform.isMacOS) {
+      // macOS default shell lives here regardless of PATH; respect the
+      // user's actual configured shell when available, but always fall
+      // back to an absolute path — never a bare command name, since PTY
+      // spawn does not reliably do shell-style PATH search, and a
+      // GUI-launched app's PATH may not match an interactive shell's.
+      return Platform.environment['SHELL'] ?? '/bin/zsh';
+    }
+
+    if (Platform.isLinux) {
+      return Platform.environment['SHELL'] ?? '/bin/bash';
+    }
+
+    if (Platform.isWindows) {
+      // Full path to cmd.exe; ComSpec is the canonical Windows env var.
+      return Platform.environment['ComSpec'] ?? r'C:\Windows\System32\cmd.exe';
+    }
+
+    return '/bin/sh';
   }
 }
