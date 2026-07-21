@@ -151,6 +151,7 @@ class _SshSessionPageState extends ConsumerState<SshSessionPage>
           }
 
           removeOverlay() {
+            if (!mounted) return;
             resizeOverlayEntry.value?.remove();
             resizeOverlayEntry.value = null;
           }
@@ -195,6 +196,14 @@ class _SshSessionPageState extends ConsumerState<SshSessionPage>
       if (terminalController.value != null) return null;
       terminalController.value = buildTerminalController();
       return null;
+    }, []);
+
+    useEffect(() {
+      return () {
+        resizeDebounceTimer.value?.cancel();
+        resizeOverlayTimer.value?.cancel();
+        resizeOverlayEntry.value?.remove();
+      };
     }, []);
 
     // open SSH connection when terminal controller is set
