@@ -246,10 +246,10 @@ packages:
     description:
       path: "."
       ref: master
-      resolved-ref: "3e774d83f2efc9a002736e5481446ebd7880816c"
+      resolved-ref: "3f08867d4f6a99a66f649fcc8842dcb3e5cfa729"
       url: "https://github.com/cliq-ssh/dartssh2.git"
     source: git
-    version: "2.22.2"
+    version: "2.22.3"
   dio:
     dependency: transitive
     description:
