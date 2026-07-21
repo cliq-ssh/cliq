@@ -52,9 +52,9 @@ class SyncProviderNotifier extends Notifier<SyncState> {
     final routeOptions = await StoreKey.syncHost.readAsync();
     if (routeOptions == null) return;
 
-    await retrieveConfig(routeOptions);
-
     try {
+      await retrieveConfig(routeOptions);
+
       final refreshToken = await StoreKey.syncRefreshToken.readAsync();
       if (refreshToken == null) return;
 
