@@ -1,0 +1,164 @@
+name: "Frontend: Publish Edge"
+on:
+  workflow_dispatch:
+    inputs:
+      increment-build-number:
+        description: 'Increment the build number in pubspec.yaml'
+        type: boolean
+        required: false
+        default: true
+
+concurrency:
+  group: frontend-edge
+  cancel-in-progress: false
+
+# Sets a default working directory
+defaults:
+  run:
+    working-directory: ./frontend  # Change the working directory to /frontend
+
+permissions:
+  contents: read
+
+jobs:
+  checks:
+    name: Checks
+    uses: ./.github/workflows/frontend-checks.yaml
+    permissions:
+      contents: read
+      actions: read
+      checks: write
+
+  bump-version:
+    name: Bump build number
+    needs: checks
+    if: ${{ inputs.increment-build-number }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    outputs:
+      sha: ${{ steps.commit.outputs.sha }}
+      build-number: ${{ steps.bump.outputs.build-number }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Bump build number
+        id: bump
+        run: |
+          set -euo pipefail
+          CURRENT_LINE=$(grep -E '^version:' pubspec.yaml)
+          CURRENT_BUILD=$(echo "$CURRENT_LINE" | sed -E 's/^version: [0-9]+\.[0-9]+\.[0-9]+\+([0-9]+).*/\1/')
+          NEW_BUILD=$((CURRENT_BUILD + 1))
+          sed -i -E "s/^(version: [0-9]+\.[0-9]+\.[0-9]+\+)[0-9]+/\1${NEW_BUILD}/" pubspec.yaml
+          echo "Old: $CURRENT_LINE"
+          echo "New: $(grep -E '^version:' pubspec.yaml)"
+          echo "build-number=${NEW_BUILD}" >> "$GITHUB_OUTPUT"
+
+      - name: Commit and push
+        id: commit
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git commit -am "chore: bump frontend build number to ${{ steps.bump.outputs.build-number }} [skip ci]"
+          git push origin HEAD:${{ github.ref_name }}
+          echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+
+  build:
+    name: Build
+    needs: [checks, bump-version]
+    if: |
+      always() &&
+      needs.checks.result == 'success' &&
+      (needs.bump-version.result == 'success' || needs.bump-version.result == 'skipped')
+    uses: ./.github/workflows/frontend-build.yaml
+    with:
+      ref: ${{ needs.bump-version.outputs.sha || github.sha }}
+    permissions:
+      contents: read
+  
+  publish-ios:
+    name: Publish iOS to TestFlight
+    needs: [build, bump-version]
+    if: |
+      always() &&
+      needs.build.result == 'success'
+    runs-on: macos-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          ref: ${{ needs.bump-version.outputs.sha || github.sha }}
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+          cache: true
+
+      - name: Get dependencies
+        run: flutter pub get
+
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.3'
+          bundler-cache: true
+          working-directory: frontend/ios
+
+      - name: Build and upload iOS to TestFlight
+        working-directory: frontend/ios
+        env:
+          APP_STORE_CONNECT_API_KEY_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY_ID }}
+          APP_STORE_CONNECT_API_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_API_ISSUER_ID }}
+          APP_STORE_CONNECT_API_KEY_CONTENT: ${{ secrets.APP_STORE_CONNECT_API_KEY_CONTENT }}
+          MATCH_PASSWORD: ${{ secrets.MATCH_PASSWORD }}
+          MATCH_GIT_URL: ${{ secrets.MATCH_GIT_URL }}
+        run: |
+          cd ..
+          flutter build ios --release --no-codesign
+          cd ios
+          bundle exec fastlane ios edge
+
+  publish-macos:
+    name: Publish macOS to TestFlight
+    needs: [build, bump-version]
+    if: |
+      always() &&
+      needs.build.result == 'success'
+    runs-on: macos-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          ref: ${{ needs.bump-version.outputs.sha || github.sha }}
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+          cache: true
+
+      - name: Get dependencies
+        run: flutter pub get
+
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.3'
+          bundler-cache: true
+          working-directory: frontend/macos
+
+      - name: Build and upload macOS to TestFlight
+        working-directory: frontend/macos
+        env:
+          APP_STORE_CONNECT_API_KEY_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY_ID }}
+          APP_STORE_CONNECT_API_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_API_ISSUER_ID }}
+          APP_STORE_CONNECT_API_KEY_CONTENT: ${{ secrets.APP_STORE_CONNECT_API_KEY_CONTENT }}
+          MATCH_PASSWORD: ${{ secrets.MATCH_PASSWORD }}
+          MATCH_GIT_URL: ${{ secrets.MATCH_GIT_URL }}
+        run: |
+          cd ..
+          flutter build macos --release
+          cd macos
+          bundle exec fastlane mac edge

@@ -1,4 +1,4 @@
-name: Backend Dependency Submission
+name: "Backend: Dependency Submission"
 on:
   push:
     branches:

@@ -1,4 +1,4 @@
-name: Frontend Builds
+name: "Frontend: Build"
 on:
   push:
     branches:
@@ -10,6 +10,13 @@ on:
       - main
     paths:
       - 'frontend/**'
+  workflow_call:
+    inputs:
+      ref:
+        description: 'The git ref to check out'
+        type: string
+        required: false
+        default: ''
 
 # Sets a default working directory
 defaults:
@@ -27,6 +34,8 @@ jobs:
     runs-on: macos-latest
     steps:
       - uses: actions/checkout@v7
+        with:
+          ref: ${{ inputs.ref || github.ref }}
 
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
@@ -47,6 +56,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
+        with:
+          ref: ${{ inputs.ref || github.ref }}
 
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
@@ -79,6 +90,8 @@ jobs:
 #            flutter-channel: main # Remove when https://github.com/subosito/flutter-action/issues/345
     steps:
       - uses: actions/checkout@v7
+        with:
+          ref: ${{ inputs.ref || github.ref }}
 
       - name: Install Inno Setup
         run: choco install innosetup -y
@@ -115,6 +128,8 @@ jobs:
     runs-on: macos-latest
     steps:
       - uses: actions/checkout@v7
+        with:
+          ref: ${{ inputs.ref || github.ref }}
 
       - name: Install dependencies
         run: npm install -g appdmg
@@ -160,6 +175,8 @@ jobs:
             appimagetool-name: appimagetool-aarch64.AppImage
     steps:
       - uses: actions/checkout@v7
+        with:
+          ref: ${{ inputs.ref || github.ref }}
 
       - name: Install Linux dependencies
         run: |
