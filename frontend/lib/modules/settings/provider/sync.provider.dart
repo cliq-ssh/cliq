@@ -129,7 +129,10 @@ class SyncProviderNotifier extends Notifier<SyncState> {
     final userVault = await ref
         .read(vaultProvider.notifier)
         .findOrCreateUserVault(state.api!);
-    await ref.read(vaultServiceProvider).deleteById(userVault.id);
+
+    final vaultService = ref.read(vaultServiceProvider);
+    await vaultService.clearByVaultId(userVault.id);
+    await vaultService.deleteById(userVault.id);
 
     state = .initial();
   }

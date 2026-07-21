@@ -59,7 +59,7 @@ class SyncSettingsPage extends AbstractSettingsPage {
         });
       });
       return null;
-    }, [api]);
+    }, [api, lastUpdated.value]);
 
     buildIconCount(IconData icon, int count) {
       return Row(
