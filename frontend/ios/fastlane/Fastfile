@@ -38,7 +38,7 @@ platform :ios do
             path: "Runner.xcodeproj",
             code_sign_identity: "iPhone Distribution",
             bundle_identifier: "sh.cliq.cliq",
-            profile_name: "match AppStore sh.cliq.cliq"
+            profile_name: "match AppStore sh.cliq.cliq",
             team_id: ENV['APPLE_TEAM_ID']
         )
 
