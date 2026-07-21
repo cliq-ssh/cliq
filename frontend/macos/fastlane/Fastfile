@@ -29,7 +29,12 @@ platform :mac do
             is_key_content_base64: true
         )
 
-        match(type: "appstore", platform: "macos", readonly: true)
+        match(
+          type: "appstore",
+          platform: "macos",
+          readonly: true,
+          git_basic_authorization: Base64.strict_encode64("jasonlessenich:#{ENV['MATCH_GIT_PAT']}")
+        )
 
         build_app(workspace: "Runner.xcworkspace", scheme: "Runner", export_method: "app-store")
         upload_to_testflight(skip_waiting_for_build_processing: true)
