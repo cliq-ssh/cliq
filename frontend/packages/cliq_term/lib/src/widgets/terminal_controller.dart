@@ -86,13 +86,13 @@ class TerminalController extends ChangeNotifier {
 
   /// A callback that is fired when the terminal is resized, providing the new number of rows and columns
   /// and the new size in pixels.
-  final void Function(int, int, Size)? onResize;
+  void Function(int, int, Size)? onResize;
 
   /// A callback that is fired when the terminal title is changed via an escape sequence, providing the new title string.
-  final void Function(String)? onTitleChange;
+  void Function(String)? onTitleChange;
 
   /// A callback that is fired when a bell character (0x07) is received.
-  final void Function()? onBell;
+  void Function()? onBell;
 
   /// Fired when the user taps a cell that carries an active hyperlink.
   void Function(String url)? onHyperlinkTap;
