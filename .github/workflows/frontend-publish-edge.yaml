@@ -7,6 +7,16 @@ on:
         type: boolean
         required: false
         default: true
+      publish-ios:
+        description: 'Publish iOS build to TestFlight'
+        type: boolean
+        required: false
+        default: true
+      publish-macos:
+        description: 'Publish macOS build to TestFlight'
+        type: boolean
+        required: false
+        default: true
 
 concurrency:
   group: frontend-edge
@@ -82,7 +92,8 @@ jobs:
     needs: [build, bump-version]
     if: |
       always() &&
-      needs.build.result == 'success'
+      needs.build.result == 'success' &&
+      inputs.publish-ios
     runs-on: macos-latest
     steps:
       - name: Checkout
@@ -114,6 +125,7 @@ jobs:
           APP_STORE_CONNECT_API_KEY_CONTENT: ${{ secrets.APP_STORE_CONNECT_API_KEY_CONTENT }}
           MATCH_PASSWORD: ${{ secrets.MATCH_PASSWORD }}
           MATCH_GIT_URL: ${{ secrets.MATCH_GIT_URL }}
+          MATCH_GIT_PAT: ${{ secrets.MATCH_GIT_PAT }}
         run: |
           cd ..
           flutter build ios --release --no-codesign
@@ -125,7 +137,8 @@ jobs:
     needs: [build, bump-version]
     if: |
       always() &&
-      needs.build.result == 'success'
+      needs.build.result == 'success' &&
+      inputs.publish-macos
     runs-on: macos-latest
     steps:
       - name: Checkout
@@ -157,6 +170,7 @@ jobs:
           APP_STORE_CONNECT_API_KEY_CONTENT: ${{ secrets.APP_STORE_CONNECT_API_KEY_CONTENT }}
           MATCH_PASSWORD: ${{ secrets.MATCH_PASSWORD }}
           MATCH_GIT_URL: ${{ secrets.MATCH_GIT_URL }}
+          MATCH_GIT_PAT: ${{ secrets.MATCH_GIT_PAT }}
         run: |
           cd ..
           flutter build macos --release
