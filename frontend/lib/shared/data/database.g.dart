@@ -25,7 +25,7 @@ class Vaults extends Table with TableInfo<Vaults, Vault> {
     false,
     type: DriftSqlType.string,
     requiredDuringInsert: true,
-    $customConstraints: 'NOT NULL',
+    $customConstraints: 'NOT NULL UNIQUE',
   );
   static const VerificationMeta _isDefaultMeta = const VerificationMeta(
     'isDefault',

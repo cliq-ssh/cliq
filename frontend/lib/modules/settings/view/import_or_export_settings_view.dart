@@ -49,6 +49,8 @@ class _ImportOrExportSettingsViewState
     final identities = ref.read(identityProvider);
     final knownHosts = ref.read(knownHostProvider);
 
+    final selectedVaultId = useState<DbId?>(null);
+
     final connectionsTileController = useFMultiValueNotifier<DbId>();
     final identitiesTileController = useFMultiValueNotifier<DbId>();
     final knownHostsTileController = useFMultiValueNotifier<DbId>();
@@ -266,6 +268,9 @@ class _ImportOrExportSettingsViewState
     return CreateOrEditEntityView(
       onSave: (v) => onSave(v!),
       isEdit: widget.isImport,
+      initialVaultId: selectedVaultId.value,
+      onVaultSelected: (vaultId) => selectedVaultId.value = vaultId,
+      withVaultSelector: true,
       editLabel: 'sync_import'.tr(),
       createLabel: 'sync_export'.tr(),
       child: Form(

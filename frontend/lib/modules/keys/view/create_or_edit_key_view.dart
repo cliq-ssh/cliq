@@ -43,6 +43,7 @@ class CreateOrEditKeyView extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final formKey = useMemoized(() => GlobalKey<FormState>());
 
+    final selectedVaultId = useState<DbId?>(current?.vaultId.value);
     final labelCtrl = useTextEditingController(
       text: initialLabel ?? current?.label.value,
     );
@@ -133,6 +134,9 @@ class CreateOrEditKeyView extends HookConsumerWidget {
     return CreateOrEditEntityView(
       onSave: onSave,
       isEdit: isEdit,
+      initialVaultId: selectedVaultId.value,
+      onVaultSelected: (vaultId) => selectedVaultId.value = vaultId,
+      withVaultSelector: true,
       child: Form(
         key: formKey,
         child: Column(

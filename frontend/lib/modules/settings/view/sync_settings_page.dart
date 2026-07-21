@@ -5,8 +5,11 @@ import 'package:cliq/modules/settings/view/abstract_settings_page.dart';
 import 'package:cliq/modules/settings/view/import_or_export_settings_view.dart';
 import 'package:cliq/modules/settings/view/register_or_login_view.dart';
 import 'package:cliq/modules/settings/view/settings_page.dart';
+import 'package:cliq/modules/vaults/provider/vault_service.provider.dart';
+import 'package:cliq/shared/data/database.dart';
 import 'package:cliq/shared/model/localized_exception.dart';
 import 'package:cliq/shared/provider/store.provider.dart';
+import 'package:cliq_api/cliq_api.dart';
 import 'package:cliq_ui/cliq_ui.dart'
     show CliqGridContainer, CliqGridRow, CliqGridColumn;
 import 'package:easy_localization/easy_localization.dart';
@@ -21,6 +24,7 @@ import '../../../shared/model/page_path.model.dart';
 import '../../../shared/model/router.model.dart';
 import '../../../shared/utils/commons.dart';
 import '../../../shared/utils/text_utils.dart';
+import '../../vaults/provider/vault.provider.dart';
 
 class SyncSettingsPage extends AbstractSettingsPage {
   static const PagePathBuilder pagePath = PagePathBuilder.child(
@@ -36,17 +40,118 @@ class SyncSettingsPage extends AbstractSettingsPage {
   @override
   Widget buildBody(BuildContext context, WidgetRef ref) {
     final api = ref.watch(syncProvider).api;
-    final lastSynced = useStore(.syncLastSynced);
 
-    final isLocalLatest = useState<bool?>(false);
+    final lastUpdated = useStore(.syncLastUpdated);
 
+    final userVault = useState<DbId?>(null);
+    final entitiesCount = useState<(int, int, int, int)?>(null);
+
+    // TODO: make this more responsive
     useEffect(() {
       if (api == null) return;
-      ref.watch(syncProvider.notifier).isLocalLatest().then((value) {
-        isLocalLatest.value = value;
+      ref.read(vaultProvider.notifier).findOrCreateUserVault(api).then((vault) {
+        userVault.value = vault.id;
+
+        ref.read(vaultServiceProvider).countEntitiesInVault(vault.id).then((
+          count,
+        ) {
+          entitiesCount.value = count;
+        });
       });
       return null;
-    }, [api, lastSynced.value]);
+    }, [api]);
+
+    buildIconCount(IconData icon, int count) {
+      return Row(
+        spacing: 4,
+        children: [Icon(icon, size: 16), Text(count.toString())],
+      );
+    }
+
+    buildLoggedOutItems() {
+      return [
+        FTile(
+          prefix: Icon(LucideIcons.cloudSync),
+          suffix: Icon(LucideIcons.chevronRight),
+          title: Text('sync_setup_sync'.tr()),
+          subtitle: Text('sync_setup_sync_subtitle'.tr(), overflow: .visible),
+          onPress: () => Commons.showResponsiveDialog(
+            (_) => RegisterOrLoginView(),
+            context: context,
+            dismissable: false,
+          ),
+        ),
+      ];
+    }
+
+    buildLoggedInItems(CliqClient api) {
+      return [
+        FTile(
+          prefix: FAvatar.raw(
+            child: Text(api.selfUser.username.substring(0, 1).toUpperCase()),
+          ),
+          title: Text(api.selfUser.username),
+          subtitle: Text(api.selfUser.email),
+        ),
+        FTile(
+          prefix: Icon(LucideIcons.refreshCw),
+          suffix: entitiesCount.value == null
+              ? SizedBox.shrink()
+              : Row(
+                  spacing: 12,
+                  mainAxisSize: .min,
+                  children: [
+                    buildIconCount(LucideIcons.server, entitiesCount.value!.$1),
+                    buildIconCount(LucideIcons.users, entitiesCount.value!.$2),
+                    buildIconCount(
+                      LucideIcons.keyRound,
+                      entitiesCount.value!.$3,
+                    ),
+                    buildIconCount(
+                      LucideIcons.fingerprint,
+                      entitiesCount.value!.$4,
+                    ),
+                  ],
+                ),
+          title: Text('sync_now'.tr()),
+          subtitle: Text(
+            'sync_last_updated'.tr(
+              args: [
+                lastUpdated.value == null || lastUpdated.value == 0
+                    ? 'n_a'.tr()
+                    : DateTime.fromMillisecondsSinceEpoch(
+                        lastUpdated.value!,
+                        isUtc: true,
+                      ).toIso8601String(),
+              ],
+            ),
+            overflow: .visible,
+          ),
+          onPress: () async {
+            final pulled = await ref.read(syncProvider.notifier).pullVault();
+            Commons.showToast(
+              (pulled ? 'sync_vault_pulling' : 'sync_vault_up_to_date').tr(),
+            );
+          },
+        ),
+        FTile(
+          variant: .destructive,
+          prefix: Icon(LucideIcons.logOut),
+          title: Text('logout'.tr()),
+          onPress: () {
+            Commons.showConfirmationDialog(
+              confirmButtonText: 'logout'.tr(),
+              title: 'sync_logout_title'.tr(),
+              onConfirm: () async {
+                await ref.read(syncProvider.notifier).logout();
+              },
+              children: (context, _, _) =>
+                  TextUtils.renderText(context, 'sync_logout_body'.tr()),
+            );
+          },
+        ),
+      ];
+    }
 
     return SingleChildScrollView(
       child: CliqGridContainer(
@@ -59,68 +164,9 @@ class SyncSettingsPage extends AbstractSettingsPage {
                   spacing: 16,
                   children: [
                     FTileGroup(
-                      children: [
-                        if (api == null)
-                          .tile(
-                            prefix: Icon(LucideIcons.cloudSync),
-                            suffix: Icon(LucideIcons.chevronRight),
-                            title: Text('sync_setup_sync'.tr()),
-                            subtitle: Text(
-                              'sync_setup_sync_subtitle'.tr(),
-                              overflow: .visible,
-                            ),
-                            onPress: () => Commons.showResponsiveDialog(
-                              (_) => RegisterOrLoginView(),
-                              context: context,
-                              dismissable: false,
-                            ),
-                          )
-                        else ...[
-                          .tile(
-                            prefix: FAvatar.raw(
-                              child: Text(
-                                api.selfUser.username
-                                    .substring(0, 1)
-                                    .toUpperCase(),
-                              ),
-                            ),
-                            title: Text(api.selfUser.username),
-                            subtitle: Text(api.selfUser.email),
-                          ),
-                          .tile(
-                            prefix: Icon(LucideIcons.refreshCw),
-                            suffix: Icon(LucideIcons.chevronRight),
-                            title: Text('sync_now'.tr()),
-                            subtitle: Text(
-                              'sync_last_synced'.tr(args: ['n_a'.tr()]),
-                              overflow: .visible,
-                            ),
-                            onPress: () =>
-                                ref.read(syncProvider.notifier).sync(),
-                          ),
-                          .tile(
-                            variant: .destructive,
-                            prefix: Icon(LucideIcons.logOut),
-                            title: Text('logout'.tr()),
-                            onPress: () {
-                              Commons.showConfirmationDialog(
-                                confirmButtonText: 'logout'.tr(),
-                                title: 'sync_logout_title'.tr(),
-                                onConfirm: () async {
-                                  await ref
-                                      .read(syncProvider.notifier)
-                                      .logout();
-                                },
-                                children: (context, _, _) =>
-                                    TextUtils.renderText(
-                                      context,
-                                      'sync_logout_body'.tr(),
-                                    ),
-                              );
-                            },
-                          ),
-                        ],
-                      ],
+                      children: api == null
+                          ? buildLoggedOutItems()
+                          : buildLoggedInItems(api),
                     ),
                     FTileGroup(
                       label: Text('sync_manual_import_export'.tr()),

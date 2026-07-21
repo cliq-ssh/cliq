@@ -1,5 +1,5 @@
 CREATE TABLE vaults (
     id          TEXT NOT NULL PRIMARY KEY DEFAULT '',
-    label       TEXT NOT NULL,
+    label       TEXT NOT NULL UNIQUE,
     is_default  BOOLEAN NOT NULL DEFAULT FALSE
 );

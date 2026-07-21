@@ -250,6 +250,13 @@ class RegisterOrLoginView extends HookConsumerWidget {
                     },
               child: Text('sync_go_register'.tr()),
             ),
+            Text(
+              'sync_login_vault_hint'.tr(),
+              textAlign: .center,
+              style: context.theme.typography.body.xs.copyWith(
+                color: context.theme.colors.mutedForeground,
+              ),
+            ),
           ],
         ),
       ];

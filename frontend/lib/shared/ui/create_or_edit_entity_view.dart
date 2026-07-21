@@ -1,3 +1,4 @@
+import 'package:cliq/modules/settings/provider/sync.provider.dart';
 import 'package:cliq/modules/vaults/provider/vault.provider.dart';
 import 'package:cliq/shared/data/database.dart';
 import 'package:cliq/shared/utils/validators.dart';
@@ -16,6 +17,7 @@ class CreateOrEditEntityView extends HookConsumerWidget {
   final Widget child;
   final String? editLabel;
   final String? createLabel;
+  final DbId? initialVaultId;
   final Function(DbId)? onVaultSelected;
 
   /// Whether to show the vault selector in the form. If this is false, [onSave] will be called with null.
@@ -32,6 +34,7 @@ class CreateOrEditEntityView extends HookConsumerWidget {
     required this.onSave,
     required this.isEdit,
     required this.child,
+    this.initialVaultId,
     this.onVaultSelected,
     this.editLabel,
     this.createLabel,
@@ -46,23 +49,70 @@ class CreateOrEditEntityView extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final formKey = useMemoized(() => GlobalKey<FormState>());
     final vaults = ref.watch(vaultProvider);
-    final vaultSelectController = useFSelectController<DbId>();
+
+    final api = ref.watch(syncProvider).api;
 
     final defaultVault = useState<Vault?>(null);
+    final userVault = useState<Vault?>(null);
+
+    final vaultSelectController = useFSelectController<DbId>(
+      value: initialVaultId ?? defaultVault.value?.id,
+    );
+
     useEffect(() {
-      if (withVaultSelector) {
-        ref.read(vaultProvider.notifier).findOrCreateDefaultVault().then((
-          vault,
-        ) {
-          WidgetsBinding.instance.addPostFrameCallback((_) {
-            defaultVault.value = vault;
-            vaultSelectController.value = vault.id;
-            onVaultSelected?.call(vault.id);
-          });
+      if (!withVaultSelector) return;
+      ref.read(vaultProvider.notifier).findOrCreateDefaultVault().then((vault) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          defaultVault.value = vault;
+          if (initialVaultId != null) return;
+          vaultSelectController.value = vault.id;
+          onVaultSelected?.call(vault.id);
         });
-      }
+      });
       return null;
     }, []);
+
+    useEffect(() {
+      if (!withVaultSelector || api == null) return;
+      ref.read(vaultProvider.notifier).findOrCreateUserVault(api).then((vault) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          userVault.value = vault;
+        });
+      });
+      return null;
+    }, [api]);
+
+    buildVaultSelector() {
+      return FSelect<DbId>.rich(
+        validator: (v) => Validators.chain(context, [
+          Validators.nonNull,
+          Validators.nonEmpty,
+        ], v),
+        control: .managed(
+          controller: vaultSelectController,
+          onChange: (DbId? vaultId) {
+            if (vaultId != null) {
+              onVaultSelected?.call(vaultId);
+            }
+          },
+        ),
+        format: (s) => vaults.entities.firstWhere((v) => v.id == s).label,
+        children: [
+          // local vault on top
+          if (defaultVault.value != null)
+            .item(
+              title: Text('local_vault'.tr()),
+              value: defaultVault.value!.id,
+            ),
+          for (final vault in vaults.entities.where((v) => !v.isDefault))
+            .item(
+              prefix: Icon(LucideIcons.cloudSync),
+              title: Text(vault.label),
+              value: vault.id,
+            ),
+        ],
+      );
+    }
 
     return FScaffold(
       childPad: false,
@@ -77,29 +127,7 @@ class CreateOrEditEntityView extends HookConsumerWidget {
                 spacing: 8,
                 children: [
                   if (withVaultSelector && defaultVault.value != null)
-                    SizedBox(
-                      width: 200,
-                      child: FSelect<DbId>.rich(
-                        validator: (v) => Validators.chain(context, [
-                          Validators.nonNull,
-                          Validators.nonEmpty,
-                        ], v),
-                        control: .managed(
-                          controller: vaultSelectController,
-                          onChange: (DbId? vaultId) {
-                            if (vaultId != null) {
-                              onVaultSelected?.call(vaultId);
-                            }
-                          },
-                        ),
-                        format: (s) =>
-                            vaults.entities.firstWhere((v) => v.id == s).label,
-                        children: [
-                          for (final vault in vaults.entities)
-                            .item(title: Text(vault.label), value: vault.id),
-                        ],
-                      ),
-                    ),
+                    SizedBox(width: 200, child: buildVaultSelector()),
                   FButton.icon(
                     variant: .outline,
                     onPress: () => context.pop(),
@@ -132,11 +160,19 @@ class CreateOrEditEntityView extends HookConsumerWidget {
                                 !formKey.currentState!.validate()) {
                               return;
                             }
-                            onSave(
-                              withVaultSelector
-                                  ? vaultSelectController.value!
-                                  : null,
-                            );
+
+                            final vaultId = withVaultSelector
+                                ? vaultSelectController.value
+                                : null;
+
+                            if (withVaultSelector &&
+                                vaultId == userVault.value?.id) {
+                              ref
+                                  .read(syncProvider.notifier)
+                                  .pullAndPushVault();
+                            }
+
+                            onSave(vaultId);
                           },
                     child: isLoading
                         ? Row(

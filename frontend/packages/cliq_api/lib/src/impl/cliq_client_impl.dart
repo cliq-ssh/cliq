@@ -58,7 +58,7 @@ class CliqClientImpl implements CliqClient {
   }
 
   @override
-  Future<void> upsertVault({required String? configuration}) async {
+  Future<void> upsertVault({required String configuration}) async {
     final result = await requestHandler.authenticatedNoResponseRequest(
       route: VaultRoutes.put.compile(),
       body: {'configuration': configuration, 'version': '_unused'},

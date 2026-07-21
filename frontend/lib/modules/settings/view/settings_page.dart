@@ -8,6 +8,7 @@ import 'package:cliq/modules/settings/view/ssh_sftp_settings_page.dart';
 import 'package:cliq/modules/settings/view/sync_settings_page.dart';
 import 'package:cliq/modules/settings/view/terminal_theme_settings_page.dart';
 import 'package:cliq/shared/extensions/router.extension.dart';
+import 'package:cliq/shared/provider/store.provider.dart';
 import 'package:cliq/shared/utils/commons.dart';
 import 'package:cliq/shared/utils/platform_utils.dart';
 import 'package:easy_localization/easy_localization.dart';
@@ -37,6 +38,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
   @override
   Widget build(BuildContext context) {
     final sync = ref.watch(syncProvider);
+    final lastUpdated = useStore(.syncLastUpdated);
 
     return SingleChildScrollView(
       child: CliqGridContainer(
@@ -58,10 +60,15 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                             suffix: Icon(LucideIcons.chevronRight),
                             title: Text('sync'.tr()),
                             subtitle: sync.isConnected
-                                ? Text('sync_last_date').tr(
+                                ? Text('sync_last_updated').tr(
                                     args: [
-                                      // TODO:
-                                      'n_a'.tr(),
+                                      lastUpdated.value == null ||
+                                              lastUpdated.value == 0
+                                          ? 'n_a'.tr()
+                                          : DateTime.fromMillisecondsSinceEpoch(
+                                              lastUpdated.value!,
+                                              isUtc: true,
+                                            ).toIso8601String(),
                                     ],
                                   )
                                 : Text('sync_not_connected'.tr()),

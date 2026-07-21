@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:cliq/modules/vaults/provider/vault_service.provider.dart';
 import 'package:cliq/shared/provider/abstract_entity.notifier.dart';
+import 'package:cliq_api/cliq_api.dart' show CliqClient;
 import 'package:easy_localization/easy_localization.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
@@ -37,12 +38,24 @@ class VaultNotifier extends AbstractEntityNotifier<Vault, VaultEntityState> {
     }
 
     // not found; create default vault
-    final label = 'my_vault'.tr();
-    final newId = await ref
+    return await ref
         .read(vaultServiceProvider)
-        .createVault(label: label, isDefault: true);
+        .createVault(label: 'local_vault'.tr(), isDefault: true);
+  }
 
-    return Vault(id: newId, label: label, isDefault: true);
+  /// Finds or creates the user's vault.
+  Future<Vault> findOrCreateUserVault(CliqClient api) async {
+    await initialized;
+
+    for (final vault in state.entities) {
+      if (vault.label == api.selfUser.email) {
+        return vault;
+      }
+    }
+
+    return await ref
+        .read(vaultServiceProvider)
+        .createVault(label: api.selfUser.email, isDefault: false);
   }
 
   @override

@@ -85,6 +85,7 @@ class CreateOrEditIdentityView extends HookConsumerWidget {
 
     return CreateOrEditEntityView(
       onSave: onSave,
+      initialVaultId: selectedVaultId.value,
       onVaultSelected: (vaultId) => selectedVaultId.value = vaultId,
       isEdit: isEdit,
       child: Form(

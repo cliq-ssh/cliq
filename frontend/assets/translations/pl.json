@@ -200,7 +200,6 @@
     "sync_import_error_encrypted": "Nie można otworzyć pliku, ponieważ jest zaszyfrowany",
     "sync_import_error_incorrect_password": "Nie można otworzyć pliku, ponieważ hasło jest nieprawidłowe",
     "sync_import_file": "Importuj z pliku",
-    "sync_last_date": "Ostatnia synchronizacja: {}",
     "sync_not_connected": "Niepołączono",
     "terminal_themes": "Motyw terminala",
     "terminal_themes_font_size": "Rozmiar czcionki",

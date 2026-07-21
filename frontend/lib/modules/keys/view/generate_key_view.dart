@@ -45,6 +45,8 @@ class GenerateKeyView extends HookConsumerWidget {
     final formKey = useMemoized(() => GlobalKey<FormState>());
     final labelCtrl = useTextEditingController();
     final passCtrl = useTextEditingController();
+    final selectedVaultId = useState<DbId?>(null);
+
     final keyType = useState(SshKeyAlgorithm.ed25519);
     final ecdsaSize = useState(SshEcdsaCurveSize.bits256);
     final rsaSize = useState(SshRsaKeySize.bits2048);
@@ -89,6 +91,8 @@ class GenerateKeyView extends HookConsumerWidget {
     return CreateOrEditEntityView(
       onSave: onSave,
       isEdit: false,
+      initialVaultId: selectedVaultId.value,
+      onVaultSelected: (vaultId) => selectedVaultId.value = vaultId,
       createLabel: 'keys_generate'.tr(),
       isCreateLoading: isLoading.value,
       child: Form(
