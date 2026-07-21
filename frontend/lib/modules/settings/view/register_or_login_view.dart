@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:cliq/modules/settings/provider/sync.provider.dart';
+import 'package:cliq/shared/data/store.dart';
 import 'package:cliq/shared/ui/error_card.dart';
 import 'package:cliq/shared/utils/input_formatters.dart';
 import 'package:cliq/shared/utils/validators.dart';
@@ -27,7 +28,9 @@ class RegisterOrLoginView extends HookConsumerWidget {
     final config = ref.watch(syncProvider).config;
     final step = useState<_Step>(.hostUrl);
 
-    final hostCtrl = useTextEditingController();
+    final hostCtrl = useTextEditingController(
+      text: StoreKey.syncHost.readSync()?.hostUri.toString(),
+    );
     final showHttpsWarning = useState<bool>(false);
 
     final usernameCtrl = useTextEditingController();

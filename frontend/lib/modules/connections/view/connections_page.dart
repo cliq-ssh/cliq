@@ -55,6 +55,7 @@ class _ConnectionsPageState extends ConsumerState<ConnectionsPage> {
           ?c.effectiveUsername,
           c.port.toString(),
         ],
+        filterableVaultId: (c) => c.vaultId,
         onAddEntity: () => Commons.showResponsiveDialog(
           (_) => CreateOrEditConnectionView.create(),
           context: context,

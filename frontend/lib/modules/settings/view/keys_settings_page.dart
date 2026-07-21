@@ -46,6 +46,7 @@ class KeysSettingsPage extends AbstractSettingsPage {
           noEntitiesSubtitle: 'keys_empty_subtitle'.tr(),
           addEntityTitle: 'keys_add'.tr(),
           filterableFields: (k) => [k.vault.label, k.label],
+          filterableVaultId: (k) => k.vaultId,
           onAddEntity: () => Commons.showResponsiveDialog(
             (_) => const KeyCreationChoiceView(),
             context: context,

@@ -38,6 +38,7 @@ class IdentitiesSettingsPage extends AbstractSettingsPage {
         context: context,
       ),
       filterableFields: (i) => [i.vault.label, i.label, i.username],
+      filterableVaultId: (i) => i.vaultId,
       entityCardBuilder: (identity) => IdentityCard(identity: identity),
     );
   }

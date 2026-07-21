@@ -85,7 +85,7 @@ class CreateOrEditEntityView extends HookConsumerWidget {
     }, [api]);
 
     buildVaultSelector() {
-      if (isEdit) {
+      if (isEdit && onOpenVaultTransferDialog != null) {
         return FTooltip(
           tipBuilder: (_, _) => Text('entity_edit_vault'.tr()),
           child: FButton.icon(
@@ -99,7 +99,6 @@ class CreateOrEditEntityView extends HookConsumerWidget {
       return SizedBox(
         width: 200,
         child: FSelect<DbId>.rich(
-          enabled: !isEdit,
           validator: (v) => Validators.chain(context, [
             Validators.nonNull,
             Validators.nonEmpty,

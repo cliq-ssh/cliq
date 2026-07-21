@@ -119,7 +119,6 @@ class SyncProviderNotifier extends Notifier<SyncState> {
   }
 
   Future<void> logout() async {
-    await StoreKey.syncHost.delete();
     await StoreKey.syncDevicePrivateKey.delete();
     await StoreKey.syncDataEncryptionKey.delete();
     await StoreKey.syncRefreshToken.delete();
