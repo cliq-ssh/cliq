@@ -27,8 +27,8 @@
         {
             "groupName": "detekt",
             "matchManagers": ["gradle", "gradle-wrapper"],
-            "matchPackagePatterns": [
-                "^dev\\.detekt($|:)"
+            "matchPackageNames": [
+                "/^dev\\.detekt($|:)/"
             ]
         },
         {
