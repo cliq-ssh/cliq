@@ -80,28 +80,27 @@ class AppSettings {
 
   Map<String, dynamic> toJson() {
     return {
-      'version':
-          1, // TODO: implement version handling for future changes to the settings structure
+      // TODO: implement version handling for future changes to the settings structure
+      'version': 1,
       'createdAt': DateTime.now().millisecondsSinceEpoch,
-      if (connections != null)
+      if (connections?.isNotEmpty == true)
         'connections': connections!.map((c) => c.toJson()).toList(),
-      if (connectionsCredentialIds != null)
+      if (connectionsCredentialIds?.isNotEmpty == true)
         'connectionCredentialIds': connectionsCredentialIds!.map(
           (k, v) => .new(k.toString(), v),
         ),
-
-      if (identities != null)
+      if (identities?.isNotEmpty == true)
         'identities': identities!.map((i) => i.toJson()).toList(),
-      if (identitiesCredentialIds != null)
+      if (identitiesCredentialIds?.isNotEmpty == true)
         'identityCredentialIds': identitiesCredentialIds!.map(
           (k, v) => .new(k.toString(), v),
         ),
-
-      if (knownHosts != null)
+      if (knownHosts?.isNotEmpty == true)
         'knownHosts': knownHosts!.map((k) => k.toJson()).toList(),
-      if (credentials != null)
+      if (credentials?.isNotEmpty == true)
         'credentials': credentials!.map((c) => c.toJson()).toList(),
-      if (keys != null) 'keys': keys!.map((k) => k.toJson()).toList(),
+      if (keys?.isNotEmpty == true)
+        'keys': keys!.map((k) => k.toJson()).toList(),
     };
   }
 }
