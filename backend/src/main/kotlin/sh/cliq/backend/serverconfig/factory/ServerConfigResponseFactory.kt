@@ -27,5 +27,6 @@ class ServerConfigResponseFactory(
         oidcUrl = oidcUrl,
         localAuthProperties = authProperties.local,
         authExchangeDurationSeconds = authProperties.authExchangeDurationSeconds,
+        emailEnabled = featureUtils.isFeatureActive(Features.EMAIL),
     )
 }

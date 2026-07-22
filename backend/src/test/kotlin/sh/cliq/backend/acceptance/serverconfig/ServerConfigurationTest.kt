@@ -12,6 +12,7 @@ import sh.cliq.backend.config.properties.InfoProperties
 import sh.cliq.backend.serverconfig.view.ServerConfigResponse
 import tools.jackson.databind.ObjectMapper
 import kotlin.test.assertEquals
+import kotlin.test.assertFalse
 
 @AcceptanceTest
 class ServerConfigurationTest(
@@ -32,6 +33,16 @@ class ServerConfigurationTest(
         val response = objectMapper.readValue(content, ServerConfigResponse::class.java)
 
         assertNull(response.oidcUrl)
+    }
+
+    @Test
+    fun `test server configuration returns expected values with email disabled`() {
+        val result = mockMvc.get("/api/server/configuration").andReturn()
+        val content = result.response.contentAsString
+        assert(content.isNotEmpty())
+        val response = objectMapper.readValue(content, ServerConfigResponse::class.java)
+
+        assertFalse(response.emailEnabled)
     }
 
     @Test

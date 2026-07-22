@@ -7,4 +7,5 @@ data class ServerConfigResponse(
     val oidcUrl: String? = null,
     val localAuthProperties: AuthProperties.LocalAuthProperties,
     val authExchangeDurationSeconds: Long,
+    val emailEnabled: Boolean,
 )
