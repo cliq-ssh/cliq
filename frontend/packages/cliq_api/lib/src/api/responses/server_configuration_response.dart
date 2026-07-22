@@ -3,12 +3,14 @@ class ServerConfigurationResponse {
   final String? oidcUrl;
   final LocalAuthProperties localAuthProperties;
   final int authExchangeDurationSeconds;
+  final bool emailEnabled;
 
   const ServerConfigurationResponse({
     required this.serverVersion,
     required this.oidcUrl,
     required this.localAuthProperties,
     required this.authExchangeDurationSeconds,
+    required this.emailEnabled,
   });
 
   factory ServerConfigurationResponse.fromJson(Map<String, dynamic> json) {
@@ -19,6 +21,7 @@ class ServerConfigurationResponse {
         json['localAuthProperties'],
       ),
       authExchangeDurationSeconds: json['authExchangeDurationSeconds'] as int,
+      emailEnabled: json['emailEnabled'] ?? false,
     );
   }
 
@@ -28,6 +31,7 @@ class ServerConfigurationResponse {
       'oidcUrl': oidcUrl,
       'localAuthProperties': localAuthProperties.toJson(),
       'authExchangeDurationSeconds': authExchangeDurationSeconds,
+      'emailEnabled': emailEnabled,
     };
   }
 

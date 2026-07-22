@@ -71,6 +71,7 @@
   "filters_no_match": "No items match your filter",
   "filters_reset": "Reset filters",
   "error_copy_error_details": "Copy error details",
+  "sync_login_disabled": "Login is disabled on this server",
   "error_report_issue_on_github": "Report issue on GitHub",
   "error_stacktrace": "Stacktrace",
   "file_groups": {

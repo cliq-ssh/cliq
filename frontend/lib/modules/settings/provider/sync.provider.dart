@@ -39,13 +39,16 @@ class SyncProviderNotifier extends Notifier<SyncState> {
   @override
   SyncState build() => .initial();
 
-  Future<void> retrieveConfig(RouteOptions routeOptions) async {
+  Future<ServerConfigurationResponse> retrieveConfig(
+    RouteOptions routeOptions,
+  ) async {
     // check if the URI is valid and the API is healthy
     final config = await CliqClient.retrieveConfiguration(routeOptions);
     _log.config(
       'Successfully connected to: ${routeOptions.hostUri}, config: $config',
     );
     state = state.copyWith(config: config);
+    return config;
   }
 
   Future<void> attemptRecovery() async {
@@ -117,7 +120,10 @@ class SyncProviderNotifier extends Notifier<SyncState> {
     required String email,
     required Uint8List password,
   }) async {
-    await retrieveConfig(routeOptions);
+    final config = await retrieveConfig(routeOptions);
+    if (!config.localAuthProperties.registration) {
+      throw StateError('Registration is disabled on this server.');
+    }
     await _getDefaultClientBuilder(
       routeOptions,
     ).createUser(username: username, email: email, password: password);
