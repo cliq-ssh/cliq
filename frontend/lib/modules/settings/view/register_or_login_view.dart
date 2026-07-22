@@ -270,9 +270,7 @@ class RegisterOrLoginView extends HookConsumerWidget {
           children: [
             FButton(
               onPress: isFormValid.value && !isLoading.value ? onLogin : null,
-              child: isLoading.value
-                  ? FCircularProgress()
-                  : Text('login'.tr()),
+              child: isLoading.value ? FCircularProgress() : Text('login'.tr()),
             ),
             if (isRegisterEnabled)
               FButton(

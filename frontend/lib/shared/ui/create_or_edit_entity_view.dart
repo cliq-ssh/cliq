@@ -52,10 +52,8 @@ class CreateOrEditEntityView extends HookConsumerWidget {
     final formKey = useMemoized(() => GlobalKey<FormState>());
     final vaults = ref.watch(vaultProvider);
 
-    final api = ref.watch(syncProvider).api;
-
+    // either the local vault if not logged in or the user's vault if logged in
     final defaultVault = useState<Vault?>(null);
-    final userVault = useState<Vault?>(null);
 
     final vaultSelectController = useFSelectController<DbId>(
       value: initialVaultId ?? defaultVault.value?.id,
@@ -63,7 +61,7 @@ class CreateOrEditEntityView extends HookConsumerWidget {
 
     useEffect(() {
       if (!withVaultSelector) return;
-      ref.read(vaultProvider.notifier).findOrCreateDefaultVault().then((vault) {
+      ref.read(vaultProvider.notifier).retrieveDefaultVault().then((vault) {
         WidgetsBinding.instance.addPostFrameCallback((_) {
           defaultVault.value = vault;
           if (initialVaultId != null) return;
@@ -74,16 +72,6 @@ class CreateOrEditEntityView extends HookConsumerWidget {
       return null;
     }, []);
 
-    useEffect(() {
-      if (!withVaultSelector || api == null) return;
-      ref.read(vaultProvider.notifier).findOrCreateUserVault(api).then((vault) {
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          userVault.value = vault;
-        });
-      });
-      return null;
-    }, [api]);
-
     buildVaultSelector() {
       if (isEdit && onOpenVaultTransferDialog != null) {
         return FTooltip(
@@ -91,7 +79,7 @@ class CreateOrEditEntityView extends HookConsumerWidget {
           child: FButton.icon(
             variant: .outline,
             onPress: onOpenVaultTransferDialog,
-            child: Icon(LucideIcons.folderPen, size: 16),
+            child: Icon(LucideIcons.arrowRightLeft, size: 16),
           ),
         );
       }
@@ -113,15 +101,10 @@ class CreateOrEditEntityView extends HookConsumerWidget {
           ),
           format: (s) => vaults.entities.firstWhere((v) => v.id == s).label,
           children: [
-            // local vault on top
-            if (defaultVault.value != null)
+            for (final vault
+                in vaults.entities..sort((a, b) => a.isDefault ? -1 : 1))
               .item(
-                title: Text('local_vault'.tr()),
-                value: defaultVault.value!.id,
-              ),
-            for (final vault in vaults.entities.where((v) => !v.isDefault))
-              .item(
-                prefix: Icon(LucideIcons.cloudSync),
+                prefix: vault.isDefault ? null : Icon(LucideIcons.cloudSync),
                 title: Text(vault.label),
                 value: vault.id,
               ),

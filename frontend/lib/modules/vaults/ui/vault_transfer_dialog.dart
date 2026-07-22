@@ -48,7 +48,7 @@ class VaultTransferDialog extends HookConsumerWidget {
     final vaultSelectController = useFSelectController<DbId>();
 
     useEffect(() {
-      ref.read(vaultProvider.notifier).findOrCreateDefaultVault().then((vault) {
+      ref.read(vaultProvider.notifier).findOrCreateLocalVault().then((vault) {
         WidgetsBinding.instance.addPostFrameCallback((_) {
           defaultVault.value = vault;
         });
