@@ -47,7 +47,10 @@ class SyncSettingsPage extends AbstractSettingsPage {
     final userVault = useState<DbId?>(null);
     final entitiesCount = useState<(int, int, int, int)?>(null);
 
-    // TODO: make this more responsive
+    final syncIconController = useAnimationController(
+      duration: const Duration(seconds: 1),
+    );
+
     useEffect(() {
       if (api == null) return;
       ref.read(vaultProvider.notifier).findOrCreateUserVault(api).then((vault) {
@@ -95,7 +98,10 @@ class SyncSettingsPage extends AbstractSettingsPage {
           subtitle: Text(api.selfUser.email),
         ),
         FTile(
-          prefix: Icon(LucideIcons.refreshCw),
+          prefix: RotationTransition(
+            turns: syncIconController,
+            child: Icon(LucideIcons.refreshCw),
+          ),
           suffix: entitiesCount.value == null
               ? SizedBox.shrink()
               : Row(
@@ -123,6 +129,7 @@ class SyncSettingsPage extends AbstractSettingsPage {
             overflow: .visible,
           ),
           onPress: () async {
+            syncIconController.forward(from: 0);
             final pulled = await ref.read(syncProvider.notifier).pullVault();
             Commons.showToast(
               (pulled ? 'sync_vault_pulling' : 'sync_vault_up_to_date').tr(),
