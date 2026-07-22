@@ -21,7 +21,7 @@ class SecurityConfig(
 ) {
     @FeatureOidc
     @Bean
-    @Order(1)
+    @Order(2)
     fun oidcFilterChain(
         http: HttpSecurity,
         oidcLoginSuccessHandler: OidcLoginSuccessHandler,
@@ -37,10 +37,10 @@ class SecurityConfig(
         }.build()
 
     @Bean
-    @Order(2)
+    @Order(1)
     fun securityFilterChain(http: HttpSecurity): SecurityFilterChain {
         http
-            .securityMatcher("/api/**")
+            .securityMatcher("/api/**", "/actuator/**")
             .csrf { it.disable() }
             .formLogin { it.disable() }
             .httpBasic { it.disable() }
