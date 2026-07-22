@@ -239,7 +239,7 @@ class _SshSessionPageState extends ConsumerState<SshSessionPage>
 
         // always rebind, regardless of whether the shell was just spawned or already existed
         terminalController.value!.onInput = (s) {
-          sshSession.write(Uint8List.fromList(s.codeUnits));
+          sshSession.write(.fromList(utf8.encode(s)));
         };
 
         StreamSubscription? stdoutSub;
