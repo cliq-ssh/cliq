@@ -113,7 +113,7 @@ jobs:
       - name: Set up Ruby
         uses: ruby/setup-ruby@v1
         with:
-          ruby-version: '3.3'
+          ruby-version: '4.0.6'
           bundler-cache: true
           working-directory: frontend/ios
 
@@ -159,7 +159,7 @@ jobs:
       - name: Set up Ruby
         uses: ruby/setup-ruby@v1
         with:
-          ruby-version: '3.3'
+          ruby-version: '4.0.6'
           bundler-cache: true
           working-directory: frontend/macos
 
