@@ -7,6 +7,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
 import '../../../shared/data/database.dart';
+import '../../settings/provider/sync.provider.dart';
 import '../model/vault.state.dart';
 
 final vaultProvider = NotifierProvider(VaultNotifier.new);
@@ -27,8 +28,8 @@ class VaultNotifier extends AbstractEntityNotifier<Vault, VaultEntityState> {
     return null;
   }
 
-  /// Finds or creates the user's default vault called "My Vault".
-  Future<Vault> findOrCreateDefaultVault() async {
+  /// Finds or creates the user's local vault called "Local Vault".
+  Future<Vault> findOrCreateLocalVault() async {
     await initialized;
 
     for (final vault in state.entities) {
@@ -56,6 +57,16 @@ class VaultNotifier extends AbstractEntityNotifier<Vault, VaultEntityState> {
     return await ref
         .read(vaultServiceProvider)
         .createVault(label: api.selfUser.email, isDefault: false);
+  }
+
+  /// Convenience method for retrieving the 'default' vault based on login state
+  Future<Vault> retrieveDefaultVault() async {
+    final api = ref.read(syncProvider).api;
+
+    if (api != null) {
+      return await findOrCreateUserVault(api);
+    }
+    return await findOrCreateLocalVault();
   }
 
   @override

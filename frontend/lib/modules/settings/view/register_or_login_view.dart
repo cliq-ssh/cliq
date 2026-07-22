@@ -61,6 +61,15 @@ class RegisterOrLoginView extends HookConsumerWidget {
       };
     }
 
+    close() {
+      passwordCtrl.clear();
+      passwordConfirmCtrl.clear();
+
+      Commons.showToast('sync_login_success'.tr());
+      if (!context.mounted) return;
+      context.pop();
+    }
+
     Future<void> onTestHostUrl() async {
       // warn user if hostUrl starts with http://
       if (!showHttpsWarning.value && hostCtrl.text.startsWith('http://')) {
@@ -99,13 +108,7 @@ class RegisterOrLoginView extends HookConsumerWidget {
               email: emailCtrl.text,
               password: utf8.encode(passwordCtrl.text),
             );
-
-        passwordCtrl.clear();
-        passwordConfirmCtrl.clear();
-
-        Commons.showToast('sync_login_success'.tr());
-        if (!context.mounted) return;
-        context.pop();
+        close();
       } on CliqException catch (e) {
         // 2002 means the email is not verified yet, send to registerVerify step
         if (e.errorCode == 2002) {
@@ -130,7 +133,21 @@ class RegisterOrLoginView extends HookConsumerWidget {
               email: emailCtrl.text,
               password: utf8.encode(passwordCtrl.text),
             );
-        step.value = .registerVerify;
+
+        // if email verification is not enabled, close the dialog and log in automatically
+        if (config != null && !config.emailEnabled) {
+          await ref
+              .read(syncProvider.notifier)
+              .login(
+                routeOptions.value!,
+                email: emailCtrl.text,
+                password: utf8.encode(passwordCtrl.text),
+              );
+
+          close();
+        } else {
+          step.value = .registerVerify;
+        }
       } on CliqException catch (e) {
         Commons.showCliqException(e);
       } finally {
@@ -158,12 +175,7 @@ class RegisterOrLoginView extends HookConsumerWidget {
               password: utf8.encode(passwordCtrl.text),
             );
 
-        passwordCtrl.clear();
-        passwordConfirmCtrl.clear();
-
-        Commons.showToast('sync_login_success'.tr());
-        if (!context.mounted) return;
-        context.pop();
+        close();
       } on CliqException catch (e) {
         Commons.showCliqException(e);
         if (didVerify) step.value = .login;
@@ -218,13 +230,29 @@ class RegisterOrLoginView extends HookConsumerWidget {
     }
 
     buildLoginStep() {
+      final isLoginEnabled = config != null && config.localAuthProperties.login;
+      final isRegisterEnabled =
+          isLoginEnabled && config.localAuthProperties.registration;
+
+      if (!isLoginEnabled) {
+        return [
+          Text(
+            'sync_login_disabled'.tr(),
+            textAlign: .center,
+            style: context.theme.typography.body.md.copyWith(
+              color: context.theme.colors.mutedForeground,
+            ),
+          ),
+        ];
+      }
+
       return [
         FTextFormField.email(
           key: ValueKey('email_field'),
           control: .managed(controller: emailCtrl),
           label: Text('email'.tr()),
           hint: 'email_placeholder'.tr(),
-          autofillHints: [AutofillHints.email],
+          autofillHints: [AutofillHints.username, AutofillHints.email],
           validator: (value) => Validators.email(context, value),
           readOnly: isLoading.value,
           enabled: !isLoading.value,
@@ -244,15 +272,16 @@ class RegisterOrLoginView extends HookConsumerWidget {
               onPress: isFormValid.value && !isLoading.value ? onLogin : null,
               child: isLoading.value ? FCircularProgress() : Text('login'.tr()),
             ),
-            FButton(
-              variant: .outline,
-              onPress: isLoading.value
-                  ? null
-                  : () {
-                      step.value = .register;
-                    },
-              child: Text('sync_go_register'.tr()),
-            ),
+            if (isRegisterEnabled)
+              FButton(
+                variant: .outline,
+                onPress: isLoading.value
+                    ? null
+                    : () {
+                        step.value = .register;
+                      },
+                child: Text('sync_go_register'.tr()),
+              ),
             Text(
               'sync_login_vault_hint'.tr(),
               textAlign: .center,
@@ -281,7 +310,7 @@ class RegisterOrLoginView extends HookConsumerWidget {
           control: .managed(controller: emailCtrl),
           label: Text('email'.tr()),
           hint: 'email_placeholder'.tr(),
-          autofillHints: [AutofillHints.email],
+          autofillHints: [AutofillHints.username, AutofillHints.email],
           validator: (value) => Validators.email(context, value),
           readOnly: isLoading.value,
           enabled: !isLoading.value,

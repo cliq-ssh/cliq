@@ -13,6 +13,8 @@ import 'package:cliq/shared/provider/store.provider.dart';
 import 'package:cliq_api/cliq_api.dart';
 import 'package:cliq_ui/cliq_ui.dart'
     show CliqGridContainer, CliqGridRow, CliqGridColumn;
+import 'package:cliq_ui/hooks/use_breakpoint.export.dart' show useBreakpoint;
+import 'package:cliq_ui/theme.export.dart' show CliqFontFamily;
 import 'package:easy_localization/easy_localization.dart';
 import 'package:file_selector/file_selector.dart';
 import 'package:flutter/cupertino.dart' hide Router;
@@ -47,7 +49,12 @@ class SyncSettingsPage extends AbstractSettingsPage {
     final userVault = useState<DbId?>(null);
     final entitiesCount = useState<(int, int, int, int)?>(null);
 
-    // TODO: make this more responsive
+    final syncIconController = useAnimationController(
+      duration: const Duration(seconds: 1),
+    );
+
+    final breakpoint = useBreakpoint();
+
     useEffect(() {
       if (api == null) return;
       ref.read(vaultProvider.notifier).findOrCreateUserVault(api).then((vault) {
@@ -63,9 +70,20 @@ class SyncSettingsPage extends AbstractSettingsPage {
     }, [api, lastUpdated.value]);
 
     buildIconCount(EntityType type, int count) {
+      final muted = context.theme.colors.mutedForeground;
+
       return Row(
         spacing: 4,
-        children: [Icon(type.icon, size: 16), Text(count.toString())],
+        children: [
+          Icon(type.icon, size: 16, color: muted),
+          Text(
+            count.toString(),
+            style: .new(
+              fontFamily: CliqFontFamily.secondary.fontFamily,
+              color: muted,
+            ),
+          ),
+        ],
       );
     }
 
@@ -95,8 +113,11 @@ class SyncSettingsPage extends AbstractSettingsPage {
           subtitle: Text(api.selfUser.email),
         ),
         FTile(
-          prefix: Icon(LucideIcons.refreshCw),
-          suffix: entitiesCount.value == null
+          prefix: RotationTransition(
+            turns: syncIconController,
+            child: Icon(LucideIcons.refreshCw),
+          ),
+          suffix: breakpoint < .md || entitiesCount.value == null
               ? SizedBox.shrink()
               : Row(
                   spacing: 12,
@@ -123,12 +144,26 @@ class SyncSettingsPage extends AbstractSettingsPage {
             overflow: .visible,
           ),
           onPress: () async {
+            syncIconController.forward(from: 0);
             final pulled = await ref.read(syncProvider.notifier).pullVault();
             Commons.showToast(
               (pulled ? 'sync_vault_pulling' : 'sync_vault_up_to_date').tr(),
             );
           },
         ),
+        if (breakpoint < .md)
+          FTile(
+            title: Row(
+              spacing: 12,
+              mainAxisSize: .min,
+              children: [
+                buildIconCount(.connection, entitiesCount.value!.$1),
+                buildIconCount(.identity, entitiesCount.value!.$2),
+                buildIconCount(.key, entitiesCount.value!.$3),
+                buildIconCount(.knownHost, entitiesCount.value!.$4),
+              ],
+            ),
+          ),
         FTile(
           variant: .destructive,
           prefix: Icon(LucideIcons.logOut),

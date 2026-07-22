@@ -79,7 +79,7 @@ class EntityCardView<E> extends HookConsumerWidget {
     final vaults = ref.watch(vaultProvider);
 
     useEffect(() {
-      ref.read(vaultProvider.notifier).findOrCreateDefaultVault().then((vault) {
+      ref.read(vaultProvider.notifier).findOrCreateLocalVault().then((vault) {
         WidgetsBinding.instance.addPostFrameCallback((_) {
           defaultVault.value = vault;
         });
