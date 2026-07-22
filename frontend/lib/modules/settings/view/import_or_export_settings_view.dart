@@ -76,27 +76,51 @@ class _ImportOrExportSettingsViewState
 
         settings.value = AppSettings(
           connections: connections.entities
+              .where((e) => e.vaultId == selectedVaultId.value)
               .map((e) => e.toCompanion(true))
               .toList(),
           identities: identities.entities
+              .where((e) => e.vaultId == selectedVaultId.value)
               .map((e) => e.toCompanion(true))
               .toList(),
           knownHosts: knownHosts.entities
+              .where((e) => e.vaultId == selectedVaultId.value)
               .map((e) => e.toCompanion(true))
               .toList(),
-          credentials: credentials.map((e) => e.toCompanion(true)).toList(),
-          keys: keys.map((e) => e.toCompanion(true)).toList(),
-          identitiesCredentialIds: identities.entities.asMap().map(
-            (_, entity) => MapEntry(entity.id, entity.credentialIds),
-          ),
-          connectionsCredentialIds: connections.entities.asMap().map(
-            (_, entity) => MapEntry(entity.id, entity.credentialIds),
-          ),
+          credentials: credentials
+              .where((e) => e.vaultId == selectedVaultId.value)
+              .map((e) => e.toCompanion(true))
+              .toList(),
+          keys: keys
+              .where((e) => e.vaultId == selectedVaultId.value)
+              .map((e) => e.toCompanion(true))
+              .toList(),
+          identitiesCredentialIds: identities.entities
+              .where((e) => e.vaultId == selectedVaultId.value)
+              .toList()
+              .asMap()
+              .map((_, entity) => MapEntry(entity.id, entity.credentialIds)),
+          connectionsCredentialIds: connections.entities
+              .where((e) => e.vaultId == selectedVaultId.value)
+              .toList()
+              .asMap()
+              .map((_, entity) => MapEntry(entity.id, entity.credentialIds)),
         );
       });
 
       return null;
-    }, [widget.isImport]);
+    }, [widget.isImport, selectedVaultId.value]);
+
+    useEffect(() {
+      connectionsTileController.value = {};
+      identitiesTileController.value = {};
+      knownHostsTileController.value = {};
+      keysTileController.value = {};
+      relatedIdentityIds.value = {};
+      relatedConnectionKeyIds.value = {};
+      relatedIdentityKeyIds.value = {};
+      return null;
+    }, [selectedVaultId.value]);
 
     onSave(DbId vaultId) async {
       // check if at least one is selected
@@ -136,6 +160,30 @@ class _ImportOrExportSettingsViewState
         });
       }
 
+      final selectedConnectionsCredentialIds = mapCredentialIds(
+        settings.value?.connectionsCredentialIds,
+        connectionsTileController,
+      );
+      final selectedIdentitiesCredentialIds = mapCredentialIds(
+        settings.value?.identitiesCredentialIds,
+        identitiesTileController,
+      );
+
+      // only include credentials that are actually referenced by a selected connection/identity
+      final referencedCredentialIds = <DbId>{
+        ...?selectedConnectionsCredentialIds?.values.expand((e) => e),
+        ...?selectedIdentitiesCredentialIds?.values.expand((e) => e),
+      };
+
+      final selectedCredentials = settings.value?.credentials?.where((c) {
+        if (!referencedCredentialIds.contains(c.id.value)) return false;
+        final keyId = c.keyId.value;
+        if (keyId != null && !keysTileController.value.contains(keyId)) {
+          return false;
+        }
+        return true;
+      }).toList();
+
       final selected = AppSettings(
         connections: settings.value?.connections
             ?.where((c) => connectionsTileController.value.contains(c.id.value))
@@ -146,18 +194,12 @@ class _ImportOrExportSettingsViewState
         knownHosts: settings.value?.knownHosts
             ?.where((k) => knownHostsTileController.value.contains(k.id.value))
             .toList(),
-        credentials: settings.value?.credentials,
+        credentials: selectedCredentials,
         keys: settings.value?.keys
             ?.where((k) => keysTileController.value.contains(k.id.value))
             .toList(),
-        connectionsCredentialIds: mapCredentialIds(
-          settings.value?.connectionsCredentialIds,
-          connectionsTileController,
-        ),
-        identitiesCredentialIds: mapCredentialIds(
-          settings.value?.identitiesCredentialIds,
-          identitiesTileController,
-        ),
+        connectionsCredentialIds: selectedConnectionsCredentialIds,
+        identitiesCredentialIds: selectedIdentitiesCredentialIds,
       );
 
       // validate settings
