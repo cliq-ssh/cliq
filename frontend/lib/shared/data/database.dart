@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'dart:ui';
 
 import 'package:cliq/modules/identities/data/identity_credentials_repository.dart';
@@ -76,6 +77,15 @@ final class CliqDatabase extends _$CliqDatabase {
       await delete(table).go();
     }
     await customStatement('PRAGMA foreign_keys = ON');
+  }
+
+  Future<void> deleteDatabaseFile() async {
+    await executor.close();
+    final supportDir = await getApplicationSupportDirectory();
+    final dbFile = File('${supportDir.path}/cliq_db.sqlite');
+    if (await dbFile.exists()) {
+      await dbFile.delete();
+    }
   }
 
   static QueryExecutor _openConnection() {

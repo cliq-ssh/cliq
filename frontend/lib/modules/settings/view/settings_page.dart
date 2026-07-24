@@ -159,6 +159,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                           ),
                           if (developerMode.value)
                             FTile(
+                              variant: .destructive,
                               prefix: Icon(LucideIcons.hammer),
                               suffix: Icon(LucideIcons.chevronRight),
                               title: Text('developer'.tr()),
