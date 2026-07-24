@@ -13,6 +13,7 @@ class ResponsiveDialog extends StatelessWidget {
   Widget build(BuildContext context) {
     return FScaffold(
       childPad: false,
+      resizeToAvoidBottomInset: false,
       child: SafeArea(
         child: LayoutBuilder(
           builder: (context, constraints) {

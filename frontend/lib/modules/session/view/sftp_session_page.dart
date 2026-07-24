@@ -502,7 +502,7 @@ class _SftpSessionPageState extends ConsumerState<SftpSessionPage>
       if (largeDownloadWarning.value &&
           file.attr.size! > Constants.largeFileSizeThreshold) {
         final shouldContinue = await Commons.showConfirmationDialog(
-          title: 'dialog_large_file'.tr(),
+          title: 'dialog_large_file_title'.tr(),
           children: (context, _, _) => TextUtils.renderText(
             context,
             'dialog_large_file_body'.tr(
