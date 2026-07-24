@@ -1,3 +1,4 @@
+import 'package:cliq/modules/vaults/extension/vault.extension.dart';
 import 'package:cliq/shared/data/database.dart';
 import 'package:cliq/shared/model/entity_type.dart';
 import 'package:cliq/shared/utils/text_utils.dart';
@@ -42,15 +43,16 @@ class VaultTransferDialog extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final vaults = ref.watch(vaultProvider);
-    final defaultVault = useState<Vault?>(null);
+    final localVault = useState<Vault?>(null);
+    final vaultSelectController = useFSelectController<DbId>();
     final formKey = useMemoized(() => GlobalKey<FormState>());
 
-    final vaultSelectController = useFSelectController<DbId>();
+    final isLoading = useState(false);
 
     useEffect(() {
-      ref.read(vaultProvider.notifier).findOrCreateLocalVault().then((vault) {
+      ref.read(vaultProvider.notifier).findOrCreateVault().then((vault) {
         WidgetsBinding.instance.addPostFrameCallback((_) {
-          defaultVault.value = vault;
+          localVault.value = vault;
         });
       });
       return null;
@@ -112,21 +114,19 @@ class VaultTransferDialog extends HookConsumerWidget {
                 Validators.nonEmpty,
               ], v),
               control: .managed(controller: vaultSelectController),
-              format: (s) => vaults.entities.firstWhere((v) => v.id == s).label,
+              format: (s) => vaults.entities
+                  .firstWhere((v) => v.id == s)
+                  .getDisplayName(context),
               children: [
-                if (defaultVault.value != null &&
-                    defaultVault.value!.id != currentVault)
+                for (final v in VaultExtension.sortVaults(
+                  vaults.entities,
+                ).where((v) => v.id != currentVault))
                   .item(
-                    title: Text('local_vault'.tr()),
-                    value: defaultVault.value!.id,
-                  ),
-                for (final vault in vaults.entities.where(
-                  (v) => !v.isDefault && v.id != currentVault,
-                ))
-                  .item(
-                    prefix: Icon(LucideIcons.cloudSync),
-                    title: Text(vault.label),
-                    value: vault.id,
+                    prefix: v.owner == null
+                        ? null
+                        : Icon(LucideIcons.cloudSync),
+                    title: Text(v.getDisplayName(context)),
+                    value: v.id,
                   ),
               ],
             ),
@@ -150,20 +150,25 @@ class VaultTransferDialog extends HookConsumerWidget {
 
             return FButton(
               variant: .destructive,
-              onPress: selectedVaultId == null
+              onPress: isLoading.value || selectedVaultId == null
                   ? null
                   : () async {
                       if (!(formKey.currentState?.validate() ?? false)) return;
 
+                      isLoading.value = true;
                       await onTransfer(selectedVaultId);
                       if (!context.mounted) return;
                       Navigator.of(context).pop();
                     },
-              child: Text(
-                selectedVault == null
-                    ? 'transfer'.tr()
-                    : 'transfer_to'.tr(args: [selectedVault.label]),
-              ),
+              child: isLoading.value
+                  ? FCircularProgress()
+                  : Text(
+                      selectedVault == null
+                          ? 'transfer'.tr()
+                          : 'transfer_to'.tr(
+                              args: [selectedVault.getDisplayName(context)],
+                            ),
+                    ),
             );
           },
         ),

@@ -151,7 +151,7 @@ class SyncSettingsPage extends AbstractSettingsPage {
             );
           },
         ),
-        if (breakpoint < .md)
+        if (breakpoint < .md && entitiesCount.value != null)
           FTile(
             title: Row(
               spacing: 12,

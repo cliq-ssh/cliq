@@ -11,6 +11,8 @@ import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lucide_flutter/lucide_flutter.dart';
 
+import '../../modules/vaults/extension/vault.extension.dart';
+
 class CreateOrEditEntityView extends HookConsumerWidget {
   final Function(DbId?) onSave;
   final bool isEdit;
@@ -52,9 +54,7 @@ class CreateOrEditEntityView extends HookConsumerWidget {
     final formKey = useMemoized(() => GlobalKey<FormState>());
     final vaults = ref.watch(vaultProvider);
 
-    // either the local vault if not logged in or the user's vault if logged in
     final defaultVault = useState<Vault?>(null);
-
     final vaultSelectController = useFSelectController<DbId>(
       value: initialVaultId ?? defaultVault.value?.id,
     );
@@ -99,14 +99,15 @@ class CreateOrEditEntityView extends HookConsumerWidget {
               }
             },
           ),
-          format: (s) => vaults.entities.firstWhere((v) => v.id == s).label,
+          format: (s) => vaults.entities
+              .firstWhere((v) => v.id == s)
+              .getDisplayName(context),
           children: [
-            for (final vault
-                in vaults.entities..sort((a, b) => a.isDefault ? -1 : 1))
+            for (final v in VaultExtension.sortVaults(vaults.entities))
               .item(
-                prefix: vault.isDefault ? null : Icon(LucideIcons.cloudSync),
-                title: Text(vault.label),
-                value: vault.id,
+                prefix: v.owner == null ? null : Icon(LucideIcons.cloudSync),
+                title: Text(v.getDisplayName(context)),
+                value: v.id,
               ),
           ],
         ),
@@ -125,8 +126,7 @@ class CreateOrEditEntityView extends HookConsumerWidget {
                 mainAxisAlignment: MainAxisAlignment.end,
                 spacing: 8,
                 children: [
-                  if (withVaultSelector && defaultVault.value != null)
-                    buildVaultSelector(),
+                  if (withVaultSelector) buildVaultSelector(),
                   FButton.icon(
                     variant: .outline,
                     onPress: () => context.pop(),

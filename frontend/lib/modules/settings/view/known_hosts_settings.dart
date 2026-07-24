@@ -31,7 +31,7 @@ class KnownHostsSettingsPage extends AbstractSettingsPage {
       viewTypeKey: .knownHostsCardViewType,
       noEntitiesTitle: 'known_hosts_empty'.tr(),
       noEntitiesSubtitle: 'known_hosts_empty_subtitle'.tr(),
-      filterableFields: (k) => [k.vault.label, k.host],
+      filterableFields: (k) => [?k.vault.owner, k.host],
       filterableVaultId: (k) => k.vaultId,
     );
   }

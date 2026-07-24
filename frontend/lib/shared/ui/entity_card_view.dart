@@ -19,6 +19,7 @@ import 'package:forui/forui.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lucide_flutter/lucide_flutter.dart';
 
+import '../../modules/vaults/extension/vault.extension.dart';
 import '../../modules/vaults/provider/vault.provider.dart';
 import '../provider/store.provider.dart';
 
@@ -74,18 +75,7 @@ class EntityCardView<E> extends HookConsumerWidget {
     final filterText = useState('');
     final filterFocusNode = useFocusNode();
     final filterVaultId = useState<List<DbId>?>(null);
-
-    final defaultVault = useState<Vault?>(null);
     final vaults = ref.watch(vaultProvider);
-
-    useEffect(() {
-      ref.read(vaultProvider.notifier).findOrCreateLocalVault().then((vault) {
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          defaultVault.value = vault;
-        });
-      });
-      return null;
-    }, []);
 
     isFilteredOut(E entity) {
       if (filterableVaultId != null && filterVaultId.value != null) {
@@ -232,22 +222,12 @@ class EntityCardView<E> extends HookConsumerWidget {
           if (filterVaultId.value != null)
             .group(
               children: [
-                if (defaultVault.value != null)
+                for (final v in VaultExtension.sortVaults(vaults.entities))
                   .item(
-                    prefix:
-                        filterVaultId.value?.contains(defaultVault.value!.id) ??
-                            false
-                        ? Icon(LucideIcons.check)
-                        : SizedBox(width: 16),
-                    title: Text('local_vault'.tr()),
-                    onPress: () => onVaultTap(defaultVault.value!.id),
-                  ),
-                for (final v in vaults.entities.where((v) => !v.isDefault))
-                  .item(
-                    prefix: filterVaultId.value?.contains(v.id) ?? false
-                        ? Icon(LucideIcons.check)
-                        : SizedBox(width: 16),
-                    title: Text(v.label),
+                    prefix: v.owner == null
+                        ? null
+                        : Icon(LucideIcons.cloudSync),
+                    title: Text(v.getDisplayName(context)),
                     onPress: () => onVaultTap(v.id),
                   ),
               ],
@@ -310,29 +290,27 @@ class EntityCardView<E> extends HookConsumerWidget {
                             ),
                           ),
                           child: ConstrainedBox(
-                            constraints: .new(maxWidth: 200),
-                            child: SizedBox(
-                              child: FTextField(
-                                control: .managed(
-                                  onChange: (value) =>
-                                      filterText.value = value.text,
-                                ),
-                                focusNode: filterFocusNode,
-                                hint: 'filter'.tr(),
-                                prefixBuilder: (_, _, _) => IconTheme(
-                                  data: context
-                                      .theme
-                                      .textFieldStyles
-                                      .md
-                                      .iconStyle
-                                      .base,
-                                  child: Padding(
-                                    padding: const .only(left: 8, right: 4),
-                                    child: Icon(LucideIcons.search),
-                                  ),
-                                ),
-                                clearable: (value) => value.text.isNotEmpty,
+                            constraints: .new(maxWidth: 150),
+                            child: FTextField(
+                              control: .managed(
+                                onChange: (value) =>
+                                    filterText.value = value.text,
                               ),
+                              focusNode: filterFocusNode,
+                              hint: 'filter'.tr(),
+                              prefixBuilder: (_, _, _) => IconTheme(
+                                data: context
+                                    .theme
+                                    .textFieldStyles
+                                    .md
+                                    .iconStyle
+                                    .base,
+                                child: Padding(
+                                  padding: const .only(left: 8, right: 4),
+                                  child: Icon(LucideIcons.search),
+                                ),
+                              ),
+                              clearable: (value) => value.text.isNotEmpty,
                             ),
                           ),
                         ),
