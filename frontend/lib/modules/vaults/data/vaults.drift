@@ -5,9 +5,8 @@ import '../../keys/data/keys.drift';
 import '../../settings/data/known_hosts.drift';
 
 CREATE TABLE vaults (
-    id          TEXT NOT NULL PRIMARY KEY DEFAULT '',
-    label       TEXT NOT NULL UNIQUE,
-    is_default  BOOLEAN NOT NULL DEFAULT FALSE
+    id      TEXT NOT NULL PRIMARY KEY DEFAULT '',
+    owner   TEXT UNIQUE
 );
 
 clearConnectionsByVaultId:

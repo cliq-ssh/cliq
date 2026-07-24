@@ -8,10 +8,10 @@ import 'package:cliq/modules/vaults/provider/vault_service.provider.dart';
 import 'package:cliq/shared/data/store.dart';
 import 'package:cliq/shared/model/localized_exception.dart';
 import 'package:cliq/shared/provider/database.provider.dart';
+import 'package:cliq/shared/utils/commons.dart';
 import 'package:cliq/shared/utils/password_cipher.dart';
 import 'package:cliq_api/cliq_api.dart' hide Vault;
 import 'package:file_selector/file_selector.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:logging/logging.dart';
 
@@ -53,7 +53,11 @@ class SyncProviderNotifier extends Notifier<SyncState> {
 
   Future<void> attemptRecovery() async {
     final routeOptions = await StoreKey.syncHost.readAsync();
-    if (routeOptions == null) return;
+    if (routeOptions == null ||
+        (await StoreKey.syncRefreshToken.readAsync()) == null) {
+      await deleteNonLocalVaults();
+      return;
+    }
 
     try {
       await retrieveConfig(routeOptions);
@@ -85,8 +89,8 @@ class SyncProviderNotifier extends Notifier<SyncState> {
       state = state.copyWith(api: api, refreshTimer: refreshTimer);
       await pullVault();
       _startPullTimer();
-    } catch (e) {
-      debugPrint('Failed to recover session: $e');
+    } on CliqException catch (e) {
+      Commons.showCliqException(e);
       await logout();
     }
   }
@@ -136,15 +140,22 @@ class SyncProviderNotifier extends Notifier<SyncState> {
     await StoreKey.syncLastUpdated.delete();
     state.refreshTimer?.cancel();
 
-    final userVault = await ref
-        .read(vaultProvider.notifier)
-        .findOrCreateUserVault(state.api!);
-
-    final vaultService = ref.read(vaultServiceProvider);
-    await vaultService.clearByVaultId(userVault.id);
-    await vaultService.deleteById(userVault.id);
+    await deleteNonLocalVaults();
 
     state = .initial();
+  }
+
+  Future<void> deleteNonLocalVaults() async {
+    await ref.read(vaultProvider.notifier).initialized;
+
+    final vaultService = ref.read(vaultServiceProvider);
+    final vaults = ref.read(vaultProvider).entities;
+
+    for (final vault in vaults.where((vault) => vault.owner != null)) {
+      _log.info('Deleting vault ${vault.id}...');
+      await vaultService.clearByVaultId(vault.id);
+      await vaultService.deleteById(vault.id);
+    }
   }
 
   Future<void> resendVerificationEmail(

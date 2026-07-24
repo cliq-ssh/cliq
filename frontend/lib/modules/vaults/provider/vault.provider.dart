@@ -3,7 +3,6 @@ import 'dart:async';
 import 'package:cliq/modules/vaults/provider/vault_service.provider.dart';
 import 'package:cliq/shared/provider/abstract_entity.notifier.dart';
 import 'package:cliq_api/cliq_api.dart' show CliqClient;
-import 'package:easy_localization/easy_localization.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
 import '../../../shared/data/database.dart';
@@ -29,44 +28,31 @@ class VaultNotifier extends AbstractEntityNotifier<Vault, VaultEntityState> {
   }
 
   /// Finds or creates the user's local vault called "Local Vault".
-  Future<Vault> findOrCreateLocalVault() async {
+  Future<Vault> findOrCreateVault([String? byOwner]) async {
     await initialized;
 
     for (final vault in state.entities) {
-      if (vault.isDefault) {
+      // "local vault" if owner is null. there can only ever exist one local vault
+      if (vault.owner == byOwner) {
         return vault;
       }
     }
 
-    // not found; create default vault
-    return await ref
-        .read(vaultServiceProvider)
-        .createVault(label: 'local_vault'.tr(), isDefault: true);
+    // not found; create vault instead
+    return await ref.read(vaultServiceProvider).createVault(owner: byOwner);
   }
 
-  /// Finds or creates the user's vault.
-  Future<Vault> findOrCreateUserVault(CliqClient api) async {
-    await initialized;
-
-    for (final vault in state.entities) {
-      if (vault.label == api.selfUser.email) {
-        return vault;
-      }
-    }
-
-    return await ref
-        .read(vaultServiceProvider)
-        .createVault(label: api.selfUser.email, isDefault: false);
-  }
+  Future<Vault> findOrCreateUserVault(CliqClient api) =>
+      findOrCreateVault(api.selfUser.username);
 
   /// Convenience method for retrieving the 'default' vault based on login state
   Future<Vault> retrieveDefaultVault() async {
     final api = ref.read(syncProvider).api;
 
     if (api != null) {
-      return await findOrCreateUserVault(api);
+      return await findOrCreateVault(api.selfUser.username);
     }
-    return await findOrCreateLocalVault();
+    return await findOrCreateVault();
   }
 
   @override

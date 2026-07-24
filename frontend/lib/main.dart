@@ -187,7 +187,7 @@ class _CliqAppState extends ConsumerState<CliqApp> {
       const SystemUiOverlayStyle(systemNavigationBarColor: Colors.transparent),
     );
 
-    ref.refresh(syncProvider.notifier).attemptRecovery();
+    ref.read(syncProvider.notifier).attemptRecovery();
   }
 
   @override

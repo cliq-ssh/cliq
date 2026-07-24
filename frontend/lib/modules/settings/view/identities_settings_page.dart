@@ -37,7 +37,7 @@ class IdentitiesSettingsPage extends AbstractSettingsPage {
         (_) => CreateOrEditIdentityView.create(),
         context: context,
       ),
-      filterableFields: (i) => [i.vault.label, i.label, i.username],
+      filterableFields: (i) => [?i.vault.owner, i.label, i.username],
       filterableVaultId: (i) => i.vaultId,
       entityCardBuilder: (identity) => IdentityCard(identity: identity),
     );

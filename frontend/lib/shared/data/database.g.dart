@@ -18,29 +18,17 @@ class Vaults extends Table with TableInfo<Vaults, Vault> {
     $customConstraints: 'NOT NULL PRIMARY KEY DEFAULT \'\'',
     defaultValue: const CustomExpression('\'\''),
   );
-  static const VerificationMeta _labelMeta = const VerificationMeta('label');
-  late final GeneratedColumn<String> label = GeneratedColumn<String>(
-    'label',
+  static const VerificationMeta _ownerMeta = const VerificationMeta('owner');
+  late final GeneratedColumn<String> owner = GeneratedColumn<String>(
+    'owner',
     aliasedName,
-    false,
+    true,
     type: DriftSqlType.string,
-    requiredDuringInsert: true,
-    $customConstraints: 'NOT NULL UNIQUE',
-  );
-  static const VerificationMeta _isDefaultMeta = const VerificationMeta(
-    'isDefault',
-  );
-  late final GeneratedColumn<bool> isDefault = GeneratedColumn<bool>(
-    'is_default',
-    aliasedName,
-    false,
-    type: DriftSqlType.bool,
     requiredDuringInsert: false,
-    $customConstraints: 'NOT NULL DEFAULT FALSE',
-    defaultValue: const CustomExpression('FALSE'),
+    $customConstraints: 'UNIQUE',
   );
   @override
-  List<GeneratedColumn> get $columns => [id, label, isDefault];
+  List<GeneratedColumn> get $columns => [id, owner];
   @override
   String get aliasedName => _alias ?? actualTableName;
   @override
@@ -56,18 +44,10 @@ class Vaults extends Table with TableInfo<Vaults, Vault> {
     if (data.containsKey('id')) {
       context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
     }
-    if (data.containsKey('label')) {
+    if (data.containsKey('owner')) {
       context.handle(
-        _labelMeta,
-        label.isAcceptableOrUnknown(data['label']!, _labelMeta),
-      );
-    } else if (isInserting) {
-      context.missing(_labelMeta);
-    }
-    if (data.containsKey('is_default')) {
-      context.handle(
-        _isDefaultMeta,
-        isDefault.isAcceptableOrUnknown(data['is_default']!, _isDefaultMeta),
+        _ownerMeta,
+        owner.isAcceptableOrUnknown(data['owner']!, _ownerMeta),
       );
     }
     return context;
@@ -83,14 +63,10 @@ class Vaults extends Table with TableInfo<Vaults, Vault> {
         DriftSqlType.string,
         data['${effectivePrefix}id'],
       )!,
-      label: attachedDatabase.typeMapping.read(
+      owner: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
-        data['${effectivePrefix}label'],
-      )!,
-      isDefault: attachedDatabase.typeMapping.read(
-        DriftSqlType.bool,
-        data['${effectivePrefix}is_default'],
-      )!,
+        data['${effectivePrefix}owner'],
+      ),
     );
   }
 
@@ -105,23 +81,24 @@ class Vaults extends Table with TableInfo<Vaults, Vault> {
 
 class Vault extends DataClass implements Insertable<Vault> {
   final String id;
-  final String label;
-  final bool isDefault;
-  const Vault({required this.id, required this.label, required this.isDefault});
+  final String? owner;
+  const Vault({required this.id, this.owner});
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
     map['id'] = Variable<String>(id);
-    map['label'] = Variable<String>(label);
-    map['is_default'] = Variable<bool>(isDefault);
+    if (!nullToAbsent || owner != null) {
+      map['owner'] = Variable<String>(owner);
+    }
     return map;
   }
 
   VaultsCompanion toCompanion(bool nullToAbsent) {
     return VaultsCompanion(
       id: Value(id),
-      label: Value(label),
-      isDefault: Value(isDefault),
+      owner: owner == null && nullToAbsent
+          ? const Value.absent()
+          : Value(owner),
     );
   }
 
@@ -132,8 +109,7 @@ class Vault extends DataClass implements Insertable<Vault> {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return Vault(
       id: serializer.fromJson<String>(json['id']),
-      label: serializer.fromJson<String>(json['label']),
-      isDefault: serializer.fromJson<bool>(json['is_default']),
+      owner: serializer.fromJson<String?>(json['owner']),
     );
   }
   @override
@@ -141,21 +117,16 @@ class Vault extends DataClass implements Insertable<Vault> {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return <String, dynamic>{
       'id': serializer.toJson<String>(id),
-      'label': serializer.toJson<String>(label),
-      'is_default': serializer.toJson<bool>(isDefault),
+      'owner': serializer.toJson<String?>(owner),
     };
   }
 
-  Vault copyWith({String? id, String? label, bool? isDefault}) => Vault(
-    id: id ?? this.id,
-    label: label ?? this.label,
-    isDefault: isDefault ?? this.isDefault,
-  );
+  Vault copyWith({String? id, Value<String?> owner = const Value.absent()}) =>
+      Vault(id: id ?? this.id, owner: owner.present ? owner.value : this.owner);
   Vault copyWithCompanion(VaultsCompanion data) {
     return Vault(
       id: data.id.present ? data.id.value : this.id,
-      label: data.label.present ? data.label.value : this.label,
-      isDefault: data.isDefault.present ? data.isDefault.value : this.isDefault,
+      owner: data.owner.present ? data.owner.value : this.owner,
     );
   }
 
@@ -163,64 +134,53 @@ class Vault extends DataClass implements Insertable<Vault> {
   String toString() {
     return (StringBuffer('Vault(')
           ..write('id: $id, ')
-          ..write('label: $label, ')
-          ..write('isDefault: $isDefault')
+          ..write('owner: $owner')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode => Object.hash(id, label, isDefault);
+  int get hashCode => Object.hash(id, owner);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-      (other is Vault &&
-          other.id == this.id &&
-          other.label == this.label &&
-          other.isDefault == this.isDefault);
+      (other is Vault && other.id == this.id && other.owner == this.owner);
 }
 
 class VaultsCompanion extends UpdateCompanion<Vault> {
   final Value<String> id;
-  final Value<String> label;
-  final Value<bool> isDefault;
+  final Value<String?> owner;
   final Value<int> rowid;
   const VaultsCompanion({
     this.id = const Value.absent(),
-    this.label = const Value.absent(),
-    this.isDefault = const Value.absent(),
+    this.owner = const Value.absent(),
     this.rowid = const Value.absent(),
   });
   VaultsCompanion.insert({
     this.id = const Value.absent(),
-    required String label,
-    this.isDefault = const Value.absent(),
+    this.owner = const Value.absent(),
     this.rowid = const Value.absent(),
-  }) : label = Value(label);
+  });
   static Insertable<Vault> custom({
     Expression<String>? id,
-    Expression<String>? label,
-    Expression<bool>? isDefault,
+    Expression<String>? owner,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
-      if (label != null) 'label': label,
-      if (isDefault != null) 'is_default': isDefault,
+      if (owner != null) 'owner': owner,
       if (rowid != null) 'rowid': rowid,
     });
   }
 
   VaultsCompanion copyWith({
     Value<String>? id,
-    Value<String>? label,
-    Value<bool>? isDefault,
+    Value<String?>? owner,
     Value<int>? rowid,
   }) {
     return VaultsCompanion(
       id: id ?? this.id,
-      label: label ?? this.label,
-      isDefault: isDefault ?? this.isDefault,
+      owner: owner ?? this.owner,
       rowid: rowid ?? this.rowid,
     );
   }
@@ -231,11 +191,8 @@ class VaultsCompanion extends UpdateCompanion<Vault> {
     if (id.present) {
       map['id'] = Variable<String>(id.value);
     }
-    if (label.present) {
-      map['label'] = Variable<String>(label.value);
-    }
-    if (isDefault.present) {
-      map['is_default'] = Variable<bool>(isDefault.value);
+    if (owner.present) {
+      map['owner'] = Variable<String>(owner.value);
     }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
@@ -247,8 +204,7 @@ class VaultsCompanion extends UpdateCompanion<Vault> {
   String toString() {
     return (StringBuffer('VaultsCompanion(')
           ..write('id: $id, ')
-          ..write('label: $label, ')
-          ..write('isDefault: $isDefault, ')
+          ..write('owner: $owner, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -4507,7 +4463,7 @@ abstract class _$CliqDatabase extends GeneratedDatabase {
 
   Selectable<FindAllKnownHostsFullResult> findAllKnownHostsFull() {
     return customSelect(
-      'SELECT"k"."id" AS "nested_0.id", "k"."vault_id" AS "nested_0.vault_id", "k"."host" AS "nested_0.host", "k"."hostKey" AS "nested_0.hostKey", "k"."created_at" AS "nested_0.created_at","v"."id" AS "nested_1.id", "v"."label" AS "nested_1.label", "v"."is_default" AS "nested_1.is_default" FROM known_hosts AS k INNER JOIN vaults AS v ON k.vault_id = v.id',
+      'SELECT"k"."id" AS "nested_0.id", "k"."vault_id" AS "nested_0.vault_id", "k"."host" AS "nested_0.host", "k"."hostKey" AS "nested_0.hostKey", "k"."created_at" AS "nested_0.created_at","v"."id" AS "nested_1.id", "v"."owner" AS "nested_1.owner" FROM known_hosts AS k INNER JOIN vaults AS v ON k.vault_id = v.id',
       variables: [],
       readsFrom: {knownHosts, vaults},
     ).asyncMap(
@@ -4576,7 +4532,7 @@ abstract class _$CliqDatabase extends GeneratedDatabase {
     final expandedvar1 = $expandVar($arrayStartIndex, var1.length);
     $arrayStartIndex += var1.length;
     return customSelect(
-      'SELECT"k"."id" AS "nested_0.id", "k"."vault_id" AS "nested_0.vault_id", "k"."label" AS "nested_0.label", "k"."private_key" AS "nested_0.private_key", "k"."public_key" AS "nested_0.public_key", "k"."passphrase" AS "nested_0.passphrase","v"."id" AS "nested_1.id", "v"."label" AS "nested_1.label", "v"."is_default" AS "nested_1.is_default" FROM keys AS k INNER JOIN vaults AS v ON k.vault_id = v.id WHERE k.id IN ($expandedvar1)',
+      'SELECT"k"."id" AS "nested_0.id", "k"."vault_id" AS "nested_0.vault_id", "k"."label" AS "nested_0.label", "k"."private_key" AS "nested_0.private_key", "k"."public_key" AS "nested_0.public_key", "k"."passphrase" AS "nested_0.passphrase","v"."id" AS "nested_1.id", "v"."owner" AS "nested_1.owner" FROM keys AS k INNER JOIN vaults AS v ON k.vault_id = v.id WHERE k.id IN ($expandedvar1)',
       variables: [for (var $ in var1) Variable<String>($)],
       readsFrom: {keys, vaults},
     ).asyncMap(
@@ -4644,7 +4600,7 @@ abstract class _$CliqDatabase extends GeneratedDatabase {
 
   Selectable<FindAllIdentityFullResult> findAllIdentityFull() {
     return customSelect(
-      'SELECT"i"."id" AS "nested_0.id", "i"."vault_id" AS "nested_0.vault_id", "i"."label" AS "nested_0.label", "i"."username" AS "nested_0.username","v"."id" AS "nested_1.id", "v"."label" AS "nested_1.label", "v"."is_default" AS "nested_1.is_default", i.id AS "\$n_0" FROM identities AS i INNER JOIN vaults AS v ON i.vault_id = v.id',
+      'SELECT"i"."id" AS "nested_0.id", "i"."vault_id" AS "nested_0.vault_id", "i"."label" AS "nested_0.label", "i"."username" AS "nested_0.username","v"."id" AS "nested_1.id", "v"."owner" AS "nested_1.owner", i.id AS "\$n_0" FROM identities AS i INNER JOIN vaults AS v ON i.vault_id = v.id',
       variables: [],
       readsFrom: {credentials, identityCredentials, identities, vaults},
     ).asyncMap(
@@ -4732,7 +4688,7 @@ abstract class _$CliqDatabase extends GeneratedDatabase {
     final expandedvar1 = $expandVar($arrayStartIndex, var1.length);
     $arrayStartIndex += var1.length;
     return customSelect(
-      'SELECT"c"."id" AS "nested_0.id", "c"."vault_id" AS "nested_0.vault_id", "c"."type" AS "nested_0.type", "c"."key_id" AS "nested_0.key_id", "c"."password" AS "nested_0.password","v"."id" AS "nested_1.id", "v"."label" AS "nested_1.label", "v"."is_default" AS "nested_1.is_default","k"."id" AS "nested_2.id", "k"."vault_id" AS "nested_2.vault_id", "k"."label" AS "nested_2.label", "k"."private_key" AS "nested_2.private_key", "k"."public_key" AS "nested_2.public_key", "k"."passphrase" AS "nested_2.passphrase" FROM credentials AS c INNER JOIN vaults AS v ON c.vault_id = v.id LEFT JOIN keys AS k ON c.key_id = k.id WHERE c.id IN ($expandedvar1)',
+      'SELECT"c"."id" AS "nested_0.id", "c"."vault_id" AS "nested_0.vault_id", "c"."type" AS "nested_0.type", "c"."key_id" AS "nested_0.key_id", "c"."password" AS "nested_0.password","v"."id" AS "nested_1.id", "v"."owner" AS "nested_1.owner","k"."id" AS "nested_2.id", "k"."vault_id" AS "nested_2.vault_id", "k"."label" AS "nested_2.label", "k"."private_key" AS "nested_2.private_key", "k"."public_key" AS "nested_2.public_key", "k"."passphrase" AS "nested_2.passphrase" FROM credentials AS c INNER JOIN vaults AS v ON c.vault_id = v.id LEFT JOIN keys AS k ON c.key_id = k.id WHERE c.id IN ($expandedvar1)',
       variables: [for (var $ in var1) Variable<String>($)],
       readsFrom: {credentials, vaults, keys},
     ).asyncMap(
@@ -4849,7 +4805,7 @@ abstract class _$CliqDatabase extends GeneratedDatabase {
 
   Selectable<FindAllConnectionFullResult> findAllConnectionFull() {
     return customSelect(
-      'SELECT"c"."id" AS "nested_0.id", "c"."vault_id" AS "nested_0.vault_id", "c"."label" AS "nested_0.label", "c"."address" AS "nested_0.address", "c"."port" AS "nested_0.port", "c"."identity_id" AS "nested_0.identity_id", "c"."username" AS "nested_0.username", "c"."group_name" AS "nested_0.group_name", "c"."icon" AS "nested_0.icon", "c"."icon_color" AS "nested_0.icon_color", "c"."icon_background_color" AS "nested_0.icon_background_color", "c"."terminal_typography_override" AS "nested_0.terminal_typography_override", "c"."terminal_theme_override_id" AS "nested_0.terminal_theme_override_id", "c"."uses_default_theme_override" AS "nested_0.uses_default_theme_override","v"."id" AS "nested_1.id", "v"."label" AS "nested_1.label", "v"."is_default" AS "nested_1.is_default","i"."id" AS "nested_2.id", "i"."vault_id" AS "nested_2.vault_id", "i"."label" AS "nested_2.label", "i"."username" AS "nested_2.username","iv"."id" AS "nested_3.id", "iv"."label" AS "nested_3.label", "iv"."is_default" AS "nested_3.is_default","t"."id" AS "nested_4.id", "t"."name" AS "nested_4.name", "t"."black_color" AS "nested_4.black_color", "t"."red_color" AS "nested_4.red_color", "t"."green_color" AS "nested_4.green_color", "t"."yellow_color" AS "nested_4.yellow_color", "t"."blue_color" AS "nested_4.blue_color", "t"."purple_color" AS "nested_4.purple_color", "t"."cyan_color" AS "nested_4.cyan_color", "t"."white_color" AS "nested_4.white_color", "t"."bright_black_color" AS "nested_4.bright_black_color", "t"."bright_red_color" AS "nested_4.bright_red_color", "t"."bright_green_color" AS "nested_4.bright_green_color", "t"."bright_yellow_color" AS "nested_4.bright_yellow_color", "t"."bright_blue_color" AS "nested_4.bright_blue_color", "t"."bright_purple_color" AS "nested_4.bright_purple_color", "t"."bright_cyan_color" AS "nested_4.bright_cyan_color", "t"."bright_white_color" AS "nested_4.bright_white_color", "t"."background_color" AS "nested_4.background_color", "t"."foreground_color" AS "nested_4.foreground_color", "t"."cursor_color" AS "nested_4.cursor_color", "t"."selection_background_color" AS "nested_4.selection_background_color", "t"."selection_foreground_color" AS "nested_4.selection_foreground_color", "t"."cursor_text_color" AS "nested_4.cursor_text_color", c.id AS "\$n_0", i.id AS "\$n_1" FROM connections AS c INNER JOIN vaults AS v ON c.vault_id = v.id LEFT JOIN identities AS i ON c.identity_id = i.id LEFT JOIN vaults AS iv ON i.vault_id = iv.id LEFT JOIN custom_terminal_themes AS t ON c.terminal_theme_override_id = t.id',
+      'SELECT"c"."id" AS "nested_0.id", "c"."vault_id" AS "nested_0.vault_id", "c"."label" AS "nested_0.label", "c"."address" AS "nested_0.address", "c"."port" AS "nested_0.port", "c"."identity_id" AS "nested_0.identity_id", "c"."username" AS "nested_0.username", "c"."group_name" AS "nested_0.group_name", "c"."icon" AS "nested_0.icon", "c"."icon_color" AS "nested_0.icon_color", "c"."icon_background_color" AS "nested_0.icon_background_color", "c"."terminal_typography_override" AS "nested_0.terminal_typography_override", "c"."terminal_theme_override_id" AS "nested_0.terminal_theme_override_id", "c"."uses_default_theme_override" AS "nested_0.uses_default_theme_override","v"."id" AS "nested_1.id", "v"."owner" AS "nested_1.owner","i"."id" AS "nested_2.id", "i"."vault_id" AS "nested_2.vault_id", "i"."label" AS "nested_2.label", "i"."username" AS "nested_2.username","iv"."id" AS "nested_3.id", "iv"."owner" AS "nested_3.owner","t"."id" AS "nested_4.id", "t"."name" AS "nested_4.name", "t"."black_color" AS "nested_4.black_color", "t"."red_color" AS "nested_4.red_color", "t"."green_color" AS "nested_4.green_color", "t"."yellow_color" AS "nested_4.yellow_color", "t"."blue_color" AS "nested_4.blue_color", "t"."purple_color" AS "nested_4.purple_color", "t"."cyan_color" AS "nested_4.cyan_color", "t"."white_color" AS "nested_4.white_color", "t"."bright_black_color" AS "nested_4.bright_black_color", "t"."bright_red_color" AS "nested_4.bright_red_color", "t"."bright_green_color" AS "nested_4.bright_green_color", "t"."bright_yellow_color" AS "nested_4.bright_yellow_color", "t"."bright_blue_color" AS "nested_4.bright_blue_color", "t"."bright_purple_color" AS "nested_4.bright_purple_color", "t"."bright_cyan_color" AS "nested_4.bright_cyan_color", "t"."bright_white_color" AS "nested_4.bright_white_color", "t"."background_color" AS "nested_4.background_color", "t"."foreground_color" AS "nested_4.foreground_color", "t"."cursor_color" AS "nested_4.cursor_color", "t"."selection_background_color" AS "nested_4.selection_background_color", "t"."selection_foreground_color" AS "nested_4.selection_foreground_color", "t"."cursor_text_color" AS "nested_4.cursor_text_color", c.id AS "\$n_0", i.id AS "\$n_1" FROM connections AS c INNER JOIN vaults AS v ON c.vault_id = v.id LEFT JOIN identities AS i ON c.identity_id = i.id LEFT JOIN vaults AS iv ON i.vault_id = iv.id LEFT JOIN custom_terminal_themes AS t ON c.terminal_theme_override_id = t.id',
       variables: [],
       readsFrom: {
         credentials,
@@ -5005,15 +4961,13 @@ abstract class _$CliqDatabase extends GeneratedDatabase {
 typedef $VaultsCreateCompanionBuilder =
     VaultsCompanion Function({
       Value<String> id,
-      required String label,
-      Value<bool> isDefault,
+      Value<String?> owner,
       Value<int> rowid,
     });
 typedef $VaultsUpdateCompanionBuilder =
     VaultsCompanion Function({
       Value<String> id,
-      Value<String> label,
-      Value<bool> isDefault,
+      Value<String?> owner,
       Value<int> rowid,
     });
 
@@ -5128,13 +5082,8 @@ class $VaultsFilterComposer extends Composer<_$CliqDatabase, Vaults> {
     builder: (column) => ColumnFilters(column),
   );
 
-  ColumnFilters<String> get label => $composableBuilder(
-    column: $table.label,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  ColumnFilters<bool> get isDefault => $composableBuilder(
-    column: $table.isDefault,
+  ColumnFilters<String> get owner => $composableBuilder(
+    column: $table.owner,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -5277,13 +5226,8 @@ class $VaultsOrderingComposer extends Composer<_$CliqDatabase, Vaults> {
     builder: (column) => ColumnOrderings(column),
   );
 
-  ColumnOrderings<String> get label => $composableBuilder(
-    column: $table.label,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  ColumnOrderings<bool> get isDefault => $composableBuilder(
-    column: $table.isDefault,
+  ColumnOrderings<String> get owner => $composableBuilder(
+    column: $table.owner,
     builder: (column) => ColumnOrderings(column),
   );
 }
@@ -5299,11 +5243,8 @@ class $VaultsAnnotationComposer extends Composer<_$CliqDatabase, Vaults> {
   GeneratedColumn<String> get id =>
       $composableBuilder(column: $table.id, builder: (column) => column);
 
-  GeneratedColumn<String> get label =>
-      $composableBuilder(column: $table.label, builder: (column) => column);
-
-  GeneratedColumn<bool> get isDefault =>
-      $composableBuilder(column: $table.isDefault, builder: (column) => column);
+  GeneratedColumn<String> get owner =>
+      $composableBuilder(column: $table.owner, builder: (column) => column);
 
   Expression<T> identitiesRefs<T extends Object>(
     Expression<T> Function($IdentitiesAnnotationComposer a) f,
@@ -5466,27 +5407,15 @@ class $VaultsTableManager
           updateCompanionCallback:
               ({
                 Value<String> id = const Value.absent(),
-                Value<String> label = const Value.absent(),
-                Value<bool> isDefault = const Value.absent(),
+                Value<String?> owner = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
-              }) => VaultsCompanion(
-                id: id,
-                label: label,
-                isDefault: isDefault,
-                rowid: rowid,
-              ),
+              }) => VaultsCompanion(id: id, owner: owner, rowid: rowid),
           createCompanionCallback:
               ({
                 Value<String> id = const Value.absent(),
-                required String label,
-                Value<bool> isDefault = const Value.absent(),
+                Value<String?> owner = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
-              }) => VaultsCompanion.insert(
-                id: id,
-                label: label,
-                isDefault: isDefault,
-                rowid: rowid,
-              ),
+              }) => VaultsCompanion.insert(id: id, owner: owner, rowid: rowid),
           withReferenceMapper: (p0) => p0
               .map((e) => (e.readTable(table), $VaultsReferences(db, table, e)))
               .toList(),

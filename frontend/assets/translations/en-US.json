@@ -1,5 +1,10 @@
 {
   "api_error_codes": {
+    "101": "Internal server error",
+    "102": "Service unavailable",
+    "103": "No network connection",
+    "104": "Server is unreachable",
+    "199": "Unknown error",
     "2000": "Validation failed",
     "2007": "Invalid verification code",
     "2008": "Verification code expired",
@@ -168,7 +173,6 @@
     "one": "1 license",
     "other": "{} licenses"
   },
-  "local_vault": "Local Vault",
   "login": "Login",
   "logout": "Logout",
   "my_vault": "My Vault",
@@ -204,6 +208,8 @@
     "file": "File",
     "symlink": "Symlink"
   },
+  "vault_user": "{}'s Vault",
+  "vault_local": "Local Vault",
   "sftp_navigate_back": "Navigate Back",
   "sftp_navigate_forward": "Navigate Forward",
   "sftp_new_folder": "New Folder",

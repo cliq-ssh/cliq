@@ -2,7 +2,6 @@ import 'package:cliq/modules/connections/data/connections_repository.dart';
 import 'package:cliq/modules/keys/data/key_repository.dart';
 import 'package:cliq/modules/vaults/data/vaults_repository.dart';
 import 'package:cliq/shared/data/database.dart';
-import 'package:drift/drift.dart';
 
 import '../../identities/data/identities_repository.dart';
 import '../../settings/data/known_hosts_repository.dart';
@@ -25,12 +24,9 @@ final class VaultService {
 
   Stream<List<Vault>> watchAll() => _vaultsRepository.selectAll().watch();
 
-  Future<Vault> createVault({
-    required String label,
-    required bool isDefault,
-  }) async {
+  Future<Vault> createVault({required String? owner}) async {
     return await _vaultsRepository.insert(
-      VaultsCompanion.insert(label: label, isDefault: Value(isDefault)),
+      VaultsCompanion.insert(owner: .absentIfNull(owner)),
     );
   }
 
