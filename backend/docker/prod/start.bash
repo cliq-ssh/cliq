@@ -9,9 +9,19 @@ JAR_PATH="${JAR_PATH:-application.jar}"
 ENABLE_ZGC="${ENABLE_ZGC:-1}"
 ENABLE_STRING_DEDUP="${ENABLE_STRING_DEDUP:-1}"
 ENABLE_COMPACT_OBJECT_HEADERS="${ENABLE_COMPACT_OBJECT_HEADERS:-1}"
+ENABLE_EXIT_ON_OOM="${ENABLE_EXIT_ON_OOM:-1}"
 
 JAVA_SECURITY_EGD="${JAVA_SECURITY_EGD:-file:/dev/./urandom}"
 EXTRA_JAVA_OPTS="${EXTRA_JAVA_OPTS:-}"
+
+# Memory settings
+INITIAL_RAM_PERCENTAGE="${INITIAL_RAM_PERCENTAGE:-25}"
+MIN_RAM_PERCENTAGE="${MIN_RAM_PERCENTAGE:-25}"
+MAX_RAM_PERCENTAGE="${MAX_RAM_PERCENTAGE:-75}"
+
+# Optional fixed heap sizes (override percentage settings)
+JAVA_XMS="${JAVA_XMS:-}"
+JAVA_XMX="${JAVA_XMX:-}"
 
 java_opts=()
 
@@ -25,6 +35,26 @@ fi
 
 if [[ "${ENABLE_COMPACT_OBJECT_HEADERS}" == "1" ]]; then
   java_opts+=("-XX:+UseCompactObjectHeaders")
+fi
+
+if [[ "${ENABLE_EXIT_ON_OOM}" == "1" ]]; then
+  java_opts+=("-XX:+ExitOnOutOfMemoryError")
+fi
+
+# Heap sizing
+if [[ -n "${JAVA_XMS}" ]]; then
+  java_opts+=("-Xms${JAVA_XMS}")
+else
+  java_opts+=("-XX:InitialRAMPercentage=${INITIAL_RAM_PERCENTAGE}")
+fi
+
+if [[ -n "${JAVA_XMX}" ]]; then
+  java_opts+=("-Xmx${JAVA_XMX}")
+else
+  java_opts+=(
+    "-XX:MinRAMPercentage=${MIN_RAM_PERCENTAGE}"
+    "-XX:MaxRAMPercentage=${MAX_RAM_PERCENTAGE}"
+  )
 fi
 
 java_opts+=("-Djava.security.egd=${JAVA_SECURITY_EGD}")
