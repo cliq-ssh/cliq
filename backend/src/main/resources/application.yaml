@@ -47,6 +47,9 @@ logging:
   level:
     root: \${LOG_LEVEL_ROOT:info}
 
+server:
+  forward-headers-strategy: framework
+
 spring:
   cache:
     cache-names:
