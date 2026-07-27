@@ -4,7 +4,7 @@ set -euo pipefail
 # Shared JVM runner for production containers.
 # Customize via env vars without duplicating scripts.
 
-JAR_PATH="${JAR_PATH:-application.jar}"
+JAR_PATH="${JAR_PATH:-cliq.jar}"
 
 ENABLE_ZGC="${ENABLE_ZGC:-1}"
 ENABLE_STRING_DEDUP="${ENABLE_STRING_DEDUP:-1}"

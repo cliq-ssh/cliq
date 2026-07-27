@@ -23,11 +23,11 @@ RUN chmod +x ./gradlew && \
 COPY src src
 RUN ./gradlew bootJar --no-daemon
 
-# Copy jar file to the working directory and rename it to application.jar
-RUN cp build/libs/*.jar application.jar
+# Copy jar file to the working directory and rename it to cliq.jar
+RUN cp build/libs/*.jar cliq.jar
 
 # Extract the jar file using an efficient layout (see Spring Boot documentation)
-RUN java -Djarmode=tools -jar application.jar extract --layers --destination extracted
+RUN java -Djarmode=tools -jar cliq.jar extract --layers --destination extracted
 
 # Stage 2: Create cliq jre with jlink
 FROM eclipse-temurin:${JRE_VERSION}-jdk-alpine-${TEMURIN_ALPINE_VERSION} AS jre-builder
@@ -35,10 +35,10 @@ FROM eclipse-temurin:${JRE_VERSION}-jdk-alpine-${TEMURIN_ALPINE_VERSION} AS jre-
 ARG JRE_VERSION
 
 WORKDIR /jre-build
-COPY --from=builder /app/application.jar .
+COPY --from=builder /app/cliq.jar .
 
 # Extract the jar file to analyze its dependencies
-RUN jar xf application.jar
+RUN jar xf cliq.jar
 
 # Identify required modules with jdeps
 RUN jdeps --ignore-missing-deps -q \
@@ -46,7 +46,7 @@ RUN jdeps --ignore-missing-deps -q \
     --multi-release ${JRE_VERSION} \
     --print-module-deps \
     --class-path 'BOOT-INF/lib/*' \
-    application.jar > deps.info
+    cliq.jar > deps.info
 
 # Create minimal JRE with only required modules
 RUN jlink \
