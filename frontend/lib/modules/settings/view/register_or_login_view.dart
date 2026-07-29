@@ -230,9 +230,10 @@ class RegisterOrLoginView extends HookConsumerWidget {
     }
 
     buildLoginStep() {
-      final isLoginEnabled = config != null && config.localAuthProperties.login;
+      final isLoginEnabled =
+          config != null && config.localAuthProperties.enabled;
       final isRegisterEnabled =
-          isLoginEnabled && config.localAuthProperties.registration;
+          isLoginEnabled && config.localAuthProperties.registrationEnabled;
 
       if (!isLoginEnabled) {
         return [

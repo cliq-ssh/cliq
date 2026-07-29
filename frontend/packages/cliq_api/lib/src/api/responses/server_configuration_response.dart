@@ -40,20 +40,23 @@ class ServerConfigurationResponse {
 }
 
 class LocalAuthProperties {
-  final bool registration;
-  final bool login;
+  final bool enabled;
+  final bool registrationEnabled;
 
-  const LocalAuthProperties({required this.registration, required this.login});
+  const LocalAuthProperties({
+    required this.enabled,
+    required this.registrationEnabled,
+  });
 
   factory LocalAuthProperties.fromJson(Map<String, dynamic> json) {
     return LocalAuthProperties(
-      registration: json['registration'] as bool,
-      login: json['login'] as bool,
+      enabled: json['enabled'] as bool,
+      registrationEnabled: json['registrationEnabled'] as bool,
     );
   }
 
   Map<String, dynamic> toJson() {
-    return {'registration': registration, 'login': login};
+    return {'enabled': enabled, 'registrationEnabled': registrationEnabled};
   }
 
   @override

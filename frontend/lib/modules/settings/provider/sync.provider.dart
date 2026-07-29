@@ -125,7 +125,7 @@ class SyncProviderNotifier extends Notifier<SyncState> {
     required Uint8List password,
   }) async {
     final config = await retrieveConfig(routeOptions);
-    if (!config.localAuthProperties.registration) {
+    if (!config.localAuthProperties.registrationEnabled) {
       throw StateError('Registration is disabled on this server.');
     }
     await _getDefaultClientBuilder(
