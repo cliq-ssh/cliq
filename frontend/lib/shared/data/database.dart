@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'dart:ui';
 
 import 'package:cliq/modules/identities/data/identity_credentials_repository.dart';
@@ -20,6 +21,9 @@ import 'converters/color_converter.dart';
 import 'converters/terminal_typography_converter.dart';
 
 part 'database.g.dart';
+
+/// A type alias for database identifiers, represented as strings (uuids)
+typedef DbId = String;
 
 @DriftDatabase(
   include: {
@@ -73,6 +77,15 @@ final class CliqDatabase extends _$CliqDatabase {
       await delete(table).go();
     }
     await customStatement('PRAGMA foreign_keys = ON');
+  }
+
+  Future<void> deleteDatabaseFile() async {
+    await executor.close();
+    final supportDir = await getApplicationSupportDirectory();
+    final dbFile = File('${supportDir.path}/cliq_db.sqlite');
+    if (await dbFile.exists()) {
+      await dbFile.delete();
+    }
   }
 
   static QueryExecutor _openConnection() {

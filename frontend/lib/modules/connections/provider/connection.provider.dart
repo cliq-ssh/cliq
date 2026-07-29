@@ -4,6 +4,7 @@ import 'package:cliq/modules/connections/model/connection_full.model.dart';
 import 'package:cliq/shared/provider/abstract_entity.notifier.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
+import '../../../shared/data/database.dart';
 import '../model/connection.state.dart';
 import 'connection_service.provider.dart';
 
@@ -17,7 +18,7 @@ class ConnectionNotifier
   Stream<List<ConnectionFull>> get entityStream =>
       ref.read(connectionServiceProvider).watchAll();
 
-  ConnectionFull? findById(int id) {
+  ConnectionFull? findById(DbId id) {
     for (final connection in state.entities) {
       if (connection.id == id) {
         return connection;

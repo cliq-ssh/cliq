@@ -15,6 +15,10 @@ final class InputFormatters {
     ];
   }
 
+  static List<TextInputFormatter> verificationToken() {
+    return [LengthLimitingTextInputFormatter(8), CaseTextFormatter()];
+  }
+
   static List<TextInputFormatter> password() {
     return [FilteringTextInputFormatter.deny(RegExp(r'\s'))];
   }

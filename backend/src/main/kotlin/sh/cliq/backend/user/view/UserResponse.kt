@@ -9,7 +9,7 @@ import sh.cliq.backend.user.User
 import java.time.OffsetDateTime
 
 @Schema
-class UserResponse(
+data class UserResponse(
     @field:Schema(example = EXAMPLE_USER_ID)
     val id: Long,
     @field:Schema(example = EXAMPLE_EMAIL)

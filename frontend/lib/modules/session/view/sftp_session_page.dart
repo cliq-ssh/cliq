@@ -358,11 +358,7 @@ class _SftpSessionPageState extends ConsumerState<SftpSessionPage>
 
           Commons.showToast(
             'sftp_failed_to_open'.tr(args: [e.message]),
-            prefix: Icon(
-              LucideIcons.folderLock,
-              size: 20,
-              color: context.theme.colors.destructive,
-            ),
+            prefix: Icon(LucideIcons.folderLock),
             variant: .destructive,
           );
 
@@ -506,7 +502,7 @@ class _SftpSessionPageState extends ConsumerState<SftpSessionPage>
       if (largeDownloadWarning.value &&
           file.attr.size! > Constants.largeFileSizeThreshold) {
         final shouldContinue = await Commons.showConfirmationDialog(
-          title: 'dialog_large_file'.tr(),
+          title: 'dialog_large_file_title'.tr(),
           children: (context, _, _) => TextUtils.renderText(
             context,
             'dialog_large_file_body'.tr(
@@ -662,11 +658,7 @@ class _SftpSessionPageState extends ConsumerState<SftpSessionPage>
 
         Commons.showToast(
           'sftp_failed_to_rename'.tr(args: [message]),
-          prefix: Icon(
-            LucideIcons.pencilOff,
-            size: 20,
-            color: context.theme.colors.destructive,
-          ),
+          prefix: Icon(LucideIcons.pencilOff),
           variant: .destructive,
         );
 

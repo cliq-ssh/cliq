@@ -1,6 +1,7 @@
 import 'package:cliq/modules/settings/view/abstract_settings_page.dart';
 import 'package:cliq/modules/settings/view/settings_page.dart';
 import 'package:cliq/shared/data/store.dart';
+import 'package:cliq/shared/provider/database.provider.dart';
 import 'package:cliq_ui/cliq_ui.dart'
     show CliqGridColumn, CliqGridRow, CliqGridContainer;
 import 'package:flutter/cupertino.dart';
@@ -8,7 +9,6 @@ import 'package:forui/forui.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lucide_flutter/lucide_flutter.dart';
 
-import '../../../shared/data/database.dart';
 import '../../../shared/model/page_path.model.dart';
 import '../../../shared/utils/commons.dart' show Commons;
 
@@ -49,14 +49,34 @@ class DeveloperSettingsPage extends AbstractSettingsPage {
                       label: Text('Database'),
                       children: [
                         // TODO move to commons?
-                        FTile(
+                        .tile(
                           variant: .destructive,
                           prefix: Icon(LucideIcons.databaseBackup),
-                          title: Text('Reset Database Tables'),
+                          title: Text('Clear Database Tables'),
+                          subtitle: Text(
+                            "This will delete all data in the database tables, but keep the table structure intact.",
+                            overflow: .visible,
+                          ),
                           onPress: () => Commons.showDeleteDialog(
                             entity: 'ALL DATABASE TABLES',
                             onDelete: () =>
-                                CliqDatabase.instance.deleteAllTables(),
+                                ref.read(databaseProvider).deleteAllTables(),
+                            canInstantDelete: false,
+                            mayNeedAppRestart: true,
+                          ),
+                        ),
+                        .tile(
+                          variant: .destructive,
+                          prefix: Icon(LucideIcons.databaseX),
+                          title: Text('Delete Database File'),
+                          subtitle: Text(
+                            "This will delete the entire database file, including all tables and data. An app restart is REQUIRED after this action.",
+                            overflow: .visible,
+                          ),
+                          onPress: () => Commons.showDeleteDialog(
+                            entity: 'THE ENTIRE DATABASE',
+                            onDelete: () =>
+                                ref.read(databaseProvider).deleteDatabaseFile(),
                             canInstantDelete: false,
                             mayNeedAppRestart: true,
                           ),
@@ -84,7 +104,15 @@ class DeveloperSettingsPage extends AbstractSettingsPage {
                         for (final key in StoreKey.values)
                           FTile(
                             title: Text(key.name),
-                            subtitle: Text(key.readAsStringSync() ?? 'null'),
+                            subtitle: FutureBuilder(
+                              future: key.readAsync(),
+                              builder: (context, snap) => Text(
+                                !snap.hasData ? '--' : snap.data.toString(),
+                              ),
+                            ),
+                            prefix: Icon(
+                              key.isSecure ? LucideIcons.lock : LucideIcons.key,
+                            ),
                             suffix: FButton.icon(
                               variant: .destructive,
                               onPress: () => key.delete(),

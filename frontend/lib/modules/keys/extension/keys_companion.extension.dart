@@ -12,7 +12,7 @@ extension KeysCompanionExtension on KeysCompanion {
     }
 
     return KeysCompanion(
-      id: Value(json['id'] as int),
+      id: Value(json['id'] as DbId),
       label: Value(json['label'] as String),
       privateKey: Value(json['privateKey'] as String),
       publicKey: Value(json['publicKey'] as String?),

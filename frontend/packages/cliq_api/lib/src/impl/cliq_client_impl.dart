@@ -1,74 +1,71 @@
 import 'package:cliq_api/cliq_api.dart';
 import 'package:cliq_api/src/impl/requests/request_handler.dart';
+import 'package:cliq_api/src/impl/utils/encryption_helper.dart';
 
 import 'entity_builder.dart';
-import 'requests/model/rest_response.dart';
 
 class CliqClientImpl implements CliqClient {
   @override
   RouteOptions routeOptions = RouteOptions();
 
-  late final RequestHandler requestHandler = RequestHandler(this);
-  late final EntityBuilder entityBuilder = EntityBuilder(api: this);
+  late final RequestHandler requestHandler = .new(this);
+  late final EntityBuilder entityBuilder = .new(this);
 
   @override
-  late final Session session;
+  late final User selfUser;
+
+  late String accessToken;
+
+  final EncryptionHelper encryptionHelper = .new();
 
   @override
-  Future<User> createUser({
-    required String email,
-    required String password,
-    required String username,
-    String locale = 'en',
-  }) {
-    return RequestHandler.request(
-      route: UserRoutes.create.compile(),
-      routeOptions: routeOptions,
-      body: {
-        'email': email,
-        'password': password,
-        'username': username,
-        'locale': locale,
-      },
+  Future<User> retrieveSelfUser() async {
+    final result = await requestHandler.authenticatedRequest(
+      route: UserRoutes.getMe.compile(),
       mapper: (data) => entityBuilder.buildUser(data),
-    ).then((response) {
-      if (response.hasError) {
-        throw response.error!;
-      }
-      return response.data!;
-    });
+    );
+
+    if (result.hasError) {
+      throw result.error!;
+    }
+    return result.data!;
   }
 
   @override
-  Future<UserConfig> retrieveUserConfig() async {
-    final RestResponse<UserConfig> response = await RequestHandler.request(
-      route: UserConfigRoutes.get.compile(),
-      routeOptions: routeOptions,
-      bearerToken: session.token,
-      mapper: (data) => entityBuilder.buildUserConfig(data),
+  Future<Vault> retrieveVault() async {
+    final result = await requestHandler.authenticatedRequest(
+      route: VaultRoutes.get.compile(),
+      mapper: (data) => entityBuilder.buildVault(data),
     );
-    if (response.hasError) {
-      throw response.error!;
+
+    if (result.hasError) {
+      throw result.error!;
     }
-    return response.data!;
+    return result.data!;
   }
 
   @override
-  Future<DateTime?> retrieveUserConfigLastUpdated() async {
-    final RestResponse<DateTime?> response = await RequestHandler.request(
-      route: UserConfigRoutes.getLastUpdated.compile(),
-      routeOptions: routeOptions,
-      bearerToken: session.token,
-      mapper: (data) {
-        if (data == null || data.toString().isEmpty) {
-          return null;
-        }
-        return DateTime.parse(data as String);
-      },
+  Future<DateTime?> retrieveVaultLastUpdated() async {
+    final result = await requestHandler.authenticatedRequest(
+      route: VaultRoutes.getLastUpdated.compile(),
+      mapper: (data) => DateTime.tryParse(data),
     );
-    if (response.hasError) {
-      throw response.error!;
+
+    if (result.hasError) {
+      throw result.error!;
     }
-    return response.data;
+    return result.data;
+  }
+
+  @override
+  Future<void> upsertVault({required String configuration}) async {
+    final result = await requestHandler.authenticatedNoResponseRequest(
+      route: VaultRoutes.put.compile(),
+      body: {'configuration': configuration, 'version': '_unused'},
+    );
+
+    if (result.hasError) {
+      throw result.error!;
+    }
   }
 }

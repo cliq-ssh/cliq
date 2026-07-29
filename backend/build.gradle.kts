@@ -30,7 +30,7 @@ dependencyManagement {
 }
 
 group = "sh.cliq"
-version = "0.1.0"
+version = "0.0.1"
 description = "Open source SSH & SFTP client with focus on security and portability"
 
 val targetJvmVersion = 26
@@ -83,7 +83,7 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-data-jpa")
     runtimeOnly("org.postgresql:postgresql")
     // Flyway
-    val flywayVersion = "12.11.0"
+    val flywayVersion = "13.0.0"
     implementation("org.springframework.boot:spring-boot-starter-flyway")
     implementation("org.flywaydb:flyway-core:$flywayVersion")
     implementation("org.flywaydb:flyway-database-postgresql:$flywayVersion")

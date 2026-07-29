@@ -25,6 +25,7 @@ data class ErrorCode private constructor(
         val EMAIL_VERIFICATION_TOKEN_EXPIRED = of(2008U, "Email verification token is expired")
         val EMAIL_ALREADY_VERIFIED = of(2009U, "Email is already verified")
         val INVALID_KEY_ROTATION_PARAMS = of(2010U, "Invalid email or key rotation token")
+        val EMAIL_ALREADY_OCCUPIED = of(2011U, "Email is already occupied")
 
         // ### Authentication errors ###
         val MISSING_AUTHENTICATION_TOKEN = of(2100U, "Missing authentication token")

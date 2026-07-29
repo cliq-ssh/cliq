@@ -11,7 +11,7 @@ extension IdentitiesCompanionExtension on IdentitiesCompanion {
     }
 
     return IdentitiesCompanion(
-      id: Value(json['id'] as int),
+      id: Value(json['id'] as DbId),
       label: Value(json['label'] as String),
       username: Value(json['username'] as String),
     );

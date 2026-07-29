@@ -1,4 +1,4 @@
-name: backend-build-images.yaml
+name: "Backend: Build"
 on:
   pull_request:
     branches:

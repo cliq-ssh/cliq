@@ -4,6 +4,9 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter/foundation.dart';
 
 ValueNotifier<T> useStore<T>(StoreKey<T> key) {
+  if (key.isSecure) {
+    throw Exception('useStore does not support secure keys');
+  }
   final notifier = useMemoized(
     () => ValueNotifier<T>(KeyValueStore().readSync<T>(key)),
     [key],

@@ -16,14 +16,20 @@ class KeyCreationChoiceView extends HookConsumerWidget {
     openImport() {
       Navigator.of(context).pop();
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        Commons.showResponsiveDialog((_) => const CreateOrEditKeyView.create());
+        Commons.showResponsiveDialog(
+          (_) => const CreateOrEditKeyView.create(),
+          context: context,
+        );
       });
     }
 
     openGenerate() {
       Navigator.of(context).pop();
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        Commons.showResponsiveDialog((_) => const GenerateKeyView());
+        Commons.showResponsiveDialog(
+          (_) => const GenerateKeyView(),
+          context: context,
+        );
       });
     }
 

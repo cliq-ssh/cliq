@@ -1,4 +1,4 @@
-name: Publish Edge Docker Images
+name: "Backend: Publish Edge"
 on:
   workflow_dispatch:
   push:
@@ -8,7 +8,7 @@ on:
       - 'backend/**'
 
 concurrency:
-  group: docker-edge-images
+  group: backend-edge
   cancel-in-progress: false
 
 defaults:

@@ -16,6 +16,8 @@ import sh.cliq.backend.auth.params.RegistrationParams
 import sh.cliq.backend.auth.params.login.LoginFinishParams
 import sh.cliq.backend.auth.params.login.LoginStartParams
 import sh.cliq.backend.auth.service.SrpService
+import sh.cliq.backend.auth.service.nimbus.Rfc5054AppendixBClientEvidenceRoutine
+import sh.cliq.backend.auth.service.nimbus.Rfc5054AppendixBServerEvidenceRoutine
 import sh.cliq.backend.auth.view.TokenResponse
 import sh.cliq.backend.auth.view.login.LocalLoginFinishResponse
 import sh.cliq.backend.auth.view.login.LoginStartResponse
@@ -121,6 +123,8 @@ class RegistrationLoginAndSyncTests(
 
         // Create a new client session
         val srpClientSession = SRP6ClientSession()
+        srpClientSession.setClientEvidenceRoutine(Rfc5054AppendixBClientEvidenceRoutine)
+        srpClientSession.setServerEvidenceRoutine(Rfc5054AppendixBServerEvidenceRoutine)
         srpClientSession.step1(email, password)
 
         // Start the backend login process
@@ -239,7 +243,7 @@ class RegistrationLoginAndSyncTests(
         val encryptedConfig =
             encryptionHelper.encryptDataWithKey(
                 configString.toByteArray(),
-                userMasterKey,
+                dataEncryptionKey,
             )
         val encryptedConfigString = Base64.getEncoder().encodeToString(encryptedConfig)
         val vaultParams =

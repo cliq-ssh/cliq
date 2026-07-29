@@ -8,10 +8,14 @@ const val AUTH_EXCHANGE_DURATION_SECONDS_MIN = 10L
 
 @Validated
 @ConfigurationProperties(prefix = "app.auth")
-class AuthProperties(
-    val local: LocalAuthProperties,
+data class AuthProperties(
+    val providers: Providers,
     @Min(AUTH_EXCHANGE_DURATION_SECONDS_MIN)
     val authExchangeDurationSeconds: Long,
 ) {
-    data class LocalAuthProperties(val registration: Boolean, val login: Boolean)
+    data class Providers(val local: LocalProvider, val oidc: OidcProvider)
+
+    data class LocalProvider(val enabled: Boolean, val registrationEnabled: Boolean)
+
+    data class OidcProvider(val enabled: Boolean)
 }

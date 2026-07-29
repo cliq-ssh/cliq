@@ -20,7 +20,7 @@ import tools.jackson.databind.ObjectMapper
 import kotlin.test.assertEquals
 
 @AcceptanceTest
-@TestPropertySource(properties = ["app.auth.local.login=false"])
+@TestPropertySource(properties = ["app.auth.providers.local.enabled=false"])
 class LocalLoginDisabledTests(
     @Autowired private val mockMvc: MockMvc,
     @Autowired private val userCreationHelper: UserCreationHelper,

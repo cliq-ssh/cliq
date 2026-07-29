@@ -50,13 +50,15 @@ class _ConnectionsPageState extends ConsumerState<ConnectionsPage> {
         noEntitiesSubtitle: 'hosts_empty_subtitle'.tr(),
         addEntityTitle: 'hosts_add'.tr(),
         filterableFields: (c) => [
-          c.vault.label,
+          ?c.vault.owner,
           c.label,
           ?c.effectiveUsername,
           c.port.toString(),
         ],
+        filterableVaultId: (c) => c.vaultId,
         onAddEntity: () => Commons.showResponsiveDialog(
           (_) => CreateOrEditConnectionView.create(),
+          context: context,
         ),
       ),
     );

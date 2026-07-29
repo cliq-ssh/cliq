@@ -36,7 +36,7 @@ class TerminalThemeCard extends HookConsumerWidget {
     final primaryPopoverController = useFPopoverController();
     final secondaryPopoverController = useFPopoverController();
 
-    final isBuiltIn = theme.id == -1;
+    final isBuiltIn = theme.id == "-1";
 
     buildColor(Color color) {
       return Container(width: 8, height: 16, color: color);
@@ -82,9 +82,11 @@ class TerminalThemeCard extends HookConsumerWidget {
     edit() async {
       await primaryPopoverController.hide();
       await secondaryPopoverController.hide();
+      if (!context.mounted) return;
 
       return Commons.showResponsiveDialog(
         (_) => CreateOrEditTerminalThemeView.edit(theme),
+        context: context,
       ).then((_) => onEdit?.call());
     }
 
@@ -195,7 +197,7 @@ class TerminalThemeCard extends HookConsumerWidget {
                   crossAxisAlignment: .start,
                   children: [
                     Text(theme.name),
-                    if (theme.id == -1)
+                    if (theme.id == '-1')
                       Text(
                         'built-in',
                         style: context.theme.typography.body.xs.copyWith(

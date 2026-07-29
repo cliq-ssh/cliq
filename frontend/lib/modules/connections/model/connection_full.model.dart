@@ -6,7 +6,7 @@ import '../../identities/model/identity_full.model.dart';
 
 /// Model class that better wraps the [FindFullConnectionByIdResult] class.
 class ConnectionFull extends Connection {
-  final List<int> credentialIds;
+  final List<DbId> credentialIds;
   final Vault vault;
   final IdentityFull? identity;
   final CustomTerminalTheme? terminalThemeOverride;
@@ -16,7 +16,7 @@ class ConnectionFull extends Connection {
 
   CustomTerminalTheme getEffectiveTerminalTheme(
     CustomTerminalThemeState themes,
-    int defaultTerminalThemeId,
+    DbId defaultTerminalThemeId,
   ) {
     return terminalThemeOverride ??
         themes.findById(defaultTerminalThemeId, isDefaultTheme: true)!;

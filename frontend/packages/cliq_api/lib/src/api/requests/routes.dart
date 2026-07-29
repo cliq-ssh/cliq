@@ -1,34 +1,60 @@
 import '../../impl/requests/model/route.dart';
 
-class ServerRoutes {
-  const ServerRoutes._();
+class VaultRoutes {
+  const VaultRoutes._();
 
-  // might change in the future
-  static final Route getHealth = Route(
-    'GET',
-    '/actuator/health',
-    isApiRoute: false,
-  );
+  static const get = Route(.get, '/api/vault');
+  static const put = Route(.put, '/api/vault');
+  static const getLastUpdated = Route(.get, '/api/vault/last-updated');
 }
 
 class UserRoutes {
   const UserRoutes._();
 
-  static final Route create = Route.post('/user/register');
+  static const postVerification = Route(.post, '/api/user/verification');
+  static const postResendEmail = Route(
+    .post,
+    '/api/user/verification/resend-email',
+  );
+  static const postKeyRotationVerify = Route(
+    .post,
+    '/api/user/key-rotation/verify',
+  );
+  static const postKeyRotationStart = Route(
+    .post,
+    '/api/user/key-rotation/start',
+  );
+  static const getMe = Route(.get, '/api/user/me');
+}
+
+class AuthenticationRoutes {
+  const AuthenticationRoutes._();
+
+  // TODO: implement OIDC + routes
+
+  static const postRegister = Route(.post, '/api/auth/register');
+  static const postRefresh = Route(.post, '/api/auth/refresh');
+  static const postLogout = Route(.post, '/api/auth/logout');
+  static const postLoginStart = Route(.post, '/api/auth/login/start');
+  static const postLoginFinish = Route(.post, '/api/auth/login/finish');
+  static const postDeviceRegister = Route(.post, '/api/auth/device/register');
+}
+
+class ServerConfigurationRoutes {
+  const ServerConfigurationRoutes._();
+
+  static const get = Route(.get, '/api/server/configuration');
 }
 
 class SessionRoutes {
   const SessionRoutes._();
 
-  static final Route create = Route.post('/session');
+  static const getCurrent = Route(.get, '/api/session/current');
 }
 
-class UserConfigRoutes {
-  const UserConfigRoutes._();
+class ActuatorRoutes {
+  const ActuatorRoutes._();
 
-  static final Route get = Route.get('/user/configuration');
-  static final Route update = Route.put('/user/configuration');
-  static final Route getLastUpdated = Route.get(
-    '/user/configuration/last-updated',
-  );
+  static const get = Route(.get, '/actuator');
+  static const getHealth = Route(.get, '/actuator/health');
 }

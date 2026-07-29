@@ -7,11 +7,13 @@ import 'package:cliq/shared/utils/constants.dart';
 import 'package:cliq/shared/model/router.model.dart';
 import 'package:cliq/shared/utils/platform_utils.dart';
 import 'package:cliq/shared/utils/text_utils.dart';
+import 'package:cliq_api/cliq_api.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:file_selector/file_selector.dart';
 import 'package:flutter/material.dart' hide Router;
 import 'package:flutter/services.dart';
 import 'package:forui/forui.dart';
+import 'package:lucide_flutter/lucide_flutter.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 final class Commons {
@@ -55,12 +57,16 @@ final class Commons {
 
   static Future<T?> showResponsiveDialog<T>(
     WidgetBuilder builder, {
-    BuildContext? context,
+    required BuildContext? context,
+    bool dismissable = true,
   }) {
     return showFSheet(
-      context: (Router.shellNavigatorKey.currentContext ?? context)!,
+      useRootNavigator: true,
+      context: (context ?? Router.shellNavigatorKey.currentContext)!,
       side: FLayout.rtl,
       mainAxisMaxRatio: 1,
+      draggable: false,
+      barrierDismissible: dismissable,
       builder: (context) => ResponsiveDialog(child: builder(context)),
     );
   }
@@ -154,12 +160,29 @@ final class Commons {
           spacing: 8,
           mainAxisSize: .min,
           children: [
-            ?prefix,
+            if (prefix != null)
+              IconTheme.merge(
+                data: .new(
+                  size: 20,
+                  color: variant == .destructive
+                      ? context.theme.colors.destructive
+                      : null,
+                ),
+                child: prefix,
+              ),
             Flexible(child: Text(message)),
           ],
         ),
       );
     }
+  }
+
+  static Future<void> showCliqException(CliqException exception) async {
+    return showToast(
+      'api_error_codes.${exception.errorCode}'.tr(),
+      prefix: Icon(LucideIcons.alertCircle),
+      variant: .destructive,
+    );
   }
 
   static Future<void> copyToClipboard(BuildContext context, String text) async {

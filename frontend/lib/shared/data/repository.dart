@@ -1,7 +1,10 @@
 import 'package:drift/drift.dart';
 import 'package:logging/logging.dart';
+import 'package:uuid/uuid.dart';
 
 import 'database.dart';
+
+Uuid _uuid = const Uuid();
 
 abstract class Repository<T extends Table, R> {
   late final Logger _log = Logger('Repository[$R]');
@@ -14,29 +17,56 @@ abstract class Repository<T extends Table, R> {
 
   Selectable<R> selectAll() => db.select(table);
 
-  Future<int> insert(UpdateCompanion<R> row) {
-    return db.into(table).insert(row).then((id) {
-      _log.finest('Inserted row with id $id');
-      return id;
+  Future<R> insert(UpdateCompanion<R> row) {
+    final idColumn = table.columnsByName['id'];
+    final columns = row.toColumns(false);
+
+    final Insertable<R> toInsert =
+        idColumn?.type == DriftSqlType.string && !columns.containsKey('id')
+        ? RawValuesInsertable<R>({
+            ...columns,
+            'id': Variable<String>(_uuid.v4()),
+          })
+        : row;
+
+    return db.into(table).insertReturning(toInsert).then((inserted) {
+      _log.finest('Inserted row: $inserted');
+      return inserted;
     });
   }
 
-  Future<List<int>> insertAll(List<UpdateCompanion<R>> rows) async {
+  Future<List<R>> insertAll(List<UpdateCompanion<R>> rows) async {
     _log.finest('Inserting ${rows.length} rows');
 
-    final List<int> ids = [];
+    final List<R> inserted = [];
     for (final row in rows) {
-      ids.add(await insert(row));
+      inserted.add(await insert(row));
     }
-    return ids;
+    return inserted;
   }
 
-  Future<void> insertAllBatch(List<UpdateCompanion<R>> rows) {
+  Future<void> insertAllBatch(
+    List<UpdateCompanion<R>> rows, {
+    InsertMode mode = .insertOrAbort,
+  }) {
     _log.finest('Inserting ${rows.length} rows');
-    return db.batch((batch) => batch.insertAll(table, rows));
+    final idColumn = table.columnsByName['id'];
+
+    final toInsert = rows.map((row) {
+      final columns = row.toColumns(false);
+      if (idColumn?.type == DriftSqlType.string && !columns.containsKey('id')) {
+        return RawValuesInsertable<R>({
+          ...columns,
+          'id': Variable<String>(_uuid.v4()),
+        });
+      }
+      return row;
+    }).toList();
+
+    return db.batch((batch) => batch.insertAll(table, toInsert, mode: mode));
   }
 
-  Future<int> updateById(int id, UpdateCompanion<R> row) {
+  Future<int> updateById(DbId id, UpdateCompanion<R> row) {
     return (db.update(table)..where((t) => _whereId(t, id))).write(row).then((
       count,
     ) {
@@ -45,12 +75,12 @@ abstract class Repository<T extends Table, R> {
     });
   }
 
-  Future<void> deleteById(int id) {
+  Future<void> deleteById(DbId id) {
     _log.finest('Deleting row with id $id');
     return (db.delete(table)..where((row) => _whereId(row, id))).go();
   }
 
-  Future<void> deleteByIds(List<int> ids) async {
+  Future<void> deleteByIds(List<DbId> ids) async {
     _log.finest('Deleting rows with ids $ids');
     return db.batch((batch) {
       for (final id in ids) {
@@ -69,7 +99,8 @@ abstract class Repository<T extends Table, R> {
     return await table.count(where: where).getSingle();
   }
 
-  Expression<bool> _whereId(T row, int id) => _getIdColumn(row).equals(id);
+  Expression<bool> _whereId(T row, DbId id) => _getIdColumn(row).equals(id);
+
   GeneratedColumn<Object> _getIdColumn(T row) {
     final idColumn = table.columnsByName['id'];
 
@@ -81,8 +112,8 @@ abstract class Repository<T extends Table, R> {
       );
     }
 
-    if (idColumn.type != DriftSqlType.int) {
-      throw ArgumentError('Column `id` is not an integer');
+    if (idColumn.type != DriftSqlType.string) {
+      throw ArgumentError('Column `id` is not a string');
     }
 
     return idColumn;

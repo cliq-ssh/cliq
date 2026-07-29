@@ -23,7 +23,7 @@ import sh.cliq.backend.user.UserRepository
 import tools.jackson.databind.ObjectMapper
 
 @AcceptanceTest
-@TestPropertySource(properties = ["app.auth.local.registration=false"])
+@TestPropertySource(properties = ["app.auth.providers.local.registrationEnabled=false"])
 class LocalRegistrationDisabledTests(
     @Autowired private val mockMvc: MockMvc,
     @Autowired private val userRepository: UserRepository,

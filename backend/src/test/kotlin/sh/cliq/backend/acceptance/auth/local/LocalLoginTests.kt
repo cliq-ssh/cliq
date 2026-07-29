@@ -19,6 +19,8 @@ import sh.cliq.backend.auth.params.DeviceRegistrationParams
 import sh.cliq.backend.auth.params.login.LoginFinishParams
 import sh.cliq.backend.auth.params.login.LoginStartParams
 import sh.cliq.backend.auth.service.SrpService
+import sh.cliq.backend.auth.service.nimbus.Rfc5054AppendixBClientEvidenceRoutine
+import sh.cliq.backend.auth.service.nimbus.Rfc5054AppendixBServerEvidenceRoutine
 import sh.cliq.backend.auth.view.TokenResponse
 import sh.cliq.backend.auth.view.login.LocalLoginFinishResponse
 import sh.cliq.backend.auth.view.login.LoginStartResponse
@@ -59,6 +61,8 @@ class LocalLoginTests(
         val sessionName = DEFAULT_SESSION_NAME
 
         val srpClientSession = SRP6ClientSession()
+        srpClientSession.setClientEvidenceRoutine(Rfc5054AppendixBClientEvidenceRoutine)
+        srpClientSession.setServerEvidenceRoutine(Rfc5054AppendixBServerEvidenceRoutine)
         srpClientSession.step1(user.email, userCreationData.password)
 
         val loginStartParams = LoginStartParams(user.email)

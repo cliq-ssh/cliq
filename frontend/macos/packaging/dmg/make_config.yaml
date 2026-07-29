@@ -1,0 +1,16 @@
+title: cliq
+icon: cliq.app/Contents/Resources/installer-dmg.icns
+icon-size: 128
+window:
+  size:
+    height: 400
+    width: 640
+contents:
+  - x: 448
+    y: 176
+    type: link
+    path: '/Applications'
+  - x: 192
+    y: 176
+    type: file
+    path: 'cliq.app'

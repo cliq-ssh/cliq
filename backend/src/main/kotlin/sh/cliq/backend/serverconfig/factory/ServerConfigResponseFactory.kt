@@ -25,7 +25,8 @@ class ServerConfigResponseFactory(
     private fun createResponse(oidcUrl: String? = null): ServerConfigResponse = ServerConfigResponse(
         serverVersion = infoProperties.version,
         oidcUrl = oidcUrl,
-        localAuthProperties = authProperties.local,
+        localAuthProperties = authProperties.providers.local,
         authExchangeDurationSeconds = authProperties.authExchangeDurationSeconds,
+        emailEnabled = featureUtils.isFeatureActive(Features.EMAIL),
     )
 }

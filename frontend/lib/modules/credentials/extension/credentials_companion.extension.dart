@@ -10,7 +10,7 @@ extension CredentialsCompanionExtension on CredentialsCompanion {
     }
 
     return CredentialsCompanion(
-      id: Value(json['id'] as int),
+      id: Value(json['id'] as DbId),
       type: Value(
         CredentialType.values.firstWhere(
           (e) => e.name == json['type'],
@@ -18,7 +18,7 @@ extension CredentialsCompanionExtension on CredentialsCompanion {
               throw Exception('Unknown credential type: ${json['type']}'),
         ),
       ),
-      keyId: Value(json['keyId'] as int?),
+      keyId: Value(json['keyId'] as DbId?),
       password: Value(json['password'] as String?),
     );
   }

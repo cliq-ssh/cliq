@@ -1,11 +1,11 @@
 import 'package:cliq_api/src/api/cliq_client.dart';
 import 'package:cliq_api/src/api/exceptions/cliq_api_exception.dart';
+import 'package:cliq_api/src/impl/cliq_client_impl.dart';
 import 'package:dio/dio.dart';
 import 'package:logging/logging.dart';
 
-import 'model/api_error.dart';
-import 'model/client_error.dart';
 import 'model/error_response.dart';
+import 'model/local_errors.dart';
 import 'model/rest_response.dart';
 import 'model/route.dart';
 
@@ -13,9 +13,9 @@ import 'model/route.dart';
 class RequestHandler {
   static final Logger _log = Logger('RequestHandler');
 
-  final CliqClient api;
+  final CliqClientImpl apiImpl;
 
-  const RequestHandler(this.api);
+  const RequestHandler(this.apiImpl);
 
   /// Tries to execute a request, using the [CompiledRoute] and maps the received data using the
   /// specified [mapper] function, ultimately returning the entity in an [RestResponse].
@@ -38,7 +38,7 @@ class RequestHandler {
       );
       return RestResponse(
         data: mapper.call(response.data),
-        statusCode: response.statusCode,
+        httpStatusCode: response.statusCode,
       );
     } on DioException catch (e) {
       return _handleDioException(e);
@@ -53,7 +53,6 @@ class RequestHandler {
     required RouteOptions routeOptions,
     String? bearerToken,
     dynamic body,
-    Map<int, ApiError> errorMap = const {},
     String contentType = 'application/json',
   }) async {
     try {
@@ -63,7 +62,7 @@ class RequestHandler {
         bearerToken: bearerToken,
         contentType: contentType,
       );
-      return RestResponse(data: true, statusCode: response.statusCode);
+      return RestResponse(data: true, httpStatusCode: response.statusCode);
     } on DioException catch (e) {
       return _handleDioException(e);
     }
@@ -95,7 +94,7 @@ class RequestHandler {
         data: (response.data as List<dynamic>)
             .map((single) => mapper.call(single))
             .toList(),
-        statusCode: response.statusCode,
+        httpStatusCode: response.statusCode,
       );
     } on DioException catch (e) {
       return _handleDioException(e);
@@ -104,41 +103,57 @@ class RequestHandler {
 
   static Future<RestResponse<T>> _handleDioException<T>(DioException ex) async {
     // check if error response is present
-    final ErrorResponse? errorResponse = ErrorResponse.tryFromJson(
-      ex.response?.data,
-    );
+    final ErrorResponse? errorResponse = .tryFromJson(ex.response?.data);
     if (errorResponse != null) {
-      if (errorResponse.error != null) {
-        return errorResponse.error!.toResponse(
-          statusCode: ex.response?.statusCode,
-        );
-      }
-      _log.warning(
-        'Encountered unknown ErrorResponse: ${errorResponse.details}',
-      );
+      return errorResponse.toResponse(httpStatusCode: ex.response?.statusCode);
     }
+
     // if not, check status code
     final int? statusCode = ex.response?.statusCode;
     if (statusCode != null) {
-      final CliqApiException? ex = switch (statusCode) {
-        400 => ClientError.badRequest.toException(),
-        500 => ApiError.internalServerError.toException(),
-        503 => ApiError.serviceUnavailable.toException(),
+      final CliqException? ex = switch (statusCode) {
+        500 => LocalErrors.internalServerError.toException(),
+        503 => LocalErrors.serviceUnavailable.toException(),
         _ => null,
       };
       if (ex != null) {
-        return RestResponse(error: ex, statusCode: statusCode);
+        return RestResponse(error: ex, httpStatusCode: statusCode);
       }
     }
+
     // if this also fails, check timeout or if the server is unreachable
-    if (ex.type == DioExceptionType.connectionTimeout ||
-        ex.type == DioExceptionType.receiveTimeout) {
-      return ClientError.serverUnreachable.toResponse(statusCode: statusCode);
-    }
-    if (ex.type == DioExceptionType.connectionError) {
-      return ClientError.invalidUri.toResponse(statusCode: statusCode);
+    if (ex.type == .connectionTimeout ||
+        ex.type == .receiveTimeout ||
+        ex.type == .connectionError) {
+      return LocalErrors.serverUnreachable.toResponse(statusCode: statusCode);
     }
     _log.warning('Unknown error occurred: ${ex.message}, ${ex.stackTrace}');
-    return ApiError.unknown.toResponse(statusCode: statusCode);
+    return LocalErrors.unknown.toResponse(statusCode: statusCode);
   }
+
+  Future<RestResponse<T>> authenticatedRequest<T>({
+    required CompiledRoute route,
+    required T Function(dynamic) mapper,
+    dynamic body,
+    String contentType = 'application/json',
+  }) => request(
+    route: route,
+    mapper: mapper,
+    routeOptions: apiImpl.routeOptions,
+    bearerToken: apiImpl.accessToken,
+    body: body,
+    contentType: contentType,
+  );
+
+  Future<RestResponse<bool>> authenticatedNoResponseRequest({
+    required CompiledRoute route,
+    dynamic body,
+    String contentType = 'application/json',
+  }) => noResponseRequest(
+    route: route,
+    routeOptions: apiImpl.routeOptions,
+    bearerToken: apiImpl.accessToken,
+    body: body,
+    contentType: contentType,
+  );
 }

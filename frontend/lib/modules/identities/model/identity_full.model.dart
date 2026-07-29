@@ -1,7 +1,7 @@
 import '../../../shared/data/database.dart';
 
 class IdentityFull extends Identity {
-  final List<int> credentialIds;
+  final List<DbId> credentialIds;
   final Vault vault;
 
   const IdentityFull(

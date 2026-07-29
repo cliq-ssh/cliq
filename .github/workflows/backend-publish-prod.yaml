@@ -1,11 +1,11 @@
-name: Publish Prod Docker Images
+name: "Backend: Publish Prod"
 on:
   push:
     tags:
       - 'v[0-9]+.[0-9]+.[0-9]+'
 
 concurrency:
-  group: docker-prod-images
+  group: backend-prod
   cancel-in-progress: false
 
 defaults:
