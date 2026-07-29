@@ -52,6 +52,9 @@ class SyncProviderNotifier extends Notifier<SyncState> {
   }
 
   Future<void> attemptRecovery() async {
+    // create local vault if not exists
+    await ref.read(vaultProvider.notifier).findOrCreateVault();
+
     final routeOptions = await StoreKey.syncHost.readAsync();
     if (routeOptions == null ||
         (await StoreKey.syncRefreshToken.readAsync()) == null) {
