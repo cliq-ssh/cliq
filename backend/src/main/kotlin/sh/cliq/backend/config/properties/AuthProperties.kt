@@ -13,17 +13,9 @@ data class AuthProperties(
     @Min(AUTH_EXCHANGE_DURATION_SECONDS_MIN)
     val authExchangeDurationSeconds: Long,
 ) {
-    data class Providers(
-        val local: LocalProvider,
-        val oidc: OidcProvider
-    )
+    data class Providers(val local: LocalProvider, val oidc: OidcProvider)
 
-    data class LocalProvider(
-        val enabled: Boolean,
-        val registrationEnabled: Boolean
-    )
+    data class LocalProvider(val enabled: Boolean, val registrationEnabled: Boolean)
 
-    data class OidcProvider(
-        val enabled: Boolean
-    )
+    data class OidcProvider(val enabled: Boolean)
 }

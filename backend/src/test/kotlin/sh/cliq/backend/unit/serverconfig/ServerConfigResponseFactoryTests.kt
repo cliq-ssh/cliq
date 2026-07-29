@@ -22,10 +22,14 @@ class ServerConfigResponseFactoryTests {
 
     private val authProperties =
         AuthProperties(
-            local =
-            AuthProperties.LocalAuthProperties(
-                registration = true,
-                login = false,
+            providers = AuthProperties.Providers(
+                local = AuthProperties.LocalProvider(
+                    registrationEnabled = true,
+                    enabled = false,
+                ),
+                oidc = AuthProperties.OidcProvider(
+                    enabled = false,
+                ),
             ),
             authExchangeDurationSeconds = 60,
         )
@@ -44,9 +48,9 @@ class ServerConfigResponseFactoryTests {
         val response = factory.getResponse()
 
         assertEquals("1.2.3", response.serverVersion)
-        assertEquals(true, response.localAuthProperties.registration)
-        assertEquals(false, response.localAuthProperties.login)
-        assertFalse(response.localAuthProperties.login)
-        assertTrue(response.localAuthProperties.registration)
+        assertEquals(true, response.localAuthProperties.registrationEnabled)
+        assertEquals(false, response.localAuthProperties.enabled)
+        assertFalse(response.localAuthProperties.enabled)
+        assertTrue(response.localAuthProperties.registrationEnabled)
     }
 }
