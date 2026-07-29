@@ -45,7 +45,7 @@ class LocalAuthController(private val userFactory: UserFactory, private val auth
         ],
     )
     fun register(@Valid @RequestBody registrationParams: RegistrationParams): ResponseEntity<UserResponse> {
-        if (!authProperties.local.registration) {
+        if (!authProperties.providers.local.registrationEnabled) {
             throw LocalRegistrationDisabledException()
         }
 

@@ -61,7 +61,7 @@ class LocalLoginController(
         ],
     )
     fun startLogin(@Valid @RequestBody loginStartParams: LoginStartParams): ResponseEntity<LoginStartResponse> {
-        if (!authProperties.local.login) {
+        if (!authProperties.providers.local.enabled) {
             throw LocalLoginDisabledException()
         }
 
@@ -104,7 +104,7 @@ class LocalLoginController(
         @Valid @RequestBody loginFinishParams: LoginFinishParams,
         httpRequest: HttpServletRequest,
     ): ResponseEntity<LocalLoginFinishResponse> {
-        if (!authProperties.local.login) {
+        if (!authProperties.providers.local.enabled) {
             throw LocalLoginDisabledException()
         }
 

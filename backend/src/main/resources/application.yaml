@@ -10,11 +10,13 @@ app:
     from-name: \${MAIL_FROM_NAME:null}
   auth:
     auth-exchange-duration-seconds: \${OIDC_AUTH_EXCHANGE_DURATION_SECONDS:60}
-    local:
-      registration: \${ENABLE_LOCAL_REGISTRATION:true}
-      login: \${ENABLE_LOCAL_LOGIN:true}
+    providers:
+      local:
+        enabled: \${ENABLE_LOCAL_AUTH:true}
+        registration-enabled: \${ENABLE_LOCAL_REGISTRATION:true}
+      oidc:
+        enabled: \${OIDC_ENABLED:false}
   oidc:
-    enabled: \${OIDC_ENABLED:false}
     issuer-uri: \${OIDC_ISSUER_URI:}
     client-id: \${OIDC_CLIENT_ID:}
     client-secret: \${OIDC_CLIENT_SECRET:}
@@ -46,6 +48,9 @@ app:
 logging:
   level:
     root: \${LOG_LEVEL_ROOT:info}
+
+server:
+  forward-headers-strategy: framework
 
 spring:
   cache:
