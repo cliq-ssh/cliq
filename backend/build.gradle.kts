@@ -110,7 +110,7 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-validation")
 
     // OpenAPI
-    val springdocVersion = "3.0.3"
+    val springdocVersion = "3.1.0"
     implementation("org.springdoc:springdoc-openapi-starter-webmvc-api:$springdocVersion")
     implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:$springdocVersion")
     implementation("org.springdoc:springdoc-openapi-starter-webmvc-scalar:$springdocVersion")
