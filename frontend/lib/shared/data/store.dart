@@ -37,7 +37,7 @@ enum StoreKey<T> {
   appearancePrimaryColor<PresetPrimaryColor>(
     'appearance_primary_color',
     type: PresetPrimaryColor,
-    defaultValue: .blue,
+    defaultValue: .neutral,
     fromValue: _primaryColorFromValue,
     toValue: _enumToValue,
   ),
