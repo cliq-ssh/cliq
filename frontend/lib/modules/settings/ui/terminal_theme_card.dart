@@ -11,6 +11,7 @@ import 'package:forui_hooks/forui_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lucide_flutter/lucide_flutter.dart';
 
+import '../../../shared/ui/title_card.dart';
 import '../../../shared/utils/commons.dart';
 import '../provider/terminal_theme_service.provider.dart';
 
@@ -161,7 +162,7 @@ class TerminalThemeCard extends HookConsumerWidget {
       builder: (context) {
         return GestureDetector(
           onTap: onTap,
-          child: FCard(
+          child: TitleCard(
             title: Row(
               spacing: 16,
               mainAxisAlignment: .spaceBetween,

@@ -2,13 +2,13 @@ import 'package:cliq/modules/settings/view/abstract_settings_page.dart';
 import 'package:cliq/modules/settings/view/settings_page.dart';
 import 'package:cliq_ui/cliq_ui.dart';
 import 'package:easy_localization/easy_localization.dart';
-import 'package:forui/forui.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lucide_flutter/lucide_flutter.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 import '../../../shared/model/page_path.model.dart';
+import '../../../shared/ui/title_card.dart';
 import '../../../shared/ui/future_wrapper.dart';
 
 class LicenseSettingsPage extends AbstractSettingsPage {
@@ -63,7 +63,7 @@ class LicenseSettingsPage extends AbstractSettingsPage {
                           });
                           return GestureDetector(
                             onTap: toggle,
-                            child: FCard(
+                            child: TitleCard(
                               title: Text(license.key),
                               subtitle: Text(
                                 'licenses_subtitle'.plural(

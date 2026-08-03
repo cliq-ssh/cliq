@@ -6,6 +6,7 @@ import 'package:forui_hooks/forui_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lucide_flutter/lucide_flutter.dart';
 
+import '../../../shared/ui/title_card.dart';
 import '../../../shared/utils/commons.dart';
 import '../provider/known_host_service.provider.dart';
 import '../provider/sync.provider.dart';
@@ -30,7 +31,7 @@ class KnownHostCard extends HookConsumerWidget {
       );
     }
 
-    return FCard(
+    return TitleCard(
       title: Row(
         spacing: 8,
         mainAxisAlignment: MainAxisAlignment.spaceBetween,

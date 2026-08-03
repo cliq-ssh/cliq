@@ -8,6 +8,7 @@ import 'package:flutter/material.dart' hide LicensePage;
 import 'package:forui/forui.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lucide_flutter/lucide_flutter.dart';
+import '../../../shared/ui/title_card.dart';
 import '../../../shared/ui/navigation/navigation_shell.dart';
 import '../provider/session.provider.dart';
 
@@ -79,7 +80,7 @@ class GenericSessionPage extends HookConsumerWidget {
             textAlign: .center,
           ),
         const SizedBox(height: 16),
-        FCard(
+        TitleCard(
           subtitle: Row(
             mainAxisAlignment: .spaceBetween,
             children: [

@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:cliq/modules/settings/model/app_theme/app_theme.model.dart';
 import 'package:cliq/shared/ui/entity_card_view.dart';
 import 'package:cliq_api/cliq_api.dart';
 import 'package:cliq_term/cliq_term.dart';
@@ -10,7 +11,6 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../modules/settings/model/keyboard_shortcuts.model.dart';
-import '../../modules/settings/model/theme.model.dart';
 import 'database.dart';
 
 enum StoreKey<T> {
@@ -27,13 +27,21 @@ enum StoreKey<T> {
   syncRefreshToken<String?>('sync_refresh_token', type: String, isSecure: true),
   syncLastUpdated<int?>('sync_last_updated', type: int, defaultValue: 0),
 
-  theme<CliqTheme>(
-    'theme',
-    type: CliqTheme,
-    defaultValue: CliqTheme.zinc,
+  appearanceBaseColors<PresetBaseColors>(
+    'appearance_base_colors',
+    type: PresetBaseColors,
+    defaultValue: .neutral,
     fromValue: _themeFromValue,
     toValue: _enumToValue,
   ),
+  appearancePrimaryColor<PresetPrimaryColor>(
+    'appearance_primary_color',
+    type: PresetPrimaryColor,
+    defaultValue: .blue,
+    fromValue: _primaryColorFromValue,
+    toValue: _enumToValue,
+  ),
+
   themeMode<ThemeMode>(
     'theme_mode',
     type: ThemeMode,
@@ -177,8 +185,10 @@ enum StoreKey<T> {
   static String? _enumToValue<T extends Enum>(dynamic value) =>
       value is T? ? value?.name : null;
 
-  static CliqTheme? _themeFromValue(String? value) =>
-      _enumFromValue(value, CliqTheme.values);
+  static PresetBaseColors? _themeFromValue(String? value) =>
+      _enumFromValue(value, PresetBaseColors.values);
+  static PresetPrimaryColor? _primaryColorFromValue(String? value) =>
+      _enumFromValue(value, PresetPrimaryColor.values);
   static ThemeMode? _themeModeFromValue(String? value) =>
       _enumFromValue(value, ThemeMode.values);
   static EntityCardViewType? _entityCardViewTypeFromValue(String? value) =>

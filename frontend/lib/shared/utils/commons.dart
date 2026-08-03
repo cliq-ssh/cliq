@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:cliq/shared/ui/horizontal_dialog.dart';
 import 'package:cliq/modules/settings/model/settings_importer/settings_importer.dart';
 import 'package:cliq/modules/settings/model/theme_parser/terminal_theme_parser.dart';
 import 'package:cliq/shared/ui/responsive_dialog.dart';
@@ -87,10 +88,9 @@ final class Commons {
     return showFDialog(
       context: (Router.rootNavigatorKey.currentContext ?? context)!,
       builder: (context, style, animation) {
-        return FDialog(
+        return HorizontalDialog(
           style: style,
           animation: animation,
-          direction: Axis.horizontal,
           title: title != null ? Text(title) : null,
           body: RichText(
             text: TextSpan(children: children(context, style, animation)),

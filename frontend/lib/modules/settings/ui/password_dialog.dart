@@ -1,3 +1,4 @@
+import 'package:cliq/shared/ui/horizontal_dialog.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:forui/forui.dart';
@@ -17,10 +18,9 @@ class PasswordDialog extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final passwordController = useTextEditingController();
 
-    return FDialog(
+    return HorizontalDialog(
       style: style,
       animation: animation,
-      direction: Axis.horizontal,
       title: const Text('This file is password protected'),
       body: Column(
         spacing: 16,

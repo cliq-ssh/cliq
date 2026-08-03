@@ -1,3 +1,4 @@
+import 'package:cliq/modules/settings/model/app_theme/app_theme.model.dart';
 import 'package:cliq/modules/settings/view/abstract_settings_page.dart';
 import 'package:cliq/modules/settings/view/settings_page.dart';
 import 'package:cliq/shared/provider/store.provider.dart';
@@ -12,7 +13,6 @@ import 'package:lucide_flutter/lucide_flutter.dart';
 import '../../../shared/data/store.dart';
 import '../../../shared/model/page_path.model.dart';
 import '../../../shared/ui/custom_toggle_tile.dart';
-import '../model/theme.model.dart';
 
 class AppearanceSettingsPage extends AbstractSettingsPage {
   static const PagePathBuilder pagePath = PagePathBuilder.child(
@@ -27,7 +27,9 @@ class AppearanceSettingsPage extends AbstractSettingsPage {
 
   @override
   Widget buildBody(BuildContext context, WidgetRef ref) {
-    final currentTheme = useStore(.theme);
+    final currentBaseColors = useStore(.appearanceBaseColors);
+    final currentPrimaryColor = useStore(.appearancePrimaryColor);
+
     final themeMode = useStore(.themeMode);
     final applyTerminalThemeColorToNavigation = useStore(
       .applyTerminalThemeColorToNavigation,
@@ -39,6 +41,51 @@ class AppearanceSettingsPage extends AbstractSettingsPage {
         ThemeMode.light => 'theme_mode_light'.tr(),
         ThemeMode.dark => 'theme_mode_dark'.tr(),
       };
+    }
+
+    buildAppearanceSelect<T extends PresetColors>({
+      required String title,
+      required IconData prefix,
+      required String subtitle,
+      required T initial,
+      required StoreKey<T> key,
+      required List<T> all,
+      required Color Function(T) getPreviewColor,
+    }) {
+      return FSelectMenuTile<T>(
+        title: Text(title),
+        prefix: Icon(prefix),
+        subtitle: Text(subtitle),
+        selectControl: .managedRadio(
+          initial: initial,
+          onChange: (value) => key.write(value.first),
+        ),
+        detailsBuilder: (context, value, _) {
+          if (value.isEmpty) return SizedBox.shrink();
+          return Text(value.first.getDisplayName(context));
+        },
+        maxHeight: 300,
+        menu: [
+          for (T t in all) ...[
+            .tile(
+              title: Text(t.getDisplayName(context)),
+              suffix: Container(
+                width: 20,
+                height: 20,
+                decoration: BoxDecoration(
+                  shape: .circle,
+                  color: getPreviewColor(t),
+                  border: Border.all(
+                    color: context.theme.colors.border,
+                    width: 1,
+                  ),
+                ),
+              ),
+              value: t,
+            ),
+          ],
+        ],
+      );
     }
 
     return SingleChildScrollView(
@@ -74,40 +121,33 @@ class AppearanceSettingsPage extends AbstractSettingsPage {
                             ],
                           ],
                         ),
-                        FSelectMenuTile<CliqTheme>(
-                          title: Text('appearance_color_theme'.tr()),
-                          prefix: const Icon(LucideIcons.palette),
-                          subtitle: Text(
-                            'appearance_color_theme_subtitle'.tr(),
+                      ],
+                    ),
+                    FTileGroup(
+                      children: [
+                        buildAppearanceSelect<PresetBaseColors>(
+                          title: 'appearance_base_colors'.tr(),
+                          prefix: LucideIcons.paintBucket,
+                          subtitle: 'appearance_base_colors_subtitle'.tr(),
+                          initial: currentBaseColors.value,
+                          key: .appearanceBaseColors,
+                          all: PresetBaseColors.values,
+                          getPreviewColor: (baseColors) => Color(
+                            baseColors.getByThemeMode(themeMode.value).card,
                           ),
-                          selectControl: .managedRadio(
-                            initial: currentTheme.value,
-                            onChange: (value) =>
-                                StoreKey.theme.write(value.first),
+                        ),
+                        buildAppearanceSelect<PresetPrimaryColor>(
+                          title: 'appearance_primary_color'.tr(),
+                          prefix: LucideIcons.paintbrush,
+                          subtitle: 'appearance_primary_color_subtitle'.tr(),
+                          initial: currentPrimaryColor.value,
+                          key: .appearancePrimaryColor,
+                          all: PresetPrimaryColor.values,
+                          getPreviewColor: (primaryColor) => Color(
+                            primaryColor
+                                .getByThemeMode(themeMode.value)
+                                .primary,
                           ),
-                          detailsBuilder: (context, value, _) {
-                            if (value.isEmpty) return SizedBox.shrink();
-                            return Text(value.first.getDisplayName());
-                          },
-                          menu: [
-                            for (CliqTheme t in CliqTheme.values) ...[
-                              .tile(
-                                title: Text(t.getDisplayName()),
-                                suffix: Container(
-                                  width: 20,
-                                  height: 20,
-                                  decoration: BoxDecoration(
-                                    shape: .circle,
-                                    color: t
-                                        .getThemeWithMode(themeMode.value)
-                                        .colors
-                                        .primary,
-                                  ),
-                                ),
-                                value: t,
-                              ),
-                            ],
-                          ],
                         ),
                       ],
                     ),
