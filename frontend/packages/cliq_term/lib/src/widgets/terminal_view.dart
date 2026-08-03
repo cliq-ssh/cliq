@@ -1,6 +1,7 @@
 import 'package:cliq_term/cliq_term.dart';
 import 'package:cliq_term/src/parser/escape_emitter.dart';
 import 'package:cliq_term/src/utils/keyboard_helper.dart';
+import 'package:cliq_term/src/widgets/physics/terminal_scroll_physics.dart';
 import 'package:cliq_term/src/widgets/terminal_input.dart';
 import 'package:cliq_term/src/widgets/terminal_painter.dart';
 import 'package:flutter/gestures.dart';
@@ -489,9 +490,7 @@ class _TerminalViewState extends State<TerminalView> {
                   itemCount: totalRows,
                   itemExtent: cellH,
                   padding: .zero,
-                  physics: const AlwaysScrollableScrollPhysics(
-                    parent: ClampingScrollPhysics(),
-                  ),
+                  physics: const TerminalScrollPhysics(),
                   itemBuilder: (context, index) {
                     return TerminalRowWidget(
                       controller: widget.controller,
