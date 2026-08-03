@@ -76,7 +76,7 @@ class TerminalBuffer {
   bool isLineFeedMode = false;
   bool isInsertMode = false;
 
-  bool isAutoWrapMode = false;
+  bool isAutoWrapMode = true;
 
   /// Indicates whether the next character to be written should wrap to the next line
   /// and trigger an index operation
