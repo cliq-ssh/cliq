@@ -9,9 +9,13 @@ class TerminalScrollPhysics extends ClampingScrollPhysics {
   }
 
   @override
-  Simulation? createBallisticSimulation(ScrollMetrics position, double velocity) {
+  Simulation? createBallisticSimulation(
+    ScrollMetrics position,
+    double velocity,
+  ) {
     // whether the current scroll position is out of the valid range
-    final outOfRange = position.pixels < position.minScrollExtent ||
+    final outOfRange =
+        position.pixels < position.minScrollExtent ||
         position.pixels > position.maxScrollExtent;
 
     // likely a buffer swap or font size change, which can cause the scroll position to be out of range.
