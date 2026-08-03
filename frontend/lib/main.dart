@@ -192,7 +192,9 @@ class _CliqAppState extends ConsumerState<CliqApp> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = useStore(.theme);
+    final appearanceBaseColors = useStore(.appearanceBaseColors);
+    final appearancePrimaryColor = useStore(.appearancePrimaryColor);
+
     final themeMode = useStore(.themeMode);
     final router = ref.watch(routerProvider);
 
@@ -207,7 +209,11 @@ class _CliqAppState extends ConsumerState<CliqApp> {
       darkTheme: ThemeData(brightness: Brightness.dark),
       builder: (context, child) {
         return FTheme(
-          data: theme.value.getThemeWithMode(themeMode.value),
+          data: appearanceBaseColors.value.withPrimaryAndMode(
+            primaryColor: appearancePrimaryColor.value,
+            mode: themeMode.value,
+            isTouch: PlatformUtils.isMobile,
+          ),
           child: FToaster(child: child ?? Container()),
         );
       },

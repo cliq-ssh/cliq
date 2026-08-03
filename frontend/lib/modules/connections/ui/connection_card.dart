@@ -13,6 +13,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lucide_flutter/lucide_flutter.dart';
 
 import '../../../shared/ui/navigation/navigation_shell.dart';
+import '../../../shared/ui/title_card.dart';
 import '../../session/provider/session.provider.dart';
 import '../../settings/provider/sync.provider.dart';
 import '../provider/connection_service.provider.dart';
@@ -143,7 +144,7 @@ class ConnectionCard extends HookConsumerWidget {
       ],
       popoverController: primaryPopoverController,
       builder: (context) {
-        return FCard(
+        return TitleCard(
           title: Row(
             spacing: 8,
             mainAxisAlignment: MainAxisAlignment.spaceBetween,

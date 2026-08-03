@@ -8,6 +8,7 @@ import 'package:forui_hooks/forui_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lucide_flutter/lucide_flutter.dart';
 
+import '../../../shared/ui/title_card.dart';
 import '../../settings/provider/sync.provider.dart';
 import '../provider/key_service.provider.dart';
 
@@ -41,7 +42,7 @@ class KeyCard extends HookConsumerWidget {
       );
     }
 
-    return FCard(
+    return TitleCard(
       title: Row(
         spacing: 8,
         children: [

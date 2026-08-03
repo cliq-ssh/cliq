@@ -10,6 +10,7 @@ import 'package:forui_hooks/forui_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lucide_flutter/lucide_flutter.dart';
 
+import '../../../shared/ui/horizontal_dialog.dart';
 import '../../../shared/utils/validators.dart';
 import '../provider/vault.provider.dart';
 
@@ -58,10 +59,9 @@ class VaultTransferDialog extends HookConsumerWidget {
       return null;
     }, []);
 
-    return FDialog(
+    return HorizontalDialog(
       style: style,
       animation: animation,
-      direction: .horizontal,
       title: Text('dialog_vault_transfer'.tr()),
       body: Form(
         key: formKey,
