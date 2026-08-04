@@ -16,6 +16,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:forui/forui.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:iterm2_color_schemes_dart/iterm2_color_schemes_dart.dart';
 import 'package:lucide_flutter/lucide_flutter.dart';
 
 import '../../../shared/data/database.dart';
@@ -224,7 +225,7 @@ class TerminalThemeSettingsPage extends AbstractSettingsPage {
                         spacing: 12,
                         children: [
                           for (final theme in [
-                            defaultTerminalColorTheme,
+                            ...(ITerm2ColorSchemes.values.map(_fromITerm2ColorScheme)),
                             ...terminalThemes.entities,
                           ])
                             TerminalThemeCard(
@@ -253,6 +254,33 @@ class TerminalThemeSettingsPage extends AbstractSettingsPage {
           ),
         ],
       ),
+    );
+  }
+
+  static CustomTerminalTheme _fromITerm2ColorScheme(ITerm2ColorScheme colorScheme) {
+    return CustomTerminalTheme(
+      id: colorScheme.name,
+      name: colorScheme.name,
+      blackColor: Color(colorScheme.black),
+      redColor: Color(colorScheme.red),
+      greenColor: Color(colorScheme.green),
+      yellowColor: Color(colorScheme.yellow),
+      blueColor: Color(colorScheme.blue),
+      purpleColor: Color(colorScheme.purple),
+      cyanColor: Color(colorScheme.cyan),
+      whiteColor: Color(colorScheme.white),
+      brightBlackColor: Color(colorScheme.brightBlack),
+      brightRedColor: Color(colorScheme.brightRed),
+      brightGreenColor: Color(colorScheme.brightGreen),
+      brightYellowColor: Color(colorScheme.brightYellow),
+      brightBlueColor: Color(colorScheme.brightBlue),
+      brightPurpleColor: Color(colorScheme.brightPurple),
+      brightCyanColor: Color(colorScheme.brightCyan),
+      brightWhiteColor: Color(colorScheme.brightWhite),
+      backgroundColor: Color(colorScheme.background),
+      foregroundColor: Color(colorScheme.foreground),
+      cursorColor: Color(colorScheme.cursorColor),
+      selectionBackgroundColor: Color(colorScheme.selectionBackground),
     );
   }
 }
