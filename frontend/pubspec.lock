@@ -954,10 +954,10 @@ packages:
     dependency: transitive
     description:
       name: posix
-      sha256: "185ef7606574f789b40f289c233efa52e96dead518aed988e040a10737febb07"
+      sha256: bc1bad54ad2b735816e31f8d4600cfde6c7839975085ddfbca48b6c9f7c4044e
       url: "https://pub.dev"
     source: hosted
-    version: "6.5.0"
+    version: "6.5.2"
   pub_semver:
     dependency: transitive
     description:
@@ -1143,10 +1143,10 @@ packages:
     dependency: "direct main"
     description:
       name: sodium
-      sha256: "39e680be4e56282ed3545c1d4e2daec0230ee8db6358b3647e1ece89c72728b4"
+      sha256: "3d8bec7acb3bd958309e431a840f1eded82f508d57461ecd2920d399b802b38a"
       url: "https://pub.dev"
     source: hosted
-    version: "4.0.3"
+    version: "4.0.4"
   source_gen:
     dependency: transitive
     description:
