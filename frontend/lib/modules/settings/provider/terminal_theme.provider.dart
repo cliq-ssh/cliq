@@ -2,7 +2,9 @@ import 'dart:ui';
 
 import 'package:cliq/modules/settings/provider/terminal_theme_service.provider.dart';
 import 'package:cliq/shared/data/database.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:file_selector/file_selector.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:logging/logging.dart';
 import 'package:riverpod/riverpod.dart';
 
@@ -12,11 +14,9 @@ import '../model/theme_parser/terminal_theme_parser.dart';
 
 final terminalThemeProvider = NotifierProvider(CustomTerminalThemeNotifier.new);
 
-// TODO: fix i18n in here
-// TODO: replace this with custom "cliq" theme or other open source terminal theme
 const CustomTerminalTheme defaultTerminalColorTheme = .new(
   id: "-1",
-  name: 'Darcula',
+  name: 'Dracula',
   blackColor: Color(0xFF21222C),
   redColor: Color(0xFFFF5555),
   greenColor: Color(0xFF50FA7B),
@@ -46,18 +46,15 @@ class CustomTerminalThemeNotifier
 
   /// Attempts to import the given [file] as a [CustomTerminalTheme]
   /// If the file is null, not parsable, or fails to import for any reason, this method the i18n key of the error message.
-  Future<String?> tryImportCustomTerminalTheme(XFile? file) async {
-    if (file == null) {
-      return 'customTerminalTheme.import.error.noFileSelected';
-    }
+  Future<String?> tryImportCustomTerminalTheme(XFile file) async {
     final content = await file.readAsString();
     final parser = TerminalThemeParser.getParser(file.name, content);
     if (parser == null) {
-      return 'customTerminalTheme.import.error.unrecognizedFormat';
+      return 'terminal_themes_import_error.unrecognized_format'.tr();
     }
     final theme = parser.tryParse(file.name, content);
     if (theme == null) {
-      return 'customTerminalTheme.import.error.parsingFailed';
+      return 'terminal_themes_import_error.parsing_failed'.tr();
     }
 
     try {
@@ -66,7 +63,7 @@ class CustomTerminalThemeNotifier
           .createCustomTerminalTheme(theme);
     } catch (e) {
       logger.warning('Failed to import terminal theme (${file.name}): $e');
-      return 'customTerminalTheme.import.error.importFailed';
+      return 'terminal_themes_import_error.generic'.tr();
     }
 
     logger.info(

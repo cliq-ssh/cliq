@@ -244,7 +244,6 @@ class ColorSchemeBrowserDialog extends HookConsumerWidget {
                     ],
                   ),
                 ),
-                const FDivider(),
                 if (terminalController.value != null)
                   Expanded(
                     child: Container(

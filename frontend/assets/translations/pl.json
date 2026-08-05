@@ -51,7 +51,6 @@
     },
     "filter": "Filtruj",
     "filter_items": "Filtruj elementy",
-    "history": "Historia",
     "hosts_accept_fingerprint_title": "Zaakceptować odcisk palca dla <b>{}</b>?",
     "hosts_add": "Dodaj hosta",
     "hosts_address": "Adres",

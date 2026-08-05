@@ -4,6 +4,7 @@ import 'dart:typed_data';
 
 import 'package:cliq/modules/settings/model/settings_importer/app_settings.model.dart';
 import 'package:cliq/modules/settings/model/settings_importer/settings_importer.dart';
+import 'package:cliq/modules/settings/provider/terminal_theme.provider.dart';
 import 'package:cliq/modules/vaults/provider/vault_service.provider.dart';
 import 'package:cliq/shared/data/store.dart';
 import 'package:cliq/shared/model/localized_exception.dart';
@@ -413,6 +414,7 @@ class SyncProviderNotifier extends Notifier<SyncState> {
     final connections = ref.read(connectionProvider);
     final identities = ref.read(identityProvider);
     final knownHosts = ref.read(knownHostProvider);
+    final terminalThemes = ref.read(terminalThemeProvider);
     final credentials = await ref.read(credentialServiceProvider).findAll();
     final keys = await ref.read(keyServiceProvider).findAll();
 
@@ -438,6 +440,10 @@ class SyncProviderNotifier extends Notifier<SyncState> {
           .toList(),
       knownHosts: knownHosts.entities
           .where((e) => e.vaultId == vaultId)
+          .map((e) => e.toCompanion(true))
+          .toList(),
+      customTerminalThemes: terminalThemes.entities
+          //TODO .where((e) => e.vaultId == vaultId)
           .map((e) => e.toCompanion(true))
           .toList(),
       credentials: credentials

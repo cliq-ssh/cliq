@@ -21,6 +21,7 @@ import 'package:lucide_flutter/lucide_flutter.dart';
 import '../../../shared/data/database.dart';
 import '../../credentials/provider/credential_service.provider.dart';
 import '../../keys/provider/key_service.provider.dart';
+import '../provider/terminal_theme.provider.dart';
 
 class ImportOrExportSettingsView extends StatefulHookConsumerWidget {
   final AppSettings? current;
@@ -48,12 +49,14 @@ class _ImportOrExportSettingsViewState
     final connections = ref.read(connectionProvider);
     final identities = ref.read(identityProvider);
     final knownHosts = ref.read(knownHostProvider);
+    final terminalThemes = ref.read(terminalThemeProvider);
 
     final selectedVaultId = useState<DbId?>(null);
 
     final connectionsTileController = useFMultiValueNotifier<DbId>();
     final identitiesTileController = useFMultiValueNotifier<DbId>();
     final knownHostsTileController = useFMultiValueNotifier<DbId>();
+    final terminalThemesTileController = useFMultiValueNotifier<DbId>();
     final keysTileController = useFMultiValueNotifier<DbId>();
 
     final relatedIdentityIds = useState<Set<DbId>>({});
@@ -85,6 +88,10 @@ class _ImportOrExportSettingsViewState
               .toList(),
           knownHosts: knownHosts.entities
               .where((e) => e.vaultId == selectedVaultId.value)
+              .map((e) => e.toCompanion(true))
+              .toList(),
+          customTerminalThemes: terminalThemes.entities
+              //TODO .where((e) => e.vaultId == selectedVaultId.value)
               .map((e) => e.toCompanion(true))
               .toList(),
           credentials: credentials
@@ -194,6 +201,9 @@ class _ImportOrExportSettingsViewState
         knownHosts: settings.value?.knownHosts
             ?.where((k) => knownHostsTileController.value.contains(k.id.value))
             .toList(),
+        customTerminalThemes: settings.value?.customTerminalThemes
+            ?.where((k) => terminalThemesTileController.value.contains(k.id.value))
+            .toList(),
         credentials: selectedCredentials,
         keys: settings.value?.keys
             ?.where((k) => keysTileController.value.contains(k.id.value))
@@ -285,6 +295,13 @@ class _ImportOrExportSettingsViewState
                 if (entities == null) return;
                 final allIds = entities.map(idSelector).toList();
                 for (final id in allIds) {
+                  // dont deselect if related
+                  if (isRelated?.call(
+                        entities.firstWhere((e) => idSelector(e) == id),
+                      ) ==
+                      true) {
+                    continue;
+                  }
                   controller.update(id, add: false);
                 }
               },
@@ -432,6 +449,15 @@ class _ImportOrExportSettingsViewState
                       entities: settings.value!.knownHosts,
                       idSelector: (k) => k.id.value,
                       titleBuilder: (k) => k.host.value,
+                    ),
+
+                  if (settings.value!.customTerminalThemes?.isNotEmpty == true)
+                    buildEntityTiles<CustomTerminalThemesCompanion, DbId>(
+                      controller: terminalThemesTileController,
+                      label: 'terminal_themes'.tr(),
+                      entities: settings.value!.customTerminalThemes,
+                      idSelector: (k) => k.id.value,
+                      titleBuilder: (k) => k.name.value,
                     ),
 
                   if (error.value != null)

@@ -175,6 +175,12 @@ class TerminalThemeSettingsPage extends AbstractSettingsPage {
                             children: [
                               FButton(
                                 variant: .ghost,
+                                prefix: Icon(LucideIcons.plus),
+                                onPress: create,
+                                child: Text('terminal_themes_theme_add'.tr()),
+                              ),
+                              FButton(
+                                variant: .ghost,
                                 prefix: Icon(LucideIcons.swatchBook),
                                 onPress: () async {
                                   await showFDialog(
@@ -208,35 +214,28 @@ class TerminalThemeSettingsPage extends AbstractSettingsPage {
                               ),
                               FButton(
                                 variant: .ghost,
-                                prefix: Icon(LucideIcons.plus),
-                                onPress: create,
-                                child: Text('terminal_themes_theme_add'.tr()),
-                              ),
-                              FButton(
-                                variant: .ghost,
                                 prefix: Icon(LucideIcons.folderOpen),
                                 onPress: () async {
+                                  final opened = await openFile(
+                                    acceptedTypeGroups: [
+                                      Commons.getCustomTerminalThemeGroup(
+                                        context,
+                                      ),
+                                    ],
+                                  );
+                                  if (opened == null) return;
+
                                   final error = await ref
                                       .read(terminalThemeProvider.notifier)
-                                      .tryImportCustomTerminalTheme(
-                                        await openFile(
-                                          acceptedTypeGroups: [
-                                            Commons.getCustomTerminalThemeGroup(
-                                              context,
-                                            ),
-                                          ],
-                                        ),
-                                      );
+                                      .tryImportCustomTerminalTheme(opened);
 
                                   if (!context.mounted) return;
                                   if (error != null) {
                                     showFToast(
                                       context: context,
+                                      variant: .destructive,
                                       icon: Icon(LucideIcons.circleX),
-                                      title: Text(
-                                        'terminal_themes_import_error'.tr(),
-                                      ),
-                                      description: Text(error),
+                                      title: Text(error),
                                     );
                                     return;
                                   }

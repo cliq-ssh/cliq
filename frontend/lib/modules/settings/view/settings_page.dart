@@ -106,12 +106,6 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                             ),
                           ),
                           FTile(
-                            prefix: Icon(LucideIcons.clock),
-                            suffix: Icon(LucideIcons.chevronRight),
-                            title: Text('history'.tr()),
-                            onPress: null,
-                          ),
-                          FTile(
                             prefix: Icon(LucideIcons.swatchBook),
                             suffix: Icon(LucideIcons.chevronRight),
                             title: Text('terminal_themes'.tr()),
@@ -133,7 +127,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                             ),
                           ),
                           FTile(
-                            prefix: Icon(LucideIcons.globe),
+                            prefix: Icon(LucideIcons.languages),
                             suffix: Icon(LucideIcons.chevronRight),
                             title: Text('language'.tr()),
                             onPress: () => context.pushPath(
