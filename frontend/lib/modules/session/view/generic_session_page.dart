@@ -160,10 +160,13 @@ class GenericSessionPage extends HookConsumerWidget {
                 ),
               ),
             ),
-            child: Text(
-              session.connectionError!,
-              style: context.theme.typography.body.xs.copyWith(
-                fontFamily: CliqFontFamily.secondary.fontFamily,
+            child: Padding(
+              padding: const .all(12),
+              child: Text(
+                session.connectionError!,
+                style: context.theme.typography.body.xs.copyWith(
+                  fontFamily: CliqFontFamily.secondary.fontFamily,
+                ),
               ),
             ),
           ),

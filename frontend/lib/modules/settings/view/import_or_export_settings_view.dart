@@ -62,6 +62,7 @@ class _ImportOrExportSettingsViewState
     final relatedIdentityIds = useState<Set<DbId>>({});
     final relatedConnectionKeyIds = useState<Set<DbId>>({});
     final relatedIdentityKeyIds = useState<Set<DbId>>({});
+    final relatedCustomColorSchemeIds = useState<Set<DbId>>({});
 
     final passwordController = useTextEditingController();
     final error = useState<String?>(null);
@@ -122,6 +123,7 @@ class _ImportOrExportSettingsViewState
       connectionsTileController.value = {};
       identitiesTileController.value = {};
       knownHostsTileController.value = {};
+      terminalThemesTileController.value = {};
       keysTileController.value = {};
       relatedIdentityIds.value = {};
       relatedConnectionKeyIds.value = {};
@@ -134,6 +136,7 @@ class _ImportOrExportSettingsViewState
       if (connectionsTileController.value.isEmpty &&
           identitiesTileController.value.isEmpty &&
           knownHostsTileController.value.isEmpty &&
+          terminalThemesTileController.value.isEmpty &&
           keysTileController.value.isEmpty) {
         error.value = 'sync_import_error_one_entity';
         return;
@@ -359,6 +362,7 @@ class _ImportOrExportSettingsViewState
                       titleBuilder: (c) => c.label.value,
                       onChange: (selectedIds) {
                         final newRelatedIdentityIds = <DbId>{};
+                        final newRelatedCustomColorSchemeIds = <DbId>{};
                         final newRelatedKeyIds = <DbId>{};
 
                         for (final id in selectedIds) {
@@ -373,6 +377,17 @@ class _ImportOrExportSettingsViewState
                             );
                             newRelatedIdentityIds.add(
                               connection.identityId.value!,
+                            );
+                          }
+
+                          // if connection has a custom color scheme override, select it
+                          if (connection.terminalThemeOverrideId.value != null) {
+                            terminalThemesTileController.update(
+                              connection.terminalThemeOverrideId.value!,
+                              add: true,
+                            );
+                            newRelatedCustomColorSchemeIds.add(
+                              connection.terminalThemeOverrideId.value!,
                             );
                           }
 
@@ -393,6 +408,7 @@ class _ImportOrExportSettingsViewState
                         }
 
                         relatedIdentityIds.value = newRelatedIdentityIds;
+                        relatedCustomColorSchemeIds.value = newRelatedCustomColorSchemeIds;
                         relatedConnectionKeyIds.value = newRelatedKeyIds;
                       },
                     ),
@@ -442,6 +458,19 @@ class _ImportOrExportSettingsViewState
                           relatedIdentityKeyIds.value.contains(k.id.value),
                     ),
 
+                // TODO: fix unselected data in export
+
+                if (settings.value!.customTerminalThemes?.isNotEmpty == true)
+                  buildEntityTiles<CustomTerminalThemesCompanion, DbId>(
+                    controller: terminalThemesTileController,
+                    label: 'custom_color_schemes'.tr(),
+                    entities: settings.value!.customTerminalThemes,
+                    idSelector: (c) => c.id.value,
+                    titleBuilder: (c) => c.name.value,
+                    isRelated: (c) =>
+                        relatedCustomColorSchemeIds.value.contains(c.id.value)
+                  ),
+
                   if (settings.value!.knownHosts?.isNotEmpty == true)
                     buildEntityTiles<KnownHostsCompanion, DbId>(
                       controller: knownHostsTileController,
@@ -449,15 +478,6 @@ class _ImportOrExportSettingsViewState
                       entities: settings.value!.knownHosts,
                       idSelector: (k) => k.id.value,
                       titleBuilder: (k) => k.host.value,
-                    ),
-
-                  if (settings.value!.customTerminalThemes?.isNotEmpty == true)
-                    buildEntityTiles<CustomTerminalThemesCompanion, DbId>(
-                      controller: terminalThemesTileController,
-                      label: 'terminal_themes'.tr(),
-                      entities: settings.value!.customTerminalThemes,
-                      idSelector: (k) => k.id.value,
-                      titleBuilder: (k) => k.name.value,
                     ),
 
                   if (error.value != null)
