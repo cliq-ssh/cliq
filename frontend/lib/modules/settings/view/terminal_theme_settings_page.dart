@@ -23,6 +23,7 @@ import '../../../shared/data/database.dart';
 import '../../../shared/model/page_path.model.dart';
 import '../../../shared/utils/platform_utils.dart';
 import '../provider/terminal_theme.provider.dart';
+import '../provider/terminal_theme_service.provider.dart';
 
 class TerminalThemeSettingsPage extends AbstractSettingsPage {
   static const PagePathBuilder pagePath = PagePathBuilder.child(
@@ -182,6 +183,22 @@ class TerminalThemeSettingsPage extends AbstractSettingsPage {
                                         ColorSchemeBrowserDialog(
                                           style: style,
                                           animation: animation,
+                                          onImport: (scheme) async {
+                                            await ref
+                                                .read(
+                                                  terminalThemeServiceProvider,
+                                                )
+                                                .createCustomTerminalTheme(
+                                                  scheme,
+                                                );
+                                            Commons.showToast(
+                                              'terminal_themes_import_success'
+                                                  .tr(),
+                                              prefix: Icon(
+                                                LucideIcons.circleCheck,
+                                              ),
+                                            );
+                                          },
                                         ),
                                   );
                                 },

@@ -456,14 +456,17 @@ class _ImportOrExportSettingsViewState
                           ),
                         ),
                       ),
-                      child: Row(
-                        spacing: 12,
-                        children: [
-                          Icon(LucideIcons.triangleAlert),
-                          Expanded(
-                            child: Text('sync_export_password_warning'.tr()),
-                          ),
-                        ],
+                      child: Padding(
+                        padding: const .all(12),
+                        child: Row(
+                          spacing: 12,
+                          children: [
+                            Icon(LucideIcons.triangleAlert),
+                            Expanded(
+                              child: Text('sync_export_password_warning'.tr()),
+                            ),
+                          ],
+                        ),
                       ),
                     ),
                 ],

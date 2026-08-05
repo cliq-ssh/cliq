@@ -1,4 +1,5 @@
 import 'package:cliq/modules/settings/extension/color_scheme.extension.dart';
+import 'package:cliq/shared/data/database.dart';
 import 'package:cliq/shared/provider/store.provider.dart';
 import 'package:cliq/shared/utils/text_utils.dart';
 import 'package:cliq_term/cliq_term.dart';
@@ -19,11 +20,13 @@ import '../../../shared/utils/platform_utils.dart';
 class ColorSchemeBrowserDialog extends HookConsumerWidget {
   final FDialogStyle style;
   final Animation<double> animation;
+  final Function(CustomTerminalThemesCompanion)? onImport;
 
   const ColorSchemeBrowserDialog({
     super.key,
     required this.style,
     required this.animation,
+    this.onImport,
   });
 
   static const String sampleInput =
@@ -72,15 +75,16 @@ class ColorSchemeBrowserDialog extends HookConsumerWidget {
 
     final defaultTerminalTypography = useStore(.defaultTerminalTypography);
 
-    final selectedThemeName = useState<String?>(null);
+    final selectedSchemeName = useState<String?>(null);
     final filterText = useState<TextEditingValue>(.new());
 
-    // init controller
     useEffect(() {
       setController() {
         // set default to first theme
-        final first = cs.ITerm2ColorSchemes.values.first;
-        selectedThemeName.value = first.name;
+        final first = ([
+          ...cs.ITerm2ColorSchemes.values,
+        ]..sort((a, b) => a.name.compareTo(b.name))).first;
+        selectedSchemeName.value = first.name;
         terminalController.value = TerminalController(
           theme: first.toTerminalTheme(),
           typography: defaultTerminalTypography.value,
@@ -95,10 +99,10 @@ class ColorSchemeBrowserDialog extends HookConsumerWidget {
     useEffect(() {
       if (terminalController.value == null) return null;
       terminalController.value!.activeBuffer.clear();
-      terminalController.value!.feed('${selectedThemeName.value}\n\n\r');
+      terminalController.value!.feed('${selectedSchemeName.value}\n\n\r');
       terminalController.value!.feed(sampleInput);
       return null;
-    }, [selectedThemeName.value]);
+    }, [selectedSchemeName.value]);
 
     final subtitleStyle = context.theme.typography.body.xs.copyWith(
       color: context.theme.colors.mutedForeground,
@@ -130,16 +134,22 @@ class ColorSchemeBrowserDialog extends HookConsumerWidget {
         child: csFuture.on(
           onLoading: () => const Center(child: FCircularProgress()),
           onData: (_) {
-            final values = cs.ITerm2ColorSchemes.values
-                .where(
-                  (theme) => theme.name.toLowerCase().contains(
-                    filterText.value.text.toLowerCase(),
-                  ),
-                )
-                .toList();
+            final values =
+                cs.ITerm2ColorSchemes.values
+                    .where(
+                      (theme) => theme.name.toLowerCase().contains(
+                        filterText.value.text.toLowerCase(),
+                      ),
+                    )
+                    .toList()
+                  ..sort(
+                    (a, b) =>
+                        a.name.toLowerCase().compareTo(b.name.toLowerCase()),
+                  );
 
             final selectedTheme = cs.ITerm2ColorSchemes.values
-                .where((theme) => theme.name == selectedThemeName.value)
+                .where((theme) => theme.name == selectedSchemeName.value)
+                .toList()
                 .firstOrNull
                 ?.toTerminalTheme();
 
@@ -155,7 +165,12 @@ class ColorSchemeBrowserDialog extends HookConsumerWidget {
                       FTextField(
                         control: .lifted(
                           value: filterText.value,
-                          onChange: (value) => filterText.value = value,
+                          onChange: (value) {
+                            if (filterText.value == value) return;
+                            WidgetsBinding.instance.addPostFrameCallback((_) {
+                              filterText.value = value;
+                            });
+                          },
                         ),
                         hint: 'filter'.tr(),
                         prefixBuilder: (_, _, _) => IconTheme(
@@ -174,7 +189,7 @@ class ColorSchemeBrowserDialog extends HookConsumerWidget {
                             tileBuilder: (context, index) {
                               final theme = values[index];
                               final isSelected =
-                                  selectedThemeName.value == theme.name;
+                                  selectedSchemeName.value == theme.name;
 
                               return FTile(
                                 title: Text(theme.name),
@@ -183,7 +198,7 @@ class ColorSchemeBrowserDialog extends HookConsumerWidget {
                                     ? Icon(LucideIcons.check)
                                     : null,
                                 onPress: () {
-                                  selectedThemeName.value = theme.name;
+                                  selectedSchemeName.value = theme.name;
                                   terminalController.value?.setTerminalTheme(
                                     theme.toTerminalTheme(),
                                   );
@@ -260,13 +275,23 @@ class ColorSchemeBrowserDialog extends HookConsumerWidget {
       actions: [
         FButton(
           variant: .outline,
-          child: Text('cancel'.tr()),
+          child: Text('close'.tr()),
           onPress: () => Navigator.of(context).pop(),
         ),
         FButton(
           variant: .primary,
           child: Text('import'.tr()),
-          onPress: () => Navigator.of(context).pop(),
+          onPress: () {
+            final selectedColorScheme = cs.ITerm2ColorSchemes.values
+                .where((theme) => theme.name == selectedSchemeName.value)
+                .toList()
+                .firstOrNull;
+            if (selectedColorScheme == null) return;
+            onImport?.call(
+              selectedColorScheme.toCustomTerminalThemesCompanion(),
+            );
+            Navigator.of(context).pop();
+          },
         ),
       ],
     );

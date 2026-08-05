@@ -127,6 +127,7 @@ class TerminalThemeCard extends HookConsumerWidget {
                 FItem(
                   prefix: Icon(LucideIcons.trash),
                   title: Text('Delete'),
+                  variant: .destructive,
                   onPress: delete,
                 ),
               ],

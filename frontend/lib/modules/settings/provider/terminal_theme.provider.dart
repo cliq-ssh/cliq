@@ -12,6 +12,7 @@ import '../model/theme_parser/terminal_theme_parser.dart';
 
 final terminalThemeProvider = NotifierProvider(CustomTerminalThemeNotifier.new);
 
+// TODO: fix i18n in here
 // TODO: replace this with custom "cliq" theme or other open source terminal theme
 const CustomTerminalTheme defaultTerminalColorTheme = .new(
   id: "-1",
