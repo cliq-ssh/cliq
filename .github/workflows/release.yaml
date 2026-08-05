@@ -1,0 +1,78 @@
+name: "Release"
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to release'
+        type: string
+        required: true
+      is-beta-release:
+        description: 'Is this a beta release?'
+        type: boolean
+        required: false
+        default: false
+      publish-ios:
+        description: 'Publish iOS build to TestFlight'
+        type: boolean
+        required: false
+        default: true
+      publish-macos:
+        description: 'Publish macOS build to TestFlight'
+        type: boolean
+        required: false
+        default: true
+      publish-backend:
+        description: 'Publish backend to GitHub Registry'
+        type: boolean
+        required: false
+        default: true
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  validate-version:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Validate semantic version
+        env:
+          VERSION: ${{ inputs.version }}
+        run: |
+          # Semver regex from https://semver.org/
+          SEMVER_REGEX='^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-((?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+([0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?$'
+
+          if [[ ! "$VERSION" =~ $SEMVER_REGEX ]]; then
+            echo "::error::'$VERSION' is not a valid semantic version."
+            exit 1
+          fi
+
+          echo "Version '$VERSION' is valid."
+
+  frontend-checks:
+    name: Frontend Checks
+    needs: validate-version
+    uses: ./.github/workflows/frontend-checks.yaml
+    permissions:
+      contents: read
+      actions: read
+      checks: write
+
+  backend-checks:
+    name: Backend checks
+    needs: validate-version
+    uses: ./.github/workflows/backend-checks.yaml
+    permissions:
+      contents: read
+      actions: read
+      checks: write
+      security-events: write
+
+  checks-passed:
+    needs: [ frontend-checks, backend-checks ]
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "All checks passed"
