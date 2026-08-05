@@ -17,6 +17,11 @@ on:
         type: boolean
         required: false
         default: true
+      publish-backend:
+        description: 'Publish backend to GitHub Registry'
+        type: boolean
+        required: false
+        default: true
 
 concurrency:
   group: release-edge
@@ -192,7 +197,8 @@ jobs:
   publish-backend:
     name: Publish backend
     uses: ./.github/workflows/backend-publish-edge.yaml
-    needs: [ checks-passed ]
+    needs: checks-passed
+    if: ${{ inputs.publish-backend }}
     permissions:
       contents: read
       packages: write
