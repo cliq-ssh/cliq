@@ -1,11 +1,7 @@
 name: "Backend: Publish Edge"
 on:
-  workflow_dispatch:
-  push:
-    branches:
-      - main
-    paths:
-      - 'backend/**'
+  workflow_dispatch: ~
+  workflow_call: ~
 
 concurrency:
   group: backend-edge
@@ -16,7 +12,8 @@ defaults:
     working-directory: ./backend
 
 env:
-  GHCR_REPO: ghcr.io/cliq-ssh/backend-dev
+#  GHCR_REPO: ghcr.io/cliq-ssh/backend-dev
+  GHCR_REPO: ghcr.io/denuxplays/backend-dev
 
 jobs:
   build:
