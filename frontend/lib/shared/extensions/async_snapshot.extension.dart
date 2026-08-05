@@ -7,13 +7,13 @@ extension AsyncSnapshotExtension<T> on AsyncSnapshot<T> {
     R Function(T data)? onData,
     R? defaultValue,
   }) {
-    if (onLoading != null && connectionState == ConnectionState.waiting) {
+    if (onLoading != null && connectionState == .waiting) {
       return onLoading();
     }
     if (onError != null && hasError) {
       return onError(error);
     }
-    if (onData != null && hasData) {
+    if (onData != null && (connectionState == .done || hasData)) {
       return onData(data as T);
     }
     if (defaultValue != null) {

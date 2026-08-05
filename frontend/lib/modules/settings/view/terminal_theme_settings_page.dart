@@ -1,4 +1,5 @@
 import 'package:cliq/modules/settings/extension/custom_terminal_theme.extension.dart';
+import 'package:cliq/modules/settings/ui/color_scheme_browser_dialog.dart';
 import 'package:cliq/modules/settings/view/create_or_edit_terminal_theme_view.dart';
 import 'package:cliq/shared/ui/terminal_font_family_select.dart';
 import 'package:cliq/shared/ui/terminal_font_size_slider.dart';
@@ -12,11 +13,10 @@ import 'package:cliq_ui/cliq_ui.dart'
     show CliqGridColumn, CliqGridContainer, CliqGridRow;
 import 'package:easy_localization/easy_localization.dart';
 import 'package:file_selector/file_selector.dart';
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' hide Router;
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:forui/forui.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:iterm2_color_schemes_dart/iterm2_color_schemes_dart.dart';
 import 'package:lucide_flutter/lucide_flutter.dart';
 
 import '../../../shared/data/database.dart';
@@ -174,6 +174,23 @@ class TerminalThemeSettingsPage extends AbstractSettingsPage {
                             children: [
                               FButton(
                                 variant: .ghost,
+                                prefix: Icon(LucideIcons.swatchBook),
+                                onPress: () async {
+                                  await showFDialog(
+                                    context: context,
+                                    builder: (_, style, animation) =>
+                                        ColorSchemeBrowserDialog(
+                                          style: style,
+                                          animation: animation,
+                                        ),
+                                  );
+                                },
+                                child: Text(
+                                  'terminal_themes_theme_browser'.tr(),
+                                ),
+                              ),
+                              FButton(
+                                variant: .ghost,
                                 prefix: Icon(LucideIcons.plus),
                                 onPress: create,
                                 child: Text('terminal_themes_theme_add'.tr()),
@@ -225,7 +242,7 @@ class TerminalThemeSettingsPage extends AbstractSettingsPage {
                         spacing: 12,
                         children: [
                           for (final theme in [
-                            ...(ITerm2ColorSchemes.values.map(_fromITerm2ColorScheme)),
+                            defaultTerminalColorTheme,
                             ...terminalThemes.entities,
                           ])
                             TerminalThemeCard(
@@ -254,33 +271,6 @@ class TerminalThemeSettingsPage extends AbstractSettingsPage {
           ),
         ],
       ),
-    );
-  }
-
-  static CustomTerminalTheme _fromITerm2ColorScheme(ITerm2ColorScheme colorScheme) {
-    return CustomTerminalTheme(
-      id: colorScheme.name,
-      name: colorScheme.name,
-      blackColor: Color(colorScheme.black),
-      redColor: Color(colorScheme.red),
-      greenColor: Color(colorScheme.green),
-      yellowColor: Color(colorScheme.yellow),
-      blueColor: Color(colorScheme.blue),
-      purpleColor: Color(colorScheme.purple),
-      cyanColor: Color(colorScheme.cyan),
-      whiteColor: Color(colorScheme.white),
-      brightBlackColor: Color(colorScheme.brightBlack),
-      brightRedColor: Color(colorScheme.brightRed),
-      brightGreenColor: Color(colorScheme.brightGreen),
-      brightYellowColor: Color(colorScheme.brightYellow),
-      brightBlueColor: Color(colorScheme.brightBlue),
-      brightPurpleColor: Color(colorScheme.brightPurple),
-      brightCyanColor: Color(colorScheme.brightCyan),
-      brightWhiteColor: Color(colorScheme.brightWhite),
-      backgroundColor: Color(colorScheme.background),
-      foregroundColor: Color(colorScheme.foreground),
-      cursorColor: Color(colorScheme.cursorColor),
-      selectionBackgroundColor: Color(colorScheme.selectionBackground),
     );
   }
 }
