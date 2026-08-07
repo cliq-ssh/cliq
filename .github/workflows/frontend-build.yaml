@@ -10,6 +10,7 @@ on:
       - main
     paths:
       - 'frontend/**'
+  workflow_dispatch: ~
   workflow_call:
     inputs:
       ref:
@@ -84,7 +85,7 @@ jobs:
           - arch: x64
             runner: windows-latest
             flutter-channel: stable
-# Removed until https://github.com/fastforgedev/fastforge/issues/354 is resolved            
+# Removed until https://github.com/fastforgedev/fastforge/issues/354 is resolved
 #          - arch: arm64
 #            runner: windows-11-arm
 #            flutter-channel: main # Remove when https://github.com/subosito/flutter-action/issues/345
