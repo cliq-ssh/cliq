@@ -141,6 +141,63 @@ final class CustomTerminalThemeService {
     return themeId;
   }
 
+  Future<int> createOrUpdate({
+    required DbId id,
+    required String name,
+    required Color black,
+    required Color red,
+    required Color green,
+    required Color yellow,
+    required Color blue,
+    required Color purple,
+    required Color cyan,
+    required Color white,
+    required Color brightBlack,
+    required Color brightRed,
+    required Color brightGreen,
+    required Color brightYellow,
+    required Color brightBlue,
+    required Color brightPurple,
+    required Color brightCyan,
+    required Color brightWhite,
+    required Color background,
+    required Color foreground,
+    required Color cursorColor,
+    required Color selectionBackground,
+    required Color? selectionForeground,
+    required Color? cursorTextColor,
+  }) async {
+    final result = await _customTerminalThemesRepository.db
+        .createOrUpdateCustomColorScheme(
+          id,
+          name,
+          black,
+          red,
+          green,
+          yellow,
+          blue,
+          purple,
+          cyan,
+          white,
+          brightBlack,
+          brightRed,
+          brightGreen,
+          brightYellow,
+          brightBlue,
+          brightPurple,
+          brightCyan,
+          brightWhite,
+          background,
+          foreground,
+          cursorColor,
+          selectionBackground,
+          selectionForeground,
+          cursorTextColor,
+        );
+
+    return result;
+  }
+
   Future<void> deleteById(DbId id) =>
       _customTerminalThemesRepository.deleteById(id);
 }

@@ -103,7 +103,6 @@
   "filter_items": "Objekte filtern",
   "filters_no_match": "Keine Elemente entsprechen dem Filter",
   "filters_reset": "Filter zurücksetzen",
-  "history": "Verlauf",
   "hosts_accept_fingerprint_title": "Fingerabruck für <b>{}</b> akzeptieren?",
   "hosts_add": "Host hinzufügen",
   "hosts_address": "Adresse",

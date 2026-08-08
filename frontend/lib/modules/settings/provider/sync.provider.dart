@@ -4,6 +4,8 @@ import 'dart:typed_data';
 
 import 'package:cliq/modules/settings/model/settings_importer/app_settings.model.dart';
 import 'package:cliq/modules/settings/model/settings_importer/settings_importer.dart';
+import 'package:cliq/modules/settings/provider/terminal_theme.provider.dart';
+import 'package:cliq/modules/settings/provider/terminal_theme_service.provider.dart';
 import 'package:cliq/modules/vaults/provider/vault_service.provider.dart';
 import 'package:cliq/shared/data/store.dart';
 import 'package:cliq/shared/model/localized_exception.dart';
@@ -285,6 +287,7 @@ class SyncProviderNotifier extends Notifier<SyncState> {
       password: password,
     );
     if (parser == null) {
+      // TODO: i18n
       throw LocalizedException('settings.import.error.unrecognizedFormat');
     }
 
@@ -296,6 +299,7 @@ class SyncProviderNotifier extends Notifier<SyncState> {
     }
 
     if (settings == null) {
+      // TODO: i18n
       throw LocalizedException('settings.import.error.parsingFailed');
     }
     return settings;
@@ -311,6 +315,7 @@ class SyncProviderNotifier extends Notifier<SyncState> {
     for (final connection in settings.connections ?? <ConnectionsCompanion>[]) {
       if (connection.identityId.value != null &&
           !identityIds.contains(connection.identityId.value)) {
+        // TODO: i18n
         return 'settings.import.error.missingIdentity';
       }
     }
@@ -329,6 +334,7 @@ class SyncProviderNotifier extends Notifier<SyncState> {
     final connectionService = ref.read(connectionServiceProvider);
     final identityService = ref.read(identityServiceProvider);
     final knownHostService = ref.read(knownHostServiceProvider);
+    final terminalThemeService = ref.read(terminalThemeServiceProvider);
     final credentialService = ref.read(credentialServiceProvider);
     final keyService = ref.read(keyServiceProvider);
     final vaultService = ref.read(vaultServiceProvider);
@@ -368,6 +374,37 @@ class SyncProviderNotifier extends Notifier<SyncState> {
           credentialIds:
               toImport.identitiesCredentialIds?[identity.id.value]?.toList() ??
               [],
+        );
+      }
+
+      for (final theme
+          in toImport.customTerminalThemes ??
+              <CustomTerminalThemesCompanion>[]) {
+        await terminalThemeService.createOrUpdate(
+          id: theme.id.value,
+          name: theme.name.value,
+          black: theme.blackColor.value,
+          red: theme.redColor.value,
+          green: theme.greenColor.value,
+          yellow: theme.yellowColor.value,
+          blue: theme.blueColor.value,
+          purple: theme.purpleColor.value,
+          cyan: theme.cyanColor.value,
+          white: theme.whiteColor.value,
+          brightBlack: theme.brightBlackColor.value,
+          brightRed: theme.brightRedColor.value,
+          brightGreen: theme.brightGreenColor.value,
+          brightYellow: theme.brightYellowColor.value,
+          brightBlue: theme.brightBlueColor.value,
+          brightPurple: theme.brightPurpleColor.value,
+          brightCyan: theme.brightCyanColor.value,
+          brightWhite: theme.brightWhiteColor.value,
+          foreground: theme.foregroundColor.value,
+          cursorColor: theme.cursorColor.value,
+          selectionBackground: theme.selectionBackgroundColor.value,
+          background: theme.backgroundColor.value,
+          selectionForeground: theme.selectionForegroundColor.value,
+          cursorTextColor: theme.cursorTextColor.value,
         );
       }
 
@@ -413,6 +450,7 @@ class SyncProviderNotifier extends Notifier<SyncState> {
     final connections = ref.read(connectionProvider);
     final identities = ref.read(identityProvider);
     final knownHosts = ref.read(knownHostProvider);
+    final terminalThemes = ref.read(terminalThemeProvider);
     final credentials = await ref.read(credentialServiceProvider).findAll();
     final keys = await ref.read(keyServiceProvider).findAll();
 
@@ -438,6 +476,10 @@ class SyncProviderNotifier extends Notifier<SyncState> {
           .toList(),
       knownHosts: knownHosts.entities
           .where((e) => e.vaultId == vaultId)
+          .map((e) => e.toCompanion(true))
+          .toList(),
+      customTerminalThemes: terminalThemes.entities
+          //TODO .where((e) => e.vaultId == vaultId)
           .map((e) => e.toCompanion(true))
           .toList(),
       credentials: credentials

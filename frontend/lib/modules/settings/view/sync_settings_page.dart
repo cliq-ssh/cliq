@@ -47,7 +47,7 @@ class SyncSettingsPage extends AbstractSettingsPage {
     final lastUpdated = useStore(.syncLastUpdated);
 
     final userVault = useState<DbId?>(null);
-    final entitiesCount = useState<(int, int, int, int)?>(null);
+    final entitiesCount = useState<(int, int, int, int, int)?>(null);
 
     final syncIconController = useAnimationController(
       duration: const Duration(seconds: 1),
@@ -127,6 +127,7 @@ class SyncSettingsPage extends AbstractSettingsPage {
                     buildIconCount(.identity, entitiesCount.value!.$2),
                     buildIconCount(.key, entitiesCount.value!.$3),
                     buildIconCount(.knownHost, entitiesCount.value!.$4),
+                    buildIconCount(.colorSchemes, entitiesCount.value!.$5),
                   ],
                 ),
           title: Text('sync_now'.tr()),

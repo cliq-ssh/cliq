@@ -21,6 +21,7 @@ import 'package:lucide_flutter/lucide_flutter.dart';
 import '../../../shared/data/database.dart';
 import '../../credentials/provider/credential_service.provider.dart';
 import '../../keys/provider/key_service.provider.dart';
+import '../provider/terminal_theme.provider.dart';
 
 class ImportOrExportSettingsView extends StatefulHookConsumerWidget {
   final AppSettings? current;
@@ -48,17 +49,20 @@ class _ImportOrExportSettingsViewState
     final connections = ref.read(connectionProvider);
     final identities = ref.read(identityProvider);
     final knownHosts = ref.read(knownHostProvider);
+    final terminalThemes = ref.read(terminalThemeProvider);
 
     final selectedVaultId = useState<DbId?>(null);
 
     final connectionsTileController = useFMultiValueNotifier<DbId>();
     final identitiesTileController = useFMultiValueNotifier<DbId>();
     final knownHostsTileController = useFMultiValueNotifier<DbId>();
+    final terminalThemesTileController = useFMultiValueNotifier<DbId>();
     final keysTileController = useFMultiValueNotifier<DbId>();
 
     final relatedIdentityIds = useState<Set<DbId>>({});
     final relatedConnectionKeyIds = useState<Set<DbId>>({});
     final relatedIdentityKeyIds = useState<Set<DbId>>({});
+    final relatedCustomColorSchemeIds = useState<Set<DbId>>({});
 
     final passwordController = useTextEditingController();
     final error = useState<String?>(null);
@@ -85,6 +89,10 @@ class _ImportOrExportSettingsViewState
               .toList(),
           knownHosts: knownHosts.entities
               .where((e) => e.vaultId == selectedVaultId.value)
+              .map((e) => e.toCompanion(true))
+              .toList(),
+          customTerminalThemes: terminalThemes.entities
+              //TODO .where((e) => e.vaultId == selectedVaultId.value)
               .map((e) => e.toCompanion(true))
               .toList(),
           credentials: credentials
@@ -115,6 +123,7 @@ class _ImportOrExportSettingsViewState
       connectionsTileController.value = {};
       identitiesTileController.value = {};
       knownHostsTileController.value = {};
+      terminalThemesTileController.value = {};
       keysTileController.value = {};
       relatedIdentityIds.value = {};
       relatedConnectionKeyIds.value = {};
@@ -127,6 +136,7 @@ class _ImportOrExportSettingsViewState
       if (connectionsTileController.value.isEmpty &&
           identitiesTileController.value.isEmpty &&
           knownHostsTileController.value.isEmpty &&
+          terminalThemesTileController.value.isEmpty &&
           keysTileController.value.isEmpty) {
         error.value = 'sync_import_error_one_entity';
         return;
@@ -193,6 +203,11 @@ class _ImportOrExportSettingsViewState
             .toList(),
         knownHosts: settings.value?.knownHosts
             ?.where((k) => knownHostsTileController.value.contains(k.id.value))
+            .toList(),
+        customTerminalThemes: settings.value?.customTerminalThemes
+            ?.where(
+              (k) => terminalThemesTileController.value.contains(k.id.value),
+            )
             .toList(),
         credentials: selectedCredentials,
         keys: settings.value?.keys
@@ -285,6 +300,13 @@ class _ImportOrExportSettingsViewState
                 if (entities == null) return;
                 final allIds = entities.map(idSelector).toList();
                 for (final id in allIds) {
+                  // dont deselect if related
+                  if (isRelated?.call(
+                        entities.firstWhere((e) => idSelector(e) == id),
+                      ) ==
+                      true) {
+                    continue;
+                  }
                   controller.update(id, add: false);
                 }
               },
@@ -342,6 +364,7 @@ class _ImportOrExportSettingsViewState
                       titleBuilder: (c) => c.label.value,
                       onChange: (selectedIds) {
                         final newRelatedIdentityIds = <DbId>{};
+                        final newRelatedCustomColorSchemeIds = <DbId>{};
                         final newRelatedKeyIds = <DbId>{};
 
                         for (final id in selectedIds) {
@@ -356,6 +379,18 @@ class _ImportOrExportSettingsViewState
                             );
                             newRelatedIdentityIds.add(
                               connection.identityId.value!,
+                            );
+                          }
+
+                          // if connection has a custom color scheme override, select it
+                          if (connection.terminalThemeOverrideId.value !=
+                              null) {
+                            terminalThemesTileController.update(
+                              connection.terminalThemeOverrideId.value!,
+                              add: true,
+                            );
+                            newRelatedCustomColorSchemeIds.add(
+                              connection.terminalThemeOverrideId.value!,
                             );
                           }
 
@@ -376,6 +411,8 @@ class _ImportOrExportSettingsViewState
                         }
 
                         relatedIdentityIds.value = newRelatedIdentityIds;
+                        relatedCustomColorSchemeIds.value =
+                            newRelatedCustomColorSchemeIds;
                         relatedConnectionKeyIds.value = newRelatedKeyIds;
                       },
                     ),
@@ -425,6 +462,18 @@ class _ImportOrExportSettingsViewState
                           relatedIdentityKeyIds.value.contains(k.id.value),
                     ),
 
+                  // TODO: fix unselected data in export
+                  if (settings.value!.customTerminalThemes?.isNotEmpty == true)
+                    buildEntityTiles<CustomTerminalThemesCompanion, DbId>(
+                      controller: terminalThemesTileController,
+                      label: 'custom_color_schemes'.tr(),
+                      entities: settings.value!.customTerminalThemes,
+                      idSelector: (c) => c.id.value,
+                      titleBuilder: (c) => c.name.value,
+                      isRelated: (c) => relatedCustomColorSchemeIds.value
+                          .contains(c.id.value),
+                    ),
+
                   if (settings.value!.knownHosts?.isNotEmpty == true)
                     buildEntityTiles<KnownHostsCompanion, DbId>(
                       controller: knownHostsTileController,
@@ -456,14 +505,17 @@ class _ImportOrExportSettingsViewState
                           ),
                         ),
                       ),
-                      child: Row(
-                        spacing: 12,
-                        children: [
-                          Icon(LucideIcons.triangleAlert),
-                          Expanded(
-                            child: Text('sync_export_password_warning'.tr()),
-                          ),
-                        ],
+                      child: Padding(
+                        padding: const .all(12),
+                        child: Row(
+                          spacing: 12,
+                          children: [
+                            Icon(LucideIcons.triangleAlert),
+                            Expanded(
+                              child: Text('sync_export_password_warning'.tr()),
+                            ),
+                          ],
+                        ),
                       ),
                     ),
                 ],

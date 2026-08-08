@@ -1,4 +1,5 @@
 import 'package:cliq/modules/settings/extension/custom_terminal_theme.extension.dart';
+import 'package:cliq/modules/settings/ui/color_scheme_browser_dialog.dart';
 import 'package:cliq/modules/settings/view/create_or_edit_terminal_theme_view.dart';
 import 'package:cliq/shared/ui/terminal_font_family_select.dart';
 import 'package:cliq/shared/ui/terminal_font_size_slider.dart';
@@ -12,7 +13,7 @@ import 'package:cliq_ui/cliq_ui.dart'
     show CliqGridColumn, CliqGridContainer, CliqGridRow;
 import 'package:easy_localization/easy_localization.dart';
 import 'package:file_selector/file_selector.dart';
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' hide Router;
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:forui/forui.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -22,6 +23,7 @@ import '../../../shared/data/database.dart';
 import '../../../shared/model/page_path.model.dart';
 import '../../../shared/utils/platform_utils.dart';
 import '../provider/terminal_theme.provider.dart';
+import '../provider/terminal_theme_service.provider.dart';
 
 class TerminalThemeSettingsPage extends AbstractSettingsPage {
   static const PagePathBuilder pagePath = PagePathBuilder.child(
@@ -179,29 +181,61 @@ class TerminalThemeSettingsPage extends AbstractSettingsPage {
                               ),
                               FButton(
                                 variant: .ghost,
+                                prefix: Icon(LucideIcons.swatchBook),
+                                onPress: () async {
+                                  await showFDialog(
+                                    context: context,
+                                    builder: (_, style, animation) =>
+                                        ColorSchemeBrowserDialog(
+                                          style: style,
+                                          animation: animation,
+                                          onImport: (scheme) async {
+                                            await ref
+                                                .read(
+                                                  terminalThemeServiceProvider,
+                                                )
+                                                .createCustomTerminalTheme(
+                                                  scheme,
+                                                );
+                                            Commons.showToast(
+                                              'terminal_themes_import_success'
+                                                  .tr(),
+                                              prefix: Icon(
+                                                LucideIcons.circleCheck,
+                                              ),
+                                            );
+                                          },
+                                        ),
+                                  );
+                                },
+                                child: Text(
+                                  'terminal_themes_theme_browser'.tr(),
+                                ),
+                              ),
+                              FButton(
+                                variant: .ghost,
                                 prefix: Icon(LucideIcons.folderOpen),
                                 onPress: () async {
+                                  final opened = await openFile(
+                                    acceptedTypeGroups: [
+                                      Commons.getCustomTerminalThemeGroup(
+                                        context,
+                                      ),
+                                    ],
+                                  );
+                                  if (opened == null) return;
+
                                   final error = await ref
                                       .read(terminalThemeProvider.notifier)
-                                      .tryImportCustomTerminalTheme(
-                                        await openFile(
-                                          acceptedTypeGroups: [
-                                            Commons.getCustomTerminalThemeGroup(
-                                              context,
-                                            ),
-                                          ],
-                                        ),
-                                      );
+                                      .tryImportCustomTerminalTheme(opened);
 
                                   if (!context.mounted) return;
                                   if (error != null) {
                                     showFToast(
                                       context: context,
+                                      variant: .destructive,
                                       icon: Icon(LucideIcons.circleX),
-                                      title: Text(
-                                        'terminal_themes_import_error'.tr(),
-                                      ),
-                                      description: Text(error),
+                                      title: Text(error),
                                     );
                                     return;
                                   }
