@@ -5,6 +5,7 @@ import 'dart:typed_data';
 import 'package:cliq/modules/settings/model/settings_importer/app_settings.model.dart';
 import 'package:cliq/modules/settings/model/settings_importer/settings_importer.dart';
 import 'package:cliq/modules/settings/provider/terminal_theme.provider.dart';
+import 'package:cliq/modules/settings/provider/terminal_theme_service.provider.dart';
 import 'package:cliq/modules/vaults/provider/vault_service.provider.dart';
 import 'package:cliq/shared/data/store.dart';
 import 'package:cliq/shared/model/localized_exception.dart';
@@ -330,6 +331,7 @@ class SyncProviderNotifier extends Notifier<SyncState> {
     final connectionService = ref.read(connectionServiceProvider);
     final identityService = ref.read(identityServiceProvider);
     final knownHostService = ref.read(knownHostServiceProvider);
+    final colorSchemesService = ref.read(terminalThemeServiceProvider);
     final credentialService = ref.read(credentialServiceProvider);
     final keyService = ref.read(keyServiceProvider);
     final vaultService = ref.read(vaultServiceProvider);
@@ -369,6 +371,37 @@ class SyncProviderNotifier extends Notifier<SyncState> {
           credentialIds:
               toImport.identitiesCredentialIds?[identity.id.value]?.toList() ??
               [],
+        );
+      }
+
+      for (final theme
+          in toImport.customTerminalThemes ??
+              <CustomTerminalThemesCompanion>[]) {
+        await colorSchemesService.createOrUpdate(
+          id: theme.id.value,
+          name: theme.name.value,
+          black: theme.blackColor.value,
+          red: theme.redColor.value,
+          green: theme.greenColor.value,
+          yellow: theme.yellowColor.value,
+          blue: theme.blueColor.value,
+          purple: theme.purpleColor.value,
+          cyan: theme.cyanColor.value,
+          white: theme.whiteColor.value,
+          brightBlack: theme.brightBlackColor.value,
+          brightRed: theme.brightRedColor.value,
+          brightGreen: theme.brightGreenColor.value,
+          brightYellow: theme.brightYellowColor.value,
+          brightBlue: theme.brightBlueColor.value,
+          brightPurple: theme.brightPurpleColor.value,
+          brightCyan: theme.brightCyanColor.value,
+          brightWhite: theme.brightWhiteColor.value,
+          foreground: theme.foregroundColor.value,
+          cursorColor: theme.cursorColor.value,
+          selectionBackground: theme.selectionBackgroundColor.value,
+          background: theme.backgroundColor.value,
+          selectionForeground: theme.selectionForegroundColor.value,
+          cursorTextColor: theme.cursorTextColor.value,
         );
       }
 

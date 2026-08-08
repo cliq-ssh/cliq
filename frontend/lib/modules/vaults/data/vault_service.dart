@@ -2,6 +2,7 @@ import 'package:cliq/modules/connections/data/connections_repository.dart';
 import 'package:cliq/modules/keys/data/key_repository.dart';
 import 'package:cliq/modules/vaults/data/vaults_repository.dart';
 import 'package:cliq/shared/data/database.dart';
+import 'package:drift/drift.dart';
 
 import '../../identities/data/identities_repository.dart';
 import '../../settings/data/known_hosts_repository.dart';
@@ -30,7 +31,15 @@ final class VaultService {
     );
   }
 
-  Future<(int connections, int identities, int keys, int knownHosts)>
+  Future<
+    (
+      int connections,
+      int identities,
+      int keys,
+      int knownHosts,
+      int colorSchemes,
+    )
+  >
   countEntitiesInVault(DbId vaultId) async {
     final connectionsCount = await _connectionsRepository.count(
       where: (c) => c.vaultId.equals(vaultId),
@@ -44,7 +53,20 @@ final class VaultService {
     final knownHostsCount = await _knownHostsRepository.count(
       where: (kh) => kh.vaultId.equals(vaultId),
     );
-    return (connectionsCount, identitiesCount, keysCount, knownHostsCount);
+    // we only count connections which have an override set as color schemes are stored globally
+    // this more or less means "color schemes synced due to connections in this vault"
+    final colorSchemesCount = await _connectionsRepository.count(
+      where: (c) =>
+          c.vaultId.equals(vaultId) & c.terminalThemeOverrideId.isNotNull(),
+    );
+
+    return (
+      connectionsCount,
+      identitiesCount,
+      keysCount,
+      knownHostsCount,
+      colorSchemesCount,
+    );
   }
 
   Future<void> clearByVaultId(DbId vaultId) async {

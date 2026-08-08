@@ -205,7 +205,9 @@ class _ImportOrExportSettingsViewState
             ?.where((k) => knownHostsTileController.value.contains(k.id.value))
             .toList(),
         customTerminalThemes: settings.value?.customTerminalThemes
-            ?.where((k) => terminalThemesTileController.value.contains(k.id.value))
+            ?.where(
+              (k) => terminalThemesTileController.value.contains(k.id.value),
+            )
             .toList(),
         credentials: selectedCredentials,
         keys: settings.value?.keys
@@ -381,7 +383,8 @@ class _ImportOrExportSettingsViewState
                           }
 
                           // if connection has a custom color scheme override, select it
-                          if (connection.terminalThemeOverrideId.value != null) {
+                          if (connection.terminalThemeOverrideId.value !=
+                              null) {
                             terminalThemesTileController.update(
                               connection.terminalThemeOverrideId.value!,
                               add: true,
@@ -408,7 +411,8 @@ class _ImportOrExportSettingsViewState
                         }
 
                         relatedIdentityIds.value = newRelatedIdentityIds;
-                        relatedCustomColorSchemeIds.value = newRelatedCustomColorSchemeIds;
+                        relatedCustomColorSchemeIds.value =
+                            newRelatedCustomColorSchemeIds;
                         relatedConnectionKeyIds.value = newRelatedKeyIds;
                       },
                     ),
@@ -458,18 +462,17 @@ class _ImportOrExportSettingsViewState
                           relatedIdentityKeyIds.value.contains(k.id.value),
                     ),
 
-                // TODO: fix unselected data in export
-
-                if (settings.value!.customTerminalThemes?.isNotEmpty == true)
-                  buildEntityTiles<CustomTerminalThemesCompanion, DbId>(
-                    controller: terminalThemesTileController,
-                    label: 'custom_color_schemes'.tr(),
-                    entities: settings.value!.customTerminalThemes,
-                    idSelector: (c) => c.id.value,
-                    titleBuilder: (c) => c.name.value,
-                    isRelated: (c) =>
-                        relatedCustomColorSchemeIds.value.contains(c.id.value)
-                  ),
+                  // TODO: fix unselected data in export
+                  if (settings.value!.customTerminalThemes?.isNotEmpty == true)
+                    buildEntityTiles<CustomTerminalThemesCompanion, DbId>(
+                      controller: terminalThemesTileController,
+                      label: 'custom_color_schemes'.tr(),
+                      entities: settings.value!.customTerminalThemes,
+                      idSelector: (c) => c.id.value,
+                      titleBuilder: (c) => c.name.value,
+                      isRelated: (c) => relatedCustomColorSchemeIds.value
+                          .contains(c.id.value),
+                    ),
 
                   if (settings.value!.knownHosts?.isNotEmpty == true)
                     buildEntityTiles<KnownHostsCompanion, DbId>(

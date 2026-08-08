@@ -4482,6 +4482,122 @@ abstract class _$CliqDatabase extends GeneratedDatabase {
     ).asyncMap(knownHosts.mapFromRow);
   }
 
+  Future<int> createOrUpdateCustomColorScheme(
+    String id,
+    String name,
+    Color blackColor,
+    Color redColor,
+    Color greenColor,
+    Color yellowColor,
+    Color blueColor,
+    Color purpleColor,
+    Color cyanColor,
+    Color whiteColor,
+    Color brightBlackColor,
+    Color brightRedColor,
+    Color brightGreenColor,
+    Color brightYellowColor,
+    Color brightBlueColor,
+    Color brightPurpleColor,
+    Color brightCyanColor,
+    Color brightWhiteColor,
+    Color backgroundColor,
+    Color foregroundColor,
+    Color cursorColor,
+    Color selectionBackgroundColor,
+    Color? selectionForegroundColor,
+    Color? cursorTextColor,
+  ) {
+    return customInsert(
+      'INSERT INTO custom_terminal_themes (id, name, black_color, red_color, green_color, yellow_color, blue_color, purple_color, cyan_color, white_color, bright_black_color, bright_red_color, bright_green_color, bright_yellow_color, bright_blue_color, bright_purple_color, bright_cyan_color, bright_white_color, background_color, foreground_color, cursor_color, selection_background_color, selection_foreground_color, cursor_text_color) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13, ?14, ?15, ?16, ?17, ?18, ?19, ?20, ?21, ?22, ?23, ?24) ON CONFLICT (id) DO UPDATE SET name = excluded.name, black_color = excluded.black_color, red_color = excluded.red_color, green_color = excluded.green_color, yellow_color = excluded.yellow_color, blue_color = excluded.blue_color, purple_color = excluded.purple_color, cyan_color = excluded.cyan_color, white_color = excluded.white_color, bright_black_color = excluded.bright_black_color, bright_red_color = excluded.bright_red_color, bright_green_color = excluded.bright_green_color, bright_yellow_color = excluded.bright_yellow_color, bright_blue_color = excluded.bright_blue_color, bright_purple_color = excluded.bright_purple_color, bright_cyan_color = excluded.bright_cyan_color, bright_white_color = excluded.bright_white_color, background_color = excluded.background_color, foreground_color = excluded.foreground_color, cursor_color = excluded.cursor_color, selection_background_color = excluded.selection_background_color, selection_foreground_color = excluded.selection_foreground_color, cursor_text_color = excluded.cursor_text_color',
+      variables: [
+        Variable<String>(id),
+        Variable<String>(name),
+        Variable<int>(
+          CustomTerminalThemes.$converterblackColor.toSql(blackColor),
+        ),
+        Variable<int>(CustomTerminalThemes.$converterredColor.toSql(redColor)),
+        Variable<int>(
+          CustomTerminalThemes.$convertergreenColor.toSql(greenColor),
+        ),
+        Variable<int>(
+          CustomTerminalThemes.$converteryellowColor.toSql(yellowColor),
+        ),
+        Variable<int>(
+          CustomTerminalThemes.$converterblueColor.toSql(blueColor),
+        ),
+        Variable<int>(
+          CustomTerminalThemes.$converterpurpleColor.toSql(purpleColor),
+        ),
+        Variable<int>(
+          CustomTerminalThemes.$convertercyanColor.toSql(cyanColor),
+        ),
+        Variable<int>(
+          CustomTerminalThemes.$converterwhiteColor.toSql(whiteColor),
+        ),
+        Variable<int>(
+          CustomTerminalThemes.$converterbrightBlackColor.toSql(
+            brightBlackColor,
+          ),
+        ),
+        Variable<int>(
+          CustomTerminalThemes.$converterbrightRedColor.toSql(brightRedColor),
+        ),
+        Variable<int>(
+          CustomTerminalThemes.$converterbrightGreenColor.toSql(
+            brightGreenColor,
+          ),
+        ),
+        Variable<int>(
+          CustomTerminalThemes.$converterbrightYellowColor.toSql(
+            brightYellowColor,
+          ),
+        ),
+        Variable<int>(
+          CustomTerminalThemes.$converterbrightBlueColor.toSql(brightBlueColor),
+        ),
+        Variable<int>(
+          CustomTerminalThemes.$converterbrightPurpleColor.toSql(
+            brightPurpleColor,
+          ),
+        ),
+        Variable<int>(
+          CustomTerminalThemes.$converterbrightCyanColor.toSql(brightCyanColor),
+        ),
+        Variable<int>(
+          CustomTerminalThemes.$converterbrightWhiteColor.toSql(
+            brightWhiteColor,
+          ),
+        ),
+        Variable<int>(
+          CustomTerminalThemes.$converterbackgroundColor.toSql(backgroundColor),
+        ),
+        Variable<int>(
+          CustomTerminalThemes.$converterforegroundColor.toSql(foregroundColor),
+        ),
+        Variable<int>(
+          CustomTerminalThemes.$convertercursorColor.toSql(cursorColor),
+        ),
+        Variable<int>(
+          CustomTerminalThemes.$converterselectionBackgroundColor.toSql(
+            selectionBackgroundColor,
+          ),
+        ),
+        Variable<int>(
+          CustomTerminalThemes.$converterselectionForegroundColorn.toSql(
+            selectionForegroundColor,
+          ),
+        ),
+        Variable<int>(
+          CustomTerminalThemes.$convertercursorTextColorn.toSql(
+            cursorTextColor,
+          ),
+        ),
+      ],
+      updates: {customTerminalThemes},
+    );
+  }
+
   Future<int> createOrUpdateKey(
     String id,
     String vaultId,

@@ -4,8 +4,11 @@ import 'package:drift/drift.dart';
 
 import '../../../shared/data/database.dart';
 
-extension CustomTerminalThemesCompanionExtension on CustomTerminalThemesCompanion {
-  static CustomTerminalThemesCompanion? tryFromJson(Map<String, dynamic>? json) {
+extension CustomTerminalThemesCompanionExtension
+    on CustomTerminalThemesCompanion {
+  static CustomTerminalThemesCompanion? tryFromJson(
+    Map<String, dynamic>? json,
+  ) {
     if (json == null ||
         json['id'] == null ||
         json['name'] == null ||
@@ -53,8 +56,10 @@ extension CustomTerminalThemesCompanionExtension on CustomTerminalThemesCompanio
       brightWhiteColor: Value(Color(json['brightWhite'] as int)),
       foregroundColor: Value(Color(json['foreground'] as int)),
       cursorColor: Value(Color(json['cursor'] as int)),
-      selectionBackgroundColor: Value(Color(json['selectionBackground'] as int)),
-      backgroundColor: Value(Color(json['background'] as int))
+      selectionBackgroundColor: Value(
+        Color(json['selectionBackground'] as int),
+      ),
+      backgroundColor: Value(Color(json['background'] as int)),
     );
   }
 
