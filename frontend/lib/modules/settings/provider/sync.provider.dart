@@ -287,6 +287,7 @@ class SyncProviderNotifier extends Notifier<SyncState> {
       password: password,
     );
     if (parser == null) {
+      // TODO: i18n
       throw LocalizedException('settings.import.error.unrecognizedFormat');
     }
 
@@ -298,6 +299,7 @@ class SyncProviderNotifier extends Notifier<SyncState> {
     }
 
     if (settings == null) {
+      // TODO: i18n
       throw LocalizedException('settings.import.error.parsingFailed');
     }
     return settings;
@@ -313,6 +315,7 @@ class SyncProviderNotifier extends Notifier<SyncState> {
     for (final connection in settings.connections ?? <ConnectionsCompanion>[]) {
       if (connection.identityId.value != null &&
           !identityIds.contains(connection.identityId.value)) {
+        // TODO: i18n
         return 'settings.import.error.missingIdentity';
       }
     }
@@ -331,7 +334,7 @@ class SyncProviderNotifier extends Notifier<SyncState> {
     final connectionService = ref.read(connectionServiceProvider);
     final identityService = ref.read(identityServiceProvider);
     final knownHostService = ref.read(knownHostServiceProvider);
-    final colorSchemesService = ref.read(terminalThemeServiceProvider);
+    final terminalThemeService = ref.read(terminalThemeServiceProvider);
     final credentialService = ref.read(credentialServiceProvider);
     final keyService = ref.read(keyServiceProvider);
     final vaultService = ref.read(vaultServiceProvider);
@@ -377,7 +380,7 @@ class SyncProviderNotifier extends Notifier<SyncState> {
       for (final theme
           in toImport.customTerminalThemes ??
               <CustomTerminalThemesCompanion>[]) {
-        await colorSchemesService.createOrUpdate(
+        await terminalThemeService.createOrUpdate(
           id: theme.id.value,
           name: theme.name.value,
           black: theme.blackColor.value,

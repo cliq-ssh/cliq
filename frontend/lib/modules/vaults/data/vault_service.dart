@@ -75,6 +75,8 @@ final class VaultService {
     await _vaultsRepository.db.clearCredentialsByVaultId(vaultId);
     await _vaultsRepository.db.clearKeysByVaultId(vaultId);
     await _vaultsRepository.db.clearKnownHostsByVaultId(vaultId);
+
+    // TODO: delete color schemes connected by connections in this vault, but not used by other connections
   }
 
   Future<void> deleteById(DbId id) => _vaultsRepository.deleteById(id);
