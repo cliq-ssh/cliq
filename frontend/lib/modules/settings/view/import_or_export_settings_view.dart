@@ -92,7 +92,6 @@ class _ImportOrExportSettingsViewState
               .map((e) => e.toCompanion(true))
               .toList(),
           customTerminalThemes: terminalThemes.entities
-              //TODO .where((e) => e.vaultId == selectedVaultId.value)
               .map((e) => e.toCompanion(true))
               .toList(),
           credentials: credentials
@@ -146,9 +145,9 @@ class _ImportOrExportSettingsViewState
           !widget.isImport &&
           (passwordController.text.trim().isEmpty)) {
         final hasSensitiveData =
-            (settings.value?.connections?.isNotEmpty == true) ||
-            (settings.value?.identities?.isNotEmpty == true) ||
-            (settings.value?.keys?.isNotEmpty == true);
+            connectionsTileController.value.isNotEmpty ||
+            identitiesTileController.value.isNotEmpty ||
+            keysTileController.value.isNotEmpty;
 
         if (hasSensitiveData) {
           showExportWarning.value = true;
@@ -161,13 +160,11 @@ class _ImportOrExportSettingsViewState
         Map<DbId, List<DbId>>? credentialIds,
         FMultiValueNotifier<DbId> controller,
       ) {
-        return credentialIds?.map((id, credentialIds) {
-          if (controller.value.contains(id)) {
-            return MapEntry(id, credentialIds);
-          } else {
-            return MapEntry(id, []);
-          }
-        });
+        if (credentialIds == null) return null;
+        return {
+          for (final entry in credentialIds.entries)
+            if (controller.value.contains(entry.key)) entry.key: entry.value,
+        };
       }
 
       final selectedConnectionsCredentialIds = mapCredentialIds(

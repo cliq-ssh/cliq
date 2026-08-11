@@ -138,7 +138,7 @@ class TerminalThemeSettingsPage extends AbstractSettingsPage {
                         width: double.infinity,
                         height: 200,
                         padding: const .all(8),
-                        color: getSelectedTheme().backgroundColor,
+                        color: getSelectedTheme().background,
                         child: LayoutBuilder(
                           builder: (_, constraints) {
                             WidgetsBinding.instance.addPostFrameCallback((_) {

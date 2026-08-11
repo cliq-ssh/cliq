@@ -1,4 +1,3 @@
-import 'package:cliq/modules/settings/extension/color_scheme.extension.dart';
 import 'package:cliq/shared/data/database.dart';
 import 'package:cliq/shared/provider/store.provider.dart';
 import 'package:cliq/shared/utils/text_utils.dart';
@@ -9,13 +8,14 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:forui/forui.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:iterm2_color_schemes_dart/iterm2_color_schemes_dart.dart'
+import 'package:iterm2_color_schemes_dart/iterm2_color_schemes_dart_values.dart'
     deferred as cs;
 import 'package:lucide_flutter/lucide_flutter.dart';
 
 import '../../../shared/extensions/async_snapshot.extension.dart';
 import '../../../shared/ui/horizontal_dialog.dart';
 import '../../../shared/utils/platform_utils.dart';
+import '../extension/color_scheme.extension.dart';
 
 class ColorSchemeBrowserDialog extends HookConsumerWidget {
   final FDialogStyle style;
@@ -82,7 +82,7 @@ class ColorSchemeBrowserDialog extends HookConsumerWidget {
       setController() {
         // set default to first theme
         final first = ([
-          ...cs.ITerm2ColorSchemes.values,
+          ...cs.iterm2ColorSchemeValues,
         ]..sort((a, b) => a.name.compareTo(b.name))).first;
         selectedSchemeName.value = first.name;
         terminalController.value = TerminalController(
@@ -135,7 +135,7 @@ class ColorSchemeBrowserDialog extends HookConsumerWidget {
           onLoading: () => const Center(child: FCircularProgress()),
           onData: (_) {
             final values =
-                cs.ITerm2ColorSchemes.values
+                cs.iterm2ColorSchemeValues
                     .where(
                       (theme) => theme.name.toLowerCase().contains(
                         filterText.value.text.toLowerCase(),
@@ -147,7 +147,7 @@ class ColorSchemeBrowserDialog extends HookConsumerWidget {
                         a.name.toLowerCase().compareTo(b.name.toLowerCase()),
                   );
 
-            final selectedTheme = cs.ITerm2ColorSchemes.values
+            final selectedTheme = cs.iterm2ColorSchemeValues
                 .where((theme) => theme.name == selectedSchemeName.value)
                 .toList()
                 .firstOrNull
@@ -249,7 +249,7 @@ class ColorSchemeBrowserDialog extends HookConsumerWidget {
                     child: Container(
                       width: double.infinity,
                       padding: const .all(8),
-                      color: selectedTheme?.backgroundColor,
+                      color: selectedTheme?.background,
                       child: LayoutBuilder(
                         builder: (_, constraints) {
                           WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -281,7 +281,7 @@ class ColorSchemeBrowserDialog extends HookConsumerWidget {
           variant: .primary,
           child: Text('import'.tr()),
           onPress: () {
-            final selectedColorScheme = cs.ITerm2ColorSchemes.values
+            final selectedColorScheme = cs.iterm2ColorSchemeValues
                 .where((theme) => theme.name == selectedSchemeName.value)
                 .toList()
                 .firstOrNull;

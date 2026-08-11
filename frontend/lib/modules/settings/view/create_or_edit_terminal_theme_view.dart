@@ -30,28 +30,28 @@ class CreateOrEditTerminalThemeView extends HookConsumerWidget {
   }) : current = CustomTerminalThemesCompanion(
          id: Value(themeEntity.id),
          name: Value(themeEntity.name),
-         blackColor: Value(themeEntity.blackColor),
-         redColor: Value(themeEntity.redColor),
-         greenColor: Value(themeEntity.greenColor),
-         yellowColor: Value(themeEntity.yellowColor),
-         blueColor: Value(themeEntity.blueColor),
-         purpleColor: Value(themeEntity.purpleColor),
-         cyanColor: Value(themeEntity.cyanColor),
-         whiteColor: Value(themeEntity.whiteColor),
-         brightBlackColor: Value(themeEntity.brightBlackColor),
-         brightRedColor: Value(themeEntity.brightRedColor),
-         brightGreenColor: Value(themeEntity.brightGreenColor),
-         brightYellowColor: Value(themeEntity.brightYellowColor),
-         brightBlueColor: Value(themeEntity.brightBlueColor),
-         brightPurpleColor: Value(themeEntity.brightPurpleColor),
-         brightCyanColor: Value(themeEntity.brightCyanColor),
-         brightWhiteColor: Value(themeEntity.brightWhiteColor),
-         foregroundColor: Value(themeEntity.foregroundColor),
-         backgroundColor: Value(themeEntity.backgroundColor),
-         cursorColor: Value(themeEntity.cursorColor),
-         selectionBackgroundColor: Value(themeEntity.selectionBackgroundColor),
-         selectionForegroundColor: Value(themeEntity.selectionForegroundColor),
-         cursorTextColor: Value(themeEntity.cursorTextColor),
+         black: Value(themeEntity.black),
+         red: Value(themeEntity.red),
+         green: Value(themeEntity.green),
+         yellow: Value(themeEntity.yellow),
+         blue: Value(themeEntity.blue),
+         purple: Value(themeEntity.purple),
+         cyan: Value(themeEntity.cyan),
+         white: Value(themeEntity.white),
+         brightBlack: Value(themeEntity.brightBlack),
+         brightRed: Value(themeEntity.brightRed),
+         brightGreen: Value(themeEntity.brightGreen),
+         brightYellow: Value(themeEntity.brightYellow),
+         brightBlue: Value(themeEntity.brightBlue),
+         brightPurple: Value(themeEntity.brightPurple),
+         brightCyan: Value(themeEntity.brightCyan),
+         brightWhite: Value(themeEntity.brightWhite),
+         foreground: Value(themeEntity.foreground),
+         background: Value(themeEntity.background),
+         cursor: Value(themeEntity.cursor),
+         cursorText: Value(themeEntity.cursorText),
+         selectionBackground: Value(themeEntity.selectionBackground),
+         selectionForeground: Value(themeEntity.selectionForeground),
        ),
        isEdit = true;
 
@@ -61,70 +61,70 @@ class CreateOrEditTerminalThemeView extends HookConsumerWidget {
 
     final nameCtrl = useTextEditingController(text: current?.name.value);
     final blackColorCtrl = useTextEditingController(
-      text: current?.blackColor.value.toHex(),
+      text: current?.black.value.toHex(),
     );
     final redColorCtrl = useTextEditingController(
-      text: current?.redColor.value.toHex(),
+      text: current?.red.value.toHex(),
     );
     final greenColorCtrl = useTextEditingController(
-      text: current?.greenColor.value.toHex(),
+      text: current?.green.value.toHex(),
     );
     final yellowColorCtrl = useTextEditingController(
-      text: current?.yellowColor.value.toHex(),
+      text: current?.yellow.value.toHex(),
     );
     final blueColorCtrl = useTextEditingController(
-      text: current?.blueColor.value.toHex(),
+      text: current?.blue.value.toHex(),
     );
     final purpleColorCtrl = useTextEditingController(
-      text: current?.purpleColor.value.toHex(),
+      text: current?.purple.value.toHex(),
     );
     final cyanColorCtrl = useTextEditingController(
-      text: current?.cyanColor.value.toHex(),
+      text: current?.cyan.value.toHex(),
     );
     final whiteColorCtrl = useTextEditingController(
-      text: current?.whiteColor.value.toHex(),
+      text: current?.white.value.toHex(),
     );
     final brightBlackColorCtrl = useTextEditingController(
-      text: current?.brightBlackColor.value.toHex(),
+      text: current?.brightBlack.value.toHex(),
     );
     final brightRedColorCtrl = useTextEditingController(
-      text: current?.brightRedColor.value.toHex(),
+      text: current?.brightRed.value.toHex(),
     );
     final brightGreenColorCtrl = useTextEditingController(
-      text: current?.brightGreenColor.value.toHex(),
+      text: current?.brightGreen.value.toHex(),
     );
     final brightYellowColorCtrl = useTextEditingController(
-      text: current?.brightYellowColor.value.toHex(),
+      text: current?.brightYellow.value.toHex(),
     );
     final brightBlueColorCtrl = useTextEditingController(
-      text: current?.brightBlueColor.value.toHex(),
+      text: current?.brightBlue.value.toHex(),
     );
     final brightPurpleColorCtrl = useTextEditingController(
-      text: current?.brightPurpleColor.value.toHex(),
+      text: current?.brightPurple.value.toHex(),
     );
     final brightCyanColorCtrl = useTextEditingController(
-      text: current?.brightCyanColor.value.toHex(),
+      text: current?.brightCyan.value.toHex(),
     );
     final brightWhiteColorCtrl = useTextEditingController(
-      text: current?.brightWhiteColor.value.toHex(),
+      text: current?.brightWhite.value.toHex(),
     );
     final foregroundColorCtrl = useTextEditingController(
-      text: current?.foregroundColor.value.toHex(),
+      text: current?.foreground.value.toHex(),
     );
     final backgroundColorCtrl = useTextEditingController(
-      text: current?.backgroundColor.value.toHex(),
+      text: current?.background.value.toHex(),
     );
     final cursorColorCtrl = useTextEditingController(
-      text: current?.cursorColor.value.toHex(),
-    );
-    final selectionBackgroundColorCtrl = useTextEditingController(
-      text: current?.selectionBackgroundColor.value.toHex(),
-    );
-    final selectionForegroundColorCtrl = useTextEditingController(
-      text: current?.selectionForegroundColor.value?.toHex(),
+      text: current?.cursor.value.toHex(),
     );
     final cursorTextColorCtrl = useTextEditingController(
-      text: current?.cursorTextColor.value?.toHex(),
+      text: current?.cursorText.value.toHex(),
+    );
+    final selectionBackgroundColorCtrl = useTextEditingController(
+      text: current?.selectionBackground.value.toHex(),
+    );
+    final selectionForegroundColorCtrl = useTextEditingController(
+      text: current?.selectionForeground.value.toHex(),
     );
 
     /// Handles the save action for the form.
@@ -203,37 +203,37 @@ class CreateOrEditTerminalThemeView extends HookConsumerWidget {
               brightWhite: brightWhiteColor,
               background: backgroundColor,
               foreground: foregroundColor,
-              cursorColor: cursorColor,
+              cursor: cursorColor,
               selectionBackground: selectionBackgroundColor,
               selectionForeground: selectionForegroundColor,
-              cursorTextColor: cursorTextColor,
+              cursorText: cursorTextColor,
               compareTo: current,
             )
           : await terminalThemeService.createCustomTerminalTheme(
               CustomTerminalThemesCompanion.insert(
                 name: nameCtrl.text.trim(),
-                blackColor: blackColor!,
-                redColor: redColor!,
-                greenColor: greenColor!,
-                yellowColor: yellowColor!,
-                blueColor: blueColor!,
-                purpleColor: purpleColor!,
-                cyanColor: cyanColor!,
-                whiteColor: whiteColor!,
-                brightBlackColor: brightBlackColor!,
-                brightRedColor: brightRedColor!,
-                brightGreenColor: brightGreenColor!,
-                brightYellowColor: brightYellowColor!,
-                brightBlueColor: brightBlueColor!,
-                brightPurpleColor: brightPurpleColor!,
-                brightCyanColor: brightCyanColor!,
-                brightWhiteColor: brightWhiteColor!,
-                foregroundColor: foregroundColor!,
-                backgroundColor: backgroundColor!,
-                cursorColor: cursorColor!,
-                selectionBackgroundColor: selectionBackgroundColor!,
-                selectionForegroundColor: Value(selectionForegroundColor),
-                cursorTextColor: Value(cursorTextColor),
+                black: blackColor!,
+                red: redColor!,
+                green: greenColor!,
+                yellow: yellowColor!,
+                blue: blueColor!,
+                purple: purpleColor!,
+                cyan: cyanColor!,
+                white: whiteColor!,
+                brightBlack: brightBlackColor!,
+                brightRed: brightRedColor!,
+                brightGreen: brightGreenColor!,
+                brightYellow: brightYellowColor!,
+                brightBlue: brightBlueColor!,
+                brightPurple: brightPurpleColor!,
+                brightCyan: brightCyanColor!,
+                brightWhite: brightWhiteColor!,
+                foreground: foregroundColor!,
+                background: backgroundColor!,
+                cursor: cursorColor!,
+                cursorText: cursorTextColor!,
+                selectionBackground: selectionBackgroundColor!,
+                selectionForeground: selectionForegroundColor!,
               ),
             );
 
@@ -241,11 +241,7 @@ class CreateOrEditTerminalThemeView extends HookConsumerWidget {
       context.pop(themeId);
     }
 
-    buildHexColorField(
-      String labelKey,
-      TextEditingController controller, {
-      bool required = true,
-    }) {
+    buildHexColorField(String labelKey, TextEditingController controller) {
       return LayoutBuilder(
         builder: (context, constraints) {
           const gridSize = 2;
@@ -284,12 +280,10 @@ class CreateOrEditTerminalThemeView extends HookConsumerWidget {
                         hint: 'terminal_themes_theme_add_color_placeholder'
                             .tr(),
                         validator: (value) => Validators.chain(context, [
-                          if (required) Validators.nonEmpty,
+                          Validators.nonEmpty,
                           Validators.hexColor,
                         ], value),
-                        inputFormatters: required
-                            ? InputFormatters.hex()
-                            : null,
+                        inputFormatters: InputFormatters.hex(),
                         autovalidateMode: .onUserInteraction,
                       ),
                     ),
@@ -341,26 +335,14 @@ class CreateOrEditTerminalThemeView extends HookConsumerWidget {
                 buildHexColorField('foreground', foregroundColorCtrl),
                 buildHexColorField('background', backgroundColorCtrl),
                 buildHexColorField('cursor', cursorColorCtrl),
-                buildHexColorField(
-                  'selection_background',
-                  selectionBackgroundColorCtrl,
-                ),
-              ],
-            ),
-            const FDivider(),
-            Wrap(
-              spacing: 16,
-              runSpacing: 16,
-              children: [
+                buildHexColorField('cursor_text', cursorTextColorCtrl),
                 buildHexColorField(
                   'selection_foreground',
                   selectionForegroundColorCtrl,
-                  required: false,
                 ),
                 buildHexColorField(
-                  'cursor_text',
-                  cursorTextColorCtrl,
-                  required: false,
+                  'selection_background',
+                  selectionBackgroundColorCtrl,
                 ),
               ],
             ),

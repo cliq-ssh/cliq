@@ -14,29 +14,33 @@ import '../model/theme_parser/terminal_theme_parser.dart';
 
 final terminalThemeProvider = NotifierProvider(CustomTerminalThemeNotifier.new);
 
+/// Dracula
+/// https://github.com/mbadolato/iTerm2-Color-Schemes/blob/0173c3cc154aab5d43b03241286d32372a87dec6/kitty/Dracula.conf
 const CustomTerminalTheme defaultTerminalColorTheme = .new(
   id: "-1",
   name: 'Dracula',
-  blackColor: Color(0xFF21222C),
-  redColor: Color(0xFFFF5555),
-  greenColor: Color(0xFF50FA7B),
-  yellowColor: Color(0xFFF1FA8C),
-  blueColor: Color(0xFFBD93F9),
-  purpleColor: Color(0xFFFF79C6),
-  cyanColor: Color(0xFF8BE9FD),
-  whiteColor: Color(0xFFF8F8F2),
-  brightBlackColor: Color(0xFF6272A4),
-  brightRedColor: Color(0xFFFF6E6E),
-  brightGreenColor: Color(0xFF69FF94),
-  brightYellowColor: Color(0xFFFFFFA5),
-  brightBlueColor: Color(0xFFD6ACFF),
-  brightPurpleColor: Color(0xFFFF92DF),
-  brightCyanColor: Color(0xFFA4FFFF),
-  brightWhiteColor: Color(0xFFFFFFFF),
-  foregroundColor: Color(0xFFF8F8F2),
-  cursorColor: Color(0xFFF8F8F2),
-  selectionBackgroundColor: Color(0xFF44475A),
-  backgroundColor: Color(0xFF282A36),
+  black: Color(0xFF21222C),
+  red: Color(0xFFFF5555),
+  green: Color(0xFF50FA7B),
+  yellow: Color(0xFFF1FA8C),
+  blue: Color(0xFFBD93F9),
+  purple: Color(0xFFFF79C6),
+  cyan: Color(0xFF8BE9FD),
+  white: Color(0xFFF8F8F2),
+  brightBlack: Color(0xFF6272A4),
+  brightRed: Color(0xFFFF6E6E),
+  brightGreen: Color(0xFF69FF94),
+  brightYellow: Color(0xFFFFFFA5),
+  brightBlue: Color(0xFFD6ACFF),
+  brightPurple: Color(0xFFFF92DF),
+  brightCyan: Color(0xFFA4FFFF),
+  brightWhite: Color(0xFFFFFFFF),
+  background: Color(0xFF282A36),
+  foreground: Color(0xFFF8F8F2),
+  cursor: Color(0xFFF8F8F2),
+  cursorText: Color(0xFF282A36),
+  selectionBackground: Color(0xFF44475A),
+  selectionForeground: Color(0xFF282A36),
 );
 
 class CustomTerminalThemeNotifier

@@ -50,8 +50,8 @@ class SessionTitleBar extends HookConsumerWidget {
         return;
       }
 
-      backgroundColor.value = effectiveTerminalTheme.backgroundColor;
-      foregroundColor.value = effectiveTerminalTheme.foregroundColor;
+      backgroundColor.value = effectiveTerminalTheme.background;
+      foregroundColor.value = effectiveTerminalTheme.foreground;
       return null;
     }, [effectiveTerminalTheme, session]);
 

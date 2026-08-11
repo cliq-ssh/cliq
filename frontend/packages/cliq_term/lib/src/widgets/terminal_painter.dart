@@ -58,9 +58,7 @@ class SingleRowPainter extends CustomPainter {
       Color? cellBg;
       if (c < rowCols) {
         final fmt = cells[c].fmt;
-        cellBg = fmt.inverted
-            ? (fmt.fgColor ?? theme.foregroundColor)
-            : fmt.bgColor;
+        cellBg = fmt.inverted ? (fmt.fgColor ?? theme.foreground) : fmt.bgColor;
       }
       if (cellBg != lastColor) {
         flushBg(c);
@@ -71,6 +69,7 @@ class SingleRowPainter extends CustomPainter {
     flushBg(cols);
 
     // Draw selection overlay if active (selection coordinates are in absolute rows)
+    RowSelection? rowSel;
     if (selection.isSelectionActive) {
       final bounds = SelectionHelper.normalize(
         startRow: selection.startRow!,
@@ -81,13 +80,14 @@ class SingleRowPainter extends CustomPainter {
         maxCols: cols,
       );
 
-      final rowSel = SelectionHelper.getRowSelection(
+      final sel = SelectionHelper.getRowSelection(
         row: absoluteRowIndex,
         bounds: bounds,
         maxCols: cols,
       );
 
-      if (!rowSel.isEmpty) {
+      if (!sel.isEmpty) {
+        rowSel = sel;
         canvas.drawRect(
           Rect.fromLTWH(
             rowSel.start * cellWidth,
@@ -97,7 +97,7 @@ class SingleRowPainter extends CustomPainter {
           ),
           Paint()
             ..isAntiAlias = false
-            ..color = theme.selectionColor,
+            ..color = theme.selectionBackground,
         );
       }
     }
@@ -111,18 +111,19 @@ class SingleRowPainter extends CustomPainter {
 
       final isBlank = ch.isEmpty || ch == ' ';
       final hasLink = fmt.hyperlink != null;
-      // A blank cell can still carry an active underline or hyperlink
-      // decoration (e.g. Back Color Erase extending a link's underline
-      // to the edge of a line) — only skip cells with truly nothing to
-      // paint.
+
       final hasDecoration = fmt.underline != Underline.none || hasLink;
       if (isBlank && !hasDecoration) continue;
 
+      final isSelected = rowSel != null && c >= rowSel.start && c <= rowSel.end;
+
       final effectiveFg = fmt.concealed
-          ? theme.foregroundColor.withAlpha(0)
+          ? theme.foreground.withAlpha(0)
+          : isSelected
+          ? theme.selectionForeground
           : (fmt.inverted
-                ? (fmt.bgColor ?? theme.backgroundColor)
-                : (fmt.fgColor ?? theme.foregroundColor));
+                ? (fmt.bgColor ?? theme.background)
+                : (fmt.fgColor ?? theme.foreground));
 
       final codepoint = ch.length == 1 ? ch.codeUnitAt(0) : -1;
       final isBraille = CharWidth.isBraillePattern(codepoint);
@@ -271,12 +272,8 @@ class CursorPainter extends CustomPainter {
       cursorCol,
     );
 
-    final Color fillColor = cell.fmt.inverted
-        ? (cell.fmt.bgColor ?? theme.backgroundColor)
-        : (cell.fmt.fgColor ?? theme.foregroundColor);
-    final Color charColor = cell.fmt.inverted
-        ? (cell.fmt.fgColor ?? theme.foregroundColor)
-        : (cell.fmt.bgColor ?? theme.backgroundColor);
+    final fillColor = theme.cursor;
+    final charColor = theme.cursorText;
 
     final cursorRect = Rect.fromLTWH(
       cursorCol * cellWidth,

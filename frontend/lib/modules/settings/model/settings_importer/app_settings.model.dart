@@ -83,6 +83,7 @@ class AppSettings {
       (connections == null || connections!.isEmpty) &&
       (identities == null || identities!.isEmpty) &&
       (knownHosts == null || knownHosts!.isEmpty) &&
+      (customTerminalThemes == null || customTerminalThemes!.isEmpty) &&
       (credentials == null || credentials!.isEmpty) &&
       (keys == null || keys!.isEmpty);
 
@@ -105,6 +106,10 @@ class AppSettings {
         ),
       if (knownHosts?.isNotEmpty == true)
         'knownHosts': knownHosts!.map((k) => k.toJson()).toList(),
+      if (customTerminalThemes?.isNotEmpty == true)
+        'customTerminalThemes': customTerminalThemes!
+            .map((t) => t.toJson())
+            .toList(),
       if (credentials?.isNotEmpty == true)
         'credentials': credentials!.map((c) => c.toJson()).toList(),
       if (keys?.isNotEmpty == true)

@@ -486,14 +486,16 @@ class _TerminalViewState extends State<TerminalView> {
                 widget.controller.updateSelection(absRow, absCol);
               },
               child: Container(
-                color: widget.controller.theme.backgroundColor,
+                color: widget.controller.theme.background,
                 child: ListView.builder(
                   scrollCacheExtent: ScrollCacheExtent.pixels(cellH * 10),
                   controller: _scrollController,
                   itemCount: totalRows,
                   itemExtent: cellH,
                   padding: .zero,
-                  physics: const TerminalScrollPhysics(),
+                  physics: widget.controller.backBufferActive
+                      ? const NeverScrollableScrollPhysics()
+                      : const TerminalScrollPhysics(),
                   itemBuilder: (context, index) {
                     return TerminalRowWidget(
                       controller: widget.controller,

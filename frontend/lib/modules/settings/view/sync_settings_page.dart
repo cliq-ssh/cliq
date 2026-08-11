@@ -241,16 +241,11 @@ class SyncSettingsPage extends AbstractSettingsPage {
                               }
                             }
 
-                            if (settings == null) return;
-                            if (settings.isEmpty) {
-                              Commons.showToast(
-                                'settings.import.error.invalidOrEmptyFile',
-                                prefix: Icon(LucideIcons.fileX),
-                              );
+                            if (!context.mounted ||
+                                settings == null ||
+                                settings.isEmpty) {
                               return;
                             }
-
-                            if (!context.mounted) return;
 
                             Commons.showResponsiveDialog(
                               (_) => ImportOrExportSettingsView.import(

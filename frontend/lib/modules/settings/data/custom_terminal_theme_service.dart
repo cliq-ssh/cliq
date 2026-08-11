@@ -41,100 +41,76 @@ final class CustomTerminalThemeService {
     required Color? brightWhite,
     required Color? background,
     required Color? foreground,
-    required Color? cursorColor,
+    required Color? cursor,
+    required Color? cursorText,
     required Color? selectionBackground,
     required Color? selectionForeground,
-    required Color? cursorTextColor,
     CustomTerminalThemesCompanion? compareTo,
   }) async {
     await _customTerminalThemesRepository.updateById(
       themeId,
       CustomTerminalThemesCompanion(
         name: ValueExtension.absentIfNullOrSame(name, compareTo?.name),
-        blackColor: ValueExtension.absentIfNullOrSame(
-          black,
-          compareTo?.blackColor,
-        ),
-        redColor: ValueExtension.absentIfNullOrSame(red, compareTo?.redColor),
-        greenColor: ValueExtension.absentIfNullOrSame(
-          green,
-          compareTo?.greenColor,
-        ),
-        yellowColor: ValueExtension.absentIfNullOrSame(
-          yellow,
-          compareTo?.yellowColor,
-        ),
-        blueColor: ValueExtension.absentIfNullOrSame(
-          blue,
-          compareTo?.blueColor,
-        ),
-        purpleColor: ValueExtension.absentIfNullOrSame(
-          purple,
-          compareTo?.purpleColor,
-        ),
-        cyanColor: ValueExtension.absentIfNullOrSame(
-          cyan,
-          compareTo?.cyanColor,
-        ),
-        whiteColor: ValueExtension.absentIfNullOrSame(
-          white,
-          compareTo?.whiteColor,
-        ),
-        brightBlackColor: ValueExtension.absentIfNullOrSame(
+        black: ValueExtension.absentIfNullOrSame(black, compareTo?.black),
+        red: ValueExtension.absentIfNullOrSame(red, compareTo?.red),
+        green: ValueExtension.absentIfNullOrSame(green, compareTo?.green),
+        yellow: ValueExtension.absentIfNullOrSame(yellow, compareTo?.yellow),
+        blue: ValueExtension.absentIfNullOrSame(blue, compareTo?.blue),
+        purple: ValueExtension.absentIfNullOrSame(purple, compareTo?.purple),
+        cyan: ValueExtension.absentIfNullOrSame(cyan, compareTo?.cyan),
+        white: ValueExtension.absentIfNullOrSame(white, compareTo?.white),
+        brightBlack: ValueExtension.absentIfNullOrSame(
           brightBlack,
-          compareTo?.brightBlackColor,
+          compareTo?.brightBlack,
         ),
-        brightRedColor: ValueExtension.absentIfNullOrSame(
+        brightRed: ValueExtension.absentIfNullOrSame(
           brightRed,
-          compareTo?.brightRedColor,
+          compareTo?.brightRed,
         ),
-        brightGreenColor: ValueExtension.absentIfNullOrSame(
+        brightGreen: ValueExtension.absentIfNullOrSame(
           brightGreen,
-          compareTo?.brightGreenColor,
+          compareTo?.brightGreen,
         ),
-        brightYellowColor: ValueExtension.absentIfNullOrSame(
+        brightYellow: ValueExtension.absentIfNullOrSame(
           brightYellow,
-          compareTo?.brightYellowColor,
+          compareTo?.brightYellow,
         ),
-        brightBlueColor: ValueExtension.absentIfNullOrSame(
+        brightBlue: ValueExtension.absentIfNullOrSame(
           brightBlue,
-          compareTo?.brightBlueColor,
+          compareTo?.brightBlue,
         ),
-        brightPurpleColor: ValueExtension.absentIfNullOrSame(
+        brightPurple: ValueExtension.absentIfNullOrSame(
           brightPurple,
-          compareTo?.brightPurpleColor,
+          compareTo?.brightPurple,
         ),
-        brightCyanColor: ValueExtension.absentIfNullOrSame(
+        brightCyan: ValueExtension.absentIfNullOrSame(
           brightCyan,
-          compareTo?.brightCyanColor,
+          compareTo?.brightCyan,
         ),
-        brightWhiteColor: ValueExtension.absentIfNullOrSame(
+        brightWhite: ValueExtension.absentIfNullOrSame(
           brightWhite,
-          compareTo?.brightWhiteColor,
+          compareTo?.brightWhite,
         ),
-        backgroundColor: ValueExtension.absentIfNullOrSame(
+        background: ValueExtension.absentIfNullOrSame(
           background,
-          compareTo?.backgroundColor,
+          compareTo?.background,
         ),
-        foregroundColor: ValueExtension.absentIfNullOrSame(
+        foreground: ValueExtension.absentIfNullOrSame(
           foreground,
-          compareTo?.foregroundColor,
+          compareTo?.foreground,
         ),
-        cursorColor: ValueExtension.absentIfNullOrSame(
-          cursorColor,
-          compareTo?.cursorColor,
+        cursor: ValueExtension.absentIfNullOrSame(cursor, compareTo?.cursor),
+        cursorText: ValueExtension.absentIfNullOrSame(
+          cursorText,
+          compareTo?.cursorText,
         ),
-        selectionBackgroundColor: ValueExtension.absentIfNullOrSame(
+        selectionBackground: ValueExtension.absentIfNullOrSame(
           selectionBackground!,
-          compareTo?.selectionBackgroundColor,
+          compareTo?.selectionBackground,
         ),
-        selectionForegroundColor: ValueExtension.absentIfSame(
+        selectionForeground: ValueExtension.absentIfNullOrSame(
           selectionForeground,
-          compareTo?.selectionForegroundColor.value,
-        ),
-        cursorTextColor: ValueExtension.absentIfSame(
-          cursorTextColor,
-          compareTo?.cursorTextColor.value,
+          compareTo?.selectionForeground,
         ),
       ),
     );
@@ -163,9 +139,9 @@ final class CustomTerminalThemeService {
     required Color background,
     required Color foreground,
     required Color cursorColor,
+    required Color cursorTextColor,
     required Color selectionBackground,
-    required Color? selectionForeground,
-    required Color? cursorTextColor,
+    required Color selectionForeground,
   }) async {
     final result = await _customTerminalThemesRepository.db
         .createOrUpdateCustomColorScheme(
@@ -190,9 +166,9 @@ final class CustomTerminalThemeService {
           background,
           foreground,
           cursorColor,
+          cursorTextColor,
           selectionBackground,
           selectionForeground,
-          cursorTextColor,
         );
 
     return result;

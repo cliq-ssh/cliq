@@ -551,6 +551,16 @@ class TerminalController extends ChangeNotifier {
   void setTerminalTypography(TerminalTypography newTypography) {
     _typography = newTypography;
     _cachedTextStyle = null;
+
+    // Recompute rows/cols for the new typography
+    final (cellW, cellH) = CharWidth.measureChar(newTypography);
+    final newCols = max(1, (width / cellW).floor());
+    final newRows = max(1, (height / cellH).floor());
+    if (newRows != rows || newCols != cols) {
+      resize(newRows, newCols, Size(width, height));
+      return;
+    }
+
     clearRowCache();
     clearGlyphCache();
     markDirty();
