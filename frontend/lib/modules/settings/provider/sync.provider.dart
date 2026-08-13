@@ -203,9 +203,12 @@ class SyncProviderNotifier extends Notifier<SyncState> {
   /// Pulls the latest vault from the server and updates our local vault with it.
   /// Returns true if the vault was pulled and updated, false if it was not pulled because our local vault is
   /// already up to date.
-  Future<bool> pullVault({Vault? userVaultOverride}) async {
+  Future<bool> pullVault({
+    Vault? userVaultOverride,
+    bool ignoreShouldPull = false,
+  }) async {
     if (state.api == null) return false;
-    if (!(await shouldPull())) {
+    if (!ignoreShouldPull && !(await shouldPull())) {
       return false;
     }
 
@@ -236,25 +239,16 @@ class SyncProviderNotifier extends Notifier<SyncState> {
     return true;
   }
 
-  /// Pulls the latest vault from the server so that we are in sync with the server and
-  /// then pushes our local vault to the server.
-  /// This is done to ensure that we don't overwrite any changes that may have been made on the server since our last sync.
-  Future<bool> pullAndPushVault() async {
-    if (state.api == null) return false;
-
-    final userVault = await ref
-        .read(vaultProvider.notifier)
-        .findOrCreateUserVault(state.api!);
-
-    await pullVault(userVaultOverride: userVault);
-
+  /// Pushes our local vault to the server, overwriting the server's vault with our local vault.
+  /// This function should never be exposed to the end-user and only ever be used in combination with [pushVault].
+  Future<bool> pushVault(DbId userVaultId) async {
     final dek = await StoreKey.syncDataEncryptionKey.readAsync();
     if (dek == null) {
       // this should never happen, dek is set on login
       throw StateError('Data encryption key is missing, cannot push vault.');
     }
 
-    final content = jsonEncode((await export(userVault.id)).toJson());
+    final content = jsonEncode((await export(userVaultId)).toJson());
 
     final encrypted = await PasswordCipher.instance.encrypt(
       utf8.encode(content),
@@ -270,6 +264,21 @@ class SyncProviderNotifier extends Notifier<SyncState> {
     }
     StoreKey.syncLastUpdated.write(lastUpdated.millisecondsSinceEpoch);
     return true;
+  }
+
+  /// Pulls the latest vault from the server so that we are in sync with the server and
+  /// then pushes our local vault to the server.
+  /// This is done to ensure that we don't overwrite any changes that may have been made on the server since our last sync.
+  Future<bool> pullAndPushVault() async {
+    if (state.api == null) return false;
+
+    final userVault = await ref
+        .read(vaultProvider.notifier)
+        .findOrCreateUserVault(state.api!);
+
+    final pullResult = await pullVault(userVaultOverride: userVault);
+    if (!pullResult) return false;
+    return await pushVault(userVault.id);
   }
 
   /// Attempts to parse the given [file] as [AppSettings].
@@ -401,8 +410,8 @@ class SyncProviderNotifier extends Notifier<SyncState> {
           brightWhite: theme.brightWhite.value,
           background: theme.background.value,
           foreground: theme.foreground.value,
-          cursorColor: theme.cursor.value,
-          cursorTextColor: theme.cursorText.value,
+          cursor: theme.cursor.value,
+          cursorText: theme.cursorText.value,
           selectionForeground: theme.selectionForeground.value,
           selectionBackground: theme.selectionBackground.value,
         );

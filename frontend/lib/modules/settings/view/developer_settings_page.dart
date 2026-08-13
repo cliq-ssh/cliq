@@ -1,3 +1,4 @@
+import 'package:cliq/modules/settings/provider/sync.provider.dart';
 import 'package:cliq/modules/settings/view/abstract_settings_page.dart';
 import 'package:cliq/modules/settings/view/settings_page.dart';
 import 'package:cliq/shared/data/store.dart';
@@ -11,6 +12,7 @@ import 'package:lucide_flutter/lucide_flutter.dart';
 
 import '../../../shared/model/page_path.model.dart';
 import '../../../shared/utils/commons.dart' show Commons;
+import '../../vaults/provider/vault.provider.dart';
 
 class DeveloperSettingsPage extends AbstractSettingsPage {
   static const PagePathBuilder pagePath = PagePathBuilder.child(
@@ -25,6 +27,8 @@ class DeveloperSettingsPage extends AbstractSettingsPage {
 
   @override
   Widget buildBody(BuildContext context, WidgetRef ref) {
+    final sync = ref.read(syncProvider);
+
     return SingleChildScrollView(
       child: CliqGridContainer(
         children: [
@@ -45,6 +49,53 @@ class DeveloperSettingsPage extends AbstractSettingsPage {
                         ),
                       ],
                     ),
+                    if (sync.isConnected)
+                      FTileGroup(
+                        label: Text('Sync'),
+                        children: [
+                          FTile(
+                            prefix: Icon(LucideIcons.arrowUpFromLine),
+                            title: Text('Force push current vault'),
+                            variant: .destructive,
+                            onPress: () async {
+                              final userVault = await ref
+                                  .read(vaultProvider.notifier)
+                                  .findOrCreateUserVault(sync.api!);
+                              final pushResult = await ref
+                                  .read(syncProvider.notifier)
+                                  .pushVault(userVault.id);
+
+                              if (pushResult) {
+                                Commons.showToast(
+                                  'Successfully force-pushed vault',
+                                );
+                              }
+                            },
+                          ),
+                          FTile(
+                            prefix: Icon(LucideIcons.arrowUpFromLine),
+                            title: Text('Force pull current vault'),
+                            variant: .destructive,
+                            onPress: () async {
+                              final userVault = await ref
+                                  .read(vaultProvider.notifier)
+                                  .findOrCreateUserVault(sync.api!);
+                              final pullResult = await ref
+                                  .read(syncProvider.notifier)
+                                  .pullVault(
+                                    userVaultOverride: userVault,
+                                    ignoreShouldPull: true,
+                                  );
+
+                              if (pullResult) {
+                                Commons.showToast(
+                                  'Successfully force-pulled vault',
+                                );
+                              }
+                            },
+                          ),
+                        ],
+                      ),
                     FTileGroup(
                       label: Text('Database'),
                       children: [

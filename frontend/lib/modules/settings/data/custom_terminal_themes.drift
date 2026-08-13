@@ -1,8 +1,8 @@
 import '../../../shared/data/converters/color_converter.dart';
 
 CREATE TABLE custom_terminal_themes (
-    id                          TEXT NOT NULL PRIMARY KEY DEFAULT '',
-    name                        TEXT NOT NULL,
+    id                    TEXT NOT NULL PRIMARY KEY DEFAULT '',
+    name                  TEXT NOT NULL,
 
     black                 INTEGER NOT NULL MAPPED BY `const ColorConverter()`,
     red                   INTEGER NOT NULL MAPPED BY `const ColorConverter()`,
@@ -29,6 +29,7 @@ CREATE TABLE custom_terminal_themes (
     selection_foreground  INTEGER NOT NULL MAPPED BY `const ColorConverter()`,
 
     UNIQUE (
+      name,
       black, red, green, yellow, blue, purple, cyan, white,
       bright_black, bright_red, bright_green, bright_yellow, bright_blue, bright_purple, bright_cyan, bright_white,
       background, foreground,
@@ -112,14 +113,32 @@ createOrUpdateCustomColorScheme:
     cursor = excluded.cursor,
     cursor_text = excluded.cursor_text,
     selection_background = excluded.selection_background,
-    selection_foreground = excluded.selection_foreground
-  ON CONFLICT(
-    black, red, green, yellow,
-    blue, purple, cyan, white,
-    bright_black, bright_red, bright_green, bright_yellow,
-    bright_blue, bright_purple, bright_cyan, bright_white,
-    background, foreground,
-    cursor, cursor_text,
-    selection_background, selection_foreground
-  ) DO UPDATE SET
-    name = excluded.name;
+    selection_foreground = excluded.selection_foreground;
+
+doesCustomColorSchemeExist:
+  SELECT EXISTS(
+    SELECT 1 FROM custom_terminal_themes WHERE
+      name = :name
+      AND black = :black
+      AND red = :red
+      AND green = :green
+      AND yellow = :yellow
+      AND blue = :blue
+      AND purple = :purple
+      AND cyan = :cyan
+      AND white = :white
+      AND bright_black = :brightBlack
+      AND bright_red = :brightRed
+      AND bright_green = :brightGreen
+      AND bright_yellow = :brightYellow
+      AND bright_blue = :brightBlue
+      AND bright_purple = :brightPurple
+      AND bright_cyan = :brightCyan
+      AND bright_white = :brightWhite
+      AND background = :background
+      AND foreground = :foreground
+      AND cursor = :cursor
+      AND cursor_text = :cursorText
+      AND selection_background = :selectionBackground
+      AND selection_foreground = :selectionForeground
+  );

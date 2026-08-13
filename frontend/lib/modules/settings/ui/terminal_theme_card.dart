@@ -194,21 +194,22 @@ class TerminalThemeCard extends HookConsumerWidget {
                     ),
                   ],
                 ),
-                Column(
-                  crossAxisAlignment: .start,
-                  children: [
-                    Text(theme.name),
-                    if (theme.id == '-1')
-                      Text(
-                        'built-in',
-                        style: context.theme.typography.body.xs.copyWith(
-                          color: context.theme.colors.mutedForeground,
-                          fontWeight: .normal,
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: .start,
+                    children: [
+                      Text(theme.name),
+                      if (theme.id == '-1')
+                        Text(
+                          'built-in',
+                          style: context.theme.typography.body.xs.copyWith(
+                            color: context.theme.colors.mutedForeground,
+                            fontWeight: .normal,
+                          ),
                         ),
-                      ),
-                  ],
+                    ],
+                  ),
                 ),
-                const Spacer(),
                 if (isSelected) Icon(LucideIcons.check),
                 buildPopoverMenu(
                   controller: secondaryPopoverController,

@@ -27,6 +27,7 @@ class HorizontalDialog extends StatelessWidget {
     return FDialog(
       style: style,
       animation: animation,
+      resizeToAvoidInsets: false,
       constraints:
           constraints ?? const BoxConstraints(minWidth: 280, maxWidth: 560),
       builder: (context, style) {

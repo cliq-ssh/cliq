@@ -11,11 +11,13 @@ import 'package:cliq/shared/utils/commons.dart';
 import 'package:cliq_term/cliq_term.dart';
 import 'package:cliq_ui/cliq_ui.dart'
     show CliqGridColumn, CliqGridContainer, CliqGridRow;
+import 'package:cliq_ui/hooks/use_breakpoint.export.dart' show useBreakpoint;
 import 'package:easy_localization/easy_localization.dart';
 import 'package:file_selector/file_selector.dart';
 import 'package:flutter/material.dart' hide Router;
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:forui/forui.dart';
+import 'package:forui_hooks/forui_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lucide_flutter/lucide_flutter.dart';
 
@@ -68,6 +70,9 @@ class TerminalThemeSettingsPage extends AbstractSettingsPage {
 
   @override
   Widget buildBody(BuildContext context, WidgetRef ref) {
+    final breakpoint = useBreakpoint();
+    final popoverController = useFPopoverController();
+
     final terminalThemes = ref.watch(terminalThemeProvider);
     final terminalController = useState<TerminalController?>(null);
     final selectedFontFamily = useState<String>(
@@ -123,6 +128,64 @@ class TerminalThemeSettingsPage extends AbstractSettingsPage {
       context: context,
     );
 
+    openBrowser() async {
+      await showFDialog(
+        context: context,
+        builder: (_, style, animation) => ColorSchemeBrowserDialog(
+          style: style,
+          animation: animation,
+          onImport: (colorScheme) async {
+            final terminalThemeService = ref.read(terminalThemeServiceProvider);
+
+            final doesExist = await terminalThemeService.doesExist(
+              colorScheme: colorScheme,
+            );
+
+            if (doesExist) {
+              Commons.showToast(
+                'terminal_themes_already_exist'.tr(),
+                prefix: Icon(LucideIcons.messageCircleWarning),
+              );
+              return;
+            }
+
+            await terminalThemeService.createCustomTerminalTheme(colorScheme);
+            Commons.showToast(
+              'terminal_themes_import_success'.tr(),
+              prefix: Icon(LucideIcons.circleCheck),
+            );
+          },
+        ),
+      );
+    }
+
+    importFile() async {
+      final opened = await openFile(
+        acceptedTypeGroups: [Commons.getCustomTerminalThemeGroup(context)],
+      );
+      if (opened == null) return;
+
+      final error = await ref
+          .read(terminalThemeProvider.notifier)
+          .tryImportCustomTerminalTheme(opened);
+
+      if (!context.mounted) return;
+      if (error != null) {
+        showFToast(
+          context: context,
+          variant: .destructive,
+          icon: Icon(LucideIcons.circleX),
+          title: Text(error),
+        );
+        return;
+      }
+      showFToast(
+        context: context,
+        icon: Icon(LucideIcons.circleCheck),
+        title: Text('terminal_themes_import_success'.tr()),
+      );
+    }
+
     return SingleChildScrollView(
       padding: const EdgeInsets.only(bottom: 60),
       child: CliqGridContainer(
@@ -171,86 +234,78 @@ class TerminalThemeSettingsPage extends AbstractSettingsPage {
                         crossAxisAlignment: .end,
                         children: [
                           Text('terminal_themes_theme'.tr()),
-                          Row(
-                            children: [
-                              FButton(
-                                variant: .ghost,
-                                prefix: Icon(LucideIcons.plus),
-                                onPress: create,
-                                child: Text('terminal_themes_theme_add'.tr()),
-                              ),
-                              FButton(
-                                variant: .ghost,
-                                prefix: Icon(LucideIcons.swatchBook),
-                                onPress: () async {
-                                  await showFDialog(
-                                    context: context,
-                                    builder: (_, style, animation) =>
-                                        ColorSchemeBrowserDialog(
-                                          style: style,
-                                          animation: animation,
-                                          onImport: (scheme) async {
-                                            await ref
-                                                .read(
-                                                  terminalThemeServiceProvider,
-                                                )
-                                                .createCustomTerminalTheme(
-                                                  scheme,
-                                                );
-                                            Commons.showToast(
-                                              'terminal_themes_import_success'
-                                                  .tr(),
-                                              prefix: Icon(
-                                                LucideIcons.circleCheck,
-                                              ),
-                                            );
-                                          },
-                                        ),
-                                  );
-                                },
-                                child: Text(
-                                  'terminal_themes_theme_browser'.tr(),
+                          if (breakpoint > .md)
+                            Row(
+                              children: [
+                                FButton(
+                                  variant: .ghost,
+                                  prefix: Icon(LucideIcons.plus),
+                                  onPress: create,
+                                  child: Text('terminal_themes_theme_add'.tr()),
                                 ),
-                              ),
-                              FButton(
-                                variant: .ghost,
-                                prefix: Icon(LucideIcons.folderOpen),
-                                onPress: () async {
-                                  final opened = await openFile(
-                                    acceptedTypeGroups: [
-                                      Commons.getCustomTerminalThemeGroup(
-                                        context,
+                                FButton(
+                                  variant: .ghost,
+                                  prefix: Icon(LucideIcons.swatchBook),
+                                  onPress: openBrowser,
+                                  child: Text(
+                                    'terminal_themes_theme_browser'.tr(),
+                                  ),
+                                ),
+                                FButton(
+                                  variant: .ghost,
+                                  prefix: Icon(LucideIcons.folderOpen),
+                                  onPress: importFile,
+                                  child: Text('terminal_themes_import'.tr()),
+                                ),
+                              ],
+                            )
+                          else
+                            FPopoverMenu.tiles(
+                              control: .managed(controller: popoverController),
+                              menu: [
+                                .group(
+                                  children: [
+                                    .tile(
+                                      title: Text(
+                                        'terminal_themes_theme_add'.tr(),
                                       ),
-                                    ],
-                                  );
-                                  if (opened == null) return;
-
-                                  final error = await ref
-                                      .read(terminalThemeProvider.notifier)
-                                      .tryImportCustomTerminalTheme(opened);
-
-                                  if (!context.mounted) return;
-                                  if (error != null) {
-                                    showFToast(
-                                      context: context,
-                                      variant: .destructive,
-                                      icon: Icon(LucideIcons.circleX),
-                                      title: Text(error),
-                                    );
-                                    return;
-                                  }
-                                  showFToast(
-                                    context: context,
-                                    icon: Icon(LucideIcons.circleCheck),
-                                    title: Text(
-                                      'terminal_themes_import_success'.tr(),
+                                      prefix: Icon(LucideIcons.plus),
+                                      onPress: () async {
+                                        await popoverController.hide();
+                                        create();
+                                      },
                                     ),
-                                  );
-                                },
-                                child: Text('terminal_themes_import'.tr()),
-                              ),
-                            ],
-                          ),
+                                    .tile(
+                                      title: Text(
+                                        'terminal_themes_theme_browser'.tr(),
+                                      ),
+                                      prefix: Icon(LucideIcons.swatchBook),
+                                      onPress: () async {
+                                        await popoverController.hide();
+                                        openBrowser();
+                                      },
+                                    ),
+                                    .tile(
+                                      title: Text(
+                                        'terminal_themes_import'.tr(),
+                                      ),
+                                      prefix: Icon(LucideIcons.folderOpen),
+                                      onPress: () async {
+                                        await popoverController.hide();
+                                        importFile();
+                                      },
+                                    ),
+                                  ],
+                                ),
+                              ],
+                              builder: (_, controller, _) {
+                                return FButton.icon(
+                                  variant: .ghost,
+                                  onPress: controller.toggle,
+                                  child: Icon(LucideIcons.ellipsis),
+                                );
+                              },
+                            ),
                         ],
                       ),
                       layout: .vertical,

@@ -138,8 +138,8 @@ final class CustomTerminalThemeService {
     required Color brightWhite,
     required Color background,
     required Color foreground,
-    required Color cursorColor,
-    required Color cursorTextColor,
+    required Color cursor,
+    required Color cursorText,
     required Color selectionBackground,
     required Color selectionForeground,
   }) async {
@@ -165,13 +165,45 @@ final class CustomTerminalThemeService {
           brightWhite,
           background,
           foreground,
-          cursorColor,
-          cursorTextColor,
+          cursor,
+          cursorText,
           selectionBackground,
           selectionForeground,
         );
 
     return result;
+  }
+
+  Future<bool> doesExist({
+    required CustomTerminalThemesCompanion colorScheme,
+  }) async {
+    final result = _customTerminalThemesRepository.db
+        .doesCustomColorSchemeExist(
+          colorScheme.name.value,
+          colorScheme.black.value,
+          colorScheme.red.value,
+          colorScheme.green.value,
+          colorScheme.yellow.value,
+          colorScheme.blue.value,
+          colorScheme.purple.value,
+          colorScheme.cyan.value,
+          colorScheme.white.value,
+          colorScheme.brightBlack.value,
+          colorScheme.brightRed.value,
+          colorScheme.brightGreen.value,
+          colorScheme.brightYellow.value,
+          colorScheme.brightBlue.value,
+          colorScheme.brightPurple.value,
+          colorScheme.brightCyan.value,
+          colorScheme.brightWhite.value,
+          colorScheme.background.value,
+          colorScheme.foreground.value,
+          colorScheme.cursor.value,
+          colorScheme.cursorText.value,
+          colorScheme.selectionBackground.value,
+          colorScheme.selectionForeground.value,
+        );
+    return await result.getSingle();
   }
 
   Future<void> deleteById(DbId id) =>

@@ -62,6 +62,7 @@
     "password": "Password",
     "private_key": "Private Key"
   },
+  "terminal_themes_already_exist": "A color scheme with that name and colors already exists",
   "credentials_form_create_key": "Create Key",
   "credentials_form_create_key_named": "Create Key \"{}\"",
   "credentials_form_error_invalid_key": "Please select a valid key",

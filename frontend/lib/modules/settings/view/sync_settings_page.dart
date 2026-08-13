@@ -162,6 +162,7 @@ class SyncSettingsPage extends AbstractSettingsPage {
                 buildIconCount(.identity, entitiesCount.value!.$2),
                 buildIconCount(.key, entitiesCount.value!.$3),
                 buildIconCount(.knownHost, entitiesCount.value!.$4),
+                buildIconCount(.colorSchemes, entitiesCount.value!.$5),
               ],
             ),
           ),

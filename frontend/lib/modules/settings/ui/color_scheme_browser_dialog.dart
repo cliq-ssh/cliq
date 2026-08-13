@@ -3,6 +3,7 @@ import 'package:cliq/shared/provider/store.provider.dart';
 import 'package:cliq/shared/utils/text_utils.dart';
 import 'package:cliq_term/cliq_term.dart';
 import 'package:cliq_ui/cliq_ui.dart' show useMemoizedFuture;
+import 'package:cliq_ui/hooks/use_breakpoint.export.dart' show useBreakpoint;
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
@@ -70,6 +71,8 @@ class ColorSchemeBrowserDialog extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final breakpoint = useBreakpoint();
+
     final csFuture = useMemoizedFuture(() => cs.loadLibrary(), []);
     final terminalController = useState<TerminalController?>(null);
 
@@ -108,8 +111,10 @@ class ColorSchemeBrowserDialog extends HookConsumerWidget {
       color: context.theme.colors.mutedForeground,
     );
 
+    final touch = context.platformVariant.touch;
+
     return HorizontalDialog(
-      style: style,
+      style: .delta(insetPadding: touch ? .value(.zero) : .add(.zero)),
       animation: animation,
       title: Column(
         spacing: 4,
@@ -153,12 +158,17 @@ class ColorSchemeBrowserDialog extends HookConsumerWidget {
                 .firstOrNull
                 ?.toTerminalTheme();
 
-            return Row(
+            final isMobile = breakpoint < .md;
+
+            return Flex(
+              direction: isMobile ? .vertical : .horizontal,
+              verticalDirection: isMobile ? .up : .down,
               spacing: 8,
               crossAxisAlignment: .start,
               children: [
                 SizedBox(
-                  width: 200,
+                  width: isMobile ? .infinity : 200,
+                  height: isMobile ? 300 : .infinity,
                   child: Column(
                     spacing: 8,
                     children: [

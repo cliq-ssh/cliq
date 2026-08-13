@@ -804,6 +804,7 @@ class CustomTerminalThemes extends Table
   @override
   List<Set<GeneratedColumn>> get uniqueKeys => [
     {
+      name,
       black,
       red,
       green,
@@ -1018,7 +1019,7 @@ class CustomTerminalThemes extends Table
       const ColorConverter();
   @override
   List<String> get customConstraints => const [
-    'UNIQUE(black, red, green, yellow, blue, purple, cyan, white, bright_black, bright_red, bright_green, bright_yellow, bright_blue, bright_purple, bright_cyan, bright_white, background, foreground, cursor, cursor_text, selection_background, selection_foreground)',
+    'UNIQUE(name, black, red, green, yellow, blue, purple, cyan, white, bright_black, bright_red, bright_green, bright_yellow, bright_blue, bright_purple, bright_cyan, bright_white, background, foreground, cursor, cursor_text, selection_background, selection_foreground)',
   ];
   @override
   bool get dontWriteConstraints => true;
@@ -4464,7 +4465,7 @@ abstract class _$CliqDatabase extends GeneratedDatabase {
     Color selectionForegroundColor,
   ) {
     return customInsert(
-      'INSERT INTO custom_terminal_themes (id, name, black, red, green, yellow, blue, purple, cyan, white, bright_black, bright_red, bright_green, bright_yellow, bright_blue, bright_purple, bright_cyan, bright_white, background, foreground, cursor, cursor_text, selection_background, selection_foreground) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13, ?14, ?15, ?16, ?17, ?18, ?19, ?20, ?21, ?22, ?23, ?24) ON CONFLICT (id) DO UPDATE SET name = excluded.name, black = excluded.black, red = excluded.red, green = excluded.green, yellow = excluded.yellow, blue = excluded.blue, purple = excluded.purple, cyan = excluded.cyan, white = excluded.white, bright_black = excluded.bright_black, bright_red = excluded.bright_red, bright_green = excluded.bright_green, bright_yellow = excluded.bright_yellow, bright_blue = excluded.bright_blue, bright_purple = excluded.bright_purple, bright_cyan = excluded.bright_cyan, bright_white = excluded.bright_white, background = excluded.background, foreground = excluded.foreground, cursor = excluded.cursor, cursor_text = excluded.cursor_text, selection_background = excluded.selection_background, selection_foreground = excluded.selection_foreground ON CONFLICT (black, red, green, yellow, blue, purple, cyan, white, bright_black, bright_red, bright_green, bright_yellow, bright_blue, bright_purple, bright_cyan, bright_white, background, foreground, cursor, cursor_text, selection_background, selection_foreground) DO UPDATE SET name = excluded.name',
+      'INSERT INTO custom_terminal_themes (id, name, black, red, green, yellow, blue, purple, cyan, white, bright_black, bright_red, bright_green, bright_yellow, bright_blue, bright_purple, bright_cyan, bright_white, background, foreground, cursor, cursor_text, selection_background, selection_foreground) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13, ?14, ?15, ?16, ?17, ?18, ?19, ?20, ?21, ?22, ?23, ?24) ON CONFLICT (id) DO UPDATE SET name = excluded.name, black = excluded.black, red = excluded.red, green = excluded.green, yellow = excluded.yellow, blue = excluded.blue, purple = excluded.purple, cyan = excluded.cyan, white = excluded.white, bright_black = excluded.bright_black, bright_red = excluded.bright_red, bright_green = excluded.bright_green, bright_yellow = excluded.bright_yellow, bright_blue = excluded.bright_blue, bright_purple = excluded.bright_purple, bright_cyan = excluded.bright_cyan, bright_white = excluded.bright_white, background = excluded.background, foreground = excluded.foreground, cursor = excluded.cursor, cursor_text = excluded.cursor_text, selection_background = excluded.selection_background, selection_foreground = excluded.selection_foreground',
       variables: [
         Variable<String>(id),
         Variable<String>(name),
@@ -4523,6 +4524,92 @@ abstract class _$CliqDatabase extends GeneratedDatabase {
       ],
       updates: {customTerminalThemes},
     );
+  }
+
+  Selectable<bool> doesCustomColorSchemeExist(
+    String name,
+    Color black,
+    Color red,
+    Color green,
+    Color yellow,
+    Color blue,
+    Color purple,
+    Color cyan,
+    Color white,
+    Color brightBlack,
+    Color brightRed,
+    Color brightGreen,
+    Color brightYellow,
+    Color brightBlue,
+    Color brightPurple,
+    Color brightCyan,
+    Color brightWhite,
+    Color background,
+    Color foreground,
+    Color cursor,
+    Color cursorText,
+    Color selectionBackground,
+    Color selectionForeground,
+  ) {
+    return customSelect(
+      'SELECT EXISTS (SELECT 1 AS _c1 FROM custom_terminal_themes WHERE name = ?1 AND black = ?2 AND red = ?3 AND green = ?4 AND yellow = ?5 AND blue = ?6 AND purple = ?7 AND cyan = ?8 AND white = ?9 AND bright_black = ?10 AND bright_red = ?11 AND bright_green = ?12 AND bright_yellow = ?13 AND bright_blue = ?14 AND bright_purple = ?15 AND bright_cyan = ?16 AND bright_white = ?17 AND background = ?18 AND foreground = ?19 AND cursor = ?20 AND cursor_text = ?21 AND selection_background = ?22 AND selection_foreground = ?23) AS _c0',
+      variables: [
+        Variable<String>(name),
+        Variable<int>(CustomTerminalThemes.$converterblack.toSql(black)),
+        Variable<int>(CustomTerminalThemes.$converterred.toSql(red)),
+        Variable<int>(CustomTerminalThemes.$convertergreen.toSql(green)),
+        Variable<int>(CustomTerminalThemes.$converteryellow.toSql(yellow)),
+        Variable<int>(CustomTerminalThemes.$converterblue.toSql(blue)),
+        Variable<int>(CustomTerminalThemes.$converterpurple.toSql(purple)),
+        Variable<int>(CustomTerminalThemes.$convertercyan.toSql(cyan)),
+        Variable<int>(CustomTerminalThemes.$converterwhite.toSql(white)),
+        Variable<int>(
+          CustomTerminalThemes.$converterbrightBlack.toSql(brightBlack),
+        ),
+        Variable<int>(
+          CustomTerminalThemes.$converterbrightRed.toSql(brightRed),
+        ),
+        Variable<int>(
+          CustomTerminalThemes.$converterbrightGreen.toSql(brightGreen),
+        ),
+        Variable<int>(
+          CustomTerminalThemes.$converterbrightYellow.toSql(brightYellow),
+        ),
+        Variable<int>(
+          CustomTerminalThemes.$converterbrightBlue.toSql(brightBlue),
+        ),
+        Variable<int>(
+          CustomTerminalThemes.$converterbrightPurple.toSql(brightPurple),
+        ),
+        Variable<int>(
+          CustomTerminalThemes.$converterbrightCyan.toSql(brightCyan),
+        ),
+        Variable<int>(
+          CustomTerminalThemes.$converterbrightWhite.toSql(brightWhite),
+        ),
+        Variable<int>(
+          CustomTerminalThemes.$converterbackground.toSql(background),
+        ),
+        Variable<int>(
+          CustomTerminalThemes.$converterforeground.toSql(foreground),
+        ),
+        Variable<int>(CustomTerminalThemes.$convertercursor.toSql(cursor)),
+        Variable<int>(
+          CustomTerminalThemes.$convertercursorText.toSql(cursorText),
+        ),
+        Variable<int>(
+          CustomTerminalThemes.$converterselectionBackground.toSql(
+            selectionBackground,
+          ),
+        ),
+        Variable<int>(
+          CustomTerminalThemes.$converterselectionForeground.toSql(
+            selectionForeground,
+          ),
+        ),
+      ],
+      readsFrom: {customTerminalThemes},
+    ).map((QueryRow row) => row.read<bool>('_c0'));
   }
 
   Future<int> createOrUpdateKey(
