@@ -14,7 +14,7 @@ plugins {
     id("io.spring.dependency-management") version "1.1.7"
 
     // Linter and Formatter
-    id("dev.detekt") version "2.0.0-alpha.5"
+    id("dev.detekt") version "2.0.0-alpha.6"
 }
 
 // Fixes: https://github.com/detekt/detekt/issues/6198
@@ -83,7 +83,7 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-data-jpa")
     runtimeOnly("org.postgresql:postgresql")
     // Flyway
-    val flywayVersion = "13.1.0"
+    val flywayVersion = "13.3.0"
     implementation("org.springframework.boot:spring-boot-starter-flyway")
     implementation("org.flywaydb:flyway-core:$flywayVersion")
     implementation("org.flywaydb:flyway-database-postgresql:$flywayVersion")
@@ -96,7 +96,7 @@ dependencies {
     implementation("com.nimbusds:srp6a:2.1.0")
 
     // Algorithm Provider & Encryption primitives
-    implementation("org.bouncycastle:bcprov-jdk18on:1.85")
+    implementation("org.bouncycastle:bcprov-jdk18on:1.85.2")
 
     // Serialization
     implementation("org.springframework.boot:spring-boot-starter-jackson")
@@ -140,7 +140,7 @@ dependencies {
     testImplementation("org.springframework.boot:spring-boot-starter-data-jpa-test")
 
     // Greenmail
-    val greenmailVersion = "2.1.11"
+    val greenmailVersion = "2.1.12"
     testImplementation("com.icegreen:greenmail-spring:$greenmailVersion")
     testImplementation("com.icegreen:greenmail:$greenmailVersion")
     testImplementation("com.icegreen:greenmail-junit5:$greenmailVersion")
@@ -162,7 +162,7 @@ dependencies {
     // Linting
 
     // Detekt
-    detektPlugins("dev.detekt:detekt-rules-ktlint-wrapper:2.0.0-alpha.5")
+    detektPlugins("dev.detekt:detekt-rules-ktlint-wrapper:2.0.0-alpha.6")
 }
 
 kotlin {

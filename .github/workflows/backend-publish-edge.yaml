@@ -1,11 +1,7 @@
 name: "Backend: Publish Edge"
 on:
-  workflow_dispatch:
-  push:
-    branches:
-      - main
-    paths:
-      - 'backend/**'
+  workflow_dispatch: ~
+  workflow_call: ~
 
 concurrency:
   group: backend-edge
