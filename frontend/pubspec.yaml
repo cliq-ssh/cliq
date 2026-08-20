@@ -50,7 +50,7 @@ dependencies:
   easy_localization: ^3.0.8
   macos_window_utils: ^1.9.1
   cryptography_flutter: ^2.3.4
-  flutter_secure_storage: ^10.3.1
+  flutter_secure_storage: ^11.0.0
   package_info_plus: ^10.2.1
 dev_dependencies:
   flutter_test:
