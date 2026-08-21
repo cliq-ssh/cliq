@@ -8,11 +8,13 @@ class TerminalFontFamilySelect extends StatelessWidget {
 
   final String selectedFontFamily;
   final ValueChanged<String>? onChange;
+  final bool isDefault;
 
   const TerminalFontFamilySelect({
     super.key,
     required this.selectedFontFamily,
     this.onChange,
+    this.isDefault = false,
   });
 
   @override
@@ -26,7 +28,7 @@ class TerminalFontFamilySelect extends StatelessWidget {
           }
         },
       ),
-      label: Text('terminal_themes_font_family'.tr()),
+      label: Text('${isDefault ? 'default_' : ''}font_family'.tr()),
       hint: selectedFontFamily,
       format: (s) => s,
       children: [

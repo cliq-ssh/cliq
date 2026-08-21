@@ -8,11 +8,13 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 class TerminalFontSizeSlider extends HookConsumerWidget {
   final int selectedFontSize;
   final Function(int)? onEnd;
+  final bool isDefault;
 
   const TerminalFontSizeSlider({
     super.key,
     required this.selectedFontSize,
     this.onEnd,
+    this.isDefault = false,
   });
 
   @override
@@ -26,7 +28,7 @@ class TerminalFontSizeSlider extends HookConsumerWidget {
         onChange: (val) => sliderValue.value = val,
         value: sliderValue.value,
       ),
-      label: Text('terminal_themes_font_size'.tr()),
+      label: Text('${isDefault ? 'default_' : ''}font_size'.tr()),
       tooltipBuilder: (_, value) => Text('${(value * 48).round() + 4}'),
       onEnd: (value) => onEnd?.call((value.max * 48).round() + 4),
       marks: [

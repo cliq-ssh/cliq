@@ -435,7 +435,7 @@ class CreateOrEditConnectionView extends HookConsumerWidget {
 
     FAccordionItem buildThemeItem() {
       return FAccordionItem(
-        title: Text('hosts_terminal_appearance'.tr()),
+        title: Text('hosts_terminal_theme_overrides'.tr()),
         child: Padding(
           padding: const .symmetric(vertical: 20),
           child: Column(
@@ -474,7 +474,7 @@ class CreateOrEditConnectionView extends HookConsumerWidget {
                     selectedTerminalThemeId.value = selected;
                   },
                 ),
-                label: Text('hosts_terminal_theme'.tr()),
+                label: Text('color_scheme'.tr()),
                 children: [
                   for (final theme in [
                     defaultTerminalColorTheme,

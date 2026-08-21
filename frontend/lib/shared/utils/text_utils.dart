@@ -13,8 +13,7 @@ enum _RenderableTag {
   tip(tag: 'tip', render: _renderTip),
   link(tag: 'link', render: _renderLink),
   shiftIcon(tag: 'shiftIcon', render: _renderShiftIcon),
-  undoIcon(tag: 'undoIcon', render: _renderUndoIcon),
-  ;
+  undoIcon(tag: 'undoIcon', render: _renderUndoIcon);
 
   final String tag;
   final InlineSpan Function(
@@ -101,13 +100,18 @@ enum _RenderableTag {
   ) => WidgetSpan(child: ShortcutInfo(shortcut: KeyboardShortcut(.shift)));
 
   static InlineSpan _renderUndoIcon(
-      BuildContext context,
-      List<InlineSpan> children,
-      Map<String, String> attributes,
-      TextStyle? parentStyle,
-      ) => WidgetSpan(
-      alignment: .middle,
-      child: Icon(LucideIcons.undo2, color: parentStyle?.color, size: parentStyle?.fontSize,));
+    BuildContext context,
+    List<InlineSpan> children,
+    Map<String, String> attributes,
+    TextStyle? parentStyle,
+  ) => WidgetSpan(
+    alignment: .middle,
+    child: Icon(
+      LucideIcons.undo2,
+      color: parentStyle?.color,
+      size: parentStyle?.fontSize,
+    ),
+  );
 }
 
 class TextUtils {
@@ -174,7 +178,9 @@ class TextUtils {
         spans.add(
           tag.render(
             context,
-            content == null ? const [] : renderText(context, content, style: style),
+            content == null
+                ? const []
+                : renderText(context, content, style: style),
             attributes,
             style,
           ),
