@@ -8,6 +8,7 @@ import 'package:cliq/modules/settings/view/abstract_settings_page.dart';
 import 'package:cliq/modules/settings/view/settings_page.dart';
 import 'package:cliq/shared/data/store.dart';
 import 'package:cliq/shared/utils/commons.dart';
+import 'package:cliq/shared/utils/text_utils.dart';
 import 'package:cliq_term/cliq_term.dart';
 import 'package:cliq_ui/cliq_ui.dart'
     show CliqGridColumn, CliqGridContainer, CliqGridRow;
@@ -23,7 +24,10 @@ import 'package:lucide_flutter/lucide_flutter.dart';
 
 import '../../../shared/data/database.dart';
 import '../../../shared/model/page_path.model.dart';
+import '../../../shared/ui/title_card.dart';
 import '../../../shared/utils/platform_utils.dart';
+import '../../connections/provider/connection.provider.dart';
+import '../../connections/ui/connection_icon.dart';
 import '../provider/terminal_theme.provider.dart';
 import '../provider/terminal_theme_service.provider.dart';
 
@@ -74,6 +78,8 @@ class TerminalThemeSettingsPage extends AbstractSettingsPage {
     final popoverController = useFPopoverController();
 
     final terminalThemes = ref.watch(terminalThemeProvider);
+    final connections = ref.watch(connectionProvider);
+
     final terminalController = useState<TerminalController?>(null);
     final selectedFontFamily = useState<String>(
       StoreKey.defaultTerminalTypography.readSync()?.fontFamily ??
@@ -84,6 +90,11 @@ class TerminalThemeSettingsPage extends AbstractSettingsPage {
     );
     final selectedThemeId = useState<DbId>(
       StoreKey.defaultTerminalThemeId.readSync()!,
+    );
+
+    final subtitleStyle = context.theme.typography.body.xs.copyWith(
+      color: context.theme.colors.mutedForeground,
+      fontWeight: .normal,
     );
 
     getSelectedTheme() => terminalThemes.findById(selectedThemeId.value)!;
@@ -184,6 +195,94 @@ class TerminalThemeSettingsPage extends AbstractSettingsPage {
         icon: Icon(LucideIcons.circleCheck),
         title: Text('terminal_themes_import_success'.tr()),
       );
+    }
+
+    getConnectionsWithOverrides() {
+      hasThemeOverride(c) => c.terminalThemeOverride != null;
+      hasTypographyOverride(c) => c.terminalTypographyOverride != null;
+
+      final withOverrides = connections.entities
+          .where((c) => hasThemeOverride(c) || hasTypographyOverride(c))
+          .toList();
+      return [
+        for (final connection in withOverrides)
+          TitleCard(
+            title: Row(
+              spacing: 8,
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Flexible(
+                  child: Row(
+                    spacing: 16,
+                    children: [
+                      ConnectionIcon.fromConnection(
+                        connection,
+                        borderRadius: 16,
+                        size: 28,
+                        padding: 10,
+                      ),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              connection.label,
+                              overflow: .fade,
+                              softWrap: false,
+                              style: context.theme.typography.body.lg,
+                            ),
+                            if (hasThemeOverride(connection))
+                              Row(
+                                spacing: 4,
+                                children: [
+                                  Icon(
+                                    LucideIcons.swatchBook,
+                                    size: subtitleStyle.fontSize,
+                                    color: subtitleStyle.color,
+                                  ),
+                                  Text(
+                                    connection.terminalThemeOverride!.name,
+                                    style: subtitleStyle,
+                                  ),
+                                ],
+                              ),
+                            if (hasTypographyOverride(connection))
+                              Row(
+                                spacing: 4,
+                                children: [
+                                  Icon(
+                                    LucideIcons.baseline,
+                                    size: subtitleStyle.fontSize,
+                                    color: subtitleStyle.color,
+                                  ),
+                                  Text(
+                                    '${connection.terminalTypographyOverride!.fontFamily}, ${connection.terminalTypographyOverride!.fontSize}px',
+                                    style: subtitleStyle,
+                                  ),
+                                ],
+                              ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                FTooltip(
+                  tipBuilder: (_, _) =>
+                      Text('terminal_themes_overrides_revert'.tr()),
+                  child: FButton.icon(
+                    onPress: () async {
+                      await ref
+                          .read(connectionProvider.notifier)
+                          .resetOverrides(connection.id);
+                    },
+                    child: Icon(LucideIcons.undo2),
+                  ),
+                ),
+              ],
+            ),
+          ),
+      ];
     }
 
     return SingleChildScrollView(
@@ -334,6 +433,29 @@ class TerminalThemeSettingsPage extends AbstractSettingsPage {
                             ),
                         ],
                       ),
+                    ),
+                    Builder(
+                      builder: (context) {
+                        final children = getConnectionsWithOverrides();
+                        if (children.isEmpty) {
+                          return const SizedBox.shrink();
+                        }
+
+                        return FLabel(
+                          layout: .vertical,
+                          label: Text('terminal_themes_overrides'.tr()),
+                          description: Text.rich(
+                            TextSpan(
+                              children: TextUtils.renderText(
+                                context,
+                                'terminal_themes_overrides_description'.tr(),
+                                style: subtitleStyle
+                              ),
+                            ),
+                          ),
+                          child: Column(children: children),
+                        );
+                      },
                     ),
                   ],
                 ),
