@@ -105,7 +105,7 @@ class CreateOrEditEntityView extends HookConsumerWidget {
           children: [
             for (final v in VaultExtension.sortVaults(vaults.entities))
               .item(
-                prefix: v.owner == null ? null : Icon(LucideIcons.cloudSync),
+                prefix: v.owner == null ? null : Icon(LucideIcons.cloudUpload),
                 title: Text(v.getDisplayName(context)),
                 value: v.id,
               ),

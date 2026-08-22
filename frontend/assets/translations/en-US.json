@@ -340,7 +340,7 @@
   },
   "terminal_themes_import_success": "Theme imported successfully",
   "terminal_themes_overrides": "Overrides",
-  "terminal_themes_overrides_description": "Connections that override the above settings. You can <b>revert (<undoIcon/>)</b> the overrides to revert to the default settings.",
+  "terminal_themes_overrides_description": "Connections that override the above settings. You can <b>revert (<undoIcon/>)</b> the overrides to the default settings.",
   "terminal_themes_overrides_revert": "Revert",
   "terminal_themes_theme_add": "Add",
   "terminal_themes_theme_add_color_placeholder": "#RRGGBB",

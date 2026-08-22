@@ -226,7 +226,7 @@ class EntityCardView<E> extends HookConsumerWidget {
                   .item(
                     prefix: v.owner == null
                         ? null
-                        : Icon(LucideIcons.cloudSync),
+                        : Icon(LucideIcons.cloudUpload),
                     title: Text(v.getDisplayName(context)),
                     onPress: () => onVaultTap(v.id),
                   ),

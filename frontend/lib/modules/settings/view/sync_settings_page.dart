@@ -90,7 +90,7 @@ class SyncSettingsPage extends AbstractSettingsPage {
     buildLoggedOutItems() {
       return [
         FTile(
-          prefix: Icon(LucideIcons.cloudSync),
+          prefix: Icon(LucideIcons.cloudUpload),
           suffix: Icon(LucideIcons.chevronRight),
           title: Text('sync_setup_sync'.tr()),
           subtitle: Text('sync_setup_sync_subtitle'.tr(), overflow: .visible),
