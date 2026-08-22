@@ -105,7 +105,7 @@ final class CustomTerminalThemeService {
           compareTo?.cursorText,
         ),
         selectionBackground: ValueExtension.absentIfNullOrSame(
-          selectionBackground!,
+          selectionBackground,
           compareTo?.selectionBackground,
         ),
         selectionForeground: ValueExtension.absentIfNullOrSame(
@@ -115,6 +115,47 @@ final class CustomTerminalThemeService {
       ),
     );
     return themeId;
+  }
+
+  /// Returns the id of an existing theme whose values match [colorScheme] exactly, or null if no such theme exists.
+  Future<DbId?> findIdOfMatchingTheme(
+    CustomTerminalThemesCompanion colorScheme,
+  ) {
+    return _customTerminalThemesRepository.db
+        .findMatchingCustomColorSchemeId(
+          colorScheme.name.value,
+          colorScheme.black.value,
+          colorScheme.red.value,
+          colorScheme.green.value,
+          colorScheme.yellow.value,
+          colorScheme.blue.value,
+          colorScheme.purple.value,
+          colorScheme.cyan.value,
+          colorScheme.white.value,
+          colorScheme.brightBlack.value,
+          colorScheme.brightRed.value,
+          colorScheme.brightGreen.value,
+          colorScheme.brightYellow.value,
+          colorScheme.brightBlue.value,
+          colorScheme.brightPurple.value,
+          colorScheme.brightCyan.value,
+          colorScheme.brightWhite.value,
+          colorScheme.background.value,
+          colorScheme.foreground.value,
+          colorScheme.cursor.value,
+          colorScheme.cursorText.value,
+          colorScheme.selectionBackground.value,
+          colorScheme.selectionForeground.value,
+        )
+        .getSingleOrNull();
+  }
+
+  /// Convenience method to check if a theme with the same values as [colorScheme] already exists in the database.
+  /// See [findIdOfMatchingTheme] for more details.
+  Future<bool> doesExist({
+    required CustomTerminalThemesCompanion colorScheme,
+  }) async {
+    return (await findIdOfMatchingTheme(colorScheme)) != null;
   }
 
   Future<int> createOrUpdate({
@@ -172,38 +213,6 @@ final class CustomTerminalThemeService {
         );
 
     return result;
-  }
-
-  Future<bool> doesExist({
-    required CustomTerminalThemesCompanion colorScheme,
-  }) async {
-    final result = _customTerminalThemesRepository.db
-        .doesCustomColorSchemeExist(
-          colorScheme.name.value,
-          colorScheme.black.value,
-          colorScheme.red.value,
-          colorScheme.green.value,
-          colorScheme.yellow.value,
-          colorScheme.blue.value,
-          colorScheme.purple.value,
-          colorScheme.cyan.value,
-          colorScheme.white.value,
-          colorScheme.brightBlack.value,
-          colorScheme.brightRed.value,
-          colorScheme.brightGreen.value,
-          colorScheme.brightYellow.value,
-          colorScheme.brightBlue.value,
-          colorScheme.brightPurple.value,
-          colorScheme.brightCyan.value,
-          colorScheme.brightWhite.value,
-          colorScheme.background.value,
-          colorScheme.foreground.value,
-          colorScheme.cursor.value,
-          colorScheme.cursorText.value,
-          colorScheme.selectionBackground.value,
-          colorScheme.selectionForeground.value,
-        );
-    return await result.getSingle();
   }
 
   Future<void> deleteById(DbId id) =>

@@ -192,10 +192,12 @@ class SyncProviderNotifier extends Notifier<SyncState> {
     // can consider our local vault to be the latest version in that case
     if (remote == null) return false;
     final localMillis = await StoreKey.syncLastUpdated.readAsync();
-    final local = DateTime.fromMillisecondsSinceEpoch(
-      localMillis!,
-      isUtc: true,
-    ).copyWith(microsecond: 0);
+    final DateTime local = localMillis != null
+        ? .fromMillisecondsSinceEpoch(
+            localMillis,
+            isUtc: true,
+          ).copyWith(microsecond: 0)
+        : .fromMillisecondsSinceEpoch(0, isUtc: true);
 
     return remote.isAfter(local);
   }
@@ -345,6 +347,8 @@ class SyncProviderNotifier extends Notifier<SyncState> {
     final keyService = ref.read(keyServiceProvider);
     final vaultService = ref.read(vaultServiceProvider);
 
+    final themeIdRemap = <DbId, DbId>{};
+
     await ref.read(databaseProvider).transaction(() async {
       if (cleanImport) {
         await vaultService.clearByVaultId(vaultId);
@@ -386,6 +390,15 @@ class SyncProviderNotifier extends Notifier<SyncState> {
       for (final theme
           in toImport.customTerminalThemes ??
               <CustomTerminalThemesCompanion>[]) {
+        final existingId = await terminalThemeService.findIdOfMatchingTheme(
+          theme,
+        );
+        if (existingId != null && existingId != theme.id.value) {
+          // reuse theme instead of creating a duplicate
+          themeIdRemap[theme.id.value] = existingId;
+          continue;
+        }
+
         await terminalThemeService.createOrUpdate(
           id: theme.id.value,
           name: theme.name.value,
@@ -416,6 +429,8 @@ class SyncProviderNotifier extends Notifier<SyncState> {
 
       for (final connection
           in toImport.connections ?? <ConnectionsCompanion>[]) {
+        final themeOverrideId = connection.terminalThemeOverrideId.value;
+
         await connectionService.createOrUpdate(
           id: connection.id.value,
           vaultId: vaultId,
@@ -430,7 +445,9 @@ class SyncProviderNotifier extends Notifier<SyncState> {
           identityId: connection.identityId.value,
           terminalTypographyOverride:
               connection.terminalTypographyOverride.value,
-          terminalThemeOverrideId: connection.terminalThemeOverrideId.value,
+          terminalThemeOverrideId: themeOverrideId != null
+              ? (themeIdRemap[themeOverrideId] ?? themeOverrideId)
+              : null,
           usesDefaultThemeOverride: connection.usesDefaultThemeOverride.value,
           credentialIds:
               toImport.connectionsCredentialIds?[connection.id.value]

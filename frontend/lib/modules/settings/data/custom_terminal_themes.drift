@@ -115,30 +115,29 @@ createOrUpdateCustomColorScheme:
     selection_background = excluded.selection_background,
     selection_foreground = excluded.selection_foreground;
 
-doesCustomColorSchemeExist:
-  SELECT EXISTS(
-    SELECT 1 FROM custom_terminal_themes WHERE
-      name = :name
-      AND black = :black
-      AND red = :red
-      AND green = :green
-      AND yellow = :yellow
-      AND blue = :blue
-      AND purple = :purple
-      AND cyan = :cyan
-      AND white = :white
-      AND bright_black = :brightBlack
-      AND bright_red = :brightRed
-      AND bright_green = :brightGreen
-      AND bright_yellow = :brightYellow
-      AND bright_blue = :brightBlue
-      AND bright_purple = :brightPurple
-      AND bright_cyan = :brightCyan
-      AND bright_white = :brightWhite
-      AND background = :background
-      AND foreground = :foreground
-      AND cursor = :cursor
-      AND cursor_text = :cursorText
-      AND selection_background = :selectionBackground
-      AND selection_foreground = :selectionForeground
-  );
+findMatchingCustomColorSchemeId:
+  SELECT id FROM custom_terminal_themes WHERE
+    name = :name
+    AND black = :black
+    AND red = :red
+    AND green = :green
+    AND yellow = :yellow
+    AND blue = :blue
+    AND purple = :purple
+    AND cyan = :cyan
+    AND white = :white
+    AND bright_black = :brightBlack
+    AND bright_red = :brightRed
+    AND bright_green = :brightGreen
+    AND bright_yellow = :brightYellow
+    AND bright_blue = :brightBlue
+    AND bright_purple = :brightPurple
+    AND bright_cyan = :brightCyan
+    AND bright_white = :brightWhite
+    AND background = :background
+    AND foreground = :foreground
+    AND cursor = :cursor
+    AND cursor_text = :cursorText
+    AND selection_background = :selectionBackground
+    AND selection_foreground = :selectionForeground
+  LIMIT 1;

@@ -4526,7 +4526,7 @@ abstract class _$CliqDatabase extends GeneratedDatabase {
     );
   }
 
-  Selectable<bool> doesCustomColorSchemeExist(
+  Selectable<String> findMatchingCustomColorSchemeId(
     String name,
     Color black,
     Color red,
@@ -4552,7 +4552,7 @@ abstract class _$CliqDatabase extends GeneratedDatabase {
     Color selectionForeground,
   ) {
     return customSelect(
-      'SELECT EXISTS (SELECT 1 AS _c1 FROM custom_terminal_themes WHERE name = ?1 AND black = ?2 AND red = ?3 AND green = ?4 AND yellow = ?5 AND blue = ?6 AND purple = ?7 AND cyan = ?8 AND white = ?9 AND bright_black = ?10 AND bright_red = ?11 AND bright_green = ?12 AND bright_yellow = ?13 AND bright_blue = ?14 AND bright_purple = ?15 AND bright_cyan = ?16 AND bright_white = ?17 AND background = ?18 AND foreground = ?19 AND cursor = ?20 AND cursor_text = ?21 AND selection_background = ?22 AND selection_foreground = ?23) AS _c0',
+      'SELECT id FROM custom_terminal_themes WHERE name = ?1 AND black = ?2 AND red = ?3 AND green = ?4 AND yellow = ?5 AND blue = ?6 AND purple = ?7 AND cyan = ?8 AND white = ?9 AND bright_black = ?10 AND bright_red = ?11 AND bright_green = ?12 AND bright_yellow = ?13 AND bright_blue = ?14 AND bright_purple = ?15 AND bright_cyan = ?16 AND bright_white = ?17 AND background = ?18 AND foreground = ?19 AND cursor = ?20 AND cursor_text = ?21 AND selection_background = ?22 AND selection_foreground = ?23 LIMIT 1',
       variables: [
         Variable<String>(name),
         Variable<int>(CustomTerminalThemes.$converterblack.toSql(black)),
@@ -4609,7 +4609,7 @@ abstract class _$CliqDatabase extends GeneratedDatabase {
         ),
       ],
       readsFrom: {customTerminalThemes},
-    ).map((QueryRow row) => row.read<bool>('_c0'));
+    ).map((QueryRow row) => row.read<String>('id'));
   }
 
   Future<int> createOrUpdateKey(
