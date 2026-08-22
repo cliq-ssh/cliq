@@ -215,11 +215,11 @@ class _ImportOrExportSettingsViewState
       );
 
       // validate settings
-      final validationError = ref
-          .read(syncProvider.notifier)
-          .validateSettings(selected);
-      if (validationError != null) {
-        error.value = validationError;
+      final valid = ref.read(syncProvider.notifier).validateSettings(selected);
+
+      // this should probably never happen since we force relations automatically
+      if (!valid) {
+        error.value = 'settings_import_error.generic';
         return;
       }
       error.value = null;
@@ -459,7 +459,6 @@ class _ImportOrExportSettingsViewState
                           relatedIdentityKeyIds.value.contains(k.id.value),
                     ),
 
-                  // TODO: fix unselected data in export
                   if (settings.value!.customTerminalThemes?.isNotEmpty == true)
                     buildEntityTiles<CustomTerminalThemesCompanion, DbId>(
                       controller: terminalThemesTileController,

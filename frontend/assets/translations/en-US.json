@@ -219,6 +219,12 @@
   "session_new": "New Session",
   "sessions": "Sessions",
   "settings": "Settings",
+  "settings_import_error": {
+    "encrypted": "The file could not be opened because it is encrypted",
+    "generic": "Invalid settings",
+    "parsing_failed": "Could not parse settings",
+    "unrecognized_format": "Unrecognized settings format"
+  },
   "sftp": "SFTP",
   "sftp_directory_open": "Open",
   "sftp_failed_to_open": "Failed to open: {}",
@@ -302,7 +308,6 @@
   "sync_host_url_placeholder": "https://example.com",
   "sync_host_url_subtitle": "Enter the URL of your self hosted sync server. For more information on how to set up such server, please visit the wiki.",
   "sync_import": "Import",
-  "sync_import_error_encrypted": "The file could not be opened because it is encrypted",
   "sync_import_error_incorrect_password": "The file could not be opened because the password is incorrect",
   "sync_import_error_one_entity": "Please select at least one entity to import.",
   "sync_import_file": "Import from File",

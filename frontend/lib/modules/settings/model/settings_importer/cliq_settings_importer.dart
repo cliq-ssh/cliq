@@ -52,7 +52,7 @@ class CliqSettingsImporter extends AbstractSettingsImporter {
     Uint8List decoded = base64Decode(content);
     if (PasswordCipher.isEncrypted(decoded)) {
       if (password == null) {
-        throw LocalizedException('sync_import_error_encrypted');
+        throw LocalizedException('sync_import_error.encrypted');
       }
       try {
         decoded = await PasswordCipher.instance.decrypt(

@@ -1,6 +1,7 @@
 import 'package:cliq/modules/settings/extension/custom_terminal_theme.extension.dart';
 import 'package:cliq/modules/settings/ui/color_scheme_browser_dialog.dart';
 import 'package:cliq/modules/settings/view/create_or_edit_terminal_theme_view.dart';
+import 'package:cliq/shared/model/localized_exception.dart';
 import 'package:cliq/shared/ui/terminal_font_family_select.dart';
 import 'package:cliq/shared/ui/terminal_font_size_slider.dart';
 import 'package:cliq/modules/settings/ui/terminal_theme_card.dart';
@@ -175,20 +176,16 @@ class TerminalThemeSettingsPage extends AbstractSettingsPage {
       );
       if (opened == null) return;
 
-      final error = await ref
-          .read(terminalThemeProvider.notifier)
-          .tryImportCustomTerminalTheme(opened);
-
-      if (!context.mounted) return;
-      if (error != null) {
-        showFToast(
-          context: context,
-          variant: .destructive,
-          icon: Icon(LucideIcons.circleX),
-          title: Text(error),
-        );
+      try {
+        await ref
+            .read(terminalThemeProvider.notifier)
+            .tryImportCustomTerminalTheme(opened);
+      } on LocalizedException catch (e) {
+        Commons.showLocalizedException(e);
         return;
       }
+      if (!context.mounted) return;
+
       showFToast(
         context: context,
         icon: Icon(LucideIcons.circleCheck),

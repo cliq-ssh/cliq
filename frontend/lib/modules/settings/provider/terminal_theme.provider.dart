@@ -2,7 +2,7 @@ import 'dart:ui';
 
 import 'package:cliq/modules/settings/provider/terminal_theme_service.provider.dart';
 import 'package:cliq/shared/data/database.dart';
-import 'package:easy_localization/easy_localization.dart';
+import 'package:cliq/shared/model/localized_exception.dart';
 import 'package:file_selector/file_selector.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:logging/logging.dart';
@@ -49,16 +49,18 @@ class CustomTerminalThemeNotifier
   static final logger = Logger('CustomTerminalThemeNotifier');
 
   /// Attempts to import the given [file] as a [CustomTerminalTheme]
-  /// If the file is null, not parsable, or fails to import for any reason, this method the i18n key of the error message.
-  Future<String?> tryImportCustomTerminalTheme(XFile file) async {
+  /// Throws a [LocalizedException] if the file is null, not parsable, or fails to import for any other reason.
+  Future<void> tryImportCustomTerminalTheme(XFile file) async {
     final content = await file.readAsString();
     final parser = TerminalThemeParser.getParser(file.name, content);
     if (parser == null) {
-      return 'terminal_themes_import_error.unrecognized_format'.tr();
+      throw LocalizedException(
+        'terminal_themes_import_error.unrecognized_format',
+      );
     }
     final theme = parser.tryParse(file.name, content);
     if (theme == null) {
-      return 'terminal_themes_import_error.parsing_failed'.tr();
+      throw LocalizedException('terminal_themes_import_error.parsing_failed');
     }
 
     try {
@@ -67,13 +69,12 @@ class CustomTerminalThemeNotifier
           .createCustomTerminalTheme(theme);
     } catch (e) {
       logger.warning('Failed to import terminal theme (${file.name}): $e');
-      return 'terminal_themes_import_error.generic'.tr();
+      throw LocalizedException('terminal_themes_import_error.generic');
     }
 
     logger.info(
       'Successfully imported terminal theme ${theme.name} from file ${file.name}',
     );
-    return null;
   }
 
   @override

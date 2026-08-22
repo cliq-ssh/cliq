@@ -108,7 +108,7 @@ void _handleError(Object error, StackTrace stackTrace) {
   debugPrint(stackTrace.toString());
 
   String errorMessage = error is LocalizedException
-      ? (error).tr(Router.rootNavigatorKey.currentContext!)
+      ? (error).tr(context: Router.rootNavigatorKey.currentContext!)
       : error.toString();
   if (errorMessage.length > 150) {
     errorMessage = '${errorMessage.substring(0, 150)}...';

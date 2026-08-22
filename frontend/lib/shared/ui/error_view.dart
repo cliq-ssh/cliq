@@ -19,7 +19,7 @@ class ErrorView extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final effectiveError = error is LocalizedException
-        ? (error as LocalizedException).tr(context)
+        ? (error as LocalizedException).tr(context: context)
         : error.toString();
 
     buildErrorDetailsCard(String content) {

@@ -296,8 +296,7 @@ class SyncProviderNotifier extends Notifier<SyncState> {
       password: password,
     );
     if (parser == null) {
-      // TODO: i18n
-      throw LocalizedException('settings.import.error.unrecognizedFormat');
+      throw LocalizedException('settings_import_error.unrecognized_format');
     }
 
     AppSettings? settings;
@@ -308,15 +307,14 @@ class SyncProviderNotifier extends Notifier<SyncState> {
     }
 
     if (settings == null) {
-      // TODO: i18n
-      throw LocalizedException('settings.import.error.parsingFailed');
+      throw LocalizedException('settings_import_error.parsing_failed');
     }
     return settings;
   }
 
   /// Validates the given [settings] for import and export operations.
-  /// Returns null if the settings are valid, or the i18n key of the error message if they are not.
-  String? validateSettings(AppSettings settings) {
+  /// Returns true if the settings are valid, or false if they are not.
+  bool validateSettings(AppSettings settings) {
     // check if any connection has an identity that is not in the identities list
     final identityIds =
         settings.identities?.map((e) => e.id.value).toSet() ?? <int>{};
@@ -324,11 +322,10 @@ class SyncProviderNotifier extends Notifier<SyncState> {
     for (final connection in settings.connections ?? <ConnectionsCompanion>[]) {
       if (connection.identityId.value != null &&
           !identityIds.contains(connection.identityId.value)) {
-        // TODO: i18n
-        return 'settings.import.error.missingIdentity';
+        return false;
       }
     }
-    return null;
+    return true;
   }
 
   /// Imports the given [toImport] settings into the vault with [vaultId].

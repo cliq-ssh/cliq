@@ -196,7 +196,6 @@
     "sync_export_password_description": "Zaszyfruj wyeksportowane ustawienia hasłem. Pozostaw puste, aby nie używać szyfrowania.",
     "sync_export_password_warning": "Ten eksport zawiera poufne dane, takie jak hasła i/lub klucze prywatne. Zdecydowanie zaleca się ustawienie hasła szyfrującego.",
     "sync_import": "Import",
-    "sync_import_error_encrypted": "Nie można otworzyć pliku, ponieważ jest zaszyfrowany",
     "sync_import_error_incorrect_password": "Nie można otworzyć pliku, ponieważ hasło jest nieprawidłowe",
     "sync_import_file": "Importuj z pliku",
     "sync_not_connected": "Niepołączono",

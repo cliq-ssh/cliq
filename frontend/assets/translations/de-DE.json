@@ -288,7 +288,6 @@
   "sync_host_url_placeholder": "https://example.com",
   "sync_host_url_subtitle": "Gebe die URL deines Sync-Server ein. Weitere Informationen zur Einrichtung eines solchen Servers findest du im Wiki.",
   "sync_import": "Import",
-  "sync_import_error_encrypted": "Die Datei konnte nicht geöffnet werden, da sie verschlüsselt ist",
   "sync_import_error_incorrect_password": "Die Datei konnte nicht geöffnet werden, da das Passwort ungültig ist",
   "sync_import_error_one_entity": "Bitte wähle mindestens eine Entität zum Importieren aus.",
   "sync_import_file": "Aus Datei importieren",
