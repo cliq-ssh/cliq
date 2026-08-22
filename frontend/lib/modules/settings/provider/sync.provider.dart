@@ -486,11 +486,13 @@ class SyncProviderNotifier extends Notifier<SyncState> {
           .toList(),
       customTerminalThemes: terminalThemes.entities
           // only themes that are used by connections
-          .where((e) => connections.entities.any(
-                (connection) =>
-                    connection.vaultId == vaultId &&
-                    connection.terminalThemeOverrideId == e.id,
-              ))
+          .where(
+            (e) => connections.entities.any(
+              (connection) =>
+                  connection.vaultId == vaultId &&
+                  connection.terminalThemeOverrideId == e.id,
+            ),
+          )
           .map((e) => e.toCompanion(true))
           .toList(),
       credentials: credentials
