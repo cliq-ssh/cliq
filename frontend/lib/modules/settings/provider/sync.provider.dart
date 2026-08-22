@@ -244,6 +244,7 @@ class SyncProviderNotifier extends Notifier<SyncState> {
   /// Pushes our local vault to the server, overwriting the server's vault with our local vault.
   /// This function should never be exposed to the end-user and only ever be used in combination with [pushVault].
   Future<bool> pushVault(DbId userVaultId) async {
+    if (state.api == null) return false;
     final dek = await StoreKey.syncDataEncryptionKey.readAsync();
     if (dek == null) {
       // this should never happen, dek is set on login
@@ -278,8 +279,9 @@ class SyncProviderNotifier extends Notifier<SyncState> {
         .read(vaultProvider.notifier)
         .findOrCreateUserVault(state.api!);
 
-    final pullResult = await pullVault(userVaultOverride: userVault);
-    if (!pullResult) return false;
+    if (await shouldPull()) {
+      await pullVault(userVaultOverride: userVault, ignoreShouldPull: true);
+    }
     return await pushVault(userVault.id);
   }
 
