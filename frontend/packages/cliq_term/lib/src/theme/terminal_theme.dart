@@ -1,12 +1,6 @@
 import 'dart:ui';
 
 class TerminalTheme {
-  final Color cursorColor;
-  final Color selectionColor;
-  final Color foregroundColor;
-  final Color backgroundColor;
-
-  // ansi colors
   final Color black;
   final Color red;
   final Color green;
@@ -24,11 +18,14 @@ class TerminalTheme {
   final Color brightCyan;
   final Color brightWhite;
 
+  final Color cursor;
+  final Color cursorText;
+  final Color background;
+  final Color foreground;
+  final Color selectionForeground;
+  final Color selectionBackground;
+
   const TerminalTheme({
-    required this.cursorColor,
-    required this.selectionColor,
-    required this.foregroundColor,
-    required this.backgroundColor,
     required this.black,
     required this.red,
     required this.green,
@@ -45,5 +42,11 @@ class TerminalTheme {
     required this.brightPurple,
     required this.brightCyan,
     required this.brightWhite,
+    required this.cursor,
+    required this.cursorText,
+    required this.background,
+    required this.foreground,
+    required this.selectionForeground,
+    required this.selectionBackground,
   });
 }

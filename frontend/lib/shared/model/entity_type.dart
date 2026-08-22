@@ -5,7 +5,8 @@ enum EntityType {
   connection(LucideIcons.server),
   identity(LucideIcons.users),
   key(LucideIcons.keyRound),
-  knownHost(LucideIcons.fingerprint);
+  knownHost(LucideIcons.fingerprint),
+  colorSchemes(LucideIcons.palette);
 
   final IconData icon;
   const EntityType(this.icon);

@@ -4,6 +4,7 @@ import '../../../connections/extension/connections_companion.extension.dart';
 import '../../../credentials/extension/credentials_companion.extension.dart';
 import '../../../identities/extension/identities_companion.extension.dart';
 import '../../../keys/extension/keys_companion.extension.dart';
+import '../../extension/custom_terminal_themes_companion.extension.dart';
 import '../../extension/known_hosts_companion.extension.dart';
 
 /// Data class representing the app settings for import/export operations and synchronization.
@@ -11,6 +12,7 @@ class AppSettings {
   final List<ConnectionsCompanion>? connections;
   final List<IdentitiesCompanion>? identities;
   final List<KnownHostsCompanion>? knownHosts;
+  final List<CustomTerminalThemesCompanion>? customTerminalThemes;
   final List<CredentialsCompanion>? credentials;
   final List<KeysCompanion>? keys;
 
@@ -21,6 +23,7 @@ class AppSettings {
     required this.connections,
     required this.identities,
     required this.knownHosts,
+    required this.customTerminalThemes,
     required this.credentials,
     required this.keys,
     required this.connectionsCredentialIds,
@@ -31,6 +34,7 @@ class AppSettings {
     : connections = null,
       identities = null,
       knownHosts = null,
+      customTerminalThemes = null,
       credentials = null,
       keys = null,
       connectionsCredentialIds = null,
@@ -61,6 +65,10 @@ class AppSettings {
       ),
       identities: parse(IdentitiesCompanionExtension.tryFromJson, 'identities'),
       knownHosts: parse(KnownHostsCompanionExtension.tryFromJson, 'knownHosts'),
+      customTerminalThemes: parse(
+        CustomTerminalThemesCompanionExtension.tryFromJson,
+        'customTerminalThemes',
+      ),
       credentials: parse(
         CredentialsCompanionExtension.tryFromJson,
         'credentials',
@@ -75,6 +83,7 @@ class AppSettings {
       (connections == null || connections!.isEmpty) &&
       (identities == null || identities!.isEmpty) &&
       (knownHosts == null || knownHosts!.isEmpty) &&
+      (customTerminalThemes == null || customTerminalThemes!.isEmpty) &&
       (credentials == null || credentials!.isEmpty) &&
       (keys == null || keys!.isEmpty);
 
@@ -97,6 +106,10 @@ class AppSettings {
         ),
       if (knownHosts?.isNotEmpty == true)
         'knownHosts': knownHosts!.map((k) => k.toJson()).toList(),
+      if (customTerminalThemes?.isNotEmpty == true)
+        'customTerminalThemes': customTerminalThemes!
+            .map((t) => t.toJson())
+            .toList(),
       if (credentials?.isNotEmpty == true)
         'credentials': credentials!.map((c) => c.toJson()).toList(),
       if (keys?.isNotEmpty == true)

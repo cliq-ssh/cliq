@@ -108,7 +108,7 @@ class NavigationShellState extends ConsumerState<NavigationShell>
           shortcut: KeyboardShortcut(.keyD, modifiers: {.control}),
         ),
         child: NavigationTab(
-          icon: Icon(LucideIcons.house),
+          icon: Icon(LucideIcons.layoutDashboard),
           selected: widget.shell.currentIndex == _dashboardBranchIndex,
           onPress: () {
             ref
@@ -468,7 +468,7 @@ class NavigationShellState extends ConsumerState<NavigationShell>
               },
               children: [
                 FBottomNavigationBarItem(
-                  icon: Icon(LucideIcons.house),
+                  icon: Icon(LucideIcons.layoutDashboard),
                   label: Text('dashboard'.tr()),
                 ),
                 FBottomNavigationBarItem(

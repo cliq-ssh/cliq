@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:cliq/shared/ui/create_or_edit_entity_view.dart';
+import 'package:cliq/shared/utils/commons.dart';
 import 'package:cliq/shared/utils/input_formatters.dart';
 import 'package:cliq/shared/utils/validators.dart';
 import 'package:drift/drift.dart' hide Column;
@@ -10,10 +11,10 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:forui/forui.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:lucide_flutter/lucide_flutter.dart';
 
 import '../../../shared/data/database.dart';
 import '../../../shared/extensions/color.extension.dart';
-import '../../../shared/extensions/text_controller.extension.dart';
 import '../provider/terminal_theme_service.provider.dart';
 
 class CreateOrEditTerminalThemeView extends HookConsumerWidget {
@@ -30,28 +31,28 @@ class CreateOrEditTerminalThemeView extends HookConsumerWidget {
   }) : current = CustomTerminalThemesCompanion(
          id: Value(themeEntity.id),
          name: Value(themeEntity.name),
-         blackColor: Value(themeEntity.blackColor),
-         redColor: Value(themeEntity.redColor),
-         greenColor: Value(themeEntity.greenColor),
-         yellowColor: Value(themeEntity.yellowColor),
-         blueColor: Value(themeEntity.blueColor),
-         purpleColor: Value(themeEntity.purpleColor),
-         cyanColor: Value(themeEntity.cyanColor),
-         whiteColor: Value(themeEntity.whiteColor),
-         brightBlackColor: Value(themeEntity.brightBlackColor),
-         brightRedColor: Value(themeEntity.brightRedColor),
-         brightGreenColor: Value(themeEntity.brightGreenColor),
-         brightYellowColor: Value(themeEntity.brightYellowColor),
-         brightBlueColor: Value(themeEntity.brightBlueColor),
-         brightPurpleColor: Value(themeEntity.brightPurpleColor),
-         brightCyanColor: Value(themeEntity.brightCyanColor),
-         brightWhiteColor: Value(themeEntity.brightWhiteColor),
-         foregroundColor: Value(themeEntity.foregroundColor),
-         backgroundColor: Value(themeEntity.backgroundColor),
-         cursorColor: Value(themeEntity.cursorColor),
-         selectionBackgroundColor: Value(themeEntity.selectionBackgroundColor),
-         selectionForegroundColor: Value(themeEntity.selectionForegroundColor),
-         cursorTextColor: Value(themeEntity.cursorTextColor),
+         black: Value(themeEntity.black),
+         red: Value(themeEntity.red),
+         green: Value(themeEntity.green),
+         yellow: Value(themeEntity.yellow),
+         blue: Value(themeEntity.blue),
+         purple: Value(themeEntity.purple),
+         cyan: Value(themeEntity.cyan),
+         white: Value(themeEntity.white),
+         brightBlack: Value(themeEntity.brightBlack),
+         brightRed: Value(themeEntity.brightRed),
+         brightGreen: Value(themeEntity.brightGreen),
+         brightYellow: Value(themeEntity.brightYellow),
+         brightBlue: Value(themeEntity.brightBlue),
+         brightPurple: Value(themeEntity.brightPurple),
+         brightCyan: Value(themeEntity.brightCyan),
+         brightWhite: Value(themeEntity.brightWhite),
+         foreground: Value(themeEntity.foreground),
+         background: Value(themeEntity.background),
+         cursor: Value(themeEntity.cursor),
+         cursorText: Value(themeEntity.cursorText),
+         selectionBackground: Value(themeEntity.selectionBackground),
+         selectionForeground: Value(themeEntity.selectionForeground),
        ),
        isEdit = true;
 
@@ -60,192 +61,178 @@ class CreateOrEditTerminalThemeView extends HookConsumerWidget {
     final formKey = useMemoized(() => GlobalKey<FormState>());
 
     final nameCtrl = useTextEditingController(text: current?.name.value);
-    final blackColorCtrl = useTextEditingController(
-      text: current?.blackColor.value.toHex(),
+    final blackCtrl = useTextEditingController(
+      text: current?.black.value.toHex(),
     );
-    final redColorCtrl = useTextEditingController(
-      text: current?.redColor.value.toHex(),
+    final redCtrl = useTextEditingController(text: current?.red.value.toHex());
+    final greenCtrl = useTextEditingController(
+      text: current?.green.value.toHex(),
     );
-    final greenColorCtrl = useTextEditingController(
-      text: current?.greenColor.value.toHex(),
+    final yellowCtrl = useTextEditingController(
+      text: current?.yellow.value.toHex(),
     );
-    final yellowColorCtrl = useTextEditingController(
-      text: current?.yellowColor.value.toHex(),
+    final blueCtrl = useTextEditingController(
+      text: current?.blue.value.toHex(),
     );
-    final blueColorCtrl = useTextEditingController(
-      text: current?.blueColor.value.toHex(),
+    final purpleCtrl = useTextEditingController(
+      text: current?.purple.value.toHex(),
     );
-    final purpleColorCtrl = useTextEditingController(
-      text: current?.purpleColor.value.toHex(),
+    final cyanCtrl = useTextEditingController(
+      text: current?.cyan.value.toHex(),
     );
-    final cyanColorCtrl = useTextEditingController(
-      text: current?.cyanColor.value.toHex(),
+    final whiteCtrl = useTextEditingController(
+      text: current?.white.value.toHex(),
     );
-    final whiteColorCtrl = useTextEditingController(
-      text: current?.whiteColor.value.toHex(),
+    final brightBlackCtrl = useTextEditingController(
+      text: current?.brightBlack.value.toHex(),
     );
-    final brightBlackColorCtrl = useTextEditingController(
-      text: current?.brightBlackColor.value.toHex(),
+    final brightRedCtrl = useTextEditingController(
+      text: current?.brightRed.value.toHex(),
     );
-    final brightRedColorCtrl = useTextEditingController(
-      text: current?.brightRedColor.value.toHex(),
+    final brightGreenCtrl = useTextEditingController(
+      text: current?.brightGreen.value.toHex(),
     );
-    final brightGreenColorCtrl = useTextEditingController(
-      text: current?.brightGreenColor.value.toHex(),
+    final brightYellowCtrl = useTextEditingController(
+      text: current?.brightYellow.value.toHex(),
     );
-    final brightYellowColorCtrl = useTextEditingController(
-      text: current?.brightYellowColor.value.toHex(),
+    final brightBlueCtrl = useTextEditingController(
+      text: current?.brightBlue.value.toHex(),
     );
-    final brightBlueColorCtrl = useTextEditingController(
-      text: current?.brightBlueColor.value.toHex(),
+    final brightPurpleCtrl = useTextEditingController(
+      text: current?.brightPurple.value.toHex(),
     );
-    final brightPurpleColorCtrl = useTextEditingController(
-      text: current?.brightPurpleColor.value.toHex(),
+    final brightCyanCtrl = useTextEditingController(
+      text: current?.brightCyan.value.toHex(),
     );
-    final brightCyanColorCtrl = useTextEditingController(
-      text: current?.brightCyanColor.value.toHex(),
+    final brightWhiteCtrl = useTextEditingController(
+      text: current?.brightWhite.value.toHex(),
     );
-    final brightWhiteColorCtrl = useTextEditingController(
-      text: current?.brightWhiteColor.value.toHex(),
+    final foregroundCtrl = useTextEditingController(
+      text: current?.foreground.value.toHex(),
     );
-    final foregroundColorCtrl = useTextEditingController(
-      text: current?.foregroundColor.value.toHex(),
+    final backgroundCtrl = useTextEditingController(
+      text: current?.background.value.toHex(),
     );
-    final backgroundColorCtrl = useTextEditingController(
-      text: current?.backgroundColor.value.toHex(),
+    final cursorCtrl = useTextEditingController(
+      text: current?.cursor.value.toHex(),
     );
-    final cursorColorCtrl = useTextEditingController(
-      text: current?.cursorColor.value.toHex(),
+    final cursorTextCtrl = useTextEditingController(
+      text: current?.cursorText.value.toHex(),
     );
-    final selectionBackgroundColorCtrl = useTextEditingController(
-      text: current?.selectionBackgroundColor.value.toHex(),
+    final selectionBackgroundCtrl = useTextEditingController(
+      text: current?.selectionBackground.value.toHex(),
     );
-    final selectionForegroundColorCtrl = useTextEditingController(
-      text: current?.selectionForegroundColor.value?.toHex(),
-    );
-    final cursorTextColorCtrl = useTextEditingController(
-      text: current?.cursorTextColor.value?.toHex(),
+    final selectionForegroundCtrl = useTextEditingController(
+      text: current?.selectionForeground.value.toHex(),
     );
 
     /// Handles the save action for the form.
     Future<void> onSave() async {
       if (!(formKey.currentState?.validate() ?? false)) return;
 
-      final Color? blackColor = ColorExtension.fromHex(blackColorCtrl.text);
-      final Color? redColor = ColorExtension.fromHex(redColorCtrl.text);
-      final Color? greenColor = ColorExtension.fromHex(greenColorCtrl.text);
-      final Color? yellowColor = ColorExtension.fromHex(yellowColorCtrl.text);
-      final Color? blueColor = ColorExtension.fromHex(blueColorCtrl.text);
-      final Color? purpleColor = ColorExtension.fromHex(purpleColorCtrl.text);
-      final Color? cyanColor = ColorExtension.fromHex(cyanColorCtrl.text);
-      final Color? whiteColor = ColorExtension.fromHex(whiteColorCtrl.text);
-      final Color? brightBlackColor = ColorExtension.fromHex(
-        brightBlackColorCtrl.text,
+      final name = nameCtrl.text.trim();
+
+      final black = ColorExtension.fromHex(blackCtrl.text)!;
+      final red = ColorExtension.fromHex(redCtrl.text)!;
+      final green = ColorExtension.fromHex(greenCtrl.text)!;
+      final yellow = ColorExtension.fromHex(yellowCtrl.text)!;
+      final blue = ColorExtension.fromHex(blueCtrl.text)!;
+      final purple = ColorExtension.fromHex(purpleCtrl.text)!;
+      final cyan = ColorExtension.fromHex(cyanCtrl.text)!;
+      final white = ColorExtension.fromHex(whiteCtrl.text)!;
+      final brightBlack = ColorExtension.fromHex(brightBlackCtrl.text)!;
+      final brightRed = ColorExtension.fromHex(brightRedCtrl.text)!;
+      final brightGreen = ColorExtension.fromHex(brightGreenCtrl.text)!;
+      final brightYellow = ColorExtension.fromHex(brightYellowCtrl.text)!;
+      final brightBlue = ColorExtension.fromHex(brightBlueCtrl.text)!;
+      final brightPurple = ColorExtension.fromHex(brightPurpleCtrl.text)!;
+      final brightCyan = ColorExtension.fromHex(brightCyanCtrl.text)!;
+      final brightWhite = ColorExtension.fromHex(brightWhiteCtrl.text)!;
+      final background = ColorExtension.fromHex(backgroundCtrl.text)!;
+      final foreground = ColorExtension.fromHex(foregroundCtrl.text)!;
+      final cursor = ColorExtension.fromHex(cursorCtrl.text)!;
+      final cursorText = ColorExtension.fromHex(cursorTextCtrl.text)!;
+      final selectionBackground = ColorExtension.fromHex(
+        selectionBackgroundCtrl.text,
+      )!;
+      final selectionForeground = ColorExtension.fromHex(
+        selectionForegroundCtrl.text,
+      )!;
+
+      final CustomTerminalThemesCompanion toInsert = .insert(
+        name: name,
+        black: black,
+        red: red,
+        green: green,
+        yellow: yellow,
+        blue: blue,
+        purple: purple,
+        cyan: cyan,
+        white: white,
+        brightBlack: brightBlack,
+        brightRed: brightRed,
+        brightGreen: brightGreen,
+        brightYellow: brightYellow,
+        brightBlue: brightBlue,
+        brightPurple: brightPurple,
+        brightCyan: brightCyan,
+        brightWhite: brightWhite,
+        foreground: foreground,
+        background: background,
+        cursor: cursor,
+        cursorText: cursorText,
+        selectionBackground: selectionBackground,
+        selectionForeground: selectionForeground,
       );
-      final Color? brightRedColor = ColorExtension.fromHex(
-        brightRedColorCtrl.text,
-      );
-      final Color? brightGreenColor = ColorExtension.fromHex(
-        brightGreenColorCtrl.text,
-      );
-      final Color? brightYellowColor = ColorExtension.fromHex(
-        brightYellowColorCtrl.text,
-      );
-      final Color? brightBlueColor = ColorExtension.fromHex(
-        brightBlueColorCtrl.text,
-      );
-      final Color? brightPurpleColor = ColorExtension.fromHex(
-        brightPurpleColorCtrl.text,
-      );
-      final Color? brightCyanColor = ColorExtension.fromHex(
-        brightCyanColorCtrl.text,
-      );
-      final Color? brightWhiteColor = ColorExtension.fromHex(
-        brightWhiteColorCtrl.text,
-      );
-      final Color? foregroundColor = ColorExtension.fromHex(
-        foregroundColorCtrl.text,
-      );
-      final Color? backgroundColor = ColorExtension.fromHex(
-        backgroundColorCtrl.text,
-      );
-      final Color? cursorColor = ColorExtension.fromHex(cursorColorCtrl.text);
-      final Color? selectionBackgroundColor = ColorExtension.fromHex(
-        selectionBackgroundColorCtrl.text,
-      );
-      final Color? selectionForegroundColor = ColorExtension.fromHex(
-        selectionForegroundColorCtrl.text,
-      );
-      final Color? cursorTextColor = ColorExtension.fromHex(
-        cursorTextColorCtrl.text,
-      );
+
+      final doesExist = await ref
+          .read(terminalThemeServiceProvider)
+          .doesExist(colorScheme: toInsert);
+
+      if (doesExist) {
+        Commons.showToast(
+          'terminal_themes_already_exist'.tr(),
+          prefix: Icon(LucideIcons.fileExclamationPoint),
+        );
+        return;
+      }
 
       final terminalThemeService = ref.read(terminalThemeServiceProvider);
       final themeId = isEdit
           ? await terminalThemeService.update(
               current!.id.value,
-              name: nameCtrl.textOrNull,
-              black: blackColor,
-              red: redColor,
-              green: greenColor,
-              yellow: yellowColor,
-              blue: blueColor,
-              purple: purpleColor,
-              cyan: cyanColor,
-              white: whiteColor,
-              brightBlack: brightBlackColor,
-              brightRed: brightRedColor,
-              brightGreen: brightGreenColor,
-              brightYellow: brightYellowColor,
-              brightBlue: brightBlueColor,
-              brightPurple: brightPurpleColor,
-              brightCyan: brightCyanColor,
-              brightWhite: brightWhiteColor,
-              background: backgroundColor,
-              foreground: foregroundColor,
-              cursorColor: cursorColor,
-              selectionBackground: selectionBackgroundColor,
-              selectionForeground: selectionForegroundColor,
-              cursorTextColor: cursorTextColor,
+              name: name,
+              black: black,
+              red: red,
+              green: green,
+              yellow: yellow,
+              blue: blue,
+              purple: purple,
+              cyan: cyan,
+              white: white,
+              brightBlack: brightBlack,
+              brightRed: brightRed,
+              brightGreen: brightGreen,
+              brightYellow: brightYellow,
+              brightBlue: brightBlue,
+              brightPurple: brightPurple,
+              brightCyan: brightCyan,
+              brightWhite: brightWhite,
+              background: background,
+              foreground: foreground,
+              cursor: cursor,
+              cursorText: cursorText,
+              selectionBackground: selectionBackground,
+              selectionForeground: selectionForeground,
               compareTo: current,
             )
-          : await terminalThemeService.createCustomTerminalTheme(
-              CustomTerminalThemesCompanion.insert(
-                name: nameCtrl.text.trim(),
-                blackColor: blackColor!,
-                redColor: redColor!,
-                greenColor: greenColor!,
-                yellowColor: yellowColor!,
-                blueColor: blueColor!,
-                purpleColor: purpleColor!,
-                cyanColor: cyanColor!,
-                whiteColor: whiteColor!,
-                brightBlackColor: brightBlackColor!,
-                brightRedColor: brightRedColor!,
-                brightGreenColor: brightGreenColor!,
-                brightYellowColor: brightYellowColor!,
-                brightBlueColor: brightBlueColor!,
-                brightPurpleColor: brightPurpleColor!,
-                brightCyanColor: brightCyanColor!,
-                brightWhiteColor: brightWhiteColor!,
-                foregroundColor: foregroundColor!,
-                backgroundColor: backgroundColor!,
-                cursorColor: cursorColor!,
-                selectionBackgroundColor: selectionBackgroundColor!,
-                selectionForegroundColor: Value(selectionForegroundColor),
-                cursorTextColor: Value(cursorTextColor),
-              ),
-            );
+          : await terminalThemeService.createCustomTerminalTheme(toInsert);
 
       if (!context.mounted) return;
       context.pop(themeId);
     }
 
-    buildHexColorField(
-      String labelKey,
-      TextEditingController controller, {
-      bool required = true,
-    }) {
+    buildHexColorField(String labelKey, TextEditingController controller) {
       return LayoutBuilder(
         builder: (context, constraints) {
           const gridSize = 2;
@@ -284,12 +271,10 @@ class CreateOrEditTerminalThemeView extends HookConsumerWidget {
                         hint: 'terminal_themes_theme_add_color_placeholder'
                             .tr(),
                         validator: (value) => Validators.chain(context, [
-                          if (required) Validators.nonEmpty,
+                          Validators.nonEmpty,
                           Validators.hexColor,
                         ], value),
-                        inputFormatters: required
-                            ? InputFormatters.hex()
-                            : null,
+                        inputFormatters: InputFormatters.hex(),
                         autovalidateMode: .onUserInteraction,
                       ),
                     ),
@@ -322,45 +307,33 @@ class CreateOrEditTerminalThemeView extends HookConsumerWidget {
               spacing: 16,
               runSpacing: 16,
               children: [
-                buildHexColorField('black', blackColorCtrl),
-                buildHexColorField('red', redColorCtrl),
-                buildHexColorField('green', greenColorCtrl),
-                buildHexColorField('yellow', yellowColorCtrl),
-                buildHexColorField('blue', blueColorCtrl),
-                buildHexColorField('purple', purpleColorCtrl),
-                buildHexColorField('cyan', cyanColorCtrl),
-                buildHexColorField('white', whiteColorCtrl),
-                buildHexColorField('bright_black', brightBlackColorCtrl),
-                buildHexColorField('bright_red', brightRedColorCtrl),
-                buildHexColorField('bright_green', brightGreenColorCtrl),
-                buildHexColorField('bright_yellow', brightYellowColorCtrl),
-                buildHexColorField('bright_blue', brightBlueColorCtrl),
-                buildHexColorField('bright_purple', brightPurpleColorCtrl),
-                buildHexColorField('bright_cyan', brightCyanColorCtrl),
-                buildHexColorField('bright_white', brightWhiteColorCtrl),
-                buildHexColorField('foreground', foregroundColorCtrl),
-                buildHexColorField('background', backgroundColorCtrl),
-                buildHexColorField('cursor', cursorColorCtrl),
-                buildHexColorField(
-                  'selection_background',
-                  selectionBackgroundColorCtrl,
-                ),
-              ],
-            ),
-            const FDivider(),
-            Wrap(
-              spacing: 16,
-              runSpacing: 16,
-              children: [
+                buildHexColorField('black', blackCtrl),
+                buildHexColorField('red', redCtrl),
+                buildHexColorField('green', greenCtrl),
+                buildHexColorField('yellow', yellowCtrl),
+                buildHexColorField('blue', blueCtrl),
+                buildHexColorField('purple', purpleCtrl),
+                buildHexColorField('cyan', cyanCtrl),
+                buildHexColorField('white', whiteCtrl),
+                buildHexColorField('bright_black', brightBlackCtrl),
+                buildHexColorField('bright_red', brightRedCtrl),
+                buildHexColorField('bright_green', brightGreenCtrl),
+                buildHexColorField('bright_yellow', brightYellowCtrl),
+                buildHexColorField('bright_blue', brightBlueCtrl),
+                buildHexColorField('bright_purple', brightPurpleCtrl),
+                buildHexColorField('bright_cyan', brightCyanCtrl),
+                buildHexColorField('bright_white', brightWhiteCtrl),
+                buildHexColorField('foreground', foregroundCtrl),
+                buildHexColorField('background', backgroundCtrl),
+                buildHexColorField('cursor', cursorCtrl),
+                buildHexColorField('cursor_text', cursorTextCtrl),
                 buildHexColorField(
                   'selection_foreground',
-                  selectionForegroundColorCtrl,
-                  required: false,
+                  selectionForegroundCtrl,
                 ),
                 buildHexColorField(
-                  'cursor_text',
-                  cursorTextColorCtrl,
-                  required: false,
+                  'selection_background',
+                  selectionBackgroundCtrl,
                 ),
               ],
             ),

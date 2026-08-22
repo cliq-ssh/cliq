@@ -6,5 +6,5 @@ class LocalizedException implements Exception {
 
   const LocalizedException(this.key);
 
-  String tr(BuildContext context) => key.tr();
+  String tr({BuildContext? context}) => key.tr(context: context);
 }

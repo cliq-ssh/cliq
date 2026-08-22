@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:cliq/shared/model/localized_exception.dart';
 import 'package:cliq/shared/ui/horizontal_dialog.dart';
 import 'package:cliq/modules/settings/model/settings_importer/settings_importer.dart';
 import 'package:cliq/modules/settings/model/theme_parser/terminal_theme_parser.dart';
@@ -180,6 +181,16 @@ final class Commons {
   static Future<void> showCliqException(CliqException exception) async {
     return showToast(
       'api_error_codes.${exception.errorCode}'.tr(),
+      prefix: Icon(LucideIcons.alertCircle),
+      variant: .destructive,
+    );
+  }
+
+  static Future<void> showLocalizedException(
+    LocalizedException exception,
+  ) async {
+    return showToast(
+      exception.tr(),
       prefix: Icon(LucideIcons.alertCircle),
       variant: .destructive,
     );

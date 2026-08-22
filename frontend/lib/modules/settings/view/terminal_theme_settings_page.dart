@@ -1,5 +1,7 @@
 import 'package:cliq/modules/settings/extension/custom_terminal_theme.extension.dart';
+import 'package:cliq/modules/settings/ui/color_scheme_browser_dialog.dart';
 import 'package:cliq/modules/settings/view/create_or_edit_terminal_theme_view.dart';
+import 'package:cliq/shared/model/localized_exception.dart';
 import 'package:cliq/shared/ui/terminal_font_family_select.dart';
 import 'package:cliq/shared/ui/terminal_font_size_slider.dart';
 import 'package:cliq/modules/settings/ui/terminal_theme_card.dart';
@@ -7,21 +9,27 @@ import 'package:cliq/modules/settings/view/abstract_settings_page.dart';
 import 'package:cliq/modules/settings/view/settings_page.dart';
 import 'package:cliq/shared/data/store.dart';
 import 'package:cliq/shared/utils/commons.dart';
+import 'package:cliq/shared/utils/text_utils.dart';
 import 'package:cliq_term/cliq_term.dart';
 import 'package:cliq_ui/cliq_ui.dart'
     show CliqGridColumn, CliqGridContainer, CliqGridRow;
+import 'package:cliq_ui/hooks/use_breakpoint.export.dart' show useBreakpoint;
 import 'package:easy_localization/easy_localization.dart';
 import 'package:file_selector/file_selector.dart';
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' hide Router;
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:forui/forui.dart';
+import 'package:forui_hooks/forui_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lucide_flutter/lucide_flutter.dart';
 
 import '../../../shared/data/database.dart';
 import '../../../shared/model/page_path.model.dart';
 import '../../../shared/utils/platform_utils.dart';
+import '../../connections/provider/connection.provider.dart';
+import '../../connections/ui/connection_icon.dart';
 import '../provider/terminal_theme.provider.dart';
+import '../provider/terminal_theme_service.provider.dart';
 
 class TerminalThemeSettingsPage extends AbstractSettingsPage {
   static const PagePathBuilder pagePath = PagePathBuilder.child(
@@ -66,7 +74,12 @@ class TerminalThemeSettingsPage extends AbstractSettingsPage {
 
   @override
   Widget buildBody(BuildContext context, WidgetRef ref) {
+    final breakpoint = useBreakpoint();
+    final popoverController = useFPopoverController();
+
     final terminalThemes = ref.watch(terminalThemeProvider);
+    final connections = ref.watch(connectionProvider);
+
     final terminalController = useState<TerminalController?>(null);
     final selectedFontFamily = useState<String>(
       StoreKey.defaultTerminalTypography.readSync()?.fontFamily ??
@@ -77,6 +90,11 @@ class TerminalThemeSettingsPage extends AbstractSettingsPage {
     );
     final selectedThemeId = useState<DbId>(
       StoreKey.defaultTerminalThemeId.readSync()!,
+    );
+
+    final subtitleStyle = context.theme.typography.body.xs.copyWith(
+      color: context.theme.colors.mutedForeground,
+      fontWeight: .normal,
     );
 
     getSelectedTheme() => terminalThemes.findById(selectedThemeId.value)!;
@@ -121,6 +139,127 @@ class TerminalThemeSettingsPage extends AbstractSettingsPage {
       context: context,
     );
 
+    openBrowser() async {
+      await showFDialog(
+        context: context,
+        builder: (_, style, animation) => ColorSchemeBrowserDialog(
+          style: style,
+          animation: animation,
+          onImport: (colorScheme) async {
+            final terminalThemeService = ref.read(terminalThemeServiceProvider);
+
+            final doesExist = await terminalThemeService.doesExist(
+              colorScheme: colorScheme,
+            );
+
+            if (doesExist) {
+              Commons.showToast(
+                'terminal_themes_already_exist'.tr(),
+                prefix: Icon(LucideIcons.messageCircleWarning),
+              );
+              return;
+            }
+
+            await terminalThemeService.createCustomTerminalTheme(colorScheme);
+            Commons.showToast(
+              'terminal_themes_import_success'.tr(),
+              prefix: Icon(LucideIcons.circleCheck),
+            );
+          },
+        ),
+      );
+    }
+
+    importFile() async {
+      final opened = await openFile(
+        acceptedTypeGroups: [Commons.getCustomTerminalThemeGroup(context)],
+      );
+      if (opened == null) return;
+
+      try {
+        await ref
+            .read(terminalThemeProvider.notifier)
+            .tryImportCustomTerminalTheme(opened);
+      } on LocalizedException catch (e) {
+        Commons.showLocalizedException(e);
+        return;
+      }
+      if (!context.mounted) return;
+
+      showFToast(
+        context: context,
+        icon: Icon(LucideIcons.circleCheck),
+        title: Text('terminal_themes_import_success'.tr()),
+      );
+    }
+
+    getConnectionsWithOverrides() {
+      hasThemeOverride(c) => c.terminalThemeOverride != null;
+      hasTypographyOverride(c) => c.terminalTypographyOverride != null;
+
+      final withOverrides = connections.entities
+          .where((c) => hasThemeOverride(c) || hasTypographyOverride(c))
+          .toList();
+      return [
+        for (final connection in withOverrides)
+          FTile(
+            prefix: ConnectionIcon.fromConnection(
+              connection,
+              borderRadius: 10,
+              size: 16,
+              padding: 8,
+            ),
+            suffix: FTooltip(
+              tipBuilder: (_, _) =>
+                  Text('terminal_themes_overrides_revert'.tr()),
+              child: FButton.icon(
+                onPress: () async {
+                  await ref
+                      .read(connectionProvider.notifier)
+                      .resetOverrides(connection.id);
+                },
+                child: Icon(LucideIcons.undo2),
+              ),
+            ),
+            title: Text(connection.label),
+            subtitle: Column(
+              children: [
+                if (hasThemeOverride(connection))
+                  Row(
+                    spacing: 4,
+                    children: [
+                      Icon(
+                        LucideIcons.swatchBook,
+                        size: subtitleStyle.fontSize,
+                        color: subtitleStyle.color,
+                      ),
+                      Text(
+                        connection.terminalThemeOverride!.name,
+                        style: subtitleStyle,
+                      ),
+                    ],
+                  ),
+                if (hasTypographyOverride(connection))
+                  Row(
+                    spacing: 4,
+                    children: [
+                      Icon(
+                        LucideIcons.baseline,
+                        size: subtitleStyle.fontSize,
+                        color: subtitleStyle.color,
+                      ),
+                      Text(
+                        '${connection.terminalTypographyOverride!.fontFamily}, ${connection.terminalTypographyOverride!.fontSize}px',
+                        style: subtitleStyle,
+                      ),
+                    ],
+                  ),
+              ],
+            ),
+          ),
+      ];
+    }
+
     return SingleChildScrollView(
       padding: const EdgeInsets.only(bottom: 60),
       child: CliqGridContainer(
@@ -136,7 +275,7 @@ class TerminalThemeSettingsPage extends AbstractSettingsPage {
                         width: double.infinity,
                         height: 200,
                         padding: const .all(8),
-                        color: getSelectedTheme().backgroundColor,
+                        color: getSelectedTheme().background,
                         child: LayoutBuilder(
                           builder: (_, constraints) {
                             WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -157,66 +296,92 @@ class TerminalThemeSettingsPage extends AbstractSettingsPage {
                     TerminalFontSizeSlider(
                       selectedFontSize: selectedFontSize.value,
                       onEnd: (value) => selectedFontSize.value = value,
+                      isDefault: true,
                     ),
                     TerminalFontFamilySelect(
                       selectedFontFamily: selectedFontFamily.value,
                       onChange: (selected) =>
                           selectedFontFamily.value = selected,
+                      isDefault: true,
                     ),
                     FLabel(
                       label: Row(
                         mainAxisAlignment: .spaceBetween,
                         crossAxisAlignment: .end,
                         children: [
-                          Text('terminal_themes_theme'.tr()),
-                          Row(
-                            children: [
-                              FButton(
-                                variant: .ghost,
-                                prefix: Icon(LucideIcons.plus),
-                                onPress: create,
-                                child: Text('terminal_themes_theme_add'.tr()),
-                              ),
-                              FButton(
-                                variant: .ghost,
-                                prefix: Icon(LucideIcons.folderOpen),
-                                onPress: () async {
-                                  final error = await ref
-                                      .read(terminalThemeProvider.notifier)
-                                      .tryImportCustomTerminalTheme(
-                                        await openFile(
-                                          acceptedTypeGroups: [
-                                            Commons.getCustomTerminalThemeGroup(
-                                              context,
-                                            ),
-                                          ],
-                                        ),
-                                      );
-
-                                  if (!context.mounted) return;
-                                  if (error != null) {
-                                    showFToast(
-                                      context: context,
-                                      icon: Icon(LucideIcons.circleX),
+                          Text('default_color_scheme'.tr()),
+                          if (breakpoint > .md)
+                            Row(
+                              children: [
+                                FButton(
+                                  variant: .ghost,
+                                  prefix: Icon(LucideIcons.plus),
+                                  onPress: create,
+                                  child: Text('terminal_themes_theme_add'.tr()),
+                                ),
+                                FButton(
+                                  variant: .ghost,
+                                  prefix: Icon(LucideIcons.swatchBook),
+                                  onPress: openBrowser,
+                                  child: Text(
+                                    'terminal_themes_theme_browser'.tr(),
+                                  ),
+                                ),
+                                FButton(
+                                  variant: .ghost,
+                                  prefix: Icon(LucideIcons.folderOpen),
+                                  onPress: importFile,
+                                  child: Text('terminal_themes_import'.tr()),
+                                ),
+                              ],
+                            )
+                          else
+                            FPopoverMenu.tiles(
+                              control: .managed(controller: popoverController),
+                              menu: [
+                                .group(
+                                  children: [
+                                    .tile(
                                       title: Text(
-                                        'terminal_themes_import_error'.tr(),
+                                        'terminal_themes_theme_add'.tr(),
                                       ),
-                                      description: Text(error),
-                                    );
-                                    return;
-                                  }
-                                  showFToast(
-                                    context: context,
-                                    icon: Icon(LucideIcons.circleCheck),
-                                    title: Text(
-                                      'terminal_themes_import_success'.tr(),
+                                      prefix: Icon(LucideIcons.plus),
+                                      onPress: () async {
+                                        await popoverController.hide();
+                                        create();
+                                      },
                                     ),
-                                  );
-                                },
-                                child: Text('terminal_themes_import'.tr()),
-                              ),
-                            ],
-                          ),
+                                    .tile(
+                                      title: Text(
+                                        'terminal_themes_theme_browser'.tr(),
+                                      ),
+                                      prefix: Icon(LucideIcons.swatchBook),
+                                      onPress: () async {
+                                        await popoverController.hide();
+                                        openBrowser();
+                                      },
+                                    ),
+                                    .tile(
+                                      title: Text(
+                                        'terminal_themes_import'.tr(),
+                                      ),
+                                      prefix: Icon(LucideIcons.folderOpen),
+                                      onPress: () async {
+                                        await popoverController.hide();
+                                        importFile();
+                                      },
+                                    ),
+                                  ],
+                                ),
+                              ],
+                              builder: (_, controller, _) {
+                                return FButton.icon(
+                                  variant: .ghost,
+                                  onPress: controller.toggle,
+                                  child: Icon(LucideIcons.ellipsis),
+                                );
+                              },
+                            ),
                         ],
                       ),
                       layout: .vertical,
@@ -245,6 +410,29 @@ class TerminalThemeSettingsPage extends AbstractSettingsPage {
                             ),
                         ],
                       ),
+                    ),
+
+                    Builder(
+                      builder: (context) {
+                        final children = getConnectionsWithOverrides();
+                        if (children.isEmpty) {
+                          return const SizedBox.shrink();
+                        }
+
+                        return FTileGroup(
+                          label: Text('terminal_themes_overrides'.tr()),
+                          description: Text.rich(
+                            TextSpan(
+                              children: TextUtils.renderText(
+                                context,
+                                'terminal_themes_overrides_description'.tr(),
+                                style: subtitleStyle,
+                              ),
+                            ),
+                          ),
+                          children: children,
+                        );
+                      },
                     ),
                   ],
                 ),

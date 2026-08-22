@@ -4,7 +4,6 @@ import 'dart:ui';
 import 'package:cliq/modules/settings/model/theme_parser/terminal_theme_parser.dart';
 import 'package:cliq/shared/data/database.dart';
 import 'package:cliq/shared/extensions/color.extension.dart';
-import 'package:drift/drift.dart';
 import 'package:logging/logging.dart';
 
 /// Parses a `.conf` Kitty Terminal Theme
@@ -113,28 +112,28 @@ class KittyTerminalThemeParser extends AbstractTerminalThemeParser {
     try {
       return CustomTerminalThemesCompanion.insert(
         name: themeName,
-        blackColor: colorMap['color0']!,
-        redColor: colorMap['color1']!,
-        greenColor: colorMap['color2']!,
-        yellowColor: colorMap['color3']!,
-        blueColor: colorMap['color4']!,
-        purpleColor: colorMap['color5']!,
-        cyanColor: colorMap['color6']!,
-        whiteColor: colorMap['color7']!,
-        brightBlackColor: colorMap['color8']!,
-        brightRedColor: colorMap['color9']!,
-        brightGreenColor: colorMap['color10']!,
-        brightYellowColor: colorMap['color11']!,
-        brightBlueColor: colorMap['color12']!,
-        brightPurpleColor: colorMap['color13']!,
-        brightCyanColor: colorMap['color14']!,
-        brightWhiteColor: colorMap['color15']!,
-        backgroundColor: colorMap['background']!,
-        foregroundColor: colorMap['foreground']!,
-        cursorColor: colorMap['cursor']!,
-        selectionBackgroundColor: colorMap['selection_background']!,
-        selectionForegroundColor: Value(colorMap['selection_foreground']!),
-        cursorTextColor: Value(colorMap['cursor_text_color']),
+        black: colorMap['color0']!,
+        red: colorMap['color1']!,
+        green: colorMap['color2']!,
+        yellow: colorMap['color3']!,
+        blue: colorMap['color4']!,
+        purple: colorMap['color5']!,
+        cyan: colorMap['color6']!,
+        white: colorMap['color7']!,
+        brightBlack: colorMap['color8']!,
+        brightRed: colorMap['color9']!,
+        brightGreen: colorMap['color10']!,
+        brightYellow: colorMap['color11']!,
+        brightBlue: colorMap['color12']!,
+        brightPurple: colorMap['color13']!,
+        brightCyan: colorMap['color14']!,
+        brightWhite: colorMap['color15']!,
+        background: colorMap['background']!,
+        foreground: colorMap['foreground']!,
+        cursor: colorMap['cursor']!,
+        cursorText: colorMap['cursor_text_color']!,
+        selectionForeground: colorMap['selection_foreground']!,
+        selectionBackground: colorMap['selection_background']!,
       );
     } catch (e) {
       logger.warning('Failed to parse theme $fileName: $e');

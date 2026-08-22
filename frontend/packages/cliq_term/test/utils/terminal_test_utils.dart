@@ -4,27 +4,31 @@ import 'package:cliq_term/cliq_term.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 class TerminalTestUtils {
+  /// Dracula
+  /// https://github.com/mbadolato/iTerm2-Color-Schemes/blob/0173c3cc154aab5d43b03241286d32372a87dec6/kitty/Dracula.conf
   static const _defaultTheme = TerminalTheme(
-    backgroundColor: Color(0xFF000000),
-    foregroundColor: Color(0xFFFFFFFF),
-    cursorColor: Color(0xFFFFFFFF),
-    selectionColor: Color(0xFF555555),
-    black: Color(0xFF000000),
+    black: Color(0xFF21222C),
     red: Color(0xFFFF5555),
-    green: Color(0xFF55FF55),
-    yellow: Color(0xFFFFFF55),
-    blue: Color(0xFF5555FF),
-    purple: Color(0xFFFF55FF),
-    cyan: Color(0xFF55FFFF),
-    white: Color(0xFFFFFFFF),
-    brightBlack: Color(0xFF555555),
-    brightRed: Color(0xFFFF5555),
-    brightGreen: Color(0xFF55FF55),
-    brightYellow: Color(0xFFFFFF55),
-    brightBlue: Color(0xFF5555FF),
-    brightPurple: Color(0xFFFF55FF),
-    brightCyan: Color(0xFF55FFFF),
+    green: Color(0xFF50FA7B),
+    yellow: Color(0xFFF1FA8C),
+    blue: Color(0xFFBD93F9),
+    purple: Color(0xFFFF79C6),
+    cyan: Color(0xFF8BE9FD),
+    white: Color(0xFFF8F8F2),
+    brightBlack: Color(0xFF6272A4),
+    brightRed: Color(0xFFFF6E6E),
+    brightGreen: Color(0xFF69FF94),
+    brightYellow: Color(0xFFFFFFA5),
+    brightBlue: Color(0xFFD6ACFF),
+    brightPurple: Color(0xFFFF92DF),
+    brightCyan: Color(0xFFA4FFFF),
     brightWhite: Color(0xFFFFFFFF),
+    background: Color(0xFF282A36),
+    foreground: Color(0xFFF8F8F2),
+    cursor: Color(0xFFF8F8F2),
+    cursorText: Color(0xFF282A36),
+    selectionBackground: Color(0xFF44475A),
+    selectionForeground: Color(0xFF282A36),
   );
 
   const TerminalTestUtils._();

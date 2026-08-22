@@ -194,6 +194,18 @@ final class ConnectionService {
     return connectionId;
   }
 
+  Future<DbId> clearOverrides(DbId connectionId) async {
+    await _connectionRepository.updateById(
+      connectionId,
+      ConnectionsCompanion(
+        terminalTypographyOverride: Value(null),
+        terminalThemeOverrideId: Value(null),
+        usesDefaultThemeOverride: Value(false),
+      ),
+    );
+    return connectionId;
+  }
+
   Future<int> createOrUpdate({
     required DbId id,
     required DbId vaultId,

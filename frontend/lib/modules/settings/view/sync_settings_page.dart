@@ -47,7 +47,7 @@ class SyncSettingsPage extends AbstractSettingsPage {
     final lastUpdated = useStore(.syncLastUpdated);
 
     final userVault = useState<DbId?>(null);
-    final entitiesCount = useState<(int, int, int, int)?>(null);
+    final entitiesCount = useState<(int, int, int, int, int)?>(null);
 
     final syncIconController = useAnimationController(
       duration: const Duration(seconds: 1),
@@ -127,6 +127,7 @@ class SyncSettingsPage extends AbstractSettingsPage {
                     buildIconCount(.identity, entitiesCount.value!.$2),
                     buildIconCount(.key, entitiesCount.value!.$3),
                     buildIconCount(.knownHost, entitiesCount.value!.$4),
+                    buildIconCount(.colorSchemes, entitiesCount.value!.$5),
                   ],
                 ),
           title: Text('sync_now'.tr()),
@@ -161,6 +162,7 @@ class SyncSettingsPage extends AbstractSettingsPage {
                 buildIconCount(.identity, entitiesCount.value!.$2),
                 buildIconCount(.key, entitiesCount.value!.$3),
                 buildIconCount(.knownHost, entitiesCount.value!.$4),
+                buildIconCount(.colorSchemes, entitiesCount.value!.$5),
               ],
             ),
           ),
@@ -224,7 +226,7 @@ class SyncSettingsPage extends AbstractSettingsPage {
                               settings = await read();
                             } catch (e) {
                               if (e is LocalizedException &&
-                                  e.key == 'sync_import_error_encrypted') {
+                                  e.key == 'sync_import_error.encrypted') {
                                 // prompt password input
                                 final password = await showFDialog(
                                   context:
@@ -240,16 +242,11 @@ class SyncSettingsPage extends AbstractSettingsPage {
                               }
                             }
 
-                            if (settings == null) return;
-                            if (settings.isEmpty) {
-                              Commons.showToast(
-                                'settings.import.error.invalidOrEmptyFile',
-                                prefix: Icon(LucideIcons.fileX),
-                              );
+                            if (!context.mounted ||
+                                settings == null ||
+                                settings.isEmpty) {
                               return;
                             }
-
-                            if (!context.mounted) return;
 
                             Commons.showResponsiveDialog(
                               (_) => ImportOrExportSettingsView.import(

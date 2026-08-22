@@ -19,7 +19,7 @@ class ErrorView extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final effectiveError = error is LocalizedException
-        ? (error as LocalizedException).tr(context)
+        ? (error as LocalizedException).tr(context: context)
         : error.toString();
 
     buildErrorDetailsCard(String content) {
@@ -39,10 +39,13 @@ class ErrorView extends ConsumerWidget {
                   ),
                 ),
               ),
-              child: Text(
-                content,
-                style: context.theme.typography.body.xs.copyWith(
-                  fontFamily: CliqFontFamily.secondary.fontFamily,
+              child: Padding(
+                padding: const .all(12),
+                child: Text(
+                  content,
+                  style: context.theme.typography.body.xs.copyWith(
+                    fontFamily: CliqFontFamily.secondary.fontFamily,
+                  ),
                 ),
               ),
             ),

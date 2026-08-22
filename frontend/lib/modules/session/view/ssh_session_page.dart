@@ -359,7 +359,7 @@ class _SshSessionPageState extends ConsumerState<SshSessionPage>
 
       return (_, TerminalAccessoryBarActions actions) {
         return TerminalAccessoryBar(
-          backgroundColor: effectiveTerminalTheme.backgroundColor,
+          backgroundColor: effectiveTerminalTheme.background,
           padding: .symmetric(horizontal: 8, vertical: 4),
           items: [
             buildAccessoryButton(
@@ -434,7 +434,7 @@ class _SshSessionPageState extends ConsumerState<SshSessionPage>
       onRetry: retrySession,
       child: SizedBox.expand(
         child: Container(
-          color: effectiveTerminalTheme.backgroundColor,
+          color: effectiveTerminalTheme.background,
           padding: kShellSessionPagePadding.copyWith(
             bottom:
                 kShellSessionPagePadding.bottom +
