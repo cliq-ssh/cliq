@@ -180,14 +180,14 @@ class CliqApp extends StatefulHookConsumerWidget {
 
 class _CliqAppState extends ConsumerState<CliqApp> {
   @override
-  Future<void> initState() async {
+  void initState() {
     super.initState();
-    await SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
+    SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
     SystemChrome.setSystemUIOverlayStyle(
       const SystemUiOverlayStyle(systemNavigationBarColor: Colors.transparent),
     );
 
-    await ref.read(syncProvider.notifier).attemptRecovery();
+    ref.read(syncProvider.notifier).attemptRecovery();
   }
 
   @override
