@@ -2,27 +2,26 @@ import 'dart:async';
 
 import 'package:cliq/modules/connections/model/connection_full.model.dart';
 import 'package:cliq/modules/credentials/data/credential.service.dart';
+import 'package:cliq/modules/credentials/provider/credential_service.provider.dart';
+import 'package:cliq/modules/session/model/session.model.dart';
 import 'package:cliq/modules/session/model/session.state.dart';
+import 'package:cliq/modules/session/model/tab.model.dart';
+import 'package:cliq/modules/settings/model/known_host_error.model.dart';
+import 'package:cliq/modules/settings/provider/known_host_service.provider.dart';
+import 'package:cliq/shared/data/database.dart';
 import 'package:cliq/shared/ui/navigation/navigation_shell.dart';
 import 'package:cliq_term/cliq_term.dart';
 import 'package:dartssh2/dartssh2.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:uuid/v4.dart';
 
-import '../../../shared/data/database.dart';
-import '../../credentials/provider/credential_service.provider.dart';
-import '../../settings/model/known_host_error.model.dart';
-import '../../settings/provider/known_host_service.provider.dart';
-import '../model/session.model.dart';
-import '../model/tab.model.dart';
-
 final sessionProvider = NotifierProvider(SessionNotifier.new);
 
 class SessionNotifier extends Notifier<SessionState> {
-  final UuidV4 uuid = UuidV4();
+  static const UuidV4 uuid = UuidV4();
 
   @override
-  SessionState build() => SessionState.initial();
+  SessionState build() => const SessionState.initial();
 
   /// Creates a new session and navigates to the session branch, where the tab is selected.
   void createAndGo(
@@ -100,7 +99,7 @@ class SessionNotifier extends Notifier<SessionState> {
   ) async {
     final session = getSessionById(sessionId);
     if (session == null || session.sftpClient == null) return null;
-    return (await session.sftpClient!.open(filePath));
+    return await session.sftpClient!.open(filePath);
   }
 
   void closeSessionAndMaybeGo(
@@ -217,55 +216,55 @@ class SessionNotifier extends Notifier<SessionState> {
     );
 
     try {
-      final socket =
-          await SSHSocket.connect(
-              connection.address,
-              connection.port,
-              timeout: .new(seconds: 10), // TODO:
-            )
-            ..done.then(
-              (_) => _close(session.id),
-              onError: (e) => _close(session.id, e.toString()),
-            );
+      final socket = await SSHSocket.connect(
+        connection.address,
+        connection.port,
+        timeout: const .new(seconds: 10), // TODO:
+      );
 
-      final sshClient =
-          SSHClient(
-              socket,
-              username: connection.effectiveUsername!,
-              identities: keys,
-              onVerifyHostKey: (algorithm, fingerprint) async {
-                if (session.skipHostKeyVerification) {
-                  return true;
-                }
+      final sshClient = SSHClient(
+        socket,
+        username: connection.effectiveUsername!,
+        identities: keys,
+        onVerifyHostKey: (algorithm, fingerprint) async {
+          if (session.skipHostKeyVerification) {
+            return true;
+          }
 
-                // check db whether host is known
-                final (knownHost, isKeyMatch) = await ref
-                    .read(knownHostServiceProvider)
-                    .isHostKnown(connection.addressAndPort, fingerprint);
+          // check db whether host is known
+          final (knownHost, isKeyMatch) = await ref
+              .read(knownHostServiceProvider)
+              .isHostKnown(connection.addressAndPort, fingerprint);
 
-                if (knownHost != null && isKeyMatch) return true;
+          if (knownHost != null && isKeyMatch) return true;
 
-                _modifySession(
-                  session.id,
-                  (session) => session.copyWith(
-                    knownHostError: KnownHostError(
-                      host: connection.addressAndPort,
-                      algorithm: algorithm,
-                      fingerprint: fingerprint,
-                      knownHost: knownHost,
-                    ),
-                  ),
-                );
+          _modifySession(
+            session.id,
+            (session) => session.copyWith(
+              knownHostError: KnownHostError(
+                host: connection.addressAndPort,
+                algorithm: algorithm,
+                fingerprint: fingerprint,
+                knownHost: knownHost,
+              ),
+            ),
+          );
 
-                // fail the verification for now, try again if the user accepts
-                return false;
-              },
-              onPasswordRequest: password != null ? () => password : null,
-            )
-            ..done.then(
-              (_) => _close(session.id),
-              onError: (e) => _close(session.id, e.toString()),
-            );
+          // fail the verification for now, try again if the user accepts
+          return false;
+        },
+        onPasswordRequest: password != null ? () => password : null,
+      );
+
+      await socket.done.then(
+        (_) => _close(session.id),
+        onError: (e) => _close(session.id, e.toString()),
+      );
+
+      await sshClient.done.then(
+        (_) => _close(session.id),
+        onError: (e) => _close(session.id, e.toString()),
+      );
 
       return sshClient;
     } catch (e) {
@@ -302,7 +301,7 @@ class SessionNotifier extends Notifier<SessionState> {
       );
       return sshSession;
     } catch (e) {
-      client.close();
+      await client.close();
       _close(sessionId, e.toString());
       return null;
     }
@@ -322,7 +321,7 @@ class SessionNotifier extends Notifier<SessionState> {
       );
       return sftpClient;
     } catch (e) {
-      client.close();
+      await client.close();
       _close(sessionId, e.toString());
       rethrow;
     }
@@ -382,7 +381,7 @@ class SessionNotifier extends Notifier<SessionState> {
     }
 
     // replace tab with modified session
-    List<SessionTab> newActiveTabs = [...state.activeTabs].map((tab) {
+    final List<SessionTab> newActiveTabs = [...state.activeTabs].map((tab) {
       if (tab.id != tabId) return tab;
 
       // update session in sessions list

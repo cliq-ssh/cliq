@@ -78,10 +78,7 @@ class GeneratedSshKeyPair {
   final String privateKey;
   final String publicKey;
 
-  const GeneratedSshKeyPair({
-    required this.privateKey,
-    required this.publicKey,
-  });
+  const new({required this.privateKey, required this.publicKey});
 }
 
 /// Generates SSH key pairs in a format that [SSHKeyPair.fromPem] can parse.
@@ -89,7 +86,7 @@ final class SshKeyGenerator {
   static SodiumSumo? _sodium;
   static final Random _secureRandom = Random.secure();
 
-  const SshKeyGenerator._();
+  const new _();
 
   static Future<GeneratedSshKeyPair> generate(
     SshKeyAlgorithm algorithm, {

@@ -1,10 +1,9 @@
 import 'dart:async';
 
 import 'package:cliq/modules/connections/model/connection_full.model.dart';
+import 'package:cliq/modules/settings/model/known_host_error.model.dart';
 import 'package:cliq_term/cliq_term.dart';
 import 'package:dartssh2/dartssh2.dart';
-
-import '../../settings/model/known_host_error.model.dart';
 
 enum SessionType { ssh, sftp }
 
@@ -46,7 +45,7 @@ class ShellSession {
   /// Whether to skip host key verification for this session.
   final bool skipHostKeyVerification;
 
-  ShellSession({
+  new({
     required this.id,
     required this.type,
     required this.connection,
@@ -62,7 +61,7 @@ class ShellSession {
     this.skipHostKeyVerification = false,
   });
 
-  ShellSession.disconnected({
+  new disconnected({
     required this.id,
     required this.type,
     required this.connection,

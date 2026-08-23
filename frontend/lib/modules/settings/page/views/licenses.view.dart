@@ -1,15 +1,13 @@
+import 'package:cliq/modules/settings/page/abstract_settings_page.dart';
+import 'package:cliq/modules/settings/page/settings.page.dart';
+import 'package:cliq/shared/model/page_path.model.dart';
+import 'package:cliq/shared/ui/future_wrapper.dart';
+import 'package:cliq/shared/ui/title_card.dart';
 import 'package:cliq_ui/cliq_ui.dart';
 import 'package:easy_localization/easy_localization.dart';
-import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:lucide_flutter/lucide_flutter.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-
-import '../../../../shared/model/page_path.model.dart';
-import '../../../../shared/ui/title_card.dart';
-import '../../../../shared/ui/future_wrapper.dart';
-import '../abstract_settings_page.dart';
-import '../settings.page.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
 
 class const LicenseSettingsView({super.key}) extends AbstractSettingsPage {
   static const PagePathBuilder pagePath = .child(
@@ -34,7 +32,7 @@ class const LicenseSettingsView({super.key}) extends AbstractSettingsPage {
 
         for (final license in licenses) {
           for (final package in license.packages) {
-            final identifier = package.toString();
+            final identifier = package;
             if (licensesMap.containsKey(identifier)) {
               licensesMap[identifier]!.add(license);
             } else {
@@ -43,7 +41,6 @@ class const LicenseSettingsView({super.key}) extends AbstractSettingsPage {
           }
         }
 
-        LucideIcons.aArrowDown;
         return ListView.separated(
           itemCount: licensesMap.length,
           separatorBuilder: (ctx, index) => const SizedBox(height: 16),

@@ -1,7 +1,7 @@
 import 'dart:convert';
 import 'dart:typed_data';
 
-import '../../../shared/data/database.dart';
+import 'package:cliq/shared/data/database.dart';
 
 class KnownHostError {
   final String host;
@@ -10,7 +10,7 @@ class KnownHostError {
   // The known host entry that was found, if any.
   final KnownHostsCompanion? knownHost;
 
-  const KnownHostError({
+  const new({
     required this.host,
     required this.algorithm,
     required this.fingerprint,

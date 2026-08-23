@@ -2,11 +2,23 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:typed_data';
 
+import 'package:cliq/modules/connections/provider/connection.provider.dart';
+import 'package:cliq/modules/connections/provider/connection_service.provider.dart';
+import 'package:cliq/modules/credentials/provider/credential_service.provider.dart';
+import 'package:cliq/modules/identities/provider/identity.provider.dart';
+import 'package:cliq/modules/identities/provider/identity_service.provider.dart';
+import 'package:cliq/modules/keys/provider/key_service.provider.dart';
 import 'package:cliq/modules/settings/model/settings_importer/app_settings.model.dart';
+import 'package:cliq/modules/settings/model/settings_importer/cliq_settings_importer.dart';
 import 'package:cliq/modules/settings/model/settings_importer/settings_importer.dart';
+import 'package:cliq/modules/settings/model/sync.state.dart';
+import 'package:cliq/modules/settings/provider/known_host.provider.dart';
+import 'package:cliq/modules/settings/provider/known_host_service.provider.dart';
 import 'package:cliq/modules/settings/provider/terminal_theme.provider.dart';
 import 'package:cliq/modules/settings/provider/terminal_theme_service.provider.dart';
+import 'package:cliq/modules/vaults/provider/vault.provider.dart';
 import 'package:cliq/modules/vaults/provider/vault_service.provider.dart';
+import 'package:cliq/shared/data/database.dart';
 import 'package:cliq/shared/data/store.dart';
 import 'package:cliq/shared/model/localized_exception.dart';
 import 'package:cliq/shared/provider/database.provider.dart';
@@ -16,19 +28,6 @@ import 'package:cliq_api/cliq_api.dart' hide Vault;
 import 'package:file_selector/file_selector.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:logging/logging.dart';
-
-import '../../../shared/data/database.dart';
-import '../../connections/provider/connection.provider.dart';
-import '../../connections/provider/connection_service.provider.dart';
-import '../../credentials/provider/credential_service.provider.dart';
-import '../../identities/provider/identity.provider.dart';
-import '../../identities/provider/identity_service.provider.dart';
-import '../../keys/provider/key_service.provider.dart';
-import '../../vaults/provider/vault.provider.dart';
-import '../model/settings_importer/cliq_settings_importer.dart';
-import '../model/sync.state.dart';
-import 'known_host.provider.dart';
-import 'known_host_service.provider.dart';
 
 final syncProvider = NotifierProvider(SyncProviderNotifier.new);
 
@@ -78,7 +77,7 @@ class SyncProviderNotifier extends Notifier<SyncState> {
           );
 
       final durationTillRefresh = expiresAt.difference(DateTime.now());
-      final refreshIn = durationTillRefresh - Duration(seconds: 10);
+      final refreshIn = durationTillRefresh - const Duration(seconds: 10);
       _log.info(
         'Successfully refreshed session, refreshing in ${durationTillRefresh.inSeconds} seconds',
       );
@@ -95,7 +94,7 @@ class SyncProviderNotifier extends Notifier<SyncState> {
       await pullVault();
       _startPullTimer();
     } on CliqException catch (e) {
-      Commons.showCliqException(e);
+      await Commons.showCliqException(e);
       await logout();
     }
   }
@@ -297,7 +296,9 @@ class SyncProviderNotifier extends Notifier<SyncState> {
       password: password,
     );
     if (parser == null) {
-      throw LocalizedException('settings_import_error.unrecognized_format');
+      throw const LocalizedException(
+        'settings_import_error.unrecognized_format',
+      );
     }
 
     AppSettings? settings;
@@ -308,7 +309,7 @@ class SyncProviderNotifier extends Notifier<SyncState> {
     }
 
     if (settings == null) {
-      throw LocalizedException('settings_import_error.parsing_failed');
+      throw const LocalizedException('settings_import_error.parsing_failed');
     }
     return settings;
   }

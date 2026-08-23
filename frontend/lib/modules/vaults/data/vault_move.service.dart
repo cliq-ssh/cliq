@@ -1,8 +1,8 @@
-import '../../../shared/data/database.dart';
-import '../../connections/data/connection.service.dart';
-import '../../credentials/data/credential.service.dart';
-import '../../identities/data/identity.service.dart';
-import '../../keys/data/key.service.dart';
+import 'package:cliq/modules/connections/data/connection.service.dart';
+import 'package:cliq/modules/credentials/data/credential.service.dart';
+import 'package:cliq/modules/identities/data/identity.service.dart';
+import 'package:cliq/modules/keys/data/key.service.dart';
+import 'package:cliq/shared/data/database.dart';
 
 class MovePreview {
   final Set<DbId> connectionIds;
@@ -10,7 +10,7 @@ class MovePreview {
   final Set<DbId> credentialIds;
   final Set<DbId> keyIds;
 
-  const MovePreview({
+  const new({
     required this.connectionIds,
     required this.identityIds,
     required this.credentialIds,
@@ -25,7 +25,7 @@ class VaultMoveService {
   final CredentialService credentialService;
   final KeyService keyService;
 
-  const VaultMoveService({
+  const new({
     required this.db,
     required this.connectionService,
     required this.identityService,

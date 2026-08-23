@@ -1,7 +1,7 @@
 import 'dart:io';
 import 'dart:isolate';
 
-import '../../modules/session/page/sftp_session.page.dart';
+import 'package:cliq/modules/session/page/sftp_session.page.dart';
 
 class FileTransferItem {
   final QueuedFileData file;
@@ -13,7 +13,7 @@ class FileTransferItem {
   int? endTime;
   String? error;
 
-  FileTransferItem({required this.file, required this.progressData})
+  new({required this.file, required this.progressData})
     : startTime = DateTime.now().millisecondsSinceEpoch;
 
   bool get isInProgress => endTime == null && error == null;
@@ -22,9 +22,9 @@ class FileTransferItem {
 class FileTransferState {
   final Map<String, FileTransferItem> pending;
 
-  FileTransferState.initial() : pending = const {};
+  new initial() : pending = const {};
 
-  FileTransferState({required this.pending});
+  new({required this.pending});
 
   bool isPending(String id) => pending[id]?.isInProgress == true;
 

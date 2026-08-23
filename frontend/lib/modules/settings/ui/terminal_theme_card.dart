@@ -1,18 +1,17 @@
 import 'dart:io';
 
+import 'package:cliq/modules/settings/provider/terminal_theme_service.provider.dart';
 import 'package:cliq/modules/settings/ui/create_or_edit_terminal_theme_sheet.dart';
 import 'package:cliq/shared/data/database.dart';
 import 'package:cliq/shared/ui/context_menu.dart';
+import 'package:cliq/shared/ui/title_card.dart';
+import 'package:cliq/shared/utils/commons.dart';
 import 'package:cliq_term/cliq_term.dart';
 import 'package:flutter/material.dart';
 import 'package:forui/forui.dart';
 import 'package:forui_hooks/forui_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lucide_flutter/lucide_flutter.dart';
-
-import '../../../shared/ui/title_card.dart';
-import '../../../shared/utils/commons.dart';
-import '../provider/terminal_theme_service.provider.dart';
 
 class const TerminalThemeCard({
   super.key,
@@ -27,7 +26,7 @@ class const TerminalThemeCard({
     final primaryPopoverController = useFPopoverController();
     final secondaryPopoverController = useFPopoverController();
 
-    final isBuiltIn = theme.id == "-1";
+    final isBuiltIn = theme.id == '-1';
 
     buildColor(Color color) {
       return Container(width: 8, height: 16, color: color);
@@ -102,19 +101,19 @@ class const TerminalThemeCard({
           FItemGroup(
             children: [
               FItem(
-                prefix: Icon(LucideIcons.copy),
-                title: Text('Duplicate'),
+                prefix: const Icon(LucideIcons.copy),
+                title: const Text('Duplicate'),
                 onPress: duplicate,
               ),
               if (!isBuiltIn) ...[
                 FItem(
-                  prefix: Icon(LucideIcons.pencil),
-                  title: Text('Edit'),
+                  prefix: const Icon(LucideIcons.pencil),
+                  title: const Text('Edit'),
                   onPress: edit,
                 ),
                 FItem(
-                  prefix: Icon(LucideIcons.trash),
-                  title: Text('Delete'),
+                  prefix: const Icon(LucideIcons.trash),
+                  title: const Text('Delete'),
                   variant: .destructive,
                   onPress: delete,
                 ),
@@ -201,15 +200,15 @@ class const TerminalThemeCard({
                     ],
                   ),
                 ),
-                if (isSelected) Icon(LucideIcons.check),
+                if (isSelected) const Icon(LucideIcons.check),
                 buildPopoverMenu(
                   controller: secondaryPopoverController,
                   child: FButton.icon(
-                    onPress: () {
-                      secondaryPopoverController.toggle();
-                      primaryPopoverController.hide();
+                    onPress: () async {
+                      await secondaryPopoverController.toggle();
+                      await primaryPopoverController.hide();
                     },
-                    child: Icon(LucideIcons.ellipsis),
+                    child: const Icon(LucideIcons.ellipsis),
                   ),
                 ),
               ],

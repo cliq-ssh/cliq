@@ -1,9 +1,8 @@
 import 'package:cliq/modules/connections/model/connection_icons.model.dart';
+import 'package:cliq/shared/data/database.dart';
 import 'package:cliq/shared/extensions/color.extension.dart';
 import 'package:cliq_term/cliq_term.dart';
 import 'package:drift/drift.dart';
-
-import '../../../shared/data/database.dart';
 
 extension ConnectionsCompanionExtension on ConnectionsCompanion {
   static ConnectionsCompanion? tryFromJson(Map<String, dynamic>? json) {

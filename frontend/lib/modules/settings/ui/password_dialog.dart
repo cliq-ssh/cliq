@@ -22,7 +22,9 @@ class const PasswordDialog({
         crossAxisAlignment: .start,
         mainAxisSize: .min,
         children: [
-          Text('To continue, please enter the password to unlock the file.'),
+          const Text(
+            'To continue, please enter the password to unlock the file.',
+          ),
           FTextFormField.password(
             control: .managed(controller: passwordController),
           ),
@@ -31,12 +33,12 @@ class const PasswordDialog({
       actions: [
         FButton(
           variant: .outline,
-          child: Text('Cancel'),
+          child: const Text('Cancel'),
           onPress: () => Navigator.of(context).pop(),
         ),
         FButton(
           variant: .primary,
-          child: Text('Submit'),
+          child: const Text('Submit'),
           onPress: () => Navigator.of(context).pop(passwordController.text),
         ),
       ],

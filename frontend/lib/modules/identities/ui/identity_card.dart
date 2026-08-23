@@ -1,6 +1,8 @@
 import 'package:cliq/modules/identities/model/identity_full.model.dart';
 import 'package:cliq/modules/identities/provider/identity_service.provider.dart';
 import 'package:cliq/modules/identities/ui/create_or_edit_identity_sheet.dart';
+import 'package:cliq/modules/settings/provider/sync.provider.dart';
+import 'package:cliq/shared/ui/title_card.dart';
 import 'package:cliq/shared/utils/commons.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
@@ -8,9 +10,6 @@ import 'package:forui/forui.dart';
 import 'package:forui_hooks/forui_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lucide_flutter/lucide_flutter.dart';
-
-import '../../../shared/ui/title_card.dart';
-import '../../settings/provider/sync.provider.dart';
 
 class const IdentityCard({super.key, required final IdentityFull identity})
     extends HookConsumerWidget {
@@ -57,7 +56,7 @@ class const IdentityCard({super.key, required final IdentityFull identity})
                     color: context.theme.colors.border,
                     borderRadius: .circular(16),
                   ),
-                  child: Icon(LucideIcons.users, size: 28),
+                  child: const Icon(LucideIcons.users, size: 28),
                 ),
                 Expanded(
                   child: Column(
@@ -95,13 +94,13 @@ class const IdentityCard({super.key, required final IdentityFull identity})
               FItemGroup(
                 children: [
                   FItem(
-                    prefix: Icon(LucideIcons.pencil),
+                    prefix: const Icon(LucideIcons.pencil),
                     title: Text('edit'.tr()),
                     onPress: edit,
                   ),
                   FItem(
                     variant: .destructive,
-                    prefix: Icon(LucideIcons.trash),
+                    prefix: const Icon(LucideIcons.trash),
                     title: Text('delete'.tr()),
                     onPress: delete,
                   ),
@@ -110,7 +109,7 @@ class const IdentityCard({super.key, required final IdentityFull identity})
             ],
             builder: (_, controller, _) => FButton.icon(
               onPress: controller.toggle,
-              child: Icon(LucideIcons.ellipsis),
+              child: const Icon(LucideIcons.ellipsis),
             ),
           ),
         ],

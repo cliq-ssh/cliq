@@ -63,7 +63,7 @@ class WindowsTerminalThemeParser extends AbstractTerminalThemeParser {
 
   static Logger logger = Logger('WindowsTerminalThemeParser');
 
-  const WindowsTerminalThemeParser();
+  const new();
 
   @override
   bool canParse(String content) {

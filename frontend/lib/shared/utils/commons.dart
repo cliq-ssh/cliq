@@ -1,11 +1,12 @@
 import 'dart:convert';
 
-import 'package:cliq/shared/model/localized_exception.dart';
-import 'package:cliq/shared/ui/horizontal_dialog.dart';
 import 'package:cliq/modules/settings/model/settings_importer/settings_importer.dart';
 import 'package:cliq/modules/settings/model/theme_parser/terminal_theme_parser.dart';
-import 'package:cliq/shared/utils/constants.dart';
+import 'package:cliq/shared/model/localized_exception.dart';
 import 'package:cliq/shared/model/router.model.dart';
+import 'package:cliq/shared/ui/horizontal_dialog.dart';
+import 'package:cliq/shared/ui/responsive_sheet.dart';
+import 'package:cliq/shared/utils/constants.dart';
 import 'package:cliq/shared/utils/platform_utils.dart';
 import 'package:cliq/shared/utils/text_utils.dart';
 import 'package:cliq_api/cliq_api.dart';
@@ -17,10 +18,8 @@ import 'package:forui/forui.dart';
 import 'package:lucide_flutter/lucide_flutter.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-import '../ui/responsive_sheet.dart';
-
 final class Commons {
-  const Commons._();
+  const new _();
 
   static XTypeGroup getCustomTerminalThemeGroup(BuildContext context) {
     return XTypeGroup(
@@ -53,8 +52,8 @@ final class Commons {
   static XTypeGroup getKeyGroup(BuildContext context) {
     return XTypeGroup(
       label: 'file_groups.key'.tr(context: context),
-      uniformTypeIdentifiers: [],
-      extensions: [],
+      uniformTypeIdentifiers: const [],
+      extensions: const [],
     );
   }
 
@@ -182,7 +181,7 @@ final class Commons {
   static Future<void> showCliqException(CliqException exception) async {
     return showToast(
       'api_error_codes.${exception.errorCode}'.tr(),
-      prefix: Icon(LucideIcons.alertCircle),
+      prefix: const Icon(LucideIcons.alertCircle),
       variant: .destructive,
     );
   }
@@ -192,7 +191,7 @@ final class Commons {
   ) async {
     return showToast(
       exception.tr(),
-      prefix: Icon(LucideIcons.alertCircle),
+      prefix: const Icon(LucideIcons.alertCircle),
       variant: .destructive,
     );
   }

@@ -1,14 +1,13 @@
 import 'package:cliq/modules/settings/model/known_host_full.model.dart';
+import 'package:cliq/modules/settings/page/abstract_settings_page.dart';
+import 'package:cliq/modules/settings/page/settings.page.dart';
 import 'package:cliq/modules/settings/provider/known_host.provider.dart';
+import 'package:cliq/modules/settings/ui/known_host_card.dart';
+import 'package:cliq/shared/model/page_path.model.dart';
 import 'package:cliq/shared/ui/entity_card_view.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-
-import '../../../../shared/model/page_path.model.dart';
-import '../../ui/known_host_card.dart';
-import '../abstract_settings_page.dart';
-import '../settings.page.dart';
 
 class const KnownHostsSettingsView({super.key}) extends AbstractSettingsPage {
   static const PagePathBuilder pagePath = .child(

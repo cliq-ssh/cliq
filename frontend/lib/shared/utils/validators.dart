@@ -4,7 +4,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/cupertino.dart';
 
 final class Validators {
-  const Validators._();
+  const new _();
 
   static String? chain(
     BuildContext context,
@@ -12,7 +12,7 @@ final class Validators {
     Object? value,
   ) {
     for (final validator in validators) {
-      String? error = validator(context, value);
+      final String? error = validator(context, value);
       if (error != null) {
         return error;
       }
@@ -21,7 +21,7 @@ final class Validators {
   }
 
   static String? address(BuildContext context, Object? value) {
-    String? nonEmptyError = nonEmpty(context, value);
+    final String? nonEmptyError = nonEmpty(context, value);
     if (nonEmptyError != null) {
       return nonEmptyError;
     }
@@ -46,7 +46,7 @@ final class Validators {
   }
 
   static String? username(BuildContext context, Object? value) {
-    String? nonEmptyError = nonEmpty(context, value);
+    final String? nonEmptyError = nonEmpty(context, value);
     if (nonEmptyError != null) {
       return nonEmptyError;
     }
@@ -65,7 +65,7 @@ final class Validators {
   }
 
   static String? email(BuildContext context, Object? value) {
-    String? nonEmptyError = nonEmpty(context, value);
+    final String? nonEmptyError = nonEmpty(context, value);
     if (nonEmptyError != null) {
       return nonEmptyError;
     }
@@ -88,7 +88,7 @@ final class Validators {
     Object? value,
     String? password,
   ) {
-    String? nonEmptyError = nonEmpty(context, value);
+    final String? nonEmptyError = nonEmpty(context, value);
     if (nonEmptyError != null) {
       return nonEmptyError;
     }
@@ -105,7 +105,7 @@ final class Validators {
   }
 
   static String? syncServerUrl(BuildContext context, Object? value) {
-    String? nonEmptyError = nonEmpty(context, value);
+    final String? nonEmptyError = nonEmpty(context, value);
     if (nonEmptyError != null) {
       return nonEmptyError;
     }
@@ -124,7 +124,7 @@ final class Validators {
   }
 
   static String? pem(BuildContext context, Object? value) {
-    String? nonEmptyError = nonEmpty(context, value);
+    final String? nonEmptyError = nonEmpty(context, value);
     if (nonEmptyError != null) {
       return nonEmptyError;
     }
@@ -136,7 +136,7 @@ final class Validators {
       multiLine: true,
     );
 
-    final match = pemRegex.firstMatch(value as String);
+    final match = pemRegex.firstMatch(value! as String);
     if (match == null) {
       return 'validator_error_invalid_pem_private_key'.tr(context: context);
     }
@@ -145,11 +145,11 @@ final class Validators {
   }
 
   static String? port(BuildContext context, Object? value) {
-    String? integerError = integer(context, value);
+    final String? integerError = integer(context, value);
     if (integerError != null) {
       return integerError;
     }
-    int port = int.parse(value as String);
+    final int port = int.parse(value! as String);
     if (port < 1 || port > 65535) {
       return 'validator_error_invalid_port'.tr(context: context);
     }
@@ -157,12 +157,12 @@ final class Validators {
   }
 
   static String? integer(BuildContext context, Object? value) {
-    String? nonEmptyError = nonEmpty(context, value);
+    final String? nonEmptyError = nonEmpty(context, value);
     if (nonEmptyError != null) {
       return nonEmptyError;
     }
     if (value is String) {
-      int? parsed = int.tryParse(value);
+      final int? parsed = int.tryParse(value);
       if (parsed == null) {
         return 'validator_error_invalid_integer'.tr(context: context);
       }
@@ -189,7 +189,7 @@ final class Validators {
   }
 
   static String? nonEmpty(BuildContext context, Object? value) {
-    String? nonNullError = nonNull(context, value);
+    final String? nonNullError = nonNull(context, value);
     if (nonNullError != null) {
       return nonNullError;
     }

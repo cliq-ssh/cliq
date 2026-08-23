@@ -1,16 +1,15 @@
 import 'package:cliq/modules/settings/model/app_theme/app_theme.model.dart';
+import 'package:cliq/modules/settings/page/abstract_settings_page.dart';
+import 'package:cliq/modules/settings/page/settings.page.dart';
+import 'package:cliq/shared/data/store.dart';
+import 'package:cliq/shared/model/page_path.model.dart';
 import 'package:cliq/shared/provider/store.provider.dart';
+import 'package:cliq/shared/ui/custom_toggle_tile.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:forui/forui.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lucide_flutter/lucide_flutter.dart';
-
-import '../../../../shared/data/store.dart';
-import '../../../../shared/model/page_path.model.dart';
-import '../../../../shared/ui/custom_toggle_tile.dart';
-import '../abstract_settings_page.dart';
-import '../settings.page.dart';
 
 class const AppearanceSettingsView({super.key}) extends AbstractSettingsPage {
   static const PagePathBuilder pagePath = .child(
@@ -57,7 +56,7 @@ class const AppearanceSettingsView({super.key}) extends AbstractSettingsPage {
           onChange: (value) => key.write(value.first),
         ),
         detailsBuilder: (context, value, _) {
-          if (value.isEmpty) return SizedBox.shrink();
+          if (value.isEmpty) return const SizedBox.shrink();
           return Text(value.first.getDisplayName(context));
         },
         maxHeight: 300,
@@ -98,7 +97,7 @@ class const AppearanceSettingsView({super.key}) extends AbstractSettingsPage {
                 onChange: (value) => StoreKey.themeMode.write(value.first),
               ),
               detailsBuilder: (context, value, _) {
-                if (value.isEmpty) return SizedBox.shrink();
+                if (value.isEmpty) return const SizedBox.shrink();
                 return Text(getThemeModeDisplayName(value.first));
               },
               menu: [
@@ -141,7 +140,7 @@ class const AppearanceSettingsView({super.key}) extends AbstractSettingsPage {
             CustomToggleTile(
               title: 'appearance_apply_terminal_theme_color_to_navigation',
               subtitle: 'appearance_apply_terminal_theme_color_to_navigation_subtitle',
-              prefix: Icon(LucideIcons.paintBucket),
+              prefix: const Icon(LucideIcons.paintBucket),
               storeKey: .applyTerminalThemeColorToNavigation,
               value: applyTerminalThemeColorToNavigation.value,
             ),

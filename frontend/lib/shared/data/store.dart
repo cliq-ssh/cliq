@@ -2,6 +2,8 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:cliq/modules/settings/model/app_theme/app_theme.model.dart';
+import 'package:cliq/modules/settings/model/keyboard_shortcuts.model.dart';
+import 'package:cliq/shared/data/database.dart';
 import 'package:cliq/shared/ui/entity_card_view.dart';
 import 'package:cliq_api/cliq_api.dart';
 import 'package:cliq_term/cliq_term.dart';
@@ -9,9 +11,6 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-
-import '../../modules/settings/model/keyboard_shortcuts.model.dart';
-import 'database.dart';
 
 enum StoreKey<T> {
   developerMode<bool>('developer_mode', type: bool, defaultValue: kDebugMode),
@@ -159,7 +158,7 @@ enum StoreKey<T> {
   final String? Function(T?)? toValue;
   final bool isSecure;
 
-  const StoreKey(
+  new(
     this.key, {
     required this.type,
     this.defaultValue,
@@ -238,7 +237,7 @@ class StoreChange {
   final String key;
   final dynamic value;
 
-  StoreChange(this.key, {required this.value});
+  new(this.key, {required this.value});
 }
 
 /// A simple key-value store that uses SharedPreferences and FlutterSecureStorage to store data.
@@ -254,12 +253,12 @@ class KeyValueStore {
   late final FlutterSecureStorage _secureStorage;
   bool _initialized = false;
 
-  factory KeyValueStore() => _instance;
+  factory() => _instance;
 
   final StreamController<StoreChange> _changesController = .broadcast();
   Stream<StoreChange> get changes => _changesController.stream;
 
-  KeyValueStore._();
+  new _();
 
   /// Initializes the KeyValueStore by loading the SharedPreferences and FlutterSecureStorage.
   /// This will also initialize all default values for the keys & populate the local cache.
@@ -369,10 +368,10 @@ class KeyValueStore {
       );
     } else {
       await switch (effectiveValue) {
-        (String value) => _preferences.setString(key.key, value),
-        (int value) => _preferences.setInt(key.key, value),
-        (bool value) => _preferences.setBool(key.key, value),
-        (double value) => _preferences.setDouble(key.key, value),
+        (final String value) => _preferences.setString(key.key, value),
+        (final int value) => _preferences.setInt(key.key, value),
+        (final bool value) => _preferences.setBool(key.key, value),
+        (final double value) => _preferences.setDouble(key.key, value),
         _ => throw StateError(
           'Invalid value for key ${key.key}! Got: ${effectiveValue.runtimeType}, Expected either String, int, bool or double',
         ),
@@ -382,18 +381,18 @@ class KeyValueStore {
 
   /// Deletes the key from the local cache and the storage.
   /// If the key has a default value, it will be reset to that value instead.
-  FutureOr<void> delete<T>(StoreKey<T> key) {
+  Future<void> delete<T>(StoreKey<T> key) async {
     _checkInitialized();
     if (key.defaultValue == null) {
       if (key.isSecure) {
-        _secureStorage.delete(key: key.key);
+        await _secureStorage.delete(key: key.key);
       } else {
         _localCache.remove(key.key);
-        _preferences.remove(key.key);
+        await _preferences.remove(key.key);
         _changesController.add(StoreChange(key.key, value: null));
       }
     } else {
-      write(key, key.defaultValue);
+      await write(key, key.defaultValue);
     }
   }
 

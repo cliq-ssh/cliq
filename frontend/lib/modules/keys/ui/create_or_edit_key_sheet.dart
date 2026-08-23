@@ -1,8 +1,18 @@
 import 'dart:async';
 
+import 'package:cliq/modules/connections/provider/connection.provider.dart';
+import 'package:cliq/modules/identities/provider/identity.provider.dart';
 import 'package:cliq/modules/keys/model/key_importer/key_importer.dart';
+import 'package:cliq/modules/keys/provider/key_service.provider.dart';
+import 'package:cliq/modules/settings/provider/sync.provider.dart';
+import 'package:cliq/modules/vaults/provider/vault_move_service.provider.dart';
+import 'package:cliq/modules/vaults/ui/vault_transfer_dialog.dart';
+import 'package:cliq/shared/data/database.dart';
 import 'package:cliq/shared/extensions/text_controller.extension.dart';
+import 'package:cliq/shared/model/entity_type.dart';
+import 'package:cliq/shared/model/router.model.dart';
 import 'package:cliq/shared/ui/create_or_edit_entity_view.dart';
+import 'package:cliq/shared/utils/commons.dart';
 import 'package:cliq/shared/utils/validators.dart';
 import 'package:drift/drift.dart' hide Column;
 import 'package:easy_localization/easy_localization.dart';
@@ -14,27 +24,16 @@ import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lucide_flutter/lucide_flutter.dart';
 
-import '../../../shared/data/database.dart';
-import '../../../shared/model/entity_type.dart';
-import '../../../shared/model/router.model.dart';
-import '../../../shared/utils/commons.dart';
-import '../../connections/provider/connection.provider.dart';
-import '../../identities/provider/identity.provider.dart';
-import '../../settings/provider/sync.provider.dart';
-import '../../vaults/provider/vault_move_service.provider.dart';
-import '../../vaults/ui/vault_transfer_dialog.dart';
-import '../provider/key_service.provider.dart';
-
 class CreateOrEditKeySheet extends HookConsumerWidget {
   final KeysCompanion? current;
   final bool isEdit;
   final String? initialLabel;
 
-  const CreateOrEditKeySheet.create({super.key, this.initialLabel})
+  const new create({super.key, this.initialLabel})
     : current = null,
       isEdit = false;
 
-  CreateOrEditKeySheet.edit(Key keyEntity, {super.key})
+  new edit(Key keyEntity, {super.key})
     : initialLabel = null,
       current = KeysCompanion(
         id: Value(keyEntity.id),
@@ -97,7 +96,7 @@ class CreateOrEditKeySheet extends HookConsumerWidget {
     ) {
       return FButton(
         variant: .ghost,
-        prefix: Icon(LucideIcons.folderOpen),
+        prefix: const Icon(LucideIcons.folderOpen),
         child: Text('keys_import'.tr()),
         onPress: () async {
           final keyFile = await openFile(
@@ -109,10 +108,10 @@ class CreateOrEditKeySheet extends HookConsumerWidget {
 
           if (!context.mounted) return;
           if (pem == null) {
-            Commons.showToast(
+            await Commons.showToast(
               'keys_import_error_format'.tr(),
               variant: .destructive,
-              prefix: Icon(LucideIcons.triangleAlert),
+              prefix: const Icon(LucideIcons.triangleAlert),
             );
             return;
           }
@@ -120,7 +119,7 @@ class CreateOrEditKeySheet extends HookConsumerWidget {
           controller.text = pem;
           showFToast(
             context: context,
-            icon: Icon(LucideIcons.circleCheck),
+            icon: const Icon(LucideIcons.circleCheck),
             title: Text('keys_import_success'.tr()),
           );
         },
@@ -130,10 +129,10 @@ class CreateOrEditKeySheet extends HookConsumerWidget {
     buildCopyButton(TextEditingController controller) {
       return FButton(
         variant: .ghost,
-        prefix: Icon(LucideIcons.copy),
+        prefix: const Icon(LucideIcons.copy),
         child: Text('copy'.tr()),
-        onPress: () {
-          Commons.copyToClipboard(context, controller.text);
+        onPress: () async {
+          await Commons.copyToClipboard(context, controller.text);
         },
       );
     }

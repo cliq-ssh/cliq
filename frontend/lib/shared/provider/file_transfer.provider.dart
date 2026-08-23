@@ -2,19 +2,18 @@ import 'dart:async';
 import 'dart:io';
 import 'dart:isolate';
 
+import 'package:cliq/modules/credentials/data/credential.service.dart';
+import 'package:cliq/modules/credentials/provider/credential_service.provider.dart';
+import 'package:cliq/modules/session/model/session.model.dart';
+import 'package:cliq/modules/session/model/sftp_transfer.model.dart';
+import 'package:cliq/modules/session/model/sftp_transfer_params.model.dart';
+import 'package:cliq/modules/session/page/sftp_session.page.dart';
+import 'package:cliq/modules/settings/provider/known_host_service.provider.dart';
 import 'package:cliq/shared/model/file_transfer.state.dart';
+import 'package:cliq/shared/utils/constants.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:logging/logging.dart';
-
-import '../../modules/credentials/data/credential.service.dart';
-import '../../modules/credentials/provider/credential_service.provider.dart';
-import '../../modules/session/model/session.model.dart';
-import '../../modules/session/model/sftp_transfer.model.dart';
-import '../../modules/session/model/sftp_transfer_params.model.dart';
-import '../../modules/session/page/sftp_session.page.dart';
-import '../../modules/settings/provider/known_host_service.provider.dart';
-import '../utils/constants.dart';
 
 final fileTransferProvider = NotifierProvider(FileTransferNotifier.new);
 
@@ -40,10 +39,10 @@ class FileTransferNotifier extends Notifier<FileTransferState> {
     assert(destination != null || localPath != null);
 
     _log.fine(
-      "Starting SFTP transfer for item $id: "
-      "sourcePath=$sourcePath, "
-      "destinationPath=$destinationPath, "
-      "localPath=$localPath",
+      'Starting SFTP transfer for item $id: '
+      'sourcePath=$sourcePath, '
+      'destinationPath=$destinationPath, '
+      'localPath=$localPath',
     );
 
     final controller = StreamController<FileProgressData>();
@@ -94,7 +93,7 @@ class FileTransferNotifier extends Notifier<FileTransferState> {
         // should never happen
         if (data.error != null || data.progress < 0) {
           port.close();
-          controller.addError(Exception(data.error ?? "Unknown error"));
+          controller.addError(Exception(data.error ?? 'Unknown error'));
           break;
         }
 
@@ -113,17 +112,17 @@ class FileTransferNotifier extends Notifier<FileTransferState> {
   }
 
   void add(String id, QueuedFileData file, {File? tempFile}) {
-    final item = FileTransferItem(file: file, progressData: .zero())
+    final item = FileTransferItem(file: file, progressData: const .zero())
       ..tempFile = tempFile;
 
     state = state.copyWith(pending: {...state.pending, id: item});
-    _log.fine("Added file transfer item: $id");
+    _log.fine('Added file transfer item: $id');
   }
 
   Future<void> remove(String id) async {
     await _cleanup(id);
     state = state.copyWith(pending: .from(state.pending)..remove(id));
-    _log.fine("Removed file transfer item: $id");
+    _log.fine('Removed file transfer item: $id');
   }
 
   void setProgress(String id, FileProgressData? data) {
@@ -143,18 +142,18 @@ class FileTransferNotifier extends Notifier<FileTransferState> {
 
   void complete(String id) {
     _modify(id, (item) => item.endTime = DateTime.now().millisecondsSinceEpoch);
-    _log.fine("Completed file transfer item: $id");
+    _log.fine('Completed file transfer item: $id');
   }
 
   void cancel(BuildContext context, String id) {
-    _modify(id, (item) => item.error = "Cancelled");
+    _modify(id, (item) => item.error = 'Cancelled');
     _cleanup(id);
-    _log.fine("Cancelled file transfer item: $id");
+    _log.fine('Cancelled file transfer item: $id');
   }
 
   Future<int> readTempDirectorySize() async {
     final dir = Constants.sftpTempDirectory;
-    if (!await dir.exists()) return 0;
+    if (!dir.existsSync()) return 0;
 
     var total = 0;
     await for (final entity in dir.list(recursive: true, followLinks: false)) {
@@ -177,11 +176,11 @@ class FileTransferNotifier extends Notifier<FileTransferState> {
     state = state.copyWith(pending: {});
 
     final dir = Constants.sftpTempDirectory;
-    if (await dir.exists()) {
+    if (dir.existsSync()) {
       try {
         await dir.delete(recursive: true);
       } catch (e) {
-        _log.warning("Failed to delete temp directory: $e");
+        _log.warning('Failed to delete temp directory: $e');
       }
     }
     // recreate so we can keep writing new temp files immediately
@@ -196,20 +195,20 @@ class FileTransferNotifier extends Notifier<FileTransferState> {
     if (item.isolateHandle != null) {
       item.isolateHandle?.kill(priority: Isolate.immediate);
       _modify(id, (item) => item.isolateHandle = null);
-      _log.fine("Killed isolate for file transfer item: $id");
+      _log.fine('Killed isolate for file transfer item: $id');
     }
 
     if (item.tempFile != null) {
       try {
-        if (await item.tempFile!.exists()) {
+        if (item.tempFile!.existsSync()) {
           await item.tempFile!.delete(recursive: true);
           _log.fine(
-            "Deleted temporary file for transfer item $id: ${item.tempFile!.path}",
+            'Deleted temporary file for transfer item $id: ${item.tempFile!.path}',
           );
         }
       } catch (e) {
         _log.warning(
-          "Failed to delete temporary file for transfer item $id: $e",
+          'Failed to delete temporary file for transfer item $id: $e',
         );
       }
       _modify(id, (item) => item.tempFile = null);

@@ -1,5 +1,9 @@
+import 'package:cliq/modules/settings/extension/color_scheme.extension.dart';
 import 'package:cliq/shared/data/database.dart';
+import 'package:cliq/shared/extensions/async_snapshot.extension.dart';
 import 'package:cliq/shared/provider/store.provider.dart';
+import 'package:cliq/shared/ui/horizontal_dialog.dart';
+import 'package:cliq/shared/utils/platform_utils.dart';
 import 'package:cliq/shared/utils/text_utils.dart';
 import 'package:cliq_term/cliq_term.dart';
 import 'package:cliq_ui/cliq_ui.dart' show useMemoizedFuture;
@@ -13,17 +17,12 @@ import 'package:iterm2_color_schemes_dart/iterm2_color_schemes_dart_values.dart'
     deferred as cs;
 import 'package:lucide_flutter/lucide_flutter.dart';
 
-import '../../../shared/extensions/async_snapshot.extension.dart';
-import '../../../shared/ui/horizontal_dialog.dart';
-import '../../../shared/utils/platform_utils.dart';
-import '../extension/color_scheme.extension.dart';
-
 class ColorSchemeBrowserDialog extends HookConsumerWidget {
   final FDialogStyle style;
   final Animation<double> animation;
   final Function(CustomTerminalThemesCompanion)? onImport;
 
-  const ColorSchemeBrowserDialog({
+  const new({
     super.key,
     required this.style,
     required this.animation,
@@ -31,43 +30,43 @@ class ColorSchemeBrowserDialog extends HookConsumerWidget {
   });
 
   static const String sampleInput =
-      "\x1b[31mLorem\x1b[0m "
-      "\x1b[32mipsum\x1b[0m "
-      "\x1b[33mdolor\x1b[0m "
-      "\x1b[34msit\x1b[0m "
-      "\x1b[35mamet\x1b[0m "
-      "\x1b[36mconsectetur\x1b[0m "
-      "\x1b[37madipiscing\x1b[0m "
-      "elit. "
-      "\x1b[1mSuspendisse\x1b[0m "
-      "\x1b[3mblandit\x1b[0m "
-      "\x1b[4mcondimentum\x1b[0m "
-      "\x1b[9msem\x1b[0m "
-      "\x1b[7meget\x1b[0m "
-      "auctor. Praesent convallis, lacus quis egestas tincidunt, mauris arcu volutpat purus, ut ullamcorper dui turpis nec sapien."
-      "\n"
-      "${kSeqEscape}7"
-      "\r"
-      "\x1b[1B"
-      "\x1b[40m   \x1b[0m"
-      "\x1b[41m   \x1b[0m"
-      "\x1b[42m   \x1b[0m"
-      "\x1b[43m   \x1b[0m"
-      "\x1b[44m   \x1b[0m"
-      "\x1b[45m   \x1b[0m"
-      "\x1b[46m   \x1b[0m"
-      "\x1b[47m   \x1b[0m"
-      "\x1b8"
-      "\x1b[2B"
-      "\r"
-      "\x1b[100m   \x1b[0m"
-      "\x1b[101m   \x1b[0m"
-      "\x1b[102m   \x1b[0m"
-      "\x1b[103m   \x1b[0m"
-      "\x1b[104m   \x1b[0m"
-      "\x1b[105m   \x1b[0m"
-      "\x1b[106m   \x1b[0m"
-      "\x1b[107m   \x1b[0m\n";
+      '\x1b[31mLorem\x1b[0m '
+      '\x1b[32mipsum\x1b[0m '
+      '\x1b[33mdolor\x1b[0m '
+      '\x1b[34msit\x1b[0m '
+      '\x1b[35mamet\x1b[0m '
+      '\x1b[36mconsectetur\x1b[0m '
+      '\x1b[37madipiscing\x1b[0m '
+      'elit. '
+      '\x1b[1mSuspendisse\x1b[0m '
+      '\x1b[3mblandit\x1b[0m '
+      '\x1b[4mcondimentum\x1b[0m '
+      '\x1b[9msem\x1b[0m '
+      '\x1b[7meget\x1b[0m '
+      'auctor. Praesent convallis, lacus quis egestas tincidunt, mauris arcu volutpat purus, ut ullamcorper dui turpis nec sapien.'
+      '\n'
+      '${kSeqEscape}7'
+      '\r'
+      '\x1b[1B'
+      '\x1b[40m   \x1b[0m'
+      '\x1b[41m   \x1b[0m'
+      '\x1b[42m   \x1b[0m'
+      '\x1b[43m   \x1b[0m'
+      '\x1b[44m   \x1b[0m'
+      '\x1b[45m   \x1b[0m'
+      '\x1b[46m   \x1b[0m'
+      '\x1b[47m   \x1b[0m'
+      '\x1b8'
+      '\x1b[2B'
+      '\r'
+      '\x1b[100m   \x1b[0m'
+      '\x1b[101m   \x1b[0m'
+      '\x1b[102m   \x1b[0m'
+      '\x1b[103m   \x1b[0m'
+      '\x1b[104m   \x1b[0m'
+      '\x1b[105m   \x1b[0m'
+      '\x1b[106m   \x1b[0m'
+      '\x1b[107m   \x1b[0m\n';
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -79,7 +78,7 @@ class ColorSchemeBrowserDialog extends HookConsumerWidget {
     final defaultTerminalTypography = useStore(.defaultTerminalTypography);
 
     final selectedSchemeName = useState<String?>(null);
-    final filterText = useState<TextEditingValue>(.new());
+    final filterText = useState<TextEditingValue>(TextEditingValue.empty);
 
     useEffect(() {
       setController() {
@@ -114,7 +113,9 @@ class ColorSchemeBrowserDialog extends HookConsumerWidget {
     final touch = context.platformVariant.touch;
 
     return HorizontalDialog(
-      style: .delta(insetPadding: touch ? .value(.zero) : .add(.zero)),
+      style: .delta(
+        insetPadding: touch ? const .value(.zero) : const .add(.zero),
+      ),
       animation: animation,
       title: Column(
         spacing: 4,
@@ -133,7 +134,7 @@ class ColorSchemeBrowserDialog extends HookConsumerWidget {
           ),
         ],
       ),
-      constraints: .expand(),
+      constraints: const .expand(),
       body: Padding(
         padding: const .only(top: 16),
         child: csFuture.on(
@@ -185,8 +186,8 @@ class ColorSchemeBrowserDialog extends HookConsumerWidget {
                         hint: 'filter'.tr(),
                         prefixBuilder: (_, _, _) => IconTheme(
                           data: context.theme.textFieldStyles.md.iconStyle.base,
-                          child: Padding(
-                            padding: const .only(left: 8, right: 4),
+                          child: const Padding(
+                            padding: .only(left: 8, right: 4),
                             child: Icon(LucideIcons.search),
                           ),
                         ),
@@ -205,7 +206,7 @@ class ColorSchemeBrowserDialog extends HookConsumerWidget {
                                 title: Text(theme.name),
                                 selected: isSelected,
                                 prefix: isSelected
-                                    ? Icon(LucideIcons.check)
+                                    ? const Icon(LucideIcons.check)
                                     : null,
                                 onPress: () {
                                   selectedSchemeName.value = theme.name;
@@ -242,7 +243,7 @@ class ColorSchemeBrowserDialog extends HookConsumerWidget {
                                     FButton(
                                       variant: .outline,
                                       onPress: () => filterText.value =
-                                          const TextEditingValue(),
+                                          TextEditingValue.empty,
                                       child: Text('filters_reset'.tr()),
                                     ),
                                   ],

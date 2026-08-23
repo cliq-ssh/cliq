@@ -5,7 +5,7 @@ import 'package:lucide_flutter/lucide_flutter.dart';
 class ErrorCard extends StatelessWidget {
   final String text;
 
-  const ErrorCard({super.key, required this.text});
+  const new({super.key, required this.text});
 
   @override
   Widget build(BuildContext context) {
@@ -21,7 +21,7 @@ class ErrorCard extends StatelessWidget {
       child: Row(
         spacing: 12,
         children: [
-          Icon(LucideIcons.triangleAlert),
+          const Icon(LucideIcons.triangleAlert),
           Expanded(child: Text(text)),
         ],
       ),

@@ -1,12 +1,11 @@
 import 'dart:async';
 
+import 'package:cliq/modules/connections/model/connection.state.dart';
 import 'package:cliq/modules/connections/model/connection_full.model.dart';
+import 'package:cliq/modules/connections/provider/connection_service.provider.dart';
+import 'package:cliq/shared/data/database.dart';
 import 'package:cliq/shared/provider/abstract_entity.notifier.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-
-import '../../../shared/data/database.dart';
-import '../model/connection.state.dart';
-import 'connection_service.provider.dart';
 
 final connectionProvider = NotifierProvider(ConnectionNotifier.new);
 

@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:cliq/modules/settings/provider/sync.provider.dart';
 import 'package:cliq/shared/data/store.dart';
 import 'package:cliq/shared/ui/error_card.dart';
+import 'package:cliq/shared/utils/commons.dart';
 import 'package:cliq/shared/utils/input_formatters.dart';
 import 'package:cliq/shared/utils/validators.dart';
 import 'package:cliq_api/cliq_api.dart';
@@ -14,8 +15,6 @@ import 'package:forui/forui.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lucide_flutter/lucide_flutter.dart';
-
-import '../../../shared/utils/commons.dart';
 
 enum _Step { hostUrl, login, register, registerVerify }
 
@@ -59,11 +58,11 @@ class const RegisterOrLoginSheet({super.key}) extends HookConsumerWidget {
       };
     }
 
-    close() {
+    close() async {
       passwordCtrl.clear();
       passwordConfirmCtrl.clear();
 
-      Commons.showToast('sync_login_success'.tr());
+      await Commons.showToast('sync_login_success'.tr());
       if (!context.mounted) return;
       context.pop();
     }
@@ -89,7 +88,7 @@ class const RegisterOrLoginSheet({super.key}) extends HookConsumerWidget {
             .retrieveConfig(routeOptions.value!);
         step.value = .login;
       } on CliqException catch (e) {
-        Commons.showCliqException(e);
+        await Commons.showCliqException(e);
       } finally {
         isLoading.value = false;
         showHttpsWarning.value = false;
@@ -106,7 +105,7 @@ class const RegisterOrLoginSheet({super.key}) extends HookConsumerWidget {
               email: emailCtrl.text,
               password: utf8.encode(passwordCtrl.text),
             );
-        close();
+        await close();
       } on CliqException catch (e) {
         // 2002 means the email is not verified yet, send to registerVerify step
         if (e.errorCode == 2002) {
@@ -114,7 +113,7 @@ class const RegisterOrLoginSheet({super.key}) extends HookConsumerWidget {
           return;
         }
 
-        Commons.showCliqException(e);
+        await Commons.showCliqException(e);
       } finally {
         isLoading.value = false;
       }
@@ -142,12 +141,12 @@ class const RegisterOrLoginSheet({super.key}) extends HookConsumerWidget {
                 password: utf8.encode(passwordCtrl.text),
               );
 
-          close();
+          await close();
         } else {
           step.value = .registerVerify;
         }
       } on CliqException catch (e) {
-        Commons.showCliqException(e);
+        await Commons.showCliqException(e);
       } finally {
         isLoading.value = false;
       }
@@ -173,9 +172,9 @@ class const RegisterOrLoginSheet({super.key}) extends HookConsumerWidget {
               password: utf8.encode(passwordCtrl.text),
             );
 
-        close();
+        await close();
       } on CliqException catch (e) {
-        Commons.showCliqException(e);
+        await Commons.showCliqException(e);
         if (didVerify) step.value = .login;
       } finally {
         isLoading.value = false;
@@ -192,7 +191,7 @@ class const RegisterOrLoginSheet({super.key}) extends HookConsumerWidget {
               email: emailCtrl.text,
             );
       } on CliqException catch (e) {
-        Commons.showCliqException(e);
+        await Commons.showCliqException(e);
       } finally {
         isLoading.value = false;
       }
@@ -201,12 +200,12 @@ class const RegisterOrLoginSheet({super.key}) extends HookConsumerWidget {
     buildHostUrlStep() {
       return [
         FTextFormField(
-          key: ValueKey('host_url_field'),
+          key: const ValueKey('host_url_field'),
           control: .managed(controller: hostCtrl),
           label: Text('sync_host_url'.tr()),
           description: Text('sync_host_url_subtitle'.tr()),
           hint: 'sync_host_url_placeholder'.tr(),
-          autofillHints: [AutofillHints.url],
+          autofillHints: const [AutofillHints.url],
           autovalidateMode: .onUserInteraction,
           validator: (value) => Validators.syncServerUrl(context, value),
           readOnly: isLoading.value,
@@ -217,7 +216,7 @@ class const RegisterOrLoginSheet({super.key}) extends HookConsumerWidget {
         FButton(
           onPress: isFormValid.value && !isLoading.value ? onTestHostUrl : null,
           child: isLoading.value
-              ? FCircularProgress()
+              ? const FCircularProgress()
               : Text(
                   showHttpsWarning.value
                       ? 'sync_test_host_url_anyway'.tr()
@@ -247,17 +246,17 @@ class const RegisterOrLoginSheet({super.key}) extends HookConsumerWidget {
 
       return [
         FTextFormField.email(
-          key: ValueKey('email_field'),
+          key: const ValueKey('email_field'),
           control: .managed(controller: emailCtrl),
           label: Text('email'.tr()),
           hint: 'email_placeholder'.tr(),
-          autofillHints: [AutofillHints.username, AutofillHints.email],
+          autofillHints: const [AutofillHints.username, AutofillHints.email],
           validator: (value) => Validators.email(context, value),
           readOnly: isLoading.value,
           enabled: !isLoading.value,
         ),
         FTextFormField.password(
-          key: ValueKey('password_field'),
+          key: const ValueKey('password_field'),
           control: .managed(controller: passwordCtrl),
           label: Text('password'.tr()),
           autofillHints: [AutofillHints.password],
@@ -269,7 +268,9 @@ class const RegisterOrLoginSheet({super.key}) extends HookConsumerWidget {
           children: [
             FButton(
               onPress: isFormValid.value && !isLoading.value ? onLogin : null,
-              child: isLoading.value ? FCircularProgress() : Text('login'.tr()),
+              child: isLoading.value
+                  ? const FCircularProgress()
+                  : Text('login'.tr()),
             ),
             if (isRegisterEnabled)
               FButton(
@@ -296,26 +297,26 @@ class const RegisterOrLoginSheet({super.key}) extends HookConsumerWidget {
     buildRegisterStep() {
       return [
         FTextFormField(
-          key: ValueKey('username_field'),
+          key: const ValueKey('username_field'),
           control: .managed(controller: usernameCtrl),
           label: Text('username'.tr()),
           hint: 'username_placeholder'.tr(),
-          autofillHints: [AutofillHints.newUsername],
+          autofillHints: const [AutofillHints.newUsername],
           readOnly: isLoading.value,
           enabled: !isLoading.value,
         ),
         FTextFormField.email(
-          key: ValueKey('email_field'),
+          key: const ValueKey('email_field'),
           control: .managed(controller: emailCtrl),
           label: Text('email'.tr()),
           hint: 'email_placeholder'.tr(),
-          autofillHints: [AutofillHints.username, AutofillHints.email],
+          autofillHints: const [AutofillHints.username, AutofillHints.email],
           validator: (value) => Validators.email(context, value),
           readOnly: isLoading.value,
           enabled: !isLoading.value,
         ),
         FTextFormField.password(
-          key: ValueKey('password_field'),
+          key: const ValueKey('password_field'),
           control: .managed(controller: passwordCtrl),
           label: Text('password'.tr()),
           autofillHints: [AutofillHints.newPassword],
@@ -323,7 +324,7 @@ class const RegisterOrLoginSheet({super.key}) extends HookConsumerWidget {
           enabled: !isLoading.value,
         ),
         FTextFormField.password(
-          key: ValueKey('password_confirm_field'),
+          key: const ValueKey('password_confirm_field'),
           control: .managed(controller: passwordConfirmCtrl),
           label: Text('confirm_password'.tr()),
           autofillHints: [AutofillHints.newPassword],
@@ -340,7 +341,7 @@ class const RegisterOrLoginSheet({super.key}) extends HookConsumerWidget {
                   ? onRegister
                   : null,
               child: isLoading.value
-                  ? FCircularProgress()
+                  ? const FCircularProgress()
                   : Text('register'.tr()),
             ),
             FButton(
@@ -360,12 +361,12 @@ class const RegisterOrLoginSheet({super.key}) extends HookConsumerWidget {
     buildRegisterVerifyStep() {
       return [
         FTextFormField(
-          key: ValueKey('verification_code_field'),
+          key: const ValueKey('verification_code_field'),
           control: .managed(controller: verificationCodeCtrl),
           label: Text('verification_code'.tr()),
           description: Text('sync_verification_code_subtitle'.tr()),
           hint: 'sync_verification_code_placeholder'.tr(),
-          autofillHints: [AutofillHints.oneTimeCode],
+          autofillHints: const [AutofillHints.oneTimeCode],
           autovalidateMode: .onUserInteraction,
           readOnly: isLoading.value,
           enabled: !isLoading.value,
@@ -379,14 +380,14 @@ class const RegisterOrLoginSheet({super.key}) extends HookConsumerWidget {
                   ? onRegisterVerify
                   : null,
               child: isLoading.value
-                  ? FCircularProgress()
+                  ? const FCircularProgress()
                   : Text('sync_verify_code'.tr()),
             ),
             FButton(
               variant: .outline,
               onPress: !isLoading.value ? onResendVerification : null,
               child: isLoading.value
-                  ? FCircularProgress()
+                  ? const FCircularProgress()
                   : Text('sync_resend_verify_code'.tr()),
             ),
           ],

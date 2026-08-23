@@ -1,17 +1,16 @@
+import 'package:cliq/modules/connections/provider/connection.provider.dart';
+import 'package:cliq/modules/connections/ui/connection_icon.dart';
+import 'package:cliq/modules/session/page/ssh_session.page.dart';
+import 'package:cliq/modules/session/provider/session.provider.dart';
+import 'package:cliq/modules/settings/provider/terminal_theme.provider.dart';
+import 'package:cliq/shared/provider/store.provider.dart';
+import 'package:cliq/shared/ui/navigation/navigation_shell.dart';
 import 'package:cliq_ui/cliq_ui.dart' show CliqFontFamily;
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
-import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:forui/forui.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lucide_flutter/lucide_flutter.dart';
-
-import '../../../shared/provider/store.provider.dart';
-import '../../../shared/ui/navigation/navigation_shell.dart';
-import '../../connections/provider/connection.provider.dart';
-import '../../connections/ui/connection_icon.dart';
-import '../../settings/provider/terminal_theme.provider.dart';
-import '../provider/session.provider.dart';
-import '../page/ssh_session.page.dart';
 
 class const SessionTitleBar({
   super.key,
@@ -67,7 +66,7 @@ class const SessionTitleBar({
       return FTooltip(tipBuilder: (_, _) => Text(label), child: child);
     }
 
-    return Container(
+    return ColoredBox(
       color: backgroundColor.value ?? context.theme.colors.background,
       child: Padding(
         padding: kShellSessionPagePadding.copyWith(bottom: 0),

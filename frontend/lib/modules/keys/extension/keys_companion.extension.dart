@@ -1,6 +1,5 @@
+import 'package:cliq/shared/data/database.dart';
 import 'package:drift/drift.dart';
-
-import '../../../shared/data/database.dart';
 
 extension KeysCompanionExtension on KeysCompanion {
   static KeysCompanion? tryFromJson(Map<String, dynamic>? json) {

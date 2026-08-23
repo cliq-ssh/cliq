@@ -1,13 +1,12 @@
 import 'dart:async';
 
+import 'package:cliq/modules/settings/provider/sync.provider.dart';
+import 'package:cliq/modules/vaults/model/vault.state.dart';
 import 'package:cliq/modules/vaults/provider/vault_service.provider.dart';
+import 'package:cliq/shared/data/database.dart';
 import 'package:cliq/shared/provider/abstract_entity.notifier.dart';
 import 'package:cliq_api/cliq_api.dart' show CliqClient;
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-
-import '../../../shared/data/database.dart';
-import '../../settings/provider/sync.provider.dart';
-import '../model/vault.state.dart';
 
 final vaultProvider = NotifierProvider(VaultNotifier.new);
 

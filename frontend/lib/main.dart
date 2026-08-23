@@ -29,7 +29,7 @@ const windowMinHeight = 450.0;
 const windowMinSize = Size(windowMinWidth, windowMinHeight);
 
 void main() async {
-  runZonedGuarded(() async {
+  await runZonedGuarded(() async {
     WidgetsFlutterBinding.ensureInitialized();
 
     if (kDebugMode) {
@@ -71,12 +71,12 @@ Future<void> _configureWindow() async {
     await WindowManipulator.initialize();
   }
 
-  final windowOptions = WindowOptions(
+  const windowOptions = WindowOptions(
     minimumSize: windowMinSize,
     title: Constants.defaultTitle,
     titleBarStyle: .hidden,
   );
-  windowManager.waitUntilReadyToShow(windowOptions, () async {
+  await windowManager.waitUntilReadyToShow(windowOptions, () async {
     await windowManager.show();
     await windowManager.focus();
 
@@ -108,7 +108,7 @@ void _handleError(Object error, StackTrace stackTrace) {
   debugPrint(stackTrace.toString());
 
   String errorMessage = error is LocalizedException
-      ? (error).tr(context: Router.rootNavigatorKey.currentContext!)
+      ? error.tr(context: Router.rootNavigatorKey.currentContext)
       : error.toString();
   if (errorMessage.length > 150) {
     errorMessage = '${errorMessage.substring(0, 150)}...';
@@ -121,11 +121,11 @@ void _handleError(Object error, StackTrace stackTrace) {
       title: Text(errorMessage),
       suffixBuilder: (context, entry) {
         return FTooltip(
-          tipBuilder: (_, _) => Text('View error details'),
+          tipBuilder: (_, _) => const Text('View error details'),
           child: GestureDetector(
-            onTap: () {
+            onTap: () async {
               entry.dismiss();
-              Commons.showResponsiveSheet(
+              await Commons.showResponsiveSheet(
                 (_) => ErrorSheet(error: error, stackTrace: stackTrace),
                 context: null,
               );
@@ -138,7 +138,7 @@ void _handleError(Object error, StackTrace stackTrace) {
           ),
         );
       },
-      duration: .new(seconds: 5),
+      duration: const .new(seconds: 5),
     );
   });
 }
@@ -172,7 +172,7 @@ void _initLogger() {
 }
 
 class CliqApp extends StatefulHookConsumerWidget {
-  const CliqApp({super.key});
+  const new({super.key});
 
   @override
   ConsumerState<CliqApp> createState() => _CliqAppState();
@@ -180,14 +180,14 @@ class CliqApp extends StatefulHookConsumerWidget {
 
 class _CliqAppState extends ConsumerState<CliqApp> {
   @override
-  void initState() {
+  Future<void> initState() async {
     super.initState();
-    SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
+    await SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
     SystemChrome.setSystemUIOverlayStyle(
       const SystemUiOverlayStyle(systemNavigationBarColor: Colors.transparent),
     );
 
-    ref.read(syncProvider.notifier).attemptRecovery();
+    await ref.read(syncProvider.notifier).attemptRecovery();
   }
 
   @override

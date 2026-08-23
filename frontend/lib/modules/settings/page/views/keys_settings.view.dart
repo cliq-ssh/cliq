@@ -1,21 +1,20 @@
 import 'package:cliq/modules/keys/model/key_full.model.dart';
+import 'package:cliq/modules/keys/provider/key.provider.dart';
+import 'package:cliq/modules/keys/provider/key_service.provider.dart';
+import 'package:cliq/modules/keys/ui/key_card.dart';
+import 'package:cliq/modules/keys/ui/key_creation_choice_sheet.dart';
+import 'package:cliq/modules/settings/page/abstract_settings_page.dart';
+import 'package:cliq/modules/settings/page/settings.page.dart';
+import 'package:cliq/shared/extensions/async_snapshot.extension.dart';
+import 'package:cliq/shared/model/page_path.model.dart';
 import 'package:cliq/shared/ui/entity_card_view.dart';
+import 'package:cliq/shared/utils/commons.dart';
 import 'package:cliq_ui/hooks/use_memoized_future.export.dart'
     show useMemoizedFuture;
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/cupertino.dart' hide Key;
 import 'package:forui/forui.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-
-import '../../../../shared/extensions/async_snapshot.extension.dart';
-import '../../../../shared/model/page_path.model.dart';
-import '../../../../shared/utils/commons.dart';
-import '../../../keys/provider/key.provider.dart';
-import '../../../keys/provider/key_service.provider.dart';
-import '../../../keys/ui/key_creation_choice_sheet.dart';
-import '../../../keys/ui/key_card.dart';
-import '../abstract_settings_page.dart';
-import '../settings.page.dart';
 
 class const KeysSettingsView({super.key}) extends AbstractSettingsPage {
   static const PagePathBuilder pagePath = .child(
@@ -38,7 +37,7 @@ class const KeysSettingsView({super.key}) extends AbstractSettingsPage {
     }, [keyIds]);
 
     return keysFuture.on(
-      onLoading: () => Center(child: FCircularProgress()),
+      onLoading: () => const Center(child: FCircularProgress()),
       onData: (keys) {
         return EntityCardView<KeyFull>(
           entities: keys,

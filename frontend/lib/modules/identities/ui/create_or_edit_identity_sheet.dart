@@ -1,7 +1,18 @@
 import 'dart:async';
 
+import 'package:cliq/modules/connections/provider/connection.provider.dart';
 import 'package:cliq/modules/identities/model/identity_full.model.dart';
+import 'package:cliq/modules/identities/provider/identity.provider.dart';
+import 'package:cliq/modules/identities/provider/identity_service.provider.dart';
+import 'package:cliq/modules/settings/provider/sync.provider.dart';
+import 'package:cliq/modules/vaults/provider/vault_move_service.provider.dart';
+import 'package:cliq/modules/vaults/ui/vault_transfer_dialog.dart';
+import 'package:cliq/shared/data/database.dart';
 import 'package:cliq/shared/extensions/text_controller.extension.dart';
+import 'package:cliq/shared/model/entity_type.dart';
+import 'package:cliq/shared/model/router.model.dart';
+import 'package:cliq/shared/ui/create_or_edit_credential_form.dart';
+import 'package:cliq/shared/ui/create_or_edit_entity_view.dart';
 import 'package:cliq/shared/utils/validators.dart';
 import 'package:drift/drift.dart' hide Column;
 import 'package:easy_localization/easy_localization.dart';
@@ -11,30 +22,18 @@ import 'package:forui/forui.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
-import '../../../shared/data/database.dart';
-import '../../../shared/model/entity_type.dart';
-import '../../../shared/model/router.model.dart';
-import '../../../shared/ui/create_or_edit_credential_form.dart';
-import '../../../shared/ui/create_or_edit_entity_view.dart';
-import '../../connections/provider/connection.provider.dart';
-import '../../settings/provider/sync.provider.dart';
-import '../../vaults/provider/vault_move_service.provider.dart';
-import '../../vaults/ui/vault_transfer_dialog.dart';
-import '../provider/identity.provider.dart';
-import '../provider/identity_service.provider.dart';
-
 class CreateOrEditIdentitySheet extends HookConsumerWidget {
   final String? initialLabel;
   final IdentitiesCompanion? current;
   final List<DbId>? currentCredentialIds;
   final bool isEdit;
 
-  const CreateOrEditIdentitySheet.create({super.key, this.initialLabel})
+  const new create({super.key, this.initialLabel})
     : current = null,
       currentCredentialIds = null,
       isEdit = false;
 
-  CreateOrEditIdentitySheet.edit(IdentityFull identity, {super.key})
+  new edit(IdentityFull identity, {super.key})
     : initialLabel = null,
       current = IdentitiesCompanion(
         id: Value(identity.id),

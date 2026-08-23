@@ -4,21 +4,21 @@ import 'package:cliq/modules/keys/model/key_importer/key_importer.dart';
 /// These keys typically start with "ssh-rsa" or "ssh-ed25519" and are followed by the base64 encoded key data and an
 /// optional comment.
 class OpenSSHPublicKeyImporter extends AbstractKeyImporter {
-  const OpenSSHPublicKeyImporter();
+  const new();
 
   @override
   KeyImporterType get type => .public;
 
   @override
   Future<String?> tryParse(String content) async {
-    content = content.trim();
+    final trimmed = content.trim();
     // check if the content starts with a valid OpenSSH public key prefix
-    final lines = content.split('\n');
+    final lines = trimmed.split('\n');
 
-    if (lines.length != 1 || !content.startsWith('ssh-')) {
+    if (lines.length != 1 || !trimmed.startsWith('ssh-')) {
       return null;
     }
 
-    return content;
+    return trimmed;
   }
 }

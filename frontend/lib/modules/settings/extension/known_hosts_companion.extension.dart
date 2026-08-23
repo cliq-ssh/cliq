@@ -1,6 +1,5 @@
+import 'package:cliq/shared/data/database.dart';
 import 'package:drift/drift.dart';
-
-import '../../../shared/data/database.dart';
 
 extension KnownHostsCompanionExtension on KnownHostsCompanion {
   static KnownHostsCompanion? tryFromJson(Map<String, dynamic>? json) {
@@ -16,7 +15,7 @@ extension KnownHostsCompanionExtension on KnownHostsCompanion {
       id: Value(json['id'] as DbId),
       host: Value(json['host'] as String),
       hostKey: Value(
-        Uint8List.fromList((List<int>.from(json['hostKey'] as List<dynamic>))),
+        Uint8List.fromList(List<int>.from(json['hostKey'] as List<dynamic>)),
       ),
       createdAt: Value(
         DateTime.fromMillisecondsSinceEpoch(json['createdAt'] as int),

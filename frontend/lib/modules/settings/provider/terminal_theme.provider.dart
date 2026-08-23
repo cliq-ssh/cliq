@@ -1,23 +1,22 @@
 import 'dart:ui';
 
+import 'package:cliq/modules/settings/model/terminal_theme.state.dart';
+import 'package:cliq/modules/settings/model/theme_parser/terminal_theme_parser.dart';
 import 'package:cliq/modules/settings/provider/terminal_theme_service.provider.dart';
 import 'package:cliq/shared/data/database.dart';
 import 'package:cliq/shared/model/localized_exception.dart';
+import 'package:cliq/shared/provider/abstract_entity.notifier.dart';
 import 'package:file_selector/file_selector.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:logging/logging.dart';
 import 'package:riverpod/riverpod.dart';
-
-import '../../../shared/provider/abstract_entity.notifier.dart';
-import '../model/terminal_theme.state.dart';
-import '../model/theme_parser/terminal_theme_parser.dart';
 
 final terminalThemeProvider = NotifierProvider(CustomTerminalThemeNotifier.new);
 
 /// Dracula
 /// https://github.com/mbadolato/iTerm2-Color-Schemes/blob/0173c3cc154aab5d43b03241286d32372a87dec6/kitty/Dracula.conf
 const CustomTerminalTheme defaultTerminalColorTheme = .new(
-  id: "-1",
+  id: '-1',
   name: 'Dracula',
   black: Color(0xFF21222C),
   red: Color(0xFFFF5555),
@@ -54,13 +53,15 @@ class CustomTerminalThemeNotifier
     final content = await file.readAsString();
     final parser = TerminalThemeParser.getParser(file.name, content);
     if (parser == null) {
-      throw LocalizedException(
+      throw const LocalizedException(
         'terminal_themes_import_error.unrecognized_format',
       );
     }
     final theme = parser.tryParse(file.name, content);
     if (theme == null) {
-      throw LocalizedException('terminal_themes_import_error.parsing_failed');
+      throw const LocalizedException(
+        'terminal_themes_import_error.parsing_failed',
+      );
     }
 
     try {
@@ -69,7 +70,7 @@ class CustomTerminalThemeNotifier
           .createCustomTerminalTheme(theme);
     } catch (e) {
       logger.warning('Failed to import terminal theme (${file.name}): $e');
-      throw LocalizedException('terminal_themes_import_error.generic');
+      throw const LocalizedException('terminal_themes_import_error.generic');
     }
 
     logger.info(

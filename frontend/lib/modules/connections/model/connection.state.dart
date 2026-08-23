@@ -1,11 +1,11 @@
-import '../../../shared/provider/abstract_entity.state.dart';
-import 'connection_full.model.dart';
+import 'package:cliq/modules/connections/model/connection_full.model.dart';
+import 'package:cliq/shared/provider/abstract_entity.state.dart';
 
 class ConnectionEntityState
     extends AbstractEntityState<ConnectionFull, ConnectionEntityState> {
-  const ConnectionEntityState({required super.entities});
+  const new({required super.entities});
 
-  ConnectionEntityState.initial() : super.initial();
+  new initial() : super.initial();
 
   ConnectionEntityState copyWith({List<ConnectionFull>? entities}) {
     return ConnectionEntityState(entities: entities ?? this.entities);

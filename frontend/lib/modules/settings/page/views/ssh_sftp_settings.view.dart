@@ -1,4 +1,7 @@
+import 'package:cliq/modules/settings/page/abstract_settings_page.dart';
+import 'package:cliq/modules/settings/page/settings.page.dart';
 import 'package:cliq/shared/data/store.dart';
+import 'package:cliq/shared/model/page_path.model.dart';
 import 'package:cliq/shared/provider/file_transfer.provider.dart';
 import 'package:cliq/shared/provider/store.provider.dart';
 import 'package:cliq/shared/ui/custom_toggle_tile.dart';
@@ -13,10 +16,6 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:forui/forui.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lucide_flutter/lucide_flutter.dart';
-
-import '../../../../shared/model/page_path.model.dart';
-import '../abstract_settings_page.dart';
-import '../settings.page.dart';
 
 //TODO: add proper error handling
 class const SshSftpSettingsView({super.key}) extends AbstractSettingsPage {
@@ -108,7 +107,7 @@ class const SshSftpSettingsView({super.key}) extends AbstractSettingsPage {
                 'ssh_sftp_scrollback_subtitle'.tr(),
                 overflow: .visible,
               ),
-              prefix: Icon(LucideIcons.history),
+              prefix: const Icon(LucideIcons.history),
               suffix: SizedBox(
                 width: 150,
                 child: FTextField(
@@ -124,7 +123,7 @@ class const SshSftpSettingsView({super.key}) extends AbstractSettingsPage {
             CustomToggleTile(
               title: 'ssh_sftp_bell_sound',
               subtitle: 'ssh_sftp_bell_sound_subtitle',
-              prefix: Icon(LucideIcons.bellRing),
+              prefix: const Icon(LucideIcons.bellRing),
               storeKey: .terminalBellSound,
               value: bellSound.value,
             ),
@@ -138,7 +137,7 @@ class const SshSftpSettingsView({super.key}) extends AbstractSettingsPage {
                     StoreKey.terminalCursorStyle.write(value.first),
               ),
               detailsBuilder: (context, value, _) {
-                if (value.isEmpty) return SizedBox.shrink();
+                if (value.isEmpty) return const SizedBox.shrink();
                 return Text(
                   'ssh_sftp_terminal_cursor_styles.${value.first.name}'.tr(),
                 );
@@ -160,7 +159,7 @@ class const SshSftpSettingsView({super.key}) extends AbstractSettingsPage {
                 'ssh_sftp_terminal_cursor_blink_interval_subtitle'.tr(),
                 overflow: .visible,
               ),
-              prefix: Icon(LucideIcons.timer),
+              prefix: const Icon(LucideIcons.timer),
               suffix: SizedBox(
                 width: 150,
                 child: FTextField(
@@ -179,7 +178,7 @@ class const SshSftpSettingsView({super.key}) extends AbstractSettingsPage {
                 'ssh_sftp_terminal_cursor_blink_timeout_subtitle'.tr(),
                 overflow: .visible,
               ),
-              prefix: Icon(LucideIcons.timerOff),
+              prefix: const Icon(LucideIcons.timerOff),
               suffix: SizedBox(
                 width: 150,
                 child: FTextField(
@@ -200,7 +199,7 @@ class const SshSftpSettingsView({super.key}) extends AbstractSettingsPage {
             CustomToggleTile(
               title: 'ssh_sftp_show_hidden_files',
               subtitle: 'ssh_sftp_show_hidden_files_subtitle',
-              prefix: Icon(LucideIcons.fileSearchCorner),
+              prefix: const Icon(LucideIcons.fileSearchCorner),
               storeKey: .sftpShowHiddenFiles,
               value: showHiddenFiles.value,
             ),
@@ -213,14 +212,14 @@ class const SshSftpSettingsView({super.key}) extends AbstractSettingsPage {
                   decimals: 0,
                 )!,
               ],
-              prefix: Icon(LucideIcons.fileExclamationPoint),
+              prefix: const Icon(LucideIcons.fileExclamationPoint),
               storeKey: .sftpLargeDownloadWarning,
               value: largeDownloadsWarning.value,
             ),
             CustomToggleTile(
               title: 'ssh_sftp_directory_not_empty_warning',
               subtitle: 'ssh_sftp_directory_not_empty_warning_subtitle',
-              prefix: Icon(LucideIcons.folders),
+              prefix: const Icon(LucideIcons.folders),
               storeKey: .sftpDirectoryNotEmptyWarning,
               value: directoryNotEmptyWarning.value,
             ),
@@ -234,12 +233,12 @@ class const SshSftpSettingsView({super.key}) extends AbstractSettingsPage {
                         future: tempDirSizeFuture,
                         builder: (context, snap) {
                           if (snap.hasData) {
-                            final formatted = TextUtils.formatBytes(snap.data!);
+                            final formatted = TextUtils.formatBytes(snap.data);
                             if (formatted != null) {
                               return Text(' ($formatted)');
                             }
                           }
-                          return SizedBox.shrink();
+                          return const SizedBox.shrink();
                         },
                       ),
                     ],
@@ -247,7 +246,7 @@ class const SshSftpSettingsView({super.key}) extends AbstractSettingsPage {
                 ],
               ),
               subtitle: Text('ssh_sftp_clear_temporary_files_subtitle'.tr()),
-              prefix: Icon(LucideIcons.brushCleaning),
+              prefix: const Icon(LucideIcons.brushCleaning),
               variant: .destructive,
               onPress: () async {
                 await ref

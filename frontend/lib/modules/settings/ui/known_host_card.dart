@@ -1,15 +1,14 @@
+import 'package:cliq/modules/settings/provider/known_host_service.provider.dart';
+import 'package:cliq/modules/settings/provider/sync.provider.dart';
 import 'package:cliq/shared/data/database.dart';
+import 'package:cliq/shared/ui/title_card.dart';
+import 'package:cliq/shared/utils/commons.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:forui/forui.dart';
 import 'package:forui_hooks/forui_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lucide_flutter/lucide_flutter.dart';
-
-import '../../../shared/ui/title_card.dart';
-import '../../../shared/utils/commons.dart';
-import '../provider/known_host_service.provider.dart';
-import '../provider/sync.provider.dart';
 
 class const KnownHostCard({super.key, required final KnownHost knownHost})
     extends HookConsumerWidget {
@@ -44,7 +43,7 @@ class const KnownHostCard({super.key, required final KnownHost knownHost})
                     color: context.theme.colors.border,
                     borderRadius: .circular(16),
                   ),
-                  child: Icon(LucideIcons.fingerprintPattern, size: 28),
+                  child: const Icon(LucideIcons.fingerprintPattern, size: 28),
                 ),
                 Expanded(
                   child: Column(
@@ -69,7 +68,7 @@ class const KnownHostCard({super.key, required final KnownHost knownHost})
                 children: [
                   FItem(
                     variant: .destructive,
-                    prefix: Icon(LucideIcons.trash),
+                    prefix: const Icon(LucideIcons.trash),
                     title: Text('delete'.tr()),
                     onPress: delete,
                   ),
@@ -78,7 +77,7 @@ class const KnownHostCard({super.key, required final KnownHost knownHost})
             ],
             builder: (_, controller, _) => FButton.icon(
               onPress: controller.toggle,
-              child: Icon(LucideIcons.ellipsis),
+              child: const Icon(LucideIcons.ellipsis),
             ),
           ),
         ],

@@ -8,14 +8,14 @@ class SyncState {
   final Timer? refreshTimer;
   final Timer? pullTimer;
 
-  const SyncState({
+  const new({
     required this.api,
     required this.config,
     required this.refreshTimer,
     required this.pullTimer,
   });
 
-  SyncState.initial()
+  new initial()
     : api = null,
       config = null,
       refreshTimer = null,

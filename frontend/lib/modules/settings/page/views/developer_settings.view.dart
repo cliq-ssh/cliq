@@ -1,16 +1,15 @@
+import 'package:cliq/modules/settings/page/abstract_settings_page.dart';
+import 'package:cliq/modules/settings/page/settings.page.dart';
 import 'package:cliq/modules/settings/provider/sync.provider.dart';
+import 'package:cliq/modules/vaults/provider/vault.provider.dart';
 import 'package:cliq/shared/data/store.dart';
+import 'package:cliq/shared/model/page_path.model.dart';
 import 'package:cliq/shared/provider/database.provider.dart';
+import 'package:cliq/shared/utils/commons.dart' show Commons;
 import 'package:flutter/cupertino.dart';
 import 'package:forui/forui.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lucide_flutter/lucide_flutter.dart';
-
-import '../../../../shared/model/page_path.model.dart';
-import '../../../../shared/utils/commons.dart' show Commons;
-import '../../../vaults/provider/vault.provider.dart';
-import '../abstract_settings_page.dart';
-import '../settings.page.dart';
 
 class const DeveloperSettingsView({super.key}) extends AbstractSettingsPage {
   static const PagePathBuilder pagePath = .child(
@@ -30,22 +29,22 @@ class const DeveloperSettingsView({super.key}) extends AbstractSettingsPage {
       spacing: 16,
       children: [
         FTileGroup(
-          label: Text('Tools'),
+          label: const Text('Tools'),
           children: [
             FTile(
-              prefix: Icon(LucideIcons.bugPlay),
-              title: Text('Throw sample error'),
+              prefix: const Icon(LucideIcons.bugPlay),
+              title: const Text('Throw sample error'),
               onPress: () => throw Error(),
             ),
           ],
         ),
         if (sync.isConnected)
           FTileGroup(
-            label: Text('Sync'),
+            label: const Text('Sync'),
             children: [
               FTile(
-                prefix: Icon(LucideIcons.arrowUpFromLine),
-                title: Text('Force push current vault'),
+                prefix: const Icon(LucideIcons.arrowUpFromLine),
+                title: const Text('Force push current vault'),
                 variant: .destructive,
                 onPress: () async {
                   final userVault = await ref
@@ -56,13 +55,13 @@ class const DeveloperSettingsView({super.key}) extends AbstractSettingsPage {
                       .pushVault(userVault.id);
 
                   if (pushResult) {
-                    Commons.showToast('Successfully force-pushed vault');
+                    await Commons.showToast('Successfully force-pushed vault');
                   }
                 },
               ),
               FTile(
-                prefix: Icon(LucideIcons.arrowUpFromLine),
-                title: Text('Force pull current vault'),
+                prefix: const Icon(LucideIcons.arrowUpFromLine),
+                title: const Text('Force pull current vault'),
                 variant: .destructive,
                 onPress: () async {
                   final userVault = await ref
@@ -76,22 +75,22 @@ class const DeveloperSettingsView({super.key}) extends AbstractSettingsPage {
                       );
 
                   if (pullResult) {
-                    Commons.showToast('Successfully force-pulled vault');
+                    await Commons.showToast('Successfully force-pulled vault');
                   }
                 },
               ),
             ],
           ),
         FTileGroup(
-          label: Text('Database'),
+          label: const Text('Database'),
           children: [
             // TODO move to commons?
             .tile(
               variant: .destructive,
-              prefix: Icon(LucideIcons.databaseBackup),
-              title: Text('Clear Database Tables'),
-              subtitle: Text(
-                "This will delete all data in the database tables, but keep the table structure intact.",
+              prefix: const Icon(LucideIcons.databaseBackup),
+              title: const Text('Clear Database Tables'),
+              subtitle: const Text(
+                'This will delete all data in the database tables, but keep the table structure intact.',
                 overflow: .visible,
               ),
               onPress: () => Commons.showDeleteDialog(
@@ -103,10 +102,10 @@ class const DeveloperSettingsView({super.key}) extends AbstractSettingsPage {
             ),
             .tile(
               variant: .destructive,
-              prefix: Icon(LucideIcons.databaseX),
-              title: Text('Delete Database File'),
-              subtitle: Text(
-                "This will delete the entire database file, including all tables and data. An app restart is REQUIRED after this action.",
+              prefix: const Icon(LucideIcons.databaseX),
+              title: const Text('Delete Database File'),
+              subtitle: const Text(
+                'This will delete the entire database file, including all tables and data. An app restart is REQUIRED after this action.',
                 overflow: .visible,
               ),
               onPress: () => Commons.showDeleteDialog(
@@ -119,12 +118,12 @@ class const DeveloperSettingsView({super.key}) extends AbstractSettingsPage {
           ],
         ),
         FTileGroup(
-          label: Text('KeyValueStore'),
+          label: const Text('KeyValueStore'),
           children: [
             FTile(
               variant: .destructive,
-              prefix: Icon(LucideIcons.databaseBackup),
-              title: Text('Reset KeyValueStore'),
+              prefix: const Icon(LucideIcons.databaseBackup),
+              title: const Text('Reset KeyValueStore'),
               onPress: () async {
                 for (final key in StoreKey.values) {
                   await key.delete();
@@ -148,7 +147,7 @@ class const DeveloperSettingsView({super.key}) extends AbstractSettingsPage {
                 suffix: FButton.icon(
                   variant: .destructive,
                   onPress: () => key.delete(),
-                  child: Icon(LucideIcons.trash),
+                  child: const Icon(LucideIcons.trash),
                 ),
               ),
           ],

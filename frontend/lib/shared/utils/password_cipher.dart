@@ -8,12 +8,12 @@ class PasswordCipher {
 
   /// A fixed header to identify the whether the data is encrypted.
   static final Uint8List _header = Uint8List.fromList(
-    "cliq-encrypted".codeUnits,
+    'cliq-encrypted'.codeUnits,
   );
 
   final SodiumSumo _sodium;
 
-  const PasswordCipher._(this._sodium);
+  const new _(this._sodium);
 
   static PasswordCipher get instance {
     if (_instance == null) {

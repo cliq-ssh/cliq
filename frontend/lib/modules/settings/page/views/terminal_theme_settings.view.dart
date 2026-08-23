@@ -1,12 +1,21 @@
+import 'package:cliq/modules/connections/provider/connection.provider.dart';
+import 'package:cliq/modules/connections/ui/connection_icon.dart';
 import 'package:cliq/modules/settings/extension/custom_terminal_theme.extension.dart';
+import 'package:cliq/modules/settings/page/abstract_settings_page.dart';
+import 'package:cliq/modules/settings/page/settings.page.dart';
+import 'package:cliq/modules/settings/provider/terminal_theme.provider.dart';
+import 'package:cliq/modules/settings/provider/terminal_theme_service.provider.dart';
 import 'package:cliq/modules/settings/ui/color_scheme_browser_dialog.dart';
 import 'package:cliq/modules/settings/ui/create_or_edit_terminal_theme_sheet.dart';
+import 'package:cliq/modules/settings/ui/terminal_theme_card.dart';
+import 'package:cliq/shared/data/database.dart';
+import 'package:cliq/shared/data/store.dart';
 import 'package:cliq/shared/model/localized_exception.dart';
+import 'package:cliq/shared/model/page_path.model.dart';
 import 'package:cliq/shared/ui/terminal_font_family_select.dart';
 import 'package:cliq/shared/ui/terminal_font_size_slider.dart';
-import 'package:cliq/modules/settings/ui/terminal_theme_card.dart';
-import 'package:cliq/shared/data/store.dart';
 import 'package:cliq/shared/utils/commons.dart';
+import 'package:cliq/shared/utils/platform_utils.dart';
 import 'package:cliq/shared/utils/text_utils.dart';
 import 'package:cliq_term/cliq_term.dart';
 import 'package:cliq_ui/hooks/use_breakpoint.export.dart' show useBreakpoint;
@@ -19,16 +28,6 @@ import 'package:forui_hooks/forui_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lucide_flutter/lucide_flutter.dart';
 
-import '../../../../shared/data/database.dart';
-import '../../../../shared/model/page_path.model.dart';
-import '../../../../shared/utils/platform_utils.dart';
-import '../../../connections/provider/connection.provider.dart';
-import '../../../connections/ui/connection_icon.dart';
-import '../../provider/terminal_theme.provider.dart';
-import '../../provider/terminal_theme_service.provider.dart';
-import '../abstract_settings_page.dart';
-import '../settings.page.dart';
-
 class const TerminalThemeSettingsView({super.key})
     extends AbstractSettingsPage {
   static const PagePathBuilder pagePath = .child(
@@ -37,34 +36,34 @@ class const TerminalThemeSettingsView({super.key})
   );
 
   static const String sampleInput =
-      "$kSeqEscape[31mLorem$kSeqEscape[0m "
-      "$kSeqEscape[32mipsum$kSeqEscape[0m "
-      "$kSeqEscape[33mdolor$kSeqEscape[0m "
-      "$kSeqEscape[34msit$kSeqEscape[0m "
-      "$kSeqEscape[35mamet$kSeqEscape[0m "
-      "$kSeqEscape[36mconsectetur$kSeqEscape[0m "
-      "$kSeqEscape[37madipiscing$kSeqEscape[0m "
-      "$kSeqEscape[30melit\x1b[0m\n"
-      "${kSeqEscape}7"
-      "\r"
-      "$kSeqEscape[1B"
-      "$kSeqEscape[41m   $kSeqEscape[0m"
-      "$kSeqEscape[42m   $kSeqEscape[0m"
-      "\x1b[43m   \x1b[0m"
-      "\x1b[44m   \x1b[0m"
-      "\x1b[45m   \x1b[0m"
-      "\x1b[46m   \x1b[0m"
-      "\x1b[47m   \x1b[0m"
-      "\x1b8"
-      "\x1b[2B"
-      "\r"
-      "\x1b[101m   \x1b[0m"
-      "\x1b[102m   \x1b[0m"
-      "\x1b[103m   \x1b[0m"
-      "\x1b[104m   \x1b[0m"
-      "\x1b[105m   \x1b[0m"
-      "\x1b[106m   \x1b[0m"
-      "\x1b[107m   \x1b[0m\n";
+      '$kSeqEscape[31mLorem$kSeqEscape[0m '
+      '$kSeqEscape[32mipsum$kSeqEscape[0m '
+      '$kSeqEscape[33mdolor$kSeqEscape[0m '
+      '$kSeqEscape[34msit$kSeqEscape[0m '
+      '$kSeqEscape[35mamet$kSeqEscape[0m '
+      '$kSeqEscape[36mconsectetur$kSeqEscape[0m '
+      '$kSeqEscape[37madipiscing$kSeqEscape[0m '
+      '$kSeqEscape[30melit\x1b[0m\n'
+      '${kSeqEscape}7'
+      '\r'
+      '$kSeqEscape[1B'
+      '$kSeqEscape[41m   $kSeqEscape[0m'
+      '$kSeqEscape[42m   $kSeqEscape[0m'
+      '\x1b[43m   \x1b[0m'
+      '\x1b[44m   \x1b[0m'
+      '\x1b[45m   \x1b[0m'
+      '\x1b[46m   \x1b[0m'
+      '\x1b[47m   \x1b[0m'
+      '\x1b8'
+      '\x1b[2B'
+      '\r'
+      '\x1b[101m   \x1b[0m'
+      '\x1b[102m   \x1b[0m'
+      '\x1b[103m   \x1b[0m'
+      '\x1b[104m   \x1b[0m'
+      '\x1b[105m   \x1b[0m'
+      '\x1b[106m   \x1b[0m'
+      '\x1b[107m   \x1b[0m\n';
 
   @override
   String get title => 'terminal_themes'.tr();
@@ -132,7 +131,7 @@ class const TerminalThemeSettingsView({super.key})
     }, [selectedThemeId.value]);
 
     create() => Commons.showResponsiveSheet(
-      (_) => CreateOrEditTerminalThemeSheet.create(),
+      (_) => const CreateOrEditTerminalThemeSheet.create(),
       context: context,
     );
 
@@ -150,17 +149,17 @@ class const TerminalThemeSettingsView({super.key})
             );
 
             if (doesExist) {
-              Commons.showToast(
+              await Commons.showToast(
                 'terminal_themes_already_exist'.tr(),
-                prefix: Icon(LucideIcons.messageCircleWarning),
+                prefix: const Icon(LucideIcons.messageCircleWarning),
               );
               return;
             }
 
             await terminalThemeService.createCustomTerminalTheme(colorScheme);
-            Commons.showToast(
+            await Commons.showToast(
               'terminal_themes_import_success'.tr(),
-              prefix: Icon(LucideIcons.circleCheck),
+              prefix: const Icon(LucideIcons.circleCheck),
             );
           },
         ),
@@ -178,14 +177,14 @@ class const TerminalThemeSettingsView({super.key})
             .read(terminalThemeProvider.notifier)
             .tryImportCustomTerminalTheme(opened);
       } on LocalizedException catch (e) {
-        Commons.showLocalizedException(e);
+        await Commons.showLocalizedException(e);
         return;
       }
       if (!context.mounted) return;
 
       showFToast(
         context: context,
-        icon: Icon(LucideIcons.circleCheck),
+        icon: const Icon(LucideIcons.circleCheck),
         title: Text('terminal_themes_import_success'.tr()),
       );
     }
@@ -215,7 +214,7 @@ class const TerminalThemeSettingsView({super.key})
                       .read(connectionProvider.notifier)
                       .resetOverrides(connection.id);
                 },
-                child: Icon(LucideIcons.undo2),
+                child: const Icon(LucideIcons.undo2),
               ),
             ),
             title: Text(connection.label),
@@ -302,19 +301,19 @@ class const TerminalThemeSettingsView({super.key})
                   children: [
                     FButton(
                       variant: .ghost,
-                      prefix: Icon(LucideIcons.plus),
+                      prefix: const Icon(LucideIcons.plus),
                       onPress: create,
                       child: Text('terminal_themes_theme_add'.tr()),
                     ),
                     FButton(
                       variant: .ghost,
-                      prefix: Icon(LucideIcons.swatchBook),
+                      prefix: const Icon(LucideIcons.swatchBook),
                       onPress: openBrowser,
                       child: Text('terminal_themes_theme_browser'.tr()),
                     ),
                     FButton(
                       variant: .ghost,
-                      prefix: Icon(LucideIcons.folderOpen),
+                      prefix: const Icon(LucideIcons.folderOpen),
                       onPress: importFile,
                       child: Text('terminal_themes_import'.tr()),
                     ),
@@ -328,26 +327,26 @@ class const TerminalThemeSettingsView({super.key})
                       children: [
                         .tile(
                           title: Text('terminal_themes_theme_add'.tr()),
-                          prefix: Icon(LucideIcons.plus),
+                          prefix: const Icon(LucideIcons.plus),
                           onPress: () async {
                             await popoverController.hide();
-                            create();
+                            await create();
                           },
                         ),
                         .tile(
                           title: Text('terminal_themes_theme_browser'.tr()),
-                          prefix: Icon(LucideIcons.swatchBook),
+                          prefix: const Icon(LucideIcons.swatchBook),
                           onPress: () async {
                             await popoverController.hide();
-                            openBrowser();
+                            await openBrowser();
                           },
                         ),
                         .tile(
                           title: Text('terminal_themes_import'.tr()),
-                          prefix: Icon(LucideIcons.folderOpen),
+                          prefix: const Icon(LucideIcons.folderOpen),
                           onPress: () async {
                             await popoverController.hide();
-                            importFile();
+                            await importFile();
                           },
                         ),
                       ],
@@ -357,7 +356,7 @@ class const TerminalThemeSettingsView({super.key})
                     return FButton.icon(
                       variant: .ghost,
                       onPress: controller.toggle,
-                      child: Icon(LucideIcons.ellipsis),
+                      child: const Icon(LucideIcons.ellipsis),
                     );
                   },
                 ),

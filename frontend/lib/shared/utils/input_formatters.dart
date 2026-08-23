@@ -1,22 +1,22 @@
 import 'package:flutter/services.dart';
 
 final class InputFormatters {
-  const InputFormatters._();
+  const new _();
 
   static List<TextInputFormatter> hex() {
     return [
       LengthLimitingTextInputFormatter(7),
-      PrefixTextInputFormatter('#'),
+      const PrefixTextInputFormatter('#'),
       FilteringTextInputFormatter.allow(
         RegExp(r'^#?([0-9a-fA-F]{0,6})$'),
         replacementString: '#FFFFFF',
       ),
-      CaseTextFormatter(),
+      const CaseTextFormatter(),
     ];
   }
 
   static List<TextInputFormatter> verificationToken() {
-    return [LengthLimitingTextInputFormatter(8), CaseTextFormatter()];
+    return [LengthLimitingTextInputFormatter(8), const CaseTextFormatter()];
   }
 
   static List<TextInputFormatter> password() {
@@ -26,7 +26,7 @@ final class InputFormatters {
 
 class CaseTextFormatter extends TextInputFormatter {
   final bool toUpperCase;
-  const CaseTextFormatter({this.toUpperCase = true});
+  const new({this.toUpperCase = true});
 
   @override
   TextEditingValue formatEditUpdate(
@@ -44,7 +44,7 @@ class CaseTextFormatter extends TextInputFormatter {
 
 class PrefixTextInputFormatter extends TextInputFormatter {
   final String prefix;
-  const PrefixTextInputFormatter(this.prefix);
+  const new(this.prefix);
 
   @override
   TextEditingValue formatEditUpdate(

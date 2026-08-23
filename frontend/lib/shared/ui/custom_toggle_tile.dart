@@ -26,7 +26,7 @@ class CustomToggleTile extends StatelessWidget with FTileMixin {
   /// The current value of the toggle.
   final bool value;
 
-  const CustomToggleTile({
+  const new({
     super.key,
     required this.title,
     this.subtitle,

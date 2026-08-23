@@ -6,7 +6,7 @@ class FutureWrapper<T> extends StatelessWidget {
   final Widget Function(BuildContext, AsyncSnapshot<T>)? onLoading;
   final Widget Function(BuildContext, AsyncSnapshot<T>)? onError;
 
-  const FutureWrapper({
+  const new({
     super.key,
     required this.future,
     required this.onSuccess,
@@ -41,7 +41,7 @@ class StreamWrapper<T> extends StatelessWidget {
   final Widget Function(BuildContext, AsyncSnapshot<T>)? onError;
   final T? initialData;
 
-  const StreamWrapper({
+  const new({
     super.key,
     required this.stream,
     required this.onSuccess,

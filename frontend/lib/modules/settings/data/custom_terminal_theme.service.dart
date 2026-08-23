@@ -3,12 +3,12 @@ import 'dart:ui';
 import 'package:cliq/modules/settings/data/custom_terminal_themes.repository.dart';
 import 'package:cliq/shared/data/database.dart';
 
-import '../../../shared/extensions/value.extension.dart';
+import 'package:cliq/shared/extensions/value.extension.dart';
 
 final class CustomTerminalThemeService {
   final CustomTerminalThemesRepository _customTerminalThemesRepository;
 
-  const CustomTerminalThemeService(this._customTerminalThemesRepository);
+  const new(this._customTerminalThemesRepository);
 
   Stream<List<CustomTerminalTheme>> watchAll() {
     return _customTerminalThemesRepository.selectAll().watch();

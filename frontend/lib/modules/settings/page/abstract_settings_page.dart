@@ -1,5 +1,5 @@
 import 'package:cliq_ui/widgets/grid.export.dart'
-    show CliqGridContainer, CliqGridRow, CliqGridColumn;
+    show CliqGridColumn, CliqGridContainer, CliqGridRow;
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:forui/forui.dart';
@@ -44,7 +44,7 @@ abstract class const AbstractSettingsPage({super.key})
             FButton.icon(
               variant: .outline,
               onPress: () => context.pop(),
-              child: Icon(LucideIcons.arrowLeft),
+              child: const Icon(LucideIcons.arrowLeft),
             ),
           ],
         ),

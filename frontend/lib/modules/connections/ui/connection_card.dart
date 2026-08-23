@@ -1,7 +1,14 @@
 import 'dart:io';
 
 import 'package:cliq/modules/connections/model/connection_full.model.dart';
+import 'package:cliq/modules/connections/provider/connection_service.provider.dart';
+import 'package:cliq/modules/connections/ui/connection_icon.dart';
+import 'package:cliq/modules/connections/ui/create_or_edit_connection_sheet.dart';
+import 'package:cliq/modules/session/provider/session.provider.dart';
+import 'package:cliq/modules/settings/provider/sync.provider.dart';
 import 'package:cliq/shared/ui/context_menu.dart';
+import 'package:cliq/shared/ui/navigation/navigation_shell.dart';
+import 'package:cliq/shared/ui/title_card.dart';
 import 'package:cliq/shared/utils/commons.dart';
 import 'package:cliq/shared/utils/platform_utils.dart';
 import 'package:cliq_term/cliq_term.dart';
@@ -11,14 +18,6 @@ import 'package:forui/forui.dart';
 import 'package:forui_hooks/forui_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lucide_flutter/lucide_flutter.dart';
-
-import '../../../shared/ui/navigation/navigation_shell.dart';
-import '../../../shared/ui/title_card.dart';
-import '../../session/provider/session.provider.dart';
-import '../../settings/provider/sync.provider.dart';
-import '../provider/connection_service.provider.dart';
-import 'create_or_edit_connection_sheet.dart';
-import 'connection_icon.dart';
 
 class const ConnectionCard({
   super.key,
@@ -36,9 +35,9 @@ class const ConnectionCard({
 
       if (connection.effectiveUsername == null) {
         // TODO: https://github.com/cliq-ssh/cliq/issues/446
-        Commons.showToast(
+        await Commons.showToast(
           'hosts_cannot_connect_username_missing'.tr(),
-          prefix: Icon(LucideIcons.triangleAlert),
+          prefix: const Icon(LucideIcons.triangleAlert),
           variant: .destructive,
         );
         return;
@@ -84,23 +83,23 @@ class const ConnectionCard({
           FItemGroup(
             children: [
               FItem(
-                prefix: Icon(LucideIcons.unplug),
+                prefix: const Icon(LucideIcons.unplug),
                 title: Text('hosts_connect_ssh'.tr()),
                 onPress: connect,
               ),
               FItem(
-                prefix: Icon(LucideIcons.folderOpen),
+                prefix: const Icon(LucideIcons.folderOpen),
                 title: Text('hosts_connect_sftp'.tr()),
                 onPress: () => connect(isSftp: true),
               ),
               FItem(
-                prefix: Icon(LucideIcons.pencil),
+                prefix: const Icon(LucideIcons.pencil),
                 title: Text('edit'.tr()),
                 onPress: edit,
               ),
               FItem(
                 variant: .destructive,
-                prefix: Icon(LucideIcons.trash),
+                prefix: const Icon(LucideIcons.trash),
                 title: Text('delete'.tr()),
                 onPress: delete,
               ),
@@ -191,11 +190,11 @@ class const ConnectionCard({
               buildPopoverMenu(
                 controller: secondaryPopoverController,
                 child: FButton.icon(
-                  onPress: () {
-                    secondaryPopoverController.toggle();
-                    primaryPopoverController.hide();
+                  onPress: () async {
+                    await secondaryPopoverController.toggle();
+                    await primaryPopoverController.hide();
                   },
-                  child: Icon(LucideIcons.ellipsis),
+                  child: const Icon(LucideIcons.ellipsis),
                 ),
               ),
             ],

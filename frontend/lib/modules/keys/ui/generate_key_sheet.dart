@@ -1,5 +1,6 @@
 import 'package:cliq/modules/keys/model/ssh_key_generator.model.dart';
 import 'package:cliq/modules/keys/provider/key_service.provider.dart';
+import 'package:cliq/shared/data/database.dart';
 import 'package:cliq/shared/ui/create_or_edit_entity_view.dart';
 import 'package:cliq/shared/utils/validators.dart';
 import 'package:easy_localization/easy_localization.dart';
@@ -9,8 +10,6 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:forui/forui.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
-import '../../../shared/data/database.dart';
-
 class _KeyGenerationParams {
   final SshKeyAlgorithm algorithm;
   final SshEcdsaCurveSize ecdsaCurveSize;
@@ -18,7 +17,7 @@ class _KeyGenerationParams {
   final String comment;
   final String? passphrase;
 
-  _KeyGenerationParams({
+  new({
     required this.algorithm,
     required this.ecdsaCurveSize,
     required this.rsaKeySize,

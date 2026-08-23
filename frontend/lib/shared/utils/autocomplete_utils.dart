@@ -1,7 +1,7 @@
-import '../data/database.dart';
+import 'package:cliq/shared/data/database.dart';
 
 final class AutocompleteUtils {
-  const AutocompleteUtils._();
+  const new _();
 
   static String toAutocompleteString(DbId id, String label) {
     return '${label.trim()} ($id)';

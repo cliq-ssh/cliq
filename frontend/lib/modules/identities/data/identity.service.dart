@@ -1,10 +1,9 @@
 import 'package:cliq/modules/credentials/data/credential.service.dart';
+import 'package:cliq/modules/identities/data/identities.repository.dart';
 import 'package:cliq/modules/identities/data/identity_credentials.repository.dart';
 import 'package:cliq/modules/identities/model/identity_full.model.dart';
+import 'package:cliq/shared/data/database.dart';
 import 'package:cliq/shared/extensions/value.extension.dart';
-
-import '../../../shared/data/database.dart';
-import 'identities.repository.dart';
 
 final class IdentityService {
   final IdentitiesRepository _identityRepository;
@@ -12,7 +11,7 @@ final class IdentityService {
 
   final CredentialService _credentialService;
 
-  const IdentityService(
+  const new(
     this._identityRepository,
     this._identityCredentialsRepository,
     this._credentialService,

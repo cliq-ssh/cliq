@@ -1,7 +1,6 @@
-import '../data/store.dart';
-
-import 'package:flutter_hooks/flutter_hooks.dart';
+import 'package:cliq/shared/data/store.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter_hooks/flutter_hooks.dart';
 
 ValueNotifier<T> useStore<T>(StoreKey<T> key) {
   if (key.isSecure) {

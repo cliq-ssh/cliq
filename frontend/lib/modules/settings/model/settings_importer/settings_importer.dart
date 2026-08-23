@@ -9,7 +9,7 @@ enum SettingsImporter {
   final AbstractSettingsImporter instance;
   final String? fileExtension;
 
-  const SettingsImporter(this.instance, {this.fileExtension});
+  new(this.instance, {this.fileExtension});
 
   static Future<AbstractSettingsImporter?> getParser(
     String path,
@@ -39,8 +39,8 @@ enum SettingsImporter {
 }
 
 abstract class AbstractSettingsImporter {
-  const AbstractSettingsImporter();
+  const new();
 
-  Future<bool> canParse(String path, String content);
+  Future<bool> canParse(String path, String trimmed);
   Future<AppSettings?> tryParse(String path, String content);
 }

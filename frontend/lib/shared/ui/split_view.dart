@@ -21,7 +21,7 @@ class SplitLeaf<T extends Object> extends SplitNode<T> {
   final FocusNode focusNode = FocusNode();
   final GlobalKey pageKey = GlobalKey();
 
-  SplitLeaf({required this.value, required this.builder});
+  new({required this.value, required this.builder});
 
   @override
   void dispose() => focusNode.dispose();
@@ -33,11 +33,7 @@ class SplitBranch<T extends Object> extends SplitNode<T> {
   SplitNode<T> first;
   SplitNode<T> second;
 
-  SplitBranch({
-    required this.direction,
-    required this.first,
-    required this.second,
-  });
+  new({required this.direction, required this.first, required this.second});
 
   @override
   void dispose() {
@@ -55,7 +51,7 @@ abstract class _NodeWidget<T extends Object> extends HookConsumerWidget {
   final Color borderColor;
   final Color focusedBorderColor;
 
-  const _NodeWidget({
+  const new({
     required super.key,
     required this.canDrop,
     required this.onDrop,
@@ -68,7 +64,7 @@ abstract class _NodeWidget<T extends Object> extends HookConsumerWidget {
 class SplitView<T extends Object> extends _NodeWidget<T> {
   final SplitNode<T> root;
 
-  const SplitView({
+  const new({
     super.key,
     required super.canDrop,
     required super.onDrop,
@@ -96,7 +92,7 @@ class _SplitNodeWidget<T extends Object> extends _NodeWidget<T> {
   final SplitNode<T> node;
   final bool showBorder;
 
-  const _SplitNodeWidget({
+  const new({
     super.key,
     required super.canDrop,
     required super.onDrop,
@@ -136,7 +132,7 @@ class _LeafNodeWidget<T extends Object> extends _NodeWidget<T> {
   final SplitLeaf<T> leaf;
   final bool showBorder;
 
-  const _LeafNodeWidget({
+  const new({
     super.key,
     required super.canDrop,
     required super.onDrop,
@@ -161,7 +157,7 @@ class _LeafNodeWidget<T extends Object> extends _NodeWidget<T> {
     return LayoutBuilder(
       builder: (context, constraints) {
         (SplitViewDirection, bool) calculateZone(Offset global) {
-          final p = (context.findRenderObject() as RenderBox).globalToLocal(
+          final p = (context.findRenderObject()! as RenderBox).globalToLocal(
             global,
           );
           final distances = [
@@ -210,7 +206,7 @@ class _LeafNodeWidget<T extends Object> extends _NodeWidget<T> {
           builder: (_, _, _) => Stack(
             children: [
               Positioned.fill(
-                child: Container(
+                child: DecoratedBox(
                   decoration: BoxDecoration(
                     border: showBorder
                         ? Border.all(
@@ -245,7 +241,7 @@ class _BranchNodeWidget<T extends Object> extends _NodeWidget<T> {
   final SplitBranch<T> branch;
   final bool showBorder;
 
-  const _BranchNodeWidget({
+  const new({
     super.key,
     required super.canDrop,
     required super.onDrop,
@@ -330,7 +326,7 @@ class _DropOverlay extends StatelessWidget {
   final (SplitViewDirection, bool) zone;
   final BoxConstraints constraints;
 
-  const _DropOverlay({required this.zone, required this.constraints});
+  const new({required this.zone, required this.constraints});
 
   @override
   Widget build(BuildContext context) {

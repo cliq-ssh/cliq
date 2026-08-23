@@ -1,16 +1,19 @@
+import 'package:cliq/modules/vaults/extension/vault.extension.dart';
+import 'package:cliq/modules/vaults/provider/vault.provider.dart';
 import 'package:cliq/shared/data/database.dart';
 import 'package:cliq/shared/data/store.dart';
+import 'package:cliq/shared/provider/store.provider.dart';
 import 'package:cliq/shared/ui/shortcut_info.dart';
 import 'package:cliq/shared/utils/platform_utils.dart';
 import 'package:cliq_term/cliq_term.dart';
 import 'package:cliq_ui/cliq_ui.dart'
     show
+        Breakpoint,
+        BreakpointMap,
+        BreakpointMapExtension,
+        CliqGridColumn,
         CliqGridContainer,
         CliqGridRow,
-        CliqGridColumn,
-        BreakpointMap,
-        Breakpoint,
-        BreakpointMapExtension,
         useBreakpoint;
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/cupertino.dart';
@@ -18,10 +21,6 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:forui/forui.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lucide_flutter/lucide_flutter.dart';
-
-import '../../modules/vaults/extension/vault.extension.dart';
-import '../../modules/vaults/provider/vault.provider.dart';
-import '../provider/store.provider.dart';
 
 enum EntityCardViewType { list, grid }
 
@@ -40,7 +39,7 @@ class EntityCardView<E> extends HookConsumerWidget {
   final VoidCallback? onAddEntity;
   final Widget Function(E entity) entityCardBuilder;
 
-  const EntityCardView({
+  const new({
     super.key,
     required this.entities,
     required this.viewTypeKey,
@@ -53,7 +52,7 @@ class EntityCardView<E> extends HookConsumerWidget {
     this.onAddEntity,
   }) : groupedEntities = null;
 
-  const EntityCardView.grouped({
+  const new grouped({
     super.key,
     required this.groupedEntities,
     required this.viewTypeKey,
@@ -104,7 +103,7 @@ class EntityCardView<E> extends HookConsumerWidget {
             alignment: WrapAlignment.center,
             children: [
               CliqGridColumn(
-                sizes: {.sm: 12, .md: 8},
+                sizes: const {.sm: 12, .md: 8},
                 child: Column(
                   spacing: 4,
                   crossAxisAlignment: CrossAxisAlignment.center,
@@ -118,8 +117,8 @@ class EntityCardView<E> extends HookConsumerWidget {
                     if (addEntityTitle != null && onAddEntity != null) ...[
                       const SizedBox(height: 8),
                       FButton(
-                        prefix: Icon(LucideIcons.plus),
-                        onPress: onAddEntity!,
+                        prefix: const Icon(LucideIcons.plus),
+                        onPress: onAddEntity,
                         child: Text(addEntityTitle!),
                       ),
                     ],
@@ -140,7 +139,7 @@ class EntityCardView<E> extends HookConsumerWidget {
             alignment: WrapAlignment.center,
             children: [
               CliqGridColumn(
-                sizes: {.sm: 12, .md: 8},
+                sizes: const {.sm: 12, .md: 8},
                 child: Column(
                   spacing: 8,
                   crossAxisAlignment: .center,
@@ -185,8 +184,7 @@ class EntityCardView<E> extends HookConsumerWidget {
               ? child
               : SizedBox(
                   width:
-                      ((constraints.maxWidth / gridCount) -
-                      4 * (gridCount - 1)),
+                      (constraints.maxWidth / gridCount) - 4 * (gridCount - 1),
                   child: child,
                 );
         },
@@ -210,8 +208,8 @@ class EntityCardView<E> extends HookConsumerWidget {
               .item(
                 title: Text('show_all_vaults'.tr()),
                 prefix: filterVaultId.value == null
-                    ? Icon(LucideIcons.check)
-                    : SizedBox(width: 16),
+                    ? const Icon(LucideIcons.check)
+                    : const SizedBox(width: 16),
                 onPress: () {
                   filterVaultId.value = filterVaultId.value == null ? [] : null;
                 },
@@ -225,7 +223,7 @@ class EntityCardView<E> extends HookConsumerWidget {
                   .item(
                     prefix: v.owner == null
                         ? null
-                        : Icon(LucideIcons.cloudUpload),
+                        : const Icon(LucideIcons.cloudUpload),
                     title: Text(v.getDisplayName(context)),
                     onPress: () => onVaultTap(v.id),
                   ),
@@ -237,15 +235,15 @@ class EntityCardView<E> extends HookConsumerWidget {
                 .item(
                   title: Text('views.grid'.tr()),
                   prefix: viewType.value == .grid
-                      ? Icon(LucideIcons.check)
-                      : SizedBox(width: 16),
+                      ? const Icon(LucideIcons.check)
+                      : const SizedBox(width: 16),
                   onPress: () => viewTypeKey.write(.grid),
                 ),
                 .item(
                   title: Text('views.list'.tr()),
                   prefix: viewType.value == .list
-                      ? Icon(LucideIcons.check)
-                      : SizedBox(width: 16),
+                      ? const Icon(LucideIcons.check)
+                      : const SizedBox(width: 16),
                   onPress: () => viewTypeKey.write(.list),
                 ),
               ],
@@ -255,7 +253,7 @@ class EntityCardView<E> extends HookConsumerWidget {
           return FButton.icon(
             variant: .outline,
             onPress: controller.toggle,
-            child: Icon(LucideIcons.ellipsis),
+            child: const Icon(LucideIcons.ellipsis),
           );
         },
       );
@@ -289,7 +287,7 @@ class EntityCardView<E> extends HookConsumerWidget {
                             ),
                           ),
                           child: ConstrainedBox(
-                            constraints: .new(maxWidth: 150),
+                            constraints: const .new(maxWidth: 150),
                             child: FTextField(
                               control: .managed(
                                 onChange: (value) =>
@@ -304,8 +302,8 @@ class EntityCardView<E> extends HookConsumerWidget {
                                     .md
                                     .iconStyle
                                     .base,
-                                child: Padding(
-                                  padding: const .only(left: 8, right: 4),
+                                child: const Padding(
+                                  padding: .only(left: 8, right: 4),
                                   child: Icon(LucideIcons.search),
                                 ),
                               ),
@@ -323,8 +321,8 @@ class EntityCardView<E> extends HookConsumerWidget {
                               children: [
                                 FButton(
                                   variant: .outline,
-                                  prefix: Icon(LucideIcons.plus),
-                                  onPress: onAddEntity!,
+                                  prefix: const Icon(LucideIcons.plus),
+                                  onPress: onAddEntity,
                                   child: Text(addEntityTitle!),
                                 ),
                               ],

@@ -9,21 +9,22 @@ extension ValueExtension<T> on Value<T> {
   }
 
   static Value<T> absentIfNullOrSame<T>(T? value, [Value<T>? compareTo]) {
-    if (value is Iterable && value.isEmpty) {
+    T? val = value;
+    if (val is Iterable && val.isEmpty) {
       return Value.absent();
     }
 
-    if (value is String) {
-      if (value.trim().isEmpty) {
+    if (val is String) {
+      if (val.trim().isEmpty) {
         return Value.absent();
       }
-      value = value.trim() as T;
+      val = val.trim() as T;
     }
 
-    if (value == compareTo?.value) {
+    if (val == compareTo?.value) {
       return Value.absent();
     }
 
-    return Value.absentIfNull(value);
+    return Value.absentIfNull(val);
   }
 }

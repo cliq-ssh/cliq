@@ -1,4 +1,11 @@
 import 'package:cliq/modules/connections/ui/connection_icon.dart';
+import 'package:cliq/modules/session/model/session.model.dart';
+import 'package:cliq/modules/session/model/tab.model.dart';
+import 'package:cliq/modules/session/provider/session.provider.dart';
+import 'package:cliq/shared/ui/context_menu.dart';
+import 'package:cliq/shared/ui/navigation/navigation_shell.dart';
+import 'package:cliq/shared/ui/navigation/navigation_tab.dart';
+import 'package:cliq/shared/ui/shortcut_info.dart';
 import 'package:cliq/shared/utils/platform_utils.dart';
 import 'package:cliq_term/cliq_term.dart';
 import 'package:easy_localization/easy_localization.dart';
@@ -7,14 +14,6 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:forui/forui.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lucide_flutter/lucide_flutter.dart';
-
-import '../../../shared/ui/context_menu.dart';
-import '../../../shared/ui/navigation/navigation_shell.dart';
-import '../../../shared/ui/navigation/navigation_tab.dart';
-import '../../../shared/ui/shortcut_info.dart';
-import '../model/session.model.dart';
-import '../model/tab.model.dart';
-import '../provider/session.provider.dart';
 
 class SessionNavigationTab extends HookConsumerWidget {
   /// The root session for this tab.
@@ -34,7 +33,7 @@ class SessionNavigationTab extends HookConsumerWidget {
   /// The custom label for the tab. If null, the UI will fall back to the connection label or a generated label based on number of sessions.
   final String? _customLabel;
 
-  SessionNavigationTab(SessionTab tab, {super.key, this.selected = false})
+  new(SessionTab tab, {super.key, this.selected = false})
     : root = tab.root,
       sessions = tab.sessions,
       _tabId = tab.id,
@@ -90,15 +89,15 @@ class SessionNavigationTab extends HookConsumerWidget {
 
     buildIcon() {
       if (sessions.isNotEmpty) {
-        return Padding(
-          padding: const EdgeInsets.all(3),
+        return const Padding(
+          padding: EdgeInsets.all(3),
           child: Icon(LucideIcons.layoutPanelLeft, size: 14),
         );
       }
 
       return Builder(
         builder: (context) {
-          Widget child = ConnectionIcon.fromConnection(
+          final Widget child = ConnectionIcon.fromConnection(
             root.connection,
             size: 14,
             padding: 3,
@@ -135,7 +134,7 @@ class SessionNavigationTab extends HookConsumerWidget {
                     borderRadius: .circular(8),
                   ),
                   padding: const .symmetric(horizontal: 4),
-                  child: child!,
+                  child: child,
                 );
               },
               child: const Icon(LucideIcons.x, size: 16),

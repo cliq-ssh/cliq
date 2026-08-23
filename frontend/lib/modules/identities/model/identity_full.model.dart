@@ -1,10 +1,10 @@
-import '../../../shared/data/database.dart';
+import 'package:cliq/shared/data/database.dart';
 
 class IdentityFull extends Identity {
   final List<DbId> credentialIds;
   final Vault vault;
 
-  const IdentityFull(
+  const new(
     this.vault, {
     required super.id,
     required super.vaultId,
@@ -13,7 +13,7 @@ class IdentityFull extends Identity {
     required this.credentialIds,
   });
 
-  IdentityFull.fromIdentity(
+  new fromIdentity(
     Identity identity, {
     required this.credentialIds,
     required this.vault,
@@ -24,7 +24,7 @@ class IdentityFull extends Identity {
          username: identity.username,
        );
 
-  factory IdentityFull.fromFindAllResult(FindAllIdentityFullResult result) {
+  factory fromFindAllResult(FindAllIdentityFullResult result) {
     return IdentityFull.fromIdentity(
       result.identity,
       credentialIds: result.identityCredentials,

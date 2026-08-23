@@ -1,5 +1,8 @@
 import 'dart:async';
 
+import 'package:cliq/modules/settings/provider/terminal_theme_service.provider.dart';
+import 'package:cliq/shared/data/database.dart';
+import 'package:cliq/shared/extensions/color.extension.dart';
 import 'package:cliq/shared/ui/create_or_edit_entity_view.dart';
 import 'package:cliq/shared/utils/commons.dart';
 import 'package:cliq/shared/utils/input_formatters.dart';
@@ -13,48 +16,40 @@ import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lucide_flutter/lucide_flutter.dart';
 
-import '../../../shared/data/database.dart';
-import '../../../shared/extensions/color.extension.dart';
-import '../provider/terminal_theme_service.provider.dart';
-
 class CreateOrEditTerminalThemeSheet extends HookConsumerWidget {
   final CustomTerminalThemesCompanion? current;
   final bool isEdit;
 
-  const CreateOrEditTerminalThemeSheet.create({super.key})
-    : current = null,
-      isEdit = false;
+  const new create({super.key}) : current = null, isEdit = false;
 
-  CreateOrEditTerminalThemeSheet.edit(
-    CustomTerminalTheme themeEntity, {
-    super.key,
-  }) : current = CustomTerminalThemesCompanion(
-         id: Value(themeEntity.id),
-         name: Value(themeEntity.name),
-         black: Value(themeEntity.black),
-         red: Value(themeEntity.red),
-         green: Value(themeEntity.green),
-         yellow: Value(themeEntity.yellow),
-         blue: Value(themeEntity.blue),
-         purple: Value(themeEntity.purple),
-         cyan: Value(themeEntity.cyan),
-         white: Value(themeEntity.white),
-         brightBlack: Value(themeEntity.brightBlack),
-         brightRed: Value(themeEntity.brightRed),
-         brightGreen: Value(themeEntity.brightGreen),
-         brightYellow: Value(themeEntity.brightYellow),
-         brightBlue: Value(themeEntity.brightBlue),
-         brightPurple: Value(themeEntity.brightPurple),
-         brightCyan: Value(themeEntity.brightCyan),
-         brightWhite: Value(themeEntity.brightWhite),
-         foreground: Value(themeEntity.foreground),
-         background: Value(themeEntity.background),
-         cursor: Value(themeEntity.cursor),
-         cursorText: Value(themeEntity.cursorText),
-         selectionBackground: Value(themeEntity.selectionBackground),
-         selectionForeground: Value(themeEntity.selectionForeground),
-       ),
-       isEdit = true;
+  new edit(CustomTerminalTheme themeEntity, {super.key})
+    : current = CustomTerminalThemesCompanion(
+        id: Value(themeEntity.id),
+        name: Value(themeEntity.name),
+        black: Value(themeEntity.black),
+        red: Value(themeEntity.red),
+        green: Value(themeEntity.green),
+        yellow: Value(themeEntity.yellow),
+        blue: Value(themeEntity.blue),
+        purple: Value(themeEntity.purple),
+        cyan: Value(themeEntity.cyan),
+        white: Value(themeEntity.white),
+        brightBlack: Value(themeEntity.brightBlack),
+        brightRed: Value(themeEntity.brightRed),
+        brightGreen: Value(themeEntity.brightGreen),
+        brightYellow: Value(themeEntity.brightYellow),
+        brightBlue: Value(themeEntity.brightBlue),
+        brightPurple: Value(themeEntity.brightPurple),
+        brightCyan: Value(themeEntity.brightCyan),
+        brightWhite: Value(themeEntity.brightWhite),
+        foreground: Value(themeEntity.foreground),
+        background: Value(themeEntity.background),
+        cursor: Value(themeEntity.cursor),
+        cursorText: Value(themeEntity.cursorText),
+        selectionBackground: Value(themeEntity.selectionBackground),
+        selectionForeground: Value(themeEntity.selectionForeground),
+      ),
+      isEdit = true;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -190,9 +185,9 @@ class CreateOrEditTerminalThemeSheet extends HookConsumerWidget {
           .doesExist(colorScheme: toInsert);
 
       if (doesExist) {
-        Commons.showToast(
+        await Commons.showToast(
           'terminal_themes_already_exist'.tr(),
-          prefix: Icon(LucideIcons.fileExclamationPoint),
+          prefix: const Icon(LucideIcons.fileExclamationPoint),
         );
         return;
       }

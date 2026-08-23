@@ -12,7 +12,7 @@ class SftpConnectParams {
   final String? password;
   final List<String> keyPems;
 
-  const SftpConnectParams({
+  const new({
     required this.host,
     required this.port,
     required this.username,
@@ -29,7 +29,7 @@ class SftpTransferParams {
   final SftpConnectParams? destination;
   final String destinationPath;
 
-  const SftpTransferParams({
+  const new({
     required this.sendPort,
     this.source,
     required this.sourcePath,

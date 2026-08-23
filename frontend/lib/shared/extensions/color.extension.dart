@@ -18,8 +18,8 @@ extension ColorExtension on Color {
 
   static Color generateRandom() => Color(Random().nextInt(0xffffffff));
 
-  static Color? fromHex(String hex) {
-    hex = hex.replaceFirst('#', '');
+  static Color? fromHex(String hexRaw) {
+    String hex = hexRaw.replaceFirst('#', '');
     if (hex.length == 6) {
       hex = 'FF$hex'; // add alpha if not provided
     }

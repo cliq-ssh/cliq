@@ -1,9 +1,8 @@
 import 'package:cliq/modules/session/model/session.model.dart';
 import 'package:cliq/modules/settings/model/terminal_theme.state.dart';
+import 'package:cliq/shared/data/database.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:forui/forui.dart';
-
-import '../../../shared/data/database.dart';
 
 class SessionTab {
   /// Unique identifier for the session tab, used for tracking and state management.
@@ -19,18 +18,15 @@ class SessionTab {
   /// generated label based on number of sessions.
   final String? customLabel;
 
-  const SessionTab({
+  const new({
     required this.id,
     required this.root,
     required this.sessions,
     this.customLabel,
   });
 
-  const SessionTab.create({
-    required this.id,
-    required this.root,
-    this.customLabel,
-  }) : sessions = const [];
+  const new create({required this.id, required this.root, this.customLabel})
+    : sessions = const [];
 
   void dispose() {
     for (final session in [...sessions, root]) {

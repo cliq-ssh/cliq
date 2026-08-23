@@ -1,5 +1,13 @@
+import 'package:cliq/modules/credentials/model/credential_type.model.dart';
+import 'package:cliq/modules/credentials/provider/credential_service.provider.dart';
 import 'package:cliq/modules/keys/provider/key.provider.dart';
+import 'package:cliq/modules/keys/provider/key_service.provider.dart';
+import 'package:cliq/modules/keys/ui/create_or_edit_key_sheet.dart';
+import 'package:cliq/shared/data/database.dart';
 import 'package:cliq/shared/extensions/async_snapshot.extension.dart';
+import 'package:cliq/shared/utils/autocomplete_utils.dart';
+import 'package:cliq/shared/utils/commons.dart';
+import 'package:cliq/shared/utils/validators.dart';
 import 'package:cliq_ui/cliq_ui.dart' show useMemoizedFuture;
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/cupertino.dart';
@@ -8,15 +16,6 @@ import 'package:forui/forui.dart';
 import 'package:forui_hooks/forui_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lucide_flutter/lucide_flutter.dart';
-
-import '../../modules/credentials/model/credential_type.model.dart';
-import '../../modules/credentials/provider/credential_service.provider.dart';
-import '../../modules/keys/provider/key_service.provider.dart';
-import '../../modules/keys/ui/create_or_edit_key_sheet.dart';
-import '../data/database.dart';
-import '../utils/autocomplete_utils.dart';
-import '../utils/commons.dart';
-import '../utils/validators.dart';
 
 /// Helper class to define allowed credential types and their properties.
 enum _AllowedCredentialType {
@@ -33,11 +32,7 @@ enum _AllowedCredentialType {
   /// Whether only a single instance of this credential type is allowed.
   final bool singleInstance;
 
-  const _AllowedCredentialType({
-    required this.type,
-    required this.icon,
-    this.singleInstance = false,
-  });
+  new({required this.type, required this.icon, this.singleInstance = false});
 
   String getDisplayName(BuildContext context) {
     return switch (this) {
@@ -64,7 +59,7 @@ final class _CredentialData {
   String get key => _keyAutocompleteController.text;
   set key(String value) => _keyAutocompleteController.text = value;
 
-  _CredentialData({
+  new({
     required this.id,
     required this.type,
     String? initialPassword,
@@ -89,15 +84,12 @@ class CreateOrEditCredentialsForm extends StatefulHookConsumerWidget {
   final DbId vaultId;
   final bool isEdit;
 
-  const CreateOrEditCredentialsForm.create({super.key, required this.vaultId})
+  const new create({super.key, required this.vaultId})
     : current = null,
       isEdit = false;
 
-  const CreateOrEditCredentialsForm.edit(
-    this.current, {
-    super.key,
-    required this.vaultId,
-  }) : isEdit = true;
+  const new edit(this.current, {super.key, required this.vaultId})
+    : isEdit = true;
 
   @override
   ConsumerState<CreateOrEditCredentialsForm> createState() =>
@@ -129,9 +121,7 @@ class CreateOrEditCredentialsFormState
     final modifiedIds = <DbId>[];
     for (final data in _selectedCredentials.value) {
       final controllerData = switch (data.type) {
-        .key => AutocompleteUtils.fromAutocompleteString(
-          data.key,
-        ).$1!.toString(),
+        .key => AutocompleteUtils.fromAutocompleteString(data.key).$1!,
         .password => data.password,
       };
 
@@ -305,7 +295,7 @@ class CreateOrEditCredentialsFormState
                                   ),
                                   data.key.isEmpty
                                       ? Text('credentials_form_create_key'.tr())
-                                      : Text(
+                                      : const Text(
                                           'credentials_form_create_key_named',
                                         ).tr(args: [data.key]),
                                 ],
@@ -315,7 +305,7 @@ class CreateOrEditCredentialsFormState
                           contentBuilder: (context, text, suggestions) => [
                             for (final suggestion in suggestions)
                               FAutocompleteItem(
-                                prefix: Icon(LucideIcons.keyRound),
+                                prefix: const Icon(LucideIcons.keyRound),
                                 title: Text(
                                   AutocompleteUtils.fromAutocompleteString(
                                         suggestion,
@@ -394,8 +384,8 @@ class CreateOrEditCredentialsFormState
                                 FItem(
                                   prefix: Icon(allowed.icon),
                                   title: Text(allowed.getDisplayName(context)),
-                                  onPress: () {
-                                    popoverController.hide();
+                                  onPress: () async {
+                                    await popoverController.hide();
                                     final updated = [
                                       ...selectedCredentials,
                                       _CredentialData(

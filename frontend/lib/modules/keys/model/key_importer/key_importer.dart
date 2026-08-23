@@ -9,7 +9,7 @@ enum KeyImporter {
 
   final AbstractKeyImporter instance;
 
-  const KeyImporter(this.instance);
+  new(this.instance);
 
   /// Attempts to parse the given content using all available key importers.
   /// Returns the first successful parse result, or null if none of the importers could parse the content.
@@ -33,7 +33,7 @@ enum KeyImporter {
 }
 
 abstract class AbstractKeyImporter {
-  const AbstractKeyImporter();
+  const new();
 
   KeyImporterType get type;
 

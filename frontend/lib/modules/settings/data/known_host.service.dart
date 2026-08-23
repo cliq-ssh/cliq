@@ -1,14 +1,13 @@
 import 'package:cliq/modules/settings/data/known_hosts.repository.dart';
 import 'package:cliq/modules/settings/model/known_host_full.model.dart';
 import 'package:cliq/shared/data/database.dart';
+import 'package:cliq/shared/extensions/value.extension.dart';
 import 'package:drift/drift.dart';
-
-import '../../../shared/extensions/value.extension.dart';
 
 final class KnownHostService {
   final KnownHostsRepository _knownHostsRepository;
 
-  const KnownHostService(this._knownHostsRepository);
+  const new(this._knownHostsRepository);
 
   Stream<List<KnownHostFull>> watchAll() {
     return _knownHostsRepository.db.findAllKnownHostsFull().watch().map(

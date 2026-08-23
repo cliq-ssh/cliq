@@ -3,11 +3,15 @@ import 'dart:convert';
 
 import 'package:cliq/modules/connections/model/connection_full.model.dart';
 import 'package:cliq/modules/connections/provider/connection.provider.dart';
+import 'package:cliq/modules/session/page/generic_session.page.dart';
+import 'package:cliq/modules/session/provider/session.provider.dart';
 import 'package:cliq/modules/settings/extension/custom_terminal_theme.extension.dart';
 import 'package:cliq/modules/settings/model/keyboard_shortcuts.model.dart';
 import 'package:cliq/modules/settings/provider/terminal_theme.provider.dart';
 import 'package:cliq/shared/provider/store.provider.dart';
+import 'package:cliq/shared/ui/navigation/navigation_shell.dart';
 import 'package:cliq/shared/ui/repeatable_button.dart';
+import 'package:cliq/shared/utils/platform_utils.dart';
 import 'package:cliq_term/cliq_term.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart' hide LicensePage;
@@ -17,11 +21,6 @@ import 'package:forui/forui.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lucide_flutter/lucide_flutter.dart';
 import 'package:window_manager/window_manager.dart';
-
-import '../../../shared/ui/navigation/navigation_shell.dart';
-import '../../../shared/utils/platform_utils.dart';
-import '../provider/session.provider.dart';
-import 'generic_session.page.dart';
 
 /// The padding around the terminal view in the session page.
 const kShellSessionPagePadding = EdgeInsets.symmetric(
@@ -35,7 +34,7 @@ class SshSessionPage extends StatefulHookConsumerWidget {
   final String sessionId;
   final FocusNode? focusNode;
 
-  const SshSessionPage({super.key, required this.sessionId, this.focusNode});
+  const new({super.key, required this.sessionId, this.focusNode});
 
   @override
   ConsumerState<ConsumerStatefulWidget> createState() => _SshSessionPageState();
@@ -94,7 +93,7 @@ class _SshSessionPageState extends ConsumerState<SshSessionPage>
             child: Center(
               child: Container(
                 color: context.theme.colors.background,
-                padding: .all(8),
+                padding: const .all(8),
                 child: Text(
                   '$cols x $rows',
                   style: context.theme.typography.body.md,
@@ -107,9 +106,9 @@ class _SshSessionPageState extends ConsumerState<SshSessionPage>
     }
 
     void rebindTerminalControllerCallbacks(TerminalController controller) {
-      controller.onBell = () {
+      controller.onBell = () async {
         if (!bellSound.value) return;
-        SystemSound.play(.alert);
+        await SystemSound.play(.alert);
       };
       controller.onTitleChange = (title) {
         if (!PlatformUtils.isDesktop) return;
@@ -226,7 +225,7 @@ class _SshSessionPageState extends ConsumerState<SshSessionPage>
 
         if (session.sshSession == null) {
           // only wire this once, the first time this session is actually spawned
-          sshSession.done.then((_) {
+          await sshSession.done.then((_) {
             if (!context.mounted) return;
             ref
                 .read(sessionProvider.notifier)
@@ -332,10 +331,10 @@ class _SshSessionPageState extends ConsumerState<SshSessionPage>
         variant: variant ?? .outline,
         onPress: repeatable ? () {} : onPress,
         child: text == null
-            ? Icon(icon!, size: 16)
+            ? Icon(icon, size: 16)
             : Text(
                 text,
-                style: .new().copyWith(fontSize: 12, fontWeight: .bold),
+                style: const .new().copyWith(fontSize: 12, fontWeight: .bold),
               ),
       );
 
@@ -360,7 +359,7 @@ class _SshSessionPageState extends ConsumerState<SshSessionPage>
       return (_, TerminalAccessoryBarActions actions) {
         return TerminalAccessoryBar(
           backgroundColor: effectiveTerminalTheme.background,
-          padding: .symmetric(horizontal: 8, vertical: 4),
+          padding: const .symmetric(horizontal: 8, vertical: 4),
           items: [
             buildAccessoryButton(
               () => actions.sendInput(kSeqEscape),
