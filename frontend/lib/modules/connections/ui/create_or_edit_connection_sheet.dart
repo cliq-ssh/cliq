@@ -643,9 +643,8 @@ class CreateOrEditConnectionSheet extends HookConsumerWidget {
                         FAutocompleteItem(
                           prefix: Icon(LucideIcons.users),
                           title: Text(
-                            AutocompleteUtils.fromAutocompleteString(
-                                  suggestion,
-                                ).$2 ??
+                            AutocompleteUtils.fromAutocompleteString(suggestion)
+                                    .$2 ??
                                 suggestion,
                           ),
                           value: suggestion,

@@ -12,11 +12,8 @@ import '../../../shared/ui/title_card.dart';
 import '../../settings/provider/sync.provider.dart';
 import '../provider/key_service.provider.dart';
 
-class KeyCard extends HookConsumerWidget {
-  final Key keyEntity;
-
-  const KeyCard({super.key, required this.keyEntity});
-
+class const KeyCard({super.key, required final Key keyEntity})
+    extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final popoverController = useFPopoverController();

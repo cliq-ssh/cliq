@@ -14,10 +14,8 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import '../../../shared/model/page_path.model.dart';
 import '../model/session.model.dart';
 
-class SessionPageWrapper extends StatefulHookConsumerWidget {
+class const SessionPageWrapper({super.key}) extends StatefulHookConsumerWidget {
   static const PagePathBuilder pagePath = PagePathBuilder('/@session');
-
-  const SessionPageWrapper({super.key});
 
   @override
   ConsumerState<ConsumerStatefulWidget> createState() => _SessionPageState();

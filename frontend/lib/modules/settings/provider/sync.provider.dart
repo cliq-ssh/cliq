@@ -133,9 +133,8 @@ class SyncProviderNotifier extends Notifier<SyncState> {
     if (!config.localAuthProperties.registrationEnabled) {
       throw StateError('Registration is disabled on this server.');
     }
-    await _getDefaultClientBuilder(
-      routeOptions,
-    ).createUser(username: username, email: email, password: password);
+    await _getDefaultClientBuilder(routeOptions)
+        .createUser(username: username, email: email, password: password);
   }
 
   Future<void> logout() async {
@@ -167,9 +166,8 @@ class SyncProviderNotifier extends Notifier<SyncState> {
     RouteOptions routeOptions, {
     required String email,
   }) async {
-    await _getDefaultClientBuilder(
-      routeOptions,
-    ).resendVerificationEmail(email: email);
+    await _getDefaultClientBuilder(routeOptions)
+        .resendVerificationEmail(email: email);
   }
 
   Future<void> verifyRegistration(
@@ -177,9 +175,8 @@ class SyncProviderNotifier extends Notifier<SyncState> {
     required String verificationToken,
     required String email,
   }) async {
-    await _getDefaultClientBuilder(
-      routeOptions,
-    ).verifyEmail(email: email, verificationToken: verificationToken);
+    await _getDefaultClientBuilder(routeOptions)
+        .verifyEmail(email: email, verificationToken: verificationToken);
   }
 
   /// Whether we should pull the latest vault from the server because it

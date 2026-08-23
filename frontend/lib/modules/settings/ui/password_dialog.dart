@@ -4,16 +4,11 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:forui/forui.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
-class PasswordDialog extends HookConsumerWidget {
-  final FDialogStyle style;
-  final Animation<double> animation;
-
-  const PasswordDialog({
-    super.key,
-    required this.style,
-    required this.animation,
-  });
-
+class const PasswordDialog({
+  super.key,
+  required final FDialogStyle style,
+  required final Animation<double> animation,
+}) extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final passwordController = useTextEditingController();

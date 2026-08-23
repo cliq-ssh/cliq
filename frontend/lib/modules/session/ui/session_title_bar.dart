@@ -13,16 +13,11 @@ import '../../settings/provider/terminal_theme.provider.dart';
 import '../provider/session.provider.dart';
 import '../page/ssh_session.page.dart';
 
-class SessionTitleBar extends HookConsumerWidget {
-  final String sessionId;
-  final bool hovered;
-
-  const SessionTitleBar({
-    super.key,
-    required this.sessionId,
-    this.hovered = false,
-  });
-
+class const SessionTitleBar({
+  super.key,
+  required final String sessionId,
+  final bool hovered = false,
+}) extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final themes = ref.watch(terminalThemeProvider);

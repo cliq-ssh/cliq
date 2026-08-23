@@ -12,13 +12,11 @@ import '../../../identities/model/identity_full.model.dart';
 import '../abstract_settings_page.dart';
 import '../settings.page.dart';
 
-class IdentitiesSettingsView extends AbstractSettingsPage {
+class const IdentitiesSettingsView({super.key}) extends AbstractSettingsPage {
   static const PagePathBuilder pagePath = .child(
     parent: SettingsPage.pagePath,
     path: 'identities',
   );
-
-  const IdentitiesSettingsView({super.key});
 
   @override
   String get title => 'identities'.tr();

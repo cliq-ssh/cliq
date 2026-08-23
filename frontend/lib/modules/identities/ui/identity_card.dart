@@ -12,11 +12,8 @@ import 'package:lucide_flutter/lucide_flutter.dart';
 import '../../../shared/ui/title_card.dart';
 import '../../settings/provider/sync.provider.dart';
 
-class IdentityCard extends HookConsumerWidget {
-  final IdentityFull identity;
-
-  const IdentityCard({super.key, required this.identity});
-
+class const IdentityCard({super.key, required final IdentityFull identity})
+    extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final popoverController = useFPopoverController();

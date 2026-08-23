@@ -23,15 +23,15 @@ import '../../credentials/provider/credential_service.provider.dart';
 import '../../keys/provider/key_service.provider.dart';
 import '../provider/terminal_theme.provider.dart';
 
-class ImportOrExportSettingsView extends StatefulHookConsumerWidget {
+class ImportOrExportSettingsSheet extends StatefulHookConsumerWidget {
   final AppSettings? current;
   final bool isImport;
 
-  const ImportOrExportSettingsView.export({super.key})
+  const ImportOrExportSettingsSheet.export({super.key})
     : current = null,
       isImport = false;
 
-  const ImportOrExportSettingsView.import({super.key, required this.current})
+  const ImportOrExportSettingsSheet.import({super.key, required this.current})
     : isImport = true;
 
   @override
@@ -40,7 +40,7 @@ class ImportOrExportSettingsView extends StatefulHookConsumerWidget {
 }
 
 class _ImportOrExportSettingsViewState
-    extends ConsumerState<ImportOrExportSettingsView> {
+    extends ConsumerState<ImportOrExportSettingsSheet> {
   @override
   Widget build(BuildContext context) {
     final formKey = useMemoized(() => GlobalKey<FormState>());

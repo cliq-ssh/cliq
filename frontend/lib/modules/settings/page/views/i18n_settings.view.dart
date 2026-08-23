@@ -11,13 +11,11 @@ import '../../../../shared/utils/commons.dart';
 import '../abstract_settings_page.dart';
 import '../settings.page.dart';
 
-class I18nSettingsView extends AbstractSettingsPage {
+class const I18nSettingsView({super.key}) extends AbstractSettingsPage {
   static const PagePathBuilder pagePath = .child(
     parent: SettingsPage.pagePath,
     path: 'i18n',
   );
-
-  const I18nSettingsView({super.key});
 
   @override
   String get title => 'language'.tr();

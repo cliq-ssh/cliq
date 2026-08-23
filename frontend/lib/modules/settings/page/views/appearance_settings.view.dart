@@ -12,13 +12,11 @@ import '../../../../shared/ui/custom_toggle_tile.dart';
 import '../abstract_settings_page.dart';
 import '../settings.page.dart';
 
-class AppearanceSettingsView extends AbstractSettingsPage {
+class const AppearanceSettingsView({super.key}) extends AbstractSettingsPage {
   static const PagePathBuilder pagePath = .child(
     parent: SettingsPage.pagePath,
     path: 'appearance',
   );
-
-  const AppearanceSettingsView({super.key});
 
   @override
   String get title => 'appearance'.tr();
@@ -142,8 +140,7 @@ class AppearanceSettingsView extends AbstractSettingsPage {
           children: [
             CustomToggleTile(
               title: 'appearance_apply_terminal_theme_color_to_navigation',
-              subtitle:
-                  'appearance_apply_terminal_theme_color_to_navigation_subtitle',
+              subtitle: 'appearance_apply_terminal_theme_color_to_navigation_subtitle',
               prefix: Icon(LucideIcons.paintBucket),
               storeKey: .applyTerminalThemeColorToNavigation,
               value: applyTerminalThemeColorToNavigation.value,

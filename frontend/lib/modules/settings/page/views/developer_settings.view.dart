@@ -12,13 +12,11 @@ import '../../../vaults/provider/vault.provider.dart';
 import '../abstract_settings_page.dart';
 import '../settings.page.dart';
 
-class DeveloperSettingsView extends AbstractSettingsPage {
+class const DeveloperSettingsView({super.key}) extends AbstractSettingsPage {
   static const PagePathBuilder pagePath = .child(
     parent: SettingsPage.pagePath,
     path: 'developer',
   );
-
-  const DeveloperSettingsView({super.key});
 
   @override
   String get title => 'Developer';

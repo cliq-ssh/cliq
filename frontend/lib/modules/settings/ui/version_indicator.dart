@@ -8,11 +8,10 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:forui/forui.dart';
 
-class VersionIndicator extends HookConsumerWidget {
-  final PackageInfo packageInfo;
-
-  const VersionIndicator({super.key, required this.packageInfo});
-
+class const VersionIndicator({
+  super.key,
+  required final PackageInfo packageInfo,
+}) extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final counter = useState(0);

@@ -19,13 +19,11 @@ import '../abstract_settings_page.dart';
 import '../settings.page.dart';
 
 //TODO: add proper error handling
-class SshSftpSettingsView extends AbstractSettingsPage {
+class const SshSftpSettingsView({super.key}) extends AbstractSettingsPage {
   static const PagePathBuilder pagePath = .child(
     parent: SettingsPage.pagePath,
     path: 'ssh-sftp',
   );
-
-  const SshSftpSettingsView({super.key});
 
   @override
   String get title => 'ssh_sftp'.tr();

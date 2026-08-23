@@ -7,9 +7,8 @@ import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lucide_flutter/lucide_flutter.dart';
 
-abstract class AbstractSettingsPage extends HookConsumerWidget {
-  const AbstractSettingsPage({super.key});
-
+abstract class const AbstractSettingsPage({super.key})
+    extends HookConsumerWidget {
   String get title;
   Widget buildBody(BuildContext context, WidgetRef ref);
 

@@ -20,11 +20,10 @@ import '../provider/connection_service.provider.dart';
 import 'create_or_edit_connection_sheet.dart';
 import 'connection_icon.dart';
 
-class ConnectionCard extends HookConsumerWidget {
-  final ConnectionFull connection;
-
-  const ConnectionCard({super.key, required this.connection});
-
+class const ConnectionCard({
+  super.key,
+  required final ConnectionFull connection,
+}) extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final primaryPopoverController = useFPopoverController();

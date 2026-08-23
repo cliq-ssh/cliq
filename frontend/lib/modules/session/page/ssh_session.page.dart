@@ -250,19 +250,19 @@ class _SshSessionPageState extends ConsumerState<SshSessionPage>
 
         stdoutSub =
             session.stdoutSub ??
-            const Utf8Decoder(
-              allowMalformed: true,
-            ).bind(sshSession.stdout).listen((str) {
-              terminalController.value?.feed(str);
-            });
+            const Utf8Decoder(allowMalformed: true)
+                .bind(sshSession.stdout)
+                .listen((str) {
+                  terminalController.value?.feed(str);
+                });
 
         stderrSub =
             session.stderrSub ??
-            const Utf8Decoder(
-              allowMalformed: true,
-            ).bind(sshSession.stderr).listen((str) {
-              terminalController.value?.feed(str);
-            });
+            const Utf8Decoder(allowMalformed: true)
+                .bind(sshSession.stderr)
+                .listen((str) {
+                  terminalController.value?.feed(str);
+                });
 
         ref
             .read(sessionProvider.notifier)

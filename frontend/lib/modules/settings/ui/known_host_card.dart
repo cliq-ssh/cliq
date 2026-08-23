@@ -11,11 +11,8 @@ import '../../../shared/utils/commons.dart';
 import '../provider/known_host_service.provider.dart';
 import '../provider/sync.provider.dart';
 
-class KnownHostCard extends HookConsumerWidget {
-  final KnownHost knownHost;
-
-  const KnownHostCard({super.key, required this.knownHost});
-
+class const KnownHostCard({super.key, required final KnownHost knownHost})
+    extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final popoverController = useFPopoverController();

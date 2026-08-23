@@ -1,6 +1,6 @@
 import 'package:cliq/modules/settings/extension/custom_terminal_theme.extension.dart';
 import 'package:cliq/modules/settings/ui/color_scheme_browser_dialog.dart';
-import 'package:cliq/modules/settings/ui/create_or_edit_terminal_theme_view.dart';
+import 'package:cliq/modules/settings/ui/create_or_edit_terminal_theme_sheet.dart';
 import 'package:cliq/shared/model/localized_exception.dart';
 import 'package:cliq/shared/ui/terminal_font_family_select.dart';
 import 'package:cliq/shared/ui/terminal_font_size_slider.dart';
@@ -29,7 +29,8 @@ import '../../provider/terminal_theme_service.provider.dart';
 import '../abstract_settings_page.dart';
 import '../settings.page.dart';
 
-class TerminalThemeSettingsView extends AbstractSettingsPage {
+class const TerminalThemeSettingsView({super.key})
+    extends AbstractSettingsPage {
   static const PagePathBuilder pagePath = .child(
     parent: SettingsPage.pagePath,
     path: 'terminal-theme',
@@ -64,8 +65,6 @@ class TerminalThemeSettingsView extends AbstractSettingsPage {
       "\x1b[105m   \x1b[0m"
       "\x1b[106m   \x1b[0m"
       "\x1b[107m   \x1b[0m\n";
-
-  const TerminalThemeSettingsView({super.key});
 
   @override
   String get title => 'terminal_themes'.tr();
@@ -133,7 +132,7 @@ class TerminalThemeSettingsView extends AbstractSettingsPage {
     }, [selectedThemeId.value]);
 
     create() => Commons.showResponsiveSheet(
-      (_) => CreateOrEditTerminalThemeView.create(),
+      (_) => CreateOrEditTerminalThemeSheet.create(),
       context: context,
     );
 

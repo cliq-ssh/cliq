@@ -26,9 +26,8 @@ import '../provider/store.provider.dart';
 enum EntityCardViewType { list, grid }
 
 class EntityCardView<E> extends HookConsumerWidget {
-  static final BreakpointMap<int> _gridWidths = {
-    Breakpoint.sm: 2,
-  }.cascadeUp(defaultValue: 2);
+  static final BreakpointMap<int> _gridWidths = {Breakpoint.sm: 2}
+      .cascadeUp(defaultValue: 2);
 
   final List<E>? entities;
   final Map<String, List<E>>? groupedEntities;

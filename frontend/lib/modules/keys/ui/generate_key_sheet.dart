@@ -37,9 +37,7 @@ Future<GeneratedSshKeyPair> _generateKeyInIsolate(
   passphrase: params.passphrase,
 );
 
-class GenerateKeyView extends HookConsumerWidget {
-  const GenerateKeyView({super.key});
-
+class const GenerateKeyView({super.key}) extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final formKey = useMemoized(() => GlobalKey<FormState>());

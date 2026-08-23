@@ -11,13 +11,11 @@ import '../../../../shared/ui/future_wrapper.dart';
 import '../abstract_settings_page.dart';
 import '../settings.page.dart';
 
-class LicenseSettingsView extends AbstractSettingsPage {
+class const LicenseSettingsView({super.key}) extends AbstractSettingsPage {
   static const PagePathBuilder pagePath = .child(
     parent: SettingsPage.pagePath,
     path: 'licenses',
   );
-
-  const LicenseSettingsView({super.key});
 
   @override
   String get title => 'licenses'.tr();

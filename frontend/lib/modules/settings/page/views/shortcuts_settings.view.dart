@@ -16,13 +16,11 @@ import '../../model/keyboard_shortcuts.model.dart';
 import '../abstract_settings_page.dart';
 import '../settings.page.dart';
 
-class ShortcutsSettingsView extends AbstractSettingsPage {
+class const ShortcutsSettingsView({super.key}) extends AbstractSettingsPage {
   static const PagePathBuilder pagePath = .child(
     parent: SettingsPage.pagePath,
     path: 'shortcuts',
   );
-
-  const ShortcutsSettingsView({super.key});
 
   @override
   String get title => 'shortcuts'.tr();

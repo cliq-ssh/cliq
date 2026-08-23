@@ -27,10 +27,8 @@ import 'package:simple_icons/simple_icons.dart';
 import '../../../shared/extensions/async_snapshot.extension.dart';
 import '../../../shared/model/page_path.model.dart';
 
-class SettingsPage extends StatefulHookConsumerWidget {
+class const SettingsPage({super.key}) extends StatefulHookConsumerWidget {
   static const PagePathBuilder pagePath = PagePathBuilder('/settings');
-
-  const SettingsPage({super.key});
 
   @override
   ConsumerState<ConsumerStatefulWidget> createState() => _SettingsPageState();

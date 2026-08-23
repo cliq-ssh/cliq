@@ -1,6 +1,6 @@
 import 'dart:io';
 
-import 'package:cliq/modules/settings/ui/create_or_edit_terminal_theme_view.dart';
+import 'package:cliq/modules/settings/ui/create_or_edit_terminal_theme_sheet.dart';
 import 'package:cliq/shared/data/database.dart';
 import 'package:cliq/shared/ui/context_menu.dart';
 import 'package:cliq_term/cliq_term.dart';
@@ -14,23 +14,14 @@ import '../../../shared/ui/title_card.dart';
 import '../../../shared/utils/commons.dart';
 import '../provider/terminal_theme_service.provider.dart';
 
-class TerminalThemeCard extends HookConsumerWidget {
-  final CustomTerminalTheme theme;
-  final void Function() onTap;
-  final bool isSelected;
-
-  final VoidCallback? onEdit;
-  final VoidCallback? onDelete;
-
-  const TerminalThemeCard({
-    super.key,
-    required this.theme,
-    required this.onTap,
-    this.isSelected = false,
-    this.onEdit,
-    this.onDelete,
-  });
-
+class const TerminalThemeCard({
+  super.key,
+  required final CustomTerminalTheme theme,
+  required final void Function() onTap,
+  final bool isSelected = false,
+  final VoidCallback? onEdit,
+  final VoidCallback? onDelete,
+}) extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final primaryPopoverController = useFPopoverController();
@@ -83,7 +74,7 @@ class TerminalThemeCard extends HookConsumerWidget {
       if (!context.mounted) return;
 
       return Commons.showResponsiveSheet(
-        (_) => CreateOrEditTerminalThemeView.edit(theme),
+        (_) => CreateOrEditTerminalThemeSheet.edit(theme),
         context: context,
       ).then((_) => onEdit?.call());
     }

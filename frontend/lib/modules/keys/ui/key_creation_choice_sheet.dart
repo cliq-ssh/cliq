@@ -6,11 +6,10 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lucide_flutter/lucide_flutter.dart';
 
 import 'create_or_edit_key_sheet.dart';
+
 import 'package:cliq/modules/keys/ui/generate_key_sheet.dart';
 
-class KeyCreationChoiceSheet extends HookConsumerWidget {
-  const KeyCreationChoiceSheet({super.key});
-
+class const KeyCreationChoiceSheet({super.key}) extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     openImport() {

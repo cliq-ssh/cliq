@@ -1240,9 +1240,8 @@ class _SftpSessionPageState extends ConsumerState<SftpSessionPage>
 
                           if (col == .size && isModified) {
                             return FutureBuilder(
-                              future: File(
-                                modifiedFiles.value[id]!.tempPath,
-                              ).length(),
+                              future: File(modifiedFiles.value[id]!.tempPath)
+                                  .length(),
                               builder: (_, snap) => Text.rich(
                                 TextSpan(
                                   text: col.valueBuilder.call(context, file),

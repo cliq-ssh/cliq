@@ -1,8 +1,7 @@
 import 'package:cliq/modules/settings/model/settings_importer/app_settings.model.dart';
 import 'package:cliq/modules/settings/provider/sync.provider.dart';
 import 'package:cliq/modules/settings/ui/password_dialog.dart';
-import 'package:cliq/modules/settings/ui/import_or_export_settings_view.dart';
-import 'package:cliq/modules/settings/ui/register_or_login_view.dart';
+import 'package:cliq/modules/settings/ui/register_or_login_sheet.dart';
 import 'package:cliq/modules/vaults/provider/vault_service.provider.dart';
 import 'package:cliq/shared/data/database.dart';
 import 'package:cliq/shared/model/entity_type.dart';
@@ -24,16 +23,15 @@ import '../../../../shared/model/router.model.dart';
 import '../../../../shared/utils/commons.dart';
 import '../../../../shared/utils/text_utils.dart';
 import '../../../vaults/provider/vault.provider.dart';
+import '../../ui/import_or_export_settings_sheet.dart';
 import '../abstract_settings_page.dart';
 import '../settings.page.dart';
 
-class SyncSettingsView extends AbstractSettingsPage {
+class const SyncSettingsView({super.key}) extends AbstractSettingsPage {
   static const PagePathBuilder pagePath = .child(
     parent: SettingsPage.pagePath,
     path: 'sync',
   );
-
-  const SyncSettingsView({super.key});
 
   @override
   String get title => 'sync'.tr();
@@ -93,7 +91,7 @@ class SyncSettingsView extends AbstractSettingsPage {
           title: Text('sync_setup_sync'.tr()),
           subtitle: Text('sync_setup_sync_subtitle'.tr(), overflow: .visible),
           onPress: () => Commons.showResponsiveSheet(
-            (_) => RegisterOrLoginView(),
+            (_) => RegisterOrLoginSheet(),
             context: context,
             dismissable: false,
           ),
@@ -233,7 +231,7 @@ class SyncSettingsView extends AbstractSettingsPage {
                 }
 
                 Commons.showResponsiveSheet(
-                  (_) => ImportOrExportSettingsView.import(current: settings),
+                  (_) => ImportOrExportSettingsSheet.import(current: settings),
                   context: context,
                 );
               },
@@ -243,7 +241,7 @@ class SyncSettingsView extends AbstractSettingsPage {
               suffix: Icon(LucideIcons.chevronRight),
               title: Text('sync_export_file'.tr()),
               onPress: () => Commons.showResponsiveSheet(
-                (_) => ImportOrExportSettingsView.export(),
+                (_) => ImportOrExportSettingsSheet.export(),
                 context: context,
               ),
             ),

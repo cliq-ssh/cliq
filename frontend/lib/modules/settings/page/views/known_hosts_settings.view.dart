@@ -10,13 +10,11 @@ import '../../ui/known_host_card.dart';
 import '../abstract_settings_page.dart';
 import '../settings.page.dart';
 
-class KnownHostsSettingsView extends AbstractSettingsPage {
+class const KnownHostsSettingsView({super.key}) extends AbstractSettingsPage {
   static const PagePathBuilder pagePath = .child(
     parent: SettingsPage.pagePath,
     path: 'known-hosts',
   );
-
-  const KnownHostsSettingsView({super.key});
 
   @override
   String get title => 'known_hosts'.tr();

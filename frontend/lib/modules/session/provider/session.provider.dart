@@ -78,8 +78,7 @@ class SessionNotifier extends Notifier<SessionState> {
         newSelectedTabId = newActiveTabs.last.id;
       } else {
         newSelectedTabId = null;
-        shellState
-            .goToDashboardBranch(); // Go to dashboard branch if no sessions left.
+        shellState.goToDashboardBranch(); // Go to dashboard branch if no sessions left.
       }
     }
 

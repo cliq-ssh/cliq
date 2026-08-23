@@ -19,9 +19,7 @@ import '../../../shared/utils/commons.dart';
 
 enum _Step { hostUrl, login, register, registerVerify }
 
-class RegisterOrLoginView extends HookConsumerWidget {
-  const RegisterOrLoginView({super.key});
-
+class const RegisterOrLoginSheet({super.key}) extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final formKey = useMemoized(() => GlobalKey<FormState>());

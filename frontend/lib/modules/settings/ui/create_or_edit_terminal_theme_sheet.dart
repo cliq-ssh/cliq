@@ -17,15 +17,15 @@ import '../../../shared/data/database.dart';
 import '../../../shared/extensions/color.extension.dart';
 import '../provider/terminal_theme_service.provider.dart';
 
-class CreateOrEditTerminalThemeView extends HookConsumerWidget {
+class CreateOrEditTerminalThemeSheet extends HookConsumerWidget {
   final CustomTerminalThemesCompanion? current;
   final bool isEdit;
 
-  const CreateOrEditTerminalThemeView.create({super.key})
+  const CreateOrEditTerminalThemeSheet.create({super.key})
     : current = null,
       isEdit = false;
 
-  CreateOrEditTerminalThemeView.edit(
+  CreateOrEditTerminalThemeSheet.edit(
     CustomTerminalTheme themeEntity, {
     super.key,
   }) : current = CustomTerminalThemesCompanion(
