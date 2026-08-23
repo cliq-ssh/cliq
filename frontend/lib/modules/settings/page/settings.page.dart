@@ -1,0 +1,206 @@
+import 'package:cliq/modules/settings/page/views/appearance_settings.view.dart';
+import 'package:cliq/modules/settings/page/views/developer_settings.view.dart';
+import 'package:cliq/modules/settings/page/views/licenses.view.dart';
+import 'package:cliq/modules/settings/provider/sync.provider.dart';
+import 'package:cliq/modules/settings/ui/version_indicator.dart';
+import 'package:cliq/modules/settings/page/views/i18n_settings.view.dart';
+import 'package:cliq/modules/settings/page/views/identities_settings.view.dart';
+import 'package:cliq/modules/settings/page/views/keys_settings.view.dart';
+import 'package:cliq/modules/settings/page/views/known_hosts_settings.view.dart';
+import 'package:cliq/modules/settings/page/views/shortcuts_settings.view.dart';
+import 'package:cliq/modules/settings/page/views/ssh_sftp_settings.view.dart';
+import 'package:cliq/modules/settings/page/views/sync_settings.view.dart';
+import 'package:cliq/modules/settings/page/views/terminal_theme_settings.view.dart';
+import 'package:cliq/shared/extensions/router.extension.dart';
+import 'package:cliq/shared/provider/store.provider.dart';
+import 'package:cliq/shared/utils/commons.dart';
+import 'package:cliq/shared/utils/platform_utils.dart';
+import 'package:easy_localization/easy_localization.dart';
+import 'package:forui/forui.dart';
+import 'package:lucide_flutter/lucide_flutter.dart';
+import 'package:cliq_ui/cliq_ui.dart';
+import 'package:flutter/material.dart' hide LicensePage;
+import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:package_info_plus/package_info_plus.dart';
+import 'package:simple_icons/simple_icons.dart';
+
+import '../../../shared/extensions/async_snapshot.extension.dart';
+import '../../../shared/model/page_path.model.dart';
+
+class SettingsPage extends StatefulHookConsumerWidget {
+  static const PagePathBuilder pagePath = PagePathBuilder('/settings');
+
+  const SettingsPage({super.key});
+
+  @override
+  ConsumerState<ConsumerStatefulWidget> createState() => _SettingsPageState();
+}
+
+class _SettingsPageState extends ConsumerState<SettingsPage> {
+  @override
+  Widget build(BuildContext context) {
+    final sync = ref.watch(syncProvider);
+    final info = useMemoizedFuture(() => PackageInfo.fromPlatform(), []);
+
+    final developerMode = useStore(.developerMode);
+    final lastUpdated = useStore(.syncLastUpdated);
+
+    return SingleChildScrollView(
+      child: CliqGridContainer(
+        children: [
+          CliqGridRow(
+            alignment: WrapAlignment.center,
+            children: [
+              CliqGridColumn(
+                child: Padding(
+                  padding: EdgeInsets.only(top: 24, bottom: 40),
+                  child: Column(
+                    spacing: 16,
+                    children: [
+                      FTileGroup(
+                        label: Text('my_vault'.tr()),
+                        children: [
+                          FTile(
+                            prefix: Icon(LucideIcons.refreshCcw),
+                            suffix: Icon(LucideIcons.chevronRight),
+                            title: Text('sync'.tr()),
+                            subtitle: sync.isConnected
+                                ? Text('sync_last_updated').tr(
+                                    args: [
+                                      lastUpdated.value == null ||
+                                              lastUpdated.value == 0
+                                          ? 'n_a'.tr()
+                                          : DateTime.fromMillisecondsSinceEpoch(
+                                              lastUpdated.value!,
+                                              isUtc: true,
+                                            ).toIso8601String(),
+                                    ],
+                                  )
+                                : Text('sync_not_connected'.tr()),
+                            onPress: () => context.pushPath(
+                              SyncSettingsView.pagePath.build(),
+                            ),
+                          ),
+                          FTile(
+                            prefix: Icon(LucideIcons.users),
+                            suffix: Icon(LucideIcons.chevronRight),
+                            title: Text('identities'.tr()),
+                            onPress: () => context.pushPath(
+                              IdentitiesSettingsView.pagePath.build(),
+                            ),
+                          ),
+                          FTile(
+                            prefix: Icon(LucideIcons.keyRound),
+                            suffix: Icon(LucideIcons.chevronRight),
+                            title: Text('keys'.tr()),
+                            onPress: () => context.pushPath(
+                              KeysSettingsView.pagePath.build(),
+                            ),
+                          ),
+                          FTile(
+                            prefix: Icon(LucideIcons.fingerprintPattern),
+                            suffix: Icon(LucideIcons.chevronRight),
+                            title: Text('known_hosts'.tr()),
+                            onPress: () => context.pushPath(
+                              KnownHostsSettingsView.pagePath.build(),
+                            ),
+                          ),
+                          FTile(
+                            prefix: Icon(LucideIcons.swatchBook),
+                            suffix: Icon(LucideIcons.chevronRight),
+                            title: Text('terminal_themes'.tr()),
+                            onPress: () => context.pushPath(
+                              TerminalThemeSettingsView.pagePath.build(),
+                            ),
+                          ),
+                        ],
+                      ),
+                      FTileGroup(
+                        label: Text('app'.tr()),
+                        children: [
+                          FTile(
+                            prefix: Icon(LucideIcons.palette),
+                            suffix: Icon(LucideIcons.chevronRight),
+                            title: Text('appearance'.tr()),
+                            onPress: () => context.pushPath(
+                              AppearanceSettingsView.pagePath.build(),
+                            ),
+                          ),
+                          FTile(
+                            prefix: Icon(LucideIcons.languages),
+                            suffix: Icon(LucideIcons.chevronRight),
+                            title: Text('language'.tr()),
+                            onPress: () => context.pushPath(
+                              I18nSettingsView.pagePath.build(),
+                            ),
+                          ),
+                          if (PlatformUtils.isDesktop)
+                            FTile(
+                              prefix: Icon(LucideIcons.keyboard),
+                              suffix: Icon(LucideIcons.chevronRight),
+                              title: Text('shortcuts'.tr()),
+                              onPress: () => context.pushPath(
+                                ShortcutsSettingsView.pagePath.build(),
+                              ),
+                            ),
+                          FTile(
+                            prefix: Icon(LucideIcons.terminal),
+                            suffix: Icon(LucideIcons.chevronRight),
+                            title: Text('ssh_sftp'.tr()),
+                            onPress: () => context.pushPath(
+                              SshSftpSettingsView.pagePath.build(),
+                            ),
+                          ),
+                          if (developerMode.value)
+                            FTile(
+                              variant: .destructive,
+                              prefix: Icon(LucideIcons.hammer),
+                              suffix: Icon(LucideIcons.chevronRight),
+                              title: Text('developer'.tr()),
+                              onPress: () => context.pushPath(
+                                DeveloperSettingsView.pagePath.build(),
+                              ),
+                            ),
+                        ],
+                      ),
+
+                      SizedBox.shrink(),
+                      FTileGroup(
+                        children: [
+                          FTile(
+                            prefix: Icon(LucideIcons.scale),
+                            suffix: Icon(LucideIcons.chevronRight),
+                            title: Text('licenses'.tr()),
+                            onPress: () => context.pushPath(
+                              LicenseSettingsView.pagePath.build(),
+                            ),
+                          ),
+                          FTile(
+                            prefix: Icon(SimpleIcons.github),
+                            suffix: Icon(LucideIcons.externalLink),
+                            title: Text('GitHub'),
+                            onPress: () => Commons.launchGitHubUrl(),
+                          ),
+                        ],
+                      ),
+
+                      info.on(
+                        onData: (data) {
+                          return Padding(
+                            padding: const .only(top: 12),
+                            child: VersionIndicator(packageInfo: data),
+                          );
+                        },
+                        defaultValue: SizedBox.shrink(),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}

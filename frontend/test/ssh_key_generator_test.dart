@@ -1,4 +1,4 @@
-import 'package:cliq/modules/keys/model/ssh_key_generator.dart';
+import 'package:cliq/modules/keys/model/ssh_key_generator.model.dart';
 import 'package:dartssh2/dartssh2.dart';
 import 'package:flutter_test/flutter_test.dart';
 

@@ -17,7 +17,7 @@ import '../../../shared/ui/title_card.dart';
 import '../../session/provider/session.provider.dart';
 import '../../settings/provider/sync.provider.dart';
 import '../provider/connection_service.provider.dart';
-import '../view/create_or_edit_connection_view.dart';
+import 'create_or_edit_connection_sheet.dart';
 import 'connection_icon.dart';
 
 class ConnectionCard extends HookConsumerWidget {
@@ -55,8 +55,8 @@ class ConnectionCard extends HookConsumerWidget {
       await secondaryPopoverController.hide();
       if (!context.mounted) return;
 
-      return Commons.showResponsiveDialog(
-        (_) => CreateOrEditConnectionView.edit(connection),
+      return Commons.showResponsiveSheet(
+        (_) => CreateOrEditConnectionSheet.edit(connection),
         context: context,
       );
     }

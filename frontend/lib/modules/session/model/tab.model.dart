@@ -53,7 +53,7 @@ class SessionTab {
                   defaultTerminalTheme,
                   isDefaultTheme: true,
                 )!)
-            .backgroundColor,
+            .background,
       );
       return hsl
           .withLightness((hsl.lightness - 0.02).clamp(0.0, 1.0))

@@ -205,6 +205,8 @@ class _TerminalViewState extends State<TerminalView> {
 
   /// Shows the accessory bar above the keyboard when it is visible.
   void _showAccessoryBar() {
+    if (widget.readOnly || !mounted) return;
+
     _accessoryBarEntry?.remove();
     if (widget.accessoryBarBuilder == null) return;
 
@@ -362,7 +364,7 @@ class _TerminalViewState extends State<TerminalView> {
           },
           child: Listener(
             onPointerDown: (event) {
-              if (!_mouseReportingActive) return;
+              if (widget.readOnly || !_mouseReportingActive) return;
               _focusNode.requestFocus();
               final button = _mouseButtonFromEvent(event.buttons);
               if (button == null) return;
@@ -374,9 +376,11 @@ class _TerminalViewState extends State<TerminalView> {
               );
             },
             onPointerPanZoomStart: (event) {
+              if (widget.readOnly) return;
               _panScrollAccumulator = 0;
             },
             onPointerPanZoomUpdate: (event) {
+              if (widget.readOnly) return;
               dispatchPanScroll(
                 event.panDelta.dy,
                 cellH,
@@ -385,10 +389,11 @@ class _TerminalViewState extends State<TerminalView> {
               );
             },
             onPointerPanZoomEnd: (event) {
+              if (widget.readOnly) return;
               _panScrollAccumulator = 0;
             },
             onPointerUp: (event) {
-              if (!_mouseReportingActive) return;
+              if (widget.readOnly || !_mouseReportingActive) return;
               _focusNode.requestFocus();
               final (row, col) = coordsFor(event.localPosition);
               widget.controller.reportMouseEvent(
@@ -398,13 +403,7 @@ class _TerminalViewState extends State<TerminalView> {
               );
             },
             onPointerMove: (event) {
-              // Touch-drag scroll on mobile takes priority over raw motion
-              // reporting: a vertical drag should scroll (translated to
-              // wheel events or arrow keys by handleScroll) even when the
-              // program has mouse tracking enabled for other purposes
-              // (e.g. btop's clickable process list) — matching how
-              // desktop trackpad/wheel scrolling already behaves
-              // regardless of mouse-tracking state.
+              if (widget.readOnly) return;
               if (!widget.allowTextSelection) {
                 dispatchPanScroll(
                   event.delta.dy,
@@ -425,7 +424,7 @@ class _TerminalViewState extends State<TerminalView> {
               }
             },
             onPointerSignal: (event) {
-              if (event is! PointerScrollEvent) return;
+              if (widget.readOnly || event is! PointerScrollEvent) return;
               final (row, col) = coordsFor(event.localPosition);
               widget.controller.handleScroll(
                 row: row,
@@ -437,11 +436,13 @@ class _TerminalViewState extends State<TerminalView> {
             child: GestureDetector(
               behavior: HitTestBehavior.translucent,
               onTap: () {
+                if (widget.readOnly) return;
                 if (_mouseReportingActive) return;
                 _focusNode.requestFocus();
                 widget.controller.clearSelection();
               },
               onTapUp: (details) {
+                if (widget.readOnly) return;
                 if (_mouseReportingActive) return;
                 final (
                   row,
@@ -462,6 +463,7 @@ class _TerminalViewState extends State<TerminalView> {
                 }
               },
               onPanStart: (details) {
+                if (widget.readOnly) return;
                 _focusNode.requestFocus();
                 _panScrollAccumulator = 0;
                 if (!widget.allowTextSelection || _mouseReportingActive) return;
@@ -469,6 +471,7 @@ class _TerminalViewState extends State<TerminalView> {
                 widget.controller.startSelection(absRow, absCol);
               },
               onPanUpdate: (details) {
+                if (widget.readOnly) return;
                 if (!widget.allowTextSelection) {
                   dispatchPanScroll(
                     details.delta.dy,
@@ -483,14 +486,16 @@ class _TerminalViewState extends State<TerminalView> {
                 widget.controller.updateSelection(absRow, absCol);
               },
               child: Container(
-                color: widget.controller.theme.backgroundColor,
+                color: widget.controller.theme.background,
                 child: ListView.builder(
                   scrollCacheExtent: ScrollCacheExtent.pixels(cellH * 10),
                   controller: _scrollController,
                   itemCount: totalRows,
                   itemExtent: cellH,
                   padding: .zero,
-                  physics: const TerminalScrollPhysics(),
+                  physics: widget.controller.backBufferActive
+                      ? const NeverScrollableScrollPhysics()
+                      : const TerminalScrollPhysics(),
                   itemBuilder: (context, index) {
                     return TerminalRowWidget(
                       controller: widget.controller,

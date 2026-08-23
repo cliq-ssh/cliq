@@ -1,7 +1,7 @@
 import 'dart:io';
 
 import 'package:cliq/modules/session/model/sftp_transfer_params.model.dart';
-import 'package:cliq/modules/session/view/sftp_session_page.dart';
+import 'package:cliq/modules/session/page/sftp_session.page.dart';
 import 'package:dartssh2/dartssh2.dart';
 import 'package:flutter/foundation.dart';
 

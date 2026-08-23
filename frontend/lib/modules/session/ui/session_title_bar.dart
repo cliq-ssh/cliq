@@ -11,7 +11,7 @@ import '../../connections/provider/connection.provider.dart';
 import '../../connections/ui/connection_icon.dart';
 import '../../settings/provider/terminal_theme.provider.dart';
 import '../provider/session.provider.dart';
-import '../view/ssh_session_page.dart';
+import '../page/ssh_session.page.dart';
 
 class SessionTitleBar extends HookConsumerWidget {
   final String sessionId;
@@ -50,8 +50,8 @@ class SessionTitleBar extends HookConsumerWidget {
         return;
       }
 
-      backgroundColor.value = effectiveTerminalTheme.backgroundColor;
-      foregroundColor.value = effectiveTerminalTheme.foregroundColor;
+      backgroundColor.value = effectiveTerminalTheme.background;
+      foregroundColor.value = effectiveTerminalTheme.foreground;
       return null;
     }, [effectiveTerminalTheme, session]);
 

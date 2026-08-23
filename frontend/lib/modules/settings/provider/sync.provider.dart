@@ -4,6 +4,8 @@ import 'dart:typed_data';
 
 import 'package:cliq/modules/settings/model/settings_importer/app_settings.model.dart';
 import 'package:cliq/modules/settings/model/settings_importer/settings_importer.dart';
+import 'package:cliq/modules/settings/provider/terminal_theme.provider.dart';
+import 'package:cliq/modules/settings/provider/terminal_theme_service.provider.dart';
 import 'package:cliq/modules/vaults/provider/vault_service.provider.dart';
 import 'package:cliq/shared/data/store.dart';
 import 'package:cliq/shared/model/localized_exception.dart';
@@ -190,10 +192,12 @@ class SyncProviderNotifier extends Notifier<SyncState> {
     // can consider our local vault to be the latest version in that case
     if (remote == null) return false;
     final localMillis = await StoreKey.syncLastUpdated.readAsync();
-    final local = DateTime.fromMillisecondsSinceEpoch(
-      localMillis!,
-      isUtc: true,
-    ).copyWith(microsecond: 0);
+    final DateTime local = localMillis != null
+        ? .fromMillisecondsSinceEpoch(
+            localMillis,
+            isUtc: true,
+          ).copyWith(microsecond: 0)
+        : .fromMillisecondsSinceEpoch(0, isUtc: true);
 
     return remote.isAfter(local);
   }
@@ -201,9 +205,12 @@ class SyncProviderNotifier extends Notifier<SyncState> {
   /// Pulls the latest vault from the server and updates our local vault with it.
   /// Returns true if the vault was pulled and updated, false if it was not pulled because our local vault is
   /// already up to date.
-  Future<bool> pullVault({Vault? userVaultOverride}) async {
+  Future<bool> pullVault({
+    Vault? userVaultOverride,
+    bool ignoreShouldPull = false,
+  }) async {
     if (state.api == null) return false;
-    if (!(await shouldPull())) {
+    if (!ignoreShouldPull && !(await shouldPull())) {
       return false;
     }
 
@@ -234,25 +241,17 @@ class SyncProviderNotifier extends Notifier<SyncState> {
     return true;
   }
 
-  /// Pulls the latest vault from the server so that we are in sync with the server and
-  /// then pushes our local vault to the server.
-  /// This is done to ensure that we don't overwrite any changes that may have been made on the server since our last sync.
-  Future<bool> pullAndPushVault() async {
+  /// Pushes our local vault to the server, overwriting the server's vault with our local vault.
+  /// This function should never be exposed to the end-user and only ever be used in combination with [pushVault].
+  Future<bool> pushVault(DbId userVaultId) async {
     if (state.api == null) return false;
-
-    final userVault = await ref
-        .read(vaultProvider.notifier)
-        .findOrCreateUserVault(state.api!);
-
-    await pullVault(userVaultOverride: userVault);
-
     final dek = await StoreKey.syncDataEncryptionKey.readAsync();
     if (dek == null) {
       // this should never happen, dek is set on login
       throw StateError('Data encryption key is missing, cannot push vault.');
     }
 
-    final content = jsonEncode((await export(userVault.id)).toJson());
+    final content = jsonEncode((await export(userVaultId)).toJson());
 
     final encrypted = await PasswordCipher.instance.encrypt(
       utf8.encode(content),
@@ -270,6 +269,22 @@ class SyncProviderNotifier extends Notifier<SyncState> {
     return true;
   }
 
+  /// Pulls the latest vault from the server so that we are in sync with the server and
+  /// then pushes our local vault to the server.
+  /// This is done to ensure that we don't overwrite any changes that may have been made on the server since our last sync.
+  Future<bool> pullAndPushVault() async {
+    if (state.api == null) return false;
+
+    final userVault = await ref
+        .read(vaultProvider.notifier)
+        .findOrCreateUserVault(state.api!);
+
+    if (await shouldPull()) {
+      await pullVault(userVaultOverride: userVault, ignoreShouldPull: true);
+    }
+    return await pushVault(userVault.id);
+  }
+
   /// Attempts to parse the given [file] as [AppSettings].
   /// If the file is null, not parsable, or fails for any reason, this method throws the i18n key of the error message.
   Future<AppSettings?> tryParseSettings(XFile? file, {String? password}) async {
@@ -285,7 +300,7 @@ class SyncProviderNotifier extends Notifier<SyncState> {
       password: password,
     );
     if (parser == null) {
-      throw LocalizedException('settings.import.error.unrecognizedFormat');
+      throw LocalizedException('settings_import_error.unrecognized_format');
     }
 
     AppSettings? settings;
@@ -296,14 +311,14 @@ class SyncProviderNotifier extends Notifier<SyncState> {
     }
 
     if (settings == null) {
-      throw LocalizedException('settings.import.error.parsingFailed');
+      throw LocalizedException('settings_import_error.parsing_failed');
     }
     return settings;
   }
 
   /// Validates the given [settings] for import and export operations.
-  /// Returns null if the settings are valid, or the i18n key of the error message if they are not.
-  String? validateSettings(AppSettings settings) {
+  /// Returns true if the settings are valid, or false if they are not.
+  bool validateSettings(AppSettings settings) {
     // check if any connection has an identity that is not in the identities list
     final identityIds =
         settings.identities?.map((e) => e.id.value).toSet() ?? <int>{};
@@ -311,10 +326,10 @@ class SyncProviderNotifier extends Notifier<SyncState> {
     for (final connection in settings.connections ?? <ConnectionsCompanion>[]) {
       if (connection.identityId.value != null &&
           !identityIds.contains(connection.identityId.value)) {
-        return 'settings.import.error.missingIdentity';
+        return false;
       }
     }
-    return null;
+    return true;
   }
 
   /// Imports the given [toImport] settings into the vault with [vaultId].
@@ -329,9 +344,12 @@ class SyncProviderNotifier extends Notifier<SyncState> {
     final connectionService = ref.read(connectionServiceProvider);
     final identityService = ref.read(identityServiceProvider);
     final knownHostService = ref.read(knownHostServiceProvider);
+    final terminalThemeService = ref.read(terminalThemeServiceProvider);
     final credentialService = ref.read(credentialServiceProvider);
     final keyService = ref.read(keyServiceProvider);
     final vaultService = ref.read(vaultServiceProvider);
+
+    final themeIdRemap = <DbId, DbId>{};
 
     await ref.read(databaseProvider).transaction(() async {
       if (cleanImport) {
@@ -371,8 +389,50 @@ class SyncProviderNotifier extends Notifier<SyncState> {
         );
       }
 
+      for (final theme
+          in toImport.customTerminalThemes ??
+              <CustomTerminalThemesCompanion>[]) {
+        final existingId = await terminalThemeService.findIdOfMatchingTheme(
+          theme,
+        );
+        if (existingId != null && existingId != theme.id.value) {
+          // reuse theme instead of creating a duplicate
+          themeIdRemap[theme.id.value] = existingId;
+          continue;
+        }
+
+        await terminalThemeService.createOrUpdate(
+          id: theme.id.value,
+          name: theme.name.value,
+          black: theme.black.value,
+          red: theme.red.value,
+          green: theme.green.value,
+          yellow: theme.yellow.value,
+          blue: theme.blue.value,
+          purple: theme.purple.value,
+          cyan: theme.cyan.value,
+          white: theme.white.value,
+          brightBlack: theme.brightBlack.value,
+          brightRed: theme.brightRed.value,
+          brightGreen: theme.brightGreen.value,
+          brightYellow: theme.brightYellow.value,
+          brightBlue: theme.brightBlue.value,
+          brightPurple: theme.brightPurple.value,
+          brightCyan: theme.brightCyan.value,
+          brightWhite: theme.brightWhite.value,
+          background: theme.background.value,
+          foreground: theme.foreground.value,
+          cursor: theme.cursor.value,
+          cursorText: theme.cursorText.value,
+          selectionForeground: theme.selectionForeground.value,
+          selectionBackground: theme.selectionBackground.value,
+        );
+      }
+
       for (final connection
           in toImport.connections ?? <ConnectionsCompanion>[]) {
+        final themeOverrideId = connection.terminalThemeOverrideId.value;
+
         await connectionService.createOrUpdate(
           id: connection.id.value,
           vaultId: vaultId,
@@ -387,7 +447,9 @@ class SyncProviderNotifier extends Notifier<SyncState> {
           identityId: connection.identityId.value,
           terminalTypographyOverride:
               connection.terminalTypographyOverride.value,
-          terminalThemeOverrideId: connection.terminalThemeOverrideId.value,
+          terminalThemeOverrideId: themeOverrideId != null
+              ? (themeIdRemap[themeOverrideId] ?? themeOverrideId)
+              : null,
           usesDefaultThemeOverride: connection.usesDefaultThemeOverride.value,
           credentialIds:
               toImport.connectionsCredentialIds?[connection.id.value]
@@ -413,6 +475,7 @@ class SyncProviderNotifier extends Notifier<SyncState> {
     final connections = ref.read(connectionProvider);
     final identities = ref.read(identityProvider);
     final knownHosts = ref.read(knownHostProvider);
+    final terminalThemes = ref.read(terminalThemeProvider);
     final credentials = await ref.read(credentialServiceProvider).findAll();
     final keys = await ref.read(keyServiceProvider).findAll();
 
@@ -438,6 +501,17 @@ class SyncProviderNotifier extends Notifier<SyncState> {
           .toList(),
       knownHosts: knownHosts.entities
           .where((e) => e.vaultId == vaultId)
+          .map((e) => e.toCompanion(true))
+          .toList(),
+      customTerminalThemes: terminalThemes.entities
+          // only themes that are used by connections
+          .where(
+            (e) => connections.entities.any(
+              (connection) =>
+                  connection.vaultId == vaultId &&
+                  connection.terminalThemeOverrideId == e.id,
+            ),
+          )
           .map((e) => e.toCompanion(true))
           .toList(),
       credentials: credentials

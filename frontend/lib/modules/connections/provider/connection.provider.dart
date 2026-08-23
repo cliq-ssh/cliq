@@ -18,6 +18,10 @@ class ConnectionNotifier
   Stream<List<ConnectionFull>> get entityStream =>
       ref.read(connectionServiceProvider).watchAll();
 
+  Future<void> resetOverrides(DbId connectionId) async {
+    await ref.read(connectionServiceProvider).clearOverrides(connectionId);
+  }
+
   ConnectionFull? findById(DbId id) {
     for (final connection in state.entities) {
       if (connection.id == id) {

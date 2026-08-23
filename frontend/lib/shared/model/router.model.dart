@@ -1,21 +1,21 @@
-import 'package:cliq/modules/connections/view/connections_page.dart';
-import 'package:cliq/modules/session/view/session_page_wrapper.dart';
-import 'package:cliq/modules/settings/view/developer_settings_page.dart';
-import 'package:cliq/modules/settings/view/i18n_settings_page.dart';
-import 'package:cliq/modules/settings/view/identities_settings_page.dart';
-import 'package:cliq/modules/settings/view/keys_settings_page.dart';
-import 'package:cliq/modules/settings/view/known_hosts_settings.dart';
-import 'package:cliq/modules/settings/view/license_page.dart';
-import 'package:cliq/modules/settings/view/settings_page.dart';
-import 'package:cliq/modules/settings/view/shortcuts_settings_page.dart';
-import 'package:cliq/modules/settings/view/ssh_sftp_settings_page.dart';
-import 'package:cliq/modules/settings/view/sync_settings_page.dart';
-import 'package:cliq/modules/settings/view/terminal_theme_settings_page.dart';
+import 'package:cliq/modules/session/ui/session_page_wrapper.dart';
+import 'package:cliq/modules/settings/page/views/developer_settings.view.dart';
+import 'package:cliq/modules/settings/page/views/i18n_settings.view.dart';
+import 'package:cliq/modules/settings/page/views/identities_settings.view.dart';
+import 'package:cliq/modules/settings/page/views/keys_settings.view.dart';
+import 'package:cliq/modules/settings/page/views/known_hosts_settings.view.dart';
+import 'package:cliq/modules/settings/page/views/licenses.view.dart';
+import 'package:cliq/modules/settings/page/settings.page.dart';
+import 'package:cliq/modules/settings/page/views/shortcuts_settings.view.dart';
+import 'package:cliq/modules/settings/page/views/ssh_sftp_settings.view.dart';
+import 'package:cliq/modules/settings/page/views/sync_settings.view.dart';
+import 'package:cliq/modules/settings/page/views/terminal_theme_settings.view.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
-import '../../modules/settings/view/appearance_settings_page.dart';
+import '../../modules/connections/page/connections.page.dart';
+import '../../modules/settings/page/views/appearance_settings.view.dart';
 import '../ui/navigation/navigation_shell.dart';
 
 class Router {
@@ -61,48 +61,48 @@ class Router {
                 pageBuilder: _fade(const SettingsPage()),
                 routes: [
                   GoRoute(
-                    path: DeveloperSettingsPage.pagePath.path,
-                    pageBuilder: _swipe(const DeveloperSettingsPage()),
+                    path: DeveloperSettingsView.pagePath.path,
+                    pageBuilder: _swipe(const DeveloperSettingsView()),
                   ),
                   GoRoute(
-                    path: I18nSettingsPage.pagePath.path,
-                    pageBuilder: _swipe(const I18nSettingsPage()),
+                    path: I18nSettingsView.pagePath.path,
+                    pageBuilder: _swipe(const I18nSettingsView()),
                   ),
                   GoRoute(
-                    path: IdentitiesSettingsPage.pagePath.path,
-                    pageBuilder: _swipe(const IdentitiesSettingsPage()),
+                    path: IdentitiesSettingsView.pagePath.path,
+                    pageBuilder: _swipe(const IdentitiesSettingsView()),
                   ),
                   GoRoute(
-                    path: KeysSettingsPage.pagePath.path,
-                    pageBuilder: _swipe(const KeysSettingsPage()),
+                    path: KeysSettingsView.pagePath.path,
+                    pageBuilder: _swipe(const KeysSettingsView()),
                   ),
                   GoRoute(
-                    path: KnownHostsSettingsPage.pagePath.path,
-                    pageBuilder: _swipe(const KnownHostsSettingsPage()),
+                    path: KnownHostsSettingsView.pagePath.path,
+                    pageBuilder: _swipe(const KnownHostsSettingsView()),
                   ),
                   GoRoute(
-                    path: LicenseSettingsPage.pagePath.path,
-                    pageBuilder: _swipe(const LicenseSettingsPage()),
+                    path: LicenseSettingsView.pagePath.path,
+                    pageBuilder: _swipe(const LicenseSettingsView()),
                   ),
                   GoRoute(
-                    path: TerminalThemeSettingsPage.pagePath.path,
-                    pageBuilder: _swipe(const TerminalThemeSettingsPage()),
+                    path: TerminalThemeSettingsView.pagePath.path,
+                    pageBuilder: _swipe(const TerminalThemeSettingsView()),
                   ),
                   GoRoute(
-                    path: ShortcutsSettingsPage.pagePath.path,
-                    pageBuilder: _swipe(const ShortcutsSettingsPage()),
+                    path: ShortcutsSettingsView.pagePath.path,
+                    pageBuilder: _swipe(const ShortcutsSettingsView()),
                   ),
                   GoRoute(
-                    path: SshSftpSettingsPage.pagePath.path,
-                    pageBuilder: _swipe(const SshSftpSettingsPage()),
+                    path: SshSftpSettingsView.pagePath.path,
+                    pageBuilder: _swipe(const SshSftpSettingsView()),
                   ),
                   GoRoute(
-                    path: SyncSettingsPage.pagePath.path,
-                    pageBuilder: _swipe(const SyncSettingsPage()),
+                    path: SyncSettingsView.pagePath.path,
+                    pageBuilder: _swipe(const SyncSettingsView()),
                   ),
                   GoRoute(
-                    path: AppearanceSettingsPage.pagePath.path,
-                    pageBuilder: _swipe(const AppearanceSettingsPage()),
+                    path: AppearanceSettingsView.pagePath.path,
+                    pageBuilder: _swipe(const AppearanceSettingsView()),
                   ),
                 ],
               ),

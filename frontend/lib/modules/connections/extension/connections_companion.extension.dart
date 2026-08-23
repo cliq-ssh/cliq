@@ -1,4 +1,4 @@
-import 'package:cliq/modules/connections/model/connection_icons.dart';
+import 'package:cliq/modules/connections/model/connection_icons.model.dart';
 import 'package:cliq/shared/extensions/color.extension.dart';
 import 'package:cliq_term/cliq_term.dart';
 import 'package:drift/drift.dart';

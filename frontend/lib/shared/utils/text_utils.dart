@@ -3,16 +3,25 @@ import 'dart:math';
 import 'package:cliq_term/cliq_term.dart';
 import 'package:forui/forui.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:lucide_flutter/lucide_flutter.dart';
+import 'package:url_launcher/url_launcher_string.dart';
 
 import '../ui/shortcut_info.dart';
 
 enum _RenderableTag {
   bold(tag: 'b', render: _renderBold),
   tip(tag: 'tip', render: _renderTip),
-  shiftIcon(tag: 'shiftIcon', render: _renderShiftIcon);
+  link(tag: 'link', render: _renderLink),
+  shiftIcon(tag: 'shiftIcon', render: _renderShiftIcon),
+  undoIcon(tag: 'undoIcon', render: _renderUndoIcon);
 
   final String tag;
-  final InlineSpan Function(BuildContext context, List<InlineSpan> children)
+  final InlineSpan Function(
+    BuildContext context,
+    List<InlineSpan> children,
+    Map<String, String> attributes,
+    TextStyle? parentStyle,
+  )
   render;
 
   const _RenderableTag({required this.tag, required this.render});
@@ -23,23 +32,86 @@ enum _RenderableTag {
   static InlineSpan _renderBold(
     BuildContext context,
     List<InlineSpan> children,
+    Map<String, String> attributes,
+    TextStyle? parentStyle,
   ) => TextSpan(
-    style: const TextStyle(fontWeight: FontWeight.bold),
+    style: const TextStyle(fontWeight: .bold),
     children: children,
   );
 
   static InlineSpan _renderTip(
     BuildContext context,
     List<InlineSpan> children,
+    Map<String, String> attributes,
+    TextStyle? parentStyle,
   ) => TextSpan(
     style: TextStyle(color: context.theme.colors.mutedForeground),
     children: children,
   );
 
+  static InlineSpan _renderLink(
+    BuildContext context,
+    List<InlineSpan> children,
+    Map<String, String> attributes,
+    TextStyle? parentStyle,
+  ) {
+    final style = (parentStyle ?? .new()).copyWith(
+      color: context.theme.colors.primary,
+    );
+
+    final url = attributes['url'];
+    if (url != null) {
+      return WidgetSpan(
+        style: style,
+        alignment: .middle,
+        child: FTappable(
+          onPress: () => launchUrlString(url, mode: .externalApplication),
+          child: Text.rich(
+            style: style,
+            TextSpan(
+              children: [
+                WidgetSpan(
+                  style: style,
+                  alignment: .middle,
+                  child: Padding(
+                    padding: const .only(right: 4),
+                    child: IconTheme(
+                      data: .new(color: style.color, size: style.fontSize),
+                      child: Icon(LucideIcons.externalLink),
+                    ),
+                  ),
+                ),
+                ...children,
+              ],
+            ),
+          ),
+        ),
+      );
+    }
+
+    return TextSpan(style: style, children: children);
+  }
+
   static InlineSpan _renderShiftIcon(
     BuildContext context,
     List<InlineSpan> children,
+    Map<String, String> attributes,
+    TextStyle? parentStyle,
   ) => WidgetSpan(child: ShortcutInfo(shortcut: KeyboardShortcut(.shift)));
+
+  static InlineSpan _renderUndoIcon(
+    BuildContext context,
+    List<InlineSpan> children,
+    Map<String, String> attributes,
+    TextStyle? parentStyle,
+  ) => WidgetSpan(
+    alignment: .middle,
+    child: Icon(
+      LucideIcons.undo2,
+      color: parentStyle?.color,
+      size: parentStyle?.fontSize,
+    ),
+  );
 }
 
 class TextUtils {
@@ -68,13 +140,21 @@ class TextUtils {
 
   /// Renders the given text into a list of InlineSpan.
   /// This allows using simple tags like <b> for bold, <i> for italic, and <u> for underline
-  static List<InlineSpan> renderText(BuildContext context, String text) {
+  static List<InlineSpan> renderText(
+    BuildContext context,
+    String text, {
+    TextStyle? style,
+  }) {
     final spans = <InlineSpan>[];
 
     final tagNames = _RenderableTag.values
         .map((t) => RegExp.escape(t.tag))
         .join('|');
-    final pattern = RegExp('<($tagNames)(?:/>|>(.*?)</\\1>)', dotAll: true);
+
+    final pattern = RegExp(
+      '<($tagNames)(?:\\s+([^>]*))?(/>|>(.*?)</\\1>)',
+      dotAll: true,
+    );
 
     var lastEnd = 0;
     for (final match in pattern.allMatches(text)) {
@@ -84,7 +164,9 @@ class TextUtils {
       }
 
       final tagName = match.group(1)!;
-      final content = match.group(2); // null for self-closing tags
+      final attributesStr = match.group(2);
+      final content = match.group(4); // null for self-closing tags
+      final attributes = _parseAttributes(attributesStr);
 
       final tag = _RenderableTag.fromTag(tagName);
       if (tag == null) {
@@ -96,7 +178,11 @@ class TextUtils {
         spans.add(
           tag.render(
             context,
-            content == null ? const [] : renderText(context, content),
+            content == null
+                ? const []
+                : renderText(context, content, style: style),
+            attributes,
+            style,
           ),
         );
       }
@@ -115,5 +201,16 @@ class TextUtils {
     }
 
     return spans;
+  }
+
+  static Map<String, String> _parseAttributes(String? attributesStr) {
+    final attributes = <String, String>{};
+    if (attributesStr == null || attributesStr.isEmpty) return attributes;
+
+    for (final match in RegExp(r'(\w+)="([^"]*)"').allMatches(attributesStr)) {
+      attributes[match.group(1)!] = match.group(2)!;
+    }
+
+    return attributes;
   }
 }

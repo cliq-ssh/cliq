@@ -1,10 +1,9 @@
 import 'dart:io';
 
-import 'package:cliq/modules/settings/view/create_or_edit_terminal_theme_view.dart';
+import 'package:cliq/modules/settings/ui/create_or_edit_terminal_theme_view.dart';
 import 'package:cliq/shared/data/database.dart';
 import 'package:cliq/shared/ui/context_menu.dart';
 import 'package:cliq_term/cliq_term.dart';
-import 'package:drift/drift.dart' hide Column;
 import 'package:flutter/material.dart';
 import 'package:forui/forui.dart';
 import 'package:forui_hooks/forui_hooks.dart';
@@ -49,30 +48,28 @@ class TerminalThemeCard extends HookConsumerWidget {
 
       final copyInsert = CustomTerminalThemesCompanion.insert(
         name: '${theme.name} - Copy',
-        blackColor: theme.blackColor,
-        redColor: theme.redColor,
-        greenColor: theme.greenColor,
-        yellowColor: theme.yellowColor,
-        blueColor: theme.blueColor,
-        purpleColor: theme.purpleColor,
-        cyanColor: theme.cyanColor,
-        whiteColor: theme.whiteColor,
-        brightBlackColor: theme.brightBlackColor,
-        brightRedColor: theme.brightRedColor,
-        brightGreenColor: theme.brightGreenColor,
-        brightYellowColor: theme.brightYellowColor,
-        brightBlueColor: theme.brightBlueColor,
-        brightPurpleColor: theme.brightPurpleColor,
-        brightCyanColor: theme.brightCyanColor,
-        brightWhiteColor: theme.brightWhiteColor,
-        backgroundColor: theme.backgroundColor,
-        foregroundColor: theme.foregroundColor,
-        cursorColor: theme.cursorColor,
-        selectionBackgroundColor: theme.selectionBackgroundColor,
-        selectionForegroundColor: Value.absentIfNull(
-          theme.selectionForegroundColor,
-        ),
-        cursorTextColor: Value.absentIfNull(theme.cursorTextColor),
+        black: theme.black,
+        red: theme.red,
+        green: theme.green,
+        yellow: theme.yellow,
+        blue: theme.blue,
+        purple: theme.purple,
+        cyan: theme.cyan,
+        white: theme.white,
+        brightBlack: theme.brightBlack,
+        brightRed: theme.brightRed,
+        brightGreen: theme.brightGreen,
+        brightYellow: theme.brightYellow,
+        brightBlue: theme.brightBlue,
+        brightPurple: theme.brightPurple,
+        brightCyan: theme.brightCyan,
+        brightWhite: theme.brightWhite,
+        background: theme.background,
+        foreground: theme.foreground,
+        cursor: theme.cursor,
+        cursorText: theme.cursorText,
+        selectionBackground: theme.selectionBackground,
+        selectionForeground: theme.selectionForeground,
       );
 
       await ref
@@ -85,7 +82,7 @@ class TerminalThemeCard extends HookConsumerWidget {
       await secondaryPopoverController.hide();
       if (!context.mounted) return;
 
-      return Commons.showResponsiveDialog(
+      return Commons.showResponsiveSheet(
         (_) => CreateOrEditTerminalThemeView.edit(theme),
         context: context,
       ).then((_) => onEdit?.call());
@@ -127,6 +124,7 @@ class TerminalThemeCard extends HookConsumerWidget {
                 FItem(
                   prefix: Icon(LucideIcons.trash),
                   title: Text('Delete'),
+                  variant: .destructive,
                   onPress: delete,
                 ),
               ],
@@ -172,43 +170,46 @@ class TerminalThemeCard extends HookConsumerWidget {
                   children: [
                     Row(
                       children: [
-                        theme.redColor,
-                        theme.greenColor,
-                        theme.yellowColor,
-                        theme.blueColor,
-                        theme.purpleColor,
-                        theme.cyanColor,
-                        theme.whiteColor,
+                        theme.black,
+                        theme.red,
+                        theme.green,
+                        theme.yellow,
+                        theme.blue,
+                        theme.purple,
+                        theme.cyan,
+                        theme.white,
                       ].map(buildColor).toList(),
                     ),
                     Row(
                       children: [
-                        theme.brightRedColor,
-                        theme.brightGreenColor,
-                        theme.brightYellowColor,
-                        theme.brightBlueColor,
-                        theme.brightPurpleColor,
-                        theme.brightCyanColor,
-                        theme.brightWhiteColor,
+                        theme.brightBlack,
+                        theme.brightRed,
+                        theme.brightGreen,
+                        theme.brightYellow,
+                        theme.brightBlue,
+                        theme.brightPurple,
+                        theme.brightCyan,
+                        theme.brightWhite,
                       ].map(buildColor).toList(),
                     ),
                   ],
                 ),
-                Column(
-                  crossAxisAlignment: .start,
-                  children: [
-                    Text(theme.name),
-                    if (theme.id == '-1')
-                      Text(
-                        'built-in',
-                        style: context.theme.typography.body.xs.copyWith(
-                          color: context.theme.colors.mutedForeground,
-                          fontWeight: .normal,
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: .start,
+                    children: [
+                      Text(theme.name),
+                      if (theme.id == '-1')
+                        Text(
+                          'built-in',
+                          style: context.theme.typography.body.xs.copyWith(
+                            color: context.theme.colors.mutedForeground,
+                            fontWeight: .normal,
+                          ),
                         ),
-                      ),
-                  ],
+                    ],
+                  ),
                 ),
-                const Spacer(),
                 if (isSelected) Icon(LucideIcons.check),
                 buildPopoverMenu(
                   controller: secondaryPopoverController,

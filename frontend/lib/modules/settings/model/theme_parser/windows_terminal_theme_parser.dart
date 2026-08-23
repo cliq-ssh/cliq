@@ -85,38 +85,35 @@ class WindowsTerminalThemeParser extends AbstractTerminalThemeParser {
       if (json is! Map<String, dynamic>) {
         return null;
       }
+
+      final background = ColorExtension.fromHex(json['background'] as String);
+      final foreground = ColorExtension.fromHex(json['foreground'] as String);
+
       return CustomTerminalThemesCompanion.insert(
         name: json['name'] as String,
-        blackColor: ColorExtension.fromHex(json['black'] as String)!,
-        redColor: ColorExtension.fromHex(json['red'] as String)!,
-        greenColor: ColorExtension.fromHex(json['green'] as String)!,
-        yellowColor: ColorExtension.fromHex(json['yellow'] as String)!,
-        blueColor: ColorExtension.fromHex(json['blue'] as String)!,
-        purpleColor: ColorExtension.fromHex(json['purple'] as String)!,
-        cyanColor: ColorExtension.fromHex(json['cyan'] as String)!,
-        whiteColor: ColorExtension.fromHex(json['white'] as String)!,
-        brightBlackColor: ColorExtension.fromHex(
-          json['brightBlack'] as String,
-        )!,
-        brightRedColor: ColorExtension.fromHex(json['brightRed'] as String)!,
-        brightGreenColor: ColorExtension.fromHex(
-          json['brightGreen'] as String,
-        )!,
-        brightYellowColor: ColorExtension.fromHex(
-          json['brightYellow'] as String,
-        )!,
-        brightBlueColor: ColorExtension.fromHex(json['brightBlue'] as String)!,
-        brightPurpleColor: ColorExtension.fromHex(
-          json['brightPurple'] as String,
-        )!,
-        brightCyanColor: ColorExtension.fromHex(json['brightCyan'] as String)!,
-        brightWhiteColor: ColorExtension.fromHex(
-          json['brightWhite'] as String,
-        )!,
-        backgroundColor: ColorExtension.fromHex(json['background'] as String)!,
-        foregroundColor: ColorExtension.fromHex(json['foreground'] as String)!,
-        cursorColor: ColorExtension.fromHex(json['cursorColor'] as String)!,
-        selectionBackgroundColor: ColorExtension.fromHex(
+        black: ColorExtension.fromHex(json['black'] as String)!,
+        red: ColorExtension.fromHex(json['red'] as String)!,
+        green: ColorExtension.fromHex(json['green'] as String)!,
+        yellow: ColorExtension.fromHex(json['yellow'] as String)!,
+        blue: ColorExtension.fromHex(json['blue'] as String)!,
+        purple: ColorExtension.fromHex(json['purple'] as String)!,
+        cyan: ColorExtension.fromHex(json['cyan'] as String)!,
+        white: ColorExtension.fromHex(json['white'] as String)!,
+        brightBlack: ColorExtension.fromHex(json['brightBlack'] as String)!,
+        brightRed: ColorExtension.fromHex(json['brightRed'] as String)!,
+        brightGreen: ColorExtension.fromHex(json['brightGreen'] as String)!,
+        brightYellow: ColorExtension.fromHex(json['brightYellow'] as String)!,
+        brightBlue: ColorExtension.fromHex(json['brightBlue'] as String)!,
+        brightPurple: ColorExtension.fromHex(json['brightPurple'] as String)!,
+        brightCyan: ColorExtension.fromHex(json['brightCyan'] as String)!,
+        brightWhite: ColorExtension.fromHex(json['brightWhite'] as String)!,
+        background: background!,
+        foreground: foreground!,
+        cursor: ColorExtension.fromHex(json['cursorColor'] as String)!,
+        cursorText:
+            background, // Windows Terminal does not have a cursor text color, so we use the background color as a fallback
+        selectionForeground: foreground, // same for selection foreground
+        selectionBackground: ColorExtension.fromHex(
           json['selectionBackground'] as String,
         )!,
       );

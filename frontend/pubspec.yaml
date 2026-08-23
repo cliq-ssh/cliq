@@ -52,6 +52,7 @@ dependencies:
   cryptography_flutter: ^2.3.4
   flutter_secure_storage: ^10.3.1
   package_info_plus: ^10.2.1
+  iterm2_color_schemes_dart: ^2.0.1
 dev_dependencies:
   flutter_test:
     sdk: flutter

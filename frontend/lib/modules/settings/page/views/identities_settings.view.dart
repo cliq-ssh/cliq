@@ -1,0 +1,49 @@
+import 'package:cliq/modules/identities/provider/identity.provider.dart';
+import 'package:cliq/modules/identities/ui/identity_card.dart';
+import 'package:cliq/modules/identities/ui/create_or_edit_identity_sheet.dart';
+import 'package:cliq/shared/ui/entity_card_view.dart';
+import 'package:easy_localization/easy_localization.dart';
+import 'package:flutter/cupertino.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
+
+import '../../../../shared/model/page_path.model.dart';
+import '../../../../shared/utils/commons.dart';
+import '../../../identities/model/identity_full.model.dart';
+import '../abstract_settings_page.dart';
+import '../settings.page.dart';
+
+class IdentitiesSettingsView extends AbstractSettingsPage {
+  static const PagePathBuilder pagePath = .child(
+    parent: SettingsPage.pagePath,
+    path: 'identities',
+  );
+
+  const IdentitiesSettingsView({super.key});
+
+  @override
+  String get title => 'identities'.tr();
+
+  @override
+  Widget buildBodyWrapper(BuildContext context, WidgetRef ref, Widget body) =>
+      body;
+
+  @override
+  Widget buildBody(BuildContext context, WidgetRef ref) {
+    final identities = ref.watch(identityProvider);
+
+    return EntityCardView<IdentityFull>(
+      entities: identities.entities,
+      viewTypeKey: .identitiesCardViewType,
+      noEntitiesTitle: 'identities_empty'.tr(),
+      noEntitiesSubtitle: 'identities_empty_subtitle'.tr(),
+      addEntityTitle: 'identities_add'.tr(),
+      onAddEntity: () => Commons.showResponsiveSheet(
+        (_) => CreateOrEditIdentitySheet.create(),
+        context: context,
+      ),
+      filterableFields: (i) => [?i.vault.owner, i.label, i.username],
+      filterableVaultId: (i) => i.vaultId,
+      entityCardBuilder: (identity) => IdentityCard(identity: identity),
+    );
+  }
+}

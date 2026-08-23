@@ -1,22 +1,22 @@
 import 'dart:io';
 import 'dart:ui';
 
-import 'package:cliq/modules/identities/data/identity_credentials_repository.dart';
-import 'package:cliq/modules/settings/data/custom_terminal_themes_repository.dart';
-import 'package:cliq/modules/vaults/data/vaults_repository.dart';
+import 'package:cliq/modules/identities/data/identity_credentials.repository.dart';
+import 'package:cliq/modules/settings/data/custom_terminal_themes.repository.dart';
+import 'package:cliq/modules/vaults/data/vaults.repository.dart';
 import 'package:cliq_term/cliq_term.dart';
 import 'package:drift/drift.dart';
 import 'package:drift_flutter/drift_flutter.dart';
 import 'package:path_provider/path_provider.dart';
 
-import '../../modules/connections/data/connection_credentials_repository.dart';
-import '../../modules/connections/data/connections_repository.dart';
-import '../../modules/connections/model/connection_icons.dart';
-import '../../modules/credentials/data/credentials_repository.dart';
-import '../../modules/credentials/model/credential_type.dart';
-import '../../modules/identities/data/identities_repository.dart';
-import '../../modules/keys/data/key_repository.dart';
-import '../../modules/settings/data/known_hosts_repository.dart';
+import '../../modules/connections/data/connection_credentials.repository.dart';
+import '../../modules/connections/data/connections.repository.dart';
+import '../../modules/connections/model/connection_icons.model.dart';
+import '../../modules/credentials/data/credentials.repository.dart';
+import '../../modules/credentials/model/credential_type.model.dart';
+import '../../modules/identities/data/identities.repository.dart';
+import '../../modules/keys/data/key.repository.dart';
+import '../../modules/settings/data/known_hosts.repository.dart';
 import 'converters/color_converter.dart';
 import 'converters/terminal_typography_converter.dart';
 

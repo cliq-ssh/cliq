@@ -124,7 +124,7 @@ class VaultTransferDialog extends HookConsumerWidget {
                   .item(
                     prefix: v.owner == null
                         ? null
-                        : Icon(LucideIcons.cloudSync),
+                        : Icon(LucideIcons.cloudUpload),
                     title: Text(v.getDisplayName(context)),
                     value: v.id,
                   ),

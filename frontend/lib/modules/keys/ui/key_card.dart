@@ -1,4 +1,4 @@
-import 'package:cliq/modules/keys/view/create_or_edit_key_view.dart';
+import 'package:cliq/modules/keys/ui/create_or_edit_key_sheet.dart';
 import 'package:cliq/shared/data/database.dart';
 import 'package:cliq/shared/utils/commons.dart';
 import 'package:easy_localization/easy_localization.dart';
@@ -25,8 +25,8 @@ class KeyCard extends HookConsumerWidget {
       await popoverController.hide();
       if (!context.mounted) return;
 
-      return Commons.showResponsiveDialog(
-        (_) => CreateOrEditKeyView.edit(keyEntity),
+      return Commons.showResponsiveSheet(
+        (_) => CreateOrEditKeySheet.edit(keyEntity),
         context: context,
       );
     }

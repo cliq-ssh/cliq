@@ -7,7 +7,7 @@ import 'package:cliq/shared/model/localized_exception.dart';
 import 'package:cliq/shared/model/router.model.dart';
 import 'package:cliq/shared/provider/router.provider.dart';
 import 'package:cliq/shared/provider/store.provider.dart';
-import 'package:cliq/shared/ui/error_view.dart';
+import 'package:cliq/shared/ui/error_sheet.dart';
 import 'package:cliq/shared/utils/commons.dart';
 import 'package:cliq/shared/utils/constants.dart';
 import 'package:cliq/shared/utils/password_cipher.dart';
@@ -108,7 +108,7 @@ void _handleError(Object error, StackTrace stackTrace) {
   debugPrint(stackTrace.toString());
 
   String errorMessage = error is LocalizedException
-      ? (error).tr(Router.rootNavigatorKey.currentContext!)
+      ? (error).tr(context: Router.rootNavigatorKey.currentContext!)
       : error.toString();
   if (errorMessage.length > 150) {
     errorMessage = '${errorMessage.substring(0, 150)}...';
@@ -125,8 +125,8 @@ void _handleError(Object error, StackTrace stackTrace) {
           child: GestureDetector(
             onTap: () {
               entry.dismiss();
-              Commons.showResponsiveDialog(
-                (_) => ErrorView(error: error, stackTrace: stackTrace),
+              Commons.showResponsiveSheet(
+                (_) => ErrorSheet(error: error, stackTrace: stackTrace),
                 context: null,
               );
             },

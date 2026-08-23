@@ -1,6 +1,6 @@
 import 'package:cliq/modules/identities/model/identity_full.model.dart';
 import 'package:cliq/modules/identities/provider/identity_service.provider.dart';
-import 'package:cliq/modules/identities/view/create_or_edit_identity_view.dart';
+import 'package:cliq/modules/identities/ui/create_or_edit_identity_sheet.dart';
 import 'package:cliq/shared/utils/commons.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
@@ -25,8 +25,8 @@ class IdentityCard extends HookConsumerWidget {
       await popoverController.hide();
       if (!context.mounted) return;
 
-      return Commons.showResponsiveDialog(
-        (_) => CreateOrEditIdentityView.edit(identity),
+      return Commons.showResponsiveSheet(
+        (_) => CreateOrEditIdentitySheet.edit(identity),
         context: context,
       );
     }
