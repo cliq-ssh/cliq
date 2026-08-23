@@ -7,14 +7,12 @@ import org.junit.jupiter.api.extension.ExtendWith
 import org.mockito.junit.jupiter.MockitoExtension
 import org.mockito.kotlin.mock
 import sh.cliq.backend.auth.AuthExchange
-import java.net.InetAddress
 import java.time.OffsetDateTime
 
 @ExtendWith(MockitoExtension::class)
 class AuthExchangeTests {
     private fun buildAuthExchange(expiresAt: OffsetDateTime, now: OffsetDateTime): AuthExchange = AuthExchange(
         exchangeCode = "exchange-code",
-        ipAddress = InetAddress.getByName("127.0.0.1"),
         createdAt = now.minusMinutes(5),
         expiresAt = expiresAt,
         user = mock(),

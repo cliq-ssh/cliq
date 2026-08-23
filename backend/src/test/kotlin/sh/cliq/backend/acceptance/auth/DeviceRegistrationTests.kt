@@ -13,7 +13,6 @@ import sh.cliq.backend.auth.AuthExchangeRepository
 import sh.cliq.backend.auth.factory.AuthExchangeFactory
 import sh.cliq.backend.auth.params.DeviceRegistrationParams
 import sh.cliq.backend.auth.view.TokenResponse
-import sh.cliq.backend.constants.DEFAULT_IP_ADDRESS
 import sh.cliq.backend.error.ErrorCode
 import sh.cliq.backend.session.SessionRepository
 import sh.cliq.backend.support.ErrorResponseClient
@@ -42,11 +41,9 @@ class DeviceRegistrationTests(
 ) : AcceptanceTester() {
     @Test
     fun `exchange code are one time use only`() {
-        val ipAddress = DEFAULT_IP_ADDRESS
         val userCreationData = userCreationHelper.createRandomUser()
         val authExchange =
             authExchangeFactory.create(
-                ipAddress = ipAddress,
                 user = userCreationData.user,
             )
 
@@ -58,11 +55,7 @@ class DeviceRegistrationTests(
                     MockMvcRequestBuilders
                         .post("/api/auth/device/register")
                         .contentType(MediaType.APPLICATION_JSON_VALUE)
-                        .content(objectMapper.writeValueAsString(registrationParams))
-                        .with {
-                            it.remoteAddr = ipAddress
-                            it
-                        },
+                        .content(objectMapper.writeValueAsString(registrationParams)),
                 ).andExpect(status().isOk)
                 .andReturn()
         val content = result.response.contentAsString
@@ -104,13 +97,8 @@ class DeviceRegistrationTests(
 
     @Test
     fun `exchange code gets deleted after use`() {
-        val ipAddress = DEFAULT_IP_ADDRESS
         val userCreationData = userCreationHelper.createRandomUser()
-        val authExchange =
-            authExchangeFactory.create(
-                ipAddress = ipAddress,
-                user = userCreationData.user,
-            )
+        val authExchange = authExchangeFactory.create(user = userCreationData.user)
 
         // We can set empty string as we only test the exchange code here
         val exchangeParams = DeviceRegistrationParams(authExchange.exchangeCode, "", "")
@@ -119,11 +107,7 @@ class DeviceRegistrationTests(
                 MockMvcRequestBuilders
                     .post("/api/auth/device/register")
                     .contentType(MediaType.APPLICATION_JSON_VALUE)
-                    .content(objectMapper.writeValueAsString(exchangeParams))
-                    .with {
-                        it.remoteAddr = ipAddress
-                        it
-                    },
+                    .content(objectMapper.writeValueAsString(exchangeParams)),
             ).andExpect(status().isOk)
 
         // Assert auth exchange is deleted
@@ -133,13 +117,8 @@ class DeviceRegistrationTests(
 
     @Test
     fun `test auth exchange creation and retrieval`() {
-        val ipAddress = "127.0.0.1"
         val userCreationData = userCreationHelper.createRandomOidcUser()
-        val authExchange =
-            authExchangeFactory.create(
-                ipAddress = ipAddress,
-                user = userCreationData.user,
-            )
+        val authExchange = authExchangeFactory.create(user = userCreationData.user)
 
         // Assert no sessions exist
         val startSessionCount = sessionRepository.count()
@@ -153,11 +132,7 @@ class DeviceRegistrationTests(
                     MockMvcRequestBuilders
                         .post("/api/auth/device/register")
                         .contentType(MediaType.APPLICATION_JSON_VALUE)
-                        .content(objectMapper.writeValueAsString(exchangeParams))
-                        .with {
-                            it.remoteAddr = ipAddress
-                            it
-                        },
+                        .content(objectMapper.writeValueAsString(exchangeParams)),
                 ).andExpect(status().isOk)
                 .andReturn()
 
@@ -172,44 +147,6 @@ class DeviceRegistrationTests(
 
         val cont = authExchangeRepository.count()
         assertEquals(0, cont)
-    }
-
-    @Test
-    fun `test cannot exchange from different ip address`() {
-        val ipAddress = "127.0.0.1"
-        val userCreationData = userCreationHelper.createRandomOidcUser()
-        val authExchange =
-            authExchangeFactory.create(
-                ipAddress = ipAddress,
-                user = userCreationData.user,
-            )
-
-        val startCount = authExchangeRepository.count()
-        assertEquals(1, startCount)
-
-        // We can set empty string as we only test the exchange code here
-        val exchangeParams = DeviceRegistrationParams(authExchange.exchangeCode, "", "")
-        val result =
-            mockMvc
-                .perform(
-                    MockMvcRequestBuilders
-                        .post("/api/auth/device/register")
-                        .contentType(MediaType.APPLICATION_JSON_VALUE)
-                        .content(objectMapper.writeValueAsString(exchangeParams))
-                        .with {
-                            it.remoteAddr = "127.0.0.2"
-                            it
-                        },
-                ).andExpect(status().isForbidden)
-                .andReturn()
-
-        val content = result.response.contentAsString
-        assert(content.isNotEmpty())
-        val response = objectMapper.readValue(content, ErrorResponseClient::class.java)
-        assertEquals(ErrorCode.INVALID_IP_ADDRESS, response.errorCode)
-
-        val count = authExchangeRepository.count()
-        assertEquals(1, count)
     }
 
     @Test
@@ -234,13 +171,8 @@ class DeviceRegistrationTests(
 
     @Test
     fun `test cannot exchange with expired code`() {
-        val ipAddress = "127.0.0.1"
         val userCreationData = userCreationHelper.createRandomOidcUser()
-        val authExchange =
-            authExchangeFactory.create(
-                ipAddress = ipAddress,
-                user = userCreationData.user,
-            )
+        val authExchange = authExchangeFactory.create(user = userCreationData.user)
         authExchange.expiresAt = OffsetDateTime.now(clock).minusSeconds(1)
         authExchangeRepository.saveAndFlush(authExchange)
 
@@ -252,11 +184,7 @@ class DeviceRegistrationTests(
                     MockMvcRequestBuilders
                         .post("/api/auth/device/register")
                         .contentType(MediaType.APPLICATION_JSON_VALUE)
-                        .content(objectMapper.writeValueAsString(exchangeParams))
-                        .with {
-                            it.remoteAddr = ipAddress
-                            it
-                        },
+                        .content(objectMapper.writeValueAsString(exchangeParams)),
                 ).andExpect(status().isBadRequest)
                 .andReturn()
 
