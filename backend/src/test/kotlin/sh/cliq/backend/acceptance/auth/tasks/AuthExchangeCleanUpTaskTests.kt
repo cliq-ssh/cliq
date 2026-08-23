@@ -30,11 +30,7 @@ class AuthExchangeCleanUpTaskTests(
 ) : AcceptanceTester() {
     private fun createAuthExchange(expiresAt: OffsetDateTime): AuthExchange {
         val userCreationData = userCreationHelper.createRandomUser()
-        val authExchange =
-            authExchangeFactory.create(
-                ipAddress = "127.0.0.1",
-                user = userCreationData.user,
-            )
+        val authExchange = authExchangeFactory.create(user = userCreationData.user)
         authExchange.expiresAt = expiresAt
 
         return authExchangeRepository.save(authExchange)

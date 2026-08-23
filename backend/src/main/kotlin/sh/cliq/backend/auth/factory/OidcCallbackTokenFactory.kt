@@ -1,6 +1,5 @@
 package sh.cliq.backend.auth.factory
 
-import jakarta.servlet.http.HttpServletRequest
 import org.springframework.stereotype.Service
 import sh.cliq.backend.auth.oidc.OidcCallbackToken
 import sh.cliq.backend.auth.oidc.OidcCallbackTokenRepository
@@ -16,14 +15,10 @@ class OidcCallbackTokenFactory(
     private val tokenGenerator: TokenGenerator,
     private val clock: Clock,
 ) {
-    fun createFromRequestAndUser(
-        httpServletRequest: HttpServletRequest,
-        user: User,
-        oidcSessionId: String?,
-    ): OidcCallbackToken = create(httpServletRequest.remoteAddr, user, oidcSessionId)
+    fun createFromRequestAndUser(user: User, oidcSessionId: String?): OidcCallbackToken = create(user, oidcSessionId)
 
-    fun create(ipAddress: String, user: User, oidcSessionId: String?): OidcCallbackToken {
-        val exchangeCode = authExchangeFactory.create(ipAddress, user)
+    fun create(user: User, oidcSessionId: String?): OidcCallbackToken {
+        val exchangeCode = authExchangeFactory.create(user)
         val token = tokenGenerator.generateOidcCallbackToken()
         val now = OffsetDateTime.now(clock)
 

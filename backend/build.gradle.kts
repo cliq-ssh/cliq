@@ -8,6 +8,7 @@ plugins {
     kotlin("plugin.spring") version kotlinVersion
     kotlin("plugin.jpa") version kotlinVersion
     kotlin("plugin.allopen") version kotlinVersion
+    kotlin("kapt") version kotlinVersion
 
     // Spring / Spring Boot
     id("org.springframework.boot") version "4.1.1"
@@ -117,6 +118,7 @@ dependencies {
 
     // Annotations
     annotationProcessor("org.springframework.boot:spring-boot-configuration-processor")
+    kapt("org.springframework.boot:spring-boot-configuration-processor")
 
     // Kotlin specifics
     implementation("org.jetbrains.kotlin:kotlin-reflect")
@@ -125,6 +127,7 @@ dependencies {
     implementation("commons-io:commons-io:2.22.0")
 
     // Testing //
+    testImplementation(kotlin("test"))
 
     // Junit 5
     testImplementation("org.jetbrains.kotlin:kotlin-test-junit5")
