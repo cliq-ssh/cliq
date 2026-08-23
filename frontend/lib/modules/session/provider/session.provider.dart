@@ -1,7 +1,7 @@
 import 'dart:async';
 
 import 'package:cliq/modules/connections/model/connection_full.model.dart';
-import 'package:cliq/modules/credentials/data/credential_service.dart';
+import 'package:cliq/modules/credentials/data/credential.service.dart';
 import 'package:cliq/modules/session/model/session.state.dart';
 import 'package:cliq/shared/ui/navigation/navigation_shell.dart';
 import 'package:cliq_term/cliq_term.dart';

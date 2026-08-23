@@ -9,10 +9,10 @@ import 'package:forui_hooks/forui_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lucide_flutter/lucide_flutter.dart';
 
-import '../../modules/credentials/model/credential_type.dart';
+import '../../modules/credentials/model/credential_type.model.dart';
 import '../../modules/credentials/provider/credential_service.provider.dart';
 import '../../modules/keys/provider/key_service.provider.dart';
-import '../../modules/keys/view/create_or_edit_key_view.dart';
+import '../../modules/keys/ui/create_or_edit_key_sheet.dart';
 import '../data/database.dart';
 import '../utils/autocomplete_utils.dart';
 import '../utils/commons.dart';
@@ -272,8 +272,8 @@ class CreateOrEditCredentialsFormState
                           },
                           contentEmptyBuilder: (_, _) => GestureDetector(
                             onTap: () async {
-                              final result = await Commons.showResponsiveDialog(
-                                (_) => CreateOrEditKeyView.create(
+                              final result = await Commons.showResponsiveSheet(
+                                (_) => CreateOrEditKeySheet.create(
                                   initialLabel: data.key.isEmpty
                                       ? null
                                       : data.key.trim(),

@@ -1,7 +1,7 @@
 import 'dart:io';
 import 'dart:isolate';
 
-import '../../modules/session/view/sftp_session_page.dart';
+import '../../modules/session/page/sftp_session.page.dart';
 
 class FileTransferItem {
   final QueuedFileData file;

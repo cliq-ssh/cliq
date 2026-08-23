@@ -7,12 +7,12 @@ import 'package:flutter/cupertino.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:logging/logging.dart';
 
-import '../../modules/credentials/data/credential_service.dart';
+import '../../modules/credentials/data/credential.service.dart';
 import '../../modules/credentials/provider/credential_service.provider.dart';
 import '../../modules/session/model/session.model.dart';
 import '../../modules/session/model/sftp_transfer.model.dart';
 import '../../modules/session/model/sftp_transfer_params.model.dart';
-import '../../modules/session/view/sftp_session_page.dart';
+import '../../modules/session/page/sftp_session.page.dart';
 import '../../modules/settings/provider/known_host_service.provider.dart';
 import '../utils/constants.dart';
 

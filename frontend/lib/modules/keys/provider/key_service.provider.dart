@@ -1,4 +1,4 @@
-import 'package:cliq/modules/keys/data/key_service.dart';
+import 'package:cliq/modules/keys/data/key.service.dart';
 import 'package:cliq/shared/provider/database.provider.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 

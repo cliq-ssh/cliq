@@ -1,7 +1,7 @@
 import 'package:cliq/shared/data/database.dart';
 import 'package:drift/drift.dart';
 
-import '../model/credential_type.dart';
+import '../model/credential_type.model.dart';
 
 extension CredentialsCompanionExtension on CredentialsCompanion {
   static CredentialsCompanion? tryFromJson(Map<String, dynamic>? json) {

@@ -1,6 +1,6 @@
 import 'dart:io';
 
-import 'package:cliq/modules/settings/view/create_or_edit_terminal_theme_view.dart';
+import 'package:cliq/modules/settings/ui/create_or_edit_terminal_theme_view.dart';
 import 'package:cliq/shared/data/database.dart';
 import 'package:cliq/shared/ui/context_menu.dart';
 import 'package:cliq_term/cliq_term.dart';
@@ -82,7 +82,7 @@ class TerminalThemeCard extends HookConsumerWidget {
       await secondaryPopoverController.hide();
       if (!context.mounted) return;
 
-      return Commons.showResponsiveDialog(
+      return Commons.showResponsiveSheet(
         (_) => CreateOrEditTerminalThemeView.edit(theme),
         context: context,
       ).then((_) => onEdit?.call());
