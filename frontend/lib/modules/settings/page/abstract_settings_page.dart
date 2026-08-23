@@ -1,5 +1,5 @@
 import 'package:cliq_ui/widgets/grid.export.dart'
-    show CliqGridContainer, CliqGridRow, CliqGridColumn;
+    show CliqGridColumn, CliqGridContainer, CliqGridRow;
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:forui/forui.dart';
@@ -7,9 +7,8 @@ import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lucide_flutter/lucide_flutter.dart';
 
-abstract class AbstractSettingsPage extends HookConsumerWidget {
-  const AbstractSettingsPage({super.key});
-
+abstract class const AbstractSettingsPage({super.key})
+    extends HookConsumerWidget {
   String get title;
   Widget buildBody(BuildContext context, WidgetRef ref);
 
@@ -45,7 +44,7 @@ abstract class AbstractSettingsPage extends HookConsumerWidget {
             FButton.icon(
               variant: .outline,
               onPress: () => context.pop(),
-              child: Icon(LucideIcons.arrowLeft),
+              child: const Icon(LucideIcons.arrowLeft),
             ),
           ],
         ),

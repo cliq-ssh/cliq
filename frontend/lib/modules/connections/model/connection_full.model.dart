@@ -1,8 +1,7 @@
+import 'package:cliq/modules/identities/model/identity_full.model.dart';
 import 'package:cliq/modules/settings/model/terminal_theme.state.dart';
 import 'package:cliq/modules/settings/provider/terminal_theme.provider.dart';
-
-import '../../../shared/data/database.dart';
-import '../../identities/model/identity_full.model.dart';
+import 'package:cliq/shared/data/database.dart';
 
 /// Model class that better wraps the [FindFullConnectionByIdResult] class.
 class ConnectionFull extends Connection {
@@ -22,7 +21,7 @@ class ConnectionFull extends Connection {
         themes.findById(defaultTerminalThemeId, isDefaultTheme: true)!;
   }
 
-  ConnectionFull.fromConnection(
+  new fromConnection(
     Connection connection, {
     required this.credentialIds,
     required this.vault,
@@ -45,7 +44,7 @@ class ConnectionFull extends Connection {
          usesDefaultThemeOverride: connection.usesDefaultThemeOverride,
        );
 
-  factory ConnectionFull.fromFindAllResult(FindAllConnectionFullResult result) {
+  factory fromFindAllResult(FindAllConnectionFullResult result) {
     IdentityFull? identityFull;
     if (result.identity != null) {
       identityFull = IdentityFull.fromIdentity(

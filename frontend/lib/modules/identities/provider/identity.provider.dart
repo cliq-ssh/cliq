@@ -1,12 +1,11 @@
 import 'dart:async';
 
+import 'package:cliq/modules/identities/model/identity.state.dart';
 import 'package:cliq/modules/identities/model/identity_full.model.dart';
 import 'package:cliq/modules/identities/provider/identity_service.provider.dart';
+import 'package:cliq/shared/data/database.dart';
 import 'package:cliq/shared/provider/abstract_entity.notifier.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-
-import '../../../shared/data/database.dart';
-import '../model/identity.state.dart';
 
 final identityProvider = NotifierProvider(IdentityNotifier.new);
 

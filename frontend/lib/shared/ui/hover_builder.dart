@@ -5,7 +5,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 class HoverBuilder extends HookConsumerWidget {
   final Widget Function(BuildContext context, bool hovered) builder;
 
-  const HoverBuilder({super.key, required this.builder});
+  const new({super.key, required this.builder});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {

@@ -10,12 +10,12 @@ class SessionState {
   /// Maps session IDs to their currently active page index in the PageView.
   final Map<String, int> tabPageIndices;
 
-  const SessionState.initial()
+  const new initial()
     : activeTabs = const [],
       selectedTabId = null,
       tabPageIndices = const {};
 
-  const SessionState({
+  const new({
     required this.activeTabs,
     required this.selectedTabId,
     this.tabPageIndices = const {},

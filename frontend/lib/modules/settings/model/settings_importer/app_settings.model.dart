@@ -1,11 +1,10 @@
+import 'package:cliq/modules/connections/extension/connections_companion.extension.dart';
+import 'package:cliq/modules/credentials/extension/credentials_companion.extension.dart';
+import 'package:cliq/modules/identities/extension/identities_companion.extension.dart';
+import 'package:cliq/modules/keys/extension/keys_companion.extension.dart';
+import 'package:cliq/modules/settings/extension/custom_terminal_themes_companion.extension.dart';
+import 'package:cliq/modules/settings/extension/known_hosts_companion.extension.dart';
 import 'package:cliq/shared/data/database.dart';
-
-import '../../../connections/extension/connections_companion.extension.dart';
-import '../../../credentials/extension/credentials_companion.extension.dart';
-import '../../../identities/extension/identities_companion.extension.dart';
-import '../../../keys/extension/keys_companion.extension.dart';
-import '../../extension/custom_terminal_themes_companion.extension.dart';
-import '../../extension/known_hosts_companion.extension.dart';
 
 /// Data class representing the app settings for import/export operations and synchronization.
 class AppSettings {
@@ -19,7 +18,7 @@ class AppSettings {
   final Map<DbId, List<DbId>>? connectionsCredentialIds;
   final Map<DbId, List<DbId>>? identitiesCredentialIds;
 
-  const AppSettings({
+  const new({
     required this.connections,
     required this.identities,
     required this.knownHosts,
@@ -30,7 +29,7 @@ class AppSettings {
     required this.identitiesCredentialIds,
   });
 
-  const AppSettings.empty()
+  const new empty()
     : connections = null,
       identities = null,
       knownHosts = null,
@@ -96,13 +95,13 @@ class AppSettings {
         'connections': connections!.map((c) => c.toJson()).toList(),
       if (connectionsCredentialIds?.isNotEmpty == true)
         'connectionCredentialIds': connectionsCredentialIds!.map(
-          (k, v) => .new(k.toString(), v),
+          (k, v) => .new(k, v),
         ),
       if (identities?.isNotEmpty == true)
         'identities': identities!.map((i) => i.toJson()).toList(),
       if (identitiesCredentialIds?.isNotEmpty == true)
         'identityCredentialIds': identitiesCredentialIds!.map(
-          (k, v) => .new(k.toString(), v),
+          (k, v) => .new(k, v),
         ),
       if (knownHosts?.isNotEmpty == true)
         'knownHosts': knownHosts!.map((k) => k.toJson()).toList(),

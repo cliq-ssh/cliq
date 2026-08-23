@@ -1,3 +1,7 @@
+import 'package:cliq/modules/settings/page/abstract_settings_page.dart';
+import 'package:cliq/modules/settings/page/settings.page.dart';
+import 'package:cliq/shared/model/page_path.model.dart';
+import 'package:cliq/shared/utils/commons.dart';
 import 'package:cliq/shared/utils/constants.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/cupertino.dart' hide Router;
@@ -6,18 +10,11 @@ import 'package:forui/forui.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lucide_flutter/lucide_flutter.dart';
 
-import '../../../../shared/model/page_path.model.dart';
-import '../../../../shared/utils/commons.dart';
-import '../abstract_settings_page.dart';
-import '../settings.page.dart';
-
-class I18nSettingsView extends AbstractSettingsPage {
+class const I18nSettingsView({super.key}) extends AbstractSettingsPage {
   static const PagePathBuilder pagePath = .child(
     parent: SettingsPage.pagePath,
     path: 'i18n',
   );
-
-  const I18nSettingsView({super.key});
 
   @override
   String get title => 'language'.tr();
@@ -31,9 +28,9 @@ class I18nSettingsView extends AbstractSettingsPage {
         FSelectTileGroup(
           control: .lifted(
             value: {context.locale},
-            onChange: (value) {
+            onChange: (value) async {
               if (value.isNotEmpty) {
-                context.setLocale(value.last);
+                await context.setLocale(value.last);
               }
             },
           ),
@@ -54,8 +51,8 @@ class I18nSettingsView extends AbstractSettingsPage {
                 'language_help_translate_subtitle'.tr(),
                 overflow: .visible,
               ),
-              prefix: Icon(LucideIcons.languages),
-              suffix: Icon(LucideIcons.externalLink),
+              prefix: const Icon(LucideIcons.languages),
+              suffix: const Icon(LucideIcons.externalLink),
               onPress: () => Commons.launchWeblateUrl(),
             ),
           ],

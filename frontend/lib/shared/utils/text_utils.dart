@@ -1,12 +1,11 @@
 import 'dart:math';
 
+import 'package:cliq/shared/ui/shortcut_info.dart';
 import 'package:cliq_term/cliq_term.dart';
-import 'package:forui/forui.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:forui/forui.dart';
 import 'package:lucide_flutter/lucide_flutter.dart';
 import 'package:url_launcher/url_launcher_string.dart';
-
-import '../ui/shortcut_info.dart';
 
 enum _RenderableTag {
   bold(tag: 'b', render: _renderBold),
@@ -24,7 +23,7 @@ enum _RenderableTag {
   )
   render;
 
-  const _RenderableTag({required this.tag, required this.render});
+  new({required this.tag, required this.render});
 
   static _RenderableTag? fromTag(String tag) =>
       _RenderableTag.values.where((t) => t.tag == tag).firstOrNull;
@@ -55,7 +54,7 @@ enum _RenderableTag {
     Map<String, String> attributes,
     TextStyle? parentStyle,
   ) {
-    final style = (parentStyle ?? .new()).copyWith(
+    final style = (parentStyle ?? const .new()).copyWith(
       color: context.theme.colors.primary,
     );
 
@@ -77,7 +76,7 @@ enum _RenderableTag {
                     padding: const .only(right: 4),
                     child: IconTheme(
                       data: .new(color: style.color, size: style.fontSize),
-                      child: Icon(LucideIcons.externalLink),
+                      child: const Icon(LucideIcons.externalLink),
                     ),
                   ),
                 ),
@@ -115,7 +114,7 @@ enum _RenderableTag {
 }
 
 class TextUtils {
-  const TextUtils._();
+  const new _();
 
   static String? formatBytes(num? bytes, {int decimals = 2}) {
     if (bytes == null || bytes <= 0) return null;

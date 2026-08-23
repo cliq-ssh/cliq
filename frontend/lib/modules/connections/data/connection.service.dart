@@ -1,16 +1,15 @@
 import 'dart:ui';
 
 import 'package:cliq/modules/connections/data/connection_credentials.repository.dart';
+import 'package:cliq/modules/connections/data/connections.repository.dart';
+import 'package:cliq/modules/connections/model/connection_full.model.dart';
+import 'package:cliq/modules/connections/model/connection_icons.model.dart';
+import 'package:cliq/modules/credentials/data/credential.service.dart';
 import 'package:cliq/modules/settings/provider/terminal_theme.provider.dart';
 import 'package:cliq/shared/data/database.dart';
 import 'package:cliq/shared/extensions/value.extension.dart';
 import 'package:cliq_term/cliq_term.dart';
 import 'package:drift/drift.dart';
-
-import '../../credentials/data/credential.service.dart';
-import '../model/connection_full.model.dart';
-import '../model/connection_icons.model.dart';
-import 'connections.repository.dart';
 
 final class ConnectionService {
   final ConnectionsRepository _connectionRepository;
@@ -18,7 +17,7 @@ final class ConnectionService {
 
   final CredentialService _credentialService;
 
-  const ConnectionService(
+  const new(
     this._connectionRepository,
     this._connectionCredentialsRepository,
     this._credentialService,
@@ -85,8 +84,6 @@ final class ConnectionService {
   }) async {
     final usesDefaultThemeOverride =
         terminalThemeOverrideId == defaultTerminalColorTheme.id;
-    if (usesDefaultThemeOverride) terminalThemeOverrideId = null;
-
     final connection = await _connectionRepository.insert(
       ConnectionsCompanion.insert(
         vaultId: vaultId,
@@ -98,13 +95,15 @@ final class ConnectionService {
         iconColor: iconColor,
         iconBackgroundColor: iconBackgroundColor,
         username: identityId != null
-            ? Value.absent()
+            ? const Value.absent()
             : Value.absentIfNull(username),
         identityId: Value.absentIfNull(identityId),
         terminalTypographyOverride: Value.absentIfNull(
           terminalTypographyOverride,
         ),
-        terminalThemeOverrideId: Value.absentIfNull(terminalThemeOverrideId),
+        terminalThemeOverrideId: Value.absentIfNull(
+          usesDefaultThemeOverride ? null : terminalThemeOverrideId,
+        ),
         usesDefaultThemeOverride: Value(usesDefaultThemeOverride),
       ),
     );
@@ -138,8 +137,6 @@ final class ConnectionService {
   }) async {
     final usesDefaultThemeOverride =
         terminalThemeOverrideId == defaultTerminalColorTheme.id;
-    if (usesDefaultThemeOverride) terminalThemeOverrideId = null;
-
     await _connectionRepository.updateById(
       connectionId,
       ConnectionsCompanion(
@@ -163,7 +160,7 @@ final class ConnectionService {
           compareTo?.iconBackgroundColor,
         ),
         username: identityId != null
-            ? Value(null)
+            ? const Value(null)
             : ValueExtension.absentIfSame(username, compareTo?.username.value),
         identityId: ValueExtension.absentIfSame(
           identityId,
@@ -174,7 +171,7 @@ final class ConnectionService {
           compareTo?.terminalTypographyOverride.value,
         ),
         terminalThemeOverrideId: ValueExtension.absentIfSame(
-          terminalThemeOverrideId,
+          usesDefaultThemeOverride ? null : terminalThemeOverrideId,
           compareTo?.terminalThemeOverrideId.value,
         ),
         usesDefaultThemeOverride: Value(usesDefaultThemeOverride),
@@ -197,7 +194,7 @@ final class ConnectionService {
   Future<DbId> clearOverrides(DbId connectionId) async {
     await _connectionRepository.updateById(
       connectionId,
-      ConnectionsCompanion(
+      const ConnectionsCompanion(
         terminalTypographyOverride: Value(null),
         terminalThemeOverrideId: Value(null),
         usesDefaultThemeOverride: Value(false),

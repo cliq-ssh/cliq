@@ -1,4 +1,5 @@
 import 'dart:async';
+
 import 'package:flutter/material.dart';
 
 class RepeatableButton extends StatefulWidget {
@@ -14,7 +15,7 @@ class RepeatableButton extends StatefulWidget {
   /// The [repeatInterval] is the duration between each repeated call to the [onPress] callback.
   final Duration repeatInterval;
 
-  const RepeatableButton({
+  const new({
     super.key,
     required this.onPress,
     required this.child,

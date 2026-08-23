@@ -9,7 +9,7 @@ class ConnectionIcon extends StatelessWidget {
   final double? size;
   final double? padding;
 
-  const ConnectionIcon({
+  const new({
     super.key,
     required this.icon,
     required this.iconColor,
@@ -19,7 +19,7 @@ class ConnectionIcon extends StatelessWidget {
     this.padding,
   });
 
-  ConnectionIcon.fromConnection(
+  new fromConnection(
     Connection connection, {
     super.key,
     this.borderRadius = 6,

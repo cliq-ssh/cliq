@@ -1,10 +1,14 @@
 import 'dart:convert';
 
 import 'package:cliq/modules/connections/provider/connection.provider.dart';
+import 'package:cliq/modules/credentials/provider/credential_service.provider.dart';
 import 'package:cliq/modules/identities/provider/identity.provider.dart';
+import 'package:cliq/modules/keys/provider/key_service.provider.dart';
 import 'package:cliq/modules/settings/model/settings_importer/app_settings.model.dart';
 import 'package:cliq/modules/settings/provider/known_host.provider.dart';
 import 'package:cliq/modules/settings/provider/sync.provider.dart';
+import 'package:cliq/modules/settings/provider/terminal_theme.provider.dart';
+import 'package:cliq/shared/data/database.dart';
 import 'package:cliq/shared/ui/create_or_edit_entity_view.dart';
 import 'package:cliq/shared/utils/commons.dart';
 import 'package:cliq/shared/utils/input_formatters.dart';
@@ -18,21 +22,13 @@ import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lucide_flutter/lucide_flutter.dart';
 
-import '../../../shared/data/database.dart';
-import '../../credentials/provider/credential_service.provider.dart';
-import '../../keys/provider/key_service.provider.dart';
-import '../provider/terminal_theme.provider.dart';
-
-class ImportOrExportSettingsView extends StatefulHookConsumerWidget {
+class ImportOrExportSettingsSheet extends StatefulHookConsumerWidget {
   final AppSettings? current;
   final bool isImport;
 
-  const ImportOrExportSettingsView.export({super.key})
-    : current = null,
-      isImport = false;
+  const new export({super.key}) : current = null, isImport = false;
 
-  const ImportOrExportSettingsView.import({super.key, required this.current})
-    : isImport = true;
+  const new import({super.key, required this.current}) : isImport = true;
 
   @override
   ConsumerState<ConsumerStatefulWidget> createState() =>
@@ -40,7 +36,7 @@ class ImportOrExportSettingsView extends StatefulHookConsumerWidget {
 }
 
 class _ImportOrExportSettingsViewState
-    extends ConsumerState<ImportOrExportSettingsView> {
+    extends ConsumerState<ImportOrExportSettingsSheet> {
   @override
   Widget build(BuildContext context) {
     final formKey = useMemoized(() => GlobalKey<FormState>());
@@ -225,7 +221,7 @@ class _ImportOrExportSettingsViewState
       error.value = null;
 
       if (widget.isImport) {
-        ref.read(syncProvider.notifier).import(selected, vaultId);
+        await ref.read(syncProvider.notifier).import(selected, vaultId);
       } else {
         final password = passwordController.text.trim();
         final encrypt = password.isNotEmpty;
@@ -340,7 +336,7 @@ class _ImportOrExportSettingsViewState
           spacing: 16,
           crossAxisAlignment: CrossAxisAlignment.center,
           children: settings.value == null
-              ? [Center(child: FCircularProgress())]
+              ? [const Center(child: FCircularProgress())]
               : [
                   if (!widget.isImport)
                     FTextFormField.password(
@@ -506,7 +502,7 @@ class _ImportOrExportSettingsViewState
                         child: Row(
                           spacing: 12,
                           children: [
-                            Icon(LucideIcons.triangleAlert),
+                            const Icon(LucideIcons.triangleAlert),
                             Expanded(
                               child: Text('sync_export_password_warning'.tr()),
                             ),

@@ -15,7 +15,7 @@ class CustomContextMenuAction {
   final bool hideAfterPress;
   final KeyboardShortcut? shortcut;
 
-  CustomContextMenuAction({
+  new({
     required this.label,
     this.icon,
     required this.onPress,
@@ -30,7 +30,7 @@ class CustomContextMenu extends HookConsumerWidget {
   final WidgetBuilder builder;
   final FPopoverController? popoverController;
 
-  const CustomContextMenu({
+  const new({
     super.key,
     required this.actions,
     required this.builder,

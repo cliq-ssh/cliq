@@ -1,11 +1,10 @@
 import 'package:cliq/modules/connections/data/connections.repository.dart';
+import 'package:cliq/modules/identities/data/identities.repository.dart';
 import 'package:cliq/modules/keys/data/key.repository.dart';
+import 'package:cliq/modules/settings/data/known_hosts.repository.dart';
 import 'package:cliq/modules/vaults/data/vaults.repository.dart';
 import 'package:cliq/shared/data/database.dart';
 import 'package:drift/drift.dart';
-
-import '../../identities/data/identities.repository.dart';
-import '../../settings/data/known_hosts.repository.dart';
 
 final class VaultService {
   final VaultsRepository _vaultsRepository;
@@ -15,7 +14,7 @@ final class VaultService {
   final KeyRepository _keyRepository;
   final KnownHostsRepository _knownHostsRepository;
 
-  const VaultService(
+  const new(
     this._vaultsRepository,
     this._connectionsRepository,
     this._identitiesRepository,

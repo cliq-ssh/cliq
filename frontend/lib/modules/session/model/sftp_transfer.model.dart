@@ -39,7 +39,7 @@ class _TransferTracker {
 class _FileEntry {
   final String relativePath;
   final int size;
-  _FileEntry(this.relativePath, this.size);
+  new(this.relativePath, this.size);
 }
 
 /// Recursively lists all files under [root]
@@ -121,7 +121,8 @@ Future<void> _createRemoteDirsForEntries(
 /// This is put into a separate file to avoid complications with isolate spawning and dependencies.
 /// See [SessionNotifier.transferSftp] for usage.
 Future<void> sftpTransferIsolate(SftpTransferParams p) async {
-  SSHClient? sourceClient, destinationClient;
+  SSHClient? sourceClient;
+  SSHClient? destinationClient;
   final speedTracker = _TransferTracker();
 
   connect(SftpConnectParams c) async {
@@ -197,7 +198,7 @@ Future<void> sftpTransferIsolate(SftpTransferParams p) async {
     destinationClient = await connect(p.destination!);
     final sftp = await destinationClient!.sftp();
     final isDir =
-        await FileSystemEntity.type(p.sourcePath) ==
+        FileSystemEntity.typeSync(p.sourcePath) ==
         FileSystemEntityType.directory;
 
     final List<_FileEntry> entries;
@@ -343,11 +344,11 @@ Future<void> sftpTransferIsolate(SftpTransferParams p) async {
       ),
     });
 
-    p.sendPort.send(FileProgressData.completed());
+    p.sendPort.send(const FileProgressData.completed());
   } catch (e) {
     p.sendPort.send(FileProgressData.error(e.toString()));
   } finally {
-    sourceClient?.close();
-    destinationClient?.close();
+    await sourceClient?.close();
+    await destinationClient?.close();
   }
 }

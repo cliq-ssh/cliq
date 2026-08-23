@@ -1,4 +1,5 @@
 import 'package:cliq/shared/model/localized_exception.dart';
+import 'package:cliq/shared/utils/commons.dart';
 import 'package:cliq_ui/cliq_ui.dart' show CliqFontFamily;
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/widgets.dart';
@@ -8,13 +9,11 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lucide_flutter/lucide_flutter.dart';
 import 'package:simple_icons/simple_icons.dart';
 
-import '../utils/commons.dart';
-
 class ErrorSheet extends ConsumerWidget {
   final Object error;
   final StackTrace? stackTrace;
 
-  const ErrorSheet({super.key, required this.error, this.stackTrace});
+  const new({super.key, required this.error, this.stackTrace});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -87,17 +86,17 @@ class ErrorSheet extends ConsumerWidget {
                 FTileGroup(
                   children: [
                     FTile(
-                      prefix: Icon(LucideIcons.bug),
+                      prefix: const Icon(LucideIcons.bug),
                       title: Text('error_copy_error_details'.tr()),
-                      onPress: () {
+                      onPress: () async {
                         final details =
                             'Error: $error\n\nStacktrace:\n${stackTrace ?? "No stack trace available."}';
-                        Commons.copyToClipboard(context, details);
+                        await Commons.copyToClipboard(context, details);
                       },
                     ),
                     FTile(
-                      prefix: Icon(SimpleIcons.github),
-                      suffix: Icon(LucideIcons.externalLink),
+                      prefix: const Icon(SimpleIcons.github),
+                      suffix: const Icon(LucideIcons.externalLink),
                       title: Text('error_report_issue_on_github'.tr()),
                       onPress: () => Commons.launchGitHubCreateIssueUrl(),
                     ),

@@ -1,7 +1,10 @@
 import 'package:cliq/modules/vaults/extension/vault.extension.dart';
+import 'package:cliq/modules/vaults/provider/vault.provider.dart';
 import 'package:cliq/shared/data/database.dart';
 import 'package:cliq/shared/model/entity_type.dart';
+import 'package:cliq/shared/ui/horizontal_dialog.dart';
 import 'package:cliq/shared/utils/text_utils.dart';
+import 'package:cliq/shared/utils/validators.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
@@ -9,10 +12,6 @@ import 'package:forui/forui.dart';
 import 'package:forui_hooks/forui_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lucide_flutter/lucide_flutter.dart';
-
-import '../../../shared/ui/horizontal_dialog.dart';
-import '../../../shared/utils/validators.dart';
-import '../provider/vault.provider.dart';
 
 class VaultTransferDialog extends HookConsumerWidget {
   final FDialogStyle style;
@@ -31,7 +30,7 @@ class VaultTransferDialog extends HookConsumerWidget {
   /// A callback for transferring the entity to another vault.
   final Future<void> Function(DbId) onTransfer;
 
-  const VaultTransferDialog({
+  const new({
     super.key,
     required this.style,
     required this.animation,
@@ -92,7 +91,7 @@ class VaultTransferDialog extends HookConsumerWidget {
               ),
             if (relations != null && relations!.isNotEmpty) ...[
               ConstrainedBox(
-                constraints: .new(maxHeight: 200),
+                constraints: const .new(maxHeight: 200),
                 child: SingleChildScrollView(
                   child: FTileGroup(
                     children: [
@@ -124,7 +123,7 @@ class VaultTransferDialog extends HookConsumerWidget {
                   .item(
                     prefix: v.owner == null
                         ? null
-                        : Icon(LucideIcons.cloudUpload),
+                        : const Icon(LucideIcons.cloudUpload),
                     title: Text(v.getDisplayName(context)),
                     value: v.id,
                   ),
@@ -161,7 +160,7 @@ class VaultTransferDialog extends HookConsumerWidget {
                       Navigator.of(context).pop();
                     },
               child: isLoading.value
-                  ? FCircularProgress()
+                  ? const FCircularProgress()
                   : Text(
                       selectedVault == null
                           ? 'transfer'.tr()

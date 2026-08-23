@@ -1,9 +1,9 @@
-import '../../../shared/data/database.dart';
+import 'package:cliq/shared/data/database.dart';
 
 class KeyFull extends Key {
   final Vault vault;
 
-  const KeyFull(
+  const new(
     this.vault, {
     required super.id,
     required super.vaultId,
@@ -13,7 +13,7 @@ class KeyFull extends Key {
     required super.publicKey,
   });
 
-  KeyFull.fromKey(Key key, {required this.vault})
+  new fromKey(Key key, {required this.vault})
     : super(
         id: key.id,
         vaultId: key.vaultId,
@@ -23,7 +23,7 @@ class KeyFull extends Key {
         publicKey: key.publicKey,
       );
 
-  factory KeyFull.fromFindAllResult(FindAllKeyFullByIdsResult result) {
+  factory fromFindAllResult(FindAllKeyFullByIdsResult result) {
     return KeyFull.fromKey(result.keyEntity, vault: result.vault);
   }
 }

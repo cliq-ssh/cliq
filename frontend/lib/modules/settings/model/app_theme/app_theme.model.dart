@@ -24,7 +24,7 @@ class BaseColors {
   final int card;
   final int border;
 
-  const BaseColors({
+  const new({
     required this.barrier,
     required this.background,
     required this.foreground,
@@ -47,14 +47,14 @@ class PrimaryColors {
   final int primary;
   final int primaryForeground;
 
-  const PrimaryColors({required this.primary, required this.primaryForeground});
+  const new({required this.primary, required this.primaryForeground});
 }
 
 abstract class PresetColors<T> {
   final T light;
   final T dark;
 
-  const PresetColors({required this.light, required this.dark});
+  const new({required this.light, required this.dark});
 
   String getDisplayName(BuildContext context);
   T getByThemeMode(ThemeMode mode);
@@ -319,7 +319,7 @@ enum PresetBaseColors implements PresetColors<BaseColors> {
   @override
   final BaseColors dark;
 
-  const PresetBaseColors({required this.light, required this.dark});
+  new({required this.light, required this.dark});
 
   FThemeData withPrimaryAndMode({
     required PresetPrimaryColor primaryColor,
@@ -462,7 +462,7 @@ enum PresetPrimaryColor implements PresetColors<PrimaryColors> {
   @override
   final PrimaryColors dark;
 
-  const PresetPrimaryColor({required this.light, required this.dark});
+  new({required this.light, required this.dark});
 
   @override
   String getDisplayName(BuildContext context) =>
@@ -480,27 +480,27 @@ enum PresetPrimaryColor implements PresetColors<PrimaryColors> {
   }
 }
 
-FIcons _icons() => FIcons(
-  arrowLeft: const FIcon(LucideIcons.arrowLeft),
-  calendar: const FIcon(LucideIcons.calendar),
-  check: const FIcon(LucideIcons.check),
-  chevronDown: const FIcon(LucideIcons.chevronDown),
-  chevronLeft: const FIcon(LucideIcons.chevronLeft),
-  chevronRight: const FIcon(LucideIcons.chevronRight),
-  chevronUp: const FIcon(LucideIcons.chevronUp),
-  chevronsUpDown: const FIcon(LucideIcons.chevronsUpDown),
-  circleAlert: const FIcon(LucideIcons.circleAlert),
-  clock4: const FIcon(LucideIcons.clock4),
-  ellipsis: const FIcon(LucideIcons.ellipsis),
-  error: const FIcon(LucideIcons.circleAlert),
-  eye: const FIcon(LucideIcons.eye),
-  eyeClosed: const FIcon(LucideIcons.eyeClosed),
-  gripHorizontal: const FIcon(LucideIcons.gripHorizontal),
-  gripVertical: const FIcon(LucideIcons.gripVertical),
-  loader: const FIcon(LucideIcons.loader),
-  loaderCircle: const FIcon(LucideIcons.loaderCircle),
-  loaderPinwheel: const FIcon(LucideIcons.loaderPinwheel),
-  search: const FIcon(LucideIcons.search),
-  userRound: const FIcon(LucideIcons.userRound),
-  x: const FIcon(LucideIcons.x),
+FIcons _icons() => const FIcons(
+  arrowLeft: FIcon(LucideIcons.arrowLeft),
+  calendar: FIcon(LucideIcons.calendar),
+  check: FIcon(LucideIcons.check),
+  chevronDown: FIcon(LucideIcons.chevronDown),
+  chevronLeft: FIcon(LucideIcons.chevronLeft),
+  chevronRight: FIcon(LucideIcons.chevronRight),
+  chevronUp: FIcon(LucideIcons.chevronUp),
+  chevronsUpDown: FIcon(LucideIcons.chevronsUpDown),
+  circleAlert: FIcon(LucideIcons.circleAlert),
+  clock4: FIcon(LucideIcons.clock4),
+  ellipsis: FIcon(LucideIcons.ellipsis),
+  error: FIcon(LucideIcons.circleAlert),
+  eye: FIcon(LucideIcons.eye),
+  eyeClosed: FIcon(LucideIcons.eyeClosed),
+  gripHorizontal: FIcon(LucideIcons.gripHorizontal),
+  gripVertical: FIcon(LucideIcons.gripVertical),
+  loader: FIcon(LucideIcons.loader),
+  loaderCircle: FIcon(LucideIcons.loaderCircle),
+  loaderPinwheel: FIcon(LucideIcons.loaderPinwheel),
+  search: FIcon(LucideIcons.search),
+  userRound: FIcon(LucideIcons.userRound),
+  x: FIcon(LucideIcons.x),
 );

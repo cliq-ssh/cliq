@@ -1,8 +1,7 @@
+import 'package:cliq/shared/data/database.dart';
 import 'package:drift/drift.dart';
 import 'package:logging/logging.dart';
 import 'package:uuid/uuid.dart';
-
-import 'database.dart';
 
 Uuid _uuid = const Uuid();
 
@@ -11,7 +10,7 @@ abstract class Repository<T extends Table, R> {
 
   final CliqDatabase db;
 
-  Repository(this.db);
+  new(this.db);
 
   TableInfo<T, R> get table;
 

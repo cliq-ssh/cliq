@@ -3195,8 +3195,7 @@ class Credentials extends Table with TableInfo<Credentials, Credential> {
     true,
     type: DriftSqlType.string,
     requiredDuringInsert: false,
-    $customConstraints:
-        'CONSTRAINT password_or_key_id CHECK ((type = \'password\' AND password IS NOT NULL AND key_id IS NULL)OR(type = \'key\' AND key_id IS NOT NULL AND password IS NULL))',
+    $customConstraints: 'CONSTRAINT password_or_key_id CHECK ((type = \'password\' AND password IS NOT NULL AND key_id IS NULL)OR(type = \'key\' AND key_id IS NOT NULL AND password IS NULL))',
   );
   @override
   List<GeneratedColumn> get $columns => [id, vaultId, type, keyId, password];
@@ -5088,18 +5087,16 @@ abstract class _$CliqDatabase extends GeneratedDatabase {
   ]);
 }
 
-typedef $VaultsCreateCompanionBuilder =
-    VaultsCompanion Function({
-      Value<String> id,
-      Value<String?> owner,
-      Value<int> rowid,
-    });
-typedef $VaultsUpdateCompanionBuilder =
-    VaultsCompanion Function({
-      Value<String> id,
-      Value<String?> owner,
-      Value<int> rowid,
-    });
+typedef $VaultsCreateCompanionBuilder = VaultsCompanion Function({
+  Value<String> id,
+  Value<String?> owner,
+  Value<int> rowid,
+});
+typedef $VaultsUpdateCompanionBuilder = VaultsCompanion Function({
+  Value<String> id,
+  Value<String?> owner,
+  Value<int> rowid,
+});
 
 final class $VaultsReferences
     extends BaseReferences<_$CliqDatabase, Vaults, Vault> {
@@ -5534,18 +5531,16 @@ class $VaultsTableManager
               $VaultsOrderingComposer($db: db, $table: table),
           createComputedFieldComposer: () =>
               $VaultsAnnotationComposer($db: db, $table: table),
-          updateCompanionCallback:
-              ({
-                Value<String> id = const Value.absent(),
-                Value<String?> owner = const Value.absent(),
-                Value<int> rowid = const Value.absent(),
-              }) => VaultsCompanion(id: id, owner: owner, rowid: rowid),
-          createCompanionCallback:
-              ({
-                Value<String> id = const Value.absent(),
-                Value<String?> owner = const Value.absent(),
-                Value<int> rowid = const Value.absent(),
-              }) => VaultsCompanion.insert(id: id, owner: owner, rowid: rowid),
+          updateCompanionCallback: ({
+            Value<String> id = const Value.absent(),
+            Value<String?> owner = const Value.absent(),
+            Value<int> rowid = const Value.absent(),
+          }) => VaultsCompanion(id: id, owner: owner, rowid: rowid),
+          createCompanionCallback: ({
+            Value<String> id = const Value.absent(),
+            Value<String?> owner = const Value.absent(),
+            Value<int> rowid = const Value.absent(),
+          }) => VaultsCompanion.insert(id: id, owner: owner, rowid: rowid),
           withReferenceMapper: (p0) => p0
               .map((e) => (e.readTable(table), $VaultsReferences(db, table, e)))
               .toList(),
@@ -5661,22 +5656,20 @@ typedef $VaultsProcessedTableManager =
         bool knownHostsRefs,
       })
     >;
-typedef $IdentitiesCreateCompanionBuilder =
-    IdentitiesCompanion Function({
-      Value<String> id,
-      required String vaultId,
-      required String label,
-      required String username,
-      Value<int> rowid,
-    });
-typedef $IdentitiesUpdateCompanionBuilder =
-    IdentitiesCompanion Function({
-      Value<String> id,
-      Value<String> vaultId,
-      Value<String> label,
-      Value<String> username,
-      Value<int> rowid,
-    });
+typedef $IdentitiesCreateCompanionBuilder = IdentitiesCompanion Function({
+  Value<String> id,
+  required String vaultId,
+  required String label,
+  required String username,
+  Value<int> rowid,
+});
+typedef $IdentitiesUpdateCompanionBuilder = IdentitiesCompanion Function({
+  Value<String> id,
+  Value<String> vaultId,
+  Value<String> label,
+  Value<String> username,
+  Value<int> rowid,
+});
 
 final class $IdentitiesReferences
     extends BaseReferences<_$CliqDatabase, Identities, Identity> {
@@ -6068,17 +6061,15 @@ class $IdentitiesTableManager
                         >
                       >(state) {
                         if (vaultId) {
-                          state =
-                              state.withJoin(
-                                    currentTable: table,
-                                    currentColumn: table.vaultId,
-                                    referencedTable: $IdentitiesReferences
-                                        ._vaultIdTable(db),
-                                    referencedColumn: $IdentitiesReferences
-                                        ._vaultIdTable(db)
-                                        .id,
-                                  )
-                                  as T;
+                          state = state.withJoin(
+                            currentTable: table,
+                            currentColumn: table.vaultId,
+                            referencedTable: $IdentitiesReferences
+                                ._vaultIdTable(db),
+                            referencedColumn: $IdentitiesReferences
+                                ._vaultIdTable(db)
+                                .id,
+                          ) as T;
                         }
 
                         return state;
@@ -6885,42 +6876,40 @@ typedef $CustomTerminalThemesProcessedTableManager =
       CustomTerminalTheme,
       PrefetchHooks Function({bool connectionsRefs})
     >;
-typedef $ConnectionsCreateCompanionBuilder =
-    ConnectionsCompanion Function({
-      Value<String> id,
-      required String vaultId,
-      required String label,
-      required String address,
-      required int port,
-      Value<String?> identityId,
-      Value<String?> username,
-      Value<String?> groupName,
-      Value<ConnectionIcons> icon,
-      required Color iconColor,
-      required Color iconBackgroundColor,
-      Value<TerminalTypography?> terminalTypographyOverride,
-      Value<String?> terminalThemeOverrideId,
-      Value<bool> usesDefaultThemeOverride,
-      Value<int> rowid,
-    });
-typedef $ConnectionsUpdateCompanionBuilder =
-    ConnectionsCompanion Function({
-      Value<String> id,
-      Value<String> vaultId,
-      Value<String> label,
-      Value<String> address,
-      Value<int> port,
-      Value<String?> identityId,
-      Value<String?> username,
-      Value<String?> groupName,
-      Value<ConnectionIcons> icon,
-      Value<Color> iconColor,
-      Value<Color> iconBackgroundColor,
-      Value<TerminalTypography?> terminalTypographyOverride,
-      Value<String?> terminalThemeOverrideId,
-      Value<bool> usesDefaultThemeOverride,
-      Value<int> rowid,
-    });
+typedef $ConnectionsCreateCompanionBuilder = ConnectionsCompanion Function({
+  Value<String> id,
+  required String vaultId,
+  required String label,
+  required String address,
+  required int port,
+  Value<String?> identityId,
+  Value<String?> username,
+  Value<String?> groupName,
+  Value<ConnectionIcons> icon,
+  required Color iconColor,
+  required Color iconBackgroundColor,
+  Value<TerminalTypography?> terminalTypographyOverride,
+  Value<String?> terminalThemeOverrideId,
+  Value<bool> usesDefaultThemeOverride,
+  Value<int> rowid,
+});
+typedef $ConnectionsUpdateCompanionBuilder = ConnectionsCompanion Function({
+  Value<String> id,
+  Value<String> vaultId,
+  Value<String> label,
+  Value<String> address,
+  Value<int> port,
+  Value<String?> identityId,
+  Value<String?> username,
+  Value<String?> groupName,
+  Value<ConnectionIcons> icon,
+  Value<Color> iconColor,
+  Value<Color> iconBackgroundColor,
+  Value<TerminalTypography?> terminalTypographyOverride,
+  Value<String?> terminalThemeOverrideId,
+  Value<bool> usesDefaultThemeOverride,
+  Value<int> rowid,
+});
 
 final class $ConnectionsReferences
     extends BaseReferences<_$CliqDatabase, Connections, Connection> {
@@ -7585,44 +7574,37 @@ class $ConnectionsTableManager
                         >
                       >(state) {
                         if (vaultId) {
-                          state =
-                              state.withJoin(
-                                    currentTable: table,
-                                    currentColumn: table.vaultId,
-                                    referencedTable: $ConnectionsReferences
-                                        ._vaultIdTable(db),
-                                    referencedColumn: $ConnectionsReferences
-                                        ._vaultIdTable(db)
-                                        .id,
-                                  )
-                                  as T;
+                          state = state.withJoin(
+                            currentTable: table,
+                            currentColumn: table.vaultId,
+                            referencedTable: $ConnectionsReferences
+                                ._vaultIdTable(db),
+                            referencedColumn: $ConnectionsReferences
+                                ._vaultIdTable(db)
+                                .id,
+                          ) as T;
                         }
                         if (identityId) {
-                          state =
-                              state.withJoin(
-                                    currentTable: table,
-                                    currentColumn: table.identityId,
-                                    referencedTable: $ConnectionsReferences
-                                        ._identityIdTable(db),
-                                    referencedColumn: $ConnectionsReferences
-                                        ._identityIdTable(db)
-                                        .id,
-                                  )
-                                  as T;
+                          state = state.withJoin(
+                            currentTable: table,
+                            currentColumn: table.identityId,
+                            referencedTable: $ConnectionsReferences
+                                ._identityIdTable(db),
+                            referencedColumn: $ConnectionsReferences
+                                ._identityIdTable(db)
+                                .id,
+                          ) as T;
                         }
                         if (terminalThemeOverrideId) {
-                          state =
-                              state.withJoin(
-                                    currentTable: table,
-                                    currentColumn:
-                                        table.terminalThemeOverrideId,
-                                    referencedTable: $ConnectionsReferences
-                                        ._terminalThemeOverrideIdTable(db),
-                                    referencedColumn: $ConnectionsReferences
-                                        ._terminalThemeOverrideIdTable(db)
-                                        .id,
-                                  )
-                                  as T;
+                          state = state.withJoin(
+                            currentTable: table,
+                            currentColumn: table.terminalThemeOverrideId,
+                            referencedTable: $ConnectionsReferences
+                                ._terminalThemeOverrideIdTable(db),
+                            referencedColumn: $ConnectionsReferences
+                                ._terminalThemeOverrideIdTable(db)
+                                .id,
+                          ) as T;
                         }
 
                         return state;
@@ -7677,26 +7659,24 @@ typedef $ConnectionsProcessedTableManager =
         bool connectionCredentialsRefs,
       })
     >;
-typedef $KeysCreateCompanionBuilder =
-    KeysCompanion Function({
-      Value<String> id,
-      required String vaultId,
-      required String label,
-      required String privateKey,
-      Value<String?> publicKey,
-      Value<String?> passphrase,
-      Value<int> rowid,
-    });
-typedef $KeysUpdateCompanionBuilder =
-    KeysCompanion Function({
-      Value<String> id,
-      Value<String> vaultId,
-      Value<String> label,
-      Value<String> privateKey,
-      Value<String?> publicKey,
-      Value<String?> passphrase,
-      Value<int> rowid,
-    });
+typedef $KeysCreateCompanionBuilder = KeysCompanion Function({
+  Value<String> id,
+  required String vaultId,
+  required String label,
+  required String privateKey,
+  Value<String?> publicKey,
+  Value<String?> passphrase,
+  Value<int> rowid,
+});
+typedef $KeysUpdateCompanionBuilder = KeysCompanion Function({
+  Value<String> id,
+  Value<String> vaultId,
+  Value<String> label,
+  Value<String> privateKey,
+  Value<String?> publicKey,
+  Value<String?> passphrase,
+  Value<int> rowid,
+});
 
 final class $KeysReferences extends BaseReferences<_$CliqDatabase, Keys, Key> {
   $KeysReferences(super.$_db, super.$_table, super.$_typedResult);
@@ -8038,18 +8018,12 @@ class $KeysTableManager
                     >
                   >(state) {
                     if (vaultId) {
-                      state =
-                          state.withJoin(
-                                currentTable: table,
-                                currentColumn: table.vaultId,
-                                referencedTable: $KeysReferences._vaultIdTable(
-                                  db,
-                                ),
-                                referencedColumn: $KeysReferences
-                                    ._vaultIdTable(db)
-                                    .id,
-                              )
-                              as T;
+                      state = state.withJoin(
+                        currentTable: table,
+                        currentColumn: table.vaultId,
+                        referencedTable: $KeysReferences._vaultIdTable(db),
+                        referencedColumn: $KeysReferences._vaultIdTable(db).id,
+                      ) as T;
                     }
 
                     return state;
@@ -8090,24 +8064,22 @@ typedef $KeysProcessedTableManager =
       Key,
       PrefetchHooks Function({bool vaultId, bool credentialsRefs})
     >;
-typedef $CredentialsCreateCompanionBuilder =
-    CredentialsCompanion Function({
-      Value<String> id,
-      required String vaultId,
-      required CredentialType type,
-      Value<String?> keyId,
-      Value<String?> password,
-      Value<int> rowid,
-    });
-typedef $CredentialsUpdateCompanionBuilder =
-    CredentialsCompanion Function({
-      Value<String> id,
-      Value<String> vaultId,
-      Value<CredentialType> type,
-      Value<String?> keyId,
-      Value<String?> password,
-      Value<int> rowid,
-    });
+typedef $CredentialsCreateCompanionBuilder = CredentialsCompanion Function({
+  Value<String> id,
+  required String vaultId,
+  required CredentialType type,
+  Value<String?> keyId,
+  Value<String?> password,
+  Value<int> rowid,
+});
+typedef $CredentialsUpdateCompanionBuilder = CredentialsCompanion Function({
+  Value<String> id,
+  Value<String> vaultId,
+  Value<CredentialType> type,
+  Value<String?> keyId,
+  Value<String?> password,
+  Value<int> rowid,
+});
 
 final class $CredentialsReferences
     extends BaseReferences<_$CliqDatabase, Credentials, Credential> {
@@ -8596,30 +8568,27 @@ class $CredentialsTableManager
                         >
                       >(state) {
                         if (vaultId) {
-                          state =
-                              state.withJoin(
-                                    currentTable: table,
-                                    currentColumn: table.vaultId,
-                                    referencedTable: $CredentialsReferences
-                                        ._vaultIdTable(db),
-                                    referencedColumn: $CredentialsReferences
-                                        ._vaultIdTable(db)
-                                        .id,
-                                  )
-                                  as T;
+                          state = state.withJoin(
+                            currentTable: table,
+                            currentColumn: table.vaultId,
+                            referencedTable: $CredentialsReferences
+                                ._vaultIdTable(db),
+                            referencedColumn: $CredentialsReferences
+                                ._vaultIdTable(db)
+                                .id,
+                          ) as T;
                         }
                         if (keyId) {
-                          state =
-                              state.withJoin(
-                                    currentTable: table,
-                                    currentColumn: table.keyId,
-                                    referencedTable: $CredentialsReferences
-                                        ._keyIdTable(db),
-                                    referencedColumn: $CredentialsReferences
-                                        ._keyIdTable(db)
-                                        .id,
-                                  )
-                                  as T;
+                          state = state.withJoin(
+                            currentTable: table,
+                            currentColumn: table.keyId,
+                            referencedTable: $CredentialsReferences._keyIdTable(
+                              db,
+                            ),
+                            referencedColumn: $CredentialsReferences
+                                ._keyIdTable(db)
+                                .id,
+                          ) as T;
                         }
 
                         return state;
@@ -8695,24 +8664,22 @@ typedef $CredentialsProcessedTableManager =
         bool connectionCredentialsRefs,
       })
     >;
-typedef $KnownHostsCreateCompanionBuilder =
-    KnownHostsCompanion Function({
-      Value<String> id,
-      required String vaultId,
-      required String host,
-      required Uint8List hostKey,
-      Value<DateTime> createdAt,
-      Value<int> rowid,
-    });
-typedef $KnownHostsUpdateCompanionBuilder =
-    KnownHostsCompanion Function({
-      Value<String> id,
-      Value<String> vaultId,
-      Value<String> host,
-      Value<Uint8List> hostKey,
-      Value<DateTime> createdAt,
-      Value<int> rowid,
-    });
+typedef $KnownHostsCreateCompanionBuilder = KnownHostsCompanion Function({
+  Value<String> id,
+  required String vaultId,
+  required String host,
+  required Uint8List hostKey,
+  Value<DateTime> createdAt,
+  Value<int> rowid,
+});
+typedef $KnownHostsUpdateCompanionBuilder = KnownHostsCompanion Function({
+  Value<String> id,
+  Value<String> vaultId,
+  Value<String> host,
+  Value<Uint8List> hostKey,
+  Value<DateTime> createdAt,
+  Value<int> rowid,
+});
 
 final class $KnownHostsReferences
     extends BaseReferences<_$CliqDatabase, KnownHosts, KnownHost> {
@@ -8970,17 +8937,16 @@ class $KnownHostsTableManager
                     >
                   >(state) {
                     if (vaultId) {
-                      state =
-                          state.withJoin(
-                                currentTable: table,
-                                currentColumn: table.vaultId,
-                                referencedTable: $KnownHostsReferences
-                                    ._vaultIdTable(db),
-                                referencedColumn: $KnownHostsReferences
-                                    ._vaultIdTable(db)
-                                    .id,
-                              )
-                              as T;
+                      state = state.withJoin(
+                        currentTable: table,
+                        currentColumn: table.vaultId,
+                        referencedTable: $KnownHostsReferences._vaultIdTable(
+                          db,
+                        ),
+                        referencedColumn: $KnownHostsReferences
+                            ._vaultIdTable(db)
+                            .id,
+                      ) as T;
                     }
 
                     return state;
@@ -9312,30 +9278,26 @@ class $IdentityCredentialsTableManager
                     >
                   >(state) {
                     if (identityId) {
-                      state =
-                          state.withJoin(
-                                currentTable: table,
-                                currentColumn: table.identityId,
-                                referencedTable: $IdentityCredentialsReferences
-                                    ._identityIdTable(db),
-                                referencedColumn: $IdentityCredentialsReferences
-                                    ._identityIdTable(db)
-                                    .id,
-                              )
-                              as T;
+                      state = state.withJoin(
+                        currentTable: table,
+                        currentColumn: table.identityId,
+                        referencedTable: $IdentityCredentialsReferences
+                            ._identityIdTable(db),
+                        referencedColumn: $IdentityCredentialsReferences
+                            ._identityIdTable(db)
+                            .id,
+                      ) as T;
                     }
                     if (credentialId) {
-                      state =
-                          state.withJoin(
-                                currentTable: table,
-                                currentColumn: table.credentialId,
-                                referencedTable: $IdentityCredentialsReferences
-                                    ._credentialIdTable(db),
-                                referencedColumn: $IdentityCredentialsReferences
-                                    ._credentialIdTable(db)
-                                    .id,
-                              )
-                              as T;
+                      state = state.withJoin(
+                        currentTable: table,
+                        currentColumn: table.credentialId,
+                        referencedTable: $IdentityCredentialsReferences
+                            ._credentialIdTable(db),
+                        referencedColumn: $IdentityCredentialsReferences
+                            ._credentialIdTable(db)
+                            .id,
+                      ) as T;
                     }
 
                     return state;
@@ -9670,34 +9632,26 @@ class $ConnectionCredentialsTableManager
                         >
                       >(state) {
                         if (connectionId) {
-                          state =
-                              state.withJoin(
-                                    currentTable: table,
-                                    currentColumn: table.connectionId,
-                                    referencedTable:
-                                        $ConnectionCredentialsReferences
-                                            ._connectionIdTable(db),
-                                    referencedColumn:
-                                        $ConnectionCredentialsReferences
-                                            ._connectionIdTable(db)
-                                            .id,
-                                  )
-                                  as T;
+                          state = state.withJoin(
+                            currentTable: table,
+                            currentColumn: table.connectionId,
+                            referencedTable: $ConnectionCredentialsReferences
+                                ._connectionIdTable(db),
+                            referencedColumn: $ConnectionCredentialsReferences
+                                ._connectionIdTable(db)
+                                .id,
+                          ) as T;
                         }
                         if (credentialId) {
-                          state =
-                              state.withJoin(
-                                    currentTable: table,
-                                    currentColumn: table.credentialId,
-                                    referencedTable:
-                                        $ConnectionCredentialsReferences
-                                            ._credentialIdTable(db),
-                                    referencedColumn:
-                                        $ConnectionCredentialsReferences
-                                            ._credentialIdTable(db)
-                                            .id,
-                                  )
-                                  as T;
+                          state = state.withJoin(
+                            currentTable: table,
+                            currentColumn: table.credentialId,
+                            referencedTable: $ConnectionCredentialsReferences
+                                ._credentialIdTable(db),
+                            referencedColumn: $ConnectionCredentialsReferences
+                                ._credentialIdTable(db)
+                                .id,
+                          ) as T;
                         }
 
                         return state;

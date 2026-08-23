@@ -1,6 +1,5 @@
+import 'package:cliq/shared/data/database.dart';
 import 'package:cliq_term/cliq_term.dart';
-
-import '../../../shared/data/database.dart';
 
 extension CustomTerminalThemeExtension on CustomTerminalTheme {
   TerminalTheme toTerminalTheme() {

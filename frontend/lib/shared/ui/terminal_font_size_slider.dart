@@ -10,7 +10,7 @@ class TerminalFontSizeSlider extends HookConsumerWidget {
   final Function(int)? onEnd;
   final bool isDefault;
 
-  const TerminalFontSizeSlider({
+  const new({
     super.key,
     required this.selectedFontSize,
     this.onEnd,

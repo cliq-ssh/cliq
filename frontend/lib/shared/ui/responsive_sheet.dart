@@ -7,7 +7,7 @@ class ResponsiveSheet extends StatelessWidget {
 
   final Widget child;
 
-  const ResponsiveSheet({super.key, required this.child});
+  const new({super.key, required this.child});
 
   @override
   Widget build(BuildContext context) {

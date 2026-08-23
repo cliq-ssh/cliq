@@ -1,4 +1,8 @@
+import 'package:cliq/modules/settings/model/keyboard_shortcuts.model.dart';
+import 'package:cliq/modules/settings/page/abstract_settings_page.dart';
+import 'package:cliq/modules/settings/page/settings.page.dart';
 import 'package:cliq/shared/data/store.dart';
+import 'package:cliq/shared/model/page_path.model.dart';
 import 'package:cliq/shared/provider/store.provider.dart';
 import 'package:cliq/shared/ui/shortcut_info.dart';
 import 'package:cliq_term/cliq_term.dart';
@@ -11,18 +15,11 @@ import 'package:forui/forui.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lucide_flutter/lucide_flutter.dart';
 
-import '../../../../shared/model/page_path.model.dart';
-import '../../model/keyboard_shortcuts.model.dart';
-import '../abstract_settings_page.dart';
-import '../settings.page.dart';
-
-class ShortcutsSettingsView extends AbstractSettingsPage {
+class const ShortcutsSettingsView({super.key}) extends AbstractSettingsPage {
   static const PagePathBuilder pagePath = .child(
     parent: SettingsPage.pagePath,
     path: 'shortcuts',
   );
-
-  const ShortcutsSettingsView({super.key});
 
   @override
   String get title => 'shortcuts'.tr();
@@ -142,12 +139,12 @@ class ShortcutsSettingsView extends AbstractSettingsPage {
                 'shortcuts_conflicts'.plural(
                   duplicates.length,
                   namedArgs: {
-                    "count": duplicates.length.toString(),
-                    "shortcuts": duplicates
+                    'count': duplicates.length.toString(),
+                    'shortcuts': duplicates
                         .map((e) => e.key.getDisplayName())
                         .join(', '),
                   },
-                  name: "amount",
+                  name: 'amount',
                 ),
                 style: context.theme.typography.body.xs.copyWith(
                   color: context.theme.colors.error,
@@ -164,7 +161,7 @@ class ShortcutsSettingsView extends AbstractSettingsPage {
                 variant: .primary,
                 onPress: save,
                 size: .xs,
-                child: Icon(LucideIcons.check),
+                child: const Icon(LucideIcons.check),
               ),
           ],
         ),
@@ -186,12 +183,12 @@ class ShortcutsSettingsView extends AbstractSettingsPage {
           children: [
             FTile(
               title: Text('shortcuts_presets_apply.macos'.tr()),
-              prefix: Icon(LucideIcons.listRestart),
+              prefix: const Icon(LucideIcons.listRestart),
               onPress: () => applyKeyboardShortcutsSet(defaultMacShortcuts),
             ),
             FTile(
               title: Text('shortcuts_presets_apply.pc'.tr()),
-              prefix: Icon(LucideIcons.listRestart),
+              prefix: const Icon(LucideIcons.listRestart),
               onPress: () => applyKeyboardShortcutsSet(defaultShortcuts),
             ),
           ],

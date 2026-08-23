@@ -14,12 +14,12 @@ const _kMinColumnWidth = 80.0;
 
 class TableViewCell {
   final Widget child;
-  const TableViewCell({required this.child});
+  const new({required this.child});
 }
 
 class TableViewRow {
   final List<TableViewCell> cells;
-  const TableViewRow({required this.cells});
+  const new({required this.cells});
 }
 
 class _TableRow extends StatefulWidget {
@@ -40,7 +40,7 @@ class _TableRow extends StatefulWidget {
   final ValueChanged<int?>? onTap;
   final ValueChanged<int?>? onDoubleTap;
 
-  const _TableRow({
+  const new({
     required this.cells,
     required this.widths,
     required this.height,
@@ -244,7 +244,7 @@ class TableView extends StatefulWidget {
   final Color? backgroundColor;
   final List<CustomContextMenuAction> actions;
 
-  const TableView.builder({
+  const new builder({
     super.key,
     required this.columns,
     required this.rowCount,

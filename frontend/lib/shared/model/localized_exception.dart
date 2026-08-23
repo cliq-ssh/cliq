@@ -4,7 +4,7 @@ import 'package:flutter/cupertino.dart';
 class LocalizedException implements Exception {
   final String key;
 
-  const LocalizedException(this.key);
+  const new(this.key);
 
   String tr({BuildContext? context}) => key.tr(context: context);
 }

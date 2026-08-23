@@ -64,7 +64,7 @@ class KittyTerminalThemeParser extends AbstractTerminalThemeParser {
 
   static Logger logger = Logger('KittyTerminalThemeParser');
 
-  const KittyTerminalThemeParser();
+  const new();
 
   @override
   bool canParse(String content) {

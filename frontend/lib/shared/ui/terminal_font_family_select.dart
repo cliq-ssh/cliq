@@ -10,7 +10,7 @@ class TerminalFontFamilySelect extends StatelessWidget {
   final ValueChanged<String>? onChange;
   final bool isDefault;
 
-  const TerminalFontFamilySelect({
+  const new({
     super.key,
     required this.selectedFontFamily,
     this.onChange,

@@ -32,7 +32,7 @@ enum ConnectionIcons {
   final IconData iconData;
   final Color? brandColor;
 
-  const ConnectionIcons(this.iconData, {this.brandColor});
+  new(this.iconData, {this.brandColor});
 
   static ConnectionIcons fromString(String value) {
     return ConnectionIcons.values.firstWhere(

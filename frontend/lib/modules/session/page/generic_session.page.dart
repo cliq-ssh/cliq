@@ -1,16 +1,16 @@
 import 'package:cliq/modules/session/model/session.model.dart';
+import 'package:cliq/modules/session/provider/session.provider.dart';
+import 'package:cliq/shared/ui/navigation/navigation_shell.dart';
+import 'package:cliq/shared/ui/title_card.dart';
 import 'package:cliq/shared/utils/commons.dart';
 import 'package:cliq/shared/utils/text_utils.dart';
 import 'package:cliq_ui/cliq_ui.dart'
-    show CliqGridColumn, CliqGridContainer, CliqGridRow, CliqFontFamily;
+    show CliqFontFamily, CliqGridColumn, CliqGridContainer, CliqGridRow;
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart' hide LicensePage;
 import 'package:forui/forui.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lucide_flutter/lucide_flutter.dart';
-import '../../../shared/ui/title_card.dart';
-import '../../../shared/ui/navigation/navigation_shell.dart';
-import '../provider/session.provider.dart';
 
 class GenericSessionPage extends HookConsumerWidget {
   final Widget child;
@@ -19,7 +19,7 @@ class GenericSessionPage extends HookConsumerWidget {
   final bool isLikelyLoading;
   final void Function({bool skipHostKeyVerification})? onRetry;
 
-  const GenericSessionPage({
+  const new({
     super.key,
     required this.child,
     required this.session,
@@ -40,7 +40,7 @@ class GenericSessionPage extends HookConsumerWidget {
 
     buildConnecting() {
       return [
-        FCircularProgress(),
+        const FCircularProgress(),
         const SizedBox(height: 8),
         Text.rich(
           TextSpan(
@@ -56,7 +56,7 @@ class GenericSessionPage extends HookConsumerWidget {
 
     buildKnownHostWarning() {
       return [
-        Icon(LucideIcons.fingerprintPattern, size: 48),
+        const Icon(LucideIcons.fingerprintPattern, size: 48),
         const SizedBox(height: 8),
         Text.rich(
           textAlign: .center,
@@ -92,7 +92,7 @@ class GenericSessionPage extends HookConsumerWidget {
                     context,
                     session.knownHostError!.fingerprintString,
                   ),
-                  child: Icon(LucideIcons.copy, size: 14),
+                  child: const Icon(LucideIcons.copy, size: 14),
                 ),
               ),
             ],
@@ -134,7 +134,7 @@ class GenericSessionPage extends HookConsumerWidget {
 
     buildError() {
       return [
-        Icon(LucideIcons.plugZap, size: 48),
+        const Icon(LucideIcons.plugZap, size: 48),
         const SizedBox(height: 8),
         Text.rich(
           TextSpan(

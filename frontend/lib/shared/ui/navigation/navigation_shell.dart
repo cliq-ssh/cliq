@@ -3,32 +3,31 @@ import 'dart:io';
 import 'package:cliq/modules/connections/model/connection_full.model.dart';
 import 'package:cliq/modules/connections/provider/connection.provider.dart';
 import 'package:cliq/modules/connections/ui/connection_icon.dart';
+import 'package:cliq/modules/session/provider/session.provider.dart';
+import 'package:cliq/modules/session/ui/session_navigation_tab.dart';
+import 'package:cliq/modules/settings/provider/terminal_theme.provider.dart';
+import 'package:cliq/shared/provider/file_transfer.provider.dart';
 import 'package:cliq/shared/provider/store.provider.dart';
+import 'package:cliq/shared/ui/navigation/navigation_tab.dart';
 import 'package:cliq/shared/ui/shortcut_info.dart';
 import 'package:cliq/shared/utils/platform_utils.dart';
+import 'package:cliq/shared/utils/text_utils.dart';
 import 'package:cliq_term/cliq_term.dart';
 import 'package:easy_localization/easy_localization.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:forui/forui.dart';
-import 'package:lucide_flutter/lucide_flutter.dart';
-import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:lucide_flutter/lucide_flutter.dart';
 import 'package:window_manager/window_manager.dart';
-
-import '../../../modules/session/provider/session.provider.dart';
-import '../../../modules/session/ui/session_navigation_tab.dart';
-import '../../../modules/settings/provider/terminal_theme.provider.dart';
-import '../../provider/file_transfer.provider.dart';
-import '../../utils/text_utils.dart';
-import 'navigation_tab.dart';
 
 const EdgeInsetsGeometry kMacOSNavigationPadding = .only(left: 70);
 
 class NavigationShell extends StatefulHookConsumerWidget {
   final StatefulNavigationShell shell;
 
-  const NavigationShell({super.key, required this.shell});
+  const new({super.key, required this.shell});
 
   static NavigationShellState of(BuildContext context) =>
       context.findAncestorStateOfType<NavigationShellState>()!;
@@ -108,7 +107,7 @@ class NavigationShellState extends ConsumerState<NavigationShell>
           shortcut: KeyboardShortcut(.keyD, modifiers: {.control}),
         ),
         child: NavigationTab(
-          icon: Icon(LucideIcons.layoutDashboard),
+          icon: const Icon(LucideIcons.layoutDashboard),
           selected: widget.shell.currentIndex == _dashboardBranchIndex,
           onPress: () {
             ref
@@ -129,7 +128,7 @@ class NavigationShellState extends ConsumerState<NavigationShell>
 
           return Container(
             width: 300,
-            constraints: .new(maxHeight: 400),
+            constraints: const .new(maxHeight: 400),
             child: FTileGroup(
               divider: .full,
               children: [
@@ -189,7 +188,7 @@ class NavigationShellState extends ConsumerState<NavigationShell>
                                                 .bytesPerSecond !=
                                             null)
                                           Text(
-                                            '${TextUtils.formatDuration(item.value.progressData.estimatedSecondsRemaining!)}, ${TextUtils.formatBytes(item.value.progressData.bytesPerSecond!) ?? '--'}/s',
+                                            '${TextUtils.formatDuration(item.value.progressData.estimatedSecondsRemaining!)}, ${TextUtils.formatBytes(item.value.progressData.bytesPerSecond) ?? '--'}/s',
                                           ),
                                       ],
                                     ),
@@ -233,14 +232,14 @@ class NavigationShellState extends ConsumerState<NavigationShell>
                               ? LucideIcons.trash
                               : LucideIcons.x,
                         ),
-                        onPress: () {
+                        onPress: () async {
                           final fileTransferNotifier = ref.read(
                             fileTransferProvider.notifier,
                           );
                           if (item.value.isInProgress) {
                             fileTransferNotifier.cancel(context, item.key);
                           } else {
-                            fileTransferNotifier.remove(item.key);
+                            await fileTransferNotifier.remove(item.key);
                           }
                         },
                       ),
@@ -273,7 +272,7 @@ class NavigationShellState extends ConsumerState<NavigationShell>
           shortcut: KeyboardShortcut(.comma, modifiers: {.control}),
         ),
         child: NavigationTab(
-          icon: Icon(LucideIcons.settings),
+          icon: const Icon(LucideIcons.settings),
           selected: widget.shell.currentIndex == _settingsBranchIndex,
           onPress: () {
             ref
@@ -292,7 +291,7 @@ class NavigationShellState extends ConsumerState<NavigationShell>
           shortcut: KeyboardShortcut(.keyT, modifiers: {.meta}),
         ),
         child: NavigationTab(
-          icon: Icon(LucideIcons.plus),
+          icon: const Icon(LucideIcons.plus),
           onPress: connections.entities.isNotEmpty
               ? () => showTabs.value = !showTabs.value
               : null,
@@ -330,7 +329,7 @@ class NavigationShellState extends ConsumerState<NavigationShell>
                                 Text('hosts_connect_sftp'.tr()),
                             child: FButton.icon(
                               size: .xs,
-                              child: Icon(LucideIcons.folder, size: 12),
+                              child: const Icon(LucideIcons.folder, size: 12),
                               onPress: () => connect(connection, isSftp: true),
                             ),
                           ),
@@ -397,7 +396,7 @@ class NavigationShellState extends ConsumerState<NavigationShell>
       childPad: false,
       resizeToAvoidBottomInset: false,
       header: Container(
-        constraints: .new(minHeight: 54 - 16),
+        constraints: const .new(minHeight: 54 - 16),
         decoration: BoxDecoration(
           color: getEffectiveSidebarColor(),
           border: Border(
@@ -422,7 +421,7 @@ class NavigationShellState extends ConsumerState<NavigationShell>
                     (Platform.isMacOS
                             ? kMacOSNavigationPadding
                             : EdgeInsets.zero)
-                        .add(.all(8)),
+                        .add(const .all(8)),
                 child: FTooltipGroup(
                   child: Row(
                     children: [
@@ -468,11 +467,11 @@ class NavigationShellState extends ConsumerState<NavigationShell>
               },
               children: [
                 FBottomNavigationBarItem(
-                  icon: Icon(LucideIcons.layoutDashboard),
+                  icon: const Icon(LucideIcons.layoutDashboard),
                   label: Text('dashboard'.tr()),
                 ),
                 FBottomNavigationBarItem(
-                  icon: Icon(LucideIcons.settings),
+                  icon: const Icon(LucideIcons.settings),
                   label: Text('settings'.tr()),
                 ),
               ],

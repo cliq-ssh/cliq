@@ -1,9 +1,8 @@
 import 'dart:async';
 
+import 'package:cliq/shared/provider/abstract_entity.state.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:logging/logging.dart';
-
-import 'abstract_entity.state.dart';
 
 abstract class AbstractEntityNotifier<E, S extends AbstractEntityState<E, S>>
     extends Notifier<S> {

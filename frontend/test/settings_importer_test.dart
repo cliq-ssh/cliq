@@ -13,7 +13,7 @@ void main() {
     late String content;
 
     setUp(() async {
-      final file = await TestUtils.readFile(
+      final file = TestUtils.readFile(
         sampleFiles[parser]!,
         'settings_importer',
       );

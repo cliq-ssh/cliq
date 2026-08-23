@@ -3,7 +3,7 @@ import 'package:drift/drift.dart';
 
 class TerminalTypographyConverter
     extends TypeConverter<TerminalTypography, String> {
-  const TerminalTypographyConverter();
+  const new();
 
   @override
   TerminalTypography fromSql(String fromDb) {

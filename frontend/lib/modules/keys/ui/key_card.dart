@@ -1,5 +1,8 @@
+import 'package:cliq/modules/keys/provider/key_service.provider.dart';
 import 'package:cliq/modules/keys/ui/create_or_edit_key_sheet.dart';
+import 'package:cliq/modules/settings/provider/sync.provider.dart';
 import 'package:cliq/shared/data/database.dart';
+import 'package:cliq/shared/ui/title_card.dart';
 import 'package:cliq/shared/utils/commons.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart' hide Key;
@@ -8,15 +11,8 @@ import 'package:forui_hooks/forui_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lucide_flutter/lucide_flutter.dart';
 
-import '../../../shared/ui/title_card.dart';
-import '../../settings/provider/sync.provider.dart';
-import '../provider/key_service.provider.dart';
-
-class KeyCard extends HookConsumerWidget {
-  final Key keyEntity;
-
-  const KeyCard({super.key, required this.keyEntity});
-
+class const KeyCard({super.key, required final Key keyEntity})
+    extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final popoverController = useFPopoverController();
@@ -57,7 +53,7 @@ class KeyCard extends HookConsumerWidget {
                     color: context.theme.colors.border,
                     borderRadius: .circular(16),
                   ),
-                  child: Icon(LucideIcons.keyRound, size: 28),
+                  child: const Icon(LucideIcons.keyRound, size: 28),
                 ),
                 Expanded(
                   child: Column(
@@ -80,13 +76,13 @@ class KeyCard extends HookConsumerWidget {
               FItemGroup(
                 children: [
                   FItem(
-                    prefix: Icon(LucideIcons.pencil),
+                    prefix: const Icon(LucideIcons.pencil),
                     title: Text('edit'.tr()),
                     onPress: edit,
                   ),
                   FItem(
                     variant: .destructive,
-                    prefix: Icon(LucideIcons.trash),
+                    prefix: const Icon(LucideIcons.trash),
                     title: Text('delete'.tr()),
                     onPress: delete,
                   ),
@@ -95,7 +91,7 @@ class KeyCard extends HookConsumerWidget {
             ],
             builder: (_, controller, _) => FButton.icon(
               onPress: controller.toggle,
-              child: Icon(LucideIcons.ellipsis),
+              child: const Icon(LucideIcons.ellipsis),
             ),
           ),
         ],

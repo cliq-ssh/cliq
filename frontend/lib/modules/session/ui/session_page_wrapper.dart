@@ -1,8 +1,10 @@
+import 'package:cliq/modules/session/model/session.model.dart';
 import 'package:cliq/modules/session/model/tab.model.dart';
-import 'package:cliq/modules/session/provider/session.provider.dart';
-import 'package:cliq/modules/session/ui/session_title_bar.dart';
 import 'package:cliq/modules/session/page/sftp_session.page.dart';
 import 'package:cliq/modules/session/page/ssh_session.page.dart';
+import 'package:cliq/modules/session/provider/session.provider.dart';
+import 'package:cliq/modules/session/ui/session_title_bar.dart';
+import 'package:cliq/shared/model/page_path.model.dart';
 import 'package:cliq/shared/ui/hover_builder.dart';
 import 'package:cliq/shared/ui/navigation/navigation_shell.dart';
 import 'package:cliq/shared/ui/split_view.dart';
@@ -11,13 +13,8 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:forui/forui.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
-import '../../../shared/model/page_path.model.dart';
-import '../model/session.model.dart';
-
-class SessionPageWrapper extends StatefulHookConsumerWidget {
+class const SessionPageWrapper({super.key}) extends StatefulHookConsumerWidget {
   static const PagePathBuilder pagePath = PagePathBuilder('/@session');
-
-  const SessionPageWrapper({super.key});
 
   @override
   ConsumerState<ConsumerStatefulWidget> createState() => _SessionPageState();

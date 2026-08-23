@@ -8,15 +8,15 @@ import 'package:cliq/shared/utils/password_cipher.dart';
 
 /// Parser for the cliq settings export file. See [AppSettings} for details.
 class CliqSettingsImporter extends AbstractSettingsImporter {
-  const CliqSettingsImporter();
+  const new();
 
   @override
   Future<bool> canParse(String path, String content, {String? password}) async {
-    content = content.trim();
-    if (content.length % 4 == 0 &&
-        RegExp(r'^[A-Za-z0-9+/=]+$').hasMatch(content)) {
-      content = utf8.decode(
-        await _decodeAndDecrypt(content, password: password),
+    String trimmed = content.trim();
+    if (trimmed.length % 4 == 0 &&
+        RegExp(r'^[A-Za-z0-9+/=]+$').hasMatch(trimmed)) {
+      trimmed = utf8.decode(
+        await _decodeAndDecrypt(trimmed, password: password),
       );
     } else {
       // if its not valid base64, it cant be a cliq settings file
@@ -25,7 +25,7 @@ class CliqSettingsImporter extends AbstractSettingsImporter {
 
     try {
       // check if its valid json
-      jsonDecode(content);
+      jsonDecode(trimmed);
       return true;
     } catch (e) {
       return false;
@@ -38,9 +38,8 @@ class CliqSettingsImporter extends AbstractSettingsImporter {
     String content, {
     String? password,
   }) async {
-    content = content.trim();
     final json = jsonDecode(
-      utf8.decode(await _decodeAndDecrypt(content, password: password)),
+      utf8.decode(await _decodeAndDecrypt(content.trim(), password: password)),
     );
     return AppSettings.tryFromJson(json);
   }
@@ -52,7 +51,7 @@ class CliqSettingsImporter extends AbstractSettingsImporter {
     Uint8List decoded = base64Decode(content);
     if (PasswordCipher.isEncrypted(decoded)) {
       if (password == null) {
-        throw LocalizedException('sync_import_error.encrypted');
+        throw const LocalizedException('sync_import_error.encrypted');
       }
       try {
         decoded = await PasswordCipher.instance.decrypt(
@@ -60,7 +59,7 @@ class CliqSettingsImporter extends AbstractSettingsImporter {
           utf8.encode(password),
         );
       } catch (e) {
-        throw LocalizedException('sync_import_error_incorrect_password');
+        throw const LocalizedException('sync_import_error_incorrect_password');
       }
     }
     return decoded;

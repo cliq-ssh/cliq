@@ -1,11 +1,10 @@
+import 'package:cliq/shared/data/database.dart';
+import 'package:cliq/shared/data/repository.dart';
 import 'package:drift/drift.dart';
-
-import '../../../shared/data/database.dart';
-import '../../../shared/data/repository.dart';
 
 final class IdentityCredentialsRepository
     extends Repository<IdentityCredentials, IdentityCredential> {
-  IdentityCredentialsRepository(super.db);
+  new(super.db);
 
   @override
   TableInfo<IdentityCredentials, IdentityCredential> get table =>

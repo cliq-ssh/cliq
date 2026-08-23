@@ -1,3 +1,5 @@
+import 'package:cliq/modules/keys/ui/create_or_edit_key_sheet.dart';
+import 'package:cliq/modules/keys/ui/generate_key_sheet.dart';
 import 'package:cliq/shared/utils/commons.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
@@ -5,18 +7,13 @@ import 'package:forui/forui.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lucide_flutter/lucide_flutter.dart';
 
-import 'create_or_edit_key_sheet.dart';
-import 'package:cliq/modules/keys/ui/generate_key_sheet.dart';
-
-class KeyCreationChoiceSheet extends HookConsumerWidget {
-  const KeyCreationChoiceSheet({super.key});
-
+class const KeyCreationChoiceSheet({super.key}) extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     openImport() {
       Navigator.of(context).pop();
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        Commons.showResponsiveSheet(
+      WidgetsBinding.instance.addPostFrameCallback((_) async {
+        await Commons.showResponsiveSheet(
           (_) => const CreateOrEditKeySheet.create(),
           context: context,
         );
@@ -25,8 +22,8 @@ class KeyCreationChoiceSheet extends HookConsumerWidget {
 
     openGenerate() {
       Navigator.of(context).pop();
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        Commons.showResponsiveSheet(
+      WidgetsBinding.instance.addPostFrameCallback((_) async {
+        await Commons.showResponsiveSheet(
           (_) => const GenerateKeyView(),
           context: context,
         );

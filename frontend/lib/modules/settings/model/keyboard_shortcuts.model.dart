@@ -27,7 +27,7 @@ enum KeyboardShortcutType {
   copy,
   paste;
 
-  const KeyboardShortcutType();
+  new();
 
   String getDisplayName() {
     return switch (this) {
@@ -41,9 +41,9 @@ enum KeyboardShortcutType {
 class KeyboardShortcuts {
   final Map<KeyboardShortcutType, KeyboardShortcut> shortcuts;
 
-  const KeyboardShortcuts(this.shortcuts);
+  const new(this.shortcuts);
 
-  factory KeyboardShortcuts.fromJson(Map<String, dynamic> json) {
+  factory fromJson(Map<String, dynamic> json) {
     final shortcuts = <KeyboardShortcutType, KeyboardShortcut>{};
     // loop through all entries
     for (final entry in json.entries) {

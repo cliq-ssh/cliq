@@ -1,14 +1,13 @@
+import 'package:cliq/modules/settings/provider/terminal_theme.provider.dart';
+import 'package:cliq/shared/data/database.dart';
 import 'package:cliq/shared/data/store.dart';
-
-import '../../../shared/data/database.dart';
-import '../../../shared/provider/abstract_entity.state.dart';
-import '../provider/terminal_theme.provider.dart';
+import 'package:cliq/shared/provider/abstract_entity.state.dart';
 
 class CustomTerminalThemeState
     extends AbstractEntityState<CustomTerminalTheme, CustomTerminalThemeState> {
-  const CustomTerminalThemeState({super.entities = const []});
+  const new({super.entities = const []});
 
-  CustomTerminalThemeState.initial() : super.initial();
+  new initial() : super.initial();
 
   CustomTerminalTheme? findById(DbId id, {bool isDefaultTheme = false}) {
     if (id == defaultTerminalColorTheme.id) {

@@ -63,7 +63,7 @@ class WindowsTerminalThemeParser extends AbstractTerminalThemeParser {
 
   static Logger logger = Logger('WindowsTerminalThemeParser');
 
-  const WindowsTerminalThemeParser();
+  const new();
 
   @override
   bool canParse(String content) {
@@ -110,8 +110,7 @@ class WindowsTerminalThemeParser extends AbstractTerminalThemeParser {
         background: background!,
         foreground: foreground!,
         cursor: ColorExtension.fromHex(json['cursorColor'] as String)!,
-        cursorText:
-            background, // Windows Terminal does not have a cursor text color, so we use the background color as a fallback
+        cursorText: background, // Windows Terminal does not have a cursor text color, so we use the background color as a fallback
         selectionForeground: foreground, // same for selection foreground
         selectionBackground: ColorExtension.fromHex(
           json['selectionBackground'] as String,

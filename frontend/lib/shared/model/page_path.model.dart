@@ -2,9 +2,9 @@ class PagePathBuilder {
   final String path;
   final PagePathBuilder? parent;
 
-  const PagePathBuilder(this.path) : parent = null;
+  const new(this.path) : parent = null;
 
-  const PagePathBuilder.child({required this.parent, required this.path});
+  const new child({required this.parent, required this.path});
 
   PagePath build({
     Map<String, String>? params,
@@ -22,7 +22,7 @@ class PagePathBuilder {
         if (!initialPath.contains(':${entry.key}')) {
           throw StateError('Path does not contain pathParam :${entry.key}!');
         }
-        compiled = compiled.replaceAll(':${entry.key}', entry.value.toString());
+        compiled = compiled.replaceAll(':${entry.key}', entry.value);
       }
     }
     if (queryParams != null && queryParams.isNotEmpty) {
@@ -39,5 +39,5 @@ class PagePathBuilder {
 class PagePath {
   final String fullPath;
 
-  const PagePath._(this.fullPath);
+  const new _(this.fullPath);
 }

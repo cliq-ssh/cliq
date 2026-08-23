@@ -1,9 +1,9 @@
-import '../../../shared/data/database.dart';
+import 'package:cliq/shared/data/database.dart';
 
 class KnownHostFull extends KnownHost {
   final Vault vault;
 
-  const KnownHostFull(
+  const new(
     this.vault, {
     required super.id,
     required super.vaultId,
@@ -12,7 +12,7 @@ class KnownHostFull extends KnownHost {
     required super.createdAt,
   });
 
-  KnownHostFull.fromKnownHost(KnownHost knownHost, {required this.vault})
+  new fromKnownHost(KnownHost knownHost, {required this.vault})
     : super(
         id: knownHost.id,
         vaultId: knownHost.vaultId,
@@ -21,7 +21,7 @@ class KnownHostFull extends KnownHost {
         createdAt: knownHost.createdAt,
       );
 
-  factory KnownHostFull.fromFindAllResult(FindAllKnownHostsFullResult result) {
+  factory fromFindAllResult(FindAllKnownHostsFullResult result) {
     return KnownHostFull.fromKnownHost(result.knownHost, vault: result.vault);
   }
 }

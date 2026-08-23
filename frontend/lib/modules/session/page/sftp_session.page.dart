@@ -5,9 +5,16 @@ import 'package:cliq/modules/connections/model/connection_full.model.dart';
 import 'package:cliq/modules/connections/provider/connection.provider.dart';
 import 'package:cliq/modules/session/model/sftp_transfer_params.model.dart';
 import 'package:cliq/modules/session/page/generic_session.page.dart';
+import 'package:cliq/modules/session/provider/session.provider.dart';
 import 'package:cliq/shared/data/store.dart';
+import 'package:cliq/shared/provider/file_transfer.provider.dart';
 import 'package:cliq/shared/provider/store.provider.dart';
+import 'package:cliq/shared/ui/context_menu.dart';
+import 'package:cliq/shared/ui/navigation/navigation_shell.dart';
+import 'package:cliq/shared/ui/table_view.dart';
+import 'package:cliq/shared/utils/commons.dart';
 import 'package:cliq/shared/utils/constants.dart';
+import 'package:cliq/shared/utils/platform_utils.dart';
 import 'package:cliq/shared/utils/text_utils.dart';
 import 'package:dartssh2/dartssh2.dart';
 import 'package:easy_localization/easy_localization.dart';
@@ -20,14 +27,6 @@ import 'package:forui/forui.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lucide_flutter/lucide_flutter.dart';
 import 'package:open_app_file/open_app_file.dart';
-
-import '../../../shared/provider/file_transfer.provider.dart';
-import '../../../shared/ui/context_menu.dart';
-import '../../../shared/ui/navigation/navigation_shell.dart';
-import '../../../shared/ui/table_view.dart';
-import '../../../shared/utils/commons.dart';
-import '../../../shared/utils/platform_utils.dart';
-import '../provider/session.provider.dart';
 
 enum _SftpColumn {
   name(
@@ -53,7 +52,7 @@ enum _SftpColumn {
   final int Function(SftpName)? sortableValueBuilder;
   final Widget Function(SftpName)? prefixBuilder;
 
-  const _SftpColumn({
+  new({
     this.permanent = false,
     required this.valueBuilder,
     this.sortableValueBuilder,
@@ -68,12 +67,12 @@ enum _SftpColumn {
       file.filename;
   static Widget _buildNamePrefix(SftpName file) {
     if (file.attr.isDirectory) {
-      return Icon(LucideIcons.folder);
+      return const Icon(LucideIcons.folder);
     }
     if (file.attr.isSymbolicLink) {
-      return Icon(LucideIcons.fileSymlink);
+      return const Icon(LucideIcons.fileSymlink);
     }
-    return Icon(LucideIcons.file);
+    return const Icon(LucideIcons.file);
   }
 
   static String _buildModified(BuildContext context, SftpName file) =>
@@ -134,13 +133,13 @@ class _SftpDragData {
   final String sessionId;
   final Map<String, _FileData> files;
 
-  const _SftpDragData({required this.sessionId, required this.files});
+  const new({required this.sessionId, required this.files});
 }
 
 class _FileData {
   final String path;
 
-  const _FileData({required this.path});
+  const new({required this.path});
 
   String get fileName => path.split('/').last;
 
@@ -151,14 +150,14 @@ class _FileData {
 class QueuedFileData extends _FileData {
   final SftpTransferType type;
 
-  const QueuedFileData({required super.path, required this.type});
+  const new({required super.path, required this.type});
 }
 
 /// Represents a file that has been modified locally and needs to be confirmed before uploading back to the SFTP server.
 class _ModifiedFileData extends _FileData {
   final String tempPath;
 
-  const _ModifiedFileData({required super.path, required this.tempPath});
+  const new({required super.path, required this.tempPath});
 }
 
 class FileProgressData {
@@ -167,7 +166,7 @@ class FileProgressData {
   final String? error;
   final double? bytesPerSecond;
 
-  const FileProgressData({
+  const new({
     required this.currentBytes,
     required this.totalBytes,
     this.error,
@@ -180,18 +179,18 @@ class FileProgressData {
     return (remainingBytes / bytesPerSecond!).ceil();
   }
 
-  const FileProgressData.completed({this.totalBytes = 1})
+  const new completed({this.totalBytes = 1})
     : currentBytes = totalBytes,
       error = null,
       bytesPerSecond = null;
 
-  const FileProgressData.zero()
+  const new zero()
     : currentBytes = 0,
       totalBytes = 1,
       error = null,
       bytesPerSecond = null;
 
-  const FileProgressData.error(this.error)
+  const new error(this.error)
     : currentBytes = 0,
       totalBytes = 1,
       bytesPerSecond = null;
@@ -225,7 +224,7 @@ const _createFolderFileName = '@new-folder';
 class SftpSessionPage extends StatefulHookConsumerWidget {
   final String sessionId;
 
-  const SftpSessionPage({super.key, required this.sessionId});
+  const new({super.key, required this.sessionId});
 
   @override
   ConsumerState<ConsumerStatefulWidget> createState() =>
@@ -245,7 +244,7 @@ class _SftpSessionPageState extends ConsumerState<SftpSessionPage>
         .watch(sessionProvider.notifier)
         .getSessionById(widget.sessionId);
 
-    if (session == null) return SizedBox.shrink();
+    if (session == null) return const SizedBox.shrink();
 
     // used to trigger a reconnect when the user clicks "Retry" after a connection error
     final refreshTrigger = useState(0);
@@ -326,9 +325,9 @@ class _SftpSessionPageState extends ConsumerState<SftpSessionPage>
           .findById(session.connection.id);
 
       if (connectionFull != null) {
-        WidgetsBinding.instance.addPostFrameCallback((_) {
+        WidgetsBinding.instance.addPostFrameCallback((_) async {
           if (!mounted) return;
-          openSftp(connectionFull);
+          await openSftp(connectionFull);
         });
       }
 
@@ -356,9 +355,9 @@ class _SftpSessionPageState extends ConsumerState<SftpSessionPage>
         } on SftpStatusError catch (e) {
           if (!context.mounted) return;
 
-          Commons.showToast(
+          await Commons.showToast(
             'sftp_failed_to_open'.tr(args: [e.message]),
-            prefix: Icon(LucideIcons.folderLock),
+            prefix: const Icon(LucideIcons.folderLock),
             variant: .destructive,
           );
 
@@ -394,7 +393,7 @@ class _SftpSessionPageState extends ConsumerState<SftpSessionPage>
           return SftpName(
             filename: _createFolderFileName,
             longname: '', // we don't use the longname anyway
-            attr: .new(mode: .value(0x41FF)),
+            attr: .new(mode: const .value(0x41FF)),
           );
         }
       }
@@ -512,7 +511,7 @@ class _SftpSessionPageState extends ConsumerState<SftpSessionPage>
                   Constants.largeFileSizeThreshold,
                   decimals: 0,
                 )!,
-                'size': TextUtils.formatBytes(file.attr.size!, decimals: 0)!,
+                'size': TextUtils.formatBytes(file.attr.size, decimals: 0)!,
               },
             ),
           ),
@@ -527,7 +526,7 @@ class _SftpSessionPageState extends ConsumerState<SftpSessionPage>
       final fullPath = [...?currentDirectory.value, file.filename].join('/');
       final fullName =
           '${tempDir.path}${Platform.pathSeparator}${file.filename}';
-      File tempFile = File(fullName);
+      final File tempFile = File(fullName);
 
       ref
           .read(fileTransferProvider.notifier)
@@ -537,7 +536,8 @@ class _SftpSessionPageState extends ConsumerState<SftpSessionPage>
             tempFile: tempFile,
           );
 
-      attemptOpenAndWatch(File file) async {
+      attemptOpenAndWatch(File toOpen) async {
+        File file = toOpen;
         // open with default app
         final result = await OpenAppFile.open(file.path);
 
@@ -631,14 +631,14 @@ class _SftpSessionPageState extends ConsumerState<SftpSessionPage>
         return;
       }
 
-      newFileName = newFileName.trim();
-      if (newFileName.isEmpty || newFileName == file.filename) {
+      final String trimmed = newFileName.trim();
+      if (trimmed.isEmpty || trimmed == file.filename) {
         resetRename();
         return;
       }
 
       final oldPath = [...?currentDirectory.value, file.filename].join('/');
-      final newPath = [...?currentDirectory.value, newFileName].join('/');
+      final newPath = [...?currentDirectory.value, trimmed].join('/');
 
       try {
         if (isCreatingDirectory.value) {
@@ -656,9 +656,9 @@ class _SftpSessionPageState extends ConsumerState<SftpSessionPage>
           message = 'sftp_file_already_exists'.tr();
         }
 
-        Commons.showToast(
+        await Commons.showToast(
           'sftp_failed_to_rename'.tr(args: [message]),
-          prefix: Icon(LucideIcons.pencilOff),
+          prefix: const Icon(LucideIcons.pencilOff),
           variant: .destructive,
         );
 
@@ -717,11 +717,11 @@ class _SftpSessionPageState extends ConsumerState<SftpSessionPage>
         }
 
         isLoading.value = false;
-        cleanupModified(file, id);
+        await cleanupModified(file, id);
         reloadDirectory();
       }
 
-      Commons.showDeleteDialog(entity: file.filename, onDelete: delete);
+      await Commons.showDeleteDialog(entity: file.filename, onDelete: delete);
     }
 
     uploadModified(SftpName file, String id) {
@@ -750,7 +750,7 @@ class _SftpSessionPageState extends ConsumerState<SftpSessionPage>
           )
           .listen((p) => fileTransferNotifier.setProgress(id, p))
           .onDone(() async {
-            cleanupModified(file, id);
+            await cleanupModified(file, id);
             reloadDirectory();
           });
     }
@@ -821,7 +821,7 @@ class _SftpSessionPageState extends ConsumerState<SftpSessionPage>
                                       backStack.value.length - 1,
                                     );
                                   }),
-                            child: Icon(LucideIcons.arrowLeft),
+                            child: const Icon(LucideIcons.arrowLeft),
                           ),
                         ),
                         FTooltip(
@@ -841,7 +841,7 @@ class _SftpSessionPageState extends ConsumerState<SftpSessionPage>
                                     forwardStack.value = forwardStack.value
                                         .sublist(1);
                                   }),
-                            child: Icon(LucideIcons.arrowRight),
+                            child: const Icon(LucideIcons.arrowRight),
                           ),
                         ),
                       ],
@@ -856,8 +856,8 @@ class _SftpSessionPageState extends ConsumerState<SftpSessionPage>
                             // if last part
                             if (isLoading.value &&
                                 part == currentDirectory.value!.last)
-                              Padding(
-                                padding: const EdgeInsets.only(left: 4),
+                              const Padding(
+                                padding: EdgeInsets.only(left: 4),
                                 child: FCircularProgress(),
                               )
                             else
@@ -888,12 +888,12 @@ class _SftpSessionPageState extends ConsumerState<SftpSessionPage>
                             children: [
                               .item(
                                 title: Text('sftp_refresh'.tr()),
-                                prefix: Icon(LucideIcons.refreshCw),
+                                prefix: const Icon(LucideIcons.refreshCw),
                                 onPress: onAction(reloadDirectory),
                               ),
                               .item(
                                 title: Text('sftp_new_folder'.tr()),
-                                prefix: Icon(LucideIcons.folderPlus),
+                                prefix: const Icon(LucideIcons.folderPlus),
                                 onPress: onAction(createDirectory),
                               ),
                             ],
@@ -905,8 +905,8 @@ class _SftpSessionPageState extends ConsumerState<SftpSessionPage>
                                   .item(
                                     title: Text(col.getDisplayName(context)),
                                     prefix: visibleColumns.value.contains(col)
-                                        ? Icon(LucideIcons.check)
-                                        : SizedBox(width: 16),
+                                        ? const Icon(LucideIcons.check)
+                                        : const SizedBox(width: 16),
                                     onPress: () {
                                       if (visibleColumns.value.contains(col)) {
                                         visibleColumns.value = {
@@ -926,8 +926,8 @@ class _SftpSessionPageState extends ConsumerState<SftpSessionPage>
                               .item(
                                 title: Text('sftp_hidden_files'.tr()),
                                 prefix: showHiddenFiles.value
-                                    ? Icon(LucideIcons.check)
-                                    : SizedBox(width: 16),
+                                    ? const Icon(LucideIcons.check)
+                                    : const SizedBox(width: 16),
                                 onPress: () => StoreKey.sftpShowHiddenFiles
                                     .write(!showHiddenFiles.value),
                               ),
@@ -938,7 +938,7 @@ class _SftpSessionPageState extends ConsumerState<SftpSessionPage>
                           return FButton.icon(
                             variant: .outline,
                             onPress: controller.toggle,
-                            child: Icon(LucideIcons.ellipsis),
+                            child: const Icon(LucideIcons.ellipsis),
                           );
                         },
                       ),
@@ -991,7 +991,7 @@ class _SftpSessionPageState extends ConsumerState<SftpSessionPage>
                     // check if file exists
                     try {
                       await session.sftpClient!.stat(destinationPath);
-                      Commons.showConfirmationDialog(
+                      await Commons.showConfirmationDialog(
                         title: 'dialog_overwrite_title'.tr(),
                         children: (context, _, _) => TextUtils.renderText(
                           context,
@@ -1042,7 +1042,7 @@ class _SftpSessionPageState extends ConsumerState<SftpSessionPage>
                   getFileFromId(String id) {
                     final index = fileToIndex[id];
                     if (index == null) return null;
-                    return getFileByIndex(index)!;
+                    return getFileByIndex(index);
                   }
 
                   final visibleCols = _SftpColumn.values
@@ -1215,7 +1215,7 @@ class _SftpSessionPageState extends ConsumerState<SftpSessionPage>
                               spacing: 4,
                               children: [
                                 isQueued
-                                    ? SizedBox(
+                                    ? const SizedBox(
                                         width: 16,
                                         height: 16,
                                         child: FCircularProgress(),
@@ -1226,12 +1226,12 @@ class _SftpSessionPageState extends ConsumerState<SftpSessionPage>
                                   FButton.icon(
                                     onPress: () => uploadModified(file, id),
                                     variant: .primary,
-                                    child: Icon(LucideIcons.upload),
+                                    child: const Icon(LucideIcons.upload),
                                   ),
                                   FButton.icon(
                                     onPress: () => cleanupModified(file, id),
                                     variant: .destructive,
-                                    child: Icon(LucideIcons.trash),
+                                    child: const Icon(LucideIcons.trash),
                                   ),
                                 ],
                               ],
@@ -1240,9 +1240,8 @@ class _SftpSessionPageState extends ConsumerState<SftpSessionPage>
 
                           if (col == .size && isModified) {
                             return FutureBuilder(
-                              future: File(
-                                modifiedFiles.value[id]!.tempPath,
-                              ).length(),
+                              future: File(modifiedFiles.value[id]!.tempPath)
+                                  .length(),
                               builder: (_, snap) => Text.rich(
                                 TextSpan(
                                   text: col.valueBuilder.call(context, file),
@@ -1250,7 +1249,7 @@ class _SftpSessionPageState extends ConsumerState<SftpSessionPage>
                                     if (snap.hasData)
                                       TextSpan(
                                         text:
-                                            ' (${TextUtils.formatBytes(snap.data as int)})',
+                                            ' (${TextUtils.formatBytes(snap.data)})',
                                         style: TextStyle(
                                           color: context.theme.colors.primary,
                                         ),
@@ -1386,7 +1385,7 @@ class _SftpSessionPageState extends ConsumerState<SftpSessionPage>
                                 onPress: () async {
                                   final location = await getDirectoryPath();
                                   if (location == null) return;
-                                  download(file, id, location);
+                                  await download(file, id, location);
                                 },
                               ),
                               .new(

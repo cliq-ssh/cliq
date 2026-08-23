@@ -7,7 +7,7 @@ class TitleCard extends StatelessWidget {
   final Widget? subtitle;
   final Widget? child;
 
-  const TitleCard({this.title, this.subtitle, this.child, super.key});
+  const new({this.title, this.subtitle, this.child, super.key});
 
   @override
   Widget build(BuildContext context) {

@@ -11,7 +11,7 @@ class HorizontalDialog extends StatelessWidget {
   final List<Widget> actions;
   final BoxConstraints? constraints;
 
-  const HorizontalDialog({
+  const new({
     this.title,
     this.subtitle,
     required this.body,

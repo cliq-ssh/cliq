@@ -1,6 +1,6 @@
-import '../../../../shared/data/database.dart';
-import 'kitty_terminal_theme_parser.dart';
-import 'windows_terminal_theme_parser.dart';
+import 'package:cliq/modules/settings/model/theme_parser/kitty_terminal_theme_parser.dart';
+import 'package:cliq/modules/settings/model/theme_parser/windows_terminal_theme_parser.dart';
+import 'package:cliq/shared/data/database.dart';
 
 enum TerminalThemeParser {
   windowsTerminal(WindowsTerminalThemeParser(), 'json'),
@@ -9,7 +9,7 @@ enum TerminalThemeParser {
   final String fileExtension;
   final AbstractTerminalThemeParser instance;
 
-  const TerminalThemeParser(this.instance, this.fileExtension);
+  new(this.instance, this.fileExtension);
 
   static AbstractTerminalThemeParser? getParser(
     String fileName,
@@ -32,7 +32,7 @@ enum TerminalThemeParser {
 }
 
 abstract class AbstractTerminalThemeParser {
-  const AbstractTerminalThemeParser();
+  const new();
 
   bool canParse(String content);
   CustomTerminalThemesCompanion? tryParse(String fileName, String content);

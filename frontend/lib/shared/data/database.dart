@@ -1,24 +1,23 @@
 import 'dart:io';
 import 'dart:ui';
 
+import 'package:cliq/modules/connections/data/connection_credentials.repository.dart';
+import 'package:cliq/modules/connections/data/connections.repository.dart';
+import 'package:cliq/modules/connections/model/connection_icons.model.dart';
+import 'package:cliq/modules/credentials/data/credentials.repository.dart';
+import 'package:cliq/modules/credentials/model/credential_type.model.dart';
+import 'package:cliq/modules/identities/data/identities.repository.dart';
 import 'package:cliq/modules/identities/data/identity_credentials.repository.dart';
+import 'package:cliq/modules/keys/data/key.repository.dart';
 import 'package:cliq/modules/settings/data/custom_terminal_themes.repository.dart';
+import 'package:cliq/modules/settings/data/known_hosts.repository.dart';
 import 'package:cliq/modules/vaults/data/vaults.repository.dart';
+import 'package:cliq/shared/data/converters/color_converter.dart';
+import 'package:cliq/shared/data/converters/terminal_typography_converter.dart';
 import 'package:cliq_term/cliq_term.dart';
 import 'package:drift/drift.dart';
 import 'package:drift_flutter/drift_flutter.dart';
 import 'package:path_provider/path_provider.dart';
-
-import '../../modules/connections/data/connection_credentials.repository.dart';
-import '../../modules/connections/data/connections.repository.dart';
-import '../../modules/connections/model/connection_icons.model.dart';
-import '../../modules/credentials/data/credentials.repository.dart';
-import '../../modules/credentials/model/credential_type.model.dart';
-import '../../modules/identities/data/identities.repository.dart';
-import '../../modules/keys/data/key.repository.dart';
-import '../../modules/settings/data/known_hosts.repository.dart';
-import 'converters/color_converter.dart';
-import 'converters/terminal_typography_converter.dart';
 
 part 'database.g.dart';
 
@@ -56,8 +55,7 @@ final class CliqDatabase extends _$CliqDatabase {
     this,
   );
 
-  CliqDatabase([QueryExecutor? executor])
-    : super(executor ?? _openConnection());
+  new([QueryExecutor? executor]) : super(executor ?? _openConnection());
 
   @override
   int get schemaVersion => 1;
@@ -83,8 +81,8 @@ final class CliqDatabase extends _$CliqDatabase {
     await executor.close();
     final supportDir = await getApplicationSupportDirectory();
     final dbFile = File('${supportDir.path}/cliq_db.sqlite');
-    if (await dbFile.exists()) {
-      await dbFile.delete();
+    if (dbFile.existsSync()) {
+      dbFile.deleteSync();
     }
   }
 

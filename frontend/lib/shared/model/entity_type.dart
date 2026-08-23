@@ -9,5 +9,5 @@ enum EntityType {
   colorSchemes(LucideIcons.palette);
 
   final IconData icon;
-  const EntityType(this.icon);
+  new(this.icon);
 }

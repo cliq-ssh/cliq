@@ -31,7 +31,7 @@ class NavigationTab extends HookConsumerWidget {
   /// Mainly used to dismiss the "stuck" focus after editing the session's label.
   final FocusNode? focusNode;
 
-  const NavigationTab({
+  const new({
     super.key,
     required this.icon,
     this.label,
@@ -58,11 +58,11 @@ class NavigationTab extends HookConsumerWidget {
         ]),
         padding: itemPadding == null ? null : .value(itemPadding!),
         focusedOutlineStyle: hideFocusOutline
-            ? .delta(color: Colors.transparent)
+            ? const .delta(color: Colors.transparent)
             : null,
       ),
       label: label,
-      icon: IconTheme.merge(data: IconThemeData(size: 20), child: icon),
+      icon: IconTheme.merge(data: const IconThemeData(size: 20), child: icon),
       selected: selected,
       onPress: onPress,
       initiallyExpanded: true,
@@ -70,7 +70,7 @@ class NavigationTab extends HookConsumerWidget {
 
     child = forceIntrinsicWidth || selected
         ? IntrinsicWidth(child: child)
-        : ConstrainedBox(constraints: .new(maxWidth: 150), child: child);
+        : ConstrainedBox(constraints: const .new(maxWidth: 150), child: child);
 
     return child;
   }

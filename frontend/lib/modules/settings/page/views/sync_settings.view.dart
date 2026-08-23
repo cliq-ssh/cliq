@@ -1,13 +1,20 @@
 import 'package:cliq/modules/settings/model/settings_importer/app_settings.model.dart';
+import 'package:cliq/modules/settings/page/abstract_settings_page.dart';
+import 'package:cliq/modules/settings/page/settings.page.dart';
 import 'package:cliq/modules/settings/provider/sync.provider.dart';
+import 'package:cliq/modules/settings/ui/import_or_export_settings_sheet.dart';
 import 'package:cliq/modules/settings/ui/password_dialog.dart';
-import 'package:cliq/modules/settings/ui/import_or_export_settings_view.dart';
-import 'package:cliq/modules/settings/ui/register_or_login_view.dart';
+import 'package:cliq/modules/settings/ui/register_or_login_sheet.dart';
+import 'package:cliq/modules/vaults/provider/vault.provider.dart';
 import 'package:cliq/modules/vaults/provider/vault_service.provider.dart';
 import 'package:cliq/shared/data/database.dart';
 import 'package:cliq/shared/model/entity_type.dart';
 import 'package:cliq/shared/model/localized_exception.dart';
+import 'package:cliq/shared/model/page_path.model.dart';
+import 'package:cliq/shared/model/router.model.dart';
 import 'package:cliq/shared/provider/store.provider.dart';
+import 'package:cliq/shared/utils/commons.dart';
+import 'package:cliq/shared/utils/text_utils.dart';
 import 'package:cliq_api/cliq_api.dart';
 import 'package:cliq_ui/hooks/use_breakpoint.export.dart' show useBreakpoint;
 import 'package:cliq_ui/theme.export.dart' show CliqFontFamily;
@@ -19,21 +26,11 @@ import 'package:forui/forui.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lucide_flutter/lucide_flutter.dart';
 
-import '../../../../shared/model/page_path.model.dart';
-import '../../../../shared/model/router.model.dart';
-import '../../../../shared/utils/commons.dart';
-import '../../../../shared/utils/text_utils.dart';
-import '../../../vaults/provider/vault.provider.dart';
-import '../abstract_settings_page.dart';
-import '../settings.page.dart';
-
-class SyncSettingsView extends AbstractSettingsPage {
+class const SyncSettingsView({super.key}) extends AbstractSettingsPage {
   static const PagePathBuilder pagePath = .child(
     parent: SettingsPage.pagePath,
     path: 'sync',
   );
-
-  const SyncSettingsView({super.key});
 
   @override
   String get title => 'sync'.tr();
@@ -88,12 +85,12 @@ class SyncSettingsView extends AbstractSettingsPage {
     buildLoggedOutItems() {
       return [
         FTile(
-          prefix: Icon(LucideIcons.cloudUpload),
-          suffix: Icon(LucideIcons.chevronRight),
+          prefix: const Icon(LucideIcons.cloudUpload),
+          suffix: const Icon(LucideIcons.chevronRight),
           title: Text('sync_setup_sync'.tr()),
           subtitle: Text('sync_setup_sync_subtitle'.tr(), overflow: .visible),
           onPress: () => Commons.showResponsiveSheet(
-            (_) => RegisterOrLoginView(),
+            (_) => const RegisterOrLoginSheet(),
             context: context,
             dismissable: false,
           ),
@@ -113,10 +110,10 @@ class SyncSettingsView extends AbstractSettingsPage {
         FTile(
           prefix: RotationTransition(
             turns: syncIconController,
-            child: Icon(LucideIcons.refreshCw),
+            child: const Icon(LucideIcons.refreshCw),
           ),
           suffix: breakpoint < .md || entitiesCount.value == null
-              ? SizedBox.shrink()
+              ? const SizedBox.shrink()
               : Row(
                   spacing: 12,
                   mainAxisSize: .min,
@@ -145,7 +142,7 @@ class SyncSettingsView extends AbstractSettingsPage {
           onPress: () async {
             syncIconController.forward(from: 0);
             final pulled = await ref.read(syncProvider.notifier).pullVault();
-            Commons.showToast(
+            await Commons.showToast(
               (pulled ? 'sync_vault_pulling' : 'sync_vault_up_to_date').tr(),
             );
           },
@@ -166,10 +163,10 @@ class SyncSettingsView extends AbstractSettingsPage {
           ),
         FTile(
           variant: .destructive,
-          prefix: Icon(LucideIcons.logOut),
+          prefix: const Icon(LucideIcons.logOut),
           title: Text('logout'.tr()),
-          onPress: () {
-            Commons.showConfirmationDialog(
+          onPress: () async {
+            await Commons.showConfirmationDialog(
               confirmButtonText: 'logout'.tr(),
               title: 'sync_logout_title'.tr(),
               onConfirm: () async {
@@ -196,8 +193,8 @@ class SyncSettingsView extends AbstractSettingsPage {
           label: Text('sync_manual_import_export'.tr()),
           children: [
             .tile(
-              prefix: Icon(LucideIcons.download),
-              suffix: Icon(LucideIcons.folderOpen),
+              prefix: const Icon(LucideIcons.download),
+              suffix: const Icon(LucideIcons.folderOpen),
               title: Text('sync_import_file'.tr()),
               onPress: () async {
                 AppSettings? settings;
@@ -232,18 +229,18 @@ class SyncSettingsView extends AbstractSettingsPage {
                   return;
                 }
 
-                Commons.showResponsiveSheet(
-                  (_) => ImportOrExportSettingsView.import(current: settings),
+                await Commons.showResponsiveSheet(
+                  (_) => ImportOrExportSettingsSheet.import(current: settings),
                   context: context,
                 );
               },
             ),
             .tile(
-              prefix: Icon(LucideIcons.upload),
-              suffix: Icon(LucideIcons.chevronRight),
+              prefix: const Icon(LucideIcons.upload),
+              suffix: const Icon(LucideIcons.chevronRight),
               title: Text('sync_export_file'.tr()),
               onPress: () => Commons.showResponsiveSheet(
-                (_) => ImportOrExportSettingsView.export(),
+                (_) => const ImportOrExportSettingsSheet.export(),
                 context: context,
               ),
             ),

@@ -1,4 +1,5 @@
 import 'package:cliq/modules/settings/provider/sync.provider.dart';
+import 'package:cliq/modules/vaults/extension/vault.extension.dart';
 import 'package:cliq/modules/vaults/provider/vault.provider.dart';
 import 'package:cliq/shared/data/database.dart';
 import 'package:cliq/shared/utils/validators.dart';
@@ -10,8 +11,6 @@ import 'package:forui_hooks/forui_hooks.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lucide_flutter/lucide_flutter.dart';
-
-import '../../modules/vaults/extension/vault.extension.dart';
 
 class CreateOrEditEntityView extends HookConsumerWidget {
   final Function(DbId?) onSave;
@@ -32,7 +31,7 @@ class CreateOrEditEntityView extends HookConsumerWidget {
   final String? createLoadingLabel;
   final String? editLoadingLabel;
 
-  const CreateOrEditEntityView({
+  const new({
     super.key,
     required this.onSave,
     required this.isEdit,
@@ -79,7 +78,7 @@ class CreateOrEditEntityView extends HookConsumerWidget {
           child: FButton.icon(
             variant: .outline,
             onPress: onOpenVaultTransferDialog,
-            child: Icon(LucideIcons.arrowRightLeft, size: 16),
+            child: const Icon(LucideIcons.arrowRightLeft, size: 16),
           ),
         );
       }
@@ -105,7 +104,9 @@ class CreateOrEditEntityView extends HookConsumerWidget {
           children: [
             for (final v in VaultExtension.sortVaults(vaults.entities))
               .item(
-                prefix: v.owner == null ? null : Icon(LucideIcons.cloudUpload),
+                prefix: v.owner == null
+                    ? null
+                    : const Icon(LucideIcons.cloudUpload),
                 title: Text(v.getDisplayName(context)),
                 value: v.id,
               ),
@@ -154,7 +155,7 @@ class CreateOrEditEntityView extends HookConsumerWidget {
                   return FButton(
                     onPress: isBusy
                         ? null
-                        : () {
+                        : () async {
                             if (withVaultSelector &&
                                 !formKey.currentState!.validate()) {
                               return;
@@ -165,7 +166,7 @@ class CreateOrEditEntityView extends HookConsumerWidget {
                                 : null;
 
                             if (withVaultSelector) {
-                              ref
+                              await ref
                                   .read(syncProvider.notifier)
                                   .pullAndPushVault();
                             }

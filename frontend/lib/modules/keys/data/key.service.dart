@@ -1,14 +1,13 @@
 import 'package:cliq/modules/keys/data/key.repository.dart';
+import 'package:cliq/modules/keys/model/key_full.model.dart';
 import 'package:cliq/shared/data/database.dart';
+import 'package:cliq/shared/extensions/value.extension.dart';
 import 'package:drift/drift.dart' show Value;
-
-import '../../../shared/extensions/value.extension.dart';
-import '../model/key_full.model.dart';
 
 final class KeyService {
   final KeyRepository _keyRepository;
 
-  const KeyService(this._keyRepository);
+  const new(this._keyRepository);
 
   Stream<List<DbId>> watchAll() => _keyRepository.db.findAllKeyIds().watch();
 

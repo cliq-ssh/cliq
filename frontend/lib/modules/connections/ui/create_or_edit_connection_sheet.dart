@@ -2,17 +2,25 @@ import 'dart:async';
 
 import 'package:cliq/modules/connections/model/connection_full.model.dart';
 import 'package:cliq/modules/connections/model/connection_icons.model.dart';
+import 'package:cliq/modules/connections/provider/connection.provider.dart';
+import 'package:cliq/modules/connections/provider/connection_service.provider.dart';
+import 'package:cliq/modules/credentials/model/credential_type.model.dart';
 import 'package:cliq/modules/identities/provider/identity.provider.dart';
 import 'package:cliq/modules/settings/provider/sync.provider.dart';
+import 'package:cliq/modules/settings/provider/terminal_theme.provider.dart';
+import 'package:cliq/modules/vaults/provider/vault_move_service.provider.dart';
 import 'package:cliq/modules/vaults/ui/vault_transfer_dialog.dart';
+import 'package:cliq/shared/data/database.dart';
+import 'package:cliq/shared/extensions/async_snapshot.extension.dart';
+import 'package:cliq/shared/extensions/color.extension.dart';
 import 'package:cliq/shared/extensions/text_controller.extension.dart';
+import 'package:cliq/shared/model/entity_type.dart';
+import 'package:cliq/shared/model/router.model.dart';
+import 'package:cliq/shared/provider/store.provider.dart';
 import 'package:cliq/shared/ui/create_or_edit_credential_form.dart';
 import 'package:cliq/shared/ui/create_or_edit_entity_view.dart';
 import 'package:cliq/shared/ui/terminal_font_family_select.dart';
 import 'package:cliq/shared/ui/terminal_font_size_slider.dart';
-import 'package:cliq/shared/extensions/async_snapshot.extension.dart';
-import 'package:cliq/shared/extensions/color.extension.dart';
-import 'package:cliq/shared/provider/store.provider.dart';
 import 'package:cliq/shared/utils/autocomplete_utils.dart';
 import 'package:cliq/shared/utils/input_formatters.dart';
 import 'package:cliq/shared/utils/validators.dart';
@@ -27,15 +35,6 @@ import 'package:forui_hooks/forui_hooks.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lucide_flutter/lucide_flutter.dart';
-
-import '../../../shared/data/database.dart';
-import '../../../shared/model/entity_type.dart';
-import '../../../shared/model/router.model.dart';
-import '../../credentials/model/credential_type.model.dart';
-import '../../settings/provider/terminal_theme.provider.dart';
-import '../../vaults/provider/vault_move_service.provider.dart';
-import '../provider/connection.provider.dart';
-import '../provider/connection_service.provider.dart';
 
 class CreateOrEditConnectionSheet extends HookConsumerWidget {
   static const List<(CredentialType, String, IconData)> allowedCredentialTypes =
@@ -59,12 +58,12 @@ class CreateOrEditConnectionSheet extends HookConsumerWidget {
   final List<DbId>? currentCredentialIds;
   final bool isEdit;
 
-  const CreateOrEditConnectionSheet.create({super.key})
+  const new create({super.key})
     : current = null,
       currentCredentialIds = null,
       isEdit = false;
 
-  CreateOrEditConnectionSheet.edit(ConnectionFull connection, {super.key})
+  new edit(ConnectionFull connection, {super.key})
     : current = ConnectionsCompanion(
         id: Value(connection.id),
         vaultId: Value(connection.vaultId),
@@ -227,7 +226,7 @@ class CreateOrEditConnectionSheet extends HookConsumerWidget {
         onTap: () => onTap?.call(color),
         child: SizedBox.square(
           dimension: 36,
-          child: Container(
+          child: DecoratedBox(
             decoration: BoxDecoration(
               color: color,
               borderRadius: .circular(8),
@@ -323,7 +322,7 @@ class CreateOrEditConnectionSheet extends HookConsumerWidget {
                           onPress: () => onChange?.call(
                             ColorExtension.generateRandom().toHex(),
                           ),
-                          child: Icon(LucideIcons.dices),
+                          child: const Icon(LucideIcons.dices),
                         ),
                       ),
                       if (bgColor != null)
@@ -333,7 +332,7 @@ class CreateOrEditConnectionSheet extends HookConsumerWidget {
                           child: FButton.icon(
                             onPress: () =>
                                 onChange?.call(bgColor.invert().toHex()),
-                            child: Icon(LucideIcons.squaresExclude),
+                            child: const Icon(LucideIcons.squaresExclude),
                           ),
                         ),
                     ],
@@ -468,9 +467,9 @@ class CreateOrEditConnectionSheet extends HookConsumerWidget {
                       defaultTerminalThemeId.value,
                   onChange: (selected) {
                     if (selected == defaultTerminalThemeId.value) {
-                      selected = null;
+                      selectedTerminalThemeId.value = null;
+                      return;
                     }
-
                     selectedTerminalThemeId.value = selected;
                   },
                 ),
@@ -641,17 +640,16 @@ class CreateOrEditConnectionSheet extends HookConsumerWidget {
                     contentBuilder: (context, text, suggestions) => [
                       for (final suggestion in suggestions)
                         FAutocompleteItem(
-                          prefix: Icon(LucideIcons.users),
+                          prefix: const Icon(LucideIcons.users),
                           title: Text(
-                            AutocompleteUtils.fromAutocompleteString(
-                                  suggestion,
-                                ).$2 ??
+                            AutocompleteUtils.fromAutocompleteString(suggestion)
+                                    .$2 ??
                                 suggestion,
                           ),
                           value: suggestion,
                         ),
                     ],
-                    contentEmptyBuilder: (_, _) => SizedBox.shrink(),
+                    contentEmptyBuilder: (_, _) => const SizedBox.shrink(),
                     focusNode: usernameFocusNode,
                     label: Text(
                       selectedIdentityId.value == null

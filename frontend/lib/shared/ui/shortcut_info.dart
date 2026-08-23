@@ -11,7 +11,7 @@ class _KeyDisplayInfo {
   final IconData? icon;
   final double widthModifier;
 
-  _KeyDisplayInfo({this.label, this.icon, this.widthModifier = 1})
+  new({this.label, this.icon, this.widthModifier = 1})
     : assert(
         label != null || icon != null,
         'Either label or icon must be provided',
@@ -22,7 +22,7 @@ class ShortcutInfo extends StatelessWidget {
   final KeyboardShortcut shortcut;
   final double size;
 
-  const ShortcutInfo({super.key, required this.shortcut, this.size = 20});
+  const new({super.key, required this.shortcut, this.size = 20});
 
   static final Map<LogicalKeyboardKey, _KeyDisplayInfo> _defaultKeyMap = {
     .shift: _KeyDisplayInfo(icon: LucideIcons.arrowBigUp),
@@ -71,7 +71,7 @@ class ShortcutInfo extends StatelessWidget {
       return Container(
         width: size * info.widthModifier,
         height: size,
-        padding: .all(padding),
+        padding: const .all(padding),
         decoration: BoxDecoration(
           color: context.theme.colors.border,
           borderRadius: BorderRadius.circular(4),
@@ -113,7 +113,7 @@ class TextWithShortcutInfo extends StatelessWidget {
   final String text;
   final KeyboardShortcut shortcut;
 
-  const TextWithShortcutInfo(this.text, {super.key, required this.shortcut});
+  const new(this.text, {super.key, required this.shortcut});
 
   @override
   Widget build(BuildContext context) {
