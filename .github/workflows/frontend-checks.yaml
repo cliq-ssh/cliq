@@ -49,6 +49,9 @@ jobs:
       - name: Add Pub Cache to PATH
         run: echo "$HOME/.pub-cache/bin" >> "$GITHUB_PATH"
 
+#      - name: Start SSH test server
+#        run: docker compose -f dev/compose.yaml up -d
+
       - name: Enable KVM
         run: |
           sudo apt-get update
@@ -73,6 +76,14 @@ jobs:
             -no-snapshot
           disable-animations: true
           script: cd frontend && patrol test
+      
+      - name: Publish Patrol Test Results
+        uses: dorny/test-reporter@v3
+        if: ${{ !cancelled() }}
+        with:
+          name: Patrol Tests
+          path: frontend/build/app/outputs/androidTest-results/connected/*.xml
+          reporter: java-junit
 
   tests:
     name: Tests (${{ matrix.package }})
