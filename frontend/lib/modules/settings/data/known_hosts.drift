@@ -1,4 +1,4 @@
-import '../../vaults/data/vaults.drift';
+-- import '../../vaults/data/vaults.drift';
 
 CREATE TABLE known_hosts (
     id          TEXT NOT NULL PRIMARY KEY DEFAULT '',
@@ -23,7 +23,10 @@ findAllKnownHostsFull:
     v.** AS vault
 
   FROM known_hosts k
-    INNER JOIN vaults v ON k.vault_id = v.id;
+    INNER JOIN vaults v ON k.vault_id = v.id
+  -- NOTE: drift does not correctly generate a nullable string from a IS NULL check, thus we just pass
+  -- an empty string here
+  WHERE :vaultId = '' OR k.vault_id = :vaultId;
 
 findKnownHostByHost:
     SELECT * FROM known_hosts WHERE host = ?;

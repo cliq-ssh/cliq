@@ -61,10 +61,19 @@ final class ConnectionService {
         .then((groups) => groups.whereType<String>().toList());
   }
 
+  Future<List<ConnectionFull>> findAllByVaultId(DbId vaultId) async {
+    return (await _connectionRepository.db.findAllConnectionFull(vaultId).get())
+        .map(ConnectionFull.fromFindAllResult)
+        .toList();
+  }
+
   Stream<List<ConnectionFull>> watchAll() {
-    return _connectionRepository.db.findAllConnectionFull().watch().map(
-      (c) => c.map(ConnectionFull.fromFindAllResult).toList(),
-    );
+    // NOTE: drift does not correctly generate a nullable string from a IS NULL check, thus we just pass
+    // an empty string here
+    return _connectionRepository.db
+        .findAllConnectionFull('')
+        .watch()
+        .map((c) => c.map(ConnectionFull.fromFindAllResult).toList());
   }
 
   Future<DbId> createConnection({

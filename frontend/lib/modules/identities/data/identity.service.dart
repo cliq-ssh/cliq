@@ -35,10 +35,19 @@ final class IdentityService {
         .then((identities) => identities.whereType<DbId>().toList());
   }
 
+  Future<List<IdentityFull>> findAllByVaultId(DbId vaultId) async {
+    return (await _identityRepository.db.findAllIdentityFull(vaultId).get())
+        .map(IdentityFull.fromFindAllResult)
+        .toList();
+  }
+
   Stream<List<IdentityFull>> watchAll() {
-    return _identityRepository.db.findAllIdentityFull().watch().map(
-      (c) => c.map(IdentityFull.fromFindAllResult).toList(),
-    );
+    // NOTE: drift does not correctly generate a nullable string from a IS NULL check, thus we just pass
+    // an empty string here
+    return _identityRepository.db
+        .findAllIdentityFull('')
+        .watch()
+        .map((c) => c.map(IdentityFull.fromFindAllResult).toList());
   }
 
   Future<DbId> createIdentity({
