@@ -82,8 +82,9 @@ jobs:
         if: ${{ !cancelled() }}
         with:
           name: Patrol Tests
-          path: frontend/build/app/outputs/androidTest-results/connected/*.xml
+          path: frontend/build/app/outputs/androidTest-results/connected/**/*.xml
           reporter: java-junit
+          working-directory: .
 
   tests:
     name: Tests (${{ matrix.package }})
