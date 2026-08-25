@@ -53,6 +53,8 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y cpu-checker
+          sudo usermod -aG kvm "$USER"
+          sudo chmod 666 /dev/kvm
           kvm-ok
 
       - name: Run Patrol tests
