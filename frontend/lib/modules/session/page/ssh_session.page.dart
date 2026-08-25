@@ -225,15 +225,17 @@ class _SshSessionPageState extends ConsumerState<SshSessionPage>
 
         if (session.sshSession == null) {
           // only wire this once, the first time this session is actually spawned
-          await sshSession.done.then((_) {
-            if (!context.mounted) return;
-            ref
-                .read(sessionProvider.notifier)
-                .closeSessionAndMaybeGo(
-                  NavigationShell.of(context),
-                  session.id,
-                );
-          });
+          unawaited(
+            sshSession.done.then((_) {
+              if (!context.mounted) return;
+              ref
+                  .read(sessionProvider.notifier)
+                  .closeSessionAndMaybeGo(
+                    NavigationShell.of(context),
+                    session.id,
+                  );
+            }),
+          );
         }
 
         // always rebind, regardless of whether the shell was just spawned or already existed
