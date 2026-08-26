@@ -39,6 +39,15 @@ jobs:
         with:
           distribution: temurin
           java-version: '21'
+          cache: gradle
+
+      - name: Cache pub packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.pub-cache
+          key: pub-${{ runner.os }}-${{ hashFiles('frontend/pubspec.lock') }}
+          restore-keys: |
+            pub-${{ runner.os }}-
 
       - name: Install dependencies
         run: flutter pub get
