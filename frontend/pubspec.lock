@@ -1175,10 +1175,10 @@ packages:
     dependency: "direct main"
     description:
       name: sodium
-      sha256: "3d8bec7acb3bd958309e431a840f1eded82f508d57461ecd2920d399b802b38a"
+      sha256: "7a95c134d2ce365438eed35edbb426c36b9e1de2791201962b574b18c82f4fb8"
       url: "https://pub.dev"
     source: hosted
-    version: "4.0.4"
+    version: "4.1.0"
   source_gen:
     dependency: transitive
     description:
