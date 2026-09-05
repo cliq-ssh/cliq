@@ -770,10 +770,10 @@ packages:
     dependency: "direct main"
     description:
       name: lucide_flutter
-      sha256: "93332c12a37d0b6f3bd9f3a6deb1c83276639a57cfee858a138faf2d78d1305c"
+      sha256: "85a30ab480122569b803bec848a6a1d32c8dc76819f08897cda0cd4140486a80"
       url: "https://pub.dev"
     source: hosted
-    version: "1.39.0"
+    version: "1.41.0"
   macos_window_utils:
     dependency: "direct main"
     description:
