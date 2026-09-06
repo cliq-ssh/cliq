@@ -62,6 +62,7 @@ dev_dependencies:
   build_runner: ^2.16.1
   flutter_launcher_icons: ^0.14.4
   flutter_native_splash: 2.4.8
+  patrol: ^4.9.0
 
 flutter:
   assets:
@@ -84,3 +85,11 @@ flutter:
       fonts:
           - asset: assets/fonts/NotoSansSymbols2-Regular.ttf
 
+patrol:
+  app_name: cliq
+  android:
+    package_name: sh.cliq.cliq
+  ios:
+    bundle_id: sh.cliq.cliq
+  macos:
+    bundle_id: sh.cliq.cliq
