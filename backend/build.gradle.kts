@@ -83,7 +83,7 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-data-jpa")
     runtimeOnly("org.postgresql:postgresql")
     // Flyway
-    val flywayVersion = "13.4.0"
+    val flywayVersion = "13.5.0"
     implementation("org.springframework.boot:spring-boot-starter-flyway")
     implementation("org.flywaydb:flyway-core:$flywayVersion")
     implementation("org.flywaydb:flyway-database-postgresql:$flywayVersion")
@@ -110,7 +110,7 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-validation")
 
     // OpenAPI
-    val springdocVersion = "3.1.0"
+    val springdocVersion = "3.1.1"
     implementation("org.springdoc:springdoc-openapi-starter-webmvc-api:$springdocVersion")
     implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:$springdocVersion")
     implementation("org.springdoc:springdoc-openapi-starter-webmvc-scalar:$springdocVersion")
