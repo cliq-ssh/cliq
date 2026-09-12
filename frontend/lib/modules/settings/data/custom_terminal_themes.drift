@@ -1,4 +1,4 @@
-import '../../../shared/data/converters/color_converter.dart';
+-- import '../../../shared/data/converters/color_converter.dart';
 
 CREATE TABLE custom_terminal_themes (
     id                    TEXT NOT NULL PRIMARY KEY DEFAULT '',
@@ -114,6 +114,9 @@ createOrUpdateCustomColorScheme:
     cursor_text = excluded.cursor_text,
     selection_background = excluded.selection_background,
     selection_foreground = excluded.selection_foreground;
+
+findAllCustomColorSchemesByIds:
+  SELECT * FROM custom_terminal_themes WHERE id IN ?;
 
 findMatchingCustomColorSchemeId:
   SELECT id FROM custom_terminal_themes WHERE

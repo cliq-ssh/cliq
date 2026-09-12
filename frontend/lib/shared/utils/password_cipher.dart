@@ -95,7 +95,7 @@ class PasswordCipher {
   /// blocking the main thread.
   Future<SecureKey> _deriveKey(Uint8List password, Uint8List salt) {
     return _sodium.runIsolated(
-      (_, _) => _sodium.crypto.pwhash(
+      (_, _) => _sodium.crypto.pwhash.callRaw(
         outLen: _sodium.crypto.aeadXChaCha20Poly1305IETF.keyBytes,
         password: password.buffer.asInt8List(
           password.offsetInBytes,

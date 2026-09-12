@@ -8,7 +8,6 @@ import sh.cliq.backend.auth.factory.OidcCallbackTokenFactory
 import sh.cliq.backend.auth.jwt.TokenPair
 import sh.cliq.backend.auth.params.RegistrationParams
 import sh.cliq.backend.auth.service.JwtService
-import sh.cliq.backend.constants.DEFAULT_IP_ADDRESS
 import sh.cliq.backend.support.encryption.AuthenticatedEncryptionData
 import sh.cliq.backend.support.encryption.EncryptionData
 import sh.cliq.backend.support.encryption.EncryptionHelper
@@ -70,10 +69,9 @@ class UserCreationHelper(
         verified: Boolean = true,
         locale: String = DEFAULT_LOCALE,
         sessionName: String? = null,
-        ipAddress: String = DEFAULT_IP_ADDRESS,
     ): AuthenticatedUserData {
         val userCreationData = createRandomUser(email, password, username, verified, locale = locale)
-        val authExchange = authExchangeFactory.create(ipAddress, userCreationData.user)
+        val authExchange = authExchangeFactory.create(userCreationData.user)
         val tokenPair = jwtService.generateTokenPairFromAuthExchange(authExchange, sessionName)
         val authenticatedEncryptionData =
             encryptionHelper.createAuthenticatedEncryptionData(
@@ -94,10 +92,9 @@ class UserCreationHelper(
         oidcSub: String = "oidc${Random.nextInt(0, 9999)}",
         oidcSessionId: String = "oidc-session-id-${Random.nextInt(0, 9999)}",
         locale: String = DEFAULT_LOCALE,
-        ipAddress: String = DEFAULT_IP_ADDRESS,
     ): TokenPair {
         val userCreationData = createRandomOidcUser(email, password, username, oidcSub, locale = locale)
-        val oidcCallbackToken = oidcCallbackTokenFactory.create(ipAddress, userCreationData.user, oidcSessionId)
+        val oidcCallbackToken = oidcCallbackTokenFactory.create(userCreationData.user, oidcSessionId)
         val authExchange = authExchangeRepository.findById(oidcCallbackToken.authExchange.id!!).orElseThrow()
 
         return jwtService.generateTokenPairFromAuthExchange(authExchange, oidcSessionId)

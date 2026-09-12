@@ -9,10 +9,19 @@ final class KnownHostService {
 
   const new(this._knownHostsRepository);
 
+  Future<List<KnownHostFull>> findAllByVaultId(DbId vaultId) async {
+    return (await _knownHostsRepository.db.findAllKnownHostsFull(vaultId).get())
+        .map(KnownHostFull.fromFindAllResult)
+        .toList();
+  }
+
   Stream<List<KnownHostFull>> watchAll() {
-    return _knownHostsRepository.db.findAllKnownHostsFull().watch().map(
-      (c) => c.map(KnownHostFull.fromFindAllResult).toList(),
-    );
+    // NOTE: drift does not correctly generate a nullable string from a IS NULL check, thus we just pass
+    // an empty string here
+    return _knownHostsRepository.db
+        .findAllKnownHostsFull('')
+        .watch()
+        .map((c) => c.map(KnownHostFull.fromFindAllResult).toList());
   }
 
   /// Whether or not the [host] is known, and if so, whether the [hostKey] matches.

@@ -10,6 +10,7 @@ import 'package:cliq_api/cliq_api.dart';
 import 'package:cliq_ui/cliq_ui.dart' show CliqFontFamily;
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:forui/forui.dart';
 import 'package:go_router/go_router.dart';
@@ -61,6 +62,7 @@ class const RegisterOrLoginSheet({super.key}) extends HookConsumerWidget {
     close() async {
       passwordCtrl.clear();
       passwordConfirmCtrl.clear();
+      TextInput.finishAutofillContext();
 
       await Commons.showToast('sync_login_success'.tr());
       if (!context.mounted) return;
@@ -429,14 +431,16 @@ class const RegisterOrLoginSheet({super.key}) extends HookConsumerWidget {
                   ),
                 ],
               ),
-              Column(
-                spacing: 16,
-                children: switch (step.value) {
-                  .hostUrl => buildHostUrlStep(),
-                  .login => buildLoginStep(),
-                  .register => buildRegisterStep(),
-                  .registerVerify => buildRegisterVerifyStep(),
-                },
+              AutofillGroup(
+                child: Column(
+                  spacing: 16,
+                  children: switch (step.value) {
+                    .hostUrl => buildHostUrlStep(),
+                    .login => buildLoginStep(),
+                    .register => buildRegisterStep(),
+                    .registerVerify => buildRegisterVerifyStep(),
+                  },
+                ),
               ),
               if (config != null)
                 Text(

@@ -5,7 +5,6 @@ import io.swagger.v3.oas.annotations.media.Content
 import io.swagger.v3.oas.annotations.media.Schema
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.responses.ApiResponses
-import jakarta.servlet.http.HttpServletRequest
 import jakarta.validation.Valid
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
@@ -90,10 +89,9 @@ class TokenController(
         @RequestBody
         @Valid
         deviceRegistrationParams: DeviceRegistrationParams,
-        request: HttpServletRequest,
     ): ResponseEntity<TokenResponse> {
         val authExchange =
-            authExchangeService.getValidAuthExchangeByCode(deviceRegistrationParams.exchangeCode, request)
+            authExchangeService.getValidAuthExchangeByCode(deviceRegistrationParams.exchangeCode)
         val tokenPair = authExchangeService.exchange(authExchange, deviceRegistrationParams.sessionName)
         val response = TokenResponse.fromTokenPair(tokenPair)
 

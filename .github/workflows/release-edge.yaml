@@ -94,7 +94,7 @@ jobs:
     needs: [ checks-passed, bump-version ]
     if: |
       always() &&
-      needs.checks.result == 'success' &&
+      needs.checks-passed.result == 'success' &&
       (needs.bump-version.result == 'success' || needs.bump-version.result == 'skipped')
     uses: ./.github/workflows/frontend-build.yaml
     with:

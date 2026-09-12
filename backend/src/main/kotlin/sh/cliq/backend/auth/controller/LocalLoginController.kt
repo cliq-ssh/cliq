@@ -5,7 +5,6 @@ import io.swagger.v3.oas.annotations.media.Content
 import io.swagger.v3.oas.annotations.media.Schema
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.responses.ApiResponses
-import jakarta.servlet.http.HttpServletRequest
 import jakarta.validation.Valid
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
@@ -102,7 +101,6 @@ class LocalLoginController(
     )
     fun finishLogin(
         @Valid @RequestBody loginFinishParams: LoginFinishParams,
-        httpRequest: HttpServletRequest,
     ): ResponseEntity<LocalLoginFinishResponse> {
         if (!authProperties.providers.local.enabled) {
             throw LocalLoginDisabledException()
@@ -111,7 +109,7 @@ class LocalLoginController(
         val (email, publicM2) = srpService.finishAuthenticationProcess(loginFinishParams)
         val user = userRepository.findByEmail(email) ?: throw InvalidEmailException()
 
-        val authExchange = authExchangeFactory.createFromRequestAndUser(httpRequest, user)
+        val authExchange = authExchangeFactory.createFromRequestAndUser(user)
         val loginResponse = LocalLoginFinishResponse(publicM2, authExchange.exchangeCode, user.dataEncryptionKey)
 
         return ResponseEntity.ok(loginResponse)

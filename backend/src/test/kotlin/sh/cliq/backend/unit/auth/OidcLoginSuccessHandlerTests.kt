@@ -4,7 +4,6 @@ import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
-import org.mockito.kotlin.any
 import org.mockito.kotlin.argumentCaptor
 import org.mockito.kotlin.eq
 import org.mockito.kotlin.mock
@@ -49,7 +48,7 @@ class OidcLoginSuccessHandlerTests {
         whenever(oidcCallbackToken.token).thenReturn(callbackTokenString)
 
         whenever(
-            oidcCallbackTokenFactory.createFromRequestAndUser(any(), eq(user), eq(sid)),
+            oidcCallbackTokenFactory.createFromRequestAndUser(eq(user), eq(sid)),
         ).thenReturn(oidcCallbackToken)
 
         val request: HttpServletRequest = mock()

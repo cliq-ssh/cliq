@@ -34,7 +34,6 @@ class OidcDeviceRegistrationTests(
     @Test
     fun `exchange with existing oidc session id should result in an rotation`() {
         val sessionId = "SID123"
-        val ipAddress = "127.0.0.1"
         val userCreationData =
             userCreationHelper.createRandomOidcAuthenticatedUser(
                 oidcSessionId = sessionId,
@@ -46,7 +45,6 @@ class OidcDeviceRegistrationTests(
 
         val oidcCallbackToken =
             oidcCallbackTokenFactory.create(
-                ipAddress,
                 userCreationData.session.user,
                 sessionId,
             )

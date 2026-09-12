@@ -13,7 +13,6 @@ import jakarta.persistence.OneToOne
 import jakarta.persistence.Table
 import sh.cliq.backend.auth.oidc.OidcCallbackToken
 import sh.cliq.backend.user.User
-import java.net.InetAddress
 import java.time.OffsetDateTime
 
 @Entity
@@ -26,7 +25,7 @@ import java.time.OffsetDateTime
 class AuthExchange(
     @OneToOne(fetch = FetchType.EAGER)
     @JoinColumn(nullable = false)
-    val user: User,
+    var user: User,
     @OneToOne(
         mappedBy = "authExchange",
         cascade = [CascadeType.PERSIST, CascadeType.REMOVE],
@@ -34,13 +33,11 @@ class AuthExchange(
         fetch = FetchType.EAGER,
         optional = true,
     )
-    val oidcCallbackToken: OidcCallbackToken?,
+    var oidcCallbackToken: OidcCallbackToken?,
     @Column(nullable = false, unique = true)
-    val exchangeCode: String,
+    var exchangeCode: String,
     @Column(nullable = false)
-    val ipAddress: InetAddress,
-    @Column(nullable = false)
-    val createdAt: OffsetDateTime,
+    var createdAt: OffsetDateTime,
     @Column(nullable = false)
     var expiresAt: OffsetDateTime,
     @Id

@@ -5,7 +5,6 @@ import io.swagger.v3.oas.annotations.media.Content
 import io.swagger.v3.oas.annotations.media.Schema
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.responses.ApiResponses
-import jakarta.servlet.http.HttpServletRequest
 import jakarta.validation.Valid
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
@@ -56,7 +55,6 @@ class OidcController(
         @RequestBody
         @Valid
         params: OidcCallbackParams,
-        httpServletRequest: HttpServletRequest,
     ): ResponseEntity<LoginFinishResponse> {
         val callbackToken =
             oidcCallbackTokenRepository.findByToken(params.oidcCallbackToken)
@@ -64,7 +62,7 @@ class OidcController(
         val authExchange = callbackToken.authExchange
 
         try {
-            authExchangeService.validOrThrowAuthExchange(callbackToken.authExchange, httpServletRequest)
+            authExchangeService.validOrThrowAuthExchange(callbackToken.authExchange)
         } catch (_: InvalidAuthExchangeCodeException) {
             throw InvalidOidcCallbackTokenException()
         }

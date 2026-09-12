@@ -117,6 +117,12 @@ final class CustomTerminalThemeService {
     return themeId;
   }
 
+  Future<List<CustomTerminalTheme>> findByIds(List<DbId> ids) {
+    return _customTerminalThemesRepository.db
+        .findAllCustomColorSchemesByIds(ids)
+        .get();
+  }
+
   /// Returns the id of an existing theme whose values match [colorScheme] exactly, or null if no such theme exists.
   Future<DbId?> findIdOfMatchingTheme(
     CustomTerminalThemesCompanion colorScheme,

@@ -28,9 +28,11 @@ extension CustomTerminalThemesCompanionExtension
         json['brightCyan'] == null ||
         json['brightWhite'] == null ||
         json['foreground'] == null ||
+        json['background'] == null ||
         json['cursor'] == null ||
+        json['cursorText'] == null ||
         json['selectionBackground'] == null ||
-        json['background'] == null) {
+        json['selectionForeground'] == null) {
       return null;
     }
 

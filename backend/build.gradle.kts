@@ -2,12 +2,13 @@ import dev.detekt.gradle.Detekt
 import dev.detekt.gradle.DetektCreateBaselineTask
 
 plugins {
-    val kotlinVersion = "2.4.10"
+    val kotlinVersion = "2.4.20"
     // Kotlin
     kotlin("jvm") version kotlinVersion
     kotlin("plugin.spring") version kotlinVersion
     kotlin("plugin.jpa") version kotlinVersion
     kotlin("plugin.allopen") version kotlinVersion
+    kotlin("kapt") version kotlinVersion
 
     // Spring / Spring Boot
     id("org.springframework.boot") version "4.1.1"
@@ -42,7 +43,6 @@ java {
 }
 
 kotlin {
-    compilerOptions.freeCompilerArgs.add("-Xannotation-default-target=param-property")
     jvmToolchain(targetJvmVersion)
 }
 
@@ -83,7 +83,7 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-data-jpa")
     runtimeOnly("org.postgresql:postgresql")
     // Flyway
-    val flywayVersion = "13.3.0"
+    val flywayVersion = "13.6.0"
     implementation("org.springframework.boot:spring-boot-starter-flyway")
     implementation("org.flywaydb:flyway-core:$flywayVersion")
     implementation("org.flywaydb:flyway-database-postgresql:$flywayVersion")
@@ -96,7 +96,7 @@ dependencies {
     implementation("com.nimbusds:srp6a:2.1.0")
 
     // Algorithm Provider & Encryption primitives
-    implementation("org.bouncycastle:bcprov-jdk18on:1.85.2")
+    implementation("org.bouncycastle:bcprov-jdk18on:1.86")
 
     // Serialization
     implementation("org.springframework.boot:spring-boot-starter-jackson")
@@ -110,13 +110,14 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-validation")
 
     // OpenAPI
-    val springdocVersion = "3.1.0"
+    val springdocVersion = "3.1.1"
     implementation("org.springdoc:springdoc-openapi-starter-webmvc-api:$springdocVersion")
     implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:$springdocVersion")
     implementation("org.springdoc:springdoc-openapi-starter-webmvc-scalar:$springdocVersion")
 
     // Annotations
     annotationProcessor("org.springframework.boot:spring-boot-configuration-processor")
+    kapt("org.springframework.boot:spring-boot-configuration-processor")
 
     // Kotlin specifics
     implementation("org.jetbrains.kotlin:kotlin-reflect")
@@ -125,6 +126,7 @@ dependencies {
     implementation("commons-io:commons-io:2.22.0")
 
     // Testing //
+    testImplementation(kotlin("test"))
 
     // Junit 5
     testImplementation("org.jetbrains.kotlin:kotlin-test-junit5")

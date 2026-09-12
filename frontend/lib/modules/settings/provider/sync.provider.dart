@@ -2,19 +2,15 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:typed_data';
 
-import 'package:cliq/modules/connections/provider/connection.provider.dart';
 import 'package:cliq/modules/connections/provider/connection_service.provider.dart';
 import 'package:cliq/modules/credentials/provider/credential_service.provider.dart';
-import 'package:cliq/modules/identities/provider/identity.provider.dart';
 import 'package:cliq/modules/identities/provider/identity_service.provider.dart';
 import 'package:cliq/modules/keys/provider/key_service.provider.dart';
 import 'package:cliq/modules/settings/model/settings_importer/app_settings.model.dart';
 import 'package:cliq/modules/settings/model/settings_importer/cliq_settings_importer.dart';
 import 'package:cliq/modules/settings/model/settings_importer/settings_importer.dart';
 import 'package:cliq/modules/settings/model/sync.state.dart';
-import 'package:cliq/modules/settings/provider/known_host.provider.dart';
 import 'package:cliq/modules/settings/provider/known_host_service.provider.dart';
-import 'package:cliq/modules/settings/provider/terminal_theme.provider.dart';
 import 'package:cliq/modules/settings/provider/terminal_theme_service.provider.dart';
 import 'package:cliq/modules/vaults/provider/vault.provider.dart';
 import 'package:cliq/modules/vaults/provider/vault_service.provider.dart';
@@ -470,59 +466,57 @@ class SyncProviderNotifier extends Notifier<SyncState> {
 
   /// Exports the current vault settings as an [AppSettings] object.
   Future<AppSettings> export(DbId vaultId) async {
-    final connections = ref.read(connectionProvider);
-    final identities = ref.read(identityProvider);
-    final knownHosts = ref.read(knownHostProvider);
-    final terminalThemes = ref.read(terminalThemeProvider);
-    final credentials = await ref.read(credentialServiceProvider).findAll();
-    final keys = await ref.read(keyServiceProvider).findAll();
+    final connectionService = ref.read(connectionServiceProvider);
+    final identityService = ref.read(identityServiceProvider);
+    final knownHostService = ref.read(knownHostServiceProvider);
+    final terminalThemeService = ref.read(terminalThemeServiceProvider);
+    final credentialService = ref.read(credentialServiceProvider);
+    final keyService = ref.read(keyServiceProvider);
 
-    final identitiesCredentialIds = identities.entities
-        .where((e) => e.vaultId == vaultId)
-        .toList()
-        .asMap()
-        .map((_, entity) => MapEntry(entity.id, entity.credentialIds));
-    final connectionsCredentialIds = connections.entities
-        .where((e) => e.vaultId == vaultId)
-        .toList()
-        .asMap()
-        .map((_, entity) => MapEntry(entity.id, entity.credentialIds));
+    return ref.read(databaseProvider).transaction(() async {
+      final connections = await connectionService.findAllByVaultId(vaultId);
+      final identities = await identityService.findAllByVaultId(vaultId);
+      final knownHosts = await knownHostService.findAllByVaultId(vaultId);
+      final credentials = await credentialService.findAll();
+      final keys = await keyService.findAll();
 
-    return AppSettings(
-      connections: connections.entities
-          .where((e) => e.vaultId == vaultId)
-          .map((e) => e.toCompanion(true))
-          .toList(),
-      identities: identities.entities
-          .where((e) => e.vaultId == vaultId)
-          .map((e) => e.toCompanion(true))
-          .toList(),
-      knownHosts: knownHosts.entities
-          .where((e) => e.vaultId == vaultId)
-          .map((e) => e.toCompanion(true))
-          .toList(),
-      customTerminalThemes: terminalThemes.entities
-          // only themes that are used by connections
-          .where(
-            (e) => connections.entities.any(
-              (connection) =>
-                  connection.vaultId == vaultId &&
-                  connection.terminalThemeOverrideId == e.id,
-            ),
-          )
-          .map((e) => e.toCompanion(true))
-          .toList(),
-      credentials: credentials
-          .where((e) => e.vaultId == vaultId)
-          .map((e) => e.toCompanion(true))
-          .toList(),
-      keys: keys
-          .where((e) => e.vaultId == vaultId)
-          .map((e) => e.toCompanion(true))
-          .toList(),
-      identitiesCredentialIds: identitiesCredentialIds,
-      connectionsCredentialIds: connectionsCredentialIds,
-    );
+      // Only export the themes actually referenced by this vault's connections
+      final themeIds = connections
+          .map((c) => c.terminalThemeOverrideId)
+          .whereType<DbId>()
+          .toSet();
+      final terminalThemes = themeIds.isEmpty
+          ? <CustomTerminalTheme>[]
+          : await terminalThemeService.findByIds(
+              themeIds.toList(growable: false),
+            );
+
+      final identitiesCredentialIds = {
+        for (final e in identities) e.id: e.credentialIds,
+      };
+      final connectionsCredentialIds = {
+        for (final e in connections) e.id: e.credentialIds,
+      };
+
+      return AppSettings(
+        connections: connections.map((e) => e.toCompanion(true)).toList(),
+        identities: identities.map((e) => e.toCompanion(true)).toList(),
+        knownHosts: knownHosts.map((e) => e.toCompanion(true)).toList(),
+        customTerminalThemes: terminalThemes
+            .map((e) => e.toCompanion(true))
+            .toList(),
+        credentials: credentials
+            .where((e) => e.vaultId == vaultId)
+            .map((e) => e.toCompanion(true))
+            .toList(),
+        keys: keys
+            .where((e) => e.vaultId == vaultId)
+            .map((e) => e.toCompanion(true))
+            .toList(),
+        identitiesCredentialIds: identitiesCredentialIds,
+        connectionsCredentialIds: connectionsCredentialIds,
+      );
+    });
   }
 
   CliqClientBuilder _getDefaultClientBuilder(RouteOptions routeOptions) {

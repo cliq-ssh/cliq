@@ -27,7 +27,7 @@ class OidcLoginSuccessHandler(
         val oidcUser = authentication.principal as OidcUser
         val user = userOidcService.putUserFromOidcUser(oidcUser)
         val oidcSessionId = extractSessionId(oidcUser)
-        val oidcCallbackToken = oidcCallbackTokenFactory.createFromRequestAndUser(request, user, oidcSessionId)
+        val oidcCallbackToken = oidcCallbackTokenFactory.createFromRequestAndUser(user, oidcSessionId)
         val uri = cliqUrlUtils.buildOidcAppRedirectUrl(oidcCallbackToken.token)
 
         response.sendRedirect(uri.toString())

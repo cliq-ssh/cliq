@@ -1,13 +1,11 @@
 package sh.cliq.backend.auth.factory
 
-import jakarta.servlet.http.HttpServletRequest
 import org.springframework.stereotype.Service
 import sh.cliq.backend.auth.AuthExchange
 import sh.cliq.backend.auth.AuthExchangeRepository
 import sh.cliq.backend.config.properties.AuthProperties
 import sh.cliq.backend.user.User
 import sh.cliq.backend.utils.TokenGenerator
-import java.net.InetAddress
 import java.time.Clock
 import java.time.OffsetDateTime
 
@@ -18,12 +16,10 @@ class AuthExchangeFactory(
     private val clock: Clock,
     private val authProperties: AuthProperties,
 ) {
-    fun createFromRequestAndUser(httpServletRequest: HttpServletRequest, user: User): AuthExchange =
-        create(httpServletRequest.remoteAddr, user)
+    fun createFromRequestAndUser(user: User): AuthExchange = create(user)
 
-    fun create(ipAddress: String, user: User): AuthExchange {
+    fun create(user: User): AuthExchange {
         val token = tokenGenerator.generateAuthExchangeCode()
-        val inetAddress = InetAddress.ofLiteral(ipAddress)
         val now = OffsetDateTime.now(clock)
         val expiresAt = now.plusSeconds(authProperties.authExchangeDurationSeconds)
 
@@ -32,7 +28,6 @@ class AuthExchangeFactory(
                 user = user,
                 oidcCallbackToken = null,
                 exchangeCode = token,
-                ipAddress = inetAddress,
                 createdAt = now,
                 expiresAt = expiresAt,
             )

@@ -1,10 +1,10 @@
-import '../../identities/data/identities.drift';
-import '../../credentials/data/credentials.drift';
-import '../../connections/model/connection_icons.dart';
-import '../../vaults/data/vaults.drift';
-import '../../settings/data/custom_terminal_themes.drift';
-import '../../../shared/data/converters/color_converter.dart';
-import '../../../shared/data/converters/terminal_typography_converter.dart';
+-- import '../../identities/data/identities.drift';
+-- import '../../credentials/data/credentials.drift';
+-- import '../../connections/model/connection_icons.model.dart';
+-- import '../../vaults/data/vaults.drift';
+-- import '../../settings/data/custom_terminal_themes.drift';
+-- import '../../../shared/data/converters/color_converter.dart';
+-- import '../../../shared/data/converters/terminal_typography_converter.dart';
 
 CREATE TABLE connections (
     id                              TEXT NOT NULL PRIMARY KEY DEFAULT '',
@@ -121,7 +121,10 @@ findAllConnectionFull:
     INNER JOIN vaults v ON c.vault_id = v.id
     LEFT JOIN identities i ON c.identity_id = i.id
     LEFT JOIN vaults iv ON i.vault_id = iv.id
-    LEFT JOIN custom_terminal_themes t ON c.terminal_theme_override_id = t.id;
+    LEFT JOIN custom_terminal_themes t ON c.terminal_theme_override_id = t.id
+  -- NOTE: drift does not correctly generate a nullable string from a IS NULL check, thus we just pass
+  -- an empty string here
+  WHERE :vaultId = '' OR c.vault_id = :vaultId;
 
 findAllConnectionGroupNames:
     SELECT DISTINCT group_name

@@ -222,6 +222,13 @@ class SessionNotifier extends Notifier<SessionState> {
         timeout: const .new(seconds: 10), // TODO:
       );
 
+      unawaited(
+        socket.done.then(
+          (_) => _close(session.id),
+          onError: (e) => _close(session.id, e.toString()),
+        ),
+      );
+
       final sshClient = SSHClient(
         socket,
         username: connection.effectiveUsername!,
@@ -256,14 +263,11 @@ class SessionNotifier extends Notifier<SessionState> {
         onPasswordRequest: password != null ? () => password : null,
       );
 
-      await socket.done.then(
-        (_) => _close(session.id),
-        onError: (e) => _close(session.id, e.toString()),
-      );
-
-      await sshClient.done.then(
-        (_) => _close(session.id),
-        onError: (e) => _close(session.id, e.toString()),
+      unawaited(
+        sshClient.done.then(
+          (_) => _close(session.id),
+          onError: (e) => _close(session.id, e.toString()),
+        ),
       );
 
       return sshClient;

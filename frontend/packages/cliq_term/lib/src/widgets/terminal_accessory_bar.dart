@@ -29,13 +29,12 @@ class TerminalAccessoryBar extends StatelessWidget {
       child: Row(
         children: [
           Expanded(
-            child: ListView.builder(
+            child: ListView.separated(
               itemCount: items.length,
               scrollDirection: Axis.horizontal,
-              itemBuilder: (context, index) {
-                final item = items[index];
-                return Semantics(excludeSemantics: true, child: item);
-              },
+              itemBuilder: (context, index) =>
+                  Semantics(excludeSemantics: true, child: items[index]),
+              separatorBuilder: (_, _) => const SizedBox(width: 4),
             ),
           ),
           ?suffixItem,
