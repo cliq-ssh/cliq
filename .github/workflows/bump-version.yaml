@@ -1,0 +1,63 @@
+name: "Bump Version"
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to release'
+        type: string
+        required: true
+
+concurrency:
+  group: bump-version
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  bump-version:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    env:
+      VERSION: ${{ inputs.version }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Validate semantic version
+        # We use php here since bash regex is not pcre compliant
+        run: |
+          php -r '
+            $version = getenv("VERSION");
+            $regex = "/^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-((?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+([0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?$/";
+
+            if (!preg_match($regex, $version)) {
+                fwrite(STDERR, "::error::\"$version\" is not a valid semantic version.\n");
+                exit(1);
+            }
+          '
+
+          echo "Version '$VERSION' is valid."
+
+      - name: Update versions
+        run: |
+          set -euo pipefail
+
+          sed -i -E 's/^version: .*/version: '"$VERSION"'+10/' frontend/pubspec.yaml
+          sed -i -E 's/^version = ".*"/version = "'"$VERSION"'"/' backend/build.gradle.kts
+          sed -i -E 's/"version": ".*"/"version": "'"$VERSION"'"/' docs/package.json
+          echo "$VERSION" > VERSION
+
+      - name: Commit version bump
+        run: |
+          set -euo pipefail
+
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          git add frontend/pubspec.yaml backend/build.gradle.kts docs/package.json VERSION
+          git commit -m "chore: bump version to $VERSION [skip ci]"
+          git push
