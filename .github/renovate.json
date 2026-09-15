@@ -10,6 +10,12 @@
     ],
     "packageRules": [
         {
+          "matchPackageNames": ["*"],
+          "addLabels": [
+            "changelog:skip"
+          ]
+        },
+        {
             "matchFileNames": ["frontend/pubspec.yaml"],
             "matchPackageNames": ["forui", "forui_hooks"],
             "groupName": "forui"
