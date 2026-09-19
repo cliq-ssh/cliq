@@ -1,0 +1,132 @@
+name: "Release"
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to release'
+        type: string
+        required: true
+      is-beta-release:
+        description: 'Is this a beta release?'
+        type: boolean
+        required: false
+        default: false
+      publish-ios:
+        description: 'Publish iOS build to TestFlight'
+        type: boolean
+        required: false
+        default: true
+      publish-macos:
+        description: 'Publish macOS build to TestFlight'
+        type: boolean
+        required: false
+        default: true
+      publish-backend:
+        description: 'Publish backend to GitHub Registry'
+        type: boolean
+        required: false
+        default: true
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  validate-version:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Validate semantic version
+        env:
+          VERSION: ${{ inputs.version }}
+        # We use php here since bash regex is not pcre compliant
+        run: |
+          php -r '
+            $version = getenv("VERSION");
+            $regex = "/^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-((?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+([0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?$/";
+
+            if (!preg_match($regex, $version)) {
+                fwrite(STDERR, "::error::\"$version\" is not a valid semantic version.\n");
+                exit(1);
+            }
+          '
+
+          echo "Version '$VERSION' is valid."
+
+  frontend-checks:
+    name: Frontend Checks
+    needs: validate-version
+    uses: ./.github/workflows/frontend-checks.yaml
+    permissions:
+      contents: read
+      actions: read
+      checks: write
+
+  backend-checks:
+    name: Backend checks
+    needs: validate-version
+    uses: ./.github/workflows/backend-checks.yaml
+    permissions:
+      contents: read
+      actions: read
+      checks: write
+      security-events: write
+
+  checks-passed:
+    needs: [ frontend-checks, backend-checks ]
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "All checks passed"
+
+  build-frontend-installer:
+    name: Build frontend installer
+    uses: ./.github/workflows/frontend-build.yaml
+    needs: checks-passed
+    permissions:
+      contents: write
+      actions: read
+
+  build-backend:
+    name: Build backend
+    uses: ./.github/workflows/backend-build-jar.yaml
+    with:
+      upload-jar: true
+    needs: checks-passed
+    permissions:
+      contents: write
+      actions: read
+
+  builds-passed:
+    needs: [ build-frontend-installer, build-backend ]
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "All builds passed"
+
+  release:
+    name: Create release
+    runs-on: ubuntu-latest
+    needs: builds-passed
+    permissions:
+      contents: write
+      actions: read
+    steps:
+      - name: Download installer artifacts
+        uses: actions/download-artifact@v8
+        with:
+          pattern: "cliq*"
+          path: artifacts
+          merge-multiple: true
+
+      - name: Debug artifacts
+        run: find artifacts -type f -ls
+
+      - name: Create draft release
+        uses: softprops/action-gh-release@v3
+        with:
+          draft: true
+          generate_release_notes: true
+          tag_name: v${{ inputs.version }}
+          prerelease: ${{ inputs.is-beta-release }}
+          files: artifacts/*

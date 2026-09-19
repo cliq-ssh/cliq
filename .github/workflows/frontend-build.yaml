@@ -10,6 +10,7 @@ on:
       - main
     paths:
       - 'frontend/**'
+  workflow_dispatch: ~
   workflow_call:
     inputs:
       ref:
@@ -90,10 +91,10 @@ jobs:
           - arch: x64
             runner: windows-latest
             flutter-channel: stable
-# Removed until https://github.com/fastforgedev/fastforge/issues/354 is resolved
-#          - arch: arm64
-#            runner: windows-11-arm
-#            flutter-channel: main # Remove when https://github.com/subosito/flutter-action/issues/345
+    # Removed until https://github.com/fastforgedev/fastforge/issues/354 is resolved
+    #          - arch: arm64
+    #            runner: windows-11-arm
+    #            flutter-channel: main # Remove when https://github.com/subosito/flutter-action/issues/345
     steps:
       - uses: actions/checkout@v7
         with:
@@ -163,9 +164,9 @@ jobs:
           archive: false
           if-no-files-found: error
 
-  # Linux Build (x64 and ARM64)
-  build-linux:
-    name: Build Linux
+  # Appimage Build (x64 and ARM64)
+  build-appimage:
+    name: Build AppImage
     runs-on: ${{ matrix.runner }}
     strategy:
       fail-fast: false
@@ -184,7 +185,8 @@ jobs:
         with:
           ref: ${{ inputs.ref || github.ref }}
 
-      - name: Install Linux dependencies
+      - &install-linux-dependencies
+        name: Install Linux dependencies
         run: |
           sudo apt-get update
           sudo apt-get install -y \
@@ -229,5 +231,94 @@ jobs:
         with:
           name: linux-${{ matrix.arch }}-installer
           path: frontend/dist/cliq-linux-${{ matrix.arch }}.AppImage
+          archive: false
+          if-no-files-found: error
+
+  # deb Build (x64 and ARM64)
+  build-deb:
+    name: Build deb
+    runs-on: ${{ matrix.runner }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - arch: x64
+            runner: ubuntu-latest
+            flutter-channel: stable
+          - arch: arm64
+            runner: ubuntu-24.04-arm
+            flutter-channel: main # Remove when https://github.com/subosito/flutter-action/issues/345
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ inputs.ref || github.ref }}
+
+      - *install-linux-dependencies
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: ${{ matrix.flutter-channel }}
+          cache: true
+
+      - *install-fastforge
+      - *get-flutter-dependencies
+
+      - name: Build Linux deb
+        run: fastforge package --platform linux --targets deb
+
+      - name: Rename deb
+        run: mv dist/**/*.deb dist/cliq-linux-${{ matrix.arch }}.deb
+
+      - name: Upload Linux artifacts
+        uses: actions/upload-artifact@v7
+        with:
+          name: linux-${{ matrix.arch }}-installer
+          path: frontend/dist/cliq-linux-${{ matrix.arch }}.deb
+          archive: false
+          if-no-files-found: error
+
+
+  # rpm Build (x64 and ARM64)
+  build-rpm:
+    name: Build rpm
+    runs-on: ${{ matrix.runner }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - arch: x64
+            runner: ubuntu-24.04
+            flutter-channel: stable
+          - arch: arm64
+            runner: ubuntu-24.04-arm
+            flutter-channel: main # Remove when https://github.com/subosito/flutter-action/issues/345
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ inputs.ref || github.ref }}
+
+      - *install-linux-dependencies
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: ${{ matrix.flutter-channel }}
+          cache: true
+
+      - *install-fastforge
+      - *get-flutter-dependencies
+
+      - name: Build Linux deb
+        run: fastforge package --platform linux --targets rpm
+
+      - name: Rename rpm
+        run: mv dist/**/*.rpm dist/cliq-linux-${{ matrix.arch }}.rpm
+
+      - name: Upload Linux artifacts
+        uses: actions/upload-artifact@v7
+        with:
+          name: linux-${{ matrix.arch }}-installer
+          path: frontend/dist/cliq-linux-${{ matrix.arch }}.rpm
           archive: false
           if-no-files-found: error
