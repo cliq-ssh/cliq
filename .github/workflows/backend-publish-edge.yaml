@@ -11,13 +11,24 @@ defaults:
   run:
     working-directory: ./backend
 
-env:
-  GHCR_REPO: ghcr.io/${{ github.repository_owner }}/backend-dev
-
 jobs:
+  prepare:
+    name: Prepare image name
+    runs-on: ubuntu-latest
+    outputs:
+      owner: ${{ steps.owner.outputs.owner }}
+    steps:
+      - id: owner
+        env:
+          OWNER: ${{ github.repository_owner }}
+        run: echo "owner=${OWNER,,}" >> "$GITHUB_OUTPUT"
+
   build:
     name: Build (${{ matrix.variant }} / ${{ matrix.platform }})
     runs-on: ${{ matrix.os }}
+    needs: prepare
+    env:
+      GHCR_REPO: ghcr.io/${{ needs.prepare.outputs.owner }}/backend-dev
     strategy:
       fail-fast: false
       matrix:
@@ -97,7 +108,9 @@ jobs:
   merge:
     name: Merge manifests (${{ matrix.variant }})
     runs-on: ubuntu-latest
-    needs: build
+    needs: [ prepare, build ]
+    env:
+      GHCR_REPO: ghcr.io/${{ needs.prepare.outputs.owner }}/backend-dev
     strategy:
       fail-fast: false
       matrix:
@@ -147,4 +160,3 @@ jobs:
           docker buildx imagetools create \
             $(jq -cr '.tags | map("-t " + .) | join(" ")' <<< "$DOCKER_METADATA_OUTPUT_JSON") \
             $(printf '${{ env.GHCR_REPO }}@sha256:%s ' *)
-
