@@ -538,26 +538,26 @@ packages:
     dependency: "direct main"
     description:
       name: forui
-      sha256: a00251e8db89430f388990049ea30ec62f7d1c9270f1fe6ab0d316b1a9415a72
+      sha256: ab4bbf472bee5d972ac1a3f3ae707362b83ca563fa9d334a15470a367902318a
       url: "https://pub.dev"
     source: hosted
-    version: "0.26.0"
+    version: "0.27.0"
   forui_hooks:
     dependency: "direct main"
     description:
       name: forui_hooks
-      sha256: "9a0ac31d478a4a4ce5def5366588ca57d027f43ca2f4171851b88eebf1b92d6b"
+      sha256: "86bcc66be8fda39593dbc82d5cd842e91fb9083ce0e5e75da7f5526a80f54236"
       url: "https://pub.dev"
     source: hosted
-    version: "0.26.0"
+    version: "0.27.0"
   forui_lucide:
     dependency: transitive
     description:
       name: forui_lucide
-      sha256: "5c797b7455b4c491504fc0f76c3d2d6eebe7cb49aeac1d5c02026f06ae1d2607"
+      sha256: "63c660e4213309d9558cfc1c10ec52c13dab88cc2794dc41b8be769a7c86206c"
       url: "https://pub.dev"
     source: hosted
-    version: "0.26.1"
+    version: "0.27.0"
   freezed_annotation:
     dependency: transitive
     description:
