@@ -17,11 +17,6 @@ on:
         type: boolean
         required: false
         default: true
-      publish-backend:
-        description: 'Publish backend to GitHub Registry'
-        type: boolean
-        required: false
-        default: true
 
 concurrency:
   group: release-edge
@@ -89,8 +84,8 @@ jobs:
           git push origin HEAD:${{ github.ref_name }}
           echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
 
-  build:
-    name: Build
+  build-frontend-installer:
+    name: Build frontend installer
     needs: [ checks-passed, bump-version ]
     if: |
       always() &&
@@ -102,12 +97,32 @@ jobs:
     permissions:
       contents: read
 
-  publish-ios:
-    name: Publish iOS to TestFlight
-    needs: [ build, bump-version ]
+  build-backend:
+    name: Build backend
+    uses: ./.github/workflows/backend-build-jar.yaml
+    with:
+      upload-jar: true
+    needs: [ checks-passed, bump-version ]
     if: |
       always() &&
-      needs.build.result == 'success' &&
+      needs.checks-passed.result == 'success' &&
+      (needs.bump-version.result == 'success' || needs.bump-version.result == 'skipped')
+    permissions:
+      contents: read
+      actions: read
+
+  builds-passed:
+    needs: [ build-frontend-installer, build-backend ]
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "All builds passed"
+
+  publish-ios:
+    name: Publish iOS to TestFlight
+    needs: [ builds-passed ]
+    if: |
+      always() &&
+      needs.build-frontend-installer.result == 'success' &&
       inputs.publish-ios
     runs-on: macos-latest
     steps:
@@ -151,10 +166,10 @@ jobs:
 
   publish-macos:
     name: Publish macOS to TestFlight
-    needs: [ build, bump-version ]
+    needs: [ builds-passed ]
     if: |
       always() &&
-      needs.build.result == 'success' &&
+      needs.build-frontend-installer.result == 'success' &&
       inputs.publish-macos
     runs-on: macos-latest
     steps:
@@ -199,9 +214,54 @@ jobs:
   publish-backend:
     name: Publish backend
     uses: ./.github/workflows/backend-publish-edge.yaml
-    needs: checks-passed
-    if: ${{ inputs.publish-backend }}
+    needs: [ builds-passed ]
+    if: |
+      always() &&
+      needs.checks-passed.result == 'success' &&
+      (needs.bump-version.result == 'success' || needs.bump-version.result == 'skipped')
     permissions:
       contents: read
       packages: write
       actions: read
+
+  publish-passed:
+    needs: [ publish-ios, publish-macos, publish-backend ]
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "All publish steps passed"
+
+  release:
+    name: Create or update draft release
+    runs-on: ubuntu-latest
+    needs: [ publish-passed ]
+    permissions:
+      contents: write
+      actions: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          ref: ${{ needs.bump-version.outputs.sha || github.sha }}
+
+      - name: Resolve release version
+        id: version
+        run: |
+          set -euo pipefail
+          VERSION="$(cat VERSION)"
+          echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
+
+      - name: Download installer artifacts
+        uses: actions/download-artifact@v8
+        with:
+          pattern: "*"
+          path: artifacts
+          merge-multiple: true
+
+      - name: Create or update draft release
+        uses: softprops/action-gh-release@v3
+        with:
+          draft: true
+          generate_release_notes: true
+          tag_name: edge
+          name: edge
+          files: artifacts/*
