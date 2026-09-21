@@ -12,7 +12,7 @@ defaults:
     working-directory: ./backend
 
 env:
-  GHCR_REPO: ghcr.io/cliq-ssh/backend-dev
+  GHCR_REPO: ghcr.io/${{ github.repository_owner }}/backend-dev
 
 jobs:
   build:
