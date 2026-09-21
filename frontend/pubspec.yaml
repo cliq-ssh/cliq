@@ -36,8 +36,8 @@ dependencies:
   drift: 2.35.0
   drift_flutter: 0.3.0
   path_provider: ^2.1.6
-  forui: 0.26.0
-  forui_hooks: 0.26.0
+  forui: 0.27.0
+  forui_hooks: 0.27.0
   uuid: 4.6.0
   simple_icons: ^16.23.0
   url_launcher: ^6.3.2
