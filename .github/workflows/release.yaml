@@ -1,4 +1,5 @@
 name: "Release"
+
 on:
   workflow_dispatch:
     inputs:
@@ -11,21 +12,6 @@ on:
         type: boolean
         required: false
         default: false
-      publish-ios:
-        description: 'Publish iOS build to TestFlight'
-        type: boolean
-        required: false
-        default: true
-      publish-macos:
-        description: 'Publish macOS build to TestFlight'
-        type: boolean
-        required: false
-        default: true
-      publish-backend:
-        description: 'Publish backend to GitHub Registry'
-        type: boolean
-        required: false
-        default: true
 
 concurrency:
   group: release
@@ -36,12 +22,12 @@ permissions:
 
 jobs:
   validate-version:
+    name: Validate version
     runs-on: ubuntu-latest
     steps:
       - name: Validate semantic version
         env:
           VERSION: ${{ inputs.version }}
-        # We use php here since bash regex is not pcre compliant
         run: |
           php -r '
             $version = getenv("VERSION");
@@ -74,53 +60,102 @@ jobs:
       checks: write
       security-events: write
 
+
   checks-passed:
     needs: [ frontend-checks, backend-checks ]
     runs-on: ubuntu-latest
     steps:
       - run: echo "All checks passed"
 
-  build-frontend-installer:
-    name: Build frontend installer
-    uses: ./.github/workflows/frontend-build.yaml
+  download-edge-assets:
+    name: Download edge release assets
     needs: checks-passed
+    runs-on: ubuntu-latest
     permissions:
-      contents: write
-      actions: read
+      contents: read
+    steps:
+      - name: Download assets from edge release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          mkdir -p artifacts
+          gh release download edge \
+            --repo "$GITHUB_REPOSITORY" \
+            --dir artifacts \
+            --pattern '*' \
+            --clobber
 
-  build-backend:
-    name: Build backend
-    uses: ./.github/workflows/backend-build-jar.yaml
-    with:
-      upload-jar: true
-    needs: checks-passed
-    permissions:
-      contents: write
-      actions: read
+      - name: List downloaded assets
+        run: find artifacts -type f -ls
 
-  builds-passed:
-    needs: [ build-frontend-installer, build-backend ]
+      - name: Upload edge release assets
+        uses: actions/upload-artifact@v7
+        with:
+          name: edge-release-assets
+          path: artifacts/*
+          archive: false
+          if-no-files-found: error
+
+  promote-ios:
+    name: Promote iOS build
+    needs: download-edge-assets
     runs-on: ubuntu-latest
     steps:
-      - run: echo "All builds passed"
+      - run: echo "iOS promotion is not needed at this time."
+
+  promote-backend:
+    name: Promote backend Docker image
+    needs: checks-passed
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    env:
+      SOURCE_IMAGE: ghcr.io/cliq-ssh/backend-dev
+      TARGET_IMAGE: ghcr.io/cliq-ssh/backend
+    steps:
+      - name: Login to GHCR
+        uses: docker/login-action@v4
+        with:
+          registry: ghcr.io
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Promote Docker manifests
+        env:
+          VERSION: ${{ inputs.version }}
+        run: |
+          set -euo pipefail
+          docker buildx imagetools create \
+            --tag "${TARGET_IMAGE}:${VERSION}" \
+            --tag "${TARGET_IMAGE}:latest" \
+            "${SOURCE_IMAGE}:edge"
+          docker buildx imagetools create \
+            --tag "${TARGET_IMAGE}:${VERSION}-alpine" \
+            --tag "${TARGET_IMAGE}:alpine" \
+            "${SOURCE_IMAGE}:edge-alpine"
+
+  pre-release-checks:
+    name: Pre release checks
+    needs: [ download-edge-assets, promote-ios, promote-backend ]
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "All pre release checks passed"
 
   release:
-    name: Create release
+    name: Create draft release
+    needs: pre-release-checks
     runs-on: ubuntu-latest
-    needs: builds-passed
     permissions:
       contents: write
       actions: read
     steps:
-      - name: Download installer artifacts
+      - name: Download edge release assets
         uses: actions/download-artifact@v8
         with:
-          pattern: "cliq*"
+          name: edge-release-assets
           path: artifacts
-          merge-multiple: true
-
-      - name: Debug artifacts
-        run: find artifacts -type f -ls
 
       - name: Create draft release
         uses: softprops/action-gh-release@v3
