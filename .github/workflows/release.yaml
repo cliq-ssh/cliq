@@ -247,6 +247,7 @@ jobs:
   publish-passed:
     name: Publishing passed
     needs: [ publish-ios, publish-macos, publish-backend ]
+    if: ${{ always() }}
     runs-on: ubuntu-latest
     steps:
       - uses: re-actors/alls-green@release/v1
