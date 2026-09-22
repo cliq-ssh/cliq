@@ -257,7 +257,8 @@ jobs:
 
   release:
     name: Create or update edge release
-    needs: [ publish-passed ]
+    needs: [ publish-passed, bump-version ]
+    if: ${{ always() && needs.publish-passed.result == 'success' && needs.bump-version.result == 'success' }}
     runs-on: ubuntu-latest
     permissions:
       contents: write
