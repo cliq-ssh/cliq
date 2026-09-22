@@ -256,6 +256,20 @@ jobs:
           path: artifacts
           merge-multiple: true
 
+      - name: Filter release assets
+        run: |
+          set -euo pipefail
+          find artifacts -type f ! \( \
+            -name '*.jar' -o \
+            -name '*.AppImage' -o \
+            -name '*.deb' -o \
+            -name '*.rpm' -o \
+            -name '*.exe' -o \
+            -name '*.dmg' \
+          \) -delete
+
+          find artifacts -type f -size 0 -delete
+
       - name: Create or update draft release
         uses: softprops/action-gh-release@v3
         with:
