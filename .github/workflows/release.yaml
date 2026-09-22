@@ -93,9 +93,50 @@ jobs:
   promote-ios:
     name: Promote iOS build
     needs: download-edge-assets
-    runs-on: ubuntu-latest
+    runs-on: macos-latest
     steps:
-      - run: echo "iOS promotion is not needed at this time."
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '4.0.7'
+          bundler-cache: true
+          working-directory: frontend/ios
+
+      - name: Promote iOS build
+        working-directory: frontend/ios
+        env:
+          RELEASE_BETA: ${{ inputs.is-beta-release }}
+          APP_STORE_CONNECT_API_KEY_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY_ID }}
+          APP_STORE_CONNECT_API_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_API_ISSUER_ID }}
+          APP_STORE_CONNECT_API_KEY_CONTENT: ${{ secrets.APP_STORE_CONNECT_API_KEY_CONTENT }}
+        run: bundle exec fastlane ios promote
+
+  promote-macos:
+    name: Promote macOS build
+    needs: download-edge-assets
+    runs-on: macos-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '4.0.7'
+          bundler-cache: true
+          working-directory: frontend/macos
+
+      - name: Promote macOS build
+        working-directory: frontend/macos
+        env:
+          RELEASE_BETA: ${{ inputs.is-beta-release }}
+          APP_STORE_CONNECT_API_KEY_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY_ID }}
+          APP_STORE_CONNECT_API_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_API_ISSUER_ID }}
+          APP_STORE_CONNECT_API_KEY_CONTENT: ${{ secrets.APP_STORE_CONNECT_API_KEY_CONTENT }}
+        run: bundle exec fastlane mac promote
 
   promote-backend:
     name: Promote backend Docker image
@@ -131,7 +172,7 @@ jobs:
 
   pre-release-checks:
     name: Pre release checks
-    needs: [ resolve-version, download-edge-assets, promote-ios, promote-backend ]
+    needs: [ resolve-version, download-edge-assets, promote-ios, promote-macos, promote-backend ]
     runs-on: ubuntu-latest
     steps:
       - run: echo "All pre release checks passed"
