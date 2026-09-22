@@ -113,28 +113,32 @@ jobs:
   publish-ios:
     name: Publish iOS to TestFlight
     needs: [ builds-passed ]
-    if: |
-      always() &&
-      needs.build-frontend-installer.result == 'success' &&
-      inputs.publish-ios
     runs-on: macos-latest
     steps:
+      - name: Skip iOS publishing
+        if: ${{ !inputs.publish-ios }}
+        run: echo "iOS publishing is disabled."
+
       - name: Checkout
+        if: ${{ inputs.publish-ios }}
         uses: actions/checkout@v7
         with:
           ref: ${{ needs.bump-version.outputs.sha || github.sha }}
 
       - name: Setup Flutter
+        if: ${{ inputs.publish-ios }}
         uses: subosito/flutter-action@v2
         with:
           channel: 'stable'
           cache: true
 
       - name: Get dependencies
+        if: ${{ inputs.publish-ios }}
         working-directory: frontend
         run: flutter pub get
 
       - name: Set up Ruby
+        if: ${{ inputs.publish-ios }}
         uses: ruby/setup-ruby@v1
         with:
           ruby-version: '4.0.7'
@@ -142,6 +146,7 @@ jobs:
           working-directory: frontend/ios
 
       - name: Build and upload iOS to TestFlight
+        if: ${{ inputs.publish-ios }}
         working-directory: frontend/ios
         env:
           APP_STORE_CONNECT_API_KEY_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY_ID }}
@@ -160,28 +165,32 @@ jobs:
   publish-macos:
     name: Publish macOS to TestFlight
     needs: [ builds-passed ]
-    if: |
-      always() &&
-      needs.build-frontend-installer.result == 'success' &&
-      inputs.publish-macos
     runs-on: macos-latest
     steps:
+      - name: Skip macOS publishing
+        if: ${{ !inputs.publish-macos }}
+        run: echo "macOS publishing is disabled."
+
       - name: Checkout
+        if: ${{ inputs.publish-macos }}
         uses: actions/checkout@v7
         with:
           ref: ${{ needs.bump-version.outputs.sha || github.sha }}
 
       - name: Setup Flutter
+        if: ${{ inputs.publish-macos }}
         uses: subosito/flutter-action@v2
         with:
           channel: 'stable'
           cache: true
 
       - name: Get dependencies
+        if: ${{ inputs.publish-macos }}
         working-directory: frontend
         run: flutter pub get
 
       - name: Set up Ruby
+        if: ${{ inputs.publish-macos }}
         uses: ruby/setup-ruby@v1
         with:
           ruby-version: '4.0.7'
@@ -189,6 +198,7 @@ jobs:
           working-directory: frontend/macos
 
       - name: Build and upload macOS to TestFlight
+        if: ${{ inputs.publish-macos }}
         working-directory: frontend/macos
         env:
           APP_STORE_CONNECT_API_KEY_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY_ID }}
