@@ -46,7 +46,7 @@ jobs:
         run: |
           set -euo pipefail
 
-          sed -i -E 's/^version: .*/version: '"$VERSION"'+10/' frontend/pubspec.yaml
+          sed -i -E 's/^(version: )[0-9]+\.[0-9]+\.[0-9]+\+([0-9]+)/\1'"$VERSION"'+\2/' frontend/pubspec.yaml
           sed -i -E 's/^version = ".*"/version = "'"$VERSION"'"/' backend/build.gradle.kts
           sed -i -E 's/"version": ".*"/"version": "'"$VERSION"'"/' docs/package.json
           echo "$VERSION" > VERSION
