@@ -2,9 +2,9 @@
 
 ## Workflows
 
-1. bump version – this workflow bumps the version in all the packages and in the `VERSION` root-file
-2. release edge – publishes an edge release for internal testers
-3. release – publishes a (beta) release that only promotes the edge release
+1. **Bump Version** – bumps the version in all packages and in the [`VERSION`](../VERSION)
+   root file.
+2. **Release** – publishes one release for the selected channel: `edge`, `beta`, or `prod`.
 
 # Usage
 
@@ -12,16 +12,19 @@ Each release iteration follows this order:
 
 1. Run **Bump Version** from the Actions tab and provide the new semantic version. This updates the shared version in
    the frontend, backend, docs, and [`VERSION`](../VERSION).
-2. Run **Release Edge** from the Actions tab. This builds all artifacts, publishes the backend edge images, optionally
-   publishes the configured app-store builds and creates or updates the `edge` prerelease. Repeat this step whenever a
-   new edge build is needed for internal testing.
-3. Run **Release** from the Actions tab after the edge build is ready. It downloads the artifacts from the `edge`
-   release, promotes the backend images, and creates the versioned release. Enable the beta option when publishing a
-   beta release; leave it disabled for a full release.
+2. Run **Release** from the Actions tab and select the release channel:
+    - **edge** creates or overrides the `edge` release, marked as a pre-release. It builds all installers and the
+      backend JAR, publishes the backend `backend-dev` Docker image, and publishes the frontend to the App Store for
+      internal testers.
+    - **beta** creates a normal versioned release marked as a pre-release. It builds all installers and the backend JAR
+      and publishes the iOS app to the App Store for external testers. For the backend, we should publish a Docker image
+      to `backend:<version>-beta`.
+    - **prod** creates a normal versioned release. It builds all installers and the backend JAR, publishes the backend
+      `backend` Docker image, and publishes the frontend to the normal App Store release.
 
 # Descriptions
 
-## Bump version
+## Bump Version
 
 The main goal of this workflow is to keep a unified version across all the components:
 
@@ -29,18 +32,17 @@ The main goal of this workflow is to keep a unified version across all the compo
 - frontend
 - docs
 
-Our single source of truth is the [`VERSION`](../VERSION) file that only contains a semver compatible version string.  
-The build number is only bumped and used in the frontend component and therefore not part of the [`VERSION`](../VERSION)
-file.
-
-## Release Edge
-
-The main goal of this workflow is to build an edge build of the software and publish it to a single `edge` prerelease
-and to internal testers through the configured app stores.
-This is the only workflow that will actually build the software.
-It creates or updates the `edge` release with the new build artifacts.
+Our single source of truth is the [`VERSION`](../VERSION) file that only contains a semver compatible version string.
+The build number is only bumped and used in the frontend component and therefore is not part of the
+[`VERSION`](../VERSION) file.
 
 ## Release
 
-The main goal of this workflow is to take the `edge` release and promote the build to beta or stable users.
-It creates a new versioned release with the same artifacts as the `edge` release and promotes the backend image.
+The release workflow builds all installers and the backend JAR for every release channel. The selected channel controls
+the release visibility, Docker image, and App Store distribution:
+
+| Channel | GitHub release                          | Backend                                                           | Frontend                   |
+|---------|-----------------------------------------|-------------------------------------------------------------------|----------------------------|
+| `edge`  | Create or override `edge`; pre-release  | Publish `backend-dev` Docker image                                | App Store internal testers |
+| `beta`  | Create a versioned release; pre-release | **TODO:** decide how the backend beta release should be published | App Store external testers |
+| `prod`  | Create a versioned normal release       | Publish `backend` Docker image                                    | Normal App Store release   |
