@@ -1,4 +1,4 @@
-name: "Release Edge"
+name: "Deprecated! Release Edge"
 on:
   workflow_dispatch:
     inputs:
