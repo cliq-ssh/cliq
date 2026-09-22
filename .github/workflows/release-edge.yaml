@@ -289,11 +289,17 @@ jobs:
               done
           fi
 
-      - name: Create or update draft release
+      - name: Prepare release notes
+        id: release-info
+        run: echo "updated=$(date -u +'%Y-%m-%dT%H:%M:%SZ')" >> "$GITHUB_OUTPUT"
+
+      - name: Create or update prerelease
         uses: softprops/action-gh-release@v3
         with:
-          draft: true
-          generate_release_notes: true
+          draft: false
+          prerelease: true
           tag_name: edge
           name: edge
+          body: |
+            Updated: ${{ steps.release-info.outputs.updated }}
           files: artifacts/*
