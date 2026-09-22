@@ -17,6 +17,11 @@ on:
         type: boolean
         required: false
         default: true
+      publish-backend:
+        description: 'Publish backend image'
+        type: boolean
+        required: false
+        default: true
 
 concurrency:
   group: release-edge
@@ -218,6 +223,7 @@ jobs:
     name: Publish backend
     uses: ./.github/workflows/backend-publish-edge.yaml
     needs: [ builds-passed ]
+    if: ${{ inputs.publish-backend }}
     permissions:
       contents: read
       packages: write
@@ -225,6 +231,11 @@ jobs:
 
   publish-passed:
     needs: [ publish-ios, publish-macos, publish-backend ]
+    if: |
+      always() &&
+      needs.publish-ios.result != 'failure' &&
+      needs.publish-macos.result != 'failure' &&
+      needs.publish-backend.result != 'failure'
     runs-on: ubuntu-latest
     steps:
       - run: echo "All publish steps passed"
