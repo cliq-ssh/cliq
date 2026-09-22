@@ -142,7 +142,9 @@ jobs:
     needs: [ build-frontend-installers, build-backend-jar ]
     runs-on: ubuntu-latest
     steps:
-      - run: echo "All builds passed"
+      - uses: re-actors/alls-green@release/v1
+        with:
+          jobs: ${{ toJSON(needs) }}
 
   publish-ios:
     name: Build and publish iOS to TestFlight
@@ -245,18 +247,16 @@ jobs:
   publish-passed:
     name: Publishing passed
     needs: [ publish-ios, publish-macos, publish-backend ]
-    if: |
-      always() &&
-      needs.publish-ios.result != 'failure' &&
-      needs.publish-macos.result != 'failure' &&
-      needs.publish-backend.result != 'failure'
     runs-on: ubuntu-latest
     steps:
-      - run: echo "All publishing steps passed"
+      - uses: re-actors/alls-green@release/v1
+        with:
+          allowed-skips: publish-ios,publish-macos,publish-backend
+          jobs: ${{ toJSON(needs) }}
 
   release:
     name: Create or update edge release
-    needs: [ publish-passed, bump-version ]
+    needs: [ publish-passed ]
     runs-on: ubuntu-latest
     permissions:
       contents: write
