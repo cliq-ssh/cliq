@@ -270,6 +270,25 @@ jobs:
 
           find artifacts -type f -size 0 -delete
 
+      - name: Remove existing release assets
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          if gh release view edge --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            gh release view edge \
+              --repo "$GITHUB_REPOSITORY" \
+              --json assets \
+              --jq '.assets[].name' |
+              while IFS= read -r asset; do
+                if [ -n "$asset" ]; then
+                  gh release delete-asset edge "$asset" \
+                    --repo "$GITHUB_REPOSITORY" \
+                    --yes
+                fi
+              done
+          fi
+
       - name: Create or update draft release
         uses: softprops/action-gh-release@v3
         with:
