@@ -3,10 +3,6 @@ name: "Release"
 on:
   workflow_dispatch:
     inputs:
-      version:
-        description: 'Version to release'
-        type: string
-        required: true
       is-beta-release:
         description: 'Is this a beta release?'
         type: boolean
@@ -21,29 +17,26 @@ permissions:
   contents: read
 
 jobs:
-  validate-version:
-    name: Validate version
+  resolve-version:
+    name: Resolve version
+    needs: checks-passed
     runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.version.outputs.version }}
     steps:
-      - name: Validate semantic version
-        env:
-          VERSION: ${{ inputs.version }}
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Read version
+        id: version
         run: |
-          php -r '
-            $version = getenv("VERSION");
-            $regex = "/^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-((?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+([0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?$/";
-
-            if (!preg_match($regex, $version)) {
-                fwrite(STDERR, "::error::\"$version\" is not a valid semantic version.\n");
-                exit(1);
-            }
-          '
-
-          echo "Version '$VERSION' is valid."
+          set -euo pipefail
+          VERSION="$(tr -d '[:space:]' < VERSION)"
+          test -n "$VERSION"
+          echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
 
   frontend-checks:
     name: Frontend Checks
-    needs: validate-version
     uses: ./.github/workflows/frontend-checks.yaml
     permissions:
       contents: read
@@ -52,7 +45,6 @@ jobs:
 
   backend-checks:
     name: Backend checks
-    needs: validate-version
     uses: ./.github/workflows/backend-checks.yaml
     permissions:
       contents: read
@@ -106,7 +98,7 @@ jobs:
 
   promote-backend:
     name: Promote backend Docker image
-    needs: checks-passed
+    needs: [ checks-passed, resolve-version ]
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -124,7 +116,7 @@ jobs:
 
       - name: Promote Docker manifests
         env:
-          VERSION: ${{ inputs.version }}
+          VERSION: ${{ needs.resolve-version.outputs.version }}
         run: |
           set -euo pipefail
           docker buildx imagetools create \
@@ -138,14 +130,14 @@ jobs:
 
   pre-release-checks:
     name: Pre release checks
-    needs: [ download-edge-assets, promote-ios, promote-backend ]
+    needs: [ resolve-version, download-edge-assets, promote-ios, promote-backend ]
     runs-on: ubuntu-latest
     steps:
       - run: echo "All pre release checks passed"
 
   release:
     name: Create draft release
-    needs: pre-release-checks
+    needs: [ pre-release-checks, resolve-version ]
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -162,6 +154,6 @@ jobs:
         with:
           draft: true
           generate_release_notes: true
-          tag_name: v${{ inputs.version }}
+          tag_name: v${{ needs.resolve-version.outputs.version }}
           prerelease: ${{ inputs.is-beta-release }}
           files: artifacts/*
