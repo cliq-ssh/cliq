@@ -46,13 +46,13 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Reject unsupported release channel
-        if: ${{ inputs.release-channel != 'edge' }}
+        if: ${{ inputs.release-channel == 'prod' }}
         run: |
           echo "::error::The ${{ inputs.release-channel }} release channel is not implemented yet."
           exit 1
-      - name: Use edge release channel
-        if: ${{ inputs.release-channel == 'edge' }}
-        run: echo "Using edge release channel"
+      - name: Use implemented release channel
+        if: ${{ inputs.release-channel != 'prod' }}
+        run: echo "Using ${{ inputs.release-channel }} release channel"
 
   frontend-checks:
     name: Frontend Checks
@@ -151,6 +151,32 @@ jobs:
       contents: read
       actions: read
 
+  resolve-release:
+    name: Resolve release metadata
+    needs: [ bump-version ]
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+      build-number: ${{ steps.version.outputs.build-number }}
+      release-tag: ${{ steps.version.outputs.release-tag }}
+      docker-tag: ${{ steps.version.outputs.docker-tag }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          ref: ${{ needs.bump-version.outputs.sha || github.sha }}
+
+      - name: Resolve version and tags
+        id: version
+        run: |
+          set -euo pipefail
+          VERSION="$(jq -r '.version' VERSION.json)"
+          BUILD_NUMBER="$(jq -r '.buildNumber' VERSION.json)"
+          echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
+          echo "build-number=${BUILD_NUMBER}" >> "$GITHUB_OUTPUT"
+          echo "release-tag=v${VERSION}-beta+${BUILD_NUMBER}" >> "$GITHUB_OUTPUT"
+          echo "docker-tag=v${VERSION}-beta-${BUILD_NUMBER}" >> "$GITHUB_OUTPUT"
+
   builds-passed:
     name: Builds passed
     needs: [ build-frontend-installers, build-backend-jar ]
@@ -202,7 +228,7 @@ jobs:
           cd ..
           flutter build ios --release --no-codesign
           cd ios
-          bundle exec fastlane ios edge
+          bundle exec fastlane ios ${{ inputs.release-channel == 'beta' && 'beta' || 'edge' }}
 
   publish-macos:
     name: Build and publish macOS to TestFlight
@@ -248,11 +274,23 @@ jobs:
           cd macos
           bundle exec fastlane mac edge
 
-  publish-backend:
-    name: Build and publish backend
+  publish-backend-edge:
+    name: Build and publish edge backend
     needs: [ builds-passed ]
-    if: ${{ inputs.build-backend }}
+    if: ${{ inputs.build-backend && inputs.release-channel == 'edge' }}
     uses: ./.github/workflows/backend-publish-edge.yaml
+    permissions:
+      contents: read
+      packages: write
+      actions: read
+
+  publish-backend-beta:
+    name: Build and publish beta backend
+    needs: [ builds-passed, resolve-release ]
+    if: ${{ inputs.build-backend && inputs.release-channel == 'beta' }}
+    uses: ./.github/workflows/backend-publish-beta.yaml
+    with:
+      image-tag: ${{ needs.resolve-release.outputs.docker-tag }}
     permissions:
       contents: read
       packages: write
@@ -260,19 +298,19 @@ jobs:
 
   publish-passed:
     name: Publishing passed
-    needs: [ publish-ios, publish-macos, publish-backend ]
+    needs: [ publish-ios, publish-macos, publish-backend-edge, publish-backend-beta ]
     if: ${{ always() }}
     runs-on: ubuntu-latest
     steps:
       - uses: re-actors/alls-green@release/v1
         with:
-          allowed-skips: publish-ios,publish-macos,publish-backend
+          allowed-skips: publish-ios,publish-macos,publish-backend-edge,publish-backend-beta
           jobs: ${{ toJSON(needs) }}
 
   release:
-    name: Create or update edge release
-    needs: [ publish-passed, bump-version ]
-    if: ${{ always() && needs.publish-passed.result == 'success' && needs.bump-version.result == 'success' }}
+    name: Create or update ${{ inputs.release-channel }} release
+    needs: [ publish-passed, bump-version, resolve-release ]
+    if: ${{ always() && needs.publish-passed.result == 'success' && needs.bump-version.result == 'success' && needs.resolve-release.result == 'success' }}
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -304,6 +342,7 @@ jobs:
           find artifacts -type f -size 0 -delete
 
       - name: Remove existing release assets
+        if: ${{ inputs.release-channel == 'edge' }}
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
@@ -326,7 +365,8 @@ jobs:
         id: release-info
         run: echo "updated=$(date -u +'%Y-%m-%dT%H:%M:%SZ')" >> "$GITHUB_OUTPUT"
 
-      - name: Create or update prerelease
+      - name: Create or update edge release
+        if: ${{ inputs.release-channel == 'edge' }}
         uses: softprops/action-gh-release@v3
         with:
           draft: false
@@ -334,5 +374,17 @@ jobs:
           tag_name: edge
           name: edge
           body: |
+            Version: ${{ needs.resolve-release.outputs.version }}+${{ needs.resolve-release.outputs.build-number }}
             Updated: ${{ steps.release-info.outputs.updated }}
+          files: artifacts/*
+
+      - name: Create beta release
+        if: ${{ inputs.release-channel == 'beta' }}
+        uses: softprops/action-gh-release@v3
+        with:
+          draft: false
+          prerelease: true
+          generate_release_notes: true
+          tag_name: ${{ needs.resolve-release.outputs.release-tag }}
+          name: ${{ needs.resolve-release.outputs.release-tag }}
           files: artifacts/*

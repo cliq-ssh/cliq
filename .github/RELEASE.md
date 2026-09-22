@@ -17,11 +17,13 @@ Each release iteration follows this order:
     - **edge** creates or overrides the `edge` release, marked as a pre-release. It builds all installers and the
       backend JAR, publishes the backend `backend-dev` Docker image, and publishes the frontend to the App Store for
       internal testers.
-    - **beta** creates a normal versioned release marked as a pre-release. It builds all installers and the backend JAR
-      and publishes the iOS app to the App Store for external testers. For the backend, we should publish a Docker image
-      to `backend:<version>-beta`.
+    - **beta** creates a versioned pre-release tagged `v<version>-beta+<buildnumber>`. It builds all installers and the
+      backend JAR, publishes the iOS app to TestFlight for external testers, and publishes the backend beta image.
     - **prod** creates a normal versioned release. It builds all installers and the backend JAR, publishes the backend
       `backend` Docker image, and publishes the frontend to the normal App Store release.
+
+`prod` is documented for the target workflow but is not implemented yet; selecting it currently fails during channel
+validation.
 
 # Descriptions
 
@@ -41,8 +43,11 @@ the shared frontend build number in `buildNumber`. Both values are kept in sync 
 The release workflow builds all installers and the backend JAR for every release channel. The selected channel controls
 the release visibility, Docker image, and App Store distribution:
 
-| Channel | GitHub release                          | Backend                                                           | Frontend                   |
-|---------|-----------------------------------------|-------------------------------------------------------------------|----------------------------|
-| `edge`  | Create or override `edge`; pre-release  | Publish `backend-dev` Docker image                                | App Store internal testers |
-| `beta`  | Create a versioned release; pre-release | **TODO:** decide how the backend beta release should be published | App Store external testers |
-| `prod`  | Create a versioned normal release       | Publish `backend` Docker image                                    | Normal App Store release   |
+| Channel | GitHub release | Backend | Frontend |
+|---------|----------------|---------|----------|
+| `edge`  | Create or override `edge`; pre-release | Publish `backend-dev` Docker image | App Store internal testers |
+| `beta`  | Create `v<version>-beta+<buildnumber>`; pre-release | Publish `backend:v<version>-beta-<buildnumber>` | TestFlight external testers |
+| `prod`  | Create a versioned normal release | Publish `backend` Docker image | Normal App Store release |
+
+Docker tags cannot contain `+`, so the beta Docker tag normalizes the release tag's `+<buildnumber>` suffix to
+`-<buildnumber>`. The GitHub release tag retains the exact semantic version format.
