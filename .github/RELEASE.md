@@ -2,7 +2,7 @@
 
 ## Workflows
 
-1. **Bump Version** – bumps the version in all packages and in the [`VERSION`](../VERSION)
+1. **Bump Version** – bumps the version in all packages and in [`VERSION.json`](../VERSION.json)
    root file.
 2. **Release** – publishes one release for the selected channel: `edge`, `beta`, or `prod`.
 
@@ -11,7 +11,8 @@
 Each release iteration follows this order:
 
 1. Run **Bump Version** from the Actions tab and provide the new semantic version. This updates the shared version in
-   the frontend, backend, docs, and [`VERSION`](../VERSION).
+   the    frontend, backend, docs, and [`VERSION.json`](../VERSION.json). The JSON file stores the semantic version and the
+   shared frontend build number.
 2. Run **Release** from the Actions tab and select the release channel:
     - **edge** creates or overrides the `edge` release, marked as a pre-release. It builds all installers and the
       backend JAR, publishes the backend `backend-dev` Docker image, and publishes the frontend to the App Store for
@@ -32,9 +33,8 @@ The main goal of this workflow is to keep a unified version across all the compo
 - frontend
 - docs
 
-Our single source of truth is the [`VERSION`](../VERSION) file that only contains a semver compatible version string.
-The build number is only bumped and used in the frontend component and therefore is not part of the
-[`VERSION`](../VERSION) file.
+Our single source of truth is [`VERSION.json`](../VERSION.json), which contains the semantic version in `version` and
+the shared frontend build number in `buildNumber`. Both values are kept in sync with `frontend/pubspec.yaml`.
 
 ## Release
 

@@ -257,7 +257,7 @@ jobs:
         id: version
         run: |
           set -euo pipefail
-          VERSION="$(cat VERSION)"
+          VERSION="$(jq -r '.version' VERSION.json)"
           echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
 
       - name: Download installer artifacts

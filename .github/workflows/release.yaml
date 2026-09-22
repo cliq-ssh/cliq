@@ -94,17 +94,30 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v7
 
+      - name: Validate version metadata
+        run: |
+          set -euo pipefail
+          JSON_VERSION="$(jq -r '.version' VERSION.json)"
+          JSON_BUILD_NUMBER="$(jq -r '.buildNumber' VERSION.json)"
+          FRONTEND_VERSION="$(sed -nE 's/^version: ([^+]+)\+([0-9]+)$/\1/p' frontend/pubspec.yaml)"
+          FRONTEND_BUILD_NUMBER="$(sed -nE 's/^version: [^+]+\+([0-9]+)$/\1/p' frontend/pubspec.yaml)"
+          test "$JSON_VERSION" = "$FRONTEND_VERSION"
+          test "$JSON_BUILD_NUMBER" = "$FRONTEND_BUILD_NUMBER"
+
       - name: Bump build number
         id: bump
         if: ${{ inputs.increment-build-number }}
         run: |
           set -euo pipefail
-          CURRENT_LINE=$(grep -E '^version:' frontend/pubspec.yaml)
-          CURRENT_BUILD=$(echo "$CURRENT_LINE" | sed -E 's/^version: [0-9]+\.[0-9]+\.[0-9]+\+([0-9]+).*/\1/')
+          VERSION="$(jq -r '.version' VERSION.json)"
+          CURRENT_BUILD="$(jq -r '.buildNumber' VERSION.json)"
           NEW_BUILD=$((CURRENT_BUILD + 1))
-          sed -i -E "s/^(version: [0-9]+\.[0-9]+\.[0-9]+\+)[0-9]+/\1${NEW_BUILD}/" frontend/pubspec.yaml
-          echo "Old: $CURRENT_LINE"
-          echo "New: $(grep -E '^version:' frontend/pubspec.yaml)"
+          jq --argjson buildNumber "$NEW_BUILD" \
+            '.buildNumber = $buildNumber' VERSION.json > VERSION.json.tmp
+          mv VERSION.json.tmp VERSION.json
+          sed -i -E "s/^(version: )[^\+]+\+[0-9]+/\1${VERSION}+${NEW_BUILD}/" frontend/pubspec.yaml
+          echo "Old build number: $CURRENT_BUILD"
+          echo "New build number: $NEW_BUILD"
           echo "build-number=${NEW_BUILD}" >> "$GITHUB_OUTPUT"
 
       - name: Commit and push
@@ -114,7 +127,8 @@ jobs:
           set -euo pipefail
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git commit -am "chore: bump frontend build number to ${{ steps.bump.outputs.build-number }} [skip ci]"
+          git add frontend/pubspec.yaml VERSION.json
+          git commit -m "chore: bump frontend build number to ${{ steps.bump.outputs.build-number }} [skip ci]"
           git push origin HEAD:${{ github.ref_name }}
           echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
 

@@ -47,7 +47,7 @@ jobs:
         id: version
         run: |
           set -euo pipefail
-          VERSION="$(tr -d '[:space:]' < VERSION)"
+          VERSION="$(jq -r '.version' VERSION.json)"
           test -n "$VERSION"
           echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
           echo "owner=${GITHUB_REPOSITORY_OWNER,,}" >> "$GITHUB_OUTPUT"

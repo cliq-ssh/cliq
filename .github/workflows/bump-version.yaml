@@ -42,14 +42,26 @@ jobs:
 
           echo "Version '$VERSION' is valid."
 
+      - name: Validate version metadata
+        run: |
+          set -euo pipefail
+          JSON_VERSION="$(jq -r '.version' VERSION.json)"
+          JSON_BUILD_NUMBER="$(jq -r '.buildNumber' VERSION.json)"
+          FRONTEND_VERSION="$(sed -nE 's/^version: ([^+]+)\+([0-9]+)$/\1/p' frontend/pubspec.yaml)"
+          FRONTEND_BUILD_NUMBER="$(sed -nE 's/^version: [^+]+\+([0-9]+)$/\1/p' frontend/pubspec.yaml)"
+          test "$JSON_VERSION" = "$FRONTEND_VERSION"
+          test "$JSON_BUILD_NUMBER" = "$FRONTEND_BUILD_NUMBER"
+
       - name: Update versions
         run: |
           set -euo pipefail
 
-          sed -i -E 's/^(version: )[0-9]+\.[0-9]+\.[0-9]+\+([0-9]+)/\1'"$VERSION"'+\2/' frontend/pubspec.yaml
+          BUILD_NUMBER="$(jq -r '.buildNumber' VERSION.json)"
+          jq --arg version "$VERSION" '.version = $version' VERSION.json > VERSION.json.tmp
+          mv VERSION.json.tmp VERSION.json
+          sed -i -E 's/^(version: )[^\+]+\+[0-9]+/\1'"$VERSION"'+'"$BUILD_NUMBER"'/' frontend/pubspec.yaml
           sed -i -E 's/^version = ".*"/version = "'"$VERSION"'"/' backend/build.gradle.kts
           sed -i -E 's/"version": ".*"/"version": "'"$VERSION"'"/' docs/package.json
-          echo "$VERSION" > VERSION
 
       - name: Commit version bump
         run: |
@@ -58,6 +70,6 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
-          git add frontend/pubspec.yaml backend/build.gradle.kts docs/package.json VERSION
+          git add frontend/pubspec.yaml backend/build.gradle.kts docs/package.json VERSION.json
           git commit -m "chore: bump version to $VERSION [skip ci]"
           git push
