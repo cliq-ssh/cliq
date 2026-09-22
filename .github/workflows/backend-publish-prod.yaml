@@ -23,6 +23,7 @@ jobs:
         env:
           OWNER: ${{ github.repository_owner }}
         run: echo "owner=${OWNER,,}" >> "$GITHUB_OUTPUT"
+        working-directory: .
 
   build:
     name: Build (${{ matrix.variant }} / ${{ matrix.platform }})
