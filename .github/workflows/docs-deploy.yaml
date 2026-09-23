@@ -40,7 +40,7 @@ jobs:
         with:
           timeout_minutes: 2
           max_attempts: 3
-          command: bash dev/yarn build
+          command: cd docs && bash dev/yarn build
 
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v5
