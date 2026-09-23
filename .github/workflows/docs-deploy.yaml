@@ -36,7 +36,11 @@ jobs:
       - name: Build Docusaurus
         env:
           NODE_ENV: production
-        run: bash dev/yarn build
+        uses: nick-fields/retry@v4
+        with:
+          timeout_minutes: 2
+          max_attempts: 3
+          command: bash dev/yarn build
 
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v5
