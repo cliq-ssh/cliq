@@ -118,14 +118,14 @@ jobs:
       - name: Build Windows Installer (${{ matrix.arch }})
         run: fastforge package --platform windows --targets exe
 
-      - name: Rename MSIX
-        run: mv dist/**/*.exe dist/cliqsetup-windows-${{ matrix.arch }}.exe
+      - name: Rename EXE
+        run: mv dist/**/*.exe dist/cliq-windows-${{ matrix.arch }}.exe
 
       - name: Upload Windows installer artifacts
         uses: actions/upload-artifact@v7
         with:
           name: windows-${{ matrix.arch }}-installer
-          path: frontend/dist/cliqsetup-windows-${{ matrix.arch }}.exe
+          path: frontend/dist/cliq-windows-${{ matrix.arch }}.exe
           archive: false
           if-no-files-found: error
 

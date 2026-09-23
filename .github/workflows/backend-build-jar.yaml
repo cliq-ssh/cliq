@@ -31,11 +31,13 @@ jobs:
           cache-disabled: true
       - name: Run detekt
         run: ./gradlew bootJar --no-daemon
+      - name: Rename Jar
+        run: mv build/libs/*.jar build/libs/cliq-backend.jar
       - name: Upload Jar
         if: ${{ inputs.upload-jar }}
         uses: actions/upload-artifact@v7
         with:
           name: backend-jar
-          path: backend/build/libs/*.jar
+          path: backend/build/libs/cliq-backend.jar
           archive: false
           if-no-files-found: error
