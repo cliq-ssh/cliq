@@ -1,8 +1,11 @@
 name: "Backend: Publish Prod"
 on:
-  push:
-    tags:
-      - 'v[0-9]+.[0-9]+.[0-9]+'
+  workflow_call:
+    inputs:
+      image-tag:
+        description: "Docker tag for the production image"
+        type: string
+        required: true
 
 concurrency:
   group: backend-prod
@@ -113,6 +116,7 @@ jobs:
     needs: [ prepare, build ]
     env:
       GHCR_REPO: ghcr.io/${{ needs.prepare.outputs.owner }}/backend
+      IMAGE_TAG: ${{ inputs.image-tag || github.ref_name }}
     strategy:
       fail-fast: false
       matrix:
@@ -141,14 +145,13 @@ jobs:
         id: meta
         uses: docker/metadata-action@v6
         with:
-          images: |
-            ${{ env.GHCR_REPO }}
+          images: ${{ env.GHCR_REPO }}
           tags: |
-            type=raw,value=latest,enable={{is_default_branch}}
-            type=semver,pattern={{major}}
-            type=semver,pattern={{major}}.{{minor}}
-            type=semver,pattern={{version}}
+            type=semver,pattern={{version}},value=${{ env.IMAGE_TAG }}
+            type=semver,pattern={{major}}.{{minor}},value=${{ env.IMAGE_TAG }}
+            type=semver,pattern={{major}},value=${{ env.IMAGE_TAG }}
           flavor: |
+            prefix=v
             suffix=${{ matrix.flavor_suffix }},onlatest=${{ matrix.flavor_onlatest }}
 
       - name: Login GHCR
