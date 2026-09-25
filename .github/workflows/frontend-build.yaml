@@ -147,7 +147,7 @@ jobs:
       - name: Build Windows Installer (${{ matrix.arch }})
         run: |
           $metadata = Get-Content build_metadata.json | ConvertFrom-Json
-          dart pub global run fastforge package `
+          fastforge package `
             --platform windows `
             --targets exe `
             "--build-dart-define=CLIQ_VERSION=$($metadata.CLIQ_VERSION)" `
