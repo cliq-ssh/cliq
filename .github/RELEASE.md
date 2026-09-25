@@ -35,6 +35,22 @@ The main goal of this workflow is to keep a unified version across all the compo
 Our single source of truth is [`VERSION.json`](../VERSION.json), which contains the semantic version in `version` and
 the shared frontend build number in `buildNumber`. Both values are kept in sync with `frontend/pubspec.yaml`.
 
+### Frontend build metadata
+
+The frontend embeds release metadata at compile time using Flutter's `--dart-define-from-file` option. The values are
+available at runtime through `BuildMetadata` in `frontend/lib/shared/utils/build_metadata.dart`:
+
+| Define                 | Runtime value                                        |
+|------------------------|------------------------------------------------------|
+| `CLIQ_VERSION`         | Semantic application version                         |
+| `CLIQ_BUILD_NUMBER`    | Numeric frontend build number                        |
+| `CLIQ_GIT_SHA`         | Full Git commit SHA, or `dev` for local development  |
+| `CLIQ_GIT_SHA_SHORT`   | Short Git commit SHA, or `dev` for local development |
+| `CLIQ_RELEASE_CHANNEL` | `dev`, `edge`, `beta`, or `prod`                     |
+
+Local builds default to `dev` metadata. Release workflows generate the define file from `VERSION.json`, the checked-out
+commit, and the selected release channel.
+
 ## Release
 
 The release workflow builds all installers and the backend JAR for every release channel. The selected channel controls

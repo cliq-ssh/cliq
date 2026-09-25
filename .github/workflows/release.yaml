@@ -132,6 +132,7 @@ jobs:
     uses: ./.github/workflows/frontend-build.yaml
     with:
       ref: ${{ needs.bump-version.outputs.sha || github.sha }}
+      release-channel: ${{ inputs.release-channel }}
     permissions:
       contents: read
 
@@ -206,6 +207,25 @@ jobs:
         working-directory: frontend
         run: flutter pub get
 
+      - name: Write build metadata
+        working-directory: frontend
+        env:
+          RELEASE_CHANNEL: ${{ inputs.release-channel }}
+        run: |
+          jq -n \
+            --arg version "$(jq -r '.version' ../VERSION.json)" \
+            --argjson buildNumber "$(jq -r '.buildNumber' ../VERSION.json)" \
+            --arg gitSha "$(git rev-parse HEAD)" \
+            --arg gitShaShort "$(git rev-parse --short HEAD)" \
+            --arg releaseChannel "$RELEASE_CHANNEL" \
+            '{
+              CLIQ_VERSION: $version,
+              CLIQ_BUILD_NUMBER: $buildNumber,
+              CLIQ_GIT_SHA: $gitSha,
+              CLIQ_GIT_SHA_SHORT: $gitShaShort,
+              CLIQ_RELEASE_CHANNEL: $releaseChannel
+            }' > build_metadata.json
+
       - name: Set up Ruby
         uses: ruby/setup-ruby@v1
         with:
@@ -225,7 +245,7 @@ jobs:
           APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
         run: |
           cd ..
-          flutter build ios --release --no-codesign
+          flutter build ios --release --no-codesign --dart-define-from-file=build_metadata.json
           cd ios
           bundle exec fastlane ios ${{ inputs.release-channel == 'beta' && 'beta' || inputs.release-channel == 'prod' && 'prod' || 'edge' }}
 
@@ -250,6 +270,25 @@ jobs:
         working-directory: frontend
         run: flutter pub get
 
+      - name: Write build metadata
+        working-directory: frontend
+        env:
+          RELEASE_CHANNEL: ${{ inputs.release-channel }}
+        run: |
+          jq -n \
+            --arg version "$(jq -r '.version' ../VERSION.json)" \
+            --argjson buildNumber "$(jq -r '.buildNumber' ../VERSION.json)" \
+            --arg gitSha "$(git rev-parse HEAD)" \
+            --arg gitShaShort "$(git rev-parse --short HEAD)" \
+            --arg releaseChannel "$RELEASE_CHANNEL" \
+            '{
+              CLIQ_VERSION: $version,
+              CLIQ_BUILD_NUMBER: $buildNumber,
+              CLIQ_GIT_SHA: $gitSha,
+              CLIQ_GIT_SHA_SHORT: $gitShaShort,
+              CLIQ_RELEASE_CHANNEL: $releaseChannel
+            }' > build_metadata.json
+
       - name: Set up Ruby
         uses: ruby/setup-ruby@v1
         with:
@@ -269,7 +308,7 @@ jobs:
           APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
         run: |
           cd ..
-          flutter build macos --release
+          flutter build macos --release --dart-define-from-file=build_metadata.json
           cd macos
           bundle exec fastlane mac ${{ inputs.release-channel == 'prod' && 'prod' || 'edge' }}
 

@@ -51,7 +51,6 @@ dependencies:
   macos_window_utils: ^1.9.1
   cryptography_flutter: ^2.3.4
   flutter_secure_storage: ^11.2.0
-  package_info_plus: ^10.2.1
   iterm2_color_schemes_dart: ^2.0.1
 dev_dependencies:
   flutter_test:
@@ -83,4 +82,3 @@ flutter:
     - family: Noto Sans Symbols2
       fonts:
           - asset: assets/fonts/NotoSansSymbols2-Regular.ttf
-

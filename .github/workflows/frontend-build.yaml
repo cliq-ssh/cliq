@@ -18,6 +18,11 @@ on:
         type: string
         required: false
         default: ''
+      release-channel:
+        description: 'Release channel embedded in the build'
+        type: string
+        required: false
+        default: dev
 
 # Sets a default working directory
 defaults:
@@ -38,6 +43,26 @@ jobs:
         with:
           ref: ${{ inputs.ref || github.ref }}
 
+      - &write-build-metadata
+        name: Write build metadata
+        shell: bash
+        env:
+          RELEASE_CHANNEL: ${{ inputs.release-channel }}
+        run: |
+          jq -n \
+            --arg version "$(jq -r '.version' ../VERSION.json)" \
+            --argjson buildNumber "$(jq -r '.buildNumber' ../VERSION.json)" \
+            --arg gitSha "$(git rev-parse HEAD)" \
+            --arg gitShaShort "$(git rev-parse --short HEAD)" \
+            --arg releaseChannel "$RELEASE_CHANNEL" \
+            '{
+              CLIQ_VERSION: $version,
+              CLIQ_BUILD_NUMBER: $buildNumber,
+              CLIQ_GIT_SHA: $gitSha,
+              CLIQ_GIT_SHA_SHORT: $gitShaShort,
+              CLIQ_RELEASE_CHANNEL: $releaseChannel
+            }' > build_metadata.json
+
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
@@ -49,7 +74,7 @@ jobs:
         run: flutter pub get
 
       - name: Build iOS
-        run: flutter build ios --release --no-codesign
+        run: flutter build ios --release --no-codesign --dart-define-from-file=build_metadata.json
 
   # Android Build
   build-android:
@@ -59,6 +84,8 @@ jobs:
       - uses: actions/checkout@v7
         with:
           ref: ${{ inputs.ref || github.ref }}
+
+      - *write-build-metadata
 
       - name: Set up Java
         uses: actions/setup-java@v6
@@ -75,10 +102,10 @@ jobs:
       - *get-flutter-dependencies
 
       - name: Build Android APK
-        run: flutter build apk --release
+        run: flutter build apk --release --dart-define-from-file=build_metadata.json
 
       - name: Build Android App Bundle
-        run: flutter build appbundle --release
+        run: flutter build appbundle --release --dart-define-from-file=build_metadata.json
 
   # Windows Build (x64 and ARM64)
   build-windows:
@@ -100,6 +127,8 @@ jobs:
         with:
           ref: ${{ inputs.ref || github.ref }}
 
+      - *write-build-metadata
+
       - name: Install Inno Setup
         run: choco install innosetup -y
 
@@ -116,7 +145,7 @@ jobs:
       - *get-flutter-dependencies
 
       - name: Build Windows Installer (${{ matrix.arch }})
-        run: fastforge package --platform windows --targets exe
+        run: fastforge package --platform windows --targets exe --dart-define-from-file=build_metadata.json
 
       - name: Rename EXE
         run: mv dist/**/*.exe dist/cliq-windows-${{ matrix.arch }}.exe
@@ -138,6 +167,8 @@ jobs:
         with:
           ref: ${{ inputs.ref || github.ref }}
 
+      - *write-build-metadata
+
       - name: Install dependencies
         run: npm install -g appdmg
 
@@ -151,7 +182,7 @@ jobs:
       - *get-flutter-dependencies
 
       - name: Build macOS Installer
-        run: fastforge package --platform macos --targets dmg
+        run: fastforge package --platform macos --targets dmg --dart-define-from-file=build_metadata.json
 
       - name: Rename DMG
         run: mv dist/**/*.dmg dist/cliq-macos.dmg
@@ -184,6 +215,8 @@ jobs:
       - uses: actions/checkout@v7
         with:
           ref: ${{ inputs.ref || github.ref }}
+
+      - *write-build-metadata
 
       - &install-linux-dependencies
         name: Install Linux dependencies
@@ -221,7 +254,7 @@ jobs:
       - *get-flutter-dependencies
 
       - name: Build Linux AppImage
-        run: fastforge package --platform linux --targets appimage
+        run: fastforge package --platform linux --targets appimage --dart-define-from-file=build_metadata.json
 
       - name: Rename AppImage
         run: mv dist/**/*.AppImage dist/cliq-linux-${{ matrix.arch }}.AppImage
@@ -253,6 +286,8 @@ jobs:
         with:
           ref: ${{ inputs.ref || github.ref }}
 
+      - *write-build-metadata
+
       - *install-linux-dependencies
 
       - name: Setup Flutter
@@ -265,7 +300,7 @@ jobs:
       - *get-flutter-dependencies
 
       - name: Build Linux deb
-        run: fastforge package --platform linux --targets deb
+        run: fastforge package --platform linux --targets deb --dart-define-from-file=build_metadata.json
 
       - name: Rename deb
         run: mv dist/**/*.deb dist/cliq-linux-${{ matrix.arch }}.deb
@@ -298,6 +333,8 @@ jobs:
         with:
           ref: ${{ inputs.ref || github.ref }}
 
+      - *write-build-metadata
+
       - *install-linux-dependencies
 
       - name: Setup Flutter
@@ -310,7 +347,7 @@ jobs:
       - *get-flutter-dependencies
 
       - name: Build Linux deb
-        run: fastforge package --platform linux --targets rpm
+        run: fastforge package --platform linux --targets rpm --dart-define-from-file=build_metadata.json
 
       - name: Rename rpm
         run: mv dist/**/*.rpm dist/cliq-linux-${{ matrix.arch }}.rpm
