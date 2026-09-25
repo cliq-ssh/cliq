@@ -145,7 +145,16 @@ jobs:
       - *get-flutter-dependencies
 
       - name: Build Windows Installer (${{ matrix.arch }})
-        run: fastforge package --platform windows --targets exe --dart-define-from-file=build_metadata.json
+        shell: bash
+        run: |
+          fastforge package \
+            --platform windows \
+            --targets exe \
+            --build-dart-define="CLIQ_VERSION=$(jq -r '.CLIQ_VERSION' build_metadata.json)" \
+            --build-dart-define="CLIQ_BUILD_NUMBER=$(jq -r '.CLIQ_BUILD_NUMBER' build_metadata.json)" \
+            --build-dart-define="CLIQ_GIT_SHA=$(jq -r '.CLIQ_GIT_SHA' build_metadata.json)" \
+            --build-dart-define="CLIQ_GIT_SHA_SHORT=$(jq -r '.CLIQ_GIT_SHA_SHORT' build_metadata.json)" \
+            --build-dart-define="CLIQ_RELEASE_CHANNEL=$(jq -r '.CLIQ_RELEASE_CHANNEL' build_metadata.json)"
 
       - name: Rename EXE
         run: mv dist/**/*.exe dist/cliq-windows-${{ matrix.arch }}.exe
@@ -182,7 +191,15 @@ jobs:
       - *get-flutter-dependencies
 
       - name: Build macOS Installer
-        run: fastforge package --platform macos --targets dmg --dart-define-from-file=build_metadata.json
+        run: |
+          fastforge package \
+            --platform macos \
+            --targets dmg \
+            --build-dart-define="CLIQ_VERSION=$(jq -r '.CLIQ_VERSION' build_metadata.json)" \
+            --build-dart-define="CLIQ_BUILD_NUMBER=$(jq -r '.CLIQ_BUILD_NUMBER' build_metadata.json)" \
+            --build-dart-define="CLIQ_GIT_SHA=$(jq -r '.CLIQ_GIT_SHA' build_metadata.json)" \
+            --build-dart-define="CLIQ_GIT_SHA_SHORT=$(jq -r '.CLIQ_GIT_SHA_SHORT' build_metadata.json)" \
+            --build-dart-define="CLIQ_RELEASE_CHANNEL=$(jq -r '.CLIQ_RELEASE_CHANNEL' build_metadata.json)"
 
       - name: Rename DMG
         run: mv dist/**/*.dmg dist/cliq-macos.dmg
@@ -254,7 +271,15 @@ jobs:
       - *get-flutter-dependencies
 
       - name: Build Linux AppImage
-        run: fastforge package --platform linux --targets appimage --dart-define-from-file=build_metadata.json
+        run: |
+          fastforge package \
+            --platform linux \
+            --targets appimage \
+            --build-dart-define="CLIQ_VERSION=$(jq -r '.CLIQ_VERSION' build_metadata.json)" \
+            --build-dart-define="CLIQ_BUILD_NUMBER=$(jq -r '.CLIQ_BUILD_NUMBER' build_metadata.json)" \
+            --build-dart-define="CLIQ_GIT_SHA=$(jq -r '.CLIQ_GIT_SHA' build_metadata.json)" \
+            --build-dart-define="CLIQ_GIT_SHA_SHORT=$(jq -r '.CLIQ_GIT_SHA_SHORT' build_metadata.json)" \
+            --build-dart-define="CLIQ_RELEASE_CHANNEL=$(jq -r '.CLIQ_RELEASE_CHANNEL' build_metadata.json)"
 
       - name: Rename AppImage
         run: mv dist/**/*.AppImage dist/cliq-linux-${{ matrix.arch }}.AppImage
@@ -300,7 +325,15 @@ jobs:
       - *get-flutter-dependencies
 
       - name: Build Linux deb
-        run: fastforge package --platform linux --targets deb --dart-define-from-file=build_metadata.json
+        run: |
+          fastforge package \
+            --platform linux \
+            --targets deb \
+            --build-dart-define="CLIQ_VERSION=$(jq -r '.CLIQ_VERSION' build_metadata.json)" \
+            --build-dart-define="CLIQ_BUILD_NUMBER=$(jq -r '.CLIQ_BUILD_NUMBER' build_metadata.json)" \
+            --build-dart-define="CLIQ_GIT_SHA=$(jq -r '.CLIQ_GIT_SHA' build_metadata.json)" \
+            --build-dart-define="CLIQ_GIT_SHA_SHORT=$(jq -r '.CLIQ_GIT_SHA_SHORT' build_metadata.json)" \
+            --build-dart-define="CLIQ_RELEASE_CHANNEL=$(jq -r '.CLIQ_RELEASE_CHANNEL' build_metadata.json)"
 
       - name: Rename deb
         run: mv dist/**/*.deb dist/cliq-linux-${{ matrix.arch }}.deb
@@ -347,7 +380,15 @@ jobs:
       - *get-flutter-dependencies
 
       - name: Build Linux deb
-        run: fastforge package --platform linux --targets rpm --dart-define-from-file=build_metadata.json
+        run: |
+          fastforge package \
+            --platform linux \
+            --targets rpm \
+            --build-dart-define="CLIQ_VERSION=$(jq -r '.CLIQ_VERSION' build_metadata.json)" \
+            --build-dart-define="CLIQ_BUILD_NUMBER=$(jq -r '.CLIQ_BUILD_NUMBER' build_metadata.json)" \
+            --build-dart-define="CLIQ_GIT_SHA=$(jq -r '.CLIQ_GIT_SHA' build_metadata.json)" \
+            --build-dart-define="CLIQ_GIT_SHA_SHORT=$(jq -r '.CLIQ_GIT_SHA_SHORT' build_metadata.json)" \
+            --build-dart-define="CLIQ_RELEASE_CHANNEL=$(jq -r '.CLIQ_RELEASE_CHANNEL' build_metadata.json)"
 
       - name: Rename rpm
         run: mv dist/**/*.rpm dist/cliq-linux-${{ matrix.arch }}.rpm
