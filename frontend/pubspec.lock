@@ -538,10 +538,10 @@ packages:
     dependency: "direct main"
     description:
       name: forui
-      sha256: "9630b92bb356ce44e3f4fcc9d569bd0d13663d0081b86e37f469f0abb6b6636f"
+      sha256: bea98df693fc73158cb72bf3622afe3ea90777a6531e06a75cd0d017b1af2f69
       url: "https://pub.dev"
     source: hosted
-    version: "0.27.1"
+    version: "0.27.2"
   forui_hooks:
     dependency: "direct main"
     description:
