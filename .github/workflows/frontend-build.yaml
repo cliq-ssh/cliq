@@ -145,16 +145,16 @@ jobs:
       - *get-flutter-dependencies
 
       - name: Build Windows Installer (${{ matrix.arch }})
-        shell: bash
         run: |
-          fastforge package \
-            --platform windows \
-            --targets exe \
-            --build-dart-define="CLIQ_VERSION=$(jq -r '.CLIQ_VERSION' build_metadata.json)" \
-            --build-dart-define="CLIQ_BUILD_NUMBER=$(jq -r '.CLIQ_BUILD_NUMBER' build_metadata.json)" \
-            --build-dart-define="CLIQ_GIT_SHA=$(jq -r '.CLIQ_GIT_SHA' build_metadata.json)" \
-            --build-dart-define="CLIQ_GIT_SHA_SHORT=$(jq -r '.CLIQ_GIT_SHA_SHORT' build_metadata.json)" \
-            --build-dart-define="CLIQ_RELEASE_CHANNEL=$(jq -r '.CLIQ_RELEASE_CHANNEL' build_metadata.json)"
+          $metadata = Get-Content build_metadata.json | ConvertFrom-Json
+          dart pub global run fastforge package `
+            --platform windows `
+            --targets exe `
+            "--build-dart-define=CLIQ_VERSION=$($metadata.CLIQ_VERSION)" `
+            "--build-dart-define=CLIQ_BUILD_NUMBER=$($metadata.CLIQ_BUILD_NUMBER)" `
+            "--build-dart-define=CLIQ_GIT_SHA=$($metadata.CLIQ_GIT_SHA)" `
+            "--build-dart-define=CLIQ_GIT_SHA_SHORT=$($metadata.CLIQ_GIT_SHA_SHORT)" `
+            "--build-dart-define=CLIQ_RELEASE_CHANNEL=$($metadata.CLIQ_RELEASE_CHANNEL)"
 
       - name: Rename EXE
         run: mv dist/**/*.exe dist/cliq-windows-${{ matrix.arch }}.exe
