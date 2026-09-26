@@ -1,0 +1,41 @@
+# Docs: https://docs.github.com/en/repositories/releasing-projects-on-github/automatically-generated-release-notes
+changelog:
+  exclude:
+    labels:
+      - changelog:skip
+  categories:
+    - title: 🚨 Breaking Changes
+      labels:
+        - changelog:breaking-change
+
+    - title: 🫥 Deprecated Changes
+      labels:
+        - changelog:deprecated
+
+    - title: 🔒 Security
+      labels:
+        - changelog:security
+
+    - title: 🚀 Features
+      labels:
+        - changelog:feature
+
+    - title: 🌟 Enhancements
+      labels:
+        - changelog:enhancement
+
+    - title: 🐛 Bug fixes
+      labels:
+        - changelog:bugfix
+
+    - title: 📚 Documentation
+      labels:
+        - changelog:documentation
+
+    - title: 🌐 Translations
+      labels:
+        - changelog:translations
+
+    - title: Other Changes
+      labels:
+        - "*"

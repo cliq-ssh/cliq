@@ -34,4 +34,8 @@ jobs:
       - name: Build Docusaurus
         env:
           NODE_ENV: production
-        run: bash dev/yarn build
+        uses: nick-fields/retry@v4
+        with:
+          timeout_minutes: 2
+          max_attempts: 3
+          command: cd docs && bash dev/yarn build

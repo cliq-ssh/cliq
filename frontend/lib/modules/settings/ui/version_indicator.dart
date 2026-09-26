@@ -1,17 +1,14 @@
 import 'dart:async';
 
 import 'package:cliq/shared/data/store.dart';
+import 'package:cliq/shared/utils/build_metadata.dart';
 import 'package:cliq_ui/cliq_ui.dart' show CliqFontFamily;
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:forui/forui.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:package_info_plus/package_info_plus.dart';
 
-class const VersionIndicator({
-  super.key,
-  required final PackageInfo packageInfo,
-}) extends HookConsumerWidget {
+class const VersionIndicator({super.key}) extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final counter = useState(0);
@@ -34,7 +31,7 @@ class const VersionIndicator({
         }
       },
       child: Text(
-        'v${packageInfo.version}+${packageInfo.buildNumber}',
+        'v${BuildMetadata.version}+${BuildMetadata.buildNumber} (${BuildMetadata.gitShaShort})',
         style: .new(
           fontFamily: CliqFontFamily.secondary.fontFamily,
           color: context.theme.colors.mutedForeground,

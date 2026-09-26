@@ -1,1 +1,1 @@
-rootProject.name = "CLIq backend"
+rootProject.name = "cliq-backend"
