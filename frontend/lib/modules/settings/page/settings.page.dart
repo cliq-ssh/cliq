@@ -5,6 +5,7 @@ import 'package:cliq/modules/settings/page/views/identities_settings.view.dart';
 import 'package:cliq/modules/settings/page/views/keys_settings.view.dart';
 import 'package:cliq/modules/settings/page/views/known_hosts_settings.view.dart';
 import 'package:cliq/modules/settings/page/views/licenses.view.dart';
+import 'package:cliq/modules/settings/page/views/logs_settings.view.dart';
 import 'package:cliq/modules/settings/page/views/shortcuts_settings.view.dart';
 import 'package:cliq/modules/settings/page/views/ssh_sftp_settings.view.dart';
 import 'package:cliq/modules/settings/page/views/sync_settings.view.dart';
@@ -142,6 +143,14 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                             title: Text('ssh_sftp'.tr()),
                             onPress: () => context.pushPath(
                               SshSftpSettingsView.pagePath.build(),
+                            ),
+                          ),
+                          FTile(
+                            prefix: const Icon(LucideIcons.fileText),
+                            suffix: const Icon(LucideIcons.chevronRight),
+                            title: Text('logs'.tr()),
+                            onPress: () => context.pushPath(
+                              LogsSettingsView.pagePath.build(),
                             ),
                           ),
                           if (developerMode.value)

@@ -200,8 +200,10 @@
     "one": "1 license",
     "other": "{} licenses"
   },
+  "log_title": "{loggerName} at {timestamp}",
   "login": "Login",
   "logout": "Logout",
+  "logs": "Logs",
   "my_vault": "My Vault",
   "n_a": "N/A",
   "password": "Password",
@@ -296,6 +298,8 @@
     "underline": "Underline"
   },
   "sync": "Sync",
+  "sync_error": "Sync Error",
+  "sync_error_subtitle": "An error occurred while syncing. Please check your internet connection and try again.",
   "sync_export": "Export...",
   "sync_export_file": "Export to File",
   "sync_export_password": "Password (recommended)",

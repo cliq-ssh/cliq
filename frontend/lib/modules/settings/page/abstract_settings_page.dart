@@ -49,14 +49,7 @@ abstract class const AbstractSettingsPage({super.key})
           ],
         ),
       ),
-      child: buildBodyWrapper(
-        context,
-        ref,
-        Padding(
-          padding: const .only(bottom: 32),
-          child: buildBody(context, ref),
-        ),
-      ),
+      child: buildBodyWrapper(context, ref, buildBody(context, ref)),
     );
   }
 }

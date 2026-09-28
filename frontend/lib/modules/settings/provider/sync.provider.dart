@@ -34,7 +34,7 @@ class SyncProviderNotifier extends Notifier<SyncState> {
   bool _isPulling = false;
 
   @override
-  SyncState build() => .initial();
+  SyncState build() => const .initial();
 
   Future<ServerConfigurationResponse> retrieveConfig(
     RouteOptions routeOptions,
@@ -142,7 +142,7 @@ class SyncProviderNotifier extends Notifier<SyncState> {
 
     await deleteNonLocalVaults();
 
-    state = .initial();
+    state = const .initial();
   }
 
   Future<void> deleteNonLocalVaults() async {

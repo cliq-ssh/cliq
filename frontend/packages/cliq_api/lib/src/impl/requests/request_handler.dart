@@ -103,7 +103,12 @@ class RequestHandler {
 
   static Future<RestResponse<T>> _handleDioException<T>(DioException ex) async {
     // check if error response is present
-    final ErrorResponse? errorResponse = .tryFromJson(ex.response?.data);
+
+    ErrorResponse? errorResponse;
+    try {
+      errorResponse = .tryFromJson(ex.response?.data);
+    } catch (_) {}
+
     if (errorResponse != null) {
       return errorResponse.toResponse(httpStatusCode: ex.response?.statusCode);
     }
@@ -113,6 +118,7 @@ class RequestHandler {
     if (statusCode != null) {
       final CliqException? ex = switch (statusCode) {
         500 => LocalErrors.internalServerError.toException(),
+        502 => LocalErrors.badGateway.toException(),
         503 => LocalErrors.serviceUnavailable.toException(),
         _ => null,
       };

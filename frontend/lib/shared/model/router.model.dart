@@ -8,6 +8,7 @@ import 'package:cliq/modules/settings/page/views/identities_settings.view.dart';
 import 'package:cliq/modules/settings/page/views/keys_settings.view.dart';
 import 'package:cliq/modules/settings/page/views/known_hosts_settings.view.dart';
 import 'package:cliq/modules/settings/page/views/licenses.view.dart';
+import 'package:cliq/modules/settings/page/views/logs_settings.view.dart';
 import 'package:cliq/modules/settings/page/views/shortcuts_settings.view.dart';
 import 'package:cliq/modules/settings/page/views/ssh_sftp_settings.view.dart';
 import 'package:cliq/modules/settings/page/views/sync_settings.view.dart';
@@ -90,6 +91,10 @@ class Router {
                   GoRoute(
                     path: ShortcutsSettingsView.pagePath.path,
                     pageBuilder: _swipe(const ShortcutsSettingsView()),
+                  ),
+                  GoRoute(
+                    path: LogsSettingsView.pagePath.path,
+                    pageBuilder: _swipe(const LogsSettingsView()),
                   ),
                   GoRoute(
                     path: SshSftpSettingsView.pagePath.path,

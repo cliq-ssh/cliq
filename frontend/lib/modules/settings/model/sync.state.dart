@@ -5,14 +5,15 @@ import 'package:cliq_api/cliq_api.dart';
 class const SyncState({
   /// The api instance used to communicate with the server
   required final CliqClient? api,
+
   /// The [ServerConfigurationResponse] received from the server upon initialization
   required final ServerConfigurationResponse? config,
   required final Timer? refreshTimer,
   required final Timer? pullTimer,
+
   /// An optional error message if the sync state is in an error state
   required final String? error,
 }) {
-
   const new initial()
     : this(
         api: null,
