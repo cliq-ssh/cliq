@@ -1,0 +1,27 @@
+display_name: "cliq"
+package_name: "cliq"
+generic_name: "cliq"
+maintainer:
+  name: Jason Lessenich
+  email: jasonlessenich@gmail.com
+co_authors:
+  - name: Timon Klinkert
+    email: timon.klinkert@denux.dev
+priority: optional
+section: x11
+installed_size: 6604
+essential: false
+icon: "assets/icon/icon.png"
+
+keywords:
+  - Application
+  - Terminal
+
+categories:
+  - System
+  - Utility
+
+startup_notify: true
+# You can also specify [metainfo](https://freedesktop.org/software/appstream/docs/chap-Quickstart.html) file
+# which contains metadata of the app.
+# metainfo: linux/packaging/myappid.appdata.xml

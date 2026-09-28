@@ -5,6 +5,7 @@ import 'package:cliq/modules/vaults/provider/vault.provider.dart';
 import 'package:cliq/shared/data/store.dart';
 import 'package:cliq/shared/model/page_path.model.dart';
 import 'package:cliq/shared/provider/database.provider.dart';
+import 'package:cliq/shared/utils/build_metadata.dart';
 import 'package:cliq/shared/utils/commons.dart' show Commons;
 import 'package:flutter/cupertino.dart';
 import 'package:forui/forui.dart';
@@ -28,6 +29,55 @@ class const DeveloperSettingsView({super.key}) extends AbstractSettingsPage {
       mainAxisAlignment: .center,
       spacing: 16,
       children: [
+        FTileGroup(
+          label: const Text('Info'),
+          children: [
+            FTile(
+              prefix: const Icon(LucideIcons.tag),
+              title: const Text('Version'),
+              subtitle: const Text(BuildMetadata.version),
+              suffix: const Icon(LucideIcons.copy),
+              onPress: () =>
+                  Commons.copyToClipboard(context, BuildMetadata.version),
+            ),
+            FTile(
+              prefix: const Icon(LucideIcons.hash),
+              title: const Text('Build number'),
+              subtitle: const Text('${BuildMetadata.buildNumber}'),
+              suffix: const Icon(LucideIcons.copy),
+              onPress: () => Commons.copyToClipboard(
+                context,
+                '${BuildMetadata.buildNumber}',
+              ),
+            ),
+            FTile(
+              prefix: const Icon(LucideIcons.gitCommitHorizontal),
+              title: const Text('Git SHA'),
+              subtitle: const Text(BuildMetadata.gitSha, overflow: .visible),
+              suffix: const Icon(LucideIcons.copy),
+              onPress: () =>
+                  Commons.copyToClipboard(context, BuildMetadata.gitSha),
+            ),
+            FTile(
+              prefix: const Icon(LucideIcons.gitBranch),
+              title: const Text('Git SHA (short)'),
+              subtitle: const Text(BuildMetadata.gitShaShort),
+              suffix: const Icon(LucideIcons.copy),
+              onPress: () =>
+                  Commons.copyToClipboard(context, BuildMetadata.gitShaShort),
+            ),
+            FTile(
+              prefix: const Icon(LucideIcons.layers),
+              title: const Text('Release channel'),
+              subtitle: const Text(BuildMetadata.releaseChannelValue),
+              suffix: const Icon(LucideIcons.copy),
+              onPress: () => Commons.copyToClipboard(
+                context,
+                BuildMetadata.releaseChannelValue,
+              ),
+            ),
+          ],
+        ),
         FTileGroup(
           label: const Text('Tools'),
           children: [

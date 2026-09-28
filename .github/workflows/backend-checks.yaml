@@ -41,8 +41,6 @@ jobs:
         run: bash ./dev/install
       - name: Start Docker services
         run: docker compose up -d --wait
-      - name: Run Gradle build
-        run: ./gradlew bootJar
       - name: Run tests
         run: ./gradlew test
       # Publish Test Results are summary

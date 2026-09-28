@@ -10,6 +10,7 @@ on:
       - main
     paths:
       - 'frontend/**'
+  workflow_dispatch: ~
   workflow_call:
     inputs:
       ref:
@@ -17,6 +18,11 @@ on:
         type: string
         required: false
         default: ''
+      release-channel:
+        description: 'Release channel embedded in the build'
+        type: string
+        required: false
+        default: dev
 
 # Sets a default working directory
 defaults:
@@ -37,6 +43,26 @@ jobs:
         with:
           ref: ${{ inputs.ref || github.ref }}
 
+      - &write-build-metadata
+        name: Write build metadata
+        shell: bash
+        env:
+          RELEASE_CHANNEL: ${{ inputs.release-channel }}
+        run: |
+          jq -n \
+            --arg version "$(jq -r '.version' ../VERSION.json)" \
+            --argjson buildNumber "$(jq -r '.buildNumber' ../VERSION.json)" \
+            --arg gitSha "$(git rev-parse HEAD)" \
+            --arg gitShaShort "$(git rev-parse --short HEAD)" \
+            --arg releaseChannel "$RELEASE_CHANNEL" \
+            '{
+              CLIQ_VERSION: $version,
+              CLIQ_BUILD_NUMBER: $buildNumber,
+              CLIQ_GIT_SHA: $gitSha,
+              CLIQ_GIT_SHA_SHORT: $gitShaShort,
+              CLIQ_RELEASE_CHANNEL: $releaseChannel
+            }' > build_metadata.json
+
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
@@ -48,7 +74,7 @@ jobs:
         run: flutter pub get
 
       - name: Build iOS
-        run: flutter build ios --release --no-codesign
+        run: flutter build ios --release --no-codesign --dart-define-from-file=build_metadata.json
 
   # Android Build
   build-android:
@@ -58,6 +84,8 @@ jobs:
       - uses: actions/checkout@v7
         with:
           ref: ${{ inputs.ref || github.ref }}
+
+      - *write-build-metadata
 
       - name: Set up Java
         uses: actions/setup-java@v6
@@ -74,10 +102,10 @@ jobs:
       - *get-flutter-dependencies
 
       - name: Build Android APK
-        run: flutter build apk --release
+        run: flutter build apk --release --dart-define-from-file=build_metadata.json
 
       - name: Build Android App Bundle
-        run: flutter build appbundle --release
+        run: flutter build appbundle --release --dart-define-from-file=build_metadata.json
 
   # Windows Build (x64 and ARM64)
   build-windows:
@@ -90,14 +118,16 @@ jobs:
           - arch: x64
             runner: windows-latest
             flutter-channel: stable
-# Removed until https://github.com/fastforgedev/fastforge/issues/354 is resolved
-#          - arch: arm64
-#            runner: windows-11-arm
-#            flutter-channel: main # Remove when https://github.com/subosito/flutter-action/issues/345
+    # Removed until https://github.com/fastforgedev/fastforge/issues/354 is resolved
+    #          - arch: arm64
+    #            runner: windows-11-arm
+    #            flutter-channel: main # Remove when https://github.com/subosito/flutter-action/issues/345
     steps:
       - uses: actions/checkout@v7
         with:
           ref: ${{ inputs.ref || github.ref }}
+
+      - *write-build-metadata
 
       - name: Install Inno Setup
         run: choco install innosetup -y
@@ -115,16 +145,25 @@ jobs:
       - *get-flutter-dependencies
 
       - name: Build Windows Installer (${{ matrix.arch }})
-        run: fastforge package --platform windows --targets exe
+        run: |
+          $metadata = Get-Content build_metadata.json | ConvertFrom-Json
+          fastforge package `
+            --platform windows `
+            --targets exe `
+            "--build-dart-define=CLIQ_VERSION=$($metadata.CLIQ_VERSION)" `
+            "--build-dart-define=CLIQ_BUILD_NUMBER=$($metadata.CLIQ_BUILD_NUMBER)" `
+            "--build-dart-define=CLIQ_GIT_SHA=$($metadata.CLIQ_GIT_SHA)" `
+            "--build-dart-define=CLIQ_GIT_SHA_SHORT=$($metadata.CLIQ_GIT_SHA_SHORT)" `
+            "--build-dart-define=CLIQ_RELEASE_CHANNEL=$($metadata.CLIQ_RELEASE_CHANNEL)"
 
-      - name: Rename MSIX
-        run: mv dist/**/*.exe dist/cliqsetup-windows-${{ matrix.arch }}.exe
+      - name: Rename EXE
+        run: mv dist/**/*.exe dist/cliq-windows-${{ matrix.arch }}.exe
 
       - name: Upload Windows installer artifacts
         uses: actions/upload-artifact@v7
         with:
           name: windows-${{ matrix.arch }}-installer
-          path: frontend/dist/cliqsetup-windows-${{ matrix.arch }}.exe
+          path: frontend/dist/cliq-windows-${{ matrix.arch }}.exe
           archive: false
           if-no-files-found: error
 
@@ -136,6 +175,8 @@ jobs:
       - uses: actions/checkout@v7
         with:
           ref: ${{ inputs.ref || github.ref }}
+
+      - *write-build-metadata
 
       - name: Install dependencies
         run: npm install -g appdmg
@@ -150,7 +191,15 @@ jobs:
       - *get-flutter-dependencies
 
       - name: Build macOS Installer
-        run: fastforge package --platform macos --targets dmg
+        run: |
+          fastforge package \
+            --platform macos \
+            --targets dmg \
+            --build-dart-define="CLIQ_VERSION=$(jq -r '.CLIQ_VERSION' build_metadata.json)" \
+            --build-dart-define="CLIQ_BUILD_NUMBER=$(jq -r '.CLIQ_BUILD_NUMBER' build_metadata.json)" \
+            --build-dart-define="CLIQ_GIT_SHA=$(jq -r '.CLIQ_GIT_SHA' build_metadata.json)" \
+            --build-dart-define="CLIQ_GIT_SHA_SHORT=$(jq -r '.CLIQ_GIT_SHA_SHORT' build_metadata.json)" \
+            --build-dart-define="CLIQ_RELEASE_CHANNEL=$(jq -r '.CLIQ_RELEASE_CHANNEL' build_metadata.json)"
 
       - name: Rename DMG
         run: mv dist/**/*.dmg dist/cliq-macos.dmg
@@ -163,9 +212,9 @@ jobs:
           archive: false
           if-no-files-found: error
 
-  # Linux Build (x64 and ARM64)
-  build-linux:
-    name: Build Linux
+  # Appimage Build (x64 and ARM64)
+  build-appimage:
+    name: Build AppImage
     runs-on: ${{ matrix.runner }}
     strategy:
       fail-fast: false
@@ -184,7 +233,10 @@ jobs:
         with:
           ref: ${{ inputs.ref || github.ref }}
 
-      - name: Install Linux dependencies
+      - *write-build-metadata
+
+      - &install-linux-dependencies
+        name: Install Linux dependencies
         run: |
           sudo apt-get update
           sudo apt-get install -y \
@@ -219,7 +271,15 @@ jobs:
       - *get-flutter-dependencies
 
       - name: Build Linux AppImage
-        run: fastforge package --platform linux --targets appimage
+        run: |
+          fastforge package \
+            --platform linux \
+            --targets appimage \
+            --build-dart-define="CLIQ_VERSION=$(jq -r '.CLIQ_VERSION' build_metadata.json)" \
+            --build-dart-define="CLIQ_BUILD_NUMBER=$(jq -r '.CLIQ_BUILD_NUMBER' build_metadata.json)" \
+            --build-dart-define="CLIQ_GIT_SHA=$(jq -r '.CLIQ_GIT_SHA' build_metadata.json)" \
+            --build-dart-define="CLIQ_GIT_SHA_SHORT=$(jq -r '.CLIQ_GIT_SHA_SHORT' build_metadata.json)" \
+            --build-dart-define="CLIQ_RELEASE_CHANNEL=$(jq -r '.CLIQ_RELEASE_CHANNEL' build_metadata.json)"
 
       - name: Rename AppImage
         run: mv dist/**/*.AppImage dist/cliq-linux-${{ matrix.arch }}.AppImage
@@ -229,5 +289,114 @@ jobs:
         with:
           name: linux-${{ matrix.arch }}-installer
           path: frontend/dist/cliq-linux-${{ matrix.arch }}.AppImage
+          archive: false
+          if-no-files-found: error
+
+  # deb Build (x64 and ARM64)
+  build-deb:
+    name: Build deb
+    runs-on: ${{ matrix.runner }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - arch: x64
+            runner: ubuntu-latest
+            flutter-channel: stable
+          - arch: arm64
+            runner: ubuntu-24.04-arm
+            flutter-channel: main # Remove when https://github.com/subosito/flutter-action/issues/345
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ inputs.ref || github.ref }}
+
+      - *write-build-metadata
+
+      - *install-linux-dependencies
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: ${{ matrix.flutter-channel }}
+          cache: true
+
+      - *install-fastforge
+      - *get-flutter-dependencies
+
+      - name: Build Linux deb
+        run: |
+          fastforge package \
+            --platform linux \
+            --targets deb \
+            --build-dart-define="CLIQ_VERSION=$(jq -r '.CLIQ_VERSION' build_metadata.json)" \
+            --build-dart-define="CLIQ_BUILD_NUMBER=$(jq -r '.CLIQ_BUILD_NUMBER' build_metadata.json)" \
+            --build-dart-define="CLIQ_GIT_SHA=$(jq -r '.CLIQ_GIT_SHA' build_metadata.json)" \
+            --build-dart-define="CLIQ_GIT_SHA_SHORT=$(jq -r '.CLIQ_GIT_SHA_SHORT' build_metadata.json)" \
+            --build-dart-define="CLIQ_RELEASE_CHANNEL=$(jq -r '.CLIQ_RELEASE_CHANNEL' build_metadata.json)"
+
+      - name: Rename deb
+        run: mv dist/**/*.deb dist/cliq-linux-${{ matrix.arch }}.deb
+
+      - name: Upload Linux artifacts
+        uses: actions/upload-artifact@v7
+        with:
+          name: linux-${{ matrix.arch }}-installer
+          path: frontend/dist/cliq-linux-${{ matrix.arch }}.deb
+          archive: false
+          if-no-files-found: error
+
+
+  # rpm Build (x64 and ARM64)
+  build-rpm:
+    name: Build rpm
+    runs-on: ${{ matrix.runner }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - arch: x64
+            runner: ubuntu-24.04
+            flutter-channel: stable
+          - arch: arm64
+            runner: ubuntu-24.04-arm
+            flutter-channel: main # Remove when https://github.com/subosito/flutter-action/issues/345
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ inputs.ref || github.ref }}
+
+      - *write-build-metadata
+
+      - *install-linux-dependencies
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: ${{ matrix.flutter-channel }}
+          cache: true
+
+      - *install-fastforge
+      - *get-flutter-dependencies
+
+      - name: Build Linux deb
+        run: |
+          fastforge package \
+            --platform linux \
+            --targets rpm \
+            --build-dart-define="CLIQ_VERSION=$(jq -r '.CLIQ_VERSION' build_metadata.json)" \
+            --build-dart-define="CLIQ_BUILD_NUMBER=$(jq -r '.CLIQ_BUILD_NUMBER' build_metadata.json)" \
+            --build-dart-define="CLIQ_GIT_SHA=$(jq -r '.CLIQ_GIT_SHA' build_metadata.json)" \
+            --build-dart-define="CLIQ_GIT_SHA_SHORT=$(jq -r '.CLIQ_GIT_SHA_SHORT' build_metadata.json)" \
+            --build-dart-define="CLIQ_RELEASE_CHANNEL=$(jq -r '.CLIQ_RELEASE_CHANNEL' build_metadata.json)"
+
+      - name: Rename rpm
+        run: mv dist/**/*.rpm dist/cliq-linux-${{ matrix.arch }}.rpm
+
+      - name: Upload Linux artifacts
+        uses: actions/upload-artifact@v7
+        with:
+          name: linux-${{ matrix.arch }}-installer
+          path: frontend/dist/cliq-linux-${{ matrix.arch }}.rpm
           archive: false
           if-no-files-found: error

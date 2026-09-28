@@ -11,7 +11,6 @@ import 'package:cliq/modules/settings/page/views/sync_settings.view.dart';
 import 'package:cliq/modules/settings/page/views/terminal_theme_settings.view.dart';
 import 'package:cliq/modules/settings/provider/sync.provider.dart';
 import 'package:cliq/modules/settings/ui/version_indicator.dart';
-import 'package:cliq/shared/extensions/async_snapshot.extension.dart';
 import 'package:cliq/shared/extensions/router.extension.dart';
 import 'package:cliq/shared/model/page_path.model.dart';
 import 'package:cliq/shared/provider/store.provider.dart';
@@ -23,7 +22,6 @@ import 'package:flutter/material.dart' hide LicensePage;
 import 'package:forui/forui.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lucide_flutter/lucide_flutter.dart';
-import 'package:package_info_plus/package_info_plus.dart';
 import 'package:simple_icons/simple_icons.dart';
 
 class const SettingsPage({super.key}) extends StatefulHookConsumerWidget {
@@ -37,8 +35,6 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
   @override
   Widget build(BuildContext context) {
     final sync = ref.watch(syncProvider);
-    final info = useMemoizedFuture(() => PackageInfo.fromPlatform(), []);
-
     final developerMode = useStore(.developerMode);
     final lastUpdated = useStore(.syncLastUpdated);
 
@@ -181,14 +177,9 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                         ],
                       ),
 
-                      info.on(
-                        onData: (data) {
-                          return Padding(
-                            padding: const .only(top: 12),
-                            child: VersionIndicator(packageInfo: data),
-                          );
-                        },
-                        defaultValue: const SizedBox.shrink(),
+                      const Padding(
+                        padding: .only(top: 12),
+                        child: VersionIndicator(),
                       ),
                     ],
                   ),

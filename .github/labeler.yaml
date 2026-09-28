@@ -17,3 +17,10 @@ docs:
 repo:
   - changed-files:
       - any-glob-to-any-file: .github/**
+
+# Only add the label if the only files changed are translations
+"changelog:translations":
+  - changed-files:
+      - any-glob-to-all-files:
+          - backend/src/main/resources/messages/**
+          - frontend/assets/translations/**

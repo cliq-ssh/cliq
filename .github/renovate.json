@@ -10,6 +10,12 @@
     ],
     "packageRules": [
         {
+          "matchPackageNames": ["*"],
+          "addLabels": [
+            "changelog:skip"
+          ]
+        },
+        {
             "matchManagers": ["pub"],
             "matchFileNames": ["frontend/pubspec.yaml"],
             "matchPackageNames": ["dart"],
