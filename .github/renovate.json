@@ -16,6 +16,12 @@
           ]
         },
         {
+            "matchManagers": ["pub"],
+            "matchFileNames": ["frontend/pubspec.yaml"],
+            "matchPackageNames": ["dart"],
+            "matchUpdateTypes": ["minor"]
+        },
+        {
             "matchFileNames": ["frontend/pubspec.yaml"],
             "matchPackageNames": ["forui", "forui_hooks"],
             "groupName": "forui"
