@@ -55,6 +55,7 @@ class SyncProviderNotifier extends Notifier<SyncState> {
     final routeOptions = await StoreKey.syncHost.readAsync();
     if (routeOptions == null ||
         (await StoreKey.syncRefreshToken.readAsync()) == null) {
+      // we cannot recover due to missing route options or refresh token
       await deleteNonLocalVaults();
       return;
     }
@@ -91,7 +92,7 @@ class SyncProviderNotifier extends Notifier<SyncState> {
       _startPullTimer();
     } on CliqException catch (e) {
       await Commons.showCliqException(e);
-      await logout();
+      state = state.copyWith(error: e.description);
     }
   }
 
