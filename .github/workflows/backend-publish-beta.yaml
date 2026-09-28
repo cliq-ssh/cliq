@@ -1,15 +1,16 @@
-name: "Backend: Publish Edge"
+name: "Backend: Publish Beta"
+
 on:
-  workflow_dispatch: ~
-  workflow_call: ~
+  workflow_call:
+    inputs:
+      image-tag:
+        description: "Docker tag for the beta image"
+        type: string
+        required: true
 
 concurrency:
-  group: backend-edge
+  group: backend-beta
   cancel-in-progress: false
-
-defaults:
-  run:
-    working-directory: ./backend
 
 jobs:
   prepare:
@@ -22,14 +23,16 @@ jobs:
         env:
           OWNER: ${{ github.repository_owner }}
         run: echo "owner=${OWNER,,}" >> "$GITHUB_OUTPUT"
-        working-directory: .
 
   build:
     name: Build (${{ matrix.variant }} / ${{ matrix.platform }})
-    runs-on: ${{ matrix.os }}
     needs: prepare
+    runs-on: ${{ matrix.os }}
+    permissions:
+      contents: read
+      packages: write
     env:
-      GHCR_REPO: ghcr.io/${{ needs.prepare.outputs.owner }}/backend-dev
+      GHCR_REPO: ghcr.io/${{ needs.prepare.outputs.owner }}/backend
     strategy:
       fail-fast: false
       matrix:
@@ -50,114 +53,83 @@ jobs:
             platform: linux/arm64
             variant: alpine
             dockerfile: ./backend/docker/prod/alpine.Dockerfile
-    permissions:
-      contents: read
-      packages: write
     steps:
       - name: Checkout
         uses: actions/checkout@v7
-
       - name: Prepare
         run: |
           platform='${{ matrix.platform }}'
-          echo "PLATFORM_PAIR=${platform//\//-}" >> $GITHUB_ENV
-          echo "VARIANT=${{ matrix.variant }}" >> $GITHUB_ENV
-
+          echo "PLATFORM_PAIR=${platform//\//-}" >> "$GITHUB_ENV"
+          echo "VARIANT=${{ matrix.variant }}" >> "$GITHUB_ENV"
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v4
-
       - name: Set up Buildx
         uses: docker/setup-buildx-action@v4
-
-      - name: Meta (labels only)
-        id: meta
-        uses: docker/metadata-action@v6
-        with:
-          images: ${{ env.GHCR_REPO }}
-
       - name: Login GHCR
         uses: docker/login-action@v4
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Build & push (by digest)
+      - name: Build and push by digest
         id: build
         uses: docker/build-push-action@v7
         with:
           context: ./backend
           file: ${{ matrix.dockerfile }}
           platforms: ${{ matrix.platform }}
-          labels: ${{ steps.meta.outputs.labels }}
-          outputs: type=image,"name=${{ env.GHCR_REPO }}",push-by-digest=true,name-canonical=true,push=true
-
+          outputs: type=image,name=${{ env.GHCR_REPO }},push-by-digest=true,name-canonical=true,push=true
       - name: Export digest
         run: |
-          mkdir -p ${{ runner.temp }}/digests
+          mkdir -p "${{ runner.temp }}/digests"
           digest='${{ steps.build.outputs.digest }}'
           touch "${{ runner.temp }}/digests/${digest#sha256:}"
-
       - name: Upload digest
         uses: actions/upload-artifact@v7
         with:
-          name: digests-${{ env.VARIANT }}-${{ env.PLATFORM_PAIR }}
+          name: beta-digests-${{ env.VARIANT }}-${{ env.PLATFORM_PAIR }}
           path: ${{ runner.temp }}/digests/*
           retention-days: 1
           if-no-files-found: error
 
   merge:
-    name: Merge manifests (${{ matrix.variant }})
-    runs-on: ubuntu-latest
+    name: Publish beta manifest (${{ matrix.variant }})
     needs: [ prepare, build ]
-    env:
-      GHCR_REPO: ghcr.io/${{ needs.prepare.outputs.owner }}/backend-dev
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - variant: debian
-            flavor_suffix: ""
-            flavor_onlatest: false
-          - variant: alpine
-            flavor_suffix: "-alpine"
-            flavor_onlatest: true
+    runs-on: ubuntu-latest
     permissions:
       contents: read
       packages: write
+    env:
+      GHCR_REPO: ghcr.io/${{ needs.prepare.outputs.owner }}/backend
+    strategy:
+      matrix:
+        include:
+          - variant: debian
+            suffix: ""
+          - variant: alpine
+            suffix: "-alpine"
     steps:
       - name: Download digests
         uses: actions/download-artifact@v8
         with:
           path: ${{ runner.temp }}/digests
-          pattern: digests-${{ matrix.variant }}-*
+          pattern: beta-digests-${{ matrix.variant }}-*
           merge-multiple: true
-
       - name: Set up Buildx
         uses: docker/setup-buildx-action@v4
-
-      - name: Docker meta
-        id: meta
-        uses: docker/metadata-action@v6
-        with:
-          images: |
-            ${{ env.GHCR_REPO }}
-          tags: |
-            type=edge
-            type=sha
-          flavor: |
-            suffix=${{ matrix.flavor_suffix }},onlatest=${{ matrix.flavor_onlatest }}
-
       - name: Login GHCR
         uses: docker/login-action@v4
         with:
           registry: ghcr.io
           username: ${{ github.repository_owner }}
           password: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Create and push manifest list
+      - name: Create and push beta manifest
         working-directory: ${{ runner.temp }}/digests
+        env:
+          IMAGE_TAG: ${{ inputs.image-tag }}
+          SUFFIX: ${{ matrix.suffix }}
         run: |
+          set -euo pipefail
           docker buildx imagetools create \
-            $(jq -cr '.tags | map("-t " + .) | join(" ")' <<< "$DOCKER_METADATA_OUTPUT_JSON") \
-            $(printf '${{ env.GHCR_REPO }}@sha256:%s ' *)
+            --tag "${GHCR_REPO}:${IMAGE_TAG}${SUFFIX}" \
+            $(printf "${GHCR_REPO}@sha256:%s " *)

@@ -1,18 +1,17 @@
-name: "Backend: Build"
+name: "Backend: Build Docker"
 on:
   pull_request:
     branches:
       - main
     paths:
-      - 'backend/**'
+      - "backend/**"
 
-# Sets a default working directory
 defaults:
   run:
     working-directory: ./backend  # Change the working directory to /backend
 
 jobs:
-  build:
+  build-docker:
     name: Build (${{ matrix.variant }} / ${{ matrix.platform }})
     runs-on: ${{ matrix.os }}
     permissions:
@@ -47,10 +46,10 @@ jobs:
       - name: Set up Buildx
         uses: docker/setup-buildx-action@v4
 
-      - name: Build & push (by digest)
-        id: build
+      - name: Build
         uses: docker/build-push-action@v7
         with:
           context: ./backend
           file: ${{ matrix.dockerfile }}
           platforms: ${{ matrix.platform }}
+          push: false

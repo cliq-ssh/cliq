@@ -2,7 +2,7 @@ import dev.detekt.gradle.Detekt
 import dev.detekt.gradle.DetektCreateBaselineTask
 
 plugins {
-    val kotlinVersion = "2.4.10"
+    val kotlinVersion = "2.4.20"
     // Kotlin
     kotlin("jvm") version kotlinVersion
     kotlin("plugin.spring") version kotlinVersion
@@ -71,7 +71,7 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-actuator")
 
     // Rate limiting
-    val bucket4JVersion = "8.19.0"
+    val bucket4JVersion = "8.20.0"
     implementation("com.bucket4j:bucket4j_jdk17-core:$bucket4JVersion")
     implementation("com.bucket4j:bucket4j_jdk17-caffeine:$bucket4JVersion")
 
@@ -83,7 +83,7 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-data-jpa")
     runtimeOnly("org.postgresql:postgresql")
     // Flyway
-    val flywayVersion = "13.3.0"
+    val flywayVersion = "13.8.0"
     implementation("org.springframework.boot:spring-boot-starter-flyway")
     implementation("org.flywaydb:flyway-core:$flywayVersion")
     implementation("org.flywaydb:flyway-database-postgresql:$flywayVersion")
@@ -96,7 +96,7 @@ dependencies {
     implementation("com.nimbusds:srp6a:2.1.0")
 
     // Algorithm Provider & Encryption primitives
-    implementation("org.bouncycastle:bcprov-jdk18on:1.85.2")
+    implementation("org.bouncycastle:bcprov-jdk18on:1.86")
 
     // Serialization
     implementation("org.springframework.boot:spring-boot-starter-jackson")
@@ -110,7 +110,7 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-validation")
 
     // OpenAPI
-    val springdocVersion = "3.1.0"
+    val springdocVersion = "3.1.1"
     implementation("org.springdoc:springdoc-openapi-starter-webmvc-api:$springdocVersion")
     implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:$springdocVersion")
     implementation("org.springdoc:springdoc-openapi-starter-webmvc-scalar:$springdocVersion")
@@ -142,7 +142,7 @@ dependencies {
     testImplementation("org.springframework.boot:spring-boot-starter-data-jpa-test")
 
     // Greenmail
-    val greenmailVersion = "2.1.13"
+    val greenmailVersion = "2.1.14"
     testImplementation("com.icegreen:greenmail-spring:$greenmailVersion")
     testImplementation("com.icegreen:greenmail:$greenmailVersion")
     testImplementation("com.icegreen:greenmail-junit5:$greenmailVersion")
@@ -151,9 +151,9 @@ dependencies {
     testImplementation("org.apache.commons:commons-email2-jakarta:2.0.0-M1")
 
     // Mockito
-    testImplementation("org.mockito:mockito-core:5.23.0")
-    testImplementation("org.mockito:mockito-junit-jupiter:5.23.0")
-    testImplementation("org.mockito.kotlin:mockito-kotlin:6.3.0")
+    testImplementation("org.mockito:mockito-core:5.24.0")
+    testImplementation("org.mockito:mockito-junit-jupiter:5.24.0")
+    testImplementation("org.mockito.kotlin:mockito-kotlin:6.4.0")
 
     // AssertJ
     testImplementation("org.assertj:assertj-core:3.27.7")

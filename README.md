@@ -12,6 +12,10 @@
 > [!IMPORTANT]
 > cliq is currently under major development, and there is **no official release yet**. None of the listed features below are available for use at the moment.
 
+# Edge builds
+
+Current edge builds are available in the [edge release](https://github.com/cliq-ssh/cliq/releases/tag/edge).
+
 # What is cliq?
 
 cliq is an open-source SSH and SFTP client with an optional syncing mechanism, allowing to use connections between devices!
