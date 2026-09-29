@@ -7,6 +7,10 @@ concurrency:
   group: backend-edge
   cancel-in-progress: false
 
+permissions:
+  contents: read
+  packages: read
+
 defaults:
   run:
     working-directory: ./backend
