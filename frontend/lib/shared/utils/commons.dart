@@ -16,11 +16,10 @@ import 'package:flutter/material.dart' hide Router;
 import 'package:flutter/services.dart';
 import 'package:forui/forui.dart';
 import 'package:lucide_flutter/lucide_flutter.dart';
+import 'package:share_plus/share_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-final class Commons {
-  const new _();
-
+final class const Commons._() {
   static XTypeGroup getCustomTerminalThemeGroup(BuildContext context) {
     return XTypeGroup(
       label: 'file_groups.terminal_theme'.tr(context: context),
@@ -232,6 +231,10 @@ final class Commons {
 
     await file.saveTo(result.path);
     return true;
+  }
+
+  static Future<ShareResult> shareText(String text, {String? subject}) {
+    return SharePlus.instance.share(ShareParams(text: text, subject: subject));
   }
 
   static Future<void> launchGitHubUrl() => _launchUrl(Constants.githubUrl);

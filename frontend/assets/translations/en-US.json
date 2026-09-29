@@ -72,6 +72,7 @@
   "default_font_family": "Default Font Family",
   "default_font_size": "Default Font Size",
   "delete": "Delete",
+  "delete_all": "Delete All",
   "deselect_all": "Deselect All",
   "developer": "Developer",
   "dialog_cancel": "Cancel",
@@ -103,6 +104,7 @@
   "error_copy_error_details": "Copy error details",
   "error_report_issue_on_github": "Report issue on GitHub",
   "error_stacktrace": "Stacktrace",
+  "export": "Export",
   "file_groups": {
     "settings_export": "Settings Export",
     "ssh_key": "SSH Key",
@@ -200,12 +202,14 @@
     "one": "1 license",
     "other": "{} licenses"
   },
-  "log_title": "{loggerName} at {timestamp}",
+  "log_title": "{level}, {loggerName} at {timestamp}",
   "login": "Login",
   "logout": "Logout",
   "logs": "Logs",
+  "logs_all": "all logs",
   "my_vault": "My Vault",
   "n_a": "N/A",
+  "no_logs": "No logs found",
   "password": "Password",
   "queue": "Queue",
   "queue_empty": "Queue is empty",
@@ -255,6 +259,7 @@
     "permissions": "Permissions",
     "size": "Size"
   },
+  "share": "Share",
   "shortcut": {
     "copy": "Copy",
     "paste": "Paste"

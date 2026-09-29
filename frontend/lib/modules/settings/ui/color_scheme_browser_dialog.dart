@@ -1,6 +1,6 @@
 import 'package:cliq/modules/settings/extension/color_scheme.extension.dart';
 import 'package:cliq/shared/data/database.dart';
-import 'package:cliq/shared/extensions/async_snapshot.extension.dart';
+import 'package:cliq/shared/extension/async_snapshot.extension.dart';
 import 'package:cliq/shared/provider/store.provider.dart';
 import 'package:cliq/shared/ui/horizontal_dialog.dart';
 import 'package:cliq/shared/utils/platform_utils.dart';

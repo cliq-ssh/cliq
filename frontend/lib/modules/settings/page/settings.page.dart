@@ -12,7 +12,7 @@ import 'package:cliq/modules/settings/page/views/sync_settings.view.dart';
 import 'package:cliq/modules/settings/page/views/terminal_theme_settings.view.dart';
 import 'package:cliq/modules/settings/provider/sync.provider.dart';
 import 'package:cliq/modules/settings/ui/version_indicator.dart';
-import 'package:cliq/shared/extensions/router.extension.dart';
+import 'package:cliq/shared/extension/router.extension.dart';
 import 'package:cliq/shared/model/page_path.model.dart';
 import 'package:cliq/shared/provider/store.provider.dart';
 import 'package:cliq/shared/utils/commons.dart';

@@ -3,9 +3,8 @@ import 'package:cliq/shared/data/database.dart';
 import 'package:drift/drift.dart';
 
 final class const LogService(final LogsRepository _logsRepository) {
-  Stream<List<Log>> watchAll() {
-    return _logsRepository.db.select(_logsRepository.table).watch();
-  }
+  Stream<List<Log>> watchAll() =>
+      _logsRepository.db.select(_logsRepository.table).watch();
 
   Future<int> create({
     required int logLevel,
@@ -23,5 +22,11 @@ final class const LogService(final LogsRepository _logsRepository) {
     )).id;
   }
 
-  Future<void> deleteById(DbId id) => _logsRepository.deleteById(id);
+  Future<void> deleteById(int id) async {
+    await (_logsRepository.db.delete(
+      _logsRepository.table,
+    )..where((l) => l.id.equals(id))).go();
+  }
+
+  Future<void> deleteAll() async => _logsRepository.deleteAll();
 }
