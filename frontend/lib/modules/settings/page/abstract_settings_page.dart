@@ -16,7 +16,13 @@ abstract class const AbstractSettingsPage({super.key})
     return SingleChildScrollView(
       child: CliqGridContainer(
         children: [
-          CliqGridRow(children: [CliqGridColumn(child: body)]),
+          CliqGridRow(
+            children: [
+              CliqGridColumn(
+                child: Padding(padding: const .only(bottom: 32), child: body),
+              ),
+            ],
+          ),
         ],
       ),
     );

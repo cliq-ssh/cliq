@@ -116,8 +116,9 @@ class EntityCardView<E> extends HookConsumerWidget {
               CliqGridColumn(
                 sizes: const {.sm: 12, .md: 8},
                 child: Column(
-                  spacing: 4,
-                  crossAxisAlignment: CrossAxisAlignment.center,
+                  spacing: 8,
+                  crossAxisAlignment: .center,
+                  mainAxisAlignment: .center,
                   children: [
                     Text(
                       noEntitiesTitle,
@@ -142,7 +143,7 @@ class EntityCardView<E> extends HookConsumerWidget {
       );
     }
 
-    buildNoFilteredEntities() {
+    buildNoMatch() {
       return CliqGridContainer(
         alignment: Alignment.center,
         children: [
@@ -202,76 +203,101 @@ class EntityCardView<E> extends HookConsumerWidget {
       );
     }
 
-    buildMenu() {
-      onVaultTap(DbId vaultId) {
-        final newSet = Set<DbId>.from(filteredVaultIds.value);
-        if (newSet.contains(vaultId)) {
-          newSet.remove(vaultId);
-        } else {
-          newSet.add(vaultId);
-        }
-        filteredVaultIds.value = newSet;
-      }
+    buildFilterSubmenu() {
+      return FSubmenuItem(
+        title: Text('filter'.tr()),
+        prefix: const Icon(LucideIcons.listFilter),
+        submenu: [
+          .group(
+            children: [
+              for (final v in VaultExtension.sortVaults(vaults.entities))
+                .item(
+                  title: Text(v.getDisplayName(context)),
+                  prefix: ListIcon(
+                    type: .checkbox,
+                    selected: !filteredVaultIds.value.contains(v.id),
+                  ),
+                  onPress: () {
+                    final newSet = Set<DbId>.from(filteredVaultIds.value);
+                    if (newSet.contains(v.id)) {
+                      newSet.remove(v.id);
+                    } else {
+                      newSet.add(v.id);
+                    }
+                    filteredVaultIds.value = newSet;
+                  },
+                ),
+            ],
+          ),
+        ],
+      );
+    }
 
+    buildLayoutSubmenu() {
+      return FSubmenuItem(
+        title: Text('layout'.tr()),
+        prefix: const Icon(LucideIcons.layoutGrid),
+        submenu: [
+          .group(
+            children: [
+              .item(
+                title: Text('layout_grid'.tr()),
+                prefix: ListIcon(selected: viewType.value == .grid),
+                onPress: () {
+                  popoverController.hide();
+                  viewTypeKey.write(.grid);
+                },
+              ),
+              .item(
+                title: Text('layout_list'.tr()),
+                prefix: ListIcon(selected: viewType.value == .list),
+                onPress: () {
+                  popoverController.hide();
+                  viewTypeKey.write(.list);
+                },
+              ),
+            ],
+          ),
+        ],
+      );
+    }
+
+    buildDesktopMenu() {
       return FPopoverMenu(
         control: .managed(controller: popoverController),
         menu: [
-          .group(
-            children: [
-              .submenu(
-                title: Text('filter'.tr()),
-                prefix: const Icon(LucideIcons.listFilter),
-                submenu: [
-                  .group(
-                    children: [
-                      for (final v in VaultExtension.sortVaults(
-                        vaults.entities,
-                      ))
-                        .item(
-                          title: Text(v.getDisplayName(context)),
-                          prefix: ListIcon(
-                            type: .checkbox,
-                            selected: !filteredVaultIds.value.contains(v.id),
-                          ),
-                          onPress: () => onVaultTap(v.id),
-                        ),
-                    ],
-                  ),
-                ],
-              ),
-            ],
-          ),
+          .group(children: [buildFilterSubmenu()]),
+          .group(children: [buildLayoutSubmenu()]),
+        ],
+        builder: (_, controller, _) {
+          return FButton.icon(
+            variant: .outline,
+            onPress: controller.toggle,
+            child: const Icon(LucideIcons.ellipsis),
+          );
+        },
+      );
+    }
 
-          .group(
-            children: [
-              .submenu(
-                prefix: const Icon(LucideIcons.layoutGrid),
-                title: Text('layout'.tr()),
-                submenu: [
-                  .group(
-                    children: [
-                      .item(
-                        title: Text('layout_grid'.tr()),
-                        prefix: ListIcon(selected: viewType.value == .grid),
-                        onPress: () {
-                          popoverController.hide();
-                          viewTypeKey.write(.grid);
-                        },
-                      ),
-                      .item(
-                        title: Text('layout_list'.tr()),
-                        prefix: ListIcon(selected: viewType.value == .list),
-                        onPress: () {
-                          popoverController.hide();
-                          viewTypeKey.write(.list);
-                        },
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ],
-          ),
+    buildMobileMenu() {
+      return FPopoverMenu(
+        control: .managed(controller: popoverController),
+        menu: [
+          if (addEntityTitle != null && onAddEntity != null)
+            .group(
+              children: [
+                .item(
+                  prefix: const Icon(LucideIcons.plus),
+                  title: Text(addEntityTitle!),
+                  onPress: () {
+                    popoverController.hide();
+                    onAddEntity!();
+                  },
+                ),
+              ],
+            ),
+          .group(children: [buildFilterSubmenu()]),
+          .group(children: [buildLayoutSubmenu()]),
         ],
         builder: (_, controller, _) {
           return FButton.icon(
@@ -330,21 +356,23 @@ class EntityCardView<E> extends HookConsumerWidget {
                   spacing: 8,
                   mainAxisSize: .min,
                   mainAxisAlignment: .end,
-                  children: [
-                    if (addEntityTitle != null && onAddEntity != null)
-                      Row(
-                        mainAxisSize: .min,
-                        children: [
-                          FButton(
-                            variant: .outline,
-                            prefix: const Icon(LucideIcons.plus),
-                            onPress: onAddEntity,
-                            child: Text(addEntityTitle!),
-                          ),
+                  children: breakpoint < .md
+                      ? [buildMobileMenu()]
+                      : [
+                          if (addEntityTitle != null && onAddEntity != null)
+                            Row(
+                              mainAxisSize: .min,
+                              children: [
+                                FButton(
+                                  variant: .outline,
+                                  prefix: const Icon(LucideIcons.plus),
+                                  onPress: onAddEntity,
+                                  child: Text(addEntityTitle!),
+                                ),
+                              ],
+                            ),
+                          buildDesktopMenu(),
                         ],
-                      ),
-                    buildMenu(),
-                  ],
                 ),
               ),
               CliqGridColumn(
@@ -352,7 +380,7 @@ class EntityCardView<E> extends HookConsumerWidget {
                   valueListenable: filterTextController,
                   builder: (context, _, _) {
                     if (isFilterViewEmpty()) {
-                      return buildNoFilteredEntities();
+                      return buildNoMatch();
                     }
 
                     if (entities != null) {

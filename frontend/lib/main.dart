@@ -25,6 +25,7 @@ import 'package:lucide_flutter/lucide_flutter.dart';
 import 'package:macos_window_utils/macos_window_utils.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:window_manager/window_manager.dart';
+import 'package:cupertino_ui/cupertino_ui.dart' as cupertino_ui;
 
 const windowMinWidth = 720.0;
 const windowMinHeight = 450.0;
@@ -220,7 +221,10 @@ class _CliqAppState extends ConsumerState<CliqApp> {
     return MaterialApp.router(
       routerConfig: router.goRouter,
       debugShowCheckedModeBanner: false,
-      localizationsDelegates: context.localizationDelegates,
+      localizationsDelegates: [
+        ...context.localizationDelegates,
+        cupertino_ui.GlobalCupertinoLocalizations.delegate,
+      ],
       supportedLocales: context.supportedLocales,
       locale: context.locale,
       themeMode: themeMode.value,
