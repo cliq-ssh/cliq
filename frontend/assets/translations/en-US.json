@@ -197,6 +197,9 @@
   "language": "Language",
   "language_help_translate": "Help translate!",
   "language_help_translate_subtitle": "If you would like to help translate cliq into your language, please visit our Weblate instance.",
+  "layout": "Layout",
+  "layout_grid": "Grid",
+  "layout_list": "List",
   "licenses": "Licenses",
   "licenses_subtitle": {
     "one": "1 license",
@@ -321,6 +324,7 @@
   "sync_import_error_one_entity": "Please select at least one entity to import.",
   "sync_import_file": "Import from File",
   "sync_last_updated": "Last updated: {}",
+  "sync_loading": "Loading...",
   "sync_login_disabled": "Login is disabled on this server",
   "sync_login_success": "Login successful! You are now logged in.",
   "sync_login_vault_hint": "Logging in will create a new synced vault on this device. You may need to transfer any existing data from your local vault into the synced vault manually.",
@@ -401,8 +405,5 @@
   "validator_error_null": "Value may not be null",
   "vault_local": "Local Vault",
   "vault_user": "{}'s Vault",
-  "verification_code": "Verification Code",
-  "layout": "Layout",
-  "layout_grid": "Grid",
-  "layout_list": "List"
+  "verification_code": "Verification Code"
 }

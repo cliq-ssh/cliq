@@ -39,6 +39,27 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
     final developerMode = useStore(.developerMode);
     final lastUpdated = useStore(.syncLastUpdated);
 
+    buildStatusSubtitle() {
+      if (sync.isError) {
+        return Text('sync_error'.tr());
+      }
+      if (sync.isLikelyLoading) {
+        return Text('sync_loading'.tr());
+      }
+      return Text(
+        'sync_last_updated'.tr(
+          args: [
+            lastUpdated.value == null || lastUpdated.value == 0
+                ? 'n_a'.tr()
+                : DateTime.fromMillisecondsSinceEpoch(
+                    lastUpdated.value!,
+                    isUtc: true,
+                  ).toIso8601String(),
+          ],
+        ),
+      );
+    }
+
     return SingleChildScrollView(
       child: CliqGridContainer(
         children: [
@@ -58,19 +79,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                             prefix: const Icon(LucideIcons.refreshCcw),
                             suffix: const Icon(LucideIcons.chevronRight),
                             title: Text('sync'.tr()),
-                            subtitle: sync.isConnected
-                                ? const Text('sync_last_updated').tr(
-                                    args: [
-                                      lastUpdated.value == null ||
-                                              lastUpdated.value == 0
-                                          ? 'n_a'.tr()
-                                          : DateTime.fromMillisecondsSinceEpoch(
-                                              lastUpdated.value!,
-                                              isUtc: true,
-                                            ).toIso8601String(),
-                                    ],
-                                  )
-                                : Text('sync_not_connected'.tr()),
+                            subtitle: buildStatusSubtitle(),
                             onPress: () => context.pushPath(
                               SyncSettingsView.pagePath.build(),
                             ),

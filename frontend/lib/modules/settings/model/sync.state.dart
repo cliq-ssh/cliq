@@ -23,8 +23,14 @@ class const SyncState({
         error: null,
       );
 
+  /// Whether the sync state is in an error state
+  bool get isError => error != null;
+
+  /// Whether the sync state is likely loading (i.e., no error and either api or config is null)
+  bool get isLikelyLoading => error == null && (api == null || config == null);
+
   /// Whether the sync state is connected
-  bool get isConnected => error != null && api != null && config != null;
+  bool get isConnected => error == null && api != null && config != null;
 
   SyncState copyWith({
     CliqClient? api,
