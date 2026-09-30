@@ -1,6 +1,6 @@
 import 'dart:async';
 
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 class RepeatableButton extends StatefulWidget {
   /// The [onPress] callback is called immediately when the button is pressed.

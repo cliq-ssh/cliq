@@ -8,10 +8,10 @@ import 'package:cliq/shared/utils/text_utils.dart';
 import 'package:cliq_ui/cliq_ui.dart'
     show CliqFontFamily, CliqGridColumn, CliqGridContainer, CliqGridRow;
 import 'package:easy_localization/easy_localization.dart';
-import 'package:flutter/material.dart' hide LicensePage;
 import 'package:forui/forui.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lucide_flutter/lucide_flutter.dart';
+import 'package:material_ui/material_ui.dart' hide LicensePage;
 
 class GenericSessionPage extends HookConsumerWidget {
   final Widget child;

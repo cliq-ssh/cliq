@@ -14,7 +14,7 @@ import 'package:cliq/modules/settings/page/views/ssh_sftp_settings.view.dart';
 import 'package:cliq/modules/settings/page/views/sync_settings.view.dart';
 import 'package:cliq/modules/settings/page/views/terminal_theme_settings.view.dart';
 import 'package:cliq/shared/ui/navigation/navigation_shell.dart';
-import 'package:flutter/cupertino.dart';
+import 'package:cupertino_ui/cupertino_ui.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 

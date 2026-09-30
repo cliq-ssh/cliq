@@ -11,8 +11,8 @@ import 'package:cliq/shared/ui/entity_card_view.dart';
 import 'package:cliq/shared/utils/commons.dart';
 import 'package:cliq_ui/hooks/use_memoized_future.export.dart'
     show useMemoizedFuture;
+import 'package:cupertino_ui/cupertino_ui.dart' hide Key;
 import 'package:easy_localization/easy_localization.dart';
-import 'package:flutter/cupertino.dart' hide Key;
 import 'package:forui/forui.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 

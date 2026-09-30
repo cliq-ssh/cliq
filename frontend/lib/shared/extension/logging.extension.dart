@@ -1,5 +1,5 @@
-import 'package:flutter/material.dart';
 import 'package:logging/logging.dart';
+import 'package:material_ui/material_ui.dart';
 
 extension LevelExtension on Level {
   static final _levelToColor = {

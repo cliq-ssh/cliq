@@ -1,7 +1,7 @@
 import 'dart:math';
 
 import 'package:cliq_ui/cliq_ui.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 /// An implementation of the bootstrap grid col in flutter.
 /// Inspired by the flutter_bootstrap package.

@@ -8,10 +8,10 @@ import 'package:cliq/shared/model/page_path.model.dart';
 import 'package:cliq/shared/ui/hover_builder.dart';
 import 'package:cliq/shared/ui/navigation/navigation_shell.dart';
 import 'package:cliq/shared/ui/split_view.dart';
-import 'package:flutter/material.dart' hide LicensePage;
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:forui/forui.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:material_ui/material_ui.dart' hide LicensePage;
 
 class const SessionPageWrapper({super.key}) extends StatefulHookConsumerWidget {
   static const PagePathBuilder pagePath = PagePathBuilder('/@session');

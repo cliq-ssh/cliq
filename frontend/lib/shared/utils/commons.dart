@@ -12,10 +12,10 @@ import 'package:cliq/shared/utils/text_utils.dart';
 import 'package:cliq_api/cliq_api.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:file_selector/file_selector.dart';
-import 'package:flutter/material.dart' hide Router;
 import 'package:flutter/services.dart';
 import 'package:forui/forui.dart';
 import 'package:lucide_flutter/lucide_flutter.dart';
+import 'package:material_ui/material_ui.dart' hide Router;
 import 'package:share_plus/share_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
 

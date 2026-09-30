@@ -1,4 +1,4 @@
-import 'package:flutter/cupertino.dart';
+import 'package:cupertino_ui/cupertino_ui.dart';
 import 'package:forui/forui.dart';
 import 'package:lucide_flutter/lucide_flutter.dart';
 

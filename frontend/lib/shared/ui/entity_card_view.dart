@@ -17,8 +17,8 @@ import 'package:cliq_ui/cliq_ui.dart'
         CliqGridContainer,
         CliqGridRow,
         useBreakpoint;
+import 'package:cupertino_ui/cupertino_ui.dart';
 import 'package:easy_localization/easy_localization.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:forui/forui.dart';
 import 'package:forui_hooks/forui_hooks.dart';

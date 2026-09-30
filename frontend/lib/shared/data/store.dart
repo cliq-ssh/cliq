@@ -8,8 +8,8 @@ import 'package:cliq/shared/ui/entity_card_view.dart';
 import 'package:cliq_api/cliq_api.dart';
 import 'package:cliq_term/cliq_term.dart';
 import 'package:flutter/foundation.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 enum StoreKey<T> {

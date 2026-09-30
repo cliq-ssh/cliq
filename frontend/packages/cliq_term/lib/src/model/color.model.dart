@@ -1,5 +1,5 @@
 import 'package:cliq_term/cliq_term.dart';
-import 'package:flutter/cupertino.dart';
+import 'package:cupertino_ui/cupertino_ui.dart';
 
 Color rgbToColor(int r, int g, int b) =>
     Color.fromARGB(0xFF, r & 0xFF, g & 0xFF, b & 0xFF);

@@ -1,4 +1,4 @@
-import 'package:flutter/cupertino.dart';
+import 'package:cupertino_ui/cupertino_ui.dart';
 import 'package:forui/forui.dart';
 
 /// Wrapper for the [FTooltip] widget which always sets the [overlayLocation] to

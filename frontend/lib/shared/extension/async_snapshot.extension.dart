@@ -1,4 +1,4 @@
-import 'package:flutter/cupertino.dart';
+import 'package:cupertino_ui/cupertino_ui.dart';
 
 extension AsyncSnapshotExtension<T> on AsyncSnapshot<T> {
   R on<R>({

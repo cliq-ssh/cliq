@@ -1,6 +1,6 @@
-import 'package:flutter/material.dart';
 import 'package:forui/forui.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:material_ui/material_ui.dart';
 
 const kMobileItemPadding = EdgeInsets.all(8);
 const kEditLabelPadding = EdgeInsets.symmetric(horizontal: 8, vertical: 2);

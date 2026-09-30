@@ -17,13 +17,13 @@ import 'package:cliq/shared/utils/platform_utils.dart';
 import 'package:cupertino_ui/cupertino_ui.dart' as cupertino_ui;
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/foundation.dart';
-import 'package:flutter/material.dart' hide Router;
 import 'package:flutter/services.dart';
 import 'package:forui/forui.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:logging/logging.dart';
 import 'package:lucide_flutter/lucide_flutter.dart';
 import 'package:macos_window_utils/macos_window_utils.dart';
+import 'package:material_ui/material_ui.dart' hide Router;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:window_manager/window_manager.dart';
 
@@ -223,6 +223,7 @@ class _CliqAppState extends ConsumerState<CliqApp> {
       debugShowCheckedModeBanner: false,
       localizationsDelegates: [
         ...context.localizationDelegates,
+        GlobalMaterialLocalizations.delegate,
         cupertino_ui.GlobalCupertinoLocalizations.delegate,
       ],
       supportedLocales: context.supportedLocales,
