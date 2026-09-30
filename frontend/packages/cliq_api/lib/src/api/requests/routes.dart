@@ -1,16 +1,12 @@
 import '../../impl/requests/model/route.dart';
 
-class VaultRoutes {
-  const VaultRoutes._();
-
+class const VaultRoutes._() {
   static const get = Route(.get, '/api/vault');
   static const put = Route(.put, '/api/vault');
   static const getLastUpdated = Route(.get, '/api/vault/last-updated');
 }
 
-class UserRoutes {
-  const UserRoutes._();
-
+class const UserRoutes._() {
   static const postVerification = Route(.post, '/api/user/verification');
   static const postResendEmail = Route(
     .post,
@@ -27,9 +23,7 @@ class UserRoutes {
   static const getMe = Route(.get, '/api/user/me');
 }
 
-class AuthenticationRoutes {
-  const AuthenticationRoutes._();
-
+class const AuthenticationRoutes._() {
   // TODO: implement OIDC + routes
 
   static const postRegister = Route(.post, '/api/auth/register');
@@ -40,21 +34,15 @@ class AuthenticationRoutes {
   static const postDeviceRegister = Route(.post, '/api/auth/device/register');
 }
 
-class ServerConfigurationRoutes {
-  const ServerConfigurationRoutes._();
-
+class const ServerConfigurationRoutes._() {
   static const get = Route(.get, '/api/server/configuration');
 }
 
-class SessionRoutes {
-  const SessionRoutes._();
-
+class const SessionRoutes._() {
   static const getCurrent = Route(.get, '/api/session/current');
 }
 
-class ActuatorRoutes {
-  const ActuatorRoutes._();
-
+class const ActuatorRoutes._() {
   static const get = Route(.get, '/actuator');
   static const getHealth = Route(.get, '/actuator/health');
 }

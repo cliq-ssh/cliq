@@ -11,12 +11,13 @@ import 'package:cliq/modules/settings/provider/terminal_theme.provider.dart';
 import 'package:cliq/modules/vaults/provider/vault_move_service.provider.dart';
 import 'package:cliq/modules/vaults/ui/vault_transfer_dialog.dart';
 import 'package:cliq/shared/data/database.dart';
-import 'package:cliq/shared/extensions/async_snapshot.extension.dart';
-import 'package:cliq/shared/extensions/color.extension.dart';
-import 'package:cliq/shared/extensions/text_controller.extension.dart';
+import 'package:cliq/shared/extension/async_snapshot.extension.dart';
+import 'package:cliq/shared/extension/color.extension.dart';
+import 'package:cliq/shared/extension/text_controller.extension.dart';
 import 'package:cliq/shared/model/entity_type.dart';
 import 'package:cliq/shared/model/router.model.dart';
 import 'package:cliq/shared/provider/store.provider.dart';
+import 'package:cliq/shared/ui/cliq_tooltip.dart';
 import 'package:cliq/shared/ui/create_or_edit_credential_form.dart';
 import 'package:cliq/shared/ui/create_or_edit_entity_view.dart';
 import 'package:cliq/shared/ui/terminal_font_family_select.dart';
@@ -28,13 +29,13 @@ import 'package:cliq_term/cliq_term.dart';
 import 'package:cliq_ui/cliq_ui.dart' show useMemoizedFuture;
 import 'package:drift/drift.dart' hide Column;
 import 'package:easy_localization/easy_localization.dart';
-import 'package:flutter/material.dart' hide Router;
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:forui/forui.dart';
 import 'package:forui_hooks/forui_hooks.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lucide_flutter/lucide_flutter.dart';
+import 'package:material_ui/material_ui.dart' hide Router;
 
 class CreateOrEditConnectionSheet extends HookConsumerWidget {
   static const List<(CredentialType, String, IconData)> allowedCredentialTypes =
@@ -296,8 +297,8 @@ class CreateOrEditConnectionSheet extends HookConsumerWidget {
                 crossAxisAlignment: .start,
                 children: [
                   if (selectedIcon.value.brandColor != null)
-                    FTooltip(
-                      tipBuilder: (_, _) => Text('hosts_brand_color'.tr()),
+                    CliqTooltip(
+                      text: Text('hosts_brand_color'.tr()),
                       child: buildColorSwatch(
                         color: selectedIcon.value.brandColor!,
                         isSelected: isSelected.call(
@@ -316,8 +317,8 @@ class CreateOrEditConnectionSheet extends HookConsumerWidget {
                           isSelected: isSelected.call(c),
                           onTap: (c) => controller.text = c.toHex(),
                         ),
-                      FTooltip(
-                        tipBuilder: (_, _) => Text('hosts_random_color'.tr()),
+                      CliqTooltip(
+                        text: Text('hosts_random_color'.tr()),
                         child: FButton.icon(
                           onPress: () => onChange?.call(
                             ColorExtension.generateRandom().toHex(),
@@ -326,9 +327,8 @@ class CreateOrEditConnectionSheet extends HookConsumerWidget {
                         ),
                       ),
                       if (bgColor != null)
-                        FTooltip(
-                          tipBuilder: (_, _) =>
-                              Text('hosts_inverted_background_color'.tr()),
+                        CliqTooltip(
+                          text: Text('hosts_inverted_background_color'.tr()),
                           child: FButton.icon(
                             onPress: () =>
                                 onChange?.call(bgColor.invert().toHex()),
@@ -410,8 +410,8 @@ class CreateOrEditConnectionSheet extends HookConsumerWidget {
                         runSpacing: 8,
                         children: [
                           for (final icon in ConnectionIcons.values)
-                            FTooltip(
-                              tipBuilder: (_, _) => Text(icon.name),
+                            CliqTooltip(
+                              text: Text(icon.name),
                               child: FButton.icon(
                                 variant: icon == selectedIcon.value
                                     ? .primary

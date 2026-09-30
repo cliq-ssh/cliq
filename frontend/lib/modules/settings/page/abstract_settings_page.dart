@@ -1,7 +1,7 @@
 import 'package:cliq_ui/widgets/grid.export.dart'
     show CliqGridColumn, CliqGridContainer, CliqGridRow;
+import 'package:cupertino_ui/cupertino_ui.dart';
 import 'package:easy_localization/easy_localization.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:forui/forui.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -16,7 +16,13 @@ abstract class const AbstractSettingsPage({super.key})
     return SingleChildScrollView(
       child: CliqGridContainer(
         children: [
-          CliqGridRow(children: [CliqGridColumn(child: body)]),
+          CliqGridRow(
+            children: [
+              CliqGridColumn(
+                child: Padding(padding: const .only(bottom: 32), child: body),
+              ),
+            ],
+          ),
         ],
       ),
     );
@@ -49,14 +55,7 @@ abstract class const AbstractSettingsPage({super.key})
           ],
         ),
       ),
-      child: buildBodyWrapper(
-        context,
-        ref,
-        Padding(
-          padding: const .only(bottom: 32),
-          child: buildBody(context, ref),
-        ),
-      ),
+      child: buildBodyWrapper(context, ref, buildBody(context, ref)),
     );
   }
 }

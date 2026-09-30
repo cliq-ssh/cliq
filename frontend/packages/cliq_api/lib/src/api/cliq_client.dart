@@ -3,11 +3,7 @@ import 'package:cliq_api/cliq_api.dart';
 import '../impl/requests/model/rest_response.dart';
 import '../impl/requests/request_handler.dart';
 
-class RouteOptions {
-  Uri? hostUri;
-
-  RouteOptions({this.hostUri});
-
+class RouteOptions({var Uri? hostUri}) {
   factory RouteOptions.fromJson(Map<String, dynamic> json) {
     return RouteOptions(
       hostUri: json['hostUri'] != null ? Uri.parse(json['hostUri']) : null,

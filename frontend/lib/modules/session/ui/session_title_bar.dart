@@ -4,9 +4,10 @@ import 'package:cliq/modules/session/page/ssh_session.page.dart';
 import 'package:cliq/modules/session/provider/session.provider.dart';
 import 'package:cliq/modules/settings/provider/terminal_theme.provider.dart';
 import 'package:cliq/shared/provider/store.provider.dart';
+import 'package:cliq/shared/ui/cliq_tooltip.dart';
 import 'package:cliq/shared/ui/navigation/navigation_shell.dart';
 import 'package:cliq_ui/cliq_ui.dart' show CliqFontFamily;
-import 'package:flutter/cupertino.dart';
+import 'package:cupertino_ui/cupertino_ui.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:forui/forui.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -63,7 +64,7 @@ class const SessionTitleBar({
         return child;
       }
 
-      return FTooltip(tipBuilder: (_, _) => Text(label), child: child);
+      return CliqTooltip(text: Text(label), child: child);
     }
 
     return ColoredBox(

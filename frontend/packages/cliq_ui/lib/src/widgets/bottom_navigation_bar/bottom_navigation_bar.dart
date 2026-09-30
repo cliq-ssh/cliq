@@ -1,5 +1,5 @@
 import 'package:cliq_ui/cliq_ui.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 class CliqBottomNavigationBar extends StatelessWidget {
   final List<CliqBottomNavigationBarItem> items;

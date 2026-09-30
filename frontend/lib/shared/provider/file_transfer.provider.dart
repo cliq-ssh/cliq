@@ -11,7 +11,7 @@ import 'package:cliq/modules/session/page/sftp_session.page.dart';
 import 'package:cliq/modules/settings/provider/known_host_service.provider.dart';
 import 'package:cliq/shared/model/file_transfer.state.dart';
 import 'package:cliq/shared/utils/constants.dart';
-import 'package:flutter/cupertino.dart';
+import 'package:cupertino_ui/cupertino_ui.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:logging/logging.dart';
 

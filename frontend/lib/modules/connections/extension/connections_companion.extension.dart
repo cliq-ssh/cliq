@@ -1,6 +1,6 @@
 import 'package:cliq/modules/connections/model/connection_icons.model.dart';
 import 'package:cliq/shared/data/database.dart';
-import 'package:cliq/shared/extensions/color.extension.dart';
+import 'package:cliq/shared/extension/color.extension.dart';
 import 'package:cliq_term/cliq_term.dart';
 import 'package:drift/drift.dart';
 

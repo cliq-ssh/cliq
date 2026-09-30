@@ -14,12 +14,12 @@ import 'package:cliq/shared/ui/repeatable_button.dart';
 import 'package:cliq/shared/utils/platform_utils.dart';
 import 'package:cliq_term/cliq_term.dart';
 import 'package:flutter/foundation.dart';
-import 'package:flutter/material.dart' hide LicensePage;
 import 'package:flutter/services.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:forui/forui.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lucide_flutter/lucide_flutter.dart';
+import 'package:material_ui/material_ui.dart' hide LicensePage;
 import 'package:window_manager/window_manager.dart';
 
 /// The padding around the terminal view in the session page.

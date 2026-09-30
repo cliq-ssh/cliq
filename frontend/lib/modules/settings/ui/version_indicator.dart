@@ -3,7 +3,7 @@ import 'dart:async';
 import 'package:cliq/shared/data/store.dart';
 import 'package:cliq/shared/utils/build_metadata.dart';
 import 'package:cliq_ui/cliq_ui.dart' show CliqFontFamily;
-import 'package:flutter/cupertino.dart';
+import 'package:cupertino_ui/cupertino_ui.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:forui/forui.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';

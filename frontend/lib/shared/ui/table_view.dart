@@ -1,9 +1,9 @@
 import 'dart:math' as math;
 
 import 'package:cliq/shared/ui/context_menu.dart';
-import 'package:flutter/material.dart' hide LicensePage;
 import 'package:forui/forui.dart';
 import 'package:lucide_flutter/lucide_flutter.dart';
+import 'package:material_ui/material_ui.dart' hide LicensePage;
 
 const _kDividerThickness = 1.0;
 const _kHeaderHeight = 48.0;
