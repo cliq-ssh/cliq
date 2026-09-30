@@ -14,6 +14,7 @@ import 'package:cliq/shared/utils/commons.dart';
 import 'package:cliq/shared/utils/constants.dart';
 import 'package:cliq/shared/utils/password_cipher.dart';
 import 'package:cliq/shared/utils/platform_utils.dart';
+import 'package:cupertino_ui/cupertino_ui.dart' as cupertino_ui;
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart' hide Router;
@@ -25,7 +26,6 @@ import 'package:lucide_flutter/lucide_flutter.dart';
 import 'package:macos_window_utils/macos_window_utils.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:window_manager/window_manager.dart';
-import 'package:cupertino_ui/cupertino_ui.dart' as cupertino_ui;
 
 const windowMinWidth = 720.0;
 const windowMinHeight = 450.0;
