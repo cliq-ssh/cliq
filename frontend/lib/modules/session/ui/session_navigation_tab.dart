@@ -2,6 +2,7 @@ import 'package:cliq/modules/connections/ui/connection_icon.dart';
 import 'package:cliq/modules/session/model/session.model.dart';
 import 'package:cliq/modules/session/model/tab.model.dart';
 import 'package:cliq/modules/session/provider/session.provider.dart';
+import 'package:cliq/shared/ui/cliq_tooltip.dart';
 import 'package:cliq/shared/ui/context_menu.dart';
 import 'package:cliq/shared/ui/navigation/navigation_shell.dart';
 import 'package:cliq/shared/ui/navigation/navigation_tab.dart';
@@ -116,8 +117,8 @@ class SessionNavigationTab extends HookConsumerWidget {
             child: Text(effectiveLabel, overflow: .fade, softWrap: false),
           ),
           // TODO: make shortcut functional
-          FTooltip(
-            tipBuilder: (_, _) => TextWithShortcutInfo(
+          CliqTooltip(
+            text: TextWithShortcutInfo(
               sessions.isEmpty ? 'close'.tr() : 'close_all'.tr(),
               shortcut: KeyboardShortcut(.keyW, modifiers: {.control}),
             ),
@@ -222,8 +223,8 @@ class SessionNavigationTab extends HookConsumerWidget {
           return child;
         }
 
-        return FTooltip(
-          tipBuilder: (_, _) => Text(effectiveLabel),
+        return CliqTooltip(
+          text: Text(effectiveLabel),
           child: Draggable<ShellSession>(
             data: root,
             maxSimultaneousDrags: PlatformUtils.isDesktop && !isRenaming.value

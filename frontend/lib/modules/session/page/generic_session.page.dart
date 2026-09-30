@@ -1,5 +1,6 @@
 import 'package:cliq/modules/session/model/session.model.dart';
 import 'package:cliq/modules/session/provider/session.provider.dart';
+import 'package:cliq/shared/ui/cliq_tooltip.dart';
 import 'package:cliq/shared/ui/navigation/navigation_shell.dart';
 import 'package:cliq/shared/ui/title_card.dart';
 import 'package:cliq/shared/utils/commons.dart';
@@ -85,8 +86,8 @@ class GenericSessionPage extends HookConsumerWidget {
             mainAxisAlignment: .spaceBetween,
             children: [
               Text('${session.knownHostError!.algorithm} (SHA256)'),
-              FTooltip(
-                tipBuilder: (_, _) => Text('click_to_copy'.tr()),
+              CliqTooltip(
+                text: Text('click_to_copy'.tr()),
                 child: FButton.icon(
                   onPress: () => Commons.copyToClipboard(
                     context,

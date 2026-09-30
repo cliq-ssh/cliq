@@ -17,6 +17,7 @@ import 'package:cliq/shared/extension/text_controller.extension.dart';
 import 'package:cliq/shared/model/entity_type.dart';
 import 'package:cliq/shared/model/router.model.dart';
 import 'package:cliq/shared/provider/store.provider.dart';
+import 'package:cliq/shared/ui/cliq_tooltip.dart';
 import 'package:cliq/shared/ui/create_or_edit_credential_form.dart';
 import 'package:cliq/shared/ui/create_or_edit_entity_view.dart';
 import 'package:cliq/shared/ui/terminal_font_family_select.dart';
@@ -296,8 +297,8 @@ class CreateOrEditConnectionSheet extends HookConsumerWidget {
                 crossAxisAlignment: .start,
                 children: [
                   if (selectedIcon.value.brandColor != null)
-                    FTooltip(
-                      tipBuilder: (_, _) => Text('hosts_brand_color'.tr()),
+                    CliqTooltip(
+                      text: Text('hosts_brand_color'.tr()),
                       child: buildColorSwatch(
                         color: selectedIcon.value.brandColor!,
                         isSelected: isSelected.call(
@@ -316,8 +317,8 @@ class CreateOrEditConnectionSheet extends HookConsumerWidget {
                           isSelected: isSelected.call(c),
                           onTap: (c) => controller.text = c.toHex(),
                         ),
-                      FTooltip(
-                        tipBuilder: (_, _) => Text('hosts_random_color'.tr()),
+                      CliqTooltip(
+                        text: Text('hosts_random_color'.tr()),
                         child: FButton.icon(
                           onPress: () => onChange?.call(
                             ColorExtension.generateRandom().toHex(),
@@ -326,9 +327,8 @@ class CreateOrEditConnectionSheet extends HookConsumerWidget {
                         ),
                       ),
                       if (bgColor != null)
-                        FTooltip(
-                          tipBuilder: (_, _) =>
-                              Text('hosts_inverted_background_color'.tr()),
+                        CliqTooltip(
+                          text: Text('hosts_inverted_background_color'.tr()),
                           child: FButton.icon(
                             onPress: () =>
                                 onChange?.call(bgColor.invert().toHex()),
@@ -410,8 +410,8 @@ class CreateOrEditConnectionSheet extends HookConsumerWidget {
                         runSpacing: 8,
                         children: [
                           for (final icon in ConnectionIcons.values)
-                            FTooltip(
-                              tipBuilder: (_, _) => Text(icon.name),
+                            CliqTooltip(
+                              text: Text(icon.name),
                               child: FButton.icon(
                                 variant: icon == selectedIcon.value
                                     ? .primary

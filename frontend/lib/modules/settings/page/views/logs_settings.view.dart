@@ -5,8 +5,12 @@ import 'package:cliq/modules/settings/provider/log_service.provider.dart';
 import 'package:cliq/modules/settings/ui/log_card.dart';
 import 'package:cliq/shared/extension/logging.extension.dart';
 import 'package:cliq/shared/model/page_path.model.dart';
+import 'package:cliq/shared/ui/cliq_tooltip.dart';
+import 'package:cliq/shared/ui/list_icon.dart';
+import 'package:cliq/shared/ui/shortcut_info.dart';
 import 'package:cliq/shared/utils/commons.dart';
 import 'package:cliq/shared/utils/platform_utils.dart';
+import 'package:cliq_term/cliq_term.dart';
 import 'package:cliq_ui/cliq_ui.dart'
     show CliqGridColumn, CliqGridContainer, CliqGridRow, useBreakpoint;
 import 'package:easy_localization/easy_localization.dart';
@@ -133,45 +137,53 @@ class const LogsSettingsView({super.key}) extends AbstractSettingsPage {
     }
 
     buildDeleteAllButton() {
-      return FButton.icon(
-        onPress: deleteAll,
-        variant: .destructive,
-        child: const Icon(LucideIcons.trash),
+      return CliqTooltip(
+        text: Text('delete_all'.tr()),
+        child: FButton.icon(
+          onPress: deleteAll,
+          variant: .destructive,
+          child: const Icon(LucideIcons.trash),
+        ),
       );
     }
 
     buildDownloadButton() {
-      return FButton.icon(
-        onPress: exportLogs,
-        child: const Icon(LucideIcons.download),
+      return CliqTooltip(
+        text: PlatformUtils.isMobile ? Text('share'.tr()) : Text('export'.tr()),
+        child: FButton.icon(
+          onPress: exportLogs,
+          child: const Icon(LucideIcons.download),
+        ),
       );
     }
 
     buildFilterMenuButton() {
-      return FPopoverMenu(
-        menu: [
-          .group(
-            children: [
-              for (final level in _allLevels)
-                .item(
-                  title: Text(level.name),
-                  prefix: Icon(
-                    filterLevelValues.value.contains(level.value)
-                        ? LucideIcons.circleCheck
-                        : LucideIcons.circle,
-                    color: level.toColor(),
+      return CliqTooltip(
+        text: Text('filter'.tr()),
+        child: FPopoverMenu(
+          menu: [
+            .group(
+              children: [
+                for (final level in _allLevels)
+                  .item(
+                    title: Text(level.name),
+                    prefix: ListIcon(
+                      type: .checkbox,
+                      selected: filterLevelValues.value.contains(level.value),
+                      color: level.toColor(),
+                    ),
+                    onPress: () => filterLogsByLevel(level.value),
                   ),
-                  onPress: () => filterLogsByLevel(level.value),
-                ),
-            ],
-          ),
-        ],
-        builder: (context, controller, _) {
-          return FButton.icon(
-            onPress: controller.toggle,
-            child: const Icon(LucideIcons.listFilter),
-          );
-        },
+              ],
+            ),
+          ],
+          builder: (context, controller, _) {
+            return FButton.icon(
+              onPress: controller.toggle,
+              child: const Icon(LucideIcons.listFilter),
+            );
+          },
+        ),
       );
     }
 
@@ -238,8 +250,14 @@ class const LogsSettingsView({super.key}) extends AbstractSettingsPage {
                   sizes: const {.sm: 8, .md: 6, .lg: 4},
                   child: Padding(
                     padding: const .only(bottom: 16),
-                    child: Align(
-                      alignment: .centerLeft,
+                    child: CliqTooltip(
+                      text: TextWithShortcutInfo(
+                        'filter_items'.tr(),
+                        shortcut: KeyboardShortcut(
+                          .keyF,
+                          modifiers: {.control},
+                        ),
+                      ),
                       child: FTextField(
                         control: .managed(controller: filterController),
                         hint: 'filter'.tr(),
@@ -257,18 +275,20 @@ class const LogsSettingsView({super.key}) extends AbstractSettingsPage {
                 ),
                 CliqGridColumn(
                   sizes: const {.sm: 4, .md: 6, .lg: 8},
-                  child: Row(
-                    mainAxisAlignment: .end,
-                    spacing: 8,
-                    children: [
-                      if (breakpoint < .md)
-                        buildCombinedOptionsButton()
-                      else ...[
-                        buildFilterMenuButton(),
-                        buildDownloadButton(),
-                        buildDeleteAllButton(),
+                  child: FTooltipGroup(
+                    child: Row(
+                      mainAxisAlignment: .end,
+                      spacing: 8,
+                      children: [
+                        if (breakpoint < .md)
+                          buildCombinedOptionsButton()
+                        else ...[
+                          buildFilterMenuButton(),
+                          buildDownloadButton(),
+                          buildDeleteAllButton(),
+                        ],
                       ],
-                    ],
+                    ),
                   ),
                 ),
               ],

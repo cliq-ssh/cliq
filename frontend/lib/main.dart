@@ -8,6 +8,7 @@ import 'package:cliq/shared/model/localized_exception.dart';
 import 'package:cliq/shared/model/router.model.dart';
 import 'package:cliq/shared/provider/router.provider.dart';
 import 'package:cliq/shared/provider/store.provider.dart';
+import 'package:cliq/shared/ui/cliq_tooltip.dart';
 import 'package:cliq/shared/ui/error_sheet.dart';
 import 'package:cliq/shared/utils/commons.dart';
 import 'package:cliq/shared/utils/constants.dart';
@@ -123,8 +124,9 @@ void _handleError(Object error, StackTrace stackTrace) {
       variant: .destructive,
       title: Text(errorMessage),
       suffixBuilder: (context, entry) {
-        return FTooltip(
-          tipBuilder: (_, _) => const Text('View error details'),
+        return CliqTooltip(
+          // TODO: i18n
+          text: const Text('View error details'),
           child: GestureDetector(
             onTap: () async {
               entry.dismiss();

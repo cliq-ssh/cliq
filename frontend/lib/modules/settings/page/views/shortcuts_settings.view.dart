@@ -4,6 +4,7 @@ import 'package:cliq/modules/settings/page/settings.page.dart';
 import 'package:cliq/shared/data/store.dart';
 import 'package:cliq/shared/model/page_path.model.dart';
 import 'package:cliq/shared/provider/store.provider.dart';
+import 'package:cliq/shared/ui/cliq_tooltip.dart';
 import 'package:cliq/shared/ui/shortcut_info.dart';
 import 'package:cliq_term/cliq_term.dart';
 import 'package:easy_localization/easy_localization.dart';
@@ -118,8 +119,8 @@ class const ShortcutsSettingsView({super.key}) extends AbstractSettingsPage {
           );
         }
 
-        return FTooltip(
-          tipBuilder: (_, _) => Text('shortcuts_right_click_to_unset'.tr()),
+        return CliqTooltip(
+          text: Text('shortcuts_right_click_to_unset'.tr()),
           child: FTappable(
             onPress: record,
             onSecondaryPress: delete,

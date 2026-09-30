@@ -29,7 +29,10 @@ class const LogCard({super.key, required final Log log})
     }
 
     copy() async {
-      await Commons.copyToClipboard(context, '[${log.createdAt.toIso8601String()}] [${level.name}] [${log.loggerName}] ${log.message}');
+      await Commons.copyToClipboard(
+        context,
+        '[${log.createdAt.toIso8601String()}] [${level.name}] [${log.loggerName}] ${log.message}',
+      );
       await popoverController.hide();
     }
 

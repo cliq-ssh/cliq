@@ -2,6 +2,7 @@ import 'package:cliq/modules/settings/provider/sync.provider.dart';
 import 'package:cliq/modules/vaults/extension/vault.extension.dart';
 import 'package:cliq/modules/vaults/provider/vault.provider.dart';
 import 'package:cliq/shared/data/database.dart';
+import 'package:cliq/shared/ui/cliq_tooltip.dart';
 import 'package:cliq/shared/utils/validators.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/cupertino.dart';
@@ -73,8 +74,8 @@ class CreateOrEditEntityView extends HookConsumerWidget {
 
     buildVaultSelector() {
       if (isEdit && onOpenVaultTransferDialog != null) {
-        return FTooltip(
-          tipBuilder: (_, _) => Text('entity_edit_vault'.tr()),
+        return CliqTooltip(
+          text: Text('entity_edit_vault'.tr()),
           child: FButton.icon(
             variant: .outline,
             onPress: onOpenVaultTransferDialog,

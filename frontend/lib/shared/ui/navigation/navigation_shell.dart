@@ -8,6 +8,7 @@ import 'package:cliq/modules/session/ui/session_navigation_tab.dart';
 import 'package:cliq/modules/settings/provider/terminal_theme.provider.dart';
 import 'package:cliq/shared/provider/file_transfer.provider.dart';
 import 'package:cliq/shared/provider/store.provider.dart';
+import 'package:cliq/shared/ui/cliq_tooltip.dart';
 import 'package:cliq/shared/ui/navigation/navigation_tab.dart';
 import 'package:cliq/shared/ui/shortcut_info.dart';
 import 'package:cliq/shared/utils/platform_utils.dart';
@@ -101,8 +102,8 @@ class NavigationShellState extends ConsumerState<NavigationShell>
 
     buildDashboardTab() {
       // TODO: make shortcut functional
-      return FTooltip(
-        tipBuilder: (_, _) => TextWithShortcutInfo(
+      return CliqTooltip(
+        text: TextWithShortcutInfo(
           'dashboard'.tr(),
           shortcut: KeyboardShortcut(.keyD, modifiers: {.control}),
         ),
@@ -266,8 +267,8 @@ class NavigationShellState extends ConsumerState<NavigationShell>
 
     buildSettingsTab() {
       // TODO: make shortcut functional
-      return FTooltip(
-        tipBuilder: (_, _) => TextWithShortcutInfo(
+      return CliqTooltip(
+        text: TextWithShortcutInfo(
           'settings'.tr(),
           shortcut: KeyboardShortcut(.comma, modifiers: {.control}),
         ),
@@ -285,8 +286,8 @@ class NavigationShellState extends ConsumerState<NavigationShell>
     }
 
     buildNewSessionTab() {
-      return FTooltip(
-        tipBuilder: (_, _) => TextWithShortcutInfo(
+      return CliqTooltip(
+        text: TextWithShortcutInfo(
           'session_new'.tr(),
           shortcut: KeyboardShortcut(.keyT, modifiers: {.meta}),
         ),
@@ -324,9 +325,8 @@ class NavigationShellState extends ConsumerState<NavigationShell>
                         mainAxisSize: .min,
                         spacing: 4,
                         children: [
-                          FTooltip(
-                            tipBuilder: (_, _) =>
-                                Text('hosts_connect_sftp'.tr()),
+                          CliqTooltip(
+                            text: Text('hosts_connect_sftp'.tr()),
                             child: FButton.icon(
                               size: .xs,
                               child: const Icon(LucideIcons.folder, size: 12),

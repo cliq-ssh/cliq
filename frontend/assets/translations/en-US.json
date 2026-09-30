@@ -402,8 +402,7 @@
   "vault_local": "Local Vault",
   "vault_user": "{}'s Vault",
   "verification_code": "Verification Code",
-  "views": {
-    "grid": "Grid View",
-    "list": "List View"
-  }
+  "layout": "Layout",
+  "layout_grid": "Grid",
+  "layout_list": "List"
 }
