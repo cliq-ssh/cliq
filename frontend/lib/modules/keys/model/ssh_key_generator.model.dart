@@ -5,6 +5,8 @@ import 'dart:typed_data';
 // We need to import these internal utilities to encrypt the private key in the OpenSSH format.
 // DartSSH2 doesn't provide a public API for this.
 
+import 'package:cliq/src/rust/api/key_generator.dart';
+import 'package:cliq/src/rust/ssh/key_generator.dart';
 import 'package:dartssh2/dartssh2.dart';
 // ignore: implementation_imports
 import 'package:dartssh2/src/utils/bcrypt.dart';
@@ -58,20 +60,29 @@ enum SshEcdsaCurveSize {
     .bits384 => 'nistp384',
     .bits256 => 'nistp256',
   };
+
+  EcdsaBits get ecdsaBits => switch (this) {
+        .bits521 => .bits521,
+        .bits384 => .bits384,
+        .bits256 => .bits256,
+  };
 }
 
 enum SshRsaKeySize {
   bits4096,
-  bits2048,
-  bits1024;
+  bits2048;
 
   int get bits => switch (this) {
     .bits4096 => 4096,
     .bits2048 => 2048,
-    .bits1024 => 1024,
   };
 
   String get label => '$bits bits';
+
+  RsaBits get rsaBits => switch (this) {
+    .bits4096 => .bits4096,
+    .bits2048 => .bits2048,
+  };
 }
 
 class GeneratedSshKeyPair {
@@ -88,7 +99,7 @@ final class SshKeyGenerator {
 
   const new _();
 
-  static Future<GeneratedSshKeyPair> generate(
+  static Future<GeneratedSshKey> generate(
     SshKeyAlgorithm algorithm, {
     SshEcdsaCurveSize ecdsaCurveSize = SshEcdsaCurveSize.bits256,
     SshRsaKeySize rsaKeySize = SshRsaKeySize.bits2048,
@@ -96,20 +107,9 @@ final class SshKeyGenerator {
     String? passphrase,
   }) async {
     return switch (algorithm) {
-      SshKeyAlgorithm.ed25519 => await _generateEd25519(
-        comment,
-        passphrase: passphrase,
-      ),
-      SshKeyAlgorithm.ecdsa => _generateEcdsa(
-        comment: comment,
-        curveSize: ecdsaCurveSize,
-        passphrase: passphrase,
-      ),
-      SshKeyAlgorithm.rsa => _generateRsa(
-        comment: comment,
-        bitStrength: rsaKeySize.bits,
-        passphrase: passphrase,
-      ),
+      SshKeyAlgorithm.ed25519 => await generateSshKey(keyType: const SshKeyType.ed25519(), comment: comment, passphrase: passphrase),
+      SshKeyAlgorithm.ecdsa => await generateSshKey(keyType: SshKeyType.ecdsa(ecdsaCurveSize.ecdsaBits), comment: comment, passphrase: passphrase),
+      SshKeyAlgorithm.rsa => await generateSshKey(keyType: SshKeyType.rsa(rsaKeySize.rsaBits), comment: comment, passphrase: passphrase),
     };
   }
 
