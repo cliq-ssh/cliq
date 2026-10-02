@@ -1,0 +1,37 @@
+[package]
+name = "rust_lib_cliq"
+version = "0.1.0"
+edition = "2024"
+
+[lib]
+crate-type = ["cdylib", "staticlib"]
+
+[dependencies]
+# FRB
+flutter_rust_bridge = "=2.14.0-beta.2"
+
+# SSH
+ssh-key = { version = "0.6.7", features = ["crypto", "encryption"] }
+
+# libc
+libc = "=0.2.189" # pin libc to 0.2.189 as _dyld_image_count is not available in 0.2.190
+
+# Strip debuginfo from the release builds
+# The debug symbols are to provide better panic traces
+# Also enable fat LTO and use 1 codegen unit for optimizations
+[profile.release]
+strip = "debuginfo"
+lto = "fat"
+codegen-units = 1
+debug = false
+
+# Always build ssh-key using opt-level 3
+# This is a huge speed improvement during testing
+[profile.dev.package."*"]
+opt-level = 3
+
+[profile.test.package."*"]
+opt-level = 3
+
+[lints.rust]
+unexpected_cfgs = { level = "warn", check-cfg = ['cfg(frb_expand)'] }
