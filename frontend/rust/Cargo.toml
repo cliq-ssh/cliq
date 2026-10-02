@@ -7,10 +7,14 @@ edition = "2024"
 crate-type = ["cdylib", "staticlib"]
 
 [dependencies]
+# FRB
 flutter_rust_bridge = "=2.14.0-beta.2"
 
 # SSH
 ssh-key = { version = "0.6.7", features = ["crypto", "encryption"] }
+
+# libc
+libc = "=0.2.189" # pin libc to 0.2.189 as _dyld_image_count is not available in 0.2.190
 
 # Strip debuginfo from the release builds
 # The debug symbols are to provide better panic traces
