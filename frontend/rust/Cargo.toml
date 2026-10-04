@@ -10,8 +10,14 @@ crate-type = ["cdylib", "staticlib"]
 # FRB
 flutter_rust_bridge = "=2.14.0-beta.2"
 
+# Async runtime
+tokio = { version = "1.53.2", features = ["full"] }
+
 # SSH
 ssh-key = { version = "0.6.7", features = ["crypto", "encryption"] }
+russh = { version = "0.64.0", features = ["aws-lc-rs"] }
+russh-sftp = "3.0.1"
+ssh2 = { version = "0.9.6", features = ["vendored-openssl"] }
 
 # libc
 libc = "=0.2.189" # pin libc to 0.2.189 as _dyld_image_count is not available in 0.2.190

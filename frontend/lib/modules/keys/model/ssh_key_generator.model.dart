@@ -3,7 +3,6 @@
 
 import 'package:cliq/src/rust/api/key_generator.dart';
 import 'package:cliq/src/rust/ssh/key_generator.dart';
-import 'package:dartssh2/dartssh2.dart';
 
 /// SSH key algorithms supported by the key generator UI.
 enum SshKeyAlgorithm {
