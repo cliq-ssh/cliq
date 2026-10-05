@@ -500,6 +500,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.14.0-beta.2"
+  flutter_rust_bridge_hooks:
+    dependency: "direct main"
+    description:
+      name: flutter_rust_bridge_hooks
+      sha256: "347a3c0df75fde6dcdab8a47ee6c31e1afc791d10d4ada8328952ee850b6cb02"
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.14.0-beta.2"
   flutter_secure_storage:
     dependency: "direct main"
     description:
@@ -602,10 +610,10 @@ packages:
     dependency: transitive
     description:
       name: frontend_server_client
-      sha256: f64a0333a82f30b0cca061bc3d143813a486dc086b574bfb233b7c1372427694
+      sha256: "404dbf9bce29beafbe9dcb19219447b6f7d49900cd42b8d3b7af102b24508e25"
       url: "https://pub.dev"
     source: hosted
-    version: "4.0.0"
+    version: "4.1.0"
   glob:
     dependency: transitive
     description:
@@ -714,10 +722,10 @@ packages:
     dependency: transitive
     description:
       name: jni
-      sha256: f038e58b4dc2c9037f50e233175086337e0b305e356d28211bf55f21c504cbd3
+      sha256: "6b9ca0602fef0230e83149afbe3f9f8227e94f2bbe84a1da4f14d699742f402d"
       url: "https://pub.dev"
     source: hosted
-    version: "1.0.3"
+    version: "1.1.0"
   jni_flutter:
     dependency: transitive
     description:
@@ -862,6 +870,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "0.19.5"
+  native_toolchain_rust:
+    dependency: transitive
+    description:
+      name: native_toolchain_rust
+      sha256: dc8e5f20c0cb7052372bc302f075607086d86354b37199e89ec9d3d35589e519
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.0.7"
   node_preamble:
     dependency: transitive
     description:
@@ -874,10 +890,10 @@ packages:
     dependency: transitive
     description:
       name: objective_c
-      sha256: ad56fd53a78ff6b1472fa59ff2a4e8b8ccabafc586fc263a1dfad0b99b5553e3
+      sha256: "5c80c2ad6e2c0397de5db38c6d653e69616a3397e13aa7633bf39eb668f2041b"
       url: "https://pub.dev"
     source: hosted
-    version: "9.6.0"
+    version: "9.6.2"
   open_app_file:
     dependency: "direct main"
     description:
@@ -1054,13 +1070,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "3.4.3"
-  rust_lib_cliq:
-    dependency: "direct main"
-    description:
-      path: rust_builder
-      relative: true
-    source: path
-    version: "0.0.1"
   screen_retriever:
     dependency: transitive
     description:
@@ -1206,10 +1215,10 @@ packages:
     dependency: "direct main"
     description:
       name: sodium
-      sha256: ed4733228fbd45b4177e09feb84a08385d53dc39f2a2166b7439ad80a19ac5f5
+      sha256: "883eaf88b0877ffde258edf8f61a2343b50e232868508511fef23223be9caafb"
       url: "https://pub.dev"
     source: hosted
-    version: "4.1.1+1"
+    version: "4.1.1+2"
   source_gen:
     dependency: transitive
     description:
@@ -1254,10 +1263,10 @@ packages:
     dependency: transitive
     description:
       name: sqlite3
-      sha256: fa3fd961e83b2dca8890a7b1014ab1226831d2b5908067c0ab7f385ffb655caf
+      sha256: cc62d72dbf16bb1f6ae8954b238016de1473e53df060ed0c332eed0a41dd1848
       url: "https://pub.dev"
     source: hosted
-    version: "3.6.0"
+    version: "3.7.0"
   sqlite3_flutter_libs:
     dependency: transitive
     description:
@@ -1354,6 +1363,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "0.6.18"
+  toml:
+    dependency: transitive
+    description:
+      name: toml
+      sha256: "35a35f782228656a2af31e8c73d1353cc4ef3d683fd68af1111b44631879c05e"
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.18.0"
   typed_data:
     dependency: transitive
     description:
