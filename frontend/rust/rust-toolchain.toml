@@ -2,6 +2,18 @@
 channel = "1.99.0"
 components = ["cargo", "rustfmt", "clippy", "rust-docs"]
 targets = [
-    "x86_64-unknown-linux-gnu", "aarch64-unknown-linux-gnu", "x86_64-pc-windows-msvc", "aarch64-apple-darwin",
-    "aarch64-linux-android", "x86_64-linux-android", "aarch64-apple-ios", "aarch64-apple-ios-sim"
+    # linux
+    "x86_64-unknown-linux-gnu",
+    "aarch64-unknown-linux-gnu",
+    # windows
+    "x86_64-pc-windows-msvc",
+    # macos
+    "aarch64-apple-darwin",
+    # android
+    "aarch64-linux-android",
+    "armv7-linux-androideabi",
+    "x86_64-linux-android", # emulator
+    # ios
+    "aarch64-apple-ios",
+    "aarch64-apple-ios-sim" # simulator
 ]
