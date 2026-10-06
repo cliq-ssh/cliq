@@ -1,1 +1,4 @@
 #include "ephemeral/Flutter-Generated.xcconfig"
+
+ARCHS = arm64
+EXCLUDED_ARCHS[sdk=macosx*] = x86_64

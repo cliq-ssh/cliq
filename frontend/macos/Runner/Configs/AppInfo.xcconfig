@@ -12,3 +12,6 @@ PRODUCT_BUNDLE_IDENTIFIER = sh.cliq.cliq
 
 // The copyright displayed in application information
 PRODUCT_COPYRIGHT = Copyright © 2025 sh.cliq. All rights reserved.
+
+ARCHS = arm64
+EXCLUDED_ARCHS[sdk=macosx*] = x86_64
