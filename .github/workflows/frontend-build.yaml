@@ -141,6 +141,13 @@ jobs:
 
       - *write-build-metadata
 
+      - name: Use short temp directory
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force -Path C:\t | Out-Null
+          "TEMP=C:\t" >> $env:GITHUB_ENV
+          "TMP=C:\t" >> $env:GITHUB_ENV
+
       - name: Install Inno Setup
         run: choco install innosetup -y
 
