@@ -1,6 +1,7 @@
 use ssh2::Session;
-use std::io::Write;
 use std::net::TcpStream;
+
+const TERM: &str = "xterm-256color";
 
 pub(crate) enum ConnectionAuthentication {
     Password(String),
@@ -12,6 +13,16 @@ pub(crate) struct ConnectionInformation {
     port: u16,
     username: String,
     authentication: ConnectionAuthentication,
+}
+
+pub(crate) struct SshConnection {
+    session: Session,
+}
+
+impl SshConnection {
+    pub(crate) fn new(session: Session) -> Self {
+        SshConnection { session }
+    }
 }
 
 pub(crate) struct SshClient {
@@ -46,8 +57,11 @@ impl SshClient {
             }
         }
         let mut channel = session.channel_session().map_err(|e| e.to_string())?;
-        channel.request_pty("xterm", None, None).map_err(|e| e.to_string())?;
+        // TODO: set columns
+        channel.request_pty(TERM, None, None).map_err(|e| e.to_string())?;
         channel.shell().map_err(|e| e.to_string())?;
+
+        let connection = SshConnection::new(session);
 
         // Implement SSH connection logic here
         Ok(())
