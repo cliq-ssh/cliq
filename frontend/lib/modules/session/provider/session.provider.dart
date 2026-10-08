@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:typed_data';
 
 import 'package:cliq/modules/connections/model/connection_full.model.dart';
 import 'package:cliq/modules/credentials/data/credential.service.dart';
@@ -10,6 +11,8 @@ import 'package:cliq/modules/settings/model/known_host_error.model.dart';
 import 'package:cliq/modules/settings/provider/known_host_service.provider.dart';
 import 'package:cliq/shared/data/database.dart';
 import 'package:cliq/shared/ui/navigation/navigation_shell.dart';
+import 'package:cliq/src/rust/api/ssh.dart';
+import 'package:cliq/src/rust/ssh/ssh_client.dart';
 import 'package:cliq_term/cliq_term.dart';
 import 'package:dartssh2/dartssh2.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -277,6 +280,40 @@ class SessionNotifier extends Notifier<SessionState> {
     }
   }
 
+  Future<(SshConnection, Stream<Uint8List>)?> createRustSSHConnection(
+    ShellSession session,
+    ConnectionFull connection,
+    int rows,
+    int columns,
+  ) async {
+    final (password, keys) = await CredentialService.collectAuthenticationMethods(
+      await ref
+          .read(credentialServiceProvider)
+          .findByIds(
+            connection.identity?.credentialIds ?? connection.credentialIds,
+          ),
+    );
+
+    try {
+      final rustConnection = await connectSsh(
+        host: connection.address,
+        port: connection.port,
+        username: connection.effectiveUsername!,
+        rows: rows,
+        columns: columns,
+        password: password,
+        privateKey: password != null || keys.isEmpty
+            ? null
+            : (keys.first as dynamic).toPem() as String,
+      );
+      final output = rustConnection.output();
+      return (rustConnection, output);
+    } catch (e) {
+      _close(session.id, e.toString());
+      return null;
+    }
+  }
+
   Future<SSHSession?> spawnSsh(
     String sessionId,
     SSHClient client,
@@ -339,6 +376,29 @@ class SessionNotifier extends Notifier<SessionState> {
     _modifySession(
       sessionId,
       (session) => session.copyWith(stdoutSub: stdoutSub, stderrSub: stderrSub),
+    );
+  }
+
+  void setRustConnection(
+    String sessionId,
+    SshConnection connection,
+    StreamSubscription outputSub,
+  ) {
+    _modifySession(
+      sessionId,
+      (session) => session.copyWith(
+        rustConnection: connection,
+        rustOutputSub: outputSub,
+        connectedAt: DateTime.now(),
+        terminalController: session.terminalController,
+      ),
+    );
+  }
+
+  void setRustStreamListeners(String sessionId, StreamSubscription outputSub) {
+    _modifySession(
+      sessionId,
+      (session) => session.copyWith(rustOutputSub: outputSub),
     );
   }
 

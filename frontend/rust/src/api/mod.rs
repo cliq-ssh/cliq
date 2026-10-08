@@ -1,4 +1,5 @@
 pub mod key_generator;
+pub mod ssh;
 
 #[flutter_rust_bridge::frb(init)]
 pub fn init_app() {
