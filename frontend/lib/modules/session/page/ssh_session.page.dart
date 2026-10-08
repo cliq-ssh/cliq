@@ -261,7 +261,6 @@ class _SshSessionPageState extends ConsumerState<SshSessionPage>
           rustConnection.writeInput(data: utf8.encode(s));
         };
         return;
-
       }
 
       final connectionFull = ref

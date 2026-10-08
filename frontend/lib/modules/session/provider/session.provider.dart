@@ -286,7 +286,10 @@ class SessionNotifier extends Notifier<SessionState> {
     int rows,
     int columns,
   ) async {
-    final (password, keys) = await CredentialService.collectAuthenticationMethods(
+    final (
+      password,
+      keys,
+    ) = await CredentialService.collectAuthenticationMethods(
       await ref
           .read(credentialServiceProvider)
           .findByIds(
