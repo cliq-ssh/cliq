@@ -73,7 +73,7 @@ class RustLib extends BaseEntrypoint<RustLibApi, RustLibApiImpl, RustLibWire> {
   String get codegenVersion => '2.14.0-beta.2';
 
   @override
-  int get rustContentHash => -1555649166;
+  int get rustContentHash => -1290137033;
 
   static const kDefaultExternalLibraryLoaderConfig =
       ExternalLibraryLoaderConfig(
@@ -85,6 +85,78 @@ class RustLib extends BaseEntrypoint<RustLibApi, RustLibApiImpl, RustLibWire> {
 }
 
 abstract class RustLibApi extends BaseApi {
+  Future<String> crateSshSshClientSftpConnectionAbsolute({
+    required SftpConnection that,
+    required String path,
+  });
+
+  Future<List<SftpName>> crateSshSshClientSftpConnectionListdir({
+    required SftpConnection that,
+    required String path,
+  });
+
+  Future<void> crateSshSshClientSftpConnectionMkdir({
+    required SftpConnection that,
+    required String path,
+  });
+
+  Future<SftpFileHandle> crateSshSshClientSftpConnectionOpenRead({
+    required SftpConnection that,
+    required String path,
+  });
+
+  Future<SftpFileHandle> crateSshSshClientSftpConnectionOpenWrite({
+    required SftpConnection that,
+    required String path,
+    required bool truncate,
+  });
+
+  Future<Uint8List> crateSshSshClientSftpConnectionReadFileChunk({
+    required SftpConnection that,
+    required String path,
+    required BigInt offset,
+    required int maxBytes,
+  });
+
+  Future<void> crateSshSshClientSftpConnectionRemove({
+    required SftpConnection that,
+    required String path,
+  });
+
+  Future<void> crateSshSshClientSftpConnectionRename({
+    required SftpConnection that,
+    required String oldPath,
+    required String newPath,
+  });
+
+  Future<void> crateSshSshClientSftpConnectionRmdir({
+    required SftpConnection that,
+    required String path,
+  });
+
+  Future<SftpFileAttr> crateSshSshClientSftpConnectionStat({
+    required SftpConnection that,
+    required String path,
+  });
+
+  Future<void> crateSshSshClientSftpConnectionWriteFileChunk({
+    required SftpConnection that,
+    required String path,
+    required BigInt offset,
+    required List<int> data,
+    required bool truncate,
+  });
+
+  Future<Uint8List> crateSshSshClientSftpFileHandleReadChunk({
+    required SftpFileHandle that,
+    required int maxBytes,
+  });
+
+  Future<void> crateSshSshClientSftpFileHandleWriteChunk({
+    required SftpFileHandle that,
+    required List<int> data,
+  });
+
   Stream<Uint8List> crateSshSshClientSshConnectionOutput({
     required SshConnection that,
   });
@@ -102,6 +174,17 @@ abstract class RustLibApi extends BaseApi {
     required List<int> data,
   });
 
+  Future<SftpConnection> crateApiSshConnectSftp({
+    required String host,
+    required int port,
+    required String username,
+    String? password,
+    required List<String> privateKeys,
+    required List<String?> keyPassphrases,
+    Uint8List? expectedHostKey,
+    required bool skipHostKeyVerification,
+  });
+
   Future<SshConnection> crateApiSshConnectSsh({
     required String host,
     required int port,
@@ -109,7 +192,10 @@ abstract class RustLibApi extends BaseApi {
     required int rows,
     required int columns,
     String? password,
-    String? privateKey,
+    required List<String> privateKeys,
+    required List<String?> keyPassphrases,
+    Uint8List? expectedHostKey,
+    required bool skipHostKeyVerification,
   });
 
   Future<GeneratedSshKey> crateApiKeyGeneratorGenerateSshKey({
@@ -119,6 +205,24 @@ abstract class RustLibApi extends BaseApi {
   });
 
   Future<void> crateApiInitApp();
+
+  RustArcIncrementStrongCountFnType
+  get rust_arc_increment_strong_count_SftpConnection;
+
+  RustArcDecrementStrongCountFnType
+  get rust_arc_decrement_strong_count_SftpConnection;
+
+  CrossPlatformFinalizerArg
+  get rust_arc_decrement_strong_count_SftpConnectionPtr;
+
+  RustArcIncrementStrongCountFnType
+  get rust_arc_increment_strong_count_SftpFileHandle;
+
+  RustArcDecrementStrongCountFnType
+  get rust_arc_decrement_strong_count_SftpFileHandle;
+
+  CrossPlatformFinalizerArg
+  get rust_arc_decrement_strong_count_SftpFileHandlePtr;
 
   RustArcIncrementStrongCountFnType
   get rust_arc_increment_strong_count_SshConnection;
@@ -139,6 +243,516 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   });
 
   @override
+  Future<String> crateSshSshClientSftpConnectionAbsolute({
+    required SftpConnection that,
+    required String path,
+  }) {
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerSftpConnection(
+            that,
+            serializer,
+          );
+          sse_encode_String(path, serializer);
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 1,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_String,
+          decodeErrorData: sse_decode_String,
+        ),
+        constMeta: kCrateSshSshClientSftpConnectionAbsoluteConstMeta,
+        argValues: [that, path],
+        apiImpl: this,
+      ),
+    );
+  }
+
+  TaskConstMeta get kCrateSshSshClientSftpConnectionAbsoluteConstMeta =>
+      const TaskConstMeta(
+        debugName: "SftpConnection_absolute",
+        argNames: ["that", "path"],
+      );
+
+  @override
+  Future<List<SftpName>> crateSshSshClientSftpConnectionListdir({
+    required SftpConnection that,
+    required String path,
+  }) {
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerSftpConnection(
+            that,
+            serializer,
+          );
+          sse_encode_String(path, serializer);
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 2,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_list_sftp_name,
+          decodeErrorData: sse_decode_String,
+        ),
+        constMeta: kCrateSshSshClientSftpConnectionListdirConstMeta,
+        argValues: [that, path],
+        apiImpl: this,
+      ),
+    );
+  }
+
+  TaskConstMeta get kCrateSshSshClientSftpConnectionListdirConstMeta =>
+      const TaskConstMeta(
+        debugName: "SftpConnection_listdir",
+        argNames: ["that", "path"],
+      );
+
+  @override
+  Future<void> crateSshSshClientSftpConnectionMkdir({
+    required SftpConnection that,
+    required String path,
+  }) {
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerSftpConnection(
+            that,
+            serializer,
+          );
+          sse_encode_String(path, serializer);
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 3,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_unit,
+          decodeErrorData: sse_decode_String,
+        ),
+        constMeta: kCrateSshSshClientSftpConnectionMkdirConstMeta,
+        argValues: [that, path],
+        apiImpl: this,
+      ),
+    );
+  }
+
+  TaskConstMeta get kCrateSshSshClientSftpConnectionMkdirConstMeta =>
+      const TaskConstMeta(
+        debugName: "SftpConnection_mkdir",
+        argNames: ["that", "path"],
+      );
+
+  @override
+  Future<SftpFileHandle> crateSshSshClientSftpConnectionOpenRead({
+    required SftpConnection that,
+    required String path,
+  }) {
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerSftpConnection(
+            that,
+            serializer,
+          );
+          sse_encode_String(path, serializer);
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 4,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
+          decodeSuccessData:
+              sse_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerSftpFileHandle,
+          decodeErrorData: sse_decode_String,
+        ),
+        constMeta: kCrateSshSshClientSftpConnectionOpenReadConstMeta,
+        argValues: [that, path],
+        apiImpl: this,
+      ),
+    );
+  }
+
+  TaskConstMeta get kCrateSshSshClientSftpConnectionOpenReadConstMeta =>
+      const TaskConstMeta(
+        debugName: "SftpConnection_open_read",
+        argNames: ["that", "path"],
+      );
+
+  @override
+  Future<SftpFileHandle> crateSshSshClientSftpConnectionOpenWrite({
+    required SftpConnection that,
+    required String path,
+    required bool truncate,
+  }) {
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerSftpConnection(
+            that,
+            serializer,
+          );
+          sse_encode_String(path, serializer);
+          sse_encode_bool(truncate, serializer);
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 5,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
+          decodeSuccessData:
+              sse_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerSftpFileHandle,
+          decodeErrorData: sse_decode_String,
+        ),
+        constMeta: kCrateSshSshClientSftpConnectionOpenWriteConstMeta,
+        argValues: [that, path, truncate],
+        apiImpl: this,
+      ),
+    );
+  }
+
+  TaskConstMeta get kCrateSshSshClientSftpConnectionOpenWriteConstMeta =>
+      const TaskConstMeta(
+        debugName: "SftpConnection_open_write",
+        argNames: ["that", "path", "truncate"],
+      );
+
+  @override
+  Future<Uint8List> crateSshSshClientSftpConnectionReadFileChunk({
+    required SftpConnection that,
+    required String path,
+    required BigInt offset,
+    required int maxBytes,
+  }) {
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerSftpConnection(
+            that,
+            serializer,
+          );
+          sse_encode_String(path, serializer);
+          sse_encode_u_64(offset, serializer);
+          sse_encode_u_32(maxBytes, serializer);
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 6,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_list_prim_u_8_strict,
+          decodeErrorData: sse_decode_String,
+        ),
+        constMeta: kCrateSshSshClientSftpConnectionReadFileChunkConstMeta,
+        argValues: [that, path, offset, maxBytes],
+        apiImpl: this,
+      ),
+    );
+  }
+
+  TaskConstMeta get kCrateSshSshClientSftpConnectionReadFileChunkConstMeta =>
+      const TaskConstMeta(
+        debugName: "SftpConnection_read_file_chunk",
+        argNames: ["that", "path", "offset", "maxBytes"],
+      );
+
+  @override
+  Future<void> crateSshSshClientSftpConnectionRemove({
+    required SftpConnection that,
+    required String path,
+  }) {
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerSftpConnection(
+            that,
+            serializer,
+          );
+          sse_encode_String(path, serializer);
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 7,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_unit,
+          decodeErrorData: sse_decode_String,
+        ),
+        constMeta: kCrateSshSshClientSftpConnectionRemoveConstMeta,
+        argValues: [that, path],
+        apiImpl: this,
+      ),
+    );
+  }
+
+  TaskConstMeta get kCrateSshSshClientSftpConnectionRemoveConstMeta =>
+      const TaskConstMeta(
+        debugName: "SftpConnection_remove",
+        argNames: ["that", "path"],
+      );
+
+  @override
+  Future<void> crateSshSshClientSftpConnectionRename({
+    required SftpConnection that,
+    required String oldPath,
+    required String newPath,
+  }) {
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerSftpConnection(
+            that,
+            serializer,
+          );
+          sse_encode_String(oldPath, serializer);
+          sse_encode_String(newPath, serializer);
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 8,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_unit,
+          decodeErrorData: sse_decode_String,
+        ),
+        constMeta: kCrateSshSshClientSftpConnectionRenameConstMeta,
+        argValues: [that, oldPath, newPath],
+        apiImpl: this,
+      ),
+    );
+  }
+
+  TaskConstMeta get kCrateSshSshClientSftpConnectionRenameConstMeta =>
+      const TaskConstMeta(
+        debugName: "SftpConnection_rename",
+        argNames: ["that", "oldPath", "newPath"],
+      );
+
+  @override
+  Future<void> crateSshSshClientSftpConnectionRmdir({
+    required SftpConnection that,
+    required String path,
+  }) {
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerSftpConnection(
+            that,
+            serializer,
+          );
+          sse_encode_String(path, serializer);
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 9,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_unit,
+          decodeErrorData: sse_decode_String,
+        ),
+        constMeta: kCrateSshSshClientSftpConnectionRmdirConstMeta,
+        argValues: [that, path],
+        apiImpl: this,
+      ),
+    );
+  }
+
+  TaskConstMeta get kCrateSshSshClientSftpConnectionRmdirConstMeta =>
+      const TaskConstMeta(
+        debugName: "SftpConnection_rmdir",
+        argNames: ["that", "path"],
+      );
+
+  @override
+  Future<SftpFileAttr> crateSshSshClientSftpConnectionStat({
+    required SftpConnection that,
+    required String path,
+  }) {
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerSftpConnection(
+            that,
+            serializer,
+          );
+          sse_encode_String(path, serializer);
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 10,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_sftp_file_attr,
+          decodeErrorData: sse_decode_String,
+        ),
+        constMeta: kCrateSshSshClientSftpConnectionStatConstMeta,
+        argValues: [that, path],
+        apiImpl: this,
+      ),
+    );
+  }
+
+  TaskConstMeta get kCrateSshSshClientSftpConnectionStatConstMeta =>
+      const TaskConstMeta(
+        debugName: "SftpConnection_stat",
+        argNames: ["that", "path"],
+      );
+
+  @override
+  Future<void> crateSshSshClientSftpConnectionWriteFileChunk({
+    required SftpConnection that,
+    required String path,
+    required BigInt offset,
+    required List<int> data,
+    required bool truncate,
+  }) {
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerSftpConnection(
+            that,
+            serializer,
+          );
+          sse_encode_String(path, serializer);
+          sse_encode_u_64(offset, serializer);
+          sse_encode_list_prim_u_8_loose(data, serializer);
+          sse_encode_bool(truncate, serializer);
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 11,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_unit,
+          decodeErrorData: sse_decode_String,
+        ),
+        constMeta: kCrateSshSshClientSftpConnectionWriteFileChunkConstMeta,
+        argValues: [that, path, offset, data, truncate],
+        apiImpl: this,
+      ),
+    );
+  }
+
+  TaskConstMeta get kCrateSshSshClientSftpConnectionWriteFileChunkConstMeta =>
+      const TaskConstMeta(
+        debugName: "SftpConnection_write_file_chunk",
+        argNames: ["that", "path", "offset", "data", "truncate"],
+      );
+
+  @override
+  Future<Uint8List> crateSshSshClientSftpFileHandleReadChunk({
+    required SftpFileHandle that,
+    required int maxBytes,
+  }) {
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerSftpFileHandle(
+            that,
+            serializer,
+          );
+          sse_encode_u_32(maxBytes, serializer);
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 12,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_list_prim_u_8_strict,
+          decodeErrorData: sse_decode_String,
+        ),
+        constMeta: kCrateSshSshClientSftpFileHandleReadChunkConstMeta,
+        argValues: [that, maxBytes],
+        apiImpl: this,
+      ),
+    );
+  }
+
+  TaskConstMeta get kCrateSshSshClientSftpFileHandleReadChunkConstMeta =>
+      const TaskConstMeta(
+        debugName: "SftpFileHandle_read_chunk",
+        argNames: ["that", "maxBytes"],
+      );
+
+  @override
+  Future<void> crateSshSshClientSftpFileHandleWriteChunk({
+    required SftpFileHandle that,
+    required List<int> data,
+  }) {
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerSftpFileHandle(
+            that,
+            serializer,
+          );
+          sse_encode_list_prim_u_8_loose(data, serializer);
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 13,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_unit,
+          decodeErrorData: sse_decode_String,
+        ),
+        constMeta: kCrateSshSshClientSftpFileHandleWriteChunkConstMeta,
+        argValues: [that, data],
+        apiImpl: this,
+      ),
+    );
+  }
+
+  TaskConstMeta get kCrateSshSshClientSftpFileHandleWriteChunkConstMeta =>
+      const TaskConstMeta(
+        debugName: "SftpFileHandle_write_chunk",
+        argNames: ["that", "data"],
+      );
+
+  @override
   Stream<Uint8List> crateSshSshClientSshConnectionOutput({
     required SshConnection that,
   }) {
@@ -156,7 +770,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
             pdeCallFfi(
               generalizedFrbRustBinding,
               serializer,
-              funcId: 1,
+              funcId: 14,
               port: port_,
             );
           },
@@ -202,7 +816,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 2,
+            funcId: 15,
             port: port_,
           );
         },
@@ -240,7 +854,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 3,
+            funcId: 16,
             port: port_,
           );
         },
@@ -262,6 +876,71 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       );
 
   @override
+  Future<SftpConnection> crateApiSshConnectSftp({
+    required String host,
+    required int port,
+    required String username,
+    String? password,
+    required List<String> privateKeys,
+    required List<String?> keyPassphrases,
+    Uint8List? expectedHostKey,
+    required bool skipHostKeyVerification,
+  }) {
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          sse_encode_String(host, serializer);
+          sse_encode_u_16(port, serializer);
+          sse_encode_String(username, serializer);
+          sse_encode_opt_String(password, serializer);
+          sse_encode_list_String(privateKeys, serializer);
+          sse_encode_list_opt_String(keyPassphrases, serializer);
+          sse_encode_opt_list_prim_u_8_strict(expectedHostKey, serializer);
+          sse_encode_bool(skipHostKeyVerification, serializer);
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 17,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
+          decodeSuccessData:
+              sse_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerSftpConnection,
+          decodeErrorData: sse_decode_String,
+        ),
+        constMeta: kCrateApiSshConnectSftpConstMeta,
+        argValues: [
+          host,
+          port,
+          username,
+          password,
+          privateKeys,
+          keyPassphrases,
+          expectedHostKey,
+          skipHostKeyVerification,
+        ],
+        apiImpl: this,
+      ),
+    );
+  }
+
+  TaskConstMeta get kCrateApiSshConnectSftpConstMeta => const TaskConstMeta(
+    debugName: "connect_sftp",
+    argNames: [
+      "host",
+      "port",
+      "username",
+      "password",
+      "privateKeys",
+      "keyPassphrases",
+      "expectedHostKey",
+      "skipHostKeyVerification",
+    ],
+  );
+
+  @override
   Future<SshConnection> crateApiSshConnectSsh({
     required String host,
     required int port,
@@ -269,7 +948,10 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     required int rows,
     required int columns,
     String? password,
-    String? privateKey,
+    required List<String> privateKeys,
+    required List<String?> keyPassphrases,
+    Uint8List? expectedHostKey,
+    required bool skipHostKeyVerification,
   }) {
     return handler.executeNormal(
       NormalTask(
@@ -281,11 +963,14 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           sse_encode_u_32(rows, serializer);
           sse_encode_u_32(columns, serializer);
           sse_encode_opt_String(password, serializer);
-          sse_encode_opt_String(privateKey, serializer);
+          sse_encode_list_String(privateKeys, serializer);
+          sse_encode_list_opt_String(keyPassphrases, serializer);
+          sse_encode_opt_list_prim_u_8_strict(expectedHostKey, serializer);
+          sse_encode_bool(skipHostKeyVerification, serializer);
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 4,
+            funcId: 18,
             port: port_,
           );
         },
@@ -295,7 +980,18 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           decodeErrorData: sse_decode_String,
         ),
         constMeta: kCrateApiSshConnectSshConstMeta,
-        argValues: [host, port, username, rows, columns, password, privateKey],
+        argValues: [
+          host,
+          port,
+          username,
+          rows,
+          columns,
+          password,
+          privateKeys,
+          keyPassphrases,
+          expectedHostKey,
+          skipHostKeyVerification,
+        ],
         apiImpl: this,
       ),
     );
@@ -310,7 +1006,10 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       "rows",
       "columns",
       "password",
-      "privateKey",
+      "privateKeys",
+      "keyPassphrases",
+      "expectedHostKey",
+      "skipHostKeyVerification",
     ],
   );
 
@@ -330,7 +1029,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 5,
+            funcId: 19,
             port: port_,
           );
         },
@@ -360,7 +1059,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 6,
+            funcId: 20,
             port: port_,
           );
         },
@@ -379,6 +1078,22 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       const TaskConstMeta(debugName: "init_app", argNames: []);
 
   RustArcIncrementStrongCountFnType
+  get rust_arc_increment_strong_count_SftpConnection => wire
+      .rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerSftpConnection;
+
+  RustArcDecrementStrongCountFnType
+  get rust_arc_decrement_strong_count_SftpConnection => wire
+      .rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerSftpConnection;
+
+  RustArcIncrementStrongCountFnType
+  get rust_arc_increment_strong_count_SftpFileHandle => wire
+      .rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerSftpFileHandle;
+
+  RustArcDecrementStrongCountFnType
+  get rust_arc_decrement_strong_count_SftpFileHandle => wire
+      .rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerSftpFileHandle;
+
+  RustArcIncrementStrongCountFnType
   get rust_arc_increment_strong_count_SshConnection => wire
       .rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerSshConnection;
 
@@ -390,6 +1105,24 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   AnyhowException dco_decode_AnyhowException(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     return AnyhowException(dcoDecodeString(raw));
+  }
+
+  @protected
+  SftpConnection
+  dco_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerSftpConnection(
+    dynamic raw,
+  ) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return SftpConnectionImpl.frbInternalDcoDecode(dcoDecodeList(raw));
+  }
+
+  @protected
+  SftpFileHandle
+  dco_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerSftpFileHandle(
+    dynamic raw,
+  ) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return SftpFileHandleImpl.frbInternalDcoDecode(dcoDecodeList(raw));
   }
 
   @protected
@@ -411,12 +1144,48 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  SftpConnection
+  dco_decode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerSftpConnection(
+    dynamic raw,
+  ) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return SftpConnectionImpl.frbInternalDcoDecode(dcoDecodeList(raw));
+  }
+
+  @protected
+  SftpFileHandle
+  dco_decode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerSftpFileHandle(
+    dynamic raw,
+  ) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return SftpFileHandleImpl.frbInternalDcoDecode(dcoDecodeList(raw));
+  }
+
+  @protected
   SshConnection
   dco_decode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerSshConnection(
     dynamic raw,
   ) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     return SshConnectionImpl.frbInternalDcoDecode(dcoDecodeList(raw));
+  }
+
+  @protected
+  SftpConnection
+  dco_decode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerSftpConnection(
+    dynamic raw,
+  ) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return SftpConnectionImpl.frbInternalDcoDecode(dcoDecodeList(raw));
+  }
+
+  @protected
+  SftpFileHandle
+  dco_decode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerSftpFileHandle(
+    dynamic raw,
+  ) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return SftpFileHandleImpl.frbInternalDcoDecode(dcoDecodeList(raw));
   }
 
   @protected
@@ -443,9 +1212,21 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  bool dco_decode_bool(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return raw as bool;
+  }
+
+  @protected
   SshKeyType dco_decode_box_autoadd_ssh_key_type(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     return dco_decode_ssh_key_type(raw);
+  }
+
+  @protected
+  BigInt dco_decode_box_autoadd_u_64(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return dco_decode_u_64(raw);
   }
 
   @protected
@@ -474,6 +1255,18 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  List<String> dco_decode_list_String(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return dcoDecodeList(raw).map(dco_decode_String).toList();
+  }
+
+  @protected
+  List<String?> dco_decode_list_opt_String(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return dcoDecodeList(raw).map(dco_decode_opt_String).toList();
+  }
+
+  @protected
   List<int> dco_decode_list_prim_u_8_loose(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     return raw as List<int>;
@@ -486,15 +1279,60 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  List<SftpName> dco_decode_list_sftp_name(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return dcoDecodeList(raw).map(dco_decode_sftp_name).toList();
+  }
+
+  @protected
   String? dco_decode_opt_String(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     return raw == null ? null : dco_decode_String(raw);
   }
 
   @protected
+  BigInt? dco_decode_opt_box_autoadd_u_64(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return raw == null ? null : dco_decode_box_autoadd_u_64(raw);
+  }
+
+  @protected
+  Uint8List? dco_decode_opt_list_prim_u_8_strict(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return raw == null ? null : dco_decode_list_prim_u_8_strict(raw);
+  }
+
+  @protected
   RsaBits dco_decode_rsa_bits(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     return RsaBits.values[dcoDecodePrimitiveInt(raw)];
+  }
+
+  @protected
+  SftpFileAttr dco_decode_sftp_file_attr(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    final arr = dcoDecodeList(raw);
+    if (arr.length != 4)
+      throw Exception('unexpected arr length: expect 4 but see ${arr.length}');
+    return SftpFileAttr(
+      size: dco_decode_opt_box_autoadd_u_64(arr[0]),
+      mode: dco_decode_u_32(arr[1]),
+      modifyTime: dco_decode_opt_box_autoadd_u_64(arr[2]),
+      accessTime: dco_decode_opt_box_autoadd_u_64(arr[3]),
+    );
+  }
+
+  @protected
+  SftpName dco_decode_sftp_name(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    final arr = dcoDecodeList(raw);
+    if (arr.length != 3)
+      throw Exception('unexpected arr length: expect 3 but see ${arr.length}');
+    return SftpName(
+      filename: dco_decode_String(arr[0]),
+      longname: dco_decode_String(arr[1]),
+      attr: dco_decode_sftp_file_attr(arr[2]),
+    );
   }
 
   @protected
@@ -526,6 +1364,12 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  BigInt dco_decode_u_64(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return dcoDecodeU64(raw);
+  }
+
+  @protected
   int dco_decode_u_8(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     return dcoDecodePrimitiveInt(raw);
@@ -548,6 +1392,30 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     // Codec=Sse (Serialization based), see doc to use other codecs
     var inner = sse_decode_String(deserializer);
     return AnyhowException(inner);
+  }
+
+  @protected
+  SftpConnection
+  sse_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerSftpConnection(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    return SftpConnectionImpl.frbInternalSseDecode(
+      sse_decode_usize(deserializer),
+      sse_decode_i_32(deserializer),
+    );
+  }
+
+  @protected
+  SftpFileHandle
+  sse_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerSftpFileHandle(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    return SftpFileHandleImpl.frbInternalSseDecode(
+      sse_decode_usize(deserializer),
+      sse_decode_i_32(deserializer),
+    );
   }
 
   @protected
@@ -575,12 +1443,60 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  SftpConnection
+  sse_decode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerSftpConnection(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    return SftpConnectionImpl.frbInternalSseDecode(
+      sse_decode_usize(deserializer),
+      sse_decode_i_32(deserializer),
+    );
+  }
+
+  @protected
+  SftpFileHandle
+  sse_decode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerSftpFileHandle(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    return SftpFileHandleImpl.frbInternalSseDecode(
+      sse_decode_usize(deserializer),
+      sse_decode_i_32(deserializer),
+    );
+  }
+
+  @protected
   SshConnection
   sse_decode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerSshConnection(
     SseDeserializer deserializer,
   ) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     return SshConnectionImpl.frbInternalSseDecode(
+      sse_decode_usize(deserializer),
+      sse_decode_i_32(deserializer),
+    );
+  }
+
+  @protected
+  SftpConnection
+  sse_decode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerSftpConnection(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    return SftpConnectionImpl.frbInternalSseDecode(
+      sse_decode_usize(deserializer),
+      sse_decode_i_32(deserializer),
+    );
+  }
+
+  @protected
+  SftpFileHandle
+  sse_decode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerSftpFileHandle(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    return SftpFileHandleImpl.frbInternalSseDecode(
       sse_decode_usize(deserializer),
       sse_decode_i_32(deserializer),
     );
@@ -614,9 +1530,21 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  bool sse_decode_bool(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    return deserializer.buffer.getUint8() != 0;
+  }
+
+  @protected
   SshKeyType sse_decode_box_autoadd_ssh_key_type(SseDeserializer deserializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     return (sse_decode_ssh_key_type(deserializer));
+  }
+
+  @protected
+  BigInt sse_decode_box_autoadd_u_64(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    return (sse_decode_u_64(deserializer));
   }
 
   @protected
@@ -646,6 +1574,30 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  List<String> sse_decode_list_String(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    var len_ = sse_decode_i_32(deserializer);
+    var ans_ = <String>[];
+    for (var idx_ = 0; idx_ < len_; ++idx_) {
+      ans_.add(sse_decode_String(deserializer));
+    }
+    return ans_;
+  }
+
+  @protected
+  List<String?> sse_decode_list_opt_String(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    var len_ = sse_decode_i_32(deserializer);
+    var ans_ = <String?>[];
+    for (var idx_ = 0; idx_ < len_; ++idx_) {
+      ans_.add(sse_decode_opt_String(deserializer));
+    }
+    return ans_;
+  }
+
+  @protected
   List<int> sse_decode_list_prim_u_8_loose(SseDeserializer deserializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     var len_ = sse_decode_i_32(deserializer);
@@ -660,6 +1612,18 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  List<SftpName> sse_decode_list_sftp_name(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    var len_ = sse_decode_i_32(deserializer);
+    var ans_ = <SftpName>[];
+    for (var idx_ = 0; idx_ < len_; ++idx_) {
+      ans_.add(sse_decode_sftp_name(deserializer));
+    }
+    return ans_;
+  }
+
+  @protected
   String? sse_decode_opt_String(SseDeserializer deserializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
 
@@ -671,10 +1635,60 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  BigInt? sse_decode_opt_box_autoadd_u_64(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    if (sse_decode_bool(deserializer)) {
+      return (sse_decode_box_autoadd_u_64(deserializer));
+    } else {
+      return null;
+    }
+  }
+
+  @protected
+  Uint8List? sse_decode_opt_list_prim_u_8_strict(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    if (sse_decode_bool(deserializer)) {
+      return (sse_decode_list_prim_u_8_strict(deserializer));
+    } else {
+      return null;
+    }
+  }
+
+  @protected
   RsaBits sse_decode_rsa_bits(SseDeserializer deserializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     var inner = sse_decode_i_32(deserializer);
     return RsaBits.values[inner];
+  }
+
+  @protected
+  SftpFileAttr sse_decode_sftp_file_attr(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var var_size = sse_decode_opt_box_autoadd_u_64(deserializer);
+    var var_mode = sse_decode_u_32(deserializer);
+    var var_modifyTime = sse_decode_opt_box_autoadd_u_64(deserializer);
+    var var_accessTime = sse_decode_opt_box_autoadd_u_64(deserializer);
+    return SftpFileAttr(
+      size: var_size,
+      mode: var_mode,
+      modifyTime: var_modifyTime,
+      accessTime: var_accessTime,
+    );
+  }
+
+  @protected
+  SftpName sse_decode_sftp_name(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var var_filename = sse_decode_String(deserializer);
+    var var_longname = sse_decode_String(deserializer);
+    var var_attr = sse_decode_sftp_file_attr(deserializer);
+    return SftpName(
+      filename: var_filename,
+      longname: var_longname,
+      attr: var_attr,
+    );
   }
 
   @protected
@@ -709,6 +1723,12 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  BigInt sse_decode_u_64(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    return deserializer.buffer.getBigUint64();
+  }
+
+  @protected
   int sse_decode_u_8(SseDeserializer deserializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     return deserializer.buffer.getUint8();
@@ -726,18 +1746,38 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
-  bool sse_decode_bool(SseDeserializer deserializer) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    return deserializer.buffer.getUint8() != 0;
-  }
-
-  @protected
   void sse_encode_AnyhowException(
     AnyhowException self,
     SseSerializer serializer,
   ) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     sse_encode_String(self.message, serializer);
+  }
+
+  @protected
+  void
+  sse_encode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerSftpConnection(
+    SftpConnection self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_usize(
+      (self as SftpConnectionImpl).frbInternalSseEncode(move: true),
+      serializer,
+    );
+  }
+
+  @protected
+  void
+  sse_encode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerSftpFileHandle(
+    SftpFileHandle self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_usize(
+      (self as SftpFileHandleImpl).frbInternalSseEncode(move: true),
+      serializer,
+    );
   }
 
   @protected
@@ -768,6 +1808,32 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
 
   @protected
   void
+  sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerSftpConnection(
+    SftpConnection self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_usize(
+      (self as SftpConnectionImpl).frbInternalSseEncode(move: false),
+      serializer,
+    );
+  }
+
+  @protected
+  void
+  sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerSftpFileHandle(
+    SftpFileHandle self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_usize(
+      (self as SftpFileHandleImpl).frbInternalSseEncode(move: false),
+      serializer,
+    );
+  }
+
+  @protected
+  void
   sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerSshConnection(
     SshConnection self,
     SseSerializer serializer,
@@ -775,6 +1841,32 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     // Codec=Sse (Serialization based), see doc to use other codecs
     sse_encode_usize(
       (self as SshConnectionImpl).frbInternalSseEncode(move: false),
+      serializer,
+    );
+  }
+
+  @protected
+  void
+  sse_encode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerSftpConnection(
+    SftpConnection self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_usize(
+      (self as SftpConnectionImpl).frbInternalSseEncode(move: null),
+      serializer,
+    );
+  }
+
+  @protected
+  void
+  sse_encode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerSftpFileHandle(
+    SftpFileHandle self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_usize(
+      (self as SftpFileHandleImpl).frbInternalSseEncode(move: null),
       serializer,
     );
   }
@@ -816,12 +1908,24 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  void sse_encode_bool(bool self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    serializer.buffer.putUint8(self ? 1 : 0);
+  }
+
+  @protected
   void sse_encode_box_autoadd_ssh_key_type(
     SshKeyType self,
     SseSerializer serializer,
   ) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     sse_encode_ssh_key_type(self, serializer);
+  }
+
+  @protected
+  void sse_encode_box_autoadd_u_64(BigInt self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_u_64(self, serializer);
   }
 
   @protected
@@ -848,6 +1952,27 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  void sse_encode_list_String(List<String> self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_i_32(self.length, serializer);
+    for (final item in self) {
+      sse_encode_String(item, serializer);
+    }
+  }
+
+  @protected
+  void sse_encode_list_opt_String(
+    List<String?> self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_i_32(self.length, serializer);
+    for (final item in self) {
+      sse_encode_opt_String(item, serializer);
+    }
+  }
+
+  @protected
   void sse_encode_list_prim_u_8_loose(
     List<int> self,
     SseSerializer serializer,
@@ -870,6 +1995,18 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  void sse_encode_list_sftp_name(
+    List<SftpName> self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_i_32(self.length, serializer);
+    for (final item in self) {
+      sse_encode_sftp_name(item, serializer);
+    }
+  }
+
+  @protected
   void sse_encode_opt_String(String? self, SseSerializer serializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
 
@@ -880,9 +2017,49 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  void sse_encode_opt_box_autoadd_u_64(BigInt? self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    sse_encode_bool(self != null, serializer);
+    if (self != null) {
+      sse_encode_box_autoadd_u_64(self, serializer);
+    }
+  }
+
+  @protected
+  void sse_encode_opt_list_prim_u_8_strict(
+    Uint8List? self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    sse_encode_bool(self != null, serializer);
+    if (self != null) {
+      sse_encode_list_prim_u_8_strict(self, serializer);
+    }
+  }
+
+  @protected
   void sse_encode_rsa_bits(RsaBits self, SseSerializer serializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     sse_encode_i_32(self.index, serializer);
+  }
+
+  @protected
+  void sse_encode_sftp_file_attr(SftpFileAttr self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_opt_box_autoadd_u_64(self.size, serializer);
+    sse_encode_u_32(self.mode, serializer);
+    sse_encode_opt_box_autoadd_u_64(self.modifyTime, serializer);
+    sse_encode_opt_box_autoadd_u_64(self.accessTime, serializer);
+  }
+
+  @protected
+  void sse_encode_sftp_name(SftpName self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_String(self.filename, serializer);
+    sse_encode_String(self.longname, serializer);
+    sse_encode_sftp_file_attr(self.attr, serializer);
   }
 
   @protected
@@ -913,6 +2090,12 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  void sse_encode_u_64(BigInt self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    serializer.buffer.putBigUint64(self);
+  }
+
+  @protected
   void sse_encode_u_8(int self, SseSerializer serializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     serializer.buffer.putUint8(self);
@@ -928,12 +2111,115 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     // Codec=Sse (Serialization based), see doc to use other codecs
     serializer.buffer.putBigUint64(self);
   }
+}
 
-  @protected
-  void sse_encode_bool(bool self, SseSerializer serializer) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    serializer.buffer.putUint8(self ? 1 : 0);
-  }
+@sealed
+class SftpConnectionImpl extends RustOpaque implements SftpConnection {
+  // Not to be used by end users
+  SftpConnectionImpl.frbInternalDcoDecode(List<dynamic> wire)
+    : super.frbInternalDcoDecode(wire, _kStaticData);
+
+  // Not to be used by end users
+  SftpConnectionImpl.frbInternalSseDecode(BigInt ptr, int externalSizeOnNative)
+    : super.frbInternalSseDecode(ptr, externalSizeOnNative, _kStaticData);
+
+  static final _kStaticData = RustArcStaticData(
+    rustArcIncrementStrongCount:
+        RustLib.instance.api.rust_arc_increment_strong_count_SftpConnection,
+    rustArcDecrementStrongCount:
+        RustLib.instance.api.rust_arc_decrement_strong_count_SftpConnection,
+    rustArcDecrementStrongCountPtr:
+        RustLib.instance.api.rust_arc_decrement_strong_count_SftpConnectionPtr,
+  );
+
+  Future<String> absolute({required String path}) => RustLib.instance.api
+      .crateSshSshClientSftpConnectionAbsolute(that: this, path: path);
+
+  Future<List<SftpName>> listdir({required String path}) => RustLib.instance.api
+      .crateSshSshClientSftpConnectionListdir(that: this, path: path);
+
+  Future<void> mkdir({required String path}) => RustLib.instance.api
+      .crateSshSshClientSftpConnectionMkdir(that: this, path: path);
+
+  Future<SftpFileHandle> openRead({required String path}) => RustLib
+      .instance
+      .api
+      .crateSshSshClientSftpConnectionOpenRead(that: this, path: path);
+
+  Future<SftpFileHandle> openWrite({
+    required String path,
+    required bool truncate,
+  }) => RustLib.instance.api.crateSshSshClientSftpConnectionOpenWrite(
+    that: this,
+    path: path,
+    truncate: truncate,
+  );
+
+  Future<Uint8List> readFileChunk({
+    required String path,
+    required BigInt offset,
+    required int maxBytes,
+  }) => RustLib.instance.api.crateSshSshClientSftpConnectionReadFileChunk(
+    that: this,
+    path: path,
+    offset: offset,
+    maxBytes: maxBytes,
+  );
+
+  Future<void> remove({required String path}) => RustLib.instance.api
+      .crateSshSshClientSftpConnectionRemove(that: this, path: path);
+
+  Future<void> rename({required String oldPath, required String newPath}) =>
+      RustLib.instance.api.crateSshSshClientSftpConnectionRename(
+        that: this,
+        oldPath: oldPath,
+        newPath: newPath,
+      );
+
+  Future<void> rmdir({required String path}) => RustLib.instance.api
+      .crateSshSshClientSftpConnectionRmdir(that: this, path: path);
+
+  Future<SftpFileAttr> stat({required String path}) => RustLib.instance.api
+      .crateSshSshClientSftpConnectionStat(that: this, path: path);
+
+  Future<void> writeFileChunk({
+    required String path,
+    required BigInt offset,
+    required List<int> data,
+    required bool truncate,
+  }) => RustLib.instance.api.crateSshSshClientSftpConnectionWriteFileChunk(
+    that: this,
+    path: path,
+    offset: offset,
+    data: data,
+    truncate: truncate,
+  );
+}
+
+@sealed
+class SftpFileHandleImpl extends RustOpaque implements SftpFileHandle {
+  // Not to be used by end users
+  SftpFileHandleImpl.frbInternalDcoDecode(List<dynamic> wire)
+    : super.frbInternalDcoDecode(wire, _kStaticData);
+
+  // Not to be used by end users
+  SftpFileHandleImpl.frbInternalSseDecode(BigInt ptr, int externalSizeOnNative)
+    : super.frbInternalSseDecode(ptr, externalSizeOnNative, _kStaticData);
+
+  static final _kStaticData = RustArcStaticData(
+    rustArcIncrementStrongCount:
+        RustLib.instance.api.rust_arc_increment_strong_count_SftpFileHandle,
+    rustArcDecrementStrongCount:
+        RustLib.instance.api.rust_arc_decrement_strong_count_SftpFileHandle,
+    rustArcDecrementStrongCountPtr:
+        RustLib.instance.api.rust_arc_decrement_strong_count_SftpFileHandlePtr,
+  );
+
+  Future<Uint8List> readChunk({required int maxBytes}) => RustLib.instance.api
+      .crateSshSshClientSftpFileHandleReadChunk(that: this, maxBytes: maxBytes);
+
+  Future<void> writeChunk({required List<int> data}) => RustLib.instance.api
+      .crateSshSshClientSftpFileHandleWriteChunk(that: this, data: data);
 }
 
 @sealed

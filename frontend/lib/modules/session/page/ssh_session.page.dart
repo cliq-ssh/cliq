@@ -134,13 +134,6 @@ class _SshSessionPageState extends ConsumerState<SshSessionPage>
                 pixelWidth: size.width.round(),
                 pixelHeight: size.height.round(),
               );
-            } else {
-              currentSession?.sshSession?.resizeTerminal(
-                cols,
-                rows,
-                size.width.round(),
-                size.height.round(),
-              );
             }
           },
         );

@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:cliq/modules/connections/model/connection_full.model.dart';
@@ -6,6 +7,7 @@ import 'package:cliq/modules/credentials/data/credential.service.dart';
 import 'package:cliq/modules/credentials/provider/credential_service.provider.dart';
 import 'package:cliq/modules/session/model/session.model.dart';
 import 'package:cliq/modules/session/model/session.state.dart';
+import 'package:cliq/modules/session/model/sftp_client.model.dart';
 import 'package:cliq/modules/session/model/tab.model.dart';
 import 'package:cliq/modules/settings/model/known_host_error.model.dart';
 import 'package:cliq/modules/settings/provider/known_host_service.provider.dart';
@@ -13,8 +15,6 @@ import 'package:cliq/shared/data/database.dart';
 import 'package:cliq/shared/ui/navigation/navigation_shell.dart';
 import 'package:cliq/src/rust/api/ssh.dart';
 import 'package:cliq/src/rust/ssh/ssh_client.dart';
-import 'package:cliq_term/cliq_term.dart';
-import 'package:dartssh2/dartssh2.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:uuid/v4.dart';
 
@@ -94,15 +94,6 @@ class SessionNotifier extends Notifier<SessionState> {
       selectedTabId: newSelectedTabId,
       tabPageIndices: newTabPageIndices,
     );
-  }
-
-  Future<SftpFile?> readFileFromSession(
-    String sessionId,
-    String filePath,
-  ) async {
-    final session = getSessionById(sessionId);
-    if (session == null || session.sftpClient == null) return null;
-    return await session.sftpClient!.open(filePath);
   }
 
   void closeSessionAndMaybeGo(
@@ -203,7 +194,7 @@ class SessionNotifier extends Notifier<SessionState> {
     state = state.copyWith(activeTabs: newActiveTabs);
   }
 
-  Future<SSHClient?> createSSHClient(
+  Future<SftpClient?> createSftpClient(
     ShellSession session,
     ConnectionFull connection,
   ) async {
@@ -219,62 +210,50 @@ class SessionNotifier extends Notifier<SessionState> {
     );
 
     try {
-      final socket = await SSHSocket.connect(
-        connection.address,
-        connection.port,
-        timeout: const .new(seconds: 10), // TODO:
-      );
-
-      unawaited(
-        socket.done.then(
-          (_) => _close(session.id),
-          onError: (e) => _close(session.id, e.toString()),
-        ),
-      );
-
-      final sshClient = SSHClient(
-        socket,
+      final hostKey = session.skipHostKeyVerification
+          ? null
+          : await ref
+                .read(knownHostServiceProvider)
+                .findKeyForHost(connection.addressAndPort);
+      final rustConnection = await connectSftp(
+        host: connection.address,
+        port: connection.port,
         username: connection.effectiveUsername!,
-        identities: keys,
-        onVerifyHostKey: (algorithm, fingerprint) async {
-          if (session.skipHostKeyVerification) {
-            return true;
-          }
-
-          // check db whether host is known
-          final (knownHost, isKeyMatch) = await ref
+        password: password,
+        privateKeys: keys.map((key) => key.privateKey).toList(),
+        keyPassphrases: keys.map((key) => key.passphrase).toList(),
+        expectedHostKey: hostKey,
+        skipHostKeyVerification: session.skipHostKeyVerification,
+      );
+      final client = SftpClient(rustConnection);
+      _modifySession(
+        session.id,
+        (session) =>
+            session.copyWith(connectedAt: DateTime.now(), sftpClient: client),
+      );
+      return client;
+    } catch (e) {
+      final error = e.toString();
+      if (error.startsWith('HOST_KEY|')) {
+        final parts = error.split('|');
+        if (parts.length >= 3) {
+          final fingerprint = Uint8List.fromList(utf8.encode(parts[2]));
+          final knownHost = await ref
               .read(knownHostServiceProvider)
               .isHostKnown(connection.addressAndPort, fingerprint);
-
-          if (knownHost != null && isKeyMatch) return true;
-
           _modifySession(
             session.id,
             (session) => session.copyWith(
               knownHostError: KnownHostError(
                 host: connection.addressAndPort,
-                algorithm: algorithm,
+                algorithm: parts[1],
                 fingerprint: fingerprint,
-                knownHost: knownHost,
+                knownHost: knownHost.$1,
               ),
             ),
           );
-
-          // fail the verification for now, try again if the user accepts
-          return false;
-        },
-        onPasswordRequest: password != null ? () => password : null,
-      );
-
-      unawaited(
-        sshClient.done.then(
-          (_) => _close(session.id),
-          onError: (e) => _close(session.id, e.toString()),
-        ),
-      );
-
-      return sshClient;
-    } catch (e) {
+        }
+      }
       _close(session.id, e.toString());
       return null;
     }
@@ -298,6 +277,11 @@ class SessionNotifier extends Notifier<SessionState> {
     );
 
     try {
+      final hostKey = session.skipHostKeyVerification
+          ? null
+          : await ref
+                .read(knownHostServiceProvider)
+                .findKeyForHost(connection.addressAndPort);
       final rustConnection = await connectSsh(
         host: connection.address,
         port: connection.port,
@@ -305,69 +289,37 @@ class SessionNotifier extends Notifier<SessionState> {
         rows: rows,
         columns: columns,
         password: password,
-        privateKey: password != null || keys.isEmpty
-            ? null
-            : (keys.first as dynamic).toPem() as String,
+        privateKeys: keys.map((key) => key.privateKey).toList(),
+        keyPassphrases: keys.map((key) => key.passphrase).toList(),
+        expectedHostKey: hostKey,
+        skipHostKeyVerification: session.skipHostKeyVerification,
       );
       final output = rustConnection.output();
       return (rustConnection, output);
     } catch (e) {
+      final error = e.toString();
+      if (error.startsWith('HOST_KEY|')) {
+        final parts = error.split('|');
+        if (parts.length >= 3) {
+          final fingerprint = Uint8List.fromList(utf8.encode(parts[2]));
+          final knownHost = await ref
+              .read(knownHostServiceProvider)
+              .isHostKnown(connection.addressAndPort, fingerprint);
+          _modifySession(
+            session.id,
+            (session) => session.copyWith(
+              knownHostError: KnownHostError(
+                host: connection.addressAndPort,
+                algorithm: parts[1],
+                fingerprint: fingerprint,
+                knownHost: knownHost.$1,
+              ),
+            ),
+          );
+        }
+      }
       _close(session.id, e.toString());
       return null;
-    }
-  }
-
-  Future<SSHSession?> spawnSsh(
-    String sessionId,
-    SSHClient client,
-    TerminalController controller,
-  ) async {
-    try {
-      await client.authenticated.onError(
-        (e, _) => _close(sessionId, e.toString()),
-      );
-      final sshSession = await client.shell(
-        pty: SSHPtyConfig(
-          width: controller.cols,
-          height: controller.rows,
-          pixelHeight: controller.height.toInt(),
-          pixelWidth: controller.width.toInt(),
-        ),
-      );
-      _modifySession(
-        sessionId,
-        (session) => session.copyWith(
-          connectedAt: DateTime.now(),
-          client: client,
-          sshSession: sshSession,
-          terminalController: controller,
-        ),
-      );
-      return sshSession;
-    } catch (e) {
-      await client.close();
-      _close(sessionId, e.toString());
-      return null;
-    }
-  }
-
-  Future<SftpClient> spawnSftp(String sessionId, SSHClient client) async {
-    try {
-      await client.authenticated;
-      final sftpClient = await client.sftp();
-      _modifySession(
-        sessionId,
-        (session) => session.copyWith(
-          connectedAt: DateTime.now(),
-          client: client,
-          sftpClient: sftpClient,
-        ),
-      );
-      return sftpClient;
-    } catch (e) {
-      await client.close();
-      _close(sessionId, e.toString());
-      rethrow;
     }
   }
 
@@ -410,19 +362,9 @@ class SessionNotifier extends Notifier<SessionState> {
     String sessionId,
     KnownHostError error,
   ) async {
-    if (error.knownHost != null) {
-      await ref
-          .read(knownHostServiceProvider)
-          .update(
-            error.knownHost!.id.value,
-            vaultId: vaultId,
-            fingerprint: error.fingerprint,
-            compareTo: error.knownHost,
-          );
-    }
     await ref
         .read(knownHostServiceProvider)
-        .createKnownHost(
+        .saveFingerprint(
           vaultId: vaultId,
           host: error.host,
           fingerprint: error.fingerprint,

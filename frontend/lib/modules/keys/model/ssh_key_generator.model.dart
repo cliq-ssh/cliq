@@ -1,5 +1,5 @@
 // We need to import these internal utilities to encrypt the private key in the OpenSSH format.
-// DartSSH2 doesn't provide a public API for this.
+// The Rust bridge owns the OpenSSH key encryption implementation.
 
 import 'package:cliq/src/rust/api/key_generator.dart';
 import 'package:cliq/src/rust/ssh/key_generator.dart';
@@ -81,7 +81,7 @@ class GeneratedSshKeyPair {
   const new({required this.privateKey, required this.publicKey});
 }
 
-/// Generates SSH key pairs in a format that [SSHKeyPair.fromPem] can parse.
+/// Generates SSH key pairs in a format supported by the Rust SSH backend.
 final class SshKeyGenerator {
   const new _();
 

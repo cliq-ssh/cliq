@@ -8,7 +8,7 @@ class KnownHostError {
   final String algorithm;
   final Uint8List fingerprint;
   // The known host entry that was found, if any.
-  final KnownHostsCompanion? knownHost;
+  final KnownHost? knownHost;
 
   const new({
     required this.host,
