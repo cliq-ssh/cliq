@@ -2,10 +2,10 @@ import 'package:cliq/modules/keys/ui/create_or_edit_key_sheet.dart';
 import 'package:cliq/modules/keys/ui/generate_key_sheet.dart';
 import 'package:cliq/shared/utils/commons.dart';
 import 'package:easy_localization/easy_localization.dart';
-import 'package:flutter/material.dart';
 import 'package:forui/forui.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lucide_flutter/lucide_flutter.dart';
+import 'package:material_ui/material_ui.dart';
 
 class const KeyCreationChoiceSheet({super.key}) extends HookConsumerWidget {
   @override

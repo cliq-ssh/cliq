@@ -2,38 +2,49 @@ import 'dart:async';
 
 import 'package:cliq_api/cliq_api.dart';
 
-class SyncState {
-  final CliqClient? api;
-  final ServerConfigurationResponse? config;
-  final Timer? refreshTimer;
-  final Timer? pullTimer;
+class const SyncState({
+  /// The api instance used to communicate with the server
+  required final CliqClient? api,
 
-  const new({
-    required this.api,
-    required this.config,
-    required this.refreshTimer,
-    required this.pullTimer,
-  });
+  /// The [ServerConfigurationResponse] received from the server upon initialization
+  required final ServerConfigurationResponse? config,
+  required final Timer? refreshTimer,
+  required final Timer? pullTimer,
 
-  new initial()
-    : api = null,
-      config = null,
-      refreshTimer = null,
-      pullTimer = null;
+  /// An optional error message if the sync state is in an error state
+  required final String? error,
+}) {
+  const new initial()
+    : this(
+        api: null,
+        config: null,
+        refreshTimer: null,
+        pullTimer: null,
+        error: null,
+      );
 
-  bool get isConnected => api != null && config != null;
+  /// Whether the sync state is in an error state
+  bool get isError => error != null;
+
+  /// Whether the sync state is likely loading (i.e., no error and either api or config is null)
+  bool get isLikelyLoading => error == null && (api == null || config == null);
+
+  /// Whether the sync state is connected
+  bool get isConnected => error == null && api != null && config != null;
 
   SyncState copyWith({
     CliqClient? api,
     ServerConfigurationResponse? config,
     Timer? refreshTimer,
     Timer? pullTimer,
+    String? error,
   }) {
     return SyncState(
       api: api ?? this.api,
       config: config ?? this.config,
       refreshTimer: refreshTimer ?? this.refreshTimer,
       pullTimer: pullTimer ?? this.pullTimer,
+      error: error ?? this.error,
     );
   }
 }

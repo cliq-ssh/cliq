@@ -12,6 +12,7 @@ import 'package:cliq/shared/data/database.dart';
 import 'package:cliq/shared/data/store.dart';
 import 'package:cliq/shared/model/localized_exception.dart';
 import 'package:cliq/shared/model/page_path.model.dart';
+import 'package:cliq/shared/ui/cliq_tooltip.dart';
 import 'package:cliq/shared/ui/terminal_font_family_select.dart';
 import 'package:cliq/shared/ui/terminal_font_size_slider.dart';
 import 'package:cliq/shared/utils/commons.dart';
@@ -21,12 +22,12 @@ import 'package:cliq_term/cliq_term.dart';
 import 'package:cliq_ui/hooks/use_breakpoint.export.dart' show useBreakpoint;
 import 'package:easy_localization/easy_localization.dart';
 import 'package:file_selector/file_selector.dart';
-import 'package:flutter/material.dart' hide Router;
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:forui/forui.dart';
 import 'package:forui_hooks/forui_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lucide_flutter/lucide_flutter.dart';
+import 'package:material_ui/material_ui.dart' hide Router;
 
 class const TerminalThemeSettingsView({super.key})
     extends AbstractSettingsPage {
@@ -205,9 +206,8 @@ class const TerminalThemeSettingsView({super.key})
               size: 16,
               padding: 8,
             ),
-            suffix: FTooltip(
-              tipBuilder: (_, _) =>
-                  Text('terminal_themes_overrides_revert'.tr()),
+            suffix: CliqTooltip(
+              text: Text('terminal_themes_overrides_revert'.tr()),
               child: FButton.icon(
                 onPress: () async {
                   await ref

@@ -1,7 +1,7 @@
 import 'package:cliq/modules/session/model/session.model.dart';
 import 'package:cliq/modules/settings/model/terminal_theme.state.dart';
 import 'package:cliq/shared/data/database.dart';
-import 'package:flutter/cupertino.dart';
+import 'package:cupertino_ui/cupertino_ui.dart';
 import 'package:forui/forui.dart';
 
 class SessionTab {

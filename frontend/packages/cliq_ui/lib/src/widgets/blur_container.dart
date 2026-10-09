@@ -1,7 +1,7 @@
 import 'dart:ui';
 
 import 'package:cliq_ui/cliq_ui.dart';
-import 'package:flutter/cupertino.dart';
+import 'package:cupertino_ui/cupertino_ui.dart';
 
 class CliqBlurContainer extends StatelessWidget {
   final Widget? child;

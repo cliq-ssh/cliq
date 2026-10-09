@@ -3,7 +3,7 @@ import 'dart:ui';
 
 import 'package:cliq/modules/settings/model/theme_parser/terminal_theme_parser.dart';
 import 'package:cliq/shared/data/database.dart';
-import 'package:cliq/shared/extensions/color.extension.dart';
+import 'package:cliq/shared/extension/color.extension.dart';
 import 'package:logging/logging.dart';
 
 /// Parses a `.conf` Kitty Terminal Theme

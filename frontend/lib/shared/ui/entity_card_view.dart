@@ -3,6 +3,8 @@ import 'package:cliq/modules/vaults/provider/vault.provider.dart';
 import 'package:cliq/shared/data/database.dart';
 import 'package:cliq/shared/data/store.dart';
 import 'package:cliq/shared/provider/store.provider.dart';
+import 'package:cliq/shared/ui/cliq_tooltip.dart';
+import 'package:cliq/shared/ui/list_icon.dart';
 import 'package:cliq/shared/ui/shortcut_info.dart';
 import 'package:cliq/shared/utils/platform_utils.dart';
 import 'package:cliq_term/cliq_term.dart';
@@ -15,10 +17,11 @@ import 'package:cliq_ui/cliq_ui.dart'
         CliqGridContainer,
         CliqGridRow,
         useBreakpoint;
+import 'package:cupertino_ui/cupertino_ui.dart';
 import 'package:easy_localization/easy_localization.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:forui/forui.dart';
+import 'package:forui_hooks/forui_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lucide_flutter/lucide_flutter.dart';
 
@@ -69,25 +72,33 @@ class EntityCardView<E> extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final typography = context.theme.typography;
     final breakpoint = useBreakpoint();
-    final viewType = useStore(viewTypeKey);
-    final filterText = useState('');
-    final filterFocusNode = useFocusNode();
-    final filterVaultId = useState<List<DbId>?>(null);
+
     final vaults = ref.watch(vaultProvider);
 
+    final viewType = useStore(viewTypeKey);
+
+    final filterFocusNode = useFocusNode();
+    final filterTextController = useTextEditingController();
+    final filteredVaultIds = useState<Set<DbId>>(const {});
+    final popoverController = useFPopoverController();
+
     isFilteredOut(E entity) {
-      if (filterableVaultId != null && filterVaultId.value != null) {
+      if (filterableVaultId != null) {
         final vaultId = filterableVaultId!(entity);
-        if (vaultId == null || !filterVaultId.value!.contains(vaultId)) {
+        if (vaultId != null && filteredVaultIds.value.contains(vaultId)) {
           return true;
         }
       }
 
-      if (filterableFields == null || filterText.value.isEmpty) return false;
+      if (filterableFields == null || filterTextController.value.text.isEmpty) {
+        return false;
+      }
 
       final fields = filterableFields!(entity);
       return !fields.any(
-        (field) => field.toLowerCase().contains(filterText.value.toLowerCase()),
+        (field) => field.toLowerCase().contains(
+          filterTextController.value.text.toLowerCase(),
+        ),
       );
     }
 
@@ -105,8 +116,9 @@ class EntityCardView<E> extends HookConsumerWidget {
               CliqGridColumn(
                 sizes: const {.sm: 12, .md: 8},
                 child: Column(
-                  spacing: 4,
-                  crossAxisAlignment: CrossAxisAlignment.center,
+                  spacing: 8,
+                  crossAxisAlignment: .center,
+                  mainAxisAlignment: .center,
                   children: [
                     Text(
                       noEntitiesTitle,
@@ -131,7 +143,7 @@ class EntityCardView<E> extends HookConsumerWidget {
       );
     }
 
-    buildNoFilteredEntities() {
+    buildNoMatch() {
       return CliqGridContainer(
         alignment: Alignment.center,
         children: [
@@ -158,8 +170,8 @@ class EntityCardView<E> extends HookConsumerWidget {
                         FButton(
                           variant: .outline,
                           onPress: () {
-                            filterText.value = '';
-                            filterVaultId.value = null;
+                            filterTextController.clear();
+                            filteredVaultIds.value = const {};
                           },
                           child: Text('filters_reset'.tr()),
                         ),
@@ -191,63 +203,101 @@ class EntityCardView<E> extends HookConsumerWidget {
       );
     }
 
-    buildMenu() {
-      onVaultTap(DbId vaultId) {
-        final current = filterVaultId.value ?? [];
-        if (current.contains(vaultId)) {
-          filterVaultId.value = current.where((id) => id != vaultId).toList();
-        } else {
-          filterVaultId.value = [...current, vaultId];
-        }
-      }
+    buildFilterSubmenu() {
+      return FSubmenuItem(
+        title: Text('filter'.tr()),
+        prefix: const Icon(LucideIcons.listFilter),
+        submenu: [
+          .group(
+            children: [
+              for (final v in VaultExtension.sortVaults(vaults.entities))
+                .item(
+                  title: Text(v.getDisplayName(context)),
+                  prefix: ListIcon(
+                    type: .checkbox,
+                    selected: !filteredVaultIds.value.contains(v.id),
+                  ),
+                  onPress: () {
+                    final newSet = Set<DbId>.from(filteredVaultIds.value);
+                    if (newSet.contains(v.id)) {
+                      newSet.remove(v.id);
+                    } else {
+                      newSet.add(v.id);
+                    }
+                    filteredVaultIds.value = newSet;
+                  },
+                ),
+            ],
+          ),
+        ],
+      );
+    }
 
-      return FPopoverMenu(
-        menu: [
+    buildLayoutSubmenu() {
+      return FSubmenuItem(
+        title: Text('layout'.tr()),
+        prefix: const Icon(LucideIcons.layoutGrid),
+        submenu: [
           .group(
             children: [
               .item(
-                title: Text('show_all_vaults'.tr()),
-                prefix: filterVaultId.value == null
-                    ? const Icon(LucideIcons.check)
-                    : const SizedBox(width: 16),
+                title: Text('layout_grid'.tr()),
+                prefix: ListIcon(selected: viewType.value == .grid),
                 onPress: () {
-                  filterVaultId.value = filterVaultId.value == null ? [] : null;
+                  popoverController.hide();
+                  viewTypeKey.write(.grid);
+                },
+              ),
+              .item(
+                title: Text('layout_list'.tr()),
+                prefix: ListIcon(selected: viewType.value == .list),
+                onPress: () {
+                  popoverController.hide();
+                  viewTypeKey.write(.list);
                 },
               ),
             ],
           ),
-          if (filterVaultId.value != null)
-            .group(
-              children: [
-                for (final v in VaultExtension.sortVaults(vaults.entities))
-                  .item(
-                    prefix: v.owner == null
-                        ? null
-                        : const Icon(LucideIcons.cloudUpload),
-                    title: Text(v.getDisplayName(context)),
-                    onPress: () => onVaultTap(v.id),
-                  ),
-              ],
-            ),
-          if (PlatformUtils.isDesktop)
+        ],
+      );
+    }
+
+    buildDesktopMenu() {
+      return FPopoverMenu(
+        control: .managed(controller: popoverController),
+        menu: [
+          .group(children: [buildFilterSubmenu()]),
+          .group(children: [buildLayoutSubmenu()]),
+        ],
+        builder: (_, controller, _) {
+          return FButton.icon(
+            variant: .outline,
+            onPress: controller.toggle,
+            child: const Icon(LucideIcons.ellipsis),
+          );
+        },
+      );
+    }
+
+    buildMobileMenu() {
+      return FPopoverMenu(
+        control: .managed(controller: popoverController),
+        menu: [
+          if (addEntityTitle != null && onAddEntity != null)
             .group(
               children: [
                 .item(
-                  title: Text('views.grid'.tr()),
-                  prefix: viewType.value == .grid
-                      ? const Icon(LucideIcons.check)
-                      : const SizedBox(width: 16),
-                  onPress: () => viewTypeKey.write(.grid),
-                ),
-                .item(
-                  title: Text('views.list'.tr()),
-                  prefix: viewType.value == .list
-                      ? const Icon(LucideIcons.check)
-                      : const SizedBox(width: 16),
-                  onPress: () => viewTypeKey.write(.list),
+                  prefix: const Icon(LucideIcons.plus),
+                  title: Text(addEntityTitle!),
+                  onPress: () {
+                    popoverController.hide();
+                    onAddEntity!();
+                  },
                 ),
               ],
             ),
+          .group(children: [buildFilterSubmenu()]),
+          .group(children: [buildLayoutSubmenu()]),
         ],
         builder: (_, controller, _) {
           return FButton.icon(
@@ -269,52 +319,46 @@ class EntityCardView<E> extends HookConsumerWidget {
         children: [
           CliqGridRow(
             children: [
-              CliqGridColumn(
-                child: Padding(
-                  padding: const .only(bottom: 16),
-                  child: Wrap(
-                    spacing: 8,
-                    runSpacing: 8,
-                    alignment: .spaceBetween,
-                    children: [
-                      if (filterableFields != null)
-                        FTooltip(
-                          tipBuilder: (_, _) => TextWithShortcutInfo(
-                            'filter_items'.tr(),
-                            shortcut: KeyboardShortcut(
-                              .keyF,
-                              modifiers: {.control},
-                            ),
-                          ),
-                          child: ConstrainedBox(
-                            constraints: const .new(maxWidth: 150),
-                            child: FTextField(
-                              control: .managed(
-                                onChange: (value) =>
-                                    filterText.value = value.text,
-                              ),
-                              focusNode: filterFocusNode,
-                              hint: 'filter'.tr(),
-                              prefixBuilder: (_, _, _) => IconTheme(
-                                data: context
-                                    .theme
-                                    .textFieldStyles
-                                    .md
-                                    .iconStyle
-                                    .base,
-                                child: const Padding(
-                                  padding: .only(left: 8, right: 4),
-                                  child: Icon(LucideIcons.search),
-                                ),
-                              ),
-                              clearable: (value) => value.text.isNotEmpty,
-                            ),
+              if (filterableFields != null)
+                CliqGridColumn(
+                  sizes: const {.sm: 8, .md: 6, .lg: 4},
+                  child: Padding(
+                    padding: const .only(bottom: 16),
+                    child: CliqTooltip(
+                      text: TextWithShortcutInfo(
+                        'filter_items'.tr(),
+                        shortcut: KeyboardShortcut(
+                          .keyF,
+                          modifiers: {.control},
+                        ),
+                      ),
+                      child: FTextField(
+                        control: .managed(controller: filterTextController),
+                        focusNode: filterFocusNode,
+                        hint: 'filter'.tr(),
+                        prefixBuilder: (_, _, _) => IconTheme(
+                          data: context.theme.textFieldStyles.md.iconStyle.base,
+                          child: const Padding(
+                            padding: .only(left: 8, right: 4),
+                            child: Icon(LucideIcons.search),
                           ),
                         ),
-                      Row(
-                        spacing: 8,
-                        mainAxisSize: .min,
-                        children: [
+                        clearable: (value) => value.text.isNotEmpty,
+                      ),
+                    ),
+                  ),
+                ),
+              CliqGridColumn(
+                sizes: filterableFields == null
+                    ? const {}
+                    : const {.sm: 4, .md: 6, .lg: 8},
+                child: Row(
+                  spacing: 8,
+                  mainAxisSize: .min,
+                  mainAxisAlignment: .end,
+                  children: breakpoint < .md
+                      ? [buildMobileMenu()]
+                      : [
                           if (addEntityTitle != null && onAddEntity != null)
                             Row(
                               mainAxisSize: .min,
@@ -327,18 +371,16 @@ class EntityCardView<E> extends HookConsumerWidget {
                                 ),
                               ],
                             ),
-                          buildMenu(),
+                          buildDesktopMenu(),
                         ],
-                      ),
-                    ],
-                  ),
                 ),
               ),
               CliqGridColumn(
-                child: Builder(
-                  builder: (context) {
+                child: ValueListenableBuilder(
+                  valueListenable: filterTextController,
+                  builder: (context, _, _) {
                     if (isFilterViewEmpty()) {
-                      return buildNoFilteredEntities();
+                      return buildNoMatch();
                     }
 
                     if (entities != null) {

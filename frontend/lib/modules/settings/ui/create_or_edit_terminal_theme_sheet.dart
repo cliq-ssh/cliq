@@ -2,19 +2,19 @@ import 'dart:async';
 
 import 'package:cliq/modules/settings/provider/terminal_theme_service.provider.dart';
 import 'package:cliq/shared/data/database.dart';
-import 'package:cliq/shared/extensions/color.extension.dart';
+import 'package:cliq/shared/extension/color.extension.dart';
 import 'package:cliq/shared/ui/create_or_edit_entity_view.dart';
 import 'package:cliq/shared/utils/commons.dart';
 import 'package:cliq/shared/utils/input_formatters.dart';
 import 'package:cliq/shared/utils/validators.dart';
 import 'package:drift/drift.dart' hide Column;
 import 'package:easy_localization/easy_localization.dart';
-import 'package:flutter/material.dart' hide Key;
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:forui/forui.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lucide_flutter/lucide_flutter.dart';
+import 'package:material_ui/material_ui.dart' hide Key;
 
 class CreateOrEditTerminalThemeSheet extends HookConsumerWidget {
   final CustomTerminalThemesCompanion? current;

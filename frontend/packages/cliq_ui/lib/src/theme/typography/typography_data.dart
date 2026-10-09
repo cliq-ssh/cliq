@@ -1,5 +1,5 @@
 import 'package:cliq_ui/cliq_ui.dart';
-import 'package:flutter/cupertino.dart';
+import 'package:cupertino_ui/cupertino_ui.dart';
 
 final class CliqTypographyData {
   final BreakpointMap<CliqTextStyle> h1;

@@ -3,7 +3,7 @@ import 'package:cliq/modules/credentials/model/credential_full.model.dart';
 import 'package:cliq/modules/credentials/model/credential_type.model.dart';
 import 'package:cliq/shared/data/database.dart';
 import 'package:cliq/shared/data/repository.dart';
-import 'package:cliq/shared/extensions/value.extension.dart';
+import 'package:cliq/shared/extension/value.extension.dart';
 import 'package:dartssh2/dartssh2.dart';
 import 'package:drift/drift.dart';
 import 'package:flutter/foundation.dart';

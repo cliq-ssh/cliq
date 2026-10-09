@@ -52,6 +52,9 @@ dependencies:
   cryptography_flutter: ^2.3.4
   flutter_secure_storage: ^11.2.0
   iterm2_color_schemes_dart: ^2.0.1
+  share_plus: ^13.3.0
+  cupertino_ui: ^1.1.1
+  material_ui: any
 dev_dependencies:
   flutter_test:
     sdk: flutter
