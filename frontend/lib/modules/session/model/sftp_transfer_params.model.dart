@@ -7,18 +7,22 @@ class SftpConnectParams {
   final String host;
   final int port;
   final String username;
-  final Uint8List hostKey;
+  final Uint8List? hostKey;
 
   final String? password;
   final List<String> keyPems;
+  final List<String?> keyPassphrases;
+  final bool skipHostKeyVerification;
 
   const new({
     required this.host,
     required this.port,
     required this.username,
-    required this.hostKey,
+    this.hostKey,
     this.password,
     this.keyPems = const [],
+    this.keyPassphrases = const [],
+    this.skipHostKeyVerification = false,
   });
 }
 

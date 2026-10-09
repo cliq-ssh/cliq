@@ -69,6 +69,16 @@ jobs:
           channel: 'stable'
           cache: true
 
+      - &setup-rust
+        name: Setup Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - &cache-rust
+        name: Cache Rust dependencies and build artifacts
+        uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: frontend/rust
+
       - &get-flutter-dependencies
         name: Get dependencies
         run: flutter pub get
@@ -99,6 +109,8 @@ jobs:
           channel: 'stable'
           cache: true
 
+      - *setup-rust
+      - *cache-rust
       - *get-flutter-dependencies
 
       - name: Build Android APK
@@ -129,6 +141,13 @@ jobs:
 
       - *write-build-metadata
 
+      - name: Use short temp directory
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force -Path C:\t | Out-Null
+          "TEMP=C:\t" >> $env:GITHUB_ENV
+          "TMP=C:\t" >> $env:GITHUB_ENV
+
       - name: Install Inno Setup
         run: choco install innosetup -y
 
@@ -137,6 +156,9 @@ jobs:
         with:
           channel: ${{ matrix.flutter-channel }}
           cache: true
+
+      - *setup-rust
+      - *cache-rust
 
       - &install-fastforge
         name: Install fastforge
@@ -187,6 +209,8 @@ jobs:
           channel: 'stable'
           cache: true
 
+      - *setup-rust
+      - *cache-rust
       - *install-fastforge
       - *get-flutter-dependencies
 
@@ -267,6 +291,8 @@ jobs:
           channel: ${{ matrix.flutter-channel }}
           cache: true
 
+      - *setup-rust
+      - *cache-rust
       - *install-fastforge
       - *get-flutter-dependencies
 
@@ -321,6 +347,8 @@ jobs:
           channel: ${{ matrix.flutter-channel }}
           cache: true
 
+      - *setup-rust
+      - *cache-rust
       - *install-fastforge
       - *get-flutter-dependencies
 
@@ -367,7 +395,6 @@ jobs:
           ref: ${{ inputs.ref || github.ref }}
 
       - *write-build-metadata
-
       - *install-linux-dependencies
 
       - name: Setup Flutter
