@@ -3,7 +3,7 @@ import 'dart:ui';
 import 'package:cliq/modules/settings/data/custom_terminal_themes.repository.dart';
 import 'package:cliq/shared/data/database.dart';
 
-import 'package:cliq/shared/extensions/value.extension.dart';
+import 'package:cliq/shared/extension/value.extension.dart';
 
 final class CustomTerminalThemeService {
   final CustomTerminalThemesRepository _customTerminalThemesRepository;

@@ -6,8 +6,8 @@ import 'package:cliq/modules/settings/provider/terminal_theme_service.provider.d
 import 'package:cliq/shared/data/database.dart';
 import 'package:cliq/shared/model/localized_exception.dart';
 import 'package:cliq/shared/provider/abstract_entity.notifier.dart';
+import 'package:cupertino_ui/cupertino_ui.dart';
 import 'package:file_selector/file_selector.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:logging/logging.dart';
 import 'package:riverpod/riverpod.dart';
 

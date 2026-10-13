@@ -1,5 +1,6 @@
 import 'package:cliq/modules/session/model/session.model.dart';
 import 'package:cliq/modules/session/provider/session.provider.dart';
+import 'package:cliq/shared/ui/cliq_tooltip.dart';
 import 'package:cliq/shared/ui/navigation/navigation_shell.dart';
 import 'package:cliq/shared/ui/title_card.dart';
 import 'package:cliq/shared/utils/commons.dart';
@@ -7,10 +8,10 @@ import 'package:cliq/shared/utils/text_utils.dart';
 import 'package:cliq_ui/cliq_ui.dart'
     show CliqFontFamily, CliqGridColumn, CliqGridContainer, CliqGridRow;
 import 'package:easy_localization/easy_localization.dart';
-import 'package:flutter/material.dart' hide LicensePage;
 import 'package:forui/forui.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lucide_flutter/lucide_flutter.dart';
+import 'package:material_ui/material_ui.dart' hide LicensePage;
 
 class GenericSessionPage extends HookConsumerWidget {
   final Widget child;
@@ -85,8 +86,8 @@ class GenericSessionPage extends HookConsumerWidget {
             mainAxisAlignment: .spaceBetween,
             children: [
               Text('${session.knownHostError!.algorithm} (SHA256)'),
-              FTooltip(
-                tipBuilder: (_, _) => Text('click_to_copy'.tr()),
+              CliqTooltip(
+                text: Text('click_to_copy'.tr()),
                 child: FButton.icon(
                   onPress: () => Commons.copyToClipboard(
                     context,

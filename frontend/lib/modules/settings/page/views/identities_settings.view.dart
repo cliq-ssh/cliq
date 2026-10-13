@@ -7,8 +7,8 @@ import 'package:cliq/modules/settings/page/settings.page.dart';
 import 'package:cliq/shared/model/page_path.model.dart';
 import 'package:cliq/shared/ui/entity_card_view.dart';
 import 'package:cliq/shared/utils/commons.dart';
+import 'package:cupertino_ui/cupertino_ui.dart';
 import 'package:easy_localization/easy_localization.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
 class const IdentitiesSettingsView({super.key}) extends AbstractSettingsPage {

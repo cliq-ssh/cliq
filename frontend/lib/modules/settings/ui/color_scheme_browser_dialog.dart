@@ -1,6 +1,6 @@
 import 'package:cliq/modules/settings/extension/color_scheme.extension.dart';
 import 'package:cliq/shared/data/database.dart';
-import 'package:cliq/shared/extensions/async_snapshot.extension.dart';
+import 'package:cliq/shared/extension/async_snapshot.extension.dart';
 import 'package:cliq/shared/provider/store.provider.dart';
 import 'package:cliq/shared/ui/horizontal_dialog.dart';
 import 'package:cliq/shared/utils/platform_utils.dart';
@@ -8,8 +8,8 @@ import 'package:cliq/shared/utils/text_utils.dart';
 import 'package:cliq_term/cliq_term.dart';
 import 'package:cliq_ui/cliq_ui.dart' show useMemoizedFuture;
 import 'package:cliq_ui/hooks/use_breakpoint.export.dart' show useBreakpoint;
+import 'package:cupertino_ui/cupertino_ui.dart';
 import 'package:easy_localization/easy_localization.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:forui/forui.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';

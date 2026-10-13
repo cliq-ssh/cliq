@@ -6,9 +6,9 @@ import 'package:cliq/shared/model/page_path.model.dart';
 import 'package:cliq/shared/ui/entity_card_view.dart';
 import 'package:cliq/shared/utils/commons.dart';
 import 'package:easy_localization/easy_localization.dart';
-import 'package:flutter/material.dart' hide Router;
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:material_ui/material_ui.dart' hide Router;
 
 class ConnectionsPage extends StatefulHookConsumerWidget {
   static const PagePathBuilder pagePath = PagePathBuilder('/');

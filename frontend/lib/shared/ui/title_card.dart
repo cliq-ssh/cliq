@@ -6,14 +6,19 @@ class TitleCard extends StatelessWidget {
   final Widget? title;
   final Widget? subtitle;
   final Widget? child;
+  final Color? tintColor;
 
-  const new({this.title, this.subtitle, this.child, super.key});
+  const new({super.key, this.title, this.subtitle, this.child, this.tintColor});
 
   @override
   Widget build(BuildContext context) {
     final style = context.theme.cardStyle;
     return FCard(
-      style: style,
+      style: style.copyWith(
+        decoration: .boxDelta(
+          color: Color.lerp(style.decoration.color, tintColor, 0.05),
+        ),
+      ),
       child: Padding(
         padding: style.padding,
         child: Column(

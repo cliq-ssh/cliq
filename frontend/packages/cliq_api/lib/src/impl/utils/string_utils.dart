@@ -1,8 +1,6 @@
 import 'dart:typed_data';
 
-class StringUtils {
-  const StringUtils._();
-
+class const StringUtils._() {
   static T? tryEnumFromString<T extends Enum>(String? value, List<T> values) {
     if (value == null) {
       return null;
