@@ -52,6 +52,7 @@ dependencies:
   cryptography_flutter: ^2.3.4
   flutter_secure_storage: ^11.2.0
   iterm2_color_schemes_dart: ^2.0.1
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
@@ -61,6 +62,7 @@ dev_dependencies:
   build_runner: ^2.16.1
   flutter_launcher_icons: ^0.14.4
   flutter_native_splash: 2.4.8
+  patrol: ^4.9.0
 
 flutter:
   assets:
@@ -82,3 +84,12 @@ flutter:
     - family: Noto Sans Symbols2
       fonts:
           - asset: assets/fonts/NotoSansSymbols2-Regular.ttf
+
+patrol:
+  app_name: cliq
+  android:
+    package_name: sh.cliq.cliq
+  ios:
+    bundle_id: sh.cliq.cliq
+  macos:
+    bundle_id: sh.cliq.cliq
