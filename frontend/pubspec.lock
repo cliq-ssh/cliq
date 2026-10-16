@@ -17,6 +17,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "13.3.0"
+  analyzer_buffer:
+    dependency: transitive
+    description:
+      name: analyzer_buffer
+      sha256: f890a2e708e38fbf4238ad2f9fd3d506538acdddb0cd8eb2c3e8c7bd17784b57
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.3.4"
   ansicolor:
     dependency: transitive
     description:
@@ -41,14 +49,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.7.0"
-  asn1lib:
-    dependency: transitive
-    description:
-      name: asn1lib
-      sha256: "9a8f69025044eb466b9b60ef3bc3ac99b4dc6c158ae9c56d25eeccf5bc56d024"
-      url: "https://pub.dev"
-    source: hosted
-    version: "1.6.5"
   async:
     dependency: transitive
     description:
@@ -73,6 +73,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "4.0.11"
+  build_cli_annotations:
+    dependency: transitive
+    description:
+      name: build_cli_annotations
+      sha256: e563c2e01de8974566a1998410d3f6f03521788160a02503b0b1f1a46c7b3d95
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.1.1"
   build_config:
     dependency: transitive
     description:
@@ -249,15 +257,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "3.1.13"
-  dartssh2:
-    dependency: "direct main"
-    description:
-      path: "."
-      ref: master
-      resolved-ref: "4c99257866a219203f39c9d3cfb279826a6a4744"
-      url: "https://github.com/cliq-ssh/dartssh2.git"
-    source: git
-    version: "4.1.0"
   dio:
     dependency: transitive
     description:
@@ -476,6 +475,22 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "3.4.3"
+  flutter_rust_bridge:
+    dependency: "direct main"
+    description:
+      name: flutter_rust_bridge
+      sha256: "6e8a0d37357ad4e3a73b3a083a5923ced331a2cbe8e031649126a3820d149ee0"
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.14.0-beta.2"
+  flutter_rust_bridge_hooks:
+    dependency: "direct main"
+    description:
+      name: flutter_rust_bridge_hooks
+      sha256: "347a3c0df75fde6dcdab8a47ee6c31e1afc791d10d4ada8328952ee850b6cb02"
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.14.0-beta.2"
   flutter_secure_storage:
     dependency: "direct main"
     description:
@@ -558,8 +573,16 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "0.27.0"
+  freezed:
+    dependency: "direct dev"
+    description:
+      name: freezed
+      sha256: "541a82723c84298f3ca46a6c2186935aa21ad529ad1f1423d67af18040494f51"
+      url: "https://pub.dev"
+    source: hosted
+    version: "4.0.1"
   freezed_annotation:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: freezed_annotation
       sha256: "7294967ff0a6d98638e7acb774aac3af2550777accd8149c90af5b014e6d44d8"
@@ -830,6 +853,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "0.19.5"
+  native_toolchain_rust:
+    dependency: transitive
+    description:
+      name: native_toolchain_rust
+      sha256: dc8e5f20c0cb7052372bc302f075607086d86354b37199e89ec9d3d35589e519
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.0.7"
   node_preamble:
     dependency: transitive
     description:
@@ -926,14 +957,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "7.1.0"
-  pinenacl:
-    dependency: transitive
-    description:
-      name: pinenacl
-      sha256: "57e907beaacbc3c024a098910b6240758e899674de07d6949a67b52fd984cbdf"
-      url: "https://pub.dev"
-    source: hosted
-    version: "0.6.0"
   platform:
     dependency: transitive
     description:
@@ -950,14 +973,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.1.8"
-  pointycastle:
-    dependency: "direct main"
-    description:
-      name: pointycastle
-      sha256: "92aa3841d083cc4b0f4709b5c74fd6409a3e6ba833ffc7dc6a8fee096366acf5"
-      url: "https://pub.dev"
-    source: hosted
-    version: "4.0.0"
   pool:
     dependency: transitive
     description:
@@ -1315,6 +1330,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "0.6.18"
+  toml:
+    dependency: transitive
+    description:
+      name: toml
+      sha256: "35a35f782228656a2af31e8c73d1353cc4ef3d683fd68af1111b44631879c05e"
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.18.0"
   typed_data:
     dependency: transitive
     description:

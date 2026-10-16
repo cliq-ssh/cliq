@@ -12,6 +12,7 @@ import 'package:cliq/shared/utils/commons.dart';
 import 'package:cliq/shared/utils/constants.dart';
 import 'package:cliq/shared/utils/password_cipher.dart';
 import 'package:cliq/shared/utils/platform_utils.dart';
+import 'package:cliq/src/rust/frb_generated.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart' hide Router;
@@ -45,6 +46,7 @@ void main() async {
     await EasyLocalization.ensureInitialized();
     await KeyValueStore.init();
     await PasswordCipher.init();
+    await _initRust();
 
     await _configureWindow();
 
@@ -57,6 +59,10 @@ void main() async {
       ),
     );
   }, _handleError);
+}
+
+Future<void> _initRust() async {
+  await RustLib.init();
 }
 
 Future<void> _configureWindow() async {

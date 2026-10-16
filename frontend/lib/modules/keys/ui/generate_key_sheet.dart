@@ -3,6 +3,8 @@ import 'package:cliq/modules/keys/provider/key_service.provider.dart';
 import 'package:cliq/shared/data/database.dart';
 import 'package:cliq/shared/ui/create_or_edit_entity_view.dart';
 import 'package:cliq/shared/utils/validators.dart';
+import 'package:cliq/src/rust/frb_generated.dart';
+import 'package:cliq/src/rust/ssh/key_generator.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -26,15 +28,23 @@ class _KeyGenerationParams {
   });
 }
 
-Future<GeneratedSshKeyPair> _generateKeyInIsolate(
+Future<GeneratedSshKey> _generateKeyInIsolate(
   _KeyGenerationParams params,
-) => SshKeyGenerator.generate(
-  params.algorithm,
-  ecdsaCurveSize: params.ecdsaCurveSize,
-  rsaKeySize: params.rsaKeySize,
-  comment: params.comment,
-  passphrase: params.passphrase,
-);
+) async {
+  await RustLib.init();
+
+  final result = SshKeyGenerator.generate(
+    params.algorithm,
+    ecdsaCurveSize: params.ecdsaCurveSize,
+    rsaKeySize: params.rsaKeySize,
+    comment: params.comment,
+    passphrase: params.passphrase,
+  );
+
+  RustLib.dispose();
+
+  return result;
+}
 
 class const GenerateKeyView({super.key}) extends HookConsumerWidget {
   @override
@@ -181,7 +191,6 @@ class const GenerateKeyView({super.key}) extends HookConsumerWidget {
                       for (final size in [
                         SshRsaKeySize.bits4096,
                         SshRsaKeySize.bits2048,
-                        SshRsaKeySize.bits1024,
                       ])
                         FSelectGroupItemMixin.radio(
                           value: size,

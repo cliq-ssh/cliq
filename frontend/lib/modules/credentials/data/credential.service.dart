@@ -4,9 +4,7 @@ import 'package:cliq/modules/credentials/model/credential_type.model.dart';
 import 'package:cliq/shared/data/database.dart';
 import 'package:cliq/shared/data/repository.dart';
 import 'package:cliq/shared/extensions/value.extension.dart';
-import 'package:dartssh2/dartssh2.dart';
 import 'package:drift/drift.dart';
-import 'package:flutter/foundation.dart';
 import 'package:logging/logging.dart';
 
 final class CredentialService {
@@ -16,15 +14,11 @@ final class CredentialService {
 
   const new(this._credentialRepository);
 
-  static Future<(String?, List<SSHKeyPair>)> collectAuthenticationMethods(
+  static Future<(String?, List<SshPrivateKey>)> collectAuthenticationMethods(
     List<CredentialFull> credentials,
   ) async {
     String? password;
-    final List<SSHKeyPair> keys = [];
-
-    decryptKeyPairs(List<String> args) {
-      return SSHKeyPair.fromPem(args[0], args.elementAtOrNull(1));
-    }
+    final List<SshPrivateKey> keys = [];
 
     for (final credential in credentials) {
       switch (credential.type) {
@@ -42,21 +36,12 @@ final class CredentialService {
           if (credential.key == null) {
             throw Exception('Key credential has null key data!');
           }
-          if (SSHKeyPair.isEncryptedPem(credential.key!.privateKey)) {
-            if (credential.key!.passphrase == null) {
-              throw Exception('Key is encrypted but no passphrase provided');
-            }
-            keys.addAll(
-              await compute(decryptKeyPairs, [
-                credential.key!.privateKey,
-                credential.key!.passphrase!,
-              ]),
-            );
-          } else {
-            keys.addAll(
-              await compute(decryptKeyPairs, [credential.key!.privateKey]),
-            );
-          }
+          keys.add(
+            SshPrivateKey(
+              privateKey: credential.key!.privateKey,
+              passphrase: credential.key!.passphrase,
+            ),
+          );
       }
     }
 
@@ -174,4 +159,11 @@ final class CredentialService {
       .key => (null, data),
     };
   }
+}
+
+class SshPrivateKey {
+  final String privateKey;
+  final String? passphrase;
+
+  const new({required this.privateKey, this.passphrase});
 }

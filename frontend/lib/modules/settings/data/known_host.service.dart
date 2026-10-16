@@ -25,10 +25,7 @@ final class KnownHostService {
   }
 
   /// Whether or not the [host] is known, and if so, whether the [hostKey] matches.
-  Future<(KnownHostsCompanion?, bool)> isHostKnown(
-    String host,
-    Uint8List hostKey,
-  ) async {
+  Future<(KnownHost?, bool)> isHostKnown(String host, Uint8List hostKey) async {
     final knownHosts = await _knownHostsRepository.db
         .findKnownHostByHost(host)
         .get();
@@ -37,19 +34,38 @@ final class KnownHostService {
       return (null, false);
     }
     for (final knownHost in knownHosts) {
-      if (String.fromCharCodes(knownHost.hostKey) ==
-          String.fromCharCodes(hostKey)) {
-        return (
-          KnownHostsCompanion(
-            host: Value(knownHost.host),
-            hostKey: Value(knownHost.hostKey),
-            createdAt: Value(knownHost.createdAt),
-          ),
-          true,
-        );
+      if (_sameBytes(knownHost.hostKey, hostKey)) {
+        return (knownHost, true);
       }
     }
-    return (null, false);
+    return (knownHosts.first, false);
+  }
+
+  Future<void> saveFingerprint({
+    required DbId vaultId,
+    required String host,
+    required Uint8List fingerprint,
+  }) async {
+    final records = await _knownHostsRepository.db
+        .findKnownHostByHost(host.trim())
+        .get();
+    if (records.isEmpty) {
+      await createKnownHost(
+        vaultId: vaultId,
+        host: host,
+        fingerprint: fingerprint,
+      );
+      return;
+    }
+
+    final current = records.first;
+    await _knownHostsRepository.updateById(
+      current.id,
+      KnownHostsCompanion(vaultId: Value(vaultId), hostKey: Value(fingerprint)),
+    );
+    for (final duplicate in records.skip(1)) {
+      await _knownHostsRepository.deleteById(duplicate.id);
+    }
   }
 
   Future<Uint8List?> findKeyForHost(String host) async {
@@ -109,4 +125,12 @@ final class KnownHostService {
   }
 
   Future<void> deleteById(DbId id) => _knownHostsRepository.deleteById(id);
+
+  bool _sameBytes(Uint8List a, Uint8List b) {
+    if (a.length != b.length) return false;
+    for (var i = 0; i < a.length; i++) {
+      if (a[i] != b[i]) return false;
+    }
+    return true;
+  }
 }

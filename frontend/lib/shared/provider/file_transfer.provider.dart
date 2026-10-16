@@ -65,9 +65,11 @@ class FileTransferNotifier extends Notifier<FileTransferState> {
         host: conn.address,
         port: conn.port,
         username: conn.effectiveUsername!,
-        hostKey: hostKey!, // must exist since we're already connected
+        hostKey: hostKey,
         password: password,
-        keyPems: keys.map((k) => (k as dynamic).toPem() as String).toList(),
+        keyPems: keys.map((key) => key.privateKey).toList(),
+        keyPassphrases: keys.map((key) => key.passphrase).toList(),
+        skipHostKeyVerification: session.skipHostKeyVerification,
       );
     }
 

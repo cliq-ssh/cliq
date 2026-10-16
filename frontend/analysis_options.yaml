@@ -16,6 +16,8 @@ analyzer:
     - windows/**
     - macos/**
     - linux/**
+    - lib/src/rust/frb_generated*
+
 include: package:flutter_lints/flutter.yaml
 
 linter:

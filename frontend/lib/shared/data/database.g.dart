@@ -4355,7 +4355,7 @@ abstract class _$CliqDatabase extends GeneratedDatabase {
     return customUpdate(
       'DELETE FROM connections WHERE vault_id = ?1',
       variables: [Variable<String>(vaultId)],
-      updates: {connections},
+      updates: {this.connections},
       updateKind: UpdateKind.delete,
     );
   }
@@ -4364,7 +4364,7 @@ abstract class _$CliqDatabase extends GeneratedDatabase {
     return customUpdate(
       'DELETE FROM identities WHERE vault_id = ?1',
       variables: [Variable<String>(vaultId)],
-      updates: {identities},
+      updates: {this.identities},
       updateKind: UpdateKind.delete,
     );
   }
@@ -4373,7 +4373,7 @@ abstract class _$CliqDatabase extends GeneratedDatabase {
     return customUpdate(
       'DELETE FROM credentials WHERE vault_id = ?1',
       variables: [Variable<String>(vaultId)],
-      updates: {credentials},
+      updates: {this.credentials},
       updateKind: UpdateKind.delete,
     );
   }
@@ -4382,7 +4382,7 @@ abstract class _$CliqDatabase extends GeneratedDatabase {
     return customUpdate(
       'DELETE FROM keys WHERE vault_id = ?1',
       variables: [Variable<String>(vaultId)],
-      updates: {keys},
+      updates: {this.keys},
       updateKind: UpdateKind.delete,
     );
   }
@@ -4391,7 +4391,7 @@ abstract class _$CliqDatabase extends GeneratedDatabase {
     return customUpdate(
       'DELETE FROM known_hosts WHERE vault_id = ?1',
       variables: [Variable<String>(vaultId)],
-      updates: {knownHosts},
+      updates: {this.knownHosts},
       updateKind: UpdateKind.delete,
     );
   }
@@ -4412,7 +4412,7 @@ abstract class _$CliqDatabase extends GeneratedDatabase {
         Variable<Uint8List>(hostKey),
         Variable<DateTime>(createdAt),
       ],
-      updates: {knownHosts},
+      updates: {this.knownHosts},
     );
   }
 
@@ -4422,11 +4422,14 @@ abstract class _$CliqDatabase extends GeneratedDatabase {
     return customSelect(
       'SELECT"k"."id" AS "nested_0.id", "k"."vault_id" AS "nested_0.vault_id", "k"."host" AS "nested_0.host", "k"."hostKey" AS "nested_0.hostKey", "k"."created_at" AS "nested_0.created_at","v"."id" AS "nested_1.id", "v"."owner" AS "nested_1.owner" FROM known_hosts AS k INNER JOIN vaults AS v ON k.vault_id = v.id WHERE ?1 = \'\' OR k.vault_id = ?1',
       variables: [Variable<String>(vaultId)],
-      readsFrom: {knownHosts, vaults},
+      readsFrom: {this.knownHosts, this.vaults},
     ).asyncMap(
       (QueryRow row) async => FindAllKnownHostsFullResult(
-        knownHost: await knownHosts.mapFromRow(row, tablePrefix: 'nested_0'),
-        vault: await vaults.mapFromRow(row, tablePrefix: 'nested_1'),
+        knownHost: await this.knownHosts.mapFromRow(
+          row,
+          tablePrefix: 'nested_0',
+        ),
+        vault: await this.vaults.mapFromRow(row, tablePrefix: 'nested_1'),
       ),
     );
   }
@@ -4435,8 +4438,8 @@ abstract class _$CliqDatabase extends GeneratedDatabase {
     return customSelect(
       'SELECT * FROM known_hosts WHERE host = ?1',
       variables: [Variable<String>(var1)],
-      readsFrom: {knownHosts},
-    ).asyncMap(knownHosts.mapFromRow);
+      readsFrom: {this.knownHosts},
+    ).asyncMap(this.knownHosts.mapFromRow);
   }
 
   Future<int> createOrUpdateCustomColorScheme(
@@ -4523,7 +4526,7 @@ abstract class _$CliqDatabase extends GeneratedDatabase {
           ),
         ),
       ],
-      updates: {customTerminalThemes},
+      updates: {this.customTerminalThemes},
     );
   }
 
@@ -4536,8 +4539,8 @@ abstract class _$CliqDatabase extends GeneratedDatabase {
     return customSelect(
       'SELECT * FROM custom_terminal_themes WHERE id IN ($expandedvar1)',
       variables: [for (var $ in var1) Variable<String>($)],
-      readsFrom: {customTerminalThemes},
-    ).asyncMap(customTerminalThemes.mapFromRow);
+      readsFrom: {this.customTerminalThemes},
+    ).asyncMap(this.customTerminalThemes.mapFromRow);
   }
 
   Selectable<String> findMatchingCustomColorSchemeId(
@@ -4622,7 +4625,7 @@ abstract class _$CliqDatabase extends GeneratedDatabase {
           ),
         ),
       ],
-      readsFrom: {customTerminalThemes},
+      readsFrom: {this.customTerminalThemes},
     ).map((QueryRow row) => row.read<String>('id'));
   }
 
@@ -4644,7 +4647,7 @@ abstract class _$CliqDatabase extends GeneratedDatabase {
         Variable<String>(publicKey),
         Variable<String>(passphrase),
       ],
-      updates: {keys},
+      updates: {this.keys},
     );
   }
 
@@ -4658,7 +4661,7 @@ abstract class _$CliqDatabase extends GeneratedDatabase {
         Variable<String>(vaultId),
         for (var $ in var2) Variable<String>($),
       ],
-      updates: {keys},
+      updates: {this.keys},
       updateKind: UpdateKind.update,
     );
   }
@@ -4667,7 +4670,7 @@ abstract class _$CliqDatabase extends GeneratedDatabase {
     return customSelect(
       'SELECT id FROM keys',
       variables: [],
-      readsFrom: {keys},
+      readsFrom: {this.keys},
     ).map((QueryRow row) => row.read<String>('id'));
   }
 
@@ -4678,11 +4681,11 @@ abstract class _$CliqDatabase extends GeneratedDatabase {
     return customSelect(
       'SELECT"k"."id" AS "nested_0.id", "k"."vault_id" AS "nested_0.vault_id", "k"."label" AS "nested_0.label", "k"."private_key" AS "nested_0.private_key", "k"."public_key" AS "nested_0.public_key", "k"."passphrase" AS "nested_0.passphrase","v"."id" AS "nested_1.id", "v"."owner" AS "nested_1.owner" FROM keys AS k INNER JOIN vaults AS v ON k.vault_id = v.id WHERE k.id IN ($expandedvar1)',
       variables: [for (var $ in var1) Variable<String>($)],
-      readsFrom: {keys, vaults},
+      readsFrom: {this.keys, this.vaults},
     ).asyncMap(
       (QueryRow row) async => FindAllKeyFullByIdsResult(
-        keyEntity: await keys.mapFromRow(row, tablePrefix: 'nested_0'),
-        vault: await vaults.mapFromRow(row, tablePrefix: 'nested_1'),
+        keyEntity: await this.keys.mapFromRow(row, tablePrefix: 'nested_0'),
+        vault: await this.vaults.mapFromRow(row, tablePrefix: 'nested_1'),
       ),
     );
   }
@@ -4701,7 +4704,7 @@ abstract class _$CliqDatabase extends GeneratedDatabase {
         Variable<String>(label),
         Variable<String>(username),
       ],
-      updates: {identities},
+      updates: {this.identities},
     );
   }
 
@@ -4715,7 +4718,7 @@ abstract class _$CliqDatabase extends GeneratedDatabase {
         Variable<String>(vaultId),
         for (var $ in var2) Variable<String>($),
       ],
-      updates: {identities},
+      updates: {this.identities},
       updateKind: UpdateKind.update,
     );
   }
@@ -4727,7 +4730,7 @@ abstract class _$CliqDatabase extends GeneratedDatabase {
     return customSelect(
       'SELECT credential_id FROM identity_credentials WHERE identity_id IN ($expandedvar1)',
       variables: [for (var $ in var1) Variable<String>($)],
-      readsFrom: {identityCredentials},
+      readsFrom: {this.identityCredentials},
     ).map((QueryRow row) => row.read<String>('credential_id'));
   }
 
@@ -4738,7 +4741,7 @@ abstract class _$CliqDatabase extends GeneratedDatabase {
     return customSelect(
       'SELECT identity_id FROM identity_credentials WHERE credential_id IN ($expandedvar1)',
       variables: [for (var $ in var1) Variable<String>($)],
-      readsFrom: {identityCredentials},
+      readsFrom: {this.identityCredentials},
     ).map((QueryRow row) => row.read<String>('identity_id'));
   }
 
@@ -4746,15 +4749,27 @@ abstract class _$CliqDatabase extends GeneratedDatabase {
     return customSelect(
       'SELECT"i"."id" AS "nested_0.id", "i"."vault_id" AS "nested_0.vault_id", "i"."label" AS "nested_0.label", "i"."username" AS "nested_0.username","v"."id" AS "nested_1.id", "v"."owner" AS "nested_1.owner", i.id AS "\$n_0" FROM identities AS i INNER JOIN vaults AS v ON i.vault_id = v.id WHERE ?1 = \'\' OR i.vault_id = ?1',
       variables: [Variable<String>(vaultId)],
-      readsFrom: {credentials, identityCredentials, identities, vaults},
+      readsFrom: {
+        this.credentials,
+        this.identityCredentials,
+        this.identities,
+        this.vaults,
+      },
     ).asyncMap(
       (QueryRow row) async => FindAllIdentityFullResult(
-        identity: await identities.mapFromRow(row, tablePrefix: 'nested_0'),
-        vault: await vaults.mapFromRow(row, tablePrefix: 'nested_1'),
+        identity: await this.identities.mapFromRow(
+          row,
+          tablePrefix: 'nested_0',
+        ),
+        vault: await this.vaults.mapFromRow(row, tablePrefix: 'nested_1'),
         identityCredentials: await customSelect(
           'SELECT credentials.id FROM identity_credentials JOIN credentials ON credentials.id = identity_credentials.credential_id WHERE identity_credentials.identity_id = ?1 ORDER BY credentials.id',
           variables: [Variable<String>(row.read('\$n_0'))],
-          readsFrom: {credentials, identityCredentials, identities},
+          readsFrom: {
+            this.credentials,
+            this.identityCredentials,
+            this.identities,
+          },
         ).map((QueryRow row) => row.read<String>('id')).get(),
       ),
     );
@@ -4776,7 +4791,7 @@ abstract class _$CliqDatabase extends GeneratedDatabase {
         Variable<String>(keyId),
         Variable<String>(password),
       ],
-      updates: {credentials},
+      updates: {this.credentials},
     );
   }
 
@@ -4790,7 +4805,7 @@ abstract class _$CliqDatabase extends GeneratedDatabase {
         Variable<String>(vaultId),
         for (var $ in var2) Variable<String>($),
       ],
-      updates: {credentials},
+      updates: {this.credentials},
       updateKind: UpdateKind.update,
     );
   }
@@ -4802,7 +4817,7 @@ abstract class _$CliqDatabase extends GeneratedDatabase {
     return customSelect(
       'SELECT key_id FROM credentials WHERE id IN ($expandedvar1) AND key_id IS NOT NULL',
       variables: [for (var $ in var1) Variable<String>($)],
-      readsFrom: {credentials},
+      readsFrom: {this.credentials},
     ).map((QueryRow row) => row.readNullable<String>('key_id'));
   }
 
@@ -4813,7 +4828,7 @@ abstract class _$CliqDatabase extends GeneratedDatabase {
     return customSelect(
       'SELECT id FROM credentials WHERE key_id IN ($expandedvar1)',
       variables: [for (var $ in var1) Variable<String>($)],
-      readsFrom: {credentials},
+      readsFrom: {this.credentials},
     ).map((QueryRow row) => row.read<String>('id'));
   }
 
@@ -4821,7 +4836,7 @@ abstract class _$CliqDatabase extends GeneratedDatabase {
     return customSelect(
       'SELECT id FROM credentials',
       variables: [],
-      readsFrom: {credentials},
+      readsFrom: {this.credentials},
     ).map((QueryRow row) => row.read<String>('id'));
   }
 
@@ -4834,12 +4849,15 @@ abstract class _$CliqDatabase extends GeneratedDatabase {
     return customSelect(
       'SELECT"c"."id" AS "nested_0.id", "c"."vault_id" AS "nested_0.vault_id", "c"."type" AS "nested_0.type", "c"."key_id" AS "nested_0.key_id", "c"."password" AS "nested_0.password","v"."id" AS "nested_1.id", "v"."owner" AS "nested_1.owner","k"."id" AS "nested_2.id", "k"."vault_id" AS "nested_2.vault_id", "k"."label" AS "nested_2.label", "k"."private_key" AS "nested_2.private_key", "k"."public_key" AS "nested_2.public_key", "k"."passphrase" AS "nested_2.passphrase" FROM credentials AS c INNER JOIN vaults AS v ON c.vault_id = v.id LEFT JOIN keys AS k ON c.key_id = k.id WHERE c.id IN ($expandedvar1)',
       variables: [for (var $ in var1) Variable<String>($)],
-      readsFrom: {credentials, vaults, keys},
+      readsFrom: {this.credentials, this.vaults, this.keys},
     ).asyncMap(
       (QueryRow row) async => FindCredentialFullByIdsResult(
-        credential: await credentials.mapFromRow(row, tablePrefix: 'nested_0'),
-        vault: await vaults.mapFromRow(row, tablePrefix: 'nested_1'),
-        credentialKey: await keys.mapFromRowOrNull(
+        credential: await this.credentials.mapFromRow(
+          row,
+          tablePrefix: 'nested_0',
+        ),
+        vault: await this.vaults.mapFromRow(row, tablePrefix: 'nested_1'),
+        credentialKey: await this.keys.mapFromRowOrNull(
           row,
           tablePrefix: 'nested_2',
         ),
@@ -4887,7 +4905,7 @@ abstract class _$CliqDatabase extends GeneratedDatabase {
         Variable<String>(terminalThemeOverrideId),
         Variable<bool>(usesDefaultThemeOverride),
       ],
-      updates: {connections},
+      updates: {this.connections},
     );
   }
 
@@ -4901,7 +4919,7 @@ abstract class _$CliqDatabase extends GeneratedDatabase {
         Variable<String>(vaultId),
         for (var $ in var2) Variable<String>($),
       ],
-      updates: {connections},
+      updates: {this.connections},
       updateKind: UpdateKind.update,
     );
   }
@@ -4913,7 +4931,7 @@ abstract class _$CliqDatabase extends GeneratedDatabase {
     return customSelect(
       'SELECT id FROM connections WHERE identity_id IN ($expandedvar1)',
       variables: [for (var $ in var1) Variable<String>($)],
-      readsFrom: {connections},
+      readsFrom: {this.connections},
     ).map((QueryRow row) => row.read<String>('id'));
   }
 
@@ -4924,7 +4942,7 @@ abstract class _$CliqDatabase extends GeneratedDatabase {
     return customSelect(
       'SELECT connection_id FROM connection_credentials WHERE credential_id IN ($expandedvar1)',
       variables: [for (var $ in var1) Variable<String>($)],
-      readsFrom: {connectionCredentials},
+      readsFrom: {this.connectionCredentials},
     ).map((QueryRow row) => row.read<String>('connection_id'));
   }
 
@@ -4935,7 +4953,7 @@ abstract class _$CliqDatabase extends GeneratedDatabase {
     return customSelect(
       'SELECT credential_id FROM connection_credentials WHERE connection_id IN ($expandedvar1)',
       variables: [for (var $ in var1) Variable<String>($)],
-      readsFrom: {connectionCredentials},
+      readsFrom: {this.connectionCredentials},
     ).map((QueryRow row) => row.read<String>('credential_id'));
   }
 
@@ -4943,7 +4961,7 @@ abstract class _$CliqDatabase extends GeneratedDatabase {
     return customSelect(
       'SELECT identity_id FROM connections WHERE id = ?1 AND identity_id IS NOT NULL',
       variables: [Variable<String>(id)],
-      readsFrom: {connections},
+      readsFrom: {this.connections},
     ).map((QueryRow row) => row.readNullable<String>('identity_id'));
   }
 
@@ -4954,39 +4972,50 @@ abstract class _$CliqDatabase extends GeneratedDatabase {
       'SELECT"c"."id" AS "nested_0.id", "c"."vault_id" AS "nested_0.vault_id", "c"."label" AS "nested_0.label", "c"."address" AS "nested_0.address", "c"."port" AS "nested_0.port", "c"."identity_id" AS "nested_0.identity_id", "c"."username" AS "nested_0.username", "c"."group_name" AS "nested_0.group_name", "c"."icon" AS "nested_0.icon", "c"."icon_color" AS "nested_0.icon_color", "c"."icon_background_color" AS "nested_0.icon_background_color", "c"."terminal_typography_override" AS "nested_0.terminal_typography_override", "c"."terminal_theme_override_id" AS "nested_0.terminal_theme_override_id", "c"."uses_default_theme_override" AS "nested_0.uses_default_theme_override","v"."id" AS "nested_1.id", "v"."owner" AS "nested_1.owner","i"."id" AS "nested_2.id", "i"."vault_id" AS "nested_2.vault_id", "i"."label" AS "nested_2.label", "i"."username" AS "nested_2.username","iv"."id" AS "nested_3.id", "iv"."owner" AS "nested_3.owner","t"."id" AS "nested_4.id", "t"."name" AS "nested_4.name", "t"."black" AS "nested_4.black", "t"."red" AS "nested_4.red", "t"."green" AS "nested_4.green", "t"."yellow" AS "nested_4.yellow", "t"."blue" AS "nested_4.blue", "t"."purple" AS "nested_4.purple", "t"."cyan" AS "nested_4.cyan", "t"."white" AS "nested_4.white", "t"."bright_black" AS "nested_4.bright_black", "t"."bright_red" AS "nested_4.bright_red", "t"."bright_green" AS "nested_4.bright_green", "t"."bright_yellow" AS "nested_4.bright_yellow", "t"."bright_blue" AS "nested_4.bright_blue", "t"."bright_purple" AS "nested_4.bright_purple", "t"."bright_cyan" AS "nested_4.bright_cyan", "t"."bright_white" AS "nested_4.bright_white", "t"."background" AS "nested_4.background", "t"."foreground" AS "nested_4.foreground", "t"."cursor" AS "nested_4.cursor", "t"."cursor_text" AS "nested_4.cursor_text", "t"."selection_background" AS "nested_4.selection_background", "t"."selection_foreground" AS "nested_4.selection_foreground", c.id AS "\$n_0", i.id AS "\$n_1" FROM connections AS c INNER JOIN vaults AS v ON c.vault_id = v.id LEFT JOIN identities AS i ON c.identity_id = i.id LEFT JOIN vaults AS iv ON i.vault_id = iv.id LEFT JOIN custom_terminal_themes AS t ON c.terminal_theme_override_id = t.id WHERE ?1 = \'\' OR c.vault_id = ?1',
       variables: [Variable<String>(vaultId)],
       readsFrom: {
-        credentials,
-        connectionCredentials,
-        connections,
-        identityCredentials,
-        identities,
-        vaults,
-        customTerminalThemes,
+        this.credentials,
+        this.connectionCredentials,
+        this.connections,
+        this.identityCredentials,
+        this.identities,
+        this.vaults,
+        this.customTerminalThemes,
       },
     ).asyncMap(
       (QueryRow row) async => FindAllConnectionFullResult(
-        connection: await connections.mapFromRow(row, tablePrefix: 'nested_0'),
-        vault: await vaults.mapFromRow(row, tablePrefix: 'nested_1'),
-        identity: await identities.mapFromRowOrNull(
+        connection: await this.connections.mapFromRow(
+          row,
+          tablePrefix: 'nested_0',
+        ),
+        vault: await this.vaults.mapFromRow(row, tablePrefix: 'nested_1'),
+        identity: await this.identities.mapFromRowOrNull(
           row,
           tablePrefix: 'nested_2',
         ),
-        identityVault: await vaults.mapFromRowOrNull(
+        identityVault: await this.vaults.mapFromRowOrNull(
           row,
           tablePrefix: 'nested_3',
         ),
-        terminalThemeOverride: await customTerminalThemes.mapFromRowOrNull(
+        terminalThemeOverride: await this.customTerminalThemes.mapFromRowOrNull(
           row,
           tablePrefix: 'nested_4',
         ),
         connectionCredentials: await customSelect(
           'SELECT credentials.id FROM connection_credentials JOIN credentials ON credentials.id = connection_credentials.credential_id WHERE connection_credentials.connection_id = ?1 ORDER BY credentials.id',
           variables: [Variable<String>(row.read('\$n_0'))],
-          readsFrom: {credentials, connectionCredentials, connections},
+          readsFrom: {
+            this.credentials,
+            this.connectionCredentials,
+            this.connections,
+          },
         ).map((QueryRow row) => row.read<String>('id')).get(),
         identityCredentials: await customSelect(
           'SELECT credentials.id FROM identity_credentials JOIN credentials ON credentials.id = identity_credentials.credential_id WHERE identity_credentials.identity_id = ?1 ORDER BY credentials.id',
           variables: [Variable<String>(row.read('\$n_1'))],
-          readsFrom: {credentials, identityCredentials, identities},
+          readsFrom: {
+            this.credentials,
+            this.identityCredentials,
+            this.identities,
+          },
         ).map((QueryRow row) => row.read<String>('id')).get(),
       ),
     );
@@ -4996,7 +5025,7 @@ abstract class _$CliqDatabase extends GeneratedDatabase {
     return customSelect(
       'SELECT DISTINCT group_name FROM connections WHERE group_name IS NOT NULL AND group_name != \'\' ORDER BY group_name ASC',
       variables: [],
-      readsFrom: {connections},
+      readsFrom: {this.connections},
     ).map((QueryRow row) => row.readNullable<String>('group_name'));
   }
 
@@ -5559,7 +5588,12 @@ class $VaultsTableManager
             Value<int> rowid = const Value.absent(),
           }) => VaultsCompanion.insert(id: id, owner: owner, rowid: rowid),
           withReferenceMapper: (p0) => p0
-              .map((e) => (e.readTable(table), $VaultsReferences(db, table, e)))
+              .map(
+                (e) => (
+                  e.readTable<Vaults, Vault>(table),
+                  $VaultsReferences(db, table, e),
+                ),
+              )
               .toList(),
           prefetchHooksCallback:
               ({
@@ -6045,8 +6079,10 @@ class $IdentitiesTableManager
               ),
           withReferenceMapper: (p0) => p0
               .map(
-                (e) =>
-                    (e.readTable(table), $IdentitiesReferences(db, table, e)),
+                (e) => (
+                  e.readTable<Identities, Identity>(table),
+                  $IdentitiesReferences(db, table, e),
+                ),
               )
               .toList(),
           prefetchHooksCallback:
@@ -6838,7 +6874,7 @@ class $CustomTerminalThemesTableManager
           withReferenceMapper: (p0) => p0
               .map(
                 (e) => (
-                  e.readTable(table),
+                  e.readTable<CustomTerminalThemes, CustomTerminalTheme>(table),
                   $CustomTerminalThemesReferences(db, table, e),
                 ),
               )
@@ -7558,8 +7594,10 @@ class $ConnectionsTableManager
               ),
           withReferenceMapper: (p0) => p0
               .map(
-                (e) =>
-                    (e.readTable(table), $ConnectionsReferences(db, table, e)),
+                (e) => (
+                  e.readTable<Connections, Connection>(table),
+                  $ConnectionsReferences(db, table, e),
+                ),
               )
               .toList(),
           prefetchHooksCallback:
@@ -8012,7 +8050,12 @@ class $KeysTableManager
                 rowid: rowid,
               ),
           withReferenceMapper: (p0) => p0
-              .map((e) => (e.readTable(table), $KeysReferences(db, table, e)))
+              .map(
+                (e) => (
+                  e.readTable<Keys, Key>(table),
+                  $KeysReferences(db, table, e),
+                ),
+              )
               .toList(),
           prefetchHooksCallback: ({vaultId = false, credentialsRefs = false}) {
             return PrefetchHooks(
@@ -8551,8 +8594,10 @@ class $CredentialsTableManager
               ),
           withReferenceMapper: (p0) => p0
               .map(
-                (e) =>
-                    (e.readTable(table), $CredentialsReferences(db, table, e)),
+                (e) => (
+                  e.readTable<Credentials, Credential>(table),
+                  $CredentialsReferences(db, table, e),
+                ),
               )
               .toList(),
           prefetchHooksCallback:
@@ -8929,8 +8974,10 @@ class $KnownHostsTableManager
               ),
           withReferenceMapper: (p0) => p0
               .map(
-                (e) =>
-                    (e.readTable(table), $KnownHostsReferences(db, table, e)),
+                (e) => (
+                  e.readTable<KnownHosts, KnownHost>(table),
+                  $KnownHostsReferences(db, table, e),
+                ),
               )
               .toList(),
           prefetchHooksCallback: ({vaultId = false}) {
@@ -9269,7 +9316,7 @@ class $IdentityCredentialsTableManager
           withReferenceMapper: (p0) => p0
               .map(
                 (e) => (
-                  e.readTable(table),
+                  e.readTable<IdentityCredentials, IdentityCredential>(table),
                   $IdentityCredentialsReferences(db, table, e),
                 ),
               )
@@ -9622,7 +9669,9 @@ class $ConnectionCredentialsTableManager
           withReferenceMapper: (p0) => p0
               .map(
                 (e) => (
-                  e.readTable(table),
+                  e.readTable<ConnectionCredentials, ConnectionCredential>(
+                    table,
+                  ),
                   $ConnectionCredentialsReferences(db, table, e),
                 ),
               )

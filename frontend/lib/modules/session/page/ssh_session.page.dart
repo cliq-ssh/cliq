@@ -127,12 +127,14 @@ class _SshSessionPageState extends ConsumerState<SshSessionPage>
             final currentSession = ref
                 .read(sessionProvider.notifier)
                 .getSessionById(widget.sessionId);
-            currentSession?.sshSession?.resizeTerminal(
-              cols,
-              rows,
-              size.width.round(),
-              size.height.round(),
-            );
+            if (currentSession?.rustConnection case final connection?) {
+              connection.resize(
+                columns: cols,
+                rows: rows,
+                pixelWidth: size.width.round(),
+                pixelHeight: size.height.round(),
+              );
+            }
           },
         );
 
@@ -209,65 +211,49 @@ class _SshSessionPageState extends ConsumerState<SshSessionPage>
       Future<void> openSsh(ConnectionFull connection) async {
         if (!mounted || terminalController.value == null) return;
 
-        final client =
-            session.client ??
-            await ref
-                .read(sessionProvider.notifier)
-                .createSSHClient(session, connection);
-        if (client == null || !mounted) return;
-
-        final sshSession =
-            session.sshSession ??
-            await ref
-                .read(sessionProvider.notifier)
-                .spawnSsh(session.id, client, terminalController.value!);
-        if (sshSession == null) return;
-
-        if (session.sshSession == null) {
-          // only wire this once, the first time this session is actually spawned
-          unawaited(
-            sshSession.done.then((_) {
-              if (!context.mounted) return;
-              ref
-                  .read(sessionProvider.notifier)
-                  .closeSessionAndMaybeGo(
-                    NavigationShell.of(context),
-                    session.id,
-                  );
-            }),
-          );
+        if (session.rustConnection case final rustConnection?) {
+          terminalController.value!.onInput = (s) {
+            rustConnection.writeInput(data: utf8.encode(s));
+          };
+          final outputSub =
+              session.rustOutputSub ??
+              const Utf8Decoder(allowMalformed: true)
+                  .bind(rustConnection.output())
+                  .listen((str) {
+                    terminalController.value?.feed(str);
+                  });
+          terminalController.value!.onPause = () => outputSub.pause();
+          terminalController.value!.onResume = () => outputSub.resume();
+          ref
+              .read(sessionProvider.notifier)
+              .setRustStreamListeners(session.id, outputSub);
+          return;
         }
 
-        // always rebind, regardless of whether the shell was just spawned or already existed
-        terminalController.value!.onInput = (s) {
-          sshSession.write(.fromList(utf8.encode(s)));
-        };
-
-        StreamSubscription? stdoutSub;
-        StreamSubscription? stderrSub;
-
-        terminalController.value!.onPause = () => stdoutSub?.pause();
-        terminalController.value!.onResume = () => stdoutSub?.resume();
-
-        stdoutSub =
-            session.stdoutSub ??
-            const Utf8Decoder(allowMalformed: true)
-                .bind(sshSession.stdout)
-                .listen((str) {
-                  terminalController.value?.feed(str);
-                });
-
-        stderrSub =
-            session.stderrSub ??
-            const Utf8Decoder(allowMalformed: true)
-                .bind(sshSession.stderr)
-                .listen((str) {
-                  terminalController.value?.feed(str);
-                });
-
+        final rustResult = await ref
+            .read(sessionProvider.notifier)
+            .createRustSSHConnection(
+              session,
+              connection,
+              terminalController.value!.rows,
+              terminalController.value!.cols,
+            );
+        if (rustResult == null || !mounted) return;
+        final (rustConnection, output) = rustResult;
+        final outputSub = const Utf8Decoder(allowMalformed: true)
+            .bind(output)
+            .listen((str) {
+              terminalController.value?.feed(str);
+            });
+        terminalController.value!.onPause = () => outputSub.pause();
+        terminalController.value!.onResume = () => outputSub.resume();
         ref
             .read(sessionProvider.notifier)
-            .setStreamListeners(session.id, stdoutSub, stderrSub);
+            .setRustConnection(session.id, rustConnection, outputSub);
+        terminalController.value!.onInput = (s) {
+          rustConnection.writeInput(data: utf8.encode(s));
+        };
+        return;
       }
 
       final connectionFull = ref

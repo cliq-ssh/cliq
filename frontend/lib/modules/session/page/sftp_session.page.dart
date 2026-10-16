@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:cliq/modules/connections/model/connection_full.model.dart';
 import 'package:cliq/modules/connections/provider/connection.provider.dart';
+import 'package:cliq/modules/session/model/sftp_client.model.dart';
 import 'package:cliq/modules/session/model/sftp_transfer_params.model.dart';
 import 'package:cliq/modules/session/page/generic_session.page.dart';
 import 'package:cliq/modules/session/provider/session.provider.dart';
@@ -16,7 +17,6 @@ import 'package:cliq/shared/utils/commons.dart';
 import 'package:cliq/shared/utils/constants.dart';
 import 'package:cliq/shared/utils/platform_utils.dart';
 import 'package:cliq/shared/utils/text_utils.dart';
-import 'package:dartssh2/dartssh2.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:file_selector/file_selector.dart';
 import 'package:flutter/gestures.dart';
@@ -105,8 +105,7 @@ enum _SftpColumn {
   static int _buildAccessedSortable(SftpName file) => file.attr.accessTime ?? 0;
 
   static String _buildPermissions(BuildContext context, SftpName file) {
-    final perms = file.attr.mode;
-    if (perms == null) return '--';
+    final perms = file.attr;
 
     final isDir = file.attr.isDirectory;
     return (StringBuffer()
@@ -302,20 +301,16 @@ class _SftpSessionPageState extends ConsumerState<SftpSessionPage>
         isLoading.value = true;
 
         final client =
-            session.client ??
+            session.sftpClient ??
             await ref
                 .read(sessionProvider.notifier)
-                .createSSHClient(session, connection);
+                .createSftpClient(session, connection);
 
         if (client == null || !mounted) {
           return;
         }
 
-        final sftpSession = await ref
-            .read(sessionProvider.notifier)
-            .spawnSftp(session.id, client);
-
-        currentDirectory.value = (await sftpSession.absolute('.')).split('/');
+        currentDirectory.value = (await client.absolute('.')).split('/');
 
         isLoading.value = false;
       }
@@ -352,11 +347,11 @@ class _SftpSessionPageState extends ConsumerState<SftpSessionPage>
               (await session.sftpClient!.listdir(path.isEmpty ? '/' : path))
                   .where((file) => !_ignoredFilenames.contains(file.filename))
                   .toList();
-        } on SftpStatusError catch (e) {
+        } catch (e) {
           if (!context.mounted) return;
 
           await Commons.showToast(
-            'sftp_failed_to_open'.tr(args: [e.message]),
+            'sftp_failed_to_open'.tr(args: [e.toString()]),
             prefix: const Icon(LucideIcons.folderLock),
             variant: .destructive,
           );
@@ -390,10 +385,15 @@ class _SftpSessionPageState extends ConsumerState<SftpSessionPage>
 
       if (isCreatingDirectory.value) {
         if (index == 0) {
-          return SftpName(
+          return const SftpName(
             filename: _createFolderFileName,
             longname: '', // we don't use the longname anyway
-            attr: .new(mode: const .value(0x41FF)),
+            attr: SftpFileAttr(
+              size: null,
+              mode: 0x41FF,
+              modifyTime: null,
+              accessTime: null,
+            ),
           );
         }
       }
@@ -648,13 +648,10 @@ class _SftpSessionPageState extends ConsumerState<SftpSessionPage>
         }
         resetRename();
         reloadDirectory();
-      } on SftpStatusError catch (e) {
+      } catch (e) {
         if (!context.mounted) return;
 
-        String message = e.message;
-        if (e.code == 4) {
-          message = 'sftp_file_already_exists'.tr();
-        }
+        final message = e.toString();
 
         await Commons.showToast(
           'sftp_failed_to_rename'.tr(args: [message]),
@@ -1002,7 +999,7 @@ class _SftpSessionPageState extends ConsumerState<SftpSessionPage>
                         onConfirm: transfer,
                         confirmButtonText: 'dialog_overwrite_confirm'.tr(),
                       );
-                    } on SftpStatusError catch (_) {
+                    } catch (_) {
                       transfer();
                     }
                   }

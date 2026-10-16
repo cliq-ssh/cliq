@@ -1,9 +1,10 @@
 import 'dart:async';
 
 import 'package:cliq/modules/connections/model/connection_full.model.dart';
+import 'package:cliq/modules/session/model/sftp_client.model.dart';
 import 'package:cliq/modules/settings/model/known_host_error.model.dart';
+import 'package:cliq/src/rust/ssh/ssh_client.dart';
 import 'package:cliq_term/cliq_term.dart';
-import 'package:dartssh2/dartssh2.dart';
 
 enum SessionType { ssh, sftp }
 
@@ -23,20 +24,18 @@ class ShellSession {
   /// The timestamp when the session was successfully connected.
   final DateTime? connectedAt;
 
-  /// The SSH client associated with this session, only set if connected.
-  final SSHClient? client;
-
   /// The SFTP client associated with this session, only set if connected and SFTP is initialized.
   final SftpClient? sftpClient;
 
-  /// The SSH session associated with this session, only set if connected.
-  final SSHSession? sshSession;
+  /// The Rust-backed SSH terminal connection, only set for terminal sessions.
+  final SshConnection? rustConnection;
 
   /// The terminal controller associated with this session, only set if connected.
   final TerminalController? terminalController;
 
   final StreamSubscription? stdoutSub;
   final StreamSubscription? stderrSub;
+  final StreamSubscription? rustOutputSub;
 
   /// An optional known host error state for this session.
   /// May indicate that the host is unknown or has a mismatched fingerprint.
@@ -51,12 +50,12 @@ class ShellSession {
     required this.connection,
     this.connectionError,
     this.connectedAt,
-    this.client,
     this.sftpClient,
-    this.sshSession,
+    this.rustConnection,
     this.terminalController,
     this.stdoutSub,
     this.stderrSub,
+    this.rustOutputSub,
     this.knownHostError,
     this.skipHostKeyVerification = false,
   });
@@ -68,39 +67,35 @@ class ShellSession {
     this.skipHostKeyVerification = false,
   }) : connectionError = null,
        connectedAt = null,
-       client = null,
        sftpClient = null,
-       sshSession = null,
+       rustConnection = null,
        terminalController = null,
        stdoutSub = null,
        stderrSub = null,
+       rustOutputSub = null,
        knownHostError = null;
 
-  bool get isConnected =>
-      client != null && (sshSession != null || sftpClient != null);
+  bool get isConnected => sftpClient != null || rustConnection != null;
 
   /// Whether the session is likely in the process of connecting, since it is not connected and has no error.
   bool get isLikelyLoading => !isConnected && connectionError == null;
 
   void dispose() {
-    sshSession?.kill(SSHSignal.KILL);
-    sshSession?.close();
-    client?.close();
-    sftpClient?.close();
     terminalController?.dispose();
     stdoutSub?.cancel();
     stderrSub?.cancel();
+    rustOutputSub?.cancel();
   }
 
   ShellSession copyWith({
     String? connectionError,
     DateTime? connectedAt,
-    SSHClient? client,
     SftpClient? sftpClient,
-    SSHSession? sshSession,
+    SshConnection? rustConnection,
     TerminalController? terminalController,
     StreamSubscription? stdoutSub,
     StreamSubscription? stderrSub,
+    StreamSubscription? rustOutputSub,
     KnownHostError? knownHostError,
   }) {
     return ShellSession(
@@ -109,12 +104,12 @@ class ShellSession {
       connection: connection,
       connectionError: connectionError ?? this.connectionError,
       connectedAt: connectedAt ?? this.connectedAt,
-      client: client ?? this.client,
       sftpClient: sftpClient ?? this.sftpClient,
-      sshSession: sshSession ?? this.sshSession,
+      rustConnection: rustConnection ?? this.rustConnection,
       terminalController: terminalController ?? this.terminalController,
       stdoutSub: stdoutSub ?? this.stdoutSub,
       stderrSub: stderrSub ?? this.stderrSub,
+      rustOutputSub: rustOutputSub ?? this.rustOutputSub,
       knownHostError: knownHostError ?? this.knownHostError,
     );
   }
