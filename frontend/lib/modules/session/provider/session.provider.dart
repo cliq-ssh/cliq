@@ -10,6 +10,7 @@ import 'package:cliq/modules/settings/model/known_host_error.model.dart';
 import 'package:cliq/modules/settings/provider/known_host_service.provider.dart';
 import 'package:cliq/shared/data/database.dart';
 import 'package:cliq/shared/ui/navigation/navigation_shell.dart';
+import 'package:cliq/shared/utils/build_metadata.dart';
 import 'package:cliq_term/cliq_term.dart';
 import 'package:dartssh2/dartssh2.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -261,6 +262,7 @@ class SessionNotifier extends Notifier<SessionState> {
           return false;
         },
         onPasswordRequest: password != null ? () => password : null,
+        ident: _getSshIdent(),
       );
 
       unawaited(
@@ -433,5 +435,9 @@ class SessionNotifier extends Notifier<SessionState> {
       pageIndices[tabs[i].id] = i;
     }
     return pageIndices;
+  }
+
+  String _getSshIdent() {
+    return 'SSH-2.0-cliq_${BuildMetadata.version}';
   }
 }
