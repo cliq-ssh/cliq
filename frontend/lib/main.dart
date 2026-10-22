@@ -1,26 +1,29 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:cliq/modules/settings/provider/log_service.provider.dart';
 import 'package:cliq/modules/settings/provider/sync.provider.dart';
 import 'package:cliq/shared/data/store.dart';
 import 'package:cliq/shared/model/localized_exception.dart';
 import 'package:cliq/shared/model/router.model.dart';
 import 'package:cliq/shared/provider/router.provider.dart';
 import 'package:cliq/shared/provider/store.provider.dart';
+import 'package:cliq/shared/ui/cliq_tooltip.dart';
 import 'package:cliq/shared/ui/error_sheet.dart';
 import 'package:cliq/shared/utils/commons.dart';
 import 'package:cliq/shared/utils/constants.dart';
 import 'package:cliq/shared/utils/password_cipher.dart';
 import 'package:cliq/shared/utils/platform_utils.dart';
+import 'package:cupertino_ui/cupertino_ui.dart' as cupertino_ui;
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/foundation.dart';
-import 'package:flutter/material.dart' hide Router;
 import 'package:flutter/services.dart';
 import 'package:forui/forui.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:logging/logging.dart';
 import 'package:lucide_flutter/lucide_flutter.dart';
 import 'package:macos_window_utils/macos_window_utils.dart';
+import 'package:material_ui/material_ui.dart' hide Router;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:window_manager/window_manager.dart';
 
@@ -31,10 +34,6 @@ const windowMinSize = Size(windowMinWidth, windowMinHeight);
 void main() async {
   await runZonedGuarded(() async {
     WidgetsFlutterBinding.ensureInitialized();
-
-    if (kDebugMode) {
-      _initLogger();
-    }
 
     FlutterError.onError = (details) {
       FlutterError.presentError(details);
@@ -48,12 +47,18 @@ void main() async {
 
     await _configureWindow();
 
+    final ProviderContainer container = ProviderContainer();
+    _initLogger(container);
+
     runApp(
       EasyLocalization(
         path: 'assets/translations',
         supportedLocales: Constants.supportedLocales.values.toList(),
         fallbackLocale: Constants.supportedLocales.values.first,
-        child: const ProviderScope(child: CliqApp()),
+        child: UncontrolledProviderScope(
+          container: container,
+          child: const CliqApp(),
+        ),
       ),
     );
   }, _handleError);
@@ -120,8 +125,9 @@ void _handleError(Object error, StackTrace stackTrace) {
       variant: .destructive,
       title: Text(errorMessage),
       suffixBuilder: (context, entry) {
-        return FTooltip(
-          tipBuilder: (_, _) => const Text('View error details'),
+        return CliqTooltip(
+          // TODO: i18n
+          text: const Text('View error details'),
           child: GestureDetector(
             onTap: () async {
               entry.dismiss();
@@ -143,7 +149,9 @@ void _handleError(Object error, StackTrace stackTrace) {
   });
 }
 
-void _initLogger() {
+void _initLogger(ProviderContainer ref) {
+  final logService = ref.read(logServiceProvider);
+
   String getColorFromLevel(Level level) {
     if (level >= Level.SEVERE) return '\x1B[1;31m';
     if (level >= Level.WARNING) return '\x1B[33m';
@@ -162,12 +170,24 @@ void _initLogger() {
     const reset = '\x1B[0m';
     final timeString = record.time.toIso8601String().substring(11, 23);
 
-    // always have room for long logger names and levels
     if (kDebugMode) {
       print(
         '$color${record.level.name.padRight(7)}  ${record.loggerName.padRight(24)}  $timeString: ${record.message}$reset',
       );
     }
+
+    const ignoredLoggers = ['Repository', 'Notifier'];
+
+    if (ignoredLoggers.any((logger) => record.loggerName.startsWith(logger))) {
+      return;
+    }
+
+    logService.create(
+      logLevel: record.level.value,
+      loggerName: record.loggerName.trim(),
+      message: record.message.trim(),
+      createdAt: record.time,
+    );
   });
 }
 
@@ -201,7 +221,11 @@ class _CliqAppState extends ConsumerState<CliqApp> {
     return MaterialApp.router(
       routerConfig: router.goRouter,
       debugShowCheckedModeBanner: false,
-      localizationsDelegates: context.localizationDelegates,
+      localizationsDelegates: [
+        ...context.localizationDelegates,
+        GlobalMaterialLocalizations.delegate,
+        cupertino_ui.GlobalCupertinoLocalizations.delegate,
+      ],
       supportedLocales: context.supportedLocales,
       locale: context.locale,
       themeMode: themeMode.value,

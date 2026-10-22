@@ -1,7 +1,7 @@
 import 'package:cliq/modules/keys/data/key.repository.dart';
 import 'package:cliq/modules/keys/model/key_full.model.dart';
 import 'package:cliq/shared/data/database.dart';
-import 'package:cliq/shared/extensions/value.extension.dart';
+import 'package:cliq/shared/extension/value.extension.dart';
 import 'package:drift/drift.dart' show Value;
 
 final class KeyService {

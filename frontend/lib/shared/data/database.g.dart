@@ -3858,6 +3858,357 @@ class KnownHostsCompanion extends UpdateCompanion<KnownHost> {
   }
 }
 
+class Logs extends Table with TableInfo<Logs, Log> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  Logs(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  late final GeneratedColumn<int> id = GeneratedColumn<int>(
+    'id',
+    aliasedName,
+    false,
+    hasAutoIncrement: true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    $customConstraints: 'NOT NULL PRIMARY KEY AUTOINCREMENT',
+  );
+  static const VerificationMeta _logLevelMeta = const VerificationMeta(
+    'logLevel',
+  );
+  late final GeneratedColumn<int> logLevel = GeneratedColumn<int>(
+    'log_level',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+    $customConstraints: 'NOT NULL',
+  );
+  static const VerificationMeta _loggerNameMeta = const VerificationMeta(
+    'loggerName',
+  );
+  late final GeneratedColumn<String> loggerName = GeneratedColumn<String>(
+    'logger_name',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    $customConstraints: 'NOT NULL',
+  );
+  static const VerificationMeta _messageMeta = const VerificationMeta(
+    'message',
+  );
+  late final GeneratedColumn<String> message = GeneratedColumn<String>(
+    'message',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    $customConstraints: 'NOT NULL',
+  );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+    'created_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    $customConstraints: 'NOT NULL DEFAULT CURRENT_TIMESTAMP',
+    defaultValue: const CustomExpression('CURRENT_TIMESTAMP'),
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    logLevel,
+    loggerName,
+    message,
+    createdAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'logs';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<Log> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
+    if (data.containsKey('log_level')) {
+      context.handle(
+        _logLevelMeta,
+        logLevel.isAcceptableOrUnknown(data['log_level']!, _logLevelMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_logLevelMeta);
+    }
+    if (data.containsKey('logger_name')) {
+      context.handle(
+        _loggerNameMeta,
+        loggerName.isAcceptableOrUnknown(data['logger_name']!, _loggerNameMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_loggerNameMeta);
+    }
+    if (data.containsKey('message')) {
+      context.handle(
+        _messageMeta,
+        message.isAcceptableOrUnknown(data['message']!, _messageMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_messageMeta);
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  Log map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return Log(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}id'],
+      )!,
+      logLevel: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}log_level'],
+      )!,
+      loggerName: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}logger_name'],
+      )!,
+      message: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}message'],
+      )!,
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}created_at'],
+      )!,
+    );
+  }
+
+  @override
+  Logs createAlias(String alias) {
+    return Logs(attachedDatabase, alias);
+  }
+
+  @override
+  bool get dontWriteConstraints => true;
+}
+
+class Log extends DataClass implements Insertable<Log> {
+  final int id;
+  final int logLevel;
+  final String loggerName;
+  final String message;
+  final DateTime createdAt;
+  const Log({
+    required this.id,
+    required this.logLevel,
+    required this.loggerName,
+    required this.message,
+    required this.createdAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<int>(id);
+    map['log_level'] = Variable<int>(logLevel);
+    map['logger_name'] = Variable<String>(loggerName);
+    map['message'] = Variable<String>(message);
+    map['created_at'] = Variable<DateTime>(createdAt);
+    return map;
+  }
+
+  LogsCompanion toCompanion(bool nullToAbsent) {
+    return LogsCompanion(
+      id: Value(id),
+      logLevel: Value(logLevel),
+      loggerName: Value(loggerName),
+      message: Value(message),
+      createdAt: Value(createdAt),
+    );
+  }
+
+  factory Log.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return Log(
+      id: serializer.fromJson<int>(json['id']),
+      logLevel: serializer.fromJson<int>(json['log_level']),
+      loggerName: serializer.fromJson<String>(json['logger_name']),
+      message: serializer.fromJson<String>(json['message']),
+      createdAt: serializer.fromJson<DateTime>(json['created_at']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<int>(id),
+      'log_level': serializer.toJson<int>(logLevel),
+      'logger_name': serializer.toJson<String>(loggerName),
+      'message': serializer.toJson<String>(message),
+      'created_at': serializer.toJson<DateTime>(createdAt),
+    };
+  }
+
+  Log copyWith({
+    int? id,
+    int? logLevel,
+    String? loggerName,
+    String? message,
+    DateTime? createdAt,
+  }) => Log(
+    id: id ?? this.id,
+    logLevel: logLevel ?? this.logLevel,
+    loggerName: loggerName ?? this.loggerName,
+    message: message ?? this.message,
+    createdAt: createdAt ?? this.createdAt,
+  );
+  Log copyWithCompanion(LogsCompanion data) {
+    return Log(
+      id: data.id.present ? data.id.value : this.id,
+      logLevel: data.logLevel.present ? data.logLevel.value : this.logLevel,
+      loggerName: data.loggerName.present
+          ? data.loggerName.value
+          : this.loggerName,
+      message: data.message.present ? data.message.value : this.message,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('Log(')
+          ..write('id: $id, ')
+          ..write('logLevel: $logLevel, ')
+          ..write('loggerName: $loggerName, ')
+          ..write('message: $message, ')
+          ..write('createdAt: $createdAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(id, logLevel, loggerName, message, createdAt);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is Log &&
+          other.id == this.id &&
+          other.logLevel == this.logLevel &&
+          other.loggerName == this.loggerName &&
+          other.message == this.message &&
+          other.createdAt == this.createdAt);
+}
+
+class LogsCompanion extends UpdateCompanion<Log> {
+  final Value<int> id;
+  final Value<int> logLevel;
+  final Value<String> loggerName;
+  final Value<String> message;
+  final Value<DateTime> createdAt;
+  const LogsCompanion({
+    this.id = const Value.absent(),
+    this.logLevel = const Value.absent(),
+    this.loggerName = const Value.absent(),
+    this.message = const Value.absent(),
+    this.createdAt = const Value.absent(),
+  });
+  LogsCompanion.insert({
+    this.id = const Value.absent(),
+    required int logLevel,
+    required String loggerName,
+    required String message,
+    this.createdAt = const Value.absent(),
+  }) : logLevel = Value(logLevel),
+       loggerName = Value(loggerName),
+       message = Value(message);
+  static Insertable<Log> custom({
+    Expression<int>? id,
+    Expression<int>? logLevel,
+    Expression<String>? loggerName,
+    Expression<String>? message,
+    Expression<DateTime>? createdAt,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (logLevel != null) 'log_level': logLevel,
+      if (loggerName != null) 'logger_name': loggerName,
+      if (message != null) 'message': message,
+      if (createdAt != null) 'created_at': createdAt,
+    });
+  }
+
+  LogsCompanion copyWith({
+    Value<int>? id,
+    Value<int>? logLevel,
+    Value<String>? loggerName,
+    Value<String>? message,
+    Value<DateTime>? createdAt,
+  }) {
+    return LogsCompanion(
+      id: id ?? this.id,
+      logLevel: logLevel ?? this.logLevel,
+      loggerName: loggerName ?? this.loggerName,
+      message: message ?? this.message,
+      createdAt: createdAt ?? this.createdAt,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<int>(id.value);
+    }
+    if (logLevel.present) {
+      map['log_level'] = Variable<int>(logLevel.value);
+    }
+    if (loggerName.present) {
+      map['logger_name'] = Variable<String>(loggerName.value);
+    }
+    if (message.present) {
+      map['message'] = Variable<String>(message.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('LogsCompanion(')
+          ..write('id: $id, ')
+          ..write('logLevel: $logLevel, ')
+          ..write('loggerName: $loggerName, ')
+          ..write('message: $message, ')
+          ..write('createdAt: $createdAt')
+          ..write(')'))
+        .toString();
+  }
+}
+
 class IdentityCredentials extends Table
     with TableInfo<IdentityCredentials, IdentityCredential> {
   @override
@@ -4346,6 +4697,7 @@ abstract class _$CliqDatabase extends GeneratedDatabase {
   late final Keys keys = Keys(this);
   late final Credentials credentials = Credentials(this);
   late final KnownHosts knownHosts = KnownHosts(this);
+  late final Logs logs = Logs(this);
   late final IdentityCredentials identityCredentials = IdentityCredentials(
     this,
   );
@@ -4355,7 +4707,7 @@ abstract class _$CliqDatabase extends GeneratedDatabase {
     return customUpdate(
       'DELETE FROM connections WHERE vault_id = ?1',
       variables: [Variable<String>(vaultId)],
-      updates: {connections},
+      updates: {this.connections},
       updateKind: UpdateKind.delete,
     );
   }
@@ -4364,7 +4716,7 @@ abstract class _$CliqDatabase extends GeneratedDatabase {
     return customUpdate(
       'DELETE FROM identities WHERE vault_id = ?1',
       variables: [Variable<String>(vaultId)],
-      updates: {identities},
+      updates: {this.identities},
       updateKind: UpdateKind.delete,
     );
   }
@@ -4373,7 +4725,7 @@ abstract class _$CliqDatabase extends GeneratedDatabase {
     return customUpdate(
       'DELETE FROM credentials WHERE vault_id = ?1',
       variables: [Variable<String>(vaultId)],
-      updates: {credentials},
+      updates: {this.credentials},
       updateKind: UpdateKind.delete,
     );
   }
@@ -4382,7 +4734,7 @@ abstract class _$CliqDatabase extends GeneratedDatabase {
     return customUpdate(
       'DELETE FROM keys WHERE vault_id = ?1',
       variables: [Variable<String>(vaultId)],
-      updates: {keys},
+      updates: {this.keys},
       updateKind: UpdateKind.delete,
     );
   }
@@ -4391,7 +4743,7 @@ abstract class _$CliqDatabase extends GeneratedDatabase {
     return customUpdate(
       'DELETE FROM known_hosts WHERE vault_id = ?1',
       variables: [Variable<String>(vaultId)],
-      updates: {knownHosts},
+      updates: {this.knownHosts},
       updateKind: UpdateKind.delete,
     );
   }
@@ -4412,7 +4764,7 @@ abstract class _$CliqDatabase extends GeneratedDatabase {
         Variable<Uint8List>(hostKey),
         Variable<DateTime>(createdAt),
       ],
-      updates: {knownHosts},
+      updates: {this.knownHosts},
     );
   }
 
@@ -4422,11 +4774,14 @@ abstract class _$CliqDatabase extends GeneratedDatabase {
     return customSelect(
       'SELECT"k"."id" AS "nested_0.id", "k"."vault_id" AS "nested_0.vault_id", "k"."host" AS "nested_0.host", "k"."hostKey" AS "nested_0.hostKey", "k"."created_at" AS "nested_0.created_at","v"."id" AS "nested_1.id", "v"."owner" AS "nested_1.owner" FROM known_hosts AS k INNER JOIN vaults AS v ON k.vault_id = v.id WHERE ?1 = \'\' OR k.vault_id = ?1',
       variables: [Variable<String>(vaultId)],
-      readsFrom: {knownHosts, vaults},
+      readsFrom: {this.knownHosts, this.vaults},
     ).asyncMap(
       (QueryRow row) async => FindAllKnownHostsFullResult(
-        knownHost: await knownHosts.mapFromRow(row, tablePrefix: 'nested_0'),
-        vault: await vaults.mapFromRow(row, tablePrefix: 'nested_1'),
+        knownHost: await this.knownHosts.mapFromRow(
+          row,
+          tablePrefix: 'nested_0',
+        ),
+        vault: await this.vaults.mapFromRow(row, tablePrefix: 'nested_1'),
       ),
     );
   }
@@ -4435,8 +4790,8 @@ abstract class _$CliqDatabase extends GeneratedDatabase {
     return customSelect(
       'SELECT * FROM known_hosts WHERE host = ?1',
       variables: [Variable<String>(var1)],
-      readsFrom: {knownHosts},
-    ).asyncMap(knownHosts.mapFromRow);
+      readsFrom: {this.knownHosts},
+    ).asyncMap(this.knownHosts.mapFromRow);
   }
 
   Future<int> createOrUpdateCustomColorScheme(
@@ -4523,7 +4878,7 @@ abstract class _$CliqDatabase extends GeneratedDatabase {
           ),
         ),
       ],
-      updates: {customTerminalThemes},
+      updates: {this.customTerminalThemes},
     );
   }
 
@@ -4536,8 +4891,8 @@ abstract class _$CliqDatabase extends GeneratedDatabase {
     return customSelect(
       'SELECT * FROM custom_terminal_themes WHERE id IN ($expandedvar1)',
       variables: [for (var $ in var1) Variable<String>($)],
-      readsFrom: {customTerminalThemes},
-    ).asyncMap(customTerminalThemes.mapFromRow);
+      readsFrom: {this.customTerminalThemes},
+    ).asyncMap(this.customTerminalThemes.mapFromRow);
   }
 
   Selectable<String> findMatchingCustomColorSchemeId(
@@ -4622,7 +4977,7 @@ abstract class _$CliqDatabase extends GeneratedDatabase {
           ),
         ),
       ],
-      readsFrom: {customTerminalThemes},
+      readsFrom: {this.customTerminalThemes},
     ).map((QueryRow row) => row.read<String>('id'));
   }
 
@@ -4644,7 +4999,7 @@ abstract class _$CliqDatabase extends GeneratedDatabase {
         Variable<String>(publicKey),
         Variable<String>(passphrase),
       ],
-      updates: {keys},
+      updates: {this.keys},
     );
   }
 
@@ -4658,7 +5013,7 @@ abstract class _$CliqDatabase extends GeneratedDatabase {
         Variable<String>(vaultId),
         for (var $ in var2) Variable<String>($),
       ],
-      updates: {keys},
+      updates: {this.keys},
       updateKind: UpdateKind.update,
     );
   }
@@ -4667,7 +5022,7 @@ abstract class _$CliqDatabase extends GeneratedDatabase {
     return customSelect(
       'SELECT id FROM keys',
       variables: [],
-      readsFrom: {keys},
+      readsFrom: {this.keys},
     ).map((QueryRow row) => row.read<String>('id'));
   }
 
@@ -4678,11 +5033,11 @@ abstract class _$CliqDatabase extends GeneratedDatabase {
     return customSelect(
       'SELECT"k"."id" AS "nested_0.id", "k"."vault_id" AS "nested_0.vault_id", "k"."label" AS "nested_0.label", "k"."private_key" AS "nested_0.private_key", "k"."public_key" AS "nested_0.public_key", "k"."passphrase" AS "nested_0.passphrase","v"."id" AS "nested_1.id", "v"."owner" AS "nested_1.owner" FROM keys AS k INNER JOIN vaults AS v ON k.vault_id = v.id WHERE k.id IN ($expandedvar1)',
       variables: [for (var $ in var1) Variable<String>($)],
-      readsFrom: {keys, vaults},
+      readsFrom: {this.keys, this.vaults},
     ).asyncMap(
       (QueryRow row) async => FindAllKeyFullByIdsResult(
-        keyEntity: await keys.mapFromRow(row, tablePrefix: 'nested_0'),
-        vault: await vaults.mapFromRow(row, tablePrefix: 'nested_1'),
+        keyEntity: await this.keys.mapFromRow(row, tablePrefix: 'nested_0'),
+        vault: await this.vaults.mapFromRow(row, tablePrefix: 'nested_1'),
       ),
     );
   }
@@ -4701,7 +5056,7 @@ abstract class _$CliqDatabase extends GeneratedDatabase {
         Variable<String>(label),
         Variable<String>(username),
       ],
-      updates: {identities},
+      updates: {this.identities},
     );
   }
 
@@ -4715,7 +5070,7 @@ abstract class _$CliqDatabase extends GeneratedDatabase {
         Variable<String>(vaultId),
         for (var $ in var2) Variable<String>($),
       ],
-      updates: {identities},
+      updates: {this.identities},
       updateKind: UpdateKind.update,
     );
   }
@@ -4727,7 +5082,7 @@ abstract class _$CliqDatabase extends GeneratedDatabase {
     return customSelect(
       'SELECT credential_id FROM identity_credentials WHERE identity_id IN ($expandedvar1)',
       variables: [for (var $ in var1) Variable<String>($)],
-      readsFrom: {identityCredentials},
+      readsFrom: {this.identityCredentials},
     ).map((QueryRow row) => row.read<String>('credential_id'));
   }
 
@@ -4738,7 +5093,7 @@ abstract class _$CliqDatabase extends GeneratedDatabase {
     return customSelect(
       'SELECT identity_id FROM identity_credentials WHERE credential_id IN ($expandedvar1)',
       variables: [for (var $ in var1) Variable<String>($)],
-      readsFrom: {identityCredentials},
+      readsFrom: {this.identityCredentials},
     ).map((QueryRow row) => row.read<String>('identity_id'));
   }
 
@@ -4746,15 +5101,27 @@ abstract class _$CliqDatabase extends GeneratedDatabase {
     return customSelect(
       'SELECT"i"."id" AS "nested_0.id", "i"."vault_id" AS "nested_0.vault_id", "i"."label" AS "nested_0.label", "i"."username" AS "nested_0.username","v"."id" AS "nested_1.id", "v"."owner" AS "nested_1.owner", i.id AS "\$n_0" FROM identities AS i INNER JOIN vaults AS v ON i.vault_id = v.id WHERE ?1 = \'\' OR i.vault_id = ?1',
       variables: [Variable<String>(vaultId)],
-      readsFrom: {credentials, identityCredentials, identities, vaults},
+      readsFrom: {
+        this.credentials,
+        this.identityCredentials,
+        this.identities,
+        this.vaults,
+      },
     ).asyncMap(
       (QueryRow row) async => FindAllIdentityFullResult(
-        identity: await identities.mapFromRow(row, tablePrefix: 'nested_0'),
-        vault: await vaults.mapFromRow(row, tablePrefix: 'nested_1'),
+        identity: await this.identities.mapFromRow(
+          row,
+          tablePrefix: 'nested_0',
+        ),
+        vault: await this.vaults.mapFromRow(row, tablePrefix: 'nested_1'),
         identityCredentials: await customSelect(
           'SELECT credentials.id FROM identity_credentials JOIN credentials ON credentials.id = identity_credentials.credential_id WHERE identity_credentials.identity_id = ?1 ORDER BY credentials.id',
           variables: [Variable<String>(row.read('\$n_0'))],
-          readsFrom: {credentials, identityCredentials, identities},
+          readsFrom: {
+            this.credentials,
+            this.identityCredentials,
+            this.identities,
+          },
         ).map((QueryRow row) => row.read<String>('id')).get(),
       ),
     );
@@ -4776,7 +5143,7 @@ abstract class _$CliqDatabase extends GeneratedDatabase {
         Variable<String>(keyId),
         Variable<String>(password),
       ],
-      updates: {credentials},
+      updates: {this.credentials},
     );
   }
 
@@ -4790,7 +5157,7 @@ abstract class _$CliqDatabase extends GeneratedDatabase {
         Variable<String>(vaultId),
         for (var $ in var2) Variable<String>($),
       ],
-      updates: {credentials},
+      updates: {this.credentials},
       updateKind: UpdateKind.update,
     );
   }
@@ -4802,7 +5169,7 @@ abstract class _$CliqDatabase extends GeneratedDatabase {
     return customSelect(
       'SELECT key_id FROM credentials WHERE id IN ($expandedvar1) AND key_id IS NOT NULL',
       variables: [for (var $ in var1) Variable<String>($)],
-      readsFrom: {credentials},
+      readsFrom: {this.credentials},
     ).map((QueryRow row) => row.readNullable<String>('key_id'));
   }
 
@@ -4813,7 +5180,7 @@ abstract class _$CliqDatabase extends GeneratedDatabase {
     return customSelect(
       'SELECT id FROM credentials WHERE key_id IN ($expandedvar1)',
       variables: [for (var $ in var1) Variable<String>($)],
-      readsFrom: {credentials},
+      readsFrom: {this.credentials},
     ).map((QueryRow row) => row.read<String>('id'));
   }
 
@@ -4821,7 +5188,7 @@ abstract class _$CliqDatabase extends GeneratedDatabase {
     return customSelect(
       'SELECT id FROM credentials',
       variables: [],
-      readsFrom: {credentials},
+      readsFrom: {this.credentials},
     ).map((QueryRow row) => row.read<String>('id'));
   }
 
@@ -4834,12 +5201,15 @@ abstract class _$CliqDatabase extends GeneratedDatabase {
     return customSelect(
       'SELECT"c"."id" AS "nested_0.id", "c"."vault_id" AS "nested_0.vault_id", "c"."type" AS "nested_0.type", "c"."key_id" AS "nested_0.key_id", "c"."password" AS "nested_0.password","v"."id" AS "nested_1.id", "v"."owner" AS "nested_1.owner","k"."id" AS "nested_2.id", "k"."vault_id" AS "nested_2.vault_id", "k"."label" AS "nested_2.label", "k"."private_key" AS "nested_2.private_key", "k"."public_key" AS "nested_2.public_key", "k"."passphrase" AS "nested_2.passphrase" FROM credentials AS c INNER JOIN vaults AS v ON c.vault_id = v.id LEFT JOIN keys AS k ON c.key_id = k.id WHERE c.id IN ($expandedvar1)',
       variables: [for (var $ in var1) Variable<String>($)],
-      readsFrom: {credentials, vaults, keys},
+      readsFrom: {this.credentials, this.vaults, this.keys},
     ).asyncMap(
       (QueryRow row) async => FindCredentialFullByIdsResult(
-        credential: await credentials.mapFromRow(row, tablePrefix: 'nested_0'),
-        vault: await vaults.mapFromRow(row, tablePrefix: 'nested_1'),
-        credentialKey: await keys.mapFromRowOrNull(
+        credential: await this.credentials.mapFromRow(
+          row,
+          tablePrefix: 'nested_0',
+        ),
+        vault: await this.vaults.mapFromRow(row, tablePrefix: 'nested_1'),
+        credentialKey: await this.keys.mapFromRowOrNull(
           row,
           tablePrefix: 'nested_2',
         ),
@@ -4887,7 +5257,7 @@ abstract class _$CliqDatabase extends GeneratedDatabase {
         Variable<String>(terminalThemeOverrideId),
         Variable<bool>(usesDefaultThemeOverride),
       ],
-      updates: {connections},
+      updates: {this.connections},
     );
   }
 
@@ -4901,7 +5271,7 @@ abstract class _$CliqDatabase extends GeneratedDatabase {
         Variable<String>(vaultId),
         for (var $ in var2) Variable<String>($),
       ],
-      updates: {connections},
+      updates: {this.connections},
       updateKind: UpdateKind.update,
     );
   }
@@ -4913,7 +5283,7 @@ abstract class _$CliqDatabase extends GeneratedDatabase {
     return customSelect(
       'SELECT id FROM connections WHERE identity_id IN ($expandedvar1)',
       variables: [for (var $ in var1) Variable<String>($)],
-      readsFrom: {connections},
+      readsFrom: {this.connections},
     ).map((QueryRow row) => row.read<String>('id'));
   }
 
@@ -4924,7 +5294,7 @@ abstract class _$CliqDatabase extends GeneratedDatabase {
     return customSelect(
       'SELECT connection_id FROM connection_credentials WHERE credential_id IN ($expandedvar1)',
       variables: [for (var $ in var1) Variable<String>($)],
-      readsFrom: {connectionCredentials},
+      readsFrom: {this.connectionCredentials},
     ).map((QueryRow row) => row.read<String>('connection_id'));
   }
 
@@ -4935,7 +5305,7 @@ abstract class _$CliqDatabase extends GeneratedDatabase {
     return customSelect(
       'SELECT credential_id FROM connection_credentials WHERE connection_id IN ($expandedvar1)',
       variables: [for (var $ in var1) Variable<String>($)],
-      readsFrom: {connectionCredentials},
+      readsFrom: {this.connectionCredentials},
     ).map((QueryRow row) => row.read<String>('credential_id'));
   }
 
@@ -4943,7 +5313,7 @@ abstract class _$CliqDatabase extends GeneratedDatabase {
     return customSelect(
       'SELECT identity_id FROM connections WHERE id = ?1 AND identity_id IS NOT NULL',
       variables: [Variable<String>(id)],
-      readsFrom: {connections},
+      readsFrom: {this.connections},
     ).map((QueryRow row) => row.readNullable<String>('identity_id'));
   }
 
@@ -4954,39 +5324,50 @@ abstract class _$CliqDatabase extends GeneratedDatabase {
       'SELECT"c"."id" AS "nested_0.id", "c"."vault_id" AS "nested_0.vault_id", "c"."label" AS "nested_0.label", "c"."address" AS "nested_0.address", "c"."port" AS "nested_0.port", "c"."identity_id" AS "nested_0.identity_id", "c"."username" AS "nested_0.username", "c"."group_name" AS "nested_0.group_name", "c"."icon" AS "nested_0.icon", "c"."icon_color" AS "nested_0.icon_color", "c"."icon_background_color" AS "nested_0.icon_background_color", "c"."terminal_typography_override" AS "nested_0.terminal_typography_override", "c"."terminal_theme_override_id" AS "nested_0.terminal_theme_override_id", "c"."uses_default_theme_override" AS "nested_0.uses_default_theme_override","v"."id" AS "nested_1.id", "v"."owner" AS "nested_1.owner","i"."id" AS "nested_2.id", "i"."vault_id" AS "nested_2.vault_id", "i"."label" AS "nested_2.label", "i"."username" AS "nested_2.username","iv"."id" AS "nested_3.id", "iv"."owner" AS "nested_3.owner","t"."id" AS "nested_4.id", "t"."name" AS "nested_4.name", "t"."black" AS "nested_4.black", "t"."red" AS "nested_4.red", "t"."green" AS "nested_4.green", "t"."yellow" AS "nested_4.yellow", "t"."blue" AS "nested_4.blue", "t"."purple" AS "nested_4.purple", "t"."cyan" AS "nested_4.cyan", "t"."white" AS "nested_4.white", "t"."bright_black" AS "nested_4.bright_black", "t"."bright_red" AS "nested_4.bright_red", "t"."bright_green" AS "nested_4.bright_green", "t"."bright_yellow" AS "nested_4.bright_yellow", "t"."bright_blue" AS "nested_4.bright_blue", "t"."bright_purple" AS "nested_4.bright_purple", "t"."bright_cyan" AS "nested_4.bright_cyan", "t"."bright_white" AS "nested_4.bright_white", "t"."background" AS "nested_4.background", "t"."foreground" AS "nested_4.foreground", "t"."cursor" AS "nested_4.cursor", "t"."cursor_text" AS "nested_4.cursor_text", "t"."selection_background" AS "nested_4.selection_background", "t"."selection_foreground" AS "nested_4.selection_foreground", c.id AS "\$n_0", i.id AS "\$n_1" FROM connections AS c INNER JOIN vaults AS v ON c.vault_id = v.id LEFT JOIN identities AS i ON c.identity_id = i.id LEFT JOIN vaults AS iv ON i.vault_id = iv.id LEFT JOIN custom_terminal_themes AS t ON c.terminal_theme_override_id = t.id WHERE ?1 = \'\' OR c.vault_id = ?1',
       variables: [Variable<String>(vaultId)],
       readsFrom: {
-        credentials,
-        connectionCredentials,
-        connections,
-        identityCredentials,
-        identities,
-        vaults,
-        customTerminalThemes,
+        this.credentials,
+        this.connectionCredentials,
+        this.connections,
+        this.identityCredentials,
+        this.identities,
+        this.vaults,
+        this.customTerminalThemes,
       },
     ).asyncMap(
       (QueryRow row) async => FindAllConnectionFullResult(
-        connection: await connections.mapFromRow(row, tablePrefix: 'nested_0'),
-        vault: await vaults.mapFromRow(row, tablePrefix: 'nested_1'),
-        identity: await identities.mapFromRowOrNull(
+        connection: await this.connections.mapFromRow(
+          row,
+          tablePrefix: 'nested_0',
+        ),
+        vault: await this.vaults.mapFromRow(row, tablePrefix: 'nested_1'),
+        identity: await this.identities.mapFromRowOrNull(
           row,
           tablePrefix: 'nested_2',
         ),
-        identityVault: await vaults.mapFromRowOrNull(
+        identityVault: await this.vaults.mapFromRowOrNull(
           row,
           tablePrefix: 'nested_3',
         ),
-        terminalThemeOverride: await customTerminalThemes.mapFromRowOrNull(
+        terminalThemeOverride: await this.customTerminalThemes.mapFromRowOrNull(
           row,
           tablePrefix: 'nested_4',
         ),
         connectionCredentials: await customSelect(
           'SELECT credentials.id FROM connection_credentials JOIN credentials ON credentials.id = connection_credentials.credential_id WHERE connection_credentials.connection_id = ?1 ORDER BY credentials.id',
           variables: [Variable<String>(row.read('\$n_0'))],
-          readsFrom: {credentials, connectionCredentials, connections},
+          readsFrom: {
+            this.credentials,
+            this.connectionCredentials,
+            this.connections,
+          },
         ).map((QueryRow row) => row.read<String>('id')).get(),
         identityCredentials: await customSelect(
           'SELECT credentials.id FROM identity_credentials JOIN credentials ON credentials.id = identity_credentials.credential_id WHERE identity_credentials.identity_id = ?1 ORDER BY credentials.id',
           variables: [Variable<String>(row.read('\$n_1'))],
-          readsFrom: {credentials, identityCredentials, identities},
+          readsFrom: {
+            this.credentials,
+            this.identityCredentials,
+            this.identities,
+          },
         ).map((QueryRow row) => row.read<String>('id')).get(),
       ),
     );
@@ -4996,7 +5377,7 @@ abstract class _$CliqDatabase extends GeneratedDatabase {
     return customSelect(
       'SELECT DISTINCT group_name FROM connections WHERE group_name IS NOT NULL AND group_name != \'\' ORDER BY group_name ASC',
       variables: [],
-      readsFrom: {connections},
+      readsFrom: {this.connections},
     ).map((QueryRow row) => row.readNullable<String>('group_name'));
   }
 
@@ -5012,6 +5393,7 @@ abstract class _$CliqDatabase extends GeneratedDatabase {
     keys,
     credentials,
     knownHosts,
+    logs,
     identityCredentials,
     connectionCredentials,
   ];
@@ -5559,7 +5941,12 @@ class $VaultsTableManager
             Value<int> rowid = const Value.absent(),
           }) => VaultsCompanion.insert(id: id, owner: owner, rowid: rowid),
           withReferenceMapper: (p0) => p0
-              .map((e) => (e.readTable(table), $VaultsReferences(db, table, e)))
+              .map(
+                (e) => (
+                  e.readTable<Vaults, Vault>(table),
+                  $VaultsReferences(db, table, e),
+                ),
+              )
               .toList(),
           prefetchHooksCallback:
               ({
@@ -6045,8 +6432,10 @@ class $IdentitiesTableManager
               ),
           withReferenceMapper: (p0) => p0
               .map(
-                (e) =>
-                    (e.readTable(table), $IdentitiesReferences(db, table, e)),
+                (e) => (
+                  e.readTable<Identities, Identity>(table),
+                  $IdentitiesReferences(db, table, e),
+                ),
               )
               .toList(),
           prefetchHooksCallback:
@@ -6838,7 +7227,7 @@ class $CustomTerminalThemesTableManager
           withReferenceMapper: (p0) => p0
               .map(
                 (e) => (
-                  e.readTable(table),
+                  e.readTable<CustomTerminalThemes, CustomTerminalTheme>(table),
                   $CustomTerminalThemesReferences(db, table, e),
                 ),
               )
@@ -7558,8 +7947,10 @@ class $ConnectionsTableManager
               ),
           withReferenceMapper: (p0) => p0
               .map(
-                (e) =>
-                    (e.readTable(table), $ConnectionsReferences(db, table, e)),
+                (e) => (
+                  e.readTable<Connections, Connection>(table),
+                  $ConnectionsReferences(db, table, e),
+                ),
               )
               .toList(),
           prefetchHooksCallback:
@@ -8012,7 +8403,12 @@ class $KeysTableManager
                 rowid: rowid,
               ),
           withReferenceMapper: (p0) => p0
-              .map((e) => (e.readTable(table), $KeysReferences(db, table, e)))
+              .map(
+                (e) => (
+                  e.readTable<Keys, Key>(table),
+                  $KeysReferences(db, table, e),
+                ),
+              )
               .toList(),
           prefetchHooksCallback: ({vaultId = false, credentialsRefs = false}) {
             return PrefetchHooks(
@@ -8551,8 +8947,10 @@ class $CredentialsTableManager
               ),
           withReferenceMapper: (p0) => p0
               .map(
-                (e) =>
-                    (e.readTable(table), $CredentialsReferences(db, table, e)),
+                (e) => (
+                  e.readTable<Credentials, Credential>(table),
+                  $CredentialsReferences(db, table, e),
+                ),
               )
               .toList(),
           prefetchHooksCallback:
@@ -8929,8 +9327,10 @@ class $KnownHostsTableManager
               ),
           withReferenceMapper: (p0) => p0
               .map(
-                (e) =>
-                    (e.readTable(table), $KnownHostsReferences(db, table, e)),
+                (e) => (
+                  e.readTable<KnownHosts, KnownHost>(table),
+                  $KnownHostsReferences(db, table, e),
+                ),
               )
               .toList(),
           prefetchHooksCallback: ({vaultId = false}) {
@@ -8990,6 +9390,196 @@ typedef $KnownHostsProcessedTableManager =
       (KnownHost, $KnownHostsReferences),
       KnownHost,
       PrefetchHooks Function({bool vaultId})
+    >;
+typedef $LogsCreateCompanionBuilder = LogsCompanion Function({
+  Value<int> id,
+  required int logLevel,
+  required String loggerName,
+  required String message,
+  Value<DateTime> createdAt,
+});
+typedef $LogsUpdateCompanionBuilder = LogsCompanion Function({
+  Value<int> id,
+  Value<int> logLevel,
+  Value<String> loggerName,
+  Value<String> message,
+  Value<DateTime> createdAt,
+});
+
+class $LogsFilterComposer extends Composer<_$CliqDatabase, Logs> {
+  $LogsFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get logLevel => $composableBuilder(
+    column: $table.logLevel,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get loggerName => $composableBuilder(
+    column: $table.loggerName,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get message => $composableBuilder(
+    column: $table.message,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $LogsOrderingComposer extends Composer<_$CliqDatabase, Logs> {
+  $LogsOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get logLevel => $composableBuilder(
+    column: $table.logLevel,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get loggerName => $composableBuilder(
+    column: $table.loggerName,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get message => $composableBuilder(
+    column: $table.message,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $LogsAnnotationComposer extends Composer<_$CliqDatabase, Logs> {
+  $LogsAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<int> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<int> get logLevel =>
+      $composableBuilder(column: $table.logLevel, builder: (column) => column);
+
+  GeneratedColumn<String> get loggerName => $composableBuilder(
+    column: $table.loggerName,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get message =>
+      $composableBuilder(column: $table.message, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+}
+
+class $LogsTableManager
+    extends
+        RootTableManager<
+          _$CliqDatabase,
+          Logs,
+          Log,
+          $LogsFilterComposer,
+          $LogsOrderingComposer,
+          $LogsAnnotationComposer,
+          $LogsCreateCompanionBuilder,
+          $LogsUpdateCompanionBuilder,
+          (Log, BaseReferences<_$CliqDatabase, Logs, Log>),
+          Log,
+          PrefetchHooks Function()
+        > {
+  $LogsTableManager(_$CliqDatabase db, Logs table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $LogsFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $LogsOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $LogsAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                Value<int> logLevel = const Value.absent(),
+                Value<String> loggerName = const Value.absent(),
+                Value<String> message = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+              }) => LogsCompanion(
+                id: id,
+                logLevel: logLevel,
+                loggerName: loggerName,
+                message: message,
+                createdAt: createdAt,
+              ),
+          createCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                required int logLevel,
+                required String loggerName,
+                required String message,
+                Value<DateTime> createdAt = const Value.absent(),
+              }) => LogsCompanion.insert(
+                id: id,
+                logLevel: logLevel,
+                loggerName: loggerName,
+                message: message,
+                createdAt: createdAt,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable<Logs, Log>(table),
+                  BaseReferences<_$CliqDatabase, Logs, Log>(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $LogsProcessedTableManager =
+    ProcessedTableManager<
+      _$CliqDatabase,
+      Logs,
+      Log,
+      $LogsFilterComposer,
+      $LogsOrderingComposer,
+      $LogsAnnotationComposer,
+      $LogsCreateCompanionBuilder,
+      $LogsUpdateCompanionBuilder,
+      (Log, BaseReferences<_$CliqDatabase, Logs, Log>),
+      Log,
+      PrefetchHooks Function()
     >;
 typedef $IdentityCredentialsCreateCompanionBuilder =
     IdentityCredentialsCompanion Function({
@@ -9269,7 +9859,7 @@ class $IdentityCredentialsTableManager
           withReferenceMapper: (p0) => p0
               .map(
                 (e) => (
-                  e.readTable(table),
+                  e.readTable<IdentityCredentials, IdentityCredential>(table),
                   $IdentityCredentialsReferences(db, table, e),
                 ),
               )
@@ -9622,7 +10212,9 @@ class $ConnectionCredentialsTableManager
           withReferenceMapper: (p0) => p0
               .map(
                 (e) => (
-                  e.readTable(table),
+                  e.readTable<ConnectionCredentials, ConnectionCredential>(
+                    table,
+                  ),
                   $ConnectionCredentialsReferences(db, table, e),
                 ),
               )
@@ -9712,6 +10304,7 @@ class $CliqDatabaseManager {
       $CredentialsTableManager(_db, _db.credentials);
   $KnownHostsTableManager get knownHosts =>
       $KnownHostsTableManager(_db, _db.knownHosts);
+  $LogsTableManager get logs => $LogsTableManager(_db, _db.logs);
   $IdentityCredentialsTableManager get identityCredentials =>
       $IdentityCredentialsTableManager(_db, _db.identityCredentials);
   $ConnectionCredentialsTableManager get connectionCredentials =>

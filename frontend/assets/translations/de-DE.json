@@ -362,10 +362,6 @@
   "validator_error_null": "Der Wert darf nicht null sein",
   "vault_local": "Lokaler Tresor",
   "vault_user": "{}'s Tresor",
-  "view": {
-    "grid": "Rasteransicht",
-    "list": "Listendarstellung"
-  },
   "views": {
     "grid": "Rasteransicht",
     "list": "Listenansicht"

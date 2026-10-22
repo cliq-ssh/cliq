@@ -2,21 +2,10 @@ import 'package:cliq_api/cliq_api.dart';
 
 import 'cliq_entity_impl.dart';
 
-class VaultImpl extends CliqEntityImpl implements Vault {
-  @override
-  final String configuration;
-  @override
-  final String version;
-  @override
-  final DateTime createdAt;
-  @override
-  final DateTime updatedAt;
-
-  const VaultImpl(
-    super.api, {
-    required this.configuration,
-    required this.version,
-    required this.createdAt,
-    required this.updatedAt,
-  });
-}
+class const VaultImpl(
+  super.api, {
+  @override required final String configuration,
+  @override required final String version,
+  @override required final DateTime createdAt,
+  @override required final DateTime updatedAt,
+}) extends CliqEntityImpl implements Vault;

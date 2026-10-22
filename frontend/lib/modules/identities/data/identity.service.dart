@@ -3,7 +3,7 @@ import 'package:cliq/modules/identities/data/identities.repository.dart';
 import 'package:cliq/modules/identities/data/identity_credentials.repository.dart';
 import 'package:cliq/modules/identities/model/identity_full.model.dart';
 import 'package:cliq/shared/data/database.dart';
-import 'package:cliq/shared/extensions/value.extension.dart';
+import 'package:cliq/shared/extension/value.extension.dart';
 
 final class IdentityService {
   final IdentitiesRepository _identityRepository;
