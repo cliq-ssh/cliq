@@ -14,3 +14,5 @@ style:
   MaxLineLength:
     # This should be kept in sync with .editorconfig
     maxLineLength: 120
+  ForbiddenComment:
+    allowedPatterns: 'TODO'

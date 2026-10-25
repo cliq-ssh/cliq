@@ -15,6 +15,8 @@ import sh.cliq.backend.user.params.StartKeyRotationParams
 import sh.cliq.backend.user.params.VerifyKeyRotationParams
 import sh.cliq.backend.user.service.KeyRotationService
 
+// TODO: rework to update all vaults
+
 @UserController
 @RequestMapping("/api/user/key-rotation")
 class KeyRotationController(
@@ -75,7 +77,6 @@ class KeyRotationController(
             params.dataEncryptionKey,
             params.srpSalt,
             params.srpVerifier,
-            params.vault,
         )
 
         return ResponseEntity.noContent().build()
