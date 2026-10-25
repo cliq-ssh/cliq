@@ -15,7 +15,6 @@ dependencies:
 
   devtools_app_shared: ^0.5.1
   devtools_extensions: ^0.5.1
-  hooks: ^2.2.0
 
 dev_dependencies:
   lints: ^6.0.0

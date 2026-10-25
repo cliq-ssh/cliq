@@ -2,11 +2,11 @@ import 'package:devtools_extensions/devtools_extensions.dart';
 import 'package:flutter/material.dart';
 
 void main() {
-  runApp(const CliqTermDevtoolsExtension());
+  runApp(const SomePkgDevToolsExtension());
 }
 
-class CliqTermDevtoolsExtension extends StatelessWidget {
-  const CliqTermDevtoolsExtension({super.key});
+class SomePkgDevToolsExtension extends StatelessWidget {
+  const SomePkgDevToolsExtension({super.key});
 
   @override
   Widget build(BuildContext context) {
