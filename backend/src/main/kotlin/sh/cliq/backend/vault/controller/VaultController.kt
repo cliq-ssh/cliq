@@ -1,6 +1,7 @@
 package sh.cliq.backend.vault.controller
 
 import io.swagger.v3.oas.annotations.Operation
+import io.swagger.v3.oas.annotations.Parameter
 import io.swagger.v3.oas.annotations.media.ArraySchema
 import io.swagger.v3.oas.annotations.media.Content
 import io.swagger.v3.oas.annotations.media.Schema
@@ -57,6 +58,11 @@ class VaultController(private val vaultFactory: VaultFactory, private val reposi
     @Authenticated
     @PutMapping("/{id}")
     @Operation(summary = "Insert or update vault")
+    @Parameter(
+        name = "id",
+        description = "The ID of the vault to insert or update. Should be a UUID, preferably a UUIDv7.",
+        required = true,
+    )
     @ApiResponses(
         value = [
             ApiResponse(

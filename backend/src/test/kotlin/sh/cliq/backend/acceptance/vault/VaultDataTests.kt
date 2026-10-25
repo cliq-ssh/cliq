@@ -360,6 +360,14 @@ class VaultDataTests(
             ).andExpect(MockMvcResultMatchers.status().isForbidden)
     }
 
+    /**
+     * Test that two different users cannot create a vault with the same ID.
+     * The first user should be able to create the vault successfully, while the second user should receive a forbidden
+     * response when trying to create a vault with the same ID.
+     *
+     * Note: This is extremely unlikely to happen in practice, but we want to make sure that the system behaves correctly
+     * in this edge case.
+     */
     @Test
     fun `test two users tries to create vault with same id`() {
         val authenticatedUser1Data = userCreationHelper.createRandomAuthenticatedUser()
