@@ -1,4 +1,4 @@
-import 'package:flutter/cupertino.dart';
+import 'package:cupertino_ui/cupertino_ui.dart';
 
 class TerminalAccessoryBar extends StatelessWidget {
   /// The list of items to display in the accessory bar.

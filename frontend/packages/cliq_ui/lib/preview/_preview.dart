@@ -1,5 +1,5 @@
 import 'package:cliq_ui/cliq_ui.dart';
-import 'package:flutter/cupertino.dart';
+import 'package:cupertino_ui/cupertino_ui.dart';
 import 'package:flutter/widget_previews.dart';
 import 'package:lucide_flutter/lucide_flutter.dart';
 

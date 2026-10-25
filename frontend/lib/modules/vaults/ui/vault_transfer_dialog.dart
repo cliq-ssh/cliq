@@ -2,11 +2,12 @@ import 'package:cliq/modules/vaults/extension/vault.extension.dart';
 import 'package:cliq/modules/vaults/provider/vault.provider.dart';
 import 'package:cliq/shared/data/database.dart';
 import 'package:cliq/shared/model/entity_type.dart';
+import 'package:cliq/shared/ui/entity_list.dart';
 import 'package:cliq/shared/ui/horizontal_dialog.dart';
 import 'package:cliq/shared/utils/text_utils.dart';
 import 'package:cliq/shared/utils/validators.dart';
+import 'package:cupertino_ui/cupertino_ui.dart';
 import 'package:easy_localization/easy_localization.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:forui/forui.dart';
 import 'package:forui_hooks/forui_hooks.dart';
@@ -48,6 +49,7 @@ class VaultTransferDialog extends HookConsumerWidget {
     final formKey = useMemoized(() => GlobalKey<FormState>());
 
     final isLoading = useState(false);
+    final hasRelations = relations != null && relations!.isNotEmpty;
 
     useEffect(() {
       ref.read(vaultProvider.notifier).findOrCreateVault().then((vault) {
@@ -69,43 +71,18 @@ class VaultTransferDialog extends HookConsumerWidget {
           crossAxisAlignment: .start,
           mainAxisSize: .min,
           children: [
-            if (relations != null && relations!.isNotEmpty)
-              Text.rich(
-                TextSpan(
-                  children: TextUtils.renderText(
-                    context,
-                    'dialog_vault_transfer_dependencies_body'.tr(
-                      args: [entityName],
-                    ),
-                  ),
-                ),
-              )
-            else
-              Text.rich(
-                TextSpan(
-                  children: TextUtils.renderText(
-                    context,
-                    'dialog_vault_transfer_body'.tr(args: [entityName]),
-                  ),
+            Text.rich(
+              TextSpan(
+                children: TextUtils.renderText(
+                  context,
+                  (hasRelations
+                          ? 'dialog_vault_transfer_dependencies_body'
+                          : 'dialog_vault_transfer_body')
+                      .tr(args: [entityName]),
                 ),
               ),
-            if (relations != null && relations!.isNotEmpty) ...[
-              ConstrainedBox(
-                constraints: const .new(maxHeight: 200),
-                child: SingleChildScrollView(
-                  child: FTileGroup(
-                    children: [
-                      for (final entry in relations!.entries)
-                        for (final dependency in entry.value)
-                          .tile(
-                            prefix: Icon(entry.key.icon, size: 16),
-                            title: Text(dependency),
-                          ),
-                    ],
-                  ),
-                ),
-              ),
-            ],
+            ),
+            if (hasRelations) EntityList(entities: relations!),
 
             FSelect<DbId>.rich(
               validator: (v) => Validators.chain(context, [
@@ -155,7 +132,11 @@ class VaultTransferDialog extends HookConsumerWidget {
                       if (!(formKey.currentState?.validate() ?? false)) return;
 
                       isLoading.value = true;
-                      await onTransfer(selectedVaultId);
+                      try {
+                        await onTransfer(selectedVaultId);
+                      } finally {
+                        isLoading.value = false;
+                      }
                       if (!context.mounted) return;
                       Navigator.of(context).pop();
                     },

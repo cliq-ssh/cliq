@@ -5,23 +5,24 @@ import 'package:cliq/modules/settings/page/views/identities_settings.view.dart';
 import 'package:cliq/modules/settings/page/views/keys_settings.view.dart';
 import 'package:cliq/modules/settings/page/views/known_hosts_settings.view.dart';
 import 'package:cliq/modules/settings/page/views/licenses.view.dart';
+import 'package:cliq/modules/settings/page/views/logs_settings.view.dart';
 import 'package:cliq/modules/settings/page/views/shortcuts_settings.view.dart';
 import 'package:cliq/modules/settings/page/views/ssh_sftp_settings.view.dart';
 import 'package:cliq/modules/settings/page/views/sync_settings.view.dart';
 import 'package:cliq/modules/settings/page/views/terminal_theme_settings.view.dart';
 import 'package:cliq/modules/settings/provider/sync.provider.dart';
 import 'package:cliq/modules/settings/ui/version_indicator.dart';
-import 'package:cliq/shared/extensions/router.extension.dart';
+import 'package:cliq/shared/extension/router.extension.dart';
 import 'package:cliq/shared/model/page_path.model.dart';
 import 'package:cliq/shared/provider/store.provider.dart';
 import 'package:cliq/shared/utils/commons.dart';
 import 'package:cliq/shared/utils/platform_utils.dart';
 import 'package:cliq_ui/cliq_ui.dart';
 import 'package:easy_localization/easy_localization.dart';
-import 'package:flutter/material.dart' hide LicensePage;
 import 'package:forui/forui.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lucide_flutter/lucide_flutter.dart';
+import 'package:material_ui/material_ui.dart' hide LicensePage;
 import 'package:simple_icons/simple_icons.dart';
 
 class const SettingsPage({super.key}) extends StatefulHookConsumerWidget {
@@ -37,6 +38,27 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
     final sync = ref.watch(syncProvider);
     final developerMode = useStore(.developerMode);
     final lastUpdated = useStore(.syncLastUpdated);
+
+    buildStatusSubtitle() {
+      if (sync.isError) {
+        return Text('sync_error'.tr());
+      }
+      if (sync.isLikelyLoading) {
+        return Text('sync_loading'.tr());
+      }
+      return Text(
+        'sync_last_updated'.tr(
+          args: [
+            lastUpdated.value == null || lastUpdated.value == 0
+                ? 'n_a'.tr()
+                : DateTime.fromMillisecondsSinceEpoch(
+                    lastUpdated.value!,
+                    isUtc: true,
+                  ).toIso8601String(),
+          ],
+        ),
+      );
+    }
 
     return SingleChildScrollView(
       child: CliqGridContainer(
@@ -57,19 +79,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                             prefix: const Icon(LucideIcons.refreshCcw),
                             suffix: const Icon(LucideIcons.chevronRight),
                             title: Text('sync'.tr()),
-                            subtitle: sync.isConnected
-                                ? const Text('sync_last_updated').tr(
-                                    args: [
-                                      lastUpdated.value == null ||
-                                              lastUpdated.value == 0
-                                          ? 'n_a'.tr()
-                                          : DateTime.fromMillisecondsSinceEpoch(
-                                              lastUpdated.value!,
-                                              isUtc: true,
-                                            ).toIso8601String(),
-                                    ],
-                                  )
-                                : Text('sync_not_connected'.tr()),
+                            subtitle: buildStatusSubtitle(),
                             onPress: () => context.pushPath(
                               SyncSettingsView.pagePath.build(),
                             ),
@@ -142,6 +152,14 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                             title: Text('ssh_sftp'.tr()),
                             onPress: () => context.pushPath(
                               SshSftpSettingsView.pagePath.build(),
+                            ),
+                          ),
+                          FTile(
+                            prefix: const Icon(LucideIcons.fileText),
+                            suffix: const Icon(LucideIcons.chevronRight),
+                            title: Text('logs'.tr()),
+                            onPress: () => context.pushPath(
+                              LogsSettingsView.pagePath.build(),
                             ),
                           ),
                           if (developerMode.value)

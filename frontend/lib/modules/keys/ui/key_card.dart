@@ -5,17 +5,19 @@ import 'package:cliq/shared/data/database.dart';
 import 'package:cliq/shared/ui/title_card.dart';
 import 'package:cliq/shared/utils/commons.dart';
 import 'package:easy_localization/easy_localization.dart';
-import 'package:flutter/material.dart' hide Key;
 import 'package:forui/forui.dart';
 import 'package:forui_hooks/forui_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lucide_flutter/lucide_flutter.dart';
+import 'package:material_ui/material_ui.dart' hide Key;
 
 class const KeyCard({super.key, required final Key keyEntity})
     extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final popoverController = useFPopoverController();
+
+    final hasVaultError = ref.watch(vaultHasErrorProvider(keyEntity.vaultId));
 
     edit() async {
       await popoverController.hide();
@@ -78,13 +80,15 @@ class const KeyCard({super.key, required final Key keyEntity})
                   FItem(
                     prefix: const Icon(LucideIcons.pencil),
                     title: Text('edit'.tr()),
-                    onPress: edit,
+                    enabled: !hasVaultError,
+                    onPress: hasVaultError ? null : edit,
                   ),
                   FItem(
                     variant: .destructive,
                     prefix: const Icon(LucideIcons.trash),
                     title: Text('delete'.tr()),
-                    onPress: delete,
+                    enabled: !hasVaultError,
+                    onPress: hasVaultError ? null : delete,
                   ),
                 ],
               ),

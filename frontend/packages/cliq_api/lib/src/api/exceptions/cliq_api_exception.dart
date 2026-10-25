@@ -1,9 +1,5 @@
-class CliqException implements Exception {
-  final int errorCode;
-  final String? description;
-
-  CliqException(this.errorCode, this.description);
-
+class CliqException(final int errorCode, final String? description)
+    implements Exception {
   @override
   String toString() => '${runtimeType.toString()}: ($errorCode) $description';
 }

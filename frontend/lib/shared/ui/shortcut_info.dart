@@ -1,7 +1,7 @@
 import 'dart:io';
 
 import 'package:cliq_term/cliq_term.dart';
-import 'package:flutter/cupertino.dart';
+import 'package:cupertino_ui/cupertino_ui.dart';
 import 'package:flutter/services.dart';
 import 'package:forui/forui.dart';
 import 'package:lucide_flutter/lucide_flutter.dart';
@@ -119,7 +119,7 @@ class TextWithShortcutInfo extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       mainAxisSize: .min,
-      spacing: 8,
+      spacing: 12,
       children: [
         Text(text),
         ShortcutInfo(shortcut: shortcut),

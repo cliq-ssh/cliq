@@ -11,6 +11,7 @@ import 'package:cliq/modules/identities/data/identity_credentials.repository.dar
 import 'package:cliq/modules/keys/data/key.repository.dart';
 import 'package:cliq/modules/settings/data/custom_terminal_themes.repository.dart';
 import 'package:cliq/modules/settings/data/known_hosts.repository.dart';
+import 'package:cliq/modules/settings/data/logs.repository.dart';
 import 'package:cliq/modules/vaults/data/vaults.repository.dart';
 import 'package:cliq/shared/data/converters/color_converter.dart';
 import 'package:cliq/shared/data/converters/terminal_typography_converter.dart';
@@ -32,6 +33,7 @@ typedef DbId = String;
     '../../modules/keys/data/keys.drift',
     '../../modules/settings/data/custom_terminal_themes.drift',
     '../../modules/settings/data/known_hosts.drift',
+    '../../modules/settings/data/logs.drift',
     '../../modules/vaults/data/vaults.drift',
   },
 )
@@ -46,6 +48,7 @@ final class CliqDatabase extends _$CliqDatabase {
     this,
   );
   late final knownHostsRepository = KnownHostsRepository(this);
+  late final logsRepository = LogsRepository(this);
   late final vaultsRepository = VaultsRepository(this);
 
   late final identityCredentialsRepository = IdentityCredentialsRepository(

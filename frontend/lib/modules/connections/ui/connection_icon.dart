@@ -1,5 +1,5 @@
 import 'package:cliq/shared/data/database.dart';
-import 'package:flutter/cupertino.dart';
+import 'package:cupertino_ui/cupertino_ui.dart';
 
 class ConnectionIcon extends StatelessWidget {
   final IconData icon;

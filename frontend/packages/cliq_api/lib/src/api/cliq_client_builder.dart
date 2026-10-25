@@ -12,11 +12,7 @@ import 'package:jwt_decoder/jwt_decoder.dart';
 import '../impl/cliq_client_impl.dart';
 import '../impl/utils/encryption_helper.dart';
 
-class CliqClientBuilder {
-  final RouteOptions routeOptions;
-
-  CliqClientBuilder({required this.routeOptions});
-
+class CliqClientBuilder({required final RouteOptions routeOptions}) {
   CliqClientImpl buildApiImpl() =>
       CliqClientImpl()..routeOptions = routeOptions;
 

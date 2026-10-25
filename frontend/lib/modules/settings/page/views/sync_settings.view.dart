@@ -13,14 +13,15 @@ import 'package:cliq/shared/model/localized_exception.dart';
 import 'package:cliq/shared/model/page_path.model.dart';
 import 'package:cliq/shared/model/router.model.dart';
 import 'package:cliq/shared/provider/store.provider.dart';
+import 'package:cliq/shared/ui/entity_list.dart';
 import 'package:cliq/shared/utils/commons.dart';
 import 'package:cliq/shared/utils/text_utils.dart';
 import 'package:cliq_api/cliq_api.dart';
 import 'package:cliq_ui/hooks/use_breakpoint.export.dart' show useBreakpoint;
 import 'package:cliq_ui/theme.export.dart' show CliqFontFamily;
+import 'package:cupertino_ui/cupertino_ui.dart' hide Router;
 import 'package:easy_localization/easy_localization.dart';
 import 'package:file_selector/file_selector.dart';
-import 'package:flutter/cupertino.dart' hide Router;
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:forui/forui.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -37,12 +38,12 @@ class const SyncSettingsView({super.key}) extends AbstractSettingsPage {
 
   @override
   Widget buildBody(BuildContext context, WidgetRef ref) {
-    final api = ref.watch(syncProvider).api;
+    final syncState = ref.watch(syncProvider);
 
     final lastUpdated = useStore(.syncLastUpdated);
-
     final userVault = useState<DbId?>(null);
     final entitiesCount = useState<(int, int, int, int, int)?>(null);
+    final isLoading = useState(false);
 
     final syncIconController = useAnimationController(
       duration: const Duration(seconds: 1),
@@ -51,18 +52,21 @@ class const SyncSettingsView({super.key}) extends AbstractSettingsPage {
     final breakpoint = useBreakpoint();
 
     useEffect(() {
-      if (api == null) return;
-      ref.read(vaultProvider.notifier).findOrCreateUserVault(api).then((vault) {
-        userVault.value = vault.id;
+      if (syncState.api == null) return;
+      ref
+          .read(vaultProvider.notifier)
+          .findOrCreateUserVault(syncState.api!)
+          .then((vault) {
+            userVault.value = vault.id;
 
-        ref.read(vaultServiceProvider).countEntitiesInVault(vault.id).then((
-          count,
-        ) {
-          entitiesCount.value = count;
-        });
-      });
+            ref.read(vaultServiceProvider).countEntitiesInVault(vault.id).then((
+              count,
+            ) {
+              entitiesCount.value = count;
+            });
+          });
       return null;
-    }, [api, lastUpdated.value]);
+    }, [syncState, lastUpdated.value]);
 
     buildIconCount(EntityType type, int count) {
       final muted = context.theme.colors.mutedForeground;
@@ -82,7 +86,69 @@ class const SyncSettingsView({super.key}) extends AbstractSettingsPage {
       );
     }
 
-    buildLoggedOutItems() {
+    buildLogoutTile() {
+      return FTile(
+        variant: .destructive,
+        prefix: const Icon(LucideIcons.logOut),
+        title: Text('logout'.tr()),
+        enabled: !isLoading.value,
+        onPress: isLoading.value
+            ? null
+            : () async {
+                final entities = await ref
+                    .read(syncProvider.notifier)
+                    .findNonLocalEntities();
+                if (!context.mounted) return;
+
+                await Commons.showConfirmationDialog(
+                  confirmButtonText: 'logout'.tr(),
+                  title: 'sync_logout_title'.tr(),
+                  content: entities.isEmpty
+                      ? null
+                      : EntityList(entities: entities),
+                  onConfirm: () async {
+                    await ref.read(syncProvider.notifier).logout();
+                  },
+                  children: (context, _, _) =>
+                      TextUtils.renderText(context, 'sync_logout_body'.tr()),
+                );
+              },
+      );
+    }
+
+    buildLoggedOutItems(String? error) {
+      if (error != null) {
+        return [
+          FTile(
+            prefix: const Icon(LucideIcons.cloudAlert),
+            variant: .destructive,
+            title: Text('sync_error'.tr()),
+            subtitle: Text('sync_error_subtitle'.tr(), overflow: .visible),
+          ),
+          FTile(
+            prefix: RotationTransition(
+              turns: syncIconController,
+              child: const Icon(LucideIcons.refreshCw),
+            ),
+            suffix: const Icon(LucideIcons.chevronRight),
+            title: Text('retry'.tr()),
+            enabled: !isLoading.value,
+            onPress: isLoading.value
+                ? null
+                : () async {
+                    syncIconController.forward(from: 0);
+                    isLoading.value = true;
+                    try {
+                      await ref.read(syncProvider.notifier).attemptRecovery();
+                    } finally {
+                      isLoading.value = false;
+                    }
+                  },
+          ),
+          buildLogoutTile(),
+        ];
+      }
+
       return [
         FTile(
           prefix: const Icon(LucideIcons.cloudUpload),
@@ -139,13 +205,23 @@ class const SyncSettingsView({super.key}) extends AbstractSettingsPage {
             ),
             overflow: .visible,
           ),
-          onPress: () async {
-            syncIconController.forward(from: 0);
-            final pulled = await ref.read(syncProvider.notifier).pullVault();
-            await Commons.showToast(
-              (pulled ? 'sync_vault_pulling' : 'sync_vault_up_to_date').tr(),
-            );
-          },
+          onPress: isLoading.value
+              ? null
+              : () async {
+                  syncIconController.forward(from: 0);
+                  isLoading.value = true;
+                  bool pulled;
+
+                  try {
+                    pulled = await ref.read(syncProvider.notifier).pullVault();
+                  } finally {
+                    isLoading.value = false;
+                  }
+                  await Commons.showToast(
+                    (pulled ? 'sync_vault_pulling' : 'sync_vault_up_to_date')
+                        .tr(),
+                  );
+                },
         ),
         if (breakpoint < .md && entitiesCount.value != null)
           FTile(
@@ -161,22 +237,7 @@ class const SyncSettingsView({super.key}) extends AbstractSettingsPage {
               ],
             ),
           ),
-        FTile(
-          variant: .destructive,
-          prefix: const Icon(LucideIcons.logOut),
-          title: Text('logout'.tr()),
-          onPress: () async {
-            await Commons.showConfirmationDialog(
-              confirmButtonText: 'logout'.tr(),
-              title: 'sync_logout_title'.tr(),
-              onConfirm: () async {
-                await ref.read(syncProvider.notifier).logout();
-              },
-              children: (context, _, _) =>
-                  TextUtils.renderText(context, 'sync_logout_body'.tr()),
-            );
-          },
-        ),
+        buildLogoutTile(),
       ];
     }
 
@@ -185,9 +246,9 @@ class const SyncSettingsView({super.key}) extends AbstractSettingsPage {
       spacing: 16,
       children: [
         FTileGroup(
-          children: api == null
-              ? buildLoggedOutItems()
-              : buildLoggedInItems(api),
+          children: syncState.isConnected
+              ? buildLoggedInItems(syncState.api!)
+              : buildLoggedOutItems(syncState.error),
         ),
         FTileGroup(
           label: Text('sync_manual_import_export'.tr()),

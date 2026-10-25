@@ -7,7 +7,7 @@ import 'package:cliq/modules/connections/model/connection_icons.model.dart';
 import 'package:cliq/modules/credentials/data/credential.service.dart';
 import 'package:cliq/modules/settings/provider/terminal_theme.provider.dart';
 import 'package:cliq/shared/data/database.dart';
-import 'package:cliq/shared/extensions/value.extension.dart';
+import 'package:cliq/shared/extension/value.extension.dart';
 import 'package:cliq_term/cliq_term.dart';
 import 'package:drift/drift.dart';
 

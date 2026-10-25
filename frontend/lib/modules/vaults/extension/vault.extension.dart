@@ -1,6 +1,6 @@
 import 'package:cliq/shared/data/database.dart';
+import 'package:cupertino_ui/cupertino_ui.dart';
 import 'package:easy_localization/easy_localization.dart';
-import 'package:flutter/cupertino.dart';
 
 extension VaultExtension on Vault {
   static List<Vault> sortVaults(List<Vault> vaults) {

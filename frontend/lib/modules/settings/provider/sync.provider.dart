@@ -16,6 +16,7 @@ import 'package:cliq/modules/vaults/provider/vault.provider.dart';
 import 'package:cliq/modules/vaults/provider/vault_service.provider.dart';
 import 'package:cliq/shared/data/database.dart';
 import 'package:cliq/shared/data/store.dart';
+import 'package:cliq/shared/model/entity_type.dart';
 import 'package:cliq/shared/model/localized_exception.dart';
 import 'package:cliq/shared/provider/database.provider.dart';
 import 'package:cliq/shared/utils/commons.dart';
@@ -27,6 +28,17 @@ import 'package:logging/logging.dart';
 
 final syncProvider = NotifierProvider(SyncProviderNotifier.new);
 
+/// Returns true if the given [vaultId] has an error, false otherwise.
+final vaultHasErrorProvider = Provider.family<bool, DbId>((ref, vaultId) {
+  final vault = ref.watch(
+    vaultProvider.select(
+      (s) => s.entities.where((v) => v.id == vaultId).firstOrNull,
+    ),
+  );
+  if (vault == null || vault.owner == null) return false;
+  return ref.watch(syncProvider.select((s) => s.isError));
+});
+
 const kPullIntervalSeconds = 30;
 
 class SyncProviderNotifier extends Notifier<SyncState> {
@@ -34,7 +46,7 @@ class SyncProviderNotifier extends Notifier<SyncState> {
   bool _isPulling = false;
 
   @override
-  SyncState build() => .initial();
+  SyncState build() => const .initial();
 
   Future<ServerConfigurationResponse> retrieveConfig(
     RouteOptions routeOptions,
@@ -55,6 +67,7 @@ class SyncProviderNotifier extends Notifier<SyncState> {
     final routeOptions = await StoreKey.syncHost.readAsync();
     if (routeOptions == null ||
         (await StoreKey.syncRefreshToken.readAsync()) == null) {
+      // we cannot recover due to missing route options or refresh token
       await deleteNonLocalVaults();
       return;
     }
@@ -86,12 +99,16 @@ class SyncProviderNotifier extends Notifier<SyncState> {
       });
 
       await ref.read(vaultProvider.notifier).findOrCreateUserVault(api);
-      state = state.copyWith(api: api, refreshTimer: refreshTimer);
+      state = state.copyWith(
+        api: api,
+        refreshTimer: refreshTimer,
+        error: () => null,
+      );
       await pullVault();
       _startPullTimer();
     } on CliqException catch (e) {
       await Commons.showCliqException(e);
-      await logout();
+      state = state.copyWith(error: () => e.description);
     }
   }
 
@@ -113,7 +130,7 @@ class SyncProviderNotifier extends Notifier<SyncState> {
 
     StoreKey.syncHost.write(routeOptions);
     await ref.read(vaultProvider.notifier).findOrCreateUserVault(api);
-    state = state.copyWith(api: api);
+    state = state.copyWith(api: api, error: () => null);
     await pullVault();
     _startPullTimer();
   }
@@ -141,7 +158,7 @@ class SyncProviderNotifier extends Notifier<SyncState> {
 
     await deleteNonLocalVaults();
 
-    state = .initial();
+    state = const .initial();
   }
 
   Future<void> deleteNonLocalVaults() async {
@@ -201,36 +218,20 @@ class SyncProviderNotifier extends Notifier<SyncState> {
     Vault? userVaultOverride,
     bool ignoreShouldPull = false,
   }) async {
-    if (state.api == null) return false;
-    if (!ignoreShouldPull && !(await shouldPull())) {
-      return false;
+    try {
+      final pulled = await _pullVault(
+        userVaultOverride: userVaultOverride,
+        ignoreShouldPull: ignoreShouldPull,
+      );
+      // reaching the server worked, so drop any stale error
+      if (state.error != null) {
+        state = state.copyWith(error: () => null);
+      }
+      return pulled;
+    } catch (e, st) {
+      _setError(e, st);
+      rethrow;
     }
-
-    final userVault =
-        userVaultOverride ??
-        (await ref
-            .read(vaultProvider.notifier)
-            .findOrCreateUserVault(state.api!));
-    final vault = await state.api!.retrieveVault();
-
-    final dek = await StoreKey.syncDataEncryptionKey.readAsync();
-    if (dek == null) {
-      // this should never happen, dek is set on login
-      throw StateError('Data encryption key is missing, cannot pull vault.');
-    }
-
-    final json = await PasswordCipher.instance.decrypt(
-      base64Decode(vault.configuration),
-      StringUtils.hexToArray(dek),
-    );
-
-    final settings = AppSettings.tryFromJson(jsonDecode(utf8.decode(json)));
-    if (settings == null) {
-      throw StateError('Failed to parse vault configuration from server.');
-    }
-    await import(settings, userVault.id, cleanImport: true);
-    StoreKey.syncLastUpdated.write(vault.updatedAt.millisecondsSinceEpoch);
-    return true;
   }
 
   /// Pushes our local vault to the server, overwriting the server's vault with our local vault.
@@ -517,6 +518,91 @@ class SyncProviderNotifier extends Notifier<SyncState> {
         connectionsCredentialIds: connectionsCredentialIds,
       );
     });
+  }
+
+  Future<Map<EntityType, List<String>>> findNonLocalEntities() async {
+    await ref.read(vaultProvider.notifier).initialized;
+
+    final vaultIds = ref
+        .read(vaultProvider)
+        .entities
+        .where((v) => v.owner != null)
+        .map((v) => v.id)
+        .toSet();
+
+    final connectionService = ref.read(connectionServiceProvider);
+    final identityService = ref.read(identityServiceProvider);
+    final knownHostService = ref.read(knownHostServiceProvider);
+    final keyService = ref.read(keyServiceProvider);
+
+    final connections = <String>[];
+    final identities = <String>[];
+    final knownHosts = <String>[];
+
+    for (final id in vaultIds) {
+      connections.addAll(
+        (await connectionService.findAllByVaultId(id)).map((e) => e.label),
+      );
+      identities.addAll(
+        (await identityService.findAllByVaultId(id)).map((e) => e.label),
+      );
+      knownHosts.addAll(
+        (await knownHostService.findAllByVaultId(id)).map((e) => e.host),
+      );
+    }
+
+    final keys = (await keyService.findAll())
+        .where((e) => vaultIds.contains(e.vaultId))
+        .map((e) => e.label)
+        .toList();
+
+    return {
+      if (connections.isNotEmpty) .connection: connections,
+      if (identities.isNotEmpty) .identity: identities,
+      if (keys.isNotEmpty) .key: keys,
+      if (knownHosts.isNotEmpty) .knownHost: knownHosts,
+    };
+  }
+
+  Future<bool> _pullVault({
+    Vault? userVaultOverride,
+    bool ignoreShouldPull = false,
+  }) async {
+    if (state.api == null) return false;
+    if (!ignoreShouldPull && !(await shouldPull())) {
+      return false;
+    }
+
+    final userVault =
+        userVaultOverride ??
+        (await ref
+            .read(vaultProvider.notifier)
+            .findOrCreateUserVault(state.api!));
+    final vault = await state.api!.retrieveVault();
+
+    final dek = await StoreKey.syncDataEncryptionKey.readAsync();
+    if (dek == null) {
+      // this should never happen, dek is set on login
+      throw StateError('Data encryption key is missing, cannot pull vault.');
+    }
+
+    final json = await PasswordCipher.instance.decrypt(
+      base64Decode(vault.configuration),
+      StringUtils.hexToArray(dek),
+    );
+
+    final settings = AppSettings.tryFromJson(jsonDecode(utf8.decode(json)));
+    if (settings == null) {
+      throw StateError('Failed to parse vault configuration from server.');
+    }
+    await import(settings, userVault.id, cleanImport: true);
+    StoreKey.syncLastUpdated.write(vault.updatedAt.millisecondsSinceEpoch);
+    return true;
+  }
+
+  void _setError(Object e, StackTrace st) {
+    _log.warning('Error during vault pull: $e', e, st);
+    state = state.copyWith(error: () => e.toString());
   }
 
   CliqClientBuilder _getDefaultClientBuilder(RouteOptions routeOptions) {
