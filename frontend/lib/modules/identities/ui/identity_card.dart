@@ -17,6 +17,8 @@ class const IdentityCard({super.key, required final IdentityFull identity})
   Widget build(BuildContext context, WidgetRef ref) {
     final popoverController = useFPopoverController();
 
+    final hasVaultError = ref.watch(vaultHasErrorProvider(identity.vault.id));
+
     edit() async {
       await popoverController.hide();
       if (!context.mounted) return;
@@ -96,13 +98,15 @@ class const IdentityCard({super.key, required final IdentityFull identity})
                   FItem(
                     prefix: const Icon(LucideIcons.pencil),
                     title: Text('edit'.tr()),
-                    onPress: edit,
+                    enabled: !hasVaultError,
+                    onPress: hasVaultError ? null : edit,
                   ),
                   FItem(
                     variant: .destructive,
                     prefix: const Icon(LucideIcons.trash),
                     title: Text('delete'.tr()),
-                    onPress: delete,
+                    enabled: !hasVaultError,
+                    onPress: hasVaultError ? null : delete,
                   ),
                 ],
               ),

@@ -83,18 +83,28 @@ final class const Commons._() {
     VoidCallback? onConfirm,
     BuildContext? context,
     String? title,
+    Widget? content,
     String? confirmButtonText,
   }) {
     return showFDialog(
       context: (Router.rootNavigatorKey.currentContext ?? context)!,
       builder: (context, style, animation) {
+        final text = RichText(
+          text: TextSpan(children: children(context, style, animation)),
+        );
+
         return HorizontalDialog(
           style: style,
           animation: animation,
           title: title != null ? Text(title) : null,
-          body: RichText(
-            text: TextSpan(children: children(context, style, animation)),
-          ),
+          body: content == null
+              ? text
+              : Column(
+                  spacing: 16,
+                  crossAxisAlignment: .start,
+                  mainAxisSize: .min,
+                  children: [text, content],
+                ),
           actions: [
             FButton(
               variant: .outline,

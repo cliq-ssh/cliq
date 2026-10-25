@@ -28,6 +28,8 @@ class const ConnectionCard({
     final primaryPopoverController = useFPopoverController();
     final secondaryPopoverController = useFPopoverController();
 
+    final hasVaultError = ref.watch(vaultHasErrorProvider(connection.vault.id));
+
     connect({bool isSftp = false}) async {
       await primaryPopoverController.hide();
       await secondaryPopoverController.hide();
@@ -95,13 +97,15 @@ class const ConnectionCard({
               FItem(
                 prefix: const Icon(LucideIcons.pencil),
                 title: Text('edit'.tr()),
-                onPress: edit,
+                enabled: !hasVaultError,
+                onPress: hasVaultError ? null : edit,
               ),
               FItem(
                 variant: .destructive,
                 prefix: const Icon(LucideIcons.trash),
                 title: Text('delete'.tr()),
-                onPress: delete,
+                enabled: !hasVaultError,
+                onPress: hasVaultError ? null : delete,
               ),
             ],
           ),
@@ -127,14 +131,14 @@ class const ConnectionCard({
         .new(
           label: 'edit'.tr(),
           icon: LucideIcons.pencil,
-          onPress: edit,
+          onPress: hasVaultError ? null : edit,
           shortcut: KeyboardShortcut(.keyE),
         ),
         .new(
           label: 'delete'.tr(),
           icon: LucideIcons.trash,
           variant: .destructive,
-          onPress: delete,
+          onPress: hasVaultError ? null : delete,
           shortcut: Platform.isMacOS
               ? KeyboardShortcut(.backspace, modifiers: {.meta})
               : KeyboardShortcut(.delete),

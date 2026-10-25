@@ -10,7 +10,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 class CustomContextMenuAction {
   final String label;
   final IconData? icon;
-  final VoidCallback onPress;
+  final VoidCallback? onPress;
   final FItemVariant? variant;
   final bool hideAfterPress;
   final KeyboardShortcut? shortcut;
@@ -49,7 +49,7 @@ class CustomContextMenu extends HookConsumerWidget {
       if (action.hideAfterPress) {
         await (popoverController ?? managedPopoverController).hide();
       }
-      action.onPress();
+      action.onPress?.call();
     }
 
     return CallbackShortcuts(
@@ -93,7 +93,10 @@ class CustomContextMenu extends HookConsumerWidget {
                             ShortcutInfo(shortcut: action.shortcut!),
                           ],
                         ),
-                  onPress: () => onPress(action),
+                  enabled: action.onPress != null,
+                  onPress: action.onPress == null
+                      ? null
+                      : () => onPress(action),
                 ),
             ],
           ),

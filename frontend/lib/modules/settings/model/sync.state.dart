@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:cliq_api/cliq_api.dart';
+import 'package:cupertino_ui/cupertino_ui.dart';
 
 class const SyncState({
   /// The api instance used to communicate with the server
@@ -37,14 +38,14 @@ class const SyncState({
     ServerConfigurationResponse? config,
     Timer? refreshTimer,
     Timer? pullTimer,
-    String? error,
+    ValueGetter<String?>? error,
   }) {
     return SyncState(
       api: api ?? this.api,
       config: config ?? this.config,
       refreshTimer: refreshTimer ?? this.refreshTimer,
       pullTimer: pullTimer ?? this.pullTimer,
-      error: error ?? this.error,
+      error: error != null ? error() : this.error,
     );
   }
 }

@@ -13,6 +13,7 @@ import 'package:cliq/shared/model/localized_exception.dart';
 import 'package:cliq/shared/model/page_path.model.dart';
 import 'package:cliq/shared/model/router.model.dart';
 import 'package:cliq/shared/provider/store.provider.dart';
+import 'package:cliq/shared/ui/entity_list.dart';
 import 'package:cliq/shared/utils/commons.dart';
 import 'package:cliq/shared/utils/text_utils.dart';
 import 'package:cliq_api/cliq_api.dart';
@@ -94,9 +95,17 @@ class const SyncSettingsView({super.key}) extends AbstractSettingsPage {
         onPress: isLoading.value
             ? null
             : () async {
+                final entities = await ref
+                    .read(syncProvider.notifier)
+                    .findNonLocalEntities();
+                if (!context.mounted) return;
+
                 await Commons.showConfirmationDialog(
                   confirmButtonText: 'logout'.tr(),
                   title: 'sync_logout_title'.tr(),
+                  content: entities.isEmpty
+                      ? null
+                      : EntityList(entities: entities),
                   onConfirm: () async {
                     await ref.read(syncProvider.notifier).logout();
                   },
@@ -129,8 +138,11 @@ class const SyncSettingsView({super.key}) extends AbstractSettingsPage {
                 : () async {
                     syncIconController.forward(from: 0);
                     isLoading.value = true;
-                    await ref.read(syncProvider.notifier).attemptRecovery();
-                    isLoading.value = false;
+                    try {
+                      await ref.read(syncProvider.notifier).attemptRecovery();
+                    } finally {
+                      isLoading.value = false;
+                    }
                   },
           ),
           buildLogoutTile(),
@@ -198,10 +210,13 @@ class const SyncSettingsView({super.key}) extends AbstractSettingsPage {
               : () async {
                   syncIconController.forward(from: 0);
                   isLoading.value = true;
-                  final pulled = await ref
-                      .read(syncProvider.notifier)
-                      .pullVault();
-                  isLoading.value = false;
+                  bool pulled;
+
+                  try {
+                    pulled = await ref.read(syncProvider.notifier).pullVault();
+                  } finally {
+                    isLoading.value = false;
+                  }
                   await Commons.showToast(
                     (pulled ? 'sync_vault_pulling' : 'sync_vault_up_to_date')
                         .tr(),

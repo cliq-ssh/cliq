@@ -40,7 +40,8 @@ class const LogCard({super.key, required final Log log})
       tintColor: level.toColor(),
       title: Row(
         spacing: 8,
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        crossAxisAlignment: .start,
+        mainAxisAlignment: .spaceBetween,
         children: [
           Flexible(
             child: Text(

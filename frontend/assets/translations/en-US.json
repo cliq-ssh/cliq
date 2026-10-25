@@ -324,7 +324,7 @@
   "sync_import_error_one_entity": "Please select at least one entity to import.",
   "sync_import_file": "Import from File",
   "sync_last_updated": "Last updated: {}",
-  "sync_loading": "Loading...",
+  "sync_loading": "Connecting...",
   "sync_login_disabled": "Login is disabled on this server",
   "sync_login_success": "Login successful! You are now logged in.",
   "sync_login_vault_hint": "Logging in will create a new synced vault on this device. You may need to transfer any existing data from your local vault into the synced vault manually.",

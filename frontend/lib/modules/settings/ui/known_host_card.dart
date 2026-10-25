@@ -16,6 +16,8 @@ class const KnownHostCard({super.key, required final KnownHost knownHost})
   Widget build(BuildContext context, WidgetRef ref) {
     final popoverController = useFPopoverController();
 
+    final hasVaultError = ref.watch(vaultHasErrorProvider(knownHost.vaultId));
+
     delete() async {
       await popoverController.hide();
       return Commons.showDeleteDialog(
@@ -70,7 +72,8 @@ class const KnownHostCard({super.key, required final KnownHost knownHost})
                     variant: .destructive,
                     prefix: const Icon(LucideIcons.trash),
                     title: Text('delete'.tr()),
-                    onPress: delete,
+                    enabled: !hasVaultError,
+                    onPress: hasVaultError ? null : delete,
                   ),
                 ],
               ),
