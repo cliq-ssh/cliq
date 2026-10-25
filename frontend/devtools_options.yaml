@@ -4,3 +4,4 @@ extensions:
   - shared_preferences: true
   - drift: true
   - riverpod: true
+  - cliq_term_devtools: true
