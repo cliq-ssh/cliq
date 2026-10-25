@@ -1,0 +1,23 @@
+name: cliq_term_devtools
+description: "A new Flutter package project."
+version: 0.0.1
+homepage:
+
+resolution: workspace
+
+environment:
+  sdk: ^3.12.0
+  flutter: ">=3.44.0-0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  devtools_app_shared: ^0.5.1
+  devtools_extensions: ^0.5.1
+
+dev_dependencies:
+  lints: ^6.0.0
+
+flutter:
+  uses-material-design: true

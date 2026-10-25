@@ -11,6 +11,7 @@ environment:
 workspace:
   - packages/cliq_api
   - packages/cliq_term
+  - packages/cliq_term_devtools
   - packages/cliq_ui
 
 dependencies:
