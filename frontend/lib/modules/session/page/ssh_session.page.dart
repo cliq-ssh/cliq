@@ -162,6 +162,7 @@ class _SshSessionPageState extends ConsumerState<SshSessionPage>
 
     buildTerminalController() {
       final controller = TerminalController(
+        devtoolsId: session.id,
         theme: effectiveTerminalTheme.toTerminalTheme(),
         typography: getEffectiveTerminalTypography(),
         debugLogging: kDebugMode,

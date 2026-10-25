@@ -99,6 +99,7 @@ class const TerminalThemeSettingsView({super.key})
     // init controller
     useEffect(() {
       terminalController.value = TerminalController(
+        devtoolsId: 'terminal_theme_preview',
         theme: getSelectedTheme().toTerminalTheme(),
         typography: TerminalTypography(
           fontFamily: selectedFontFamily.value,

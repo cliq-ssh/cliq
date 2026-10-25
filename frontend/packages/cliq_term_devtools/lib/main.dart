@@ -1,3 +1,4 @@
+import 'package:cliq_term_devtools/widgets/terminal_list.dart';
 import 'package:devtools_extensions/devtools_extensions.dart';
 import 'package:flutter/material.dart';
 
@@ -10,8 +11,6 @@ class SomePkgDevToolsExtension extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const DevToolsExtension(
-      child: Placeholder(), // Build your extension here
-    );
+    return const DevToolsExtension(child: TerminalList());
   }
 }

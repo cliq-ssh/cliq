@@ -14,6 +14,7 @@ import 'package:cliq/shared/utils/commons.dart';
 import 'package:cliq/shared/utils/constants.dart';
 import 'package:cliq/shared/utils/password_cipher.dart';
 import 'package:cliq/shared/utils/platform_utils.dart';
+import 'package:cliq_term/cliq_term.dart';
 import 'package:cupertino_ui/cupertino_ui.dart' as cupertino_ui;
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/foundation.dart';
@@ -49,6 +50,10 @@ void main() async {
 
     final ProviderContainer container = ProviderContainer();
     _initLogger(container);
+
+    if (kDebugMode) {
+      registerCliqTermDevToolsService();
+    }
 
     runApp(
       EasyLocalization(

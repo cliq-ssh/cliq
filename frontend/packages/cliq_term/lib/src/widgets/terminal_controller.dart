@@ -6,6 +6,7 @@ import 'package:cliq_term/src/parser/escape_parser.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter/services.dart';
 
+import '../model/terminal_registry.dart';
 import '../parser/escape_emitter.dart';
 
 enum CursorStyle { block, underline, bar }
@@ -102,6 +103,9 @@ class TerminalController extends ChangeNotifier {
 
   /// A callback that is fired when the input queue drops below the low water mark.
   void Function()? onResume;
+
+  /// Stable identifier used to expose this terminal through DevTools
+  final String? devtoolsId;
 
   void Function(String)? onInput;
   TerminalTypography _typography;
@@ -204,6 +208,7 @@ class TerminalController extends ChangeNotifier {
   bool _isPaused = false;
 
   TerminalController({
+    this.devtoolsId,
     required this._typography,
     required this._theme,
     this.cursorBlinkInterval = const Duration(milliseconds: 600),
@@ -222,7 +227,11 @@ class TerminalController extends ChangeNotifier {
     this.cols = 80,
     this.width = 800,
     this.height = 600,
-  }) : alternateScrollMode = defaultAlternateScrollMode;
+  }) : alternateScrollMode = defaultAlternateScrollMode {
+    if (devtoolsId case final id?) {
+      TerminalRegistry.instance.register(id, this);
+    }
+  }
 
   /// Returns the current theme settings used for rendering the terminal, including colors and styles.
   TerminalTheme get theme => _theme;
@@ -763,6 +772,10 @@ class TerminalController extends ChangeNotifier {
 
   @override
   void dispose() {
+    if (devtoolsId case final id?) {
+      TerminalRegistry.instance.unregister(id);
+    }
+
     cursor.timer?.cancel();
     cursor.inactivityTimer?.cancel();
     _synchronizedOutputWatchdog?.cancel();
