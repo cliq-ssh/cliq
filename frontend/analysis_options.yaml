@@ -16,6 +16,8 @@ analyzer:
     - windows/**
     - macos/**
     - linux/**
+    #  Exclude generated files
+    - lib/shared/data/database.g.dart
 include: package:flutter_lints/flutter.yaml
 
 linter:
