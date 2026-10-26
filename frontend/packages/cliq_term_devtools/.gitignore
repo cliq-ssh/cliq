@@ -6,4 +6,4 @@
 # https://dart.dev/tools/pub/private-files#pubspec-lock.
 pubspec.lock
 
-extension/devtools/build/
+/build/
