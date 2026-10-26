@@ -117,6 +117,8 @@ class TerminalBuffer {
       charset: .copyFrom(charset),
     );
 
+    newBuffer.currentFormat = .clone(currentFormat);
+    newBuffer.pendingWrap = pendingWrap;
     newBuffer._buffer.clear();
 
     if (_buffer.isEmpty) {
@@ -796,10 +798,10 @@ class TerminalBuffer {
   /// - https://terminalguide.namepad.de/seq/a_esc_a8/
   void restoreCursor() {
     if (savedCursorRow != null) {
-      cursorRow = savedCursorRow!;
+      cursorRow = max(0, min(savedCursorRow!, rows - 1));
     }
     if (savedCursorCol != null) {
-      cursorCol = savedCursorCol!;
+      cursorCol = max(0, min(savedCursorCol!, cols - 1));
     }
     if (savedFormat != null) {
       currentFormat = savedFormat!;
