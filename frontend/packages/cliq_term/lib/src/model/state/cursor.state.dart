@@ -1,6 +1,6 @@
 import 'dart:async';
 
-import '../../cliq_term.dart';
+import '../../../cliq_term.dart';
 
 class CursorState({
   final CursorStyle style = .bar,

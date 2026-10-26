@@ -47,7 +47,7 @@ void main() {
 
     test('write lines (autowrap)', () {
       final buf = TerminalBuffer(rows: 3, cols: 3);
-      buf.isAutoWrapMode = true;
+      buf.modes = buf.modes.copyWith(isAutowrap: true);
 
       buf.printString('ABCDEFGHI');
 
@@ -60,7 +60,7 @@ void main() {
 
     test('write lines (no autowrap)', () {
       final buf = TerminalBuffer(rows: 3, cols: 3);
-      buf.isAutoWrapMode = false;
+      buf.modes = buf.modes.copyWith(isAutowrap: true);
 
       buf.printString('ABCDEFGHI');
 

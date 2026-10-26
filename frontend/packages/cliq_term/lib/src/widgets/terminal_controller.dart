@@ -6,6 +6,8 @@ import 'package:cliq_term/src/parser/escape_parser.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter/services.dart';
 
+import '../model/state/selection.state.dart';
+import '../model/state/terminal_modes.state.dart';
 import '../model/terminal_registry.dart';
 import '../parser/escape_emitter.dart';
 
@@ -66,6 +68,9 @@ class TerminalController extends ChangeNotifier {
     .arrowLeft: '${kSeqEscape}OD',
   };
 
+  /// Stable identifier used to expose this terminal through DevTools
+  final String? devtoolsId;
+
   /// Interval for cursor blinking.
   Duration cursorBlinkInterval;
 
@@ -104,9 +109,6 @@ class TerminalController extends ChangeNotifier {
   /// A callback that is fired when the input queue drops below the low water mark.
   void Function()? onResume;
 
-  /// Stable identifier used to expose this terminal through DevTools
-  final String? devtoolsId;
-
   void Function(String)? onInput;
   TerminalTypography _typography;
   TerminalTheme _theme;
@@ -126,6 +128,7 @@ class TerminalController extends ChangeNotifier {
     cols: cols,
     maxScrollbackLines: TerminalBuffer.minMaxScrollbackLines,
     isBackBuffer: true,
+    modes: _front.modes,
   );
 
   TextStyle? _cachedTextStyle;
@@ -262,6 +265,12 @@ class TerminalController extends ChangeNotifier {
 
   /// Returns a cached [TextPainter] for the given glyph key if it exists.
   TextPainter? getCachedGlyph(GlyphKey key) => _glyphCache[key];
+
+  TerminalModesState get modes => _front.modes;
+  set modes(TerminalModesState v) {
+    _front.modes = v;
+    _back.modes = v;
+  }
 
   /// Caches a [TextPainter] for the given glyph key.
   /// If the cache exceeds the maximum size, the least recently used entry is evicted.
@@ -439,6 +448,25 @@ class TerminalController extends ChangeNotifier {
     }
   }
 
+  /// Horizontal Tab Set (HTS)
+  /// - https://terminalguide.namepad.de/seq/a_esc_ch/
+  void horizontalTabSet() {
+    // col 0 is always an implicit start position, not a settable tab stop
+    final col = activeBuffer.cursorCol;
+    if (col > 0 && col < cols) {
+      modes = modes.copyWith(tabStops: {...modes.tabStops, col});
+    }
+  }
+
+  /// Clears the tab stop at the current cursor column, or all tab stops if [all] is true.
+  void clearTabStop({bool all = false}) {
+    modes = modes.copyWith(
+      tabStops: all
+          ? const {}
+          : ({...modes.tabStops}..remove(activeBuffer.cursorCol)),
+    );
+  }
+
   /// Encodes and sends a mouse event, if the current tracking mode wants it.
   /// [row]/[col] are 0-indexed grid coordinates. [button]: 0=left, 1=middle,
   /// 2=right; for [isScroll], 0=wheel-up, 1=wheel-down.
@@ -576,17 +604,17 @@ class TerminalController extends ChangeNotifier {
   }
 
   void setInsertMode(bool enabled) {
-    activeBuffer.isInsertMode = enabled;
+    modes = modes.copyWith(isInsert: enabled);
     markDirty();
   }
 
   void setLineFeedMode(bool enabled) {
-    activeBuffer.isLineFeedMode = enabled;
+    modes = modes.copyWith(isLineFeed: enabled);
     markDirty();
   }
 
   void setAutoWrapMode(bool enabled) {
-    activeBuffer.isAutoWrapMode = enabled;
+    modes = modes.copyWith(isAutowrap: enabled);
     markDirty();
   }
 

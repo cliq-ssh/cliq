@@ -9,7 +9,7 @@ import 'package:material_ui/material_ui.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 
-import '../utils/gesture_selection_handler.dart';
+import '../utils/gesture_selection_helper.dart';
 
 class TerminalView extends StatefulWidget {
   /// The [TerminalController] used to manage the terminal state and handle input/output.
@@ -267,7 +267,7 @@ class _TerminalViewState extends State<TerminalView> {
         final totalRows = widget.controller.totalRows;
 
         coordsFor(Offset localPosition) {
-          return GestureSelectionHandler.calculateAbsoluteCoordinates(
+          return GestureSelectionHelper.calculateAbsoluteCoordinates(
             localPosition: localPosition,
             scrollOffset: _scrollController.hasClients
                 ? _scrollController.offset
@@ -447,7 +447,7 @@ class _TerminalViewState extends State<TerminalView> {
                 final (
                   row,
                   col,
-                ) = GestureSelectionHandler.calculateAbsoluteCoordinates(
+                ) = GestureSelectionHelper.calculateAbsoluteCoordinates(
                   localPosition: details.localPosition,
                   scrollOffset: _scrollController.hasClients
                       ? _scrollController.offset

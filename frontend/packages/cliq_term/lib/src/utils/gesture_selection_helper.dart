@@ -1,7 +1,7 @@
 import 'package:flutter/gestures.dart';
 
 /// Handles pointer-based gesture selection for the terminal.
-class const GestureSelectionHandler._() {
+class const GestureSelectionHelper._() {
   /// Calculate the absolute row and column from a pointer position.
   ///
   /// [localPosition] - the local position of the pointer (relative to widget)

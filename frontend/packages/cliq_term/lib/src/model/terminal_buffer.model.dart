@@ -1,8 +1,9 @@
 import 'dart:math';
 
 import 'package:cliq_term/cliq_term.dart';
+import 'package:cliq_term/src/model/state/terminal_modes.state.dart';
 
-import '../state/charset.state.dart';
+import 'state/charset.state.dart';
 import '../utils/selection_helper.dart';
 
 class TerminalBufferRow {
@@ -61,10 +62,6 @@ class TerminalBuffer {
   /// The current cursor column position.
   int cursorCol = 0;
 
-  late Set<int> tabStops = Set.from(
-    List.generate((cols ~/ 8), (i) => (i + 1) * 8).where((col) => col < cols),
-  );
-
   int _topMargin;
   int _bottomMargin;
 
@@ -73,10 +70,7 @@ class TerminalBuffer {
   FormattingOptions? savedFormat;
   bool? savedPendingWrap;
 
-  bool isLineFeedMode = false;
-  bool isInsertMode = false;
-
-  bool isAutoWrapMode = true;
+  TerminalModesState modes;
 
   /// Indicates whether the next character to be written should wrap to the next line
   /// and trigger an index operation
@@ -90,11 +84,12 @@ class TerminalBuffer {
     required this.cols,
     this.maxScrollbackLines = defaultMaxScrollbackLines,
     this.isBackBuffer = false,
-    this.isLineFeedMode = false,
+    TerminalModesState? modes,
     CharsetState? charset,
   }) : _buffer = RingBuffer<TerminalBufferRow>(rows + maxScrollbackLines),
        _topMargin = 0,
        _bottomMargin = rows - 1,
+       modes = modes ?? TerminalModesState(tabStops: _defaultTabStops(cols)),
        charset = charset ?? .new() {
     for (var i = 0; i < rows; i++) {
       _buffer.add(TerminalBufferRow(cols));
@@ -103,6 +98,10 @@ class TerminalBuffer {
 
   int get length => _buffer.length;
   int get currentScrollback => _buffer.length - rows;
+
+  static Set<int> _defaultTabStops(int cols) => {
+    for (var c = 8; c < cols; c += 8) c,
+  };
 
   TerminalBuffer resize({required int newRows, required int newCols}) {
     // Assert that the new dimensions are valid
@@ -114,12 +113,10 @@ class TerminalBuffer {
       cols: newCols,
       maxScrollbackLines: maxScrollbackLines,
       isBackBuffer: isBackBuffer,
-      isLineFeedMode: isLineFeedMode,
-      charset: CharsetState.copyFrom(charset),
+      modes: modes.copyWith(tabStops: _resizedTabStops(newCols)),
+      charset: .copyFrom(charset),
     );
 
-    newBuffer.isAutoWrapMode = isAutoWrapMode;
-    newBuffer.tabStops = Set.from(tabStops.where((s) => s < newCols));
     newBuffer._buffer.clear();
 
     if (_buffer.isEmpty) {
@@ -314,15 +311,6 @@ class TerminalBuffer {
     carriageReturn();
   }
 
-  /// Horizontal Tab Set (HTS)
-  /// - https://terminalguide.namepad.de/seq/a_esc_ch/
-  void horizontalTabSet() {
-    // col 0 is always an implicit start position, not a settable tab stop
-    if (cursorCol > 0 && cursorCol < cols) {
-      tabStops.add(cursorCol);
-    }
-  }
-
   /// Line Feed (LF)
   /// - https://terminalguide.namepad.de/seq/a_c0-j/
   /// Vertical Tab (VT)
@@ -332,7 +320,7 @@ class TerminalBuffer {
   void lineFeed() {
     index();
     // If linefeed mode is set: Invoke carriage return
-    if (isLineFeedMode) {
+    if (modes.isLineFeed) {
       carriageReturn();
     }
   }
@@ -351,12 +339,12 @@ class TerminalBuffer {
   /// Horizontal Tab (TAB)
   /// - https://terminalguide.namepad.de/seq/a_c0-i/
   void horizontalTab() {
-    final stops = tabStops.where((s) => s > cursorCol).toList()..sort();
-    if (stops.isEmpty) {
-      cursorCol = cols - 1;
-    } else {
-      cursorCol = stops.first;
+    var c = cursorCol + 1;
+    while (c < cols - 1 && !modes.tabStops.contains(c)) {
+      c++;
     }
+    cursorCol = min(c, cols - 1);
+
     pendingWrap = false;
   }
 
@@ -419,7 +407,7 @@ class TerminalBuffer {
     final translated = charset.translate(cu);
 
     if (pendingWrap) {
-      if (isAutoWrapMode) {
+      if (modes.isAutowrap) {
         _buffer[cursorRow + currentScrollback].wrapped = true;
         index();
         cursorCol = 0;
@@ -427,7 +415,7 @@ class TerminalBuffer {
       pendingWrap = false;
     }
 
-    if (isAutoWrapMode) {
+    if (modes.isAutowrap) {
       if (cursorCol >= cols) {
         index();
         cursorCol = 0;
@@ -438,7 +426,7 @@ class TerminalBuffer {
       }
     }
 
-    if (isInsertMode) {
+    if (modes.isInsert) {
       final r = _buffer[cursorRow + currentScrollback];
       r.ensureCols(cols);
       for (var c = cols - 1; c >= cursorCol + 1; c--) {
@@ -456,7 +444,7 @@ class TerminalBuffer {
     // whether the cursor is at the last column before printing
     final endsAtLastColumn = (cursorCol + 1 - 1) == (cols - 1);
 
-    if (isAutoWrapMode && endsAtLastColumn) {
+    if (modes.isAutowrap && endsAtLastColumn) {
       cursorCol = cols - 1;
       pendingWrap = true;
     } else {
@@ -940,4 +928,9 @@ class TerminalBuffer {
     }
     return sb.toString();
   }
+
+  Set<int> _resizedTabStops(int newCols) => {
+    ...modes.tabStops.where((s) => s < newCols),
+    for (var c = ((cols + 7) ~/ 8) * 8; c < newCols; c += 8) c,
+  };
 }

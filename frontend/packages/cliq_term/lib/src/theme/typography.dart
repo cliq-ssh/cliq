@@ -1,6 +1,9 @@
 import 'package:cupertino_ui/cupertino_ui.dart';
 
-class const TerminalTypography({required final String fontFamily, required final int fontSize}) {
+class const TerminalTypography({
+  required final String fontFamily,
+  required final int fontSize,
+}) {
   static TerminalTypography? fromJson(Map<String, dynamic>? json) {
     if (json == null ||
         json['fontFamily'] == null ||

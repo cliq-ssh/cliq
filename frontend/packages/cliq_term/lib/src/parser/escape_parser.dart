@@ -3,9 +3,10 @@ import 'dart:math';
 import 'package:cliq_term/cliq_term.dart';
 import 'package:cliq_term/src/parser/csi_parser.dart';
 import 'package:cliq_term/src/parser/escape_emitter.dart';
+import 'package:cliq_term/src/utils/color_utils.dart';
 import 'package:logging/logging.dart';
 
-import '../model/byte_queue.dart';
+import '../model/data/byte_queue.dart';
 
 typedef EscHandler = void Function();
 typedef CsiHandler = void Function(CsiParseResult parsed);
@@ -79,7 +80,7 @@ class EscapeParser({required final TerminalController controller}) {
     'd'.codeUnitAt(0): _csiLinePositionAbsolute,
     // 'e'.codeUnitAt(0): _csiVerticalPosRelative,
     'f'.codeUnitAt(0): _csiSetCursorPosition,
-    // 'g'.codeUnitAt(0): _csiTabClear,
+    'g'.codeUnitAt(0): _csiTabClear,
     'h'.codeUnitAt(0): _csiSetMode,
     // 'i'.codeUnitAt(0): _csiMediaControl,
     'l'.codeUnitAt(0): _csiSetMode,
@@ -339,7 +340,7 @@ class EscapeParser({required final TerminalController controller}) {
 
   void _escNextLine() => controller.activeBuffer.nextLine();
 
-  void _escHorizontalTabSet() => controller.activeBuffer.horizontalTabSet();
+  void _escHorizontalTabSet() => controller.horizontalTabSet();
 
   void _escReverseIndex() => controller.activeBuffer.reverseIndex();
 
@@ -556,6 +557,23 @@ class EscapeParser({required final TerminalController controller}) {
     }
   }
 
+  /// https://terminalguide.namepad.de/seq/csi_sg/
+  void _csiTabClear(CsiParseResult parsed) {
+    final mode = _parseSingleParam(parsed, defaultValue: 0);
+    switch (mode) {
+      case 0:
+        controller.clearTabStop();
+        break;
+      case 3:
+        controller.clearTabStop(all: true);
+        break;
+      default:
+        if (controller.debugLogging) {
+          _log.warning('\tUnhandled tab clear mode: $mode');
+        }
+    }
+  }
+
   /// https://terminalguide.namepad.de/seq/csi_sm/
   void _csiSelectGraphicRendition(CsiParseResult parsed) {
     var formatting = controller.activeBuffer.currentFormat;
@@ -580,7 +598,7 @@ class EscapeParser({required final TerminalController controller}) {
         27 => () => formatting.copyWith(inverted: false),
         28 => () => formatting.copyWith(concealed: false),
         >= 30 && <= 37 => () => formatting.copyWith(
-          fgColor: ansi16ToColor(controller.theme, code - 30),
+          fgColor: ColorUtils.ansi16ToColor(controller.theme, code - 30),
         ),
         38 => () {
           if (offset >= codes.length) return formatting;
@@ -588,12 +606,15 @@ class EscapeParser({required final TerminalController controller}) {
             case 5:
               if (offset >= codes.length) return formatting;
               return formatting.copyWith(
-                fgColor: xterm256ToColor(controller.theme, codes[offset++]),
+                fgColor: ColorUtils.xterm256ToColor(
+                  controller.theme,
+                  codes[offset++],
+                ),
               );
             case 2:
               if (offset + 2 >= codes.length) return formatting;
               final res = formatting.copyWith(
-                fgColor: rgbToColor(
+                fgColor: ColorUtils.rgbToColor(
                   codes[offset],
                   codes[offset + 1],
                   codes[offset + 2],
@@ -607,7 +628,7 @@ class EscapeParser({required final TerminalController controller}) {
         },
         39 => () => formatting.copyWith(fgColor: null),
         >= 40 && <= 47 => () => formatting.copyWith(
-          bgColor: ansi16ToColor(controller.theme, code - 40),
+          bgColor: ColorUtils.ansi16ToColor(controller.theme, code - 40),
         ),
         48 => () {
           if (offset >= codes.length) return formatting;
@@ -615,12 +636,15 @@ class EscapeParser({required final TerminalController controller}) {
             case 5:
               if (offset >= codes.length) return formatting;
               return formatting.copyWith(
-                bgColor: xterm256ToColor(controller.theme, codes[offset++]),
+                bgColor: ColorUtils.xterm256ToColor(
+                  controller.theme,
+                  codes[offset++],
+                ),
               );
             case 2:
               if (offset + 2 >= codes.length) return formatting;
               final res = formatting.copyWith(
-                bgColor: rgbToColor(
+                bgColor: ColorUtils.rgbToColor(
                   codes[offset],
                   codes[offset + 1],
                   codes[offset + 2],
@@ -634,10 +658,10 @@ class EscapeParser({required final TerminalController controller}) {
         },
         49 => () => formatting.copyWith(bgColor: null),
         >= 90 && <= 97 => () => formatting.copyWith(
-          fgColor: ansi16ToColor(controller.theme, (code - 90) + 8),
+          fgColor: ColorUtils.ansi16ToColor(controller.theme, (code - 90) + 8),
         ),
         >= 100 && <= 107 => () => formatting.copyWith(
-          bgColor: ansi16ToColor(controller.theme, (code - 100) + 8),
+          bgColor: ColorUtils.ansi16ToColor(controller.theme, (code - 100) + 8),
         ),
         _ => () => formatting,
       }).call();
