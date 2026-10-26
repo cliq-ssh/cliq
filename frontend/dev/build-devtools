@@ -1,0 +1,6 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+SCRIPT_DIR="$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
+
+dart run devtools_extensions build_and_copy --source="${SCRIPT_DIR}/../packages/cliq_term_devtools" --dest="${SCRIPT_DIR}/../packages/cliq_term_devtools/extension/devtools"
