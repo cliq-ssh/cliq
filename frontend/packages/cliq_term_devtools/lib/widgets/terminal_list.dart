@@ -1,12 +1,11 @@
 import 'dart:async';
 
+import 'package:cliq_term_devtools/widgets/property_table.dart';
 import 'package:devtools_app_shared/ui.dart';
 import 'package:devtools_extensions/devtools_extensions.dart';
 import 'package:flutter/material.dart';
 
-class TerminalList extends StatefulWidget {
-  const TerminalList({super.key});
-
+class const TerminalList({super.key}) extends StatefulWidget {
   @override
   State<TerminalList> createState() => _TerminalListState();
 }
@@ -148,9 +147,6 @@ class _TerminalListState extends State<TerminalList> {
   @override
   Widget build(BuildContext context) {
     final terminal = _selectedTerminal;
-    final alternateRowColor = Theme.of(
-      context,
-    ).colorScheme.surfaceContainerHighest;
 
     buildTerminalList() {
       if (_error != null && _terminals.isEmpty) {
@@ -183,27 +179,6 @@ class _TerminalListState extends State<TerminalList> {
       );
     }
 
-    buildPropertyTable(List<(String, Object?)> properties) {
-      return DataTable(
-        columns: const [
-          DataColumn(label: Text('Property')),
-          DataColumn(label: Text('Value')),
-        ],
-        rows: [
-          for (var index = 0; index < properties.length; index++)
-            DataRow(
-              color: WidgetStatePropertyAll(
-                index.isEven ? null : alternateRowColor,
-              ),
-              cells: [
-                DataCell(Text(properties[index].$1)),
-                DataCell(Text('${properties[index].$2}')),
-              ],
-            ),
-        ],
-      );
-    }
-
     buildTerminalTab() {
       if (terminal == null) {
         return const Center(child: Text('Select a terminal'));
@@ -212,20 +187,22 @@ class _TerminalListState extends State<TerminalList> {
       return ListView(
         padding: const EdgeInsets.all(denseSpacing),
         children: [
-          buildPropertyTable([
-            ('ID', terminal['id']),
-            ('Title', terminal['title']),
-            ('Size', '${terminal['rows']} × ${terminal['cols']}'),
-            (
-              'Cursor',
-              '${(terminal['cursorRow'] as int) + 1}:'
-                  '${(terminal['cursorCol'] as int) + 1}',
-            ),
-            ('Scrollback', terminal['scrollback']),
-            ('Alternate buffer', terminal['backBufferActive']),
-            ('Paused', terminal['isPaused']),
-            ('Dirty', terminal['isDirty']),
-          ]),
+          PropertyTable(
+            properties: [
+              ('ID', terminal['id']),
+              ('Title', terminal['title']),
+              ('Size', '${terminal['rows']} × ${terminal['cols']}'),
+              (
+                'Cursor',
+                '${(terminal['cursorRow'] as int) + 1}:'
+                    '${(terminal['cursorCol'] as int) + 1}',
+              ),
+              ('Scrollback', terminal['scrollback']),
+              ('Alternate buffer', terminal['backBufferActive']),
+              ('Paused', terminal['isPaused']),
+              ('Dirty', terminal['isDirty']),
+            ],
+          ),
         ],
       );
     }
@@ -312,14 +289,13 @@ class _TerminalListState extends State<TerminalList> {
                           child: Container(
                             decoration: BoxDecoration(
                               color: selected
-                                  ? Theme.of(
-                                      context,
-                                    ).colorScheme.primaryContainer
+                                  ? Theme.of(context)
+                                        .colorScheme
+                                        .primaryContainer
                                   : null,
                               border: .all(
-                                color: Theme.of(
-                                  context,
-                                ).dividerColor.withValues(alpha: 0.25),
+                                color: Theme.of(context).dividerColor
+                                    .withValues(alpha: 0.25),
                                 width: 0.5,
                               ),
                             ),
@@ -334,23 +310,25 @@ class _TerminalListState extends State<TerminalList> {
           ),
           if (_selectedCell != null) ...[
             const SizedBox(height: denseSpacing),
-            buildPropertyTable([
-              (
-                'Position',
-                '${(_selectedCell!['row'] as int) + 1}:'
-                    '${(_selectedCell!['col'] as int) + 1}',
-              ),
-              ('Character', _selectedCell!['character']),
-              ('Foreground', _selectedCell!['foreground']),
-              ('Background', _selectedCell!['background']),
-              ('Bold', _selectedCell!['bold']),
-              ('Faint', _selectedCell!['faint']),
-              ('Italic', _selectedCell!['italic']),
-              ('Underline', _selectedCell!['underline']),
-              ('Concealed', _selectedCell!['concealed']),
-              ('Inverted', _selectedCell!['inverted']),
-              ('Hyperlink', _selectedCell!['hyperlink']),
-            ]),
+            PropertyTable(
+              properties: [
+                (
+                  'Position',
+                  '${(_selectedCell!['row'] as int) + 1}:'
+                      '${(_selectedCell!['col'] as int) + 1}',
+                ),
+                ('Character', _selectedCell!['character']),
+                ('Foreground', _selectedCell!['foreground']),
+                ('Background', _selectedCell!['background']),
+                ('Bold', _selectedCell!['bold']),
+                ('Faint', _selectedCell!['faint']),
+                ('Italic', _selectedCell!['italic']),
+                ('Underline', _selectedCell!['underline']),
+                ('Concealed', _selectedCell!['concealed']),
+                ('Inverted', _selectedCell!['inverted']),
+                ('Hyperlink', _selectedCell!['hyperlink']),
+              ],
+            ),
           ],
         ],
       );
