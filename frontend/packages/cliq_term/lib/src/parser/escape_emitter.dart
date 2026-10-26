@@ -1,8 +1,6 @@
 import 'package:cliq_term/cliq_term.dart';
 
-class EscapeEmitter {
-  const EscapeEmitter._();
-
+class EscapeEmitter._() {
   /// Emitted on
   /// https://terminalguide.namepad.de/seq/csi_st-18/
   /// (Response) https://terminalguide.namepad.de/seq/csi_st-8/

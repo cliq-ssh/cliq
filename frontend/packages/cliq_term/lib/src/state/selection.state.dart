@@ -1,18 +1,10 @@
-class SelectionState {
-  final bool active;
-  final int? startRow;
-  final int? startCol;
-  final int? endRow;
-  final int? endCol;
-
-  const SelectionState({
-    this.active = false,
-    this.startRow,
-    this.startCol,
-    this.endRow,
-    this.endCol,
-  });
-
+class SelectionState({
+  final bool active = false,
+  final int? startRow,
+  final int? startCol,
+  final int? endRow,
+  final int? endCol,
+}) {
   /// Whether the selection is active and has valid start and end coordinates.
   bool get isSelectionActive =>
       active &&

@@ -1,52 +1,26 @@
 import 'dart:ui';
 
-class TerminalTheme {
-  final Color black;
-  final Color red;
-  final Color green;
-  final Color yellow;
-  final Color blue;
-  final Color purple;
-  final Color cyan;
-  final Color white;
-  final Color brightBlack;
-  final Color brightRed;
-  final Color brightGreen;
-  final Color brightYellow;
-  final Color brightBlue;
-  final Color brightPurple;
-  final Color brightCyan;
-  final Color brightWhite;
-
-  final Color cursor;
-  final Color cursorText;
-  final Color background;
-  final Color foreground;
-  final Color selectionForeground;
-  final Color selectionBackground;
-
-  const TerminalTheme({
-    required this.black,
-    required this.red,
-    required this.green,
-    required this.yellow,
-    required this.blue,
-    required this.purple,
-    required this.cyan,
-    required this.white,
-    required this.brightBlack,
-    required this.brightRed,
-    required this.brightGreen,
-    required this.brightYellow,
-    required this.brightBlue,
-    required this.brightPurple,
-    required this.brightCyan,
-    required this.brightWhite,
-    required this.cursor,
-    required this.cursorText,
-    required this.background,
-    required this.foreground,
-    required this.selectionForeground,
-    required this.selectionBackground,
-  });
-}
+class const TerminalTheme({
+  required final Color black,
+  required final Color red,
+  required final Color green,
+  required final Color yellow,
+  required final Color blue,
+  required final Color purple,
+  required final Color cyan,
+  required final Color white,
+  required final Color brightBlack,
+  required final Color brightRed,
+  required final Color brightGreen,
+  required final Color brightYellow,
+  required final Color brightBlue,
+  required final Color brightPurple,
+  required final Color brightCyan,
+  required final Color brightWhite,
+  required final Color cursor,
+  required final Color cursorText,
+  required final Color background,
+  required final Color foreground,
+  required final Color selectionForeground,
+  required final Color selectionBackground,
+});

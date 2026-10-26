@@ -72,19 +72,16 @@ void main() {
       expect(controller.activeBuffer.getCell(0, 0).ch, 'a');
     });
 
-    test(
-      'inserted blanks are colored with the current SGR state, not reset to default',
-      () {
-        controller.feed('$kSeqEscape[41m'); // red background
-        controller.feed('abc');
-        controller.feed('$kSeqEscape[1G');
-        controller.feed('$kSeqEscape[1@');
+    test('inserted blanks are colored with the current SGR state, not reset to default', () {
+      controller.feed('$kSeqEscape[41m'); // red background
+      controller.feed('abc');
+      controller.feed('$kSeqEscape[1G');
+      controller.feed('$kSeqEscape[1@');
 
-        final insertedCell = controller.activeBuffer.getCell(0, 0);
-        expect(insertedCell.ch, ' ');
-        expect(insertedCell.fmt.bgColor, isNotNull);
-      },
-    );
+      final insertedCell = controller.activeBuffer.getCell(0, 0);
+      expect(insertedCell.ch, ' ');
+      expect(insertedCell.fmt.bgColor, isNotNull);
+    });
 
     test('clears a pending wrap without wrapping', () {
       controller.feed('$kSeqEscape[?7h'); // autowrap on

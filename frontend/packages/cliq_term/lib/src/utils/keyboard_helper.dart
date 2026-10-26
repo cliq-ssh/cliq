@@ -1,8 +1,6 @@
 import 'package:flutter/services.dart';
 
-class KeyboardHelper {
-  const KeyboardHelper._();
-
+class const KeyboardHelper._() {
   static bool isModifierOnlyKey(LogicalKeyboardKey key) {
     return key == LogicalKeyboardKey.control ||
         key == LogicalKeyboardKey.controlLeft ||

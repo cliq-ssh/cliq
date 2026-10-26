@@ -4,9 +4,7 @@ import 'package:cliq_term/cliq_term.dart';
 
 /// Registry for keeping track of all active [TerminalController] instances.
 /// This is used for the devtools service to provide information about all active terminals.
-class TerminalRegistry {
-  TerminalRegistry._();
-
+class TerminalRegistry._() {
   static final instance = TerminalRegistry._();
 
   final _controllers = <String, TerminalController>{};

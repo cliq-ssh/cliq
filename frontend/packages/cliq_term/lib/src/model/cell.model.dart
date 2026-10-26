@@ -1,21 +1,13 @@
 import '../../../cliq_term.dart';
 
-class Cell {
+class Cell(var String ch, var FormattingOptions fmt) {
   static const String emptyChar = ' ';
 
-  String ch;
-  FormattingOptions fmt;
-
-  Cell(this.ch, this.fmt);
-
-  Cell.empty() : ch = Cell.emptyChar, fmt = FormattingOptions.defaultFormat;
-
-  Cell.clone(Cell other)
-    : ch = other.ch,
-      fmt = FormattingOptions.clone(other.fmt);
+  Cell.empty() : this(emptyChar, .defaultFormat);
+  Cell.clone(Cell other) : this(other.ch, .clone(other.fmt));
 
   void reset() {
-    ch = Cell.emptyChar;
-    fmt = FormattingOptions.defaultFormat;
+    ch = emptyChar;
+    fmt = .defaultFormat;
   }
 }

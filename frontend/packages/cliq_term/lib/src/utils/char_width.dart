@@ -1,10 +1,8 @@
 import 'package:cliq_term/cliq_term.dart';
 import 'package:cupertino_ui/cupertino_ui.dart';
 
-class CharWidth {
+class const CharWidth._() {
   static final Map<TerminalTypography, (double, double)> _measureCache = {};
-
-  const CharWidth._();
 
   /// Calculates the width and height of a single character cell based on the provided typography.
   static (double width, double height) measureChar(

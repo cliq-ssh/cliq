@@ -1,7 +1,7 @@
 name: cliq_term_devtools
-description: "A new Flutter package project."
+description: "DevTools extension for the cliq_term terminal emulator"
 version: 0.0.1
-homepage:
+homepage: https://github.com/cliq-ssh/cliq
 
 resolution: workspace
 

@@ -6,9 +6,7 @@ class CsiParseResult {
 }
 
 /// Parser for Control Sequence Introducer (CSI) sequences.
-class CsiParser {
-  const CsiParser();
-
+class const CsiParser() {
   CsiParseResult parseCsi(String body) {
     if (body.isEmpty) {
       throw ArgumentError('Empty CSI body');

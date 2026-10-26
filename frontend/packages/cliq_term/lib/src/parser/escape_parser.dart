@@ -12,7 +12,7 @@ typedef CsiHandler = void Function(CsiParseResult parsed);
 typedef OscHandler = void Function(String params);
 typedef CcHandler = void Function(TerminalBuffer buffer);
 
-class EscapeParser {
+class EscapeParser({required final TerminalController controller}) {
   static final Logger _log = Logger('EscapeParser');
 
   /// The maximum number of bytes to process in a single batch before yielding to the event loop.
@@ -20,10 +20,6 @@ class EscapeParser {
 
   /// The maximum time budget in milliseconds for processing a batch of bytes before yielding to the event loop.
   static const _maxTimeBudgetInMs = 4;
-
-  final TerminalController controller;
-
-  EscapeParser({required this.controller});
 
   late final CsiParser _csiParser = CsiParser();
 
