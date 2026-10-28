@@ -426,6 +426,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.1.1"
+  flterm:
+    dependency: "direct main"
+    description:
+      name: flterm
+      sha256: "8f3203d57ee9063e83cbc0244ee26cc3206fbe01b43ba327f554600da5f0a9d1"
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.0.6"
   flutter:
     dependency: "direct main"
     description: flutter
@@ -742,6 +750,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "3.0.2"
+  libghostty:
+    dependency: transitive
+    description:
+      name: libghostty
+      sha256: f42a0975553fe405f3d3c33cf634af3de529b41bd939dbc478ae2f8acb52dc80
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.0.13"
   lints:
     dependency: transitive
     description:

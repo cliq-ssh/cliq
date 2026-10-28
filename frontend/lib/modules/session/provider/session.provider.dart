@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:ui';
 
 import 'package:cliq/modules/connections/model/connection_full.model.dart';
 import 'package:cliq/modules/credentials/data/credential.service.dart';
@@ -6,13 +7,15 @@ import 'package:cliq/modules/credentials/provider/credential_service.provider.da
 import 'package:cliq/modules/session/model/session.model.dart';
 import 'package:cliq/modules/session/model/session.state.dart';
 import 'package:cliq/modules/session/model/tab.model.dart';
+import 'package:cliq/modules/session/worker/sftp_worker.dart';
+import 'package:cliq/modules/session/worker/ssh_worker.dart';
+import 'package:cliq/modules/session/worker/worker_core.dart';
 import 'package:cliq/modules/settings/model/known_host_error.model.dart';
 import 'package:cliq/modules/settings/provider/known_host_service.provider.dart';
 import 'package:cliq/shared/data/database.dart';
 import 'package:cliq/shared/ui/navigation/navigation_shell.dart';
 import 'package:cliq/shared/utils/build_metadata.dart';
-import 'package:cliq_term/cliq_term.dart';
-import 'package:dartssh2/dartssh2.dart';
+import 'package:flterm/flterm.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:uuid/v4.dart';
 
@@ -23,6 +26,69 @@ class SessionNotifier extends Notifier<SessionState> {
 
   @override
   SessionState build() => const SessionState.initial();
+
+  static String getSshIdent() {
+    return 'SSH-2.0-cliq_${BuildMetadata.version}';
+  }
+
+  /// Builds the plain-data params every worker connects with
+  Future<SshConnectParams> connectParams(
+    ShellSession session,
+    ConnectionFull connection,
+  ) async {
+    final ids = await ref
+        .read(credentialServiceProvider)
+        .findByIds(
+          connection.identity?.credentialIds ?? connection.credentialIds,
+        );
+    final (password, keys) =
+        await CredentialService.collectAuthenticationMethods(ids);
+
+    return SshConnectParams(
+      host: connection.address,
+      port: connection.port,
+      username: connection.effectiveUsername!,
+      password: password,
+      keys: keys.map((k) => (k.toPem(), password)).toList(),
+      skipHostKeyVerification: session.skipHostKeyVerification,
+    );
+  }
+
+  Future<SshWorkerHandle?> connectSsh(
+    ShellSession session,
+    ConnectionFull connection,
+    TerminalController terminal, {
+    required VoidCallback onExit,
+  }) async {
+    final worker = SshWorkerHandle(terminal);
+    if (!await _startWorker(worker, session, connection, onExit: onExit)) {
+      return null;
+    }
+
+    _modifySession(
+      session.id,
+      (s) => s.copyWith(
+        connectedAt: .now(),
+        ssh: worker,
+        terminalController: terminal,
+      ),
+    );
+    return worker;
+  }
+
+  Future<SftpWorkerHandle?> connectSftp(
+    ShellSession session,
+    ConnectionFull connection,
+  ) async {
+    final worker = SftpWorkerHandle();
+    if (!await _startWorker(worker, session, connection)) return null;
+
+    _modifySession(
+      session.id,
+      (s) => s.copyWith(connectedAt: .now(), sftp: worker),
+    );
+    return worker;
+  }
 
   /// Creates a new session and navigates to the session branch, where the tab is selected.
   void createAndGo(
@@ -92,15 +158,6 @@ class SessionNotifier extends Notifier<SessionState> {
       selectedTabId: newSelectedTabId,
       tabPageIndices: newTabPageIndices,
     );
-  }
-
-  Future<SftpFile?> readFileFromSession(
-    String sessionId,
-    String filePath,
-  ) async {
-    final session = getSessionById(sessionId);
-    if (session == null || session.sftpClient == null) return null;
-    return await session.sftpClient!.open(filePath);
   }
 
   void closeSessionAndMaybeGo(
@@ -201,149 +258,6 @@ class SessionNotifier extends Notifier<SessionState> {
     state = state.copyWith(activeTabs: newActiveTabs);
   }
 
-  Future<SSHClient?> createSSHClient(
-    ShellSession session,
-    ConnectionFull connection,
-  ) async {
-    final (
-      password,
-      keys,
-    ) = await CredentialService.collectAuthenticationMethods(
-      await ref
-          .read(credentialServiceProvider)
-          .findByIds(
-            connection.identity?.credentialIds ?? connection.credentialIds,
-          ),
-    );
-
-    try {
-      final socket = await SSHSocket.connect(
-        connection.address,
-        connection.port,
-        timeout: const .new(seconds: 10), // TODO:
-      );
-
-      unawaited(
-        socket.done.then(
-          (_) => _close(session.id),
-          onError: (e) => _close(session.id, e.toString()),
-        ),
-      );
-
-      final sshClient = SSHClient(
-        socket,
-        username: connection.effectiveUsername!,
-        identities: keys,
-        onVerifyHostKey: (algorithm, fingerprint) async {
-          if (session.skipHostKeyVerification) {
-            return true;
-          }
-
-          // check db whether host is known
-          final (knownHost, isKeyMatch) = await ref
-              .read(knownHostServiceProvider)
-              .isHostKnown(connection.addressAndPort, fingerprint);
-
-          if (knownHost != null && isKeyMatch) return true;
-
-          _modifySession(
-            session.id,
-            (session) => session.copyWith(
-              knownHostError: KnownHostError(
-                host: connection.addressAndPort,
-                algorithm: algorithm,
-                fingerprint: fingerprint,
-                knownHost: knownHost,
-              ),
-            ),
-          );
-
-          // fail the verification for now, try again if the user accepts
-          return false;
-        },
-        onPasswordRequest: password != null ? () => password : null,
-        ident: _getSshIdent(),
-      );
-
-      unawaited(
-        sshClient.done.then(
-          (_) => _close(session.id),
-          onError: (e) => _close(session.id, e.toString()),
-        ),
-      );
-
-      return sshClient;
-    } catch (e) {
-      _close(session.id, e.toString());
-      return null;
-    }
-  }
-
-  Future<SSHSession?> spawnSsh(
-    String sessionId,
-    SSHClient client,
-    TerminalController controller,
-  ) async {
-    try {
-      await client.authenticated.onError(
-        (e, _) => _close(sessionId, e.toString()),
-      );
-      final sshSession = await client.shell(
-        pty: SSHPtyConfig(
-          width: controller.cols,
-          height: controller.rows,
-          pixelHeight: controller.height.toInt(),
-          pixelWidth: controller.width.toInt(),
-        ),
-      );
-      _modifySession(
-        sessionId,
-        (session) => session.copyWith(
-          connectedAt: DateTime.now(),
-          client: client,
-          sshSession: sshSession,
-          terminalController: controller,
-        ),
-      );
-      return sshSession;
-    } catch (e) {
-      await client.close();
-      _close(sessionId, e.toString());
-      return null;
-    }
-  }
-
-  Future<SftpClient> spawnSftp(String sessionId, SSHClient client) async {
-    try {
-      await client.authenticated;
-      final sftpClient = await client.sftp();
-      _modifySession(
-        sessionId,
-        (session) => session.copyWith(
-          connectedAt: DateTime.now(),
-          client: client,
-          sftpClient: sftpClient,
-        ),
-      );
-      return sftpClient;
-    } catch (e) {
-      await client.close();
-      _close(sessionId, e.toString());
-      rethrow;
-    }
-  }
-
-  void setStreamListeners(
-    String sessionId,
-    StreamSubscription? stdoutSub,
-    StreamSubscription? stderrSub,
-  ) {
-    _modifySession(
-      sessionId,
-      (session) => session.copyWith(stdoutSub: stdoutSub, stderrSub: stderrSub),
-    );
-  }
-
   Future<void> acceptFingerprint(
     DbId vaultId,
     String sessionId,
@@ -369,11 +283,74 @@ class SessionNotifier extends Notifier<SessionState> {
   }
 
   void _close(String sessionId, [String? message]) {
+    _modifySession(sessionId, (session) {
+      session.dispose();
+      return .disconnected(
+        id: session.id,
+        type: session.type,
+        connection: session.connection,
+        skipHostKeyVerification: session.skipHostKeyVerification,
+      );
+    });
+  }
+
+  Future<bool> _verifyHostKey(
+    ShellSession session,
+    ConnectionFull connection,
+    HostKeyRequestEvent request,
+  ) async {
+    final (knownHost, isKeyMatch) = await ref
+        .read(knownHostServiceProvider)
+        .isHostKnown(connection.addressAndPort, request.fingerprint);
+
+    if (knownHost != null && isKeyMatch) return true;
+
     _modifySession(
-      sessionId,
-      (session) =>
-          session.copyWith(connectionError: message ?? 'Connection closed'),
+      session.id,
+      (s) => s.copyWith(
+        knownHostError: KnownHostError(
+          host: connection.addressAndPort,
+          algorithm: request.algorithm,
+          fingerprint: request.fingerprint,
+          knownHost: knownHost,
+        ),
+      ),
     );
+
+    // fail for now, the user can accept the key and retry
+    return false;
+  }
+
+  /// Returns true if the worker is connected and ready
+  Future<bool> _startWorker(
+    WorkerHandle worker,
+    ShellSession session,
+    ConnectionFull connection, {
+    VoidCallback? onExit,
+  }) async {
+    final SshConnectParams params;
+    try {
+      params = await connectParams(session, connection);
+    } catch (e) {
+      _close(session.id, e.toString());
+      return false;
+    }
+
+    final ok = await worker.start(
+      params,
+      onHostKey: (r) => _verifyHostKey(session, connection, r),
+      // clean exit
+      onClosed: (e) =>
+          e == null && onExit != null ? onExit() : _close(session.id, e),
+    );
+    if (!ok) return false; // onClosed already reported the error
+
+    // the session was closed or reset while we were connecting
+    if (getSessionById(session.id) == null) {
+      worker.dispose();
+      return false;
+    }
+    return true;
   }
 
   void _modifySession(
@@ -435,9 +412,5 @@ class SessionNotifier extends Notifier<SessionState> {
       pageIndices[tabs[i].id] = i;
     }
     return pageIndices;
-  }
-
-  String _getSshIdent() {
-    return 'SSH-2.0-cliq_${BuildMetadata.version}';
   }
 }

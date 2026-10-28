@@ -1,24 +1,19 @@
 import 'dart:async';
-import 'dart:convert';
 
 import 'package:cliq/modules/connections/model/connection_full.model.dart';
 import 'package:cliq/modules/connections/provider/connection.provider.dart';
 import 'package:cliq/modules/session/page/generic_session.page.dart';
 import 'package:cliq/modules/session/provider/session.provider.dart';
-import 'package:cliq/modules/settings/extension/custom_terminal_theme.extension.dart';
-import 'package:cliq/modules/settings/model/keyboard_shortcuts.model.dart';
 import 'package:cliq/modules/settings/provider/terminal_theme.provider.dart';
 import 'package:cliq/shared/provider/store.provider.dart';
 import 'package:cliq/shared/ui/navigation/navigation_shell.dart';
 import 'package:cliq/shared/ui/repeatable_button.dart';
 import 'package:cliq/shared/utils/platform_utils.dart';
-import 'package:cliq_term/cliq_term.dart';
-import 'package:flutter/foundation.dart';
+import 'package:flterm/flterm.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:forui/forui.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:lucide_flutter/lucide_flutter.dart';
 import 'package:material_ui/material_ui.dart' hide LicensePage;
 import 'package:window_manager/window_manager.dart';
 
@@ -53,8 +48,6 @@ class _SshSessionPageState extends ConsumerState<SshSessionPage>
         .watch(sessionProvider.notifier)
         .getSessionById(widget.sessionId)!;
 
-    final resizeDebounceTimer = useState<Timer?>(null);
-
     final terminalController = useState<TerminalController?>(
       session.terminalController,
     );
@@ -76,9 +69,9 @@ class _SshSessionPageState extends ConsumerState<SshSessionPage>
       defaultTerminalTheme.value,
     );
 
-    final isInitialResize = useState(true);
-    final resizeOverlayEntry = useState<OverlayEntry?>(null);
-    final resizeOverlayTimer = useState<Timer?>(null);
+    final isInitialResize = useRef(true);
+    final resizeOverlayEntry = useRef<OverlayEntry?>(null);
+    final resizeOverlayTimer = useRef<Timer?>(null);
 
     getEffectiveTerminalTypography() =>
         session.connection.terminalTypographyOverride ??
@@ -110,64 +103,45 @@ class _SshSessionPageState extends ConsumerState<SshSessionPage>
         if (!bellSound.value) return;
         await SystemSound.play(.alert);
       };
-      controller.onTitleChange = (title) {
+
+      controller.onTitleChanged = () {
         if (!PlatformUtils.isDesktop) return;
-        windowManager.setTitle(title);
+        windowManager.setTitle(controller.title);
       };
-      controller.onHyperlinkTap = (hyperlink) {
-        debugPrint('Hyperlink tapped: $hyperlink');
-        // TODO: handle hyperlinks?
-      };
-      controller.onResize = (rows, cols, size) {
-        resizeDebounceTimer.value?.cancel();
-        resizeDebounceTimer.value = Timer(
-          const Duration(milliseconds: 100),
-          () {
-            if (!mounted) return;
-            final currentSession = ref
-                .read(sessionProvider.notifier)
-                .getSessionById(widget.sessionId);
-            currentSession?.sshSession?.resizeTerminal(
-              cols,
-              rows,
-              size.width.round(),
-              size.height.round(),
-            );
-          },
-        );
+
+      controller.onResize = (cols, rows) {
+        ref.read(sessionProvider.notifier)
+            .getSessionById(widget.sessionId)
+            ?.ssh
+            ?.resize(cols, rows);
 
         if (isInitialResize.value) {
           isInitialResize.value = false;
           return;
         }
 
-        removeOverlay() {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
           if (!mounted) return;
           resizeOverlayEntry.value?.remove();
-          resizeOverlayEntry.value = null;
-        }
+          resizeOverlayEntry.value = buildResizeOverlay(rows, cols);
+          Overlay.of(context).insert(resizeOverlayEntry.value!);
 
-        if (resizeOverlayEntry.value != null) removeOverlay();
-
-        resizeOverlayEntry.value = buildResizeOverlay(rows, cols);
-        Overlay.of(context).insert(resizeOverlayEntry.value!);
-
-        resizeOverlayTimer.value?.cancel();
-        resizeOverlayTimer.value = Timer(
-          const Duration(milliseconds: 500),
-          removeOverlay,
-        );
+          resizeOverlayTimer.value?.cancel();
+          resizeOverlayTimer.value = Timer(const Duration(milliseconds: 500), () {
+            if (!mounted) return;
+            resizeOverlayEntry.value?.remove();
+            resizeOverlayEntry.value = null;
+          });
+        });
       };
     }
 
     buildTerminalController() {
       final controller = TerminalController(
-        theme: effectiveTerminalTheme.toTerminalTheme(),
-        typography: getEffectiveTerminalTypography(),
-        debugLogging: kDebugMode,
-        maxScrollbackLines: scrollbackSize.value,
-        cursorBlinkInterval: Duration(milliseconds: cursorBlinkInterval.value),
-        cursorBlinkTimeout: Duration(seconds: cursorBlinkTimeout.value),
+        config: .new(
+          scrollbackMaxLines: scrollbackSize.value,
+          // TODO: theming
+        ),
       );
       rebindTerminalControllerCallbacks(controller);
       return controller;
@@ -208,66 +182,27 @@ class _SshSessionPageState extends ConsumerState<SshSessionPage>
 
       Future<void> openSsh(ConnectionFull connection) async {
         if (!mounted || terminalController.value == null) return;
+        final notifier = ref.read(sessionProvider.notifier);
 
-        final client =
-            session.client ??
-            await ref
-                .read(sessionProvider.notifier)
-                .createSSHClient(session, connection);
-        if (client == null || !mounted) return;
+        // reuse the worker if the session is already connected (page was rebuilt)
+        final worker =
+            session.ssh ??
+            await notifier.connectSsh(
+              session,
+              connection,
+              terminalController.value!,
+              onExit: () {
+                if (!context.mounted) return;
+                notifier.closeSessionAndMaybeGo(
+                  NavigationShell.of(context),
+                  session.id,
+                );
+              },
+            );
+        if (worker == null || !mounted) return;
 
-        final sshSession =
-            session.sshSession ??
-            await ref
-                .read(sessionProvider.notifier)
-                .spawnSsh(session.id, client, terminalController.value!);
-        if (sshSession == null) return;
-
-        if (session.sshSession == null) {
-          // only wire this once, the first time this session is actually spawned
-          unawaited(
-            sshSession.done.then((_) {
-              if (!context.mounted) return;
-              ref
-                  .read(sessionProvider.notifier)
-                  .closeSessionAndMaybeGo(
-                    NavigationShell.of(context),
-                    session.id,
-                  );
-            }),
-          );
-        }
-
-        // always rebind, regardless of whether the shell was just spawned or already existed
-        terminalController.value!.onInput = (s) {
-          sshSession.write(.fromList(utf8.encode(s)));
-        };
-
-        StreamSubscription? stdoutSub;
-        StreamSubscription? stderrSub;
-
-        terminalController.value!.onPause = () => stdoutSub?.pause();
-        terminalController.value!.onResume = () => stdoutSub?.resume();
-
-        stdoutSub =
-            session.stdoutSub ??
-            const Utf8Decoder(allowMalformed: true)
-                .bind(sshSession.stdout)
-                .listen((str) {
-                  terminalController.value?.feed(str);
-                });
-
-        stderrSub =
-            session.stderrSub ??
-            const Utf8Decoder(allowMalformed: true)
-                .bind(sshSession.stderr)
-                .listen((str) {
-                  terminalController.value?.feed(str);
-                });
-
-        ref
-            .read(sessionProvider.notifier)
-            .setStreamListeners(session.id, stdoutSub, stderrSub);
+        // always rebind, also when the worker already existed
+        terminalController.value!.onOutput = worker.write;
       }
 
       final connectionFull = ref
@@ -291,20 +226,6 @@ class _SshSessionPageState extends ConsumerState<SshSessionPage>
 
         WidgetsBinding.instance.addPostFrameCallback((_) {
           if (!mounted) return;
-
-          terminalController.value!.setTerminalTypography(
-            getEffectiveTerminalTypography(),
-          );
-          terminalController.value!.setTerminalTheme(
-            effectiveTerminalTheme.toTerminalTheme(),
-          );
-          terminalController.value!.setCursorStyle(cursorStyle.value);
-          terminalController.value!.setCursorBlinkInterval(
-            Duration(milliseconds: cursorBlinkInterval.value),
-          );
-          terminalController.value!.setCursorBlinkTimeout(
-            Duration(seconds: cursorBlinkTimeout.value),
-          );
         });
 
         return null;
@@ -347,79 +268,6 @@ class _SshSessionPageState extends ConsumerState<SshSessionPage>
       return child;
     }
 
-    getButtonVariantForState(AccessoryBarButtonState state) {
-      return switch (state) {
-        .inactive => FButtonVariant.outline,
-        .oneShot => FButtonVariant.secondary,
-        .active => FButtonVariant.primary,
-      };
-    }
-
-    buildAccessoryBar() {
-      if (PlatformUtils.isDesktop) return null;
-
-      return (_, TerminalAccessoryBarActions actions) {
-        return TerminalAccessoryBar(
-          backgroundColor: effectiveTerminalTheme.background,
-          padding: const .symmetric(horizontal: 8, vertical: 4),
-          items: [
-            buildAccessoryButton(
-              () => actions.sendInput(kSeqEscape),
-              text: 'ESC',
-            ),
-            buildAccessoryButton(() => actions.sendInput(kSeqTab), text: 'TAB'),
-            ValueListenableBuilder(
-              valueListenable: actions.ctrlActive,
-              builder: (_, value, _) {
-                return buildAccessoryButton(
-                  () => actions.toggleCtrl(),
-                  text: 'CTRL',
-                  variant: getButtonVariantForState(value),
-                );
-              },
-            ),
-            ValueListenableBuilder(
-              valueListenable: actions.altActive,
-              builder: (_, value, _) {
-                return buildAccessoryButton(
-                  () => actions.toggleAlt(),
-                  text: 'ALT',
-                  variant: getButtonVariantForState(value),
-                );
-              },
-            ),
-
-            buildAccessoryButton(
-              () => actions.sendInput(kSeqCursorUp),
-              icon: LucideIcons.arrowUp,
-              repeatable: true,
-            ),
-            buildAccessoryButton(
-              () => actions.sendInput(kSeqCursorDown),
-              icon: LucideIcons.arrowDown,
-              repeatable: true,
-            ),
-            buildAccessoryButton(
-              () => actions.sendInput(kSeqCursorLeft),
-              icon: LucideIcons.arrowLeft,
-              repeatable: true,
-            ),
-            buildAccessoryButton(
-              () => actions.sendInput(kSeqCursorRight),
-              icon: LucideIcons.arrowRight,
-              repeatable: true,
-            ),
-          ],
-          suffixItem: buildAccessoryButton(
-            () => actions.toggleKeyboard(),
-            icon: actions.keyboardVisible.value
-                ? LucideIcons.keyboardOff
-                : LucideIcons.keyboard,
-          ),
-        );
-      };
-    }
-
     final rawKeyboardInset = MediaQuery.of(context).viewInsets.bottom;
     final adjustedKeyboardInset = PlatformUtils.isMobile
         ? (rawKeyboardInset - kBottomNavigationBarHeight).clamp(
@@ -436,22 +284,9 @@ class _SshSessionPageState extends ConsumerState<SshSessionPage>
       child: SizedBox.expand(
         child: Container(
           color: effectiveTerminalTheme.background,
-          padding: kShellSessionPagePadding.copyWith(
-            bottom:
-                kShellSessionPagePadding.bottom +
-                adjustedKeyboardInset +
-                TerminalView.getAccessoryBarHeight(PlatformUtils.isMobile),
-          ),
           child: TerminalView(
             controller: terminalController.value!,
             focusNode: widget.focusNode,
-            accessoryBarBuilder: buildAccessoryBar(),
-            accessoryBarOffset: kBottomNavigationBarHeight,
-            allowTextSelection: PlatformUtils.isDesktop,
-            copyShortcut: shortcuts.value.shortcuts[KeyboardShortcutType.copy],
-            pasteShortcut:
-                shortcuts.value.shortcuts[KeyboardShortcutType.paste],
-            isMobile: PlatformUtils.isMobile,
           ),
         ),
       ),

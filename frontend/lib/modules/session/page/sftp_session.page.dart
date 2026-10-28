@@ -302,22 +302,15 @@ class _SftpSessionPageState extends ConsumerState<SftpSessionPage>
       Future<void> openSftp(ConnectionFull connection) async {
         isLoading.value = true;
 
-        final client =
-            session.client ??
+        // reuse the worker if the session is already connected
+        final sftp =
+            session.sftp ??
             await ref
                 .read(sessionProvider.notifier)
-                .createSSHClient(session, connection);
+                .connectSftp(session, connection);
+        if (sftp == null || !mounted) return;
 
-        if (client == null || !mounted) {
-          return;
-        }
-
-        final sftpSession = await ref
-            .read(sessionProvider.notifier)
-            .spawnSftp(session.id, client);
-
-        currentDirectory.value = (await sftpSession.absolute('.')).split('/');
-
+        currentDirectory.value = (await sftp.absolute('.')).split('/');
         isLoading.value = false;
       }
 
@@ -337,7 +330,7 @@ class _SftpSessionPageState extends ConsumerState<SftpSessionPage>
 
     // fetch files in current directory
     useEffect(() {
-      if (session.sftpClient == null ||
+      if (session.sftp == null ||
           currentDirectory.value == null ||
           isLoading.value) {
         return null;
@@ -350,7 +343,7 @@ class _SftpSessionPageState extends ConsumerState<SftpSessionPage>
           final path = currentDirectory.value!.join('/');
 
           currentFiles.value =
-              (await session.sftpClient!.listdir(path.isEmpty ? '/' : path))
+              (await session.sftp!.listdir(path.isEmpty ? '/' : path))
                   .where((file) => !_ignoredFilenames.contains(file.filename))
                   .toList();
         } on SftpStatusError catch (e) {
@@ -441,7 +434,7 @@ class _SftpSessionPageState extends ConsumerState<SftpSessionPage>
     isDirectoryEmpty(SftpName file) async {
       if (!file.attr.isDirectory) return false;
       final path = [...?currentDirectory.value, file.filename].join('/');
-      final entries = await session.sftpClient!.listdir(path);
+      final entries = await session.sftp!.listdir(path);
       return !entries.any(
         (e) => !_ignoredSelectableFilenames.contains(e.filename),
       );
@@ -481,7 +474,7 @@ class _SftpSessionPageState extends ConsumerState<SftpSessionPage>
       }
       isLoading.value = true;
       final path =
-          await session.sftpClient!.absolute(
+          await session.sftp!.absolute(
               [...?currentDirectory.value, file.filename].join('/'),
             )
             ..trim();
@@ -582,10 +575,10 @@ class _SftpSessionPageState extends ConsumerState<SftpSessionPage>
       isLoading.value = true;
 
       final symlinkPath = [...?currentDirectory.value, file.filename].join('/');
-      final targetAttr = await session.sftpClient!.stat(symlinkPath);
+      final targetAttr = await session.sftp!.stat(symlinkPath);
 
       if (targetAttr.isDirectory) {
-        final absolutePath = await session.sftpClient!.absolute(symlinkPath);
+        final absolutePath = await session.sftp!.absolute(symlinkPath);
         navigateTo(absolutePath.split('/'));
       } else {
         await openFile(file, id);
@@ -643,9 +636,9 @@ class _SftpSessionPageState extends ConsumerState<SftpSessionPage>
 
       try {
         if (isCreatingDirectory.value) {
-          await session.sftpClient!.mkdir(newPath);
+          await session.sftp!.mkdir(newPath);
         } else {
-          await session.sftpClient!.rename(oldPath, newPath);
+          await session.sftp!.rename(oldPath, newPath);
         }
         resetRename();
         reloadDirectory();
@@ -672,32 +665,17 @@ class _SftpSessionPageState extends ConsumerState<SftpSessionPage>
         return;
       }
 
-      deleteRecursive(SftpClient sftp, String path) async {
-        final attrs = await sftp.stat(path);
-
-        if (attrs.isDirectory) {
-          final entries = await sftp.listdir(path);
-          for (final entry in entries) {
-            if (_ignoredSelectableFilenames.contains(entry.filename)) continue;
-            await deleteRecursive(sftp, '$path/${entry.filename}');
-          }
-          await sftp.rmdir(path);
-        } else {
-          await sftp.remove(path);
-        }
-      }
-
       delete() async {
         isLoading.value = true;
         final fullPath = [...?currentDirectory.value, file.filename].join('/');
 
         if (forceRecursive) {
-          await deleteRecursive(session.sftpClient!, fullPath);
+          await session.sftp!.removeRecursive(fullPath);
         } else if (!file.attr.isDirectory) {
-          await session.sftpClient!.remove(fullPath);
+          await session.sftp!.remove(fullPath);
         } else {
           if (await isDirectoryEmpty(file)) {
-            await session.sftpClient!.rmdir(fullPath);
+            await session.sftp!.rmdir(fullPath);
           } else {
             // warn user if enabled
             bool result = false;
@@ -712,7 +690,7 @@ class _SftpSessionPageState extends ConsumerState<SftpSessionPage>
               );
             }
             if (!directoryNotEmptyWarning.value || result) {
-              await deleteRecursive(session.sftpClient!, fullPath);
+              await session.sftp!.removeRecursive(fullPath);
             }
           }
         }
@@ -990,7 +968,7 @@ class _SftpSessionPageState extends ConsumerState<SftpSessionPage>
 
                     // check if file exists
                     try {
-                      await session.sftpClient!.stat(destinationPath);
+                      await session.sftp!.stat(destinationPath);
                       await Commons.showConfirmationDialog(
                         title: 'dialog_overwrite_title'.tr(),
                         children: (context, _, _) => TextUtils.renderText(
