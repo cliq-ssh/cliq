@@ -10,6 +10,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses
 import io.swagger.v3.oas.annotations.tags.Tag
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
+import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.security.core.annotation.AuthenticationPrincipal
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
@@ -56,6 +57,7 @@ class VaultController(private val vaultFactory: VaultFactory, private val reposi
     }
 
     @Authenticated
+    @PreAuthorize("@vaultAuthorization.canUpdate(#id, #session.user)")
     @PutMapping("/{id}")
     @Operation(summary = "Insert or update vault")
     @Parameter(
@@ -114,8 +116,9 @@ class VaultController(private val vaultFactory: VaultFactory, private val reposi
             ),
         ],
     )
-    fun get(@PathVariable id: UUID): ResponseEntity<VaultView> {
-        val vault = repository.findById(id).orElse(null) ?: return ResponseEntity.notFound().build()
+    fun get(@PathVariable id: UUID, @AuthenticationPrincipal session: Session): ResponseEntity<VaultView> {
+        val user = session.user
+        val vault = repository.findByIdAndUser(id, user) ?: return ResponseEntity.notFound().build()
 
         val view = VaultView(vault.encryptedConfig, vault.version, vault.updatedAt, vault.updatedAt)
 
@@ -139,8 +142,9 @@ class VaultController(private val vaultFactory: VaultFactory, private val reposi
             ),
         ],
     )
-    fun getUpdatedAt(@PathVariable id: UUID): ResponseEntity<String> {
-        val updatedAt = repository.getUpdatedAtById(id)
+    fun getUpdatedAt(@PathVariable id: UUID, @AuthenticationPrincipal session: Session): ResponseEntity<String> {
+        val user = session.user
+        val updatedAt = repository.getUpdatedAtByIdAndUser(id, user)
 
         return ResponseEntity.ok(updatedAt.toString())
     }
