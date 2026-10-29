@@ -54,7 +54,10 @@ class VaultDataTests(
             ).andExpect(MockMvcResultMatchers.status().isOk)
             .andReturn()
         assertDoesNotThrow {
-            objectMapper.readValue(listResponseAuthenticated.response.contentAsString, Array<PartialVaultView>::class.java)
+            objectMapper.readValue(
+                listResponseAuthenticated.response.contentAsString,
+                Array<PartialVaultView>::class.java,
+            )
         }
 
         val vaultResponseAuthenticated = mockMvc
