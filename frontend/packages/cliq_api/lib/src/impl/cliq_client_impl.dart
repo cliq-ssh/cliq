@@ -32,9 +32,9 @@ class CliqClientImpl implements CliqClient {
   }
 
   @override
-  Future<Vault> retrieveVault() async {
+  Future<Vault> retrieveVault({required String vaultId}) async {
     final result = await requestHandler.authenticatedRequest(
-      route: VaultRoutes.get.compile(),
+      route: VaultRoutes.get.compile(params: [vaultId]),
       mapper: (data) => entityBuilder.buildVault(data),
     );
 
@@ -45,9 +45,9 @@ class CliqClientImpl implements CliqClient {
   }
 
   @override
-  Future<DateTime?> retrieveVaultLastUpdated() async {
+  Future<DateTime?> retrieveVaultLastUpdated({required String vaultId}) async {
     final result = await requestHandler.authenticatedRequest(
-      route: VaultRoutes.getLastUpdated.compile(),
+      route: VaultRoutes.getLastUpdated.compile(params: [vaultId]),
       mapper: (data) => DateTime.tryParse(data),
     );
 
@@ -58,9 +58,12 @@ class CliqClientImpl implements CliqClient {
   }
 
   @override
-  Future<void> upsertVault({required String configuration}) async {
+  Future<void> upsertVault({
+    required String vaultId,
+    required String configuration,
+  }) async {
     final result = await requestHandler.authenticatedNoResponseRequest(
-      route: VaultRoutes.put.compile(),
+      route: VaultRoutes.put.compile(params: [vaultId]),
       body: {'configuration': configuration, 'version': '_unused'},
     );
 

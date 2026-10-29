@@ -2,6 +2,7 @@ import 'package:cliq/modules/settings/page/abstract_settings_page.dart';
 import 'package:cliq/modules/settings/page/settings.page.dart';
 import 'package:cliq/modules/settings/provider/sync.provider.dart';
 import 'package:cliq/modules/vaults/provider/vault.provider.dart';
+import 'package:cliq/shared/data/database.dart';
 import 'package:cliq/shared/data/store.dart';
 import 'package:cliq/shared/model/page_path.model.dart';
 import 'package:cliq/shared/provider/database.provider.dart';
@@ -134,6 +135,28 @@ class const DeveloperSettingsView({super.key}) extends AbstractSettingsPage {
         FTileGroup(
           label: const Text('Database'),
           children: [
+            FTile(
+              prefix: const Icon(LucideIcons.fileCodeCorner),
+              title: const Text('Database path'),
+              subtitle: FutureBuilder(
+                future: CliqDatabase.databasePath,
+                builder: (context, snap) => Text(
+                  snap.hasError
+                      ? 'Unavailable: ${snap.error}'
+                      : snap.data ?? 'Loading...',
+                  overflow: .visible,
+                ),
+              ),
+              suffix: FButton.icon(
+                onPress: () async {
+                  final path = await CliqDatabase.databasePath;
+                  if (!context.mounted) return;
+
+                  return Commons.copyToClipboard(context, path);
+                },
+                child: const Icon(LucideIcons.copy),
+              ),
+            ),
             // TODO move to commons?
             .tile(
               variant: .destructive,
