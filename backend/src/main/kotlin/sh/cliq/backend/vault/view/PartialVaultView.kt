@@ -15,14 +15,14 @@ import java.util.UUID
  * @property createdAt The timestamp when the vault was created.
  */
 @Schema
-data class VaultListView(
+data class PartialVaultView(
     val id: UUID,
     val version: String,
     val updatedAt: OffsetDateTime,
     val createdAt: OffsetDateTime,
 ) {
     companion object {
-        fun fromVault(vault: VaultData): VaultListView = VaultListView(
+        fun fromVault(vault: VaultData): PartialVaultView = PartialVaultView(
             id = vault.id,
             version = vault.version,
             updatedAt = vault.updatedAt,

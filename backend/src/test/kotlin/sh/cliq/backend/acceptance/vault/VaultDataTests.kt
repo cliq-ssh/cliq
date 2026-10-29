@@ -12,7 +12,7 @@ import sh.cliq.backend.acceptance.AcceptanceTest
 import sh.cliq.backend.acceptance.AcceptanceTester
 import sh.cliq.backend.support.UserCreationHelper
 import sh.cliq.backend.vault.params.VaultParams
-import sh.cliq.backend.vault.view.VaultListView
+import sh.cliq.backend.vault.view.PartialVaultView
 import sh.cliq.backend.vault.view.VaultView
 import tools.jackson.databind.ObjectMapper
 import tools.jackson.databind.exc.MismatchedInputException
@@ -54,7 +54,7 @@ class VaultDataTests(
             ).andExpect(MockMvcResultMatchers.status().isOk)
             .andReturn()
         assertDoesNotThrow {
-            objectMapper.readValue(listResponseAuthenticated.response.contentAsString, Array<VaultListView>::class.java)
+            objectMapper.readValue(listResponseAuthenticated.response.contentAsString, Array<PartialVaultView>::class.java)
         }
 
         val vaultResponseAuthenticated = mockMvc
@@ -83,7 +83,7 @@ class VaultDataTests(
             ).andExpect(MockMvcResultMatchers.status().isUnauthorized)
             .andReturn()
         assertThrows<MismatchedInputException> {
-            objectMapper.readValue(listResponse.response.contentAsString, Array<VaultListView>::class.java)
+            objectMapper.readValue(listResponse.response.contentAsString, Array<PartialVaultView>::class.java)
         }
 
         val vaultResponse = mockMvc
@@ -313,7 +313,7 @@ class VaultDataTests(
                 .andReturn()
         val listResponseString = listResponse.response.contentAsString
         assert(listResponseString.isNotEmpty())
-        val vaultList = objectMapper.readValue(listResponseString, Array<VaultListView>::class.java)
+        val vaultList = objectMapper.readValue(listResponseString, Array<PartialVaultView>::class.java)
         assertEquals(2, vaultList.size)
         assert(vaultList.any { it.id == vault1Uuid })
         assert(vaultList.any { it.id == vault2Uuid })

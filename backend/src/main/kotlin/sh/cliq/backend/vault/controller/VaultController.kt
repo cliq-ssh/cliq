@@ -23,7 +23,7 @@ import sh.cliq.backend.session.Session
 import sh.cliq.backend.vault.VaultRepository
 import sh.cliq.backend.vault.factory.VaultFactory
 import sh.cliq.backend.vault.params.VaultParams
-import sh.cliq.backend.vault.view.VaultListView
+import sh.cliq.backend.vault.view.PartialVaultView
 import sh.cliq.backend.vault.view.VaultView
 import java.time.OffsetDateTime
 import java.util.UUID
@@ -43,15 +43,15 @@ class VaultController(private val vaultFactory: VaultFactory, private val reposi
                 content = [
                     Content(
                         mediaType = MediaType.APPLICATION_JSON_VALUE,
-                        array = ArraySchema(schema = Schema(implementation = VaultListView::class)),
+                        array = ArraySchema(schema = Schema(implementation = PartialVaultView::class)),
                     ),
                 ],
             ),
         ],
     )
-    fun list(@AuthenticationPrincipal session: Session): ResponseEntity<List<VaultListView>> {
+    fun list(@AuthenticationPrincipal session: Session): ResponseEntity<List<PartialVaultView>> {
         val user = session.user
-        val vaults = repository.findAllByUser(user).map { VaultListView.fromVault(it) }
+        val vaults = repository.findAllByUser(user).map { PartialVaultView.fromVault(it) }
 
         return ResponseEntity.ok(vaults)
     }

@@ -30,7 +30,7 @@ import sh.cliq.backend.support.encryption.EncryptionHelper
 import sh.cliq.backend.support.encryption.KeyAndHashHelper
 import sh.cliq.backend.user.view.UserResponse
 import sh.cliq.backend.vault.params.VaultParams
-import sh.cliq.backend.vault.view.VaultListView
+import sh.cliq.backend.vault.view.PartialVaultView
 import tools.jackson.databind.ObjectMapper
 import java.security.SecureRandom
 import java.util.Base64
@@ -234,7 +234,7 @@ class RegistrationLoginAndSyncTests(
                 ).andExpect(status().isOk)
                 .andReturn()
         val lastUpdatedContent = lastUpdatedResult.response.contentAsString
-        val vaults = objectMapper.readValue(lastUpdatedContent, Array<VaultListView>::class.java)
+        val vaults = objectMapper.readValue(lastUpdatedContent, Array<PartialVaultView>::class.java)
         assertEquals(0, vaults.count())
 
         // Push config
