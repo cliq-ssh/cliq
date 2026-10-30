@@ -120,7 +120,7 @@ class VaultController(private val vaultFactory: VaultFactory, private val reposi
         val user = session.user
         val vault = repository.findByIdAndUser(id, user) ?: return ResponseEntity.notFound().build()
 
-        val view = VaultView(vault.encryptedConfig, vault.version, vault.updatedAt, vault.updatedAt)
+        val view = VaultView.fromVault(vault)
 
         return ResponseEntity.ok(view)
     }
