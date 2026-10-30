@@ -194,12 +194,7 @@ class SyncProviderNotifier extends Notifier<SyncState> {
   /// Whether we should pull the latest vault from the server because it
   /// seems to be newer than our local vault.
   Future<bool> shouldPull() async {
-    final api = state.api;
-    if (api == null) return false;
-    final userVault = await ref
-        .read(vaultProvider.notifier)
-        .findOrCreateUserVault(api);
-    final remote = (await api.retrieveVaultLastUpdated(vaultId: userVault.id))
+    final remote = (await state.api?.retrieveVaultLastUpdated())
         ?.copyWith(microsecond: 0) // drop microseconds for comparison
         .toUtc();
     // this would only ever be the case if the user has never synced before, so we
@@ -256,13 +251,8 @@ class SyncProviderNotifier extends Notifier<SyncState> {
       StringUtils.hexToArray(dek),
     );
 
-    await state.api!.upsertVault(
-      vaultId: userVaultId,
-      configuration: base64Encode(encrypted),
-    );
-    final lastUpdated = await state.api!.retrieveVaultLastUpdated(
-      vaultId: userVaultId,
-    );
+    await state.api!.upsertVault(configuration: base64Encode(encrypted));
+    final lastUpdated = await state.api!.retrieveVaultLastUpdated();
     if (lastUpdated == null) {
       throw StateError(
         'Failed to retrieve last updated timestamp from server after pushing vault.',
@@ -588,7 +578,7 @@ class SyncProviderNotifier extends Notifier<SyncState> {
         (await ref
             .read(vaultProvider.notifier)
             .findOrCreateUserVault(state.api!));
-    final vault = await state.api!.retrieveVault(vaultId: userVault.id);
+    final vault = await state.api!.retrieveVault();
 
     final dek = await StoreKey.syncDataEncryptionKey.readAsync();
     if (dek == null) {

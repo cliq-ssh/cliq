@@ -38,7 +38,6 @@ typedef DbId = String;
   },
 )
 final class CliqDatabase extends _$CliqDatabase {
-  static final Future<String> databasePath = _resolveDatabasePath();
   static late CliqDatabase instance;
 
   late final keysRepository = KeyRepository(this);
@@ -83,15 +82,11 @@ final class CliqDatabase extends _$CliqDatabase {
 
   Future<void> deleteDatabaseFile() async {
     await executor.close();
-    final dbFile = File(await databasePath);
+    final supportDir = await getApplicationSupportDirectory();
+    final dbFile = File('${supportDir.path}/cliq_db.sqlite');
     if (dbFile.existsSync()) {
       dbFile.deleteSync();
     }
-  }
-
-  static Future<String> _resolveDatabasePath() async {
-    final supportDir = await getApplicationSupportDirectory();
-    return '${supportDir.path}/cliq_db.sqlite';
   }
 
   static QueryExecutor _openConnection() {
