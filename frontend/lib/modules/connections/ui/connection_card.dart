@@ -70,7 +70,9 @@ class const ConnectionCard({
           await ref
               .read(connectionServiceProvider)
               .deleteById(connection.id, connection.credentialIds);
-          await ref.read(syncProvider.notifier).pullAndPushVault();
+          await ref
+              .read(syncProvider.notifier)
+              .pullAndPushVault(vaultId: connection.vaultId);
         },
       );
     }

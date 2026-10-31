@@ -37,7 +37,9 @@ class const IdentityCard({super.key, required final IdentityFull identity})
           await ref
               .read(identityServiceProvider)
               .deleteById(identity.id, identity.credentialIds);
-          await ref.read(syncProvider.notifier).pullAndPushVault();
+          await ref
+              .read(syncProvider.notifier)
+              .pullAndPushVault(vaultId: identity.vaultId);
         },
       );
     }

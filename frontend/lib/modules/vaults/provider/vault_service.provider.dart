@@ -4,6 +4,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 
 final Provider<VaultService> vaultServiceProvider = Provider((ref) {
   final db = ref.read(databaseProvider);
+
   return VaultService(
     db.vaultsRepository,
     db.connectionsRepository,

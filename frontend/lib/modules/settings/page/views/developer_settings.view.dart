@@ -114,15 +114,9 @@ class const DeveloperSettingsView({super.key}) extends AbstractSettingsPage {
                 title: const Text('Force pull current vault'),
                 variant: .destructive,
                 onPress: () async {
-                  final userVault = await ref
-                      .read(vaultProvider.notifier)
-                      .findOrCreateUserVault(sync.api!);
                   final pullResult = await ref
                       .read(syncProvider.notifier)
-                      .pullVault(
-                        userVaultOverride: userVault,
-                        ignoreShouldPull: true,
-                      );
+                      .pullAllVaults(ignoreShouldPull: true);
 
                   if (pullResult) {
                     await Commons.showToast('Successfully force-pulled vault');
