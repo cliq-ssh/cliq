@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:cliq/modules/settings/provider/sync.provider.dart';
 import 'package:cliq/modules/vaults/extension/vault.extension.dart';
 import 'package:cliq/modules/vaults/provider/vault.provider.dart';
@@ -14,7 +16,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lucide_flutter/lucide_flutter.dart';
 
 class CreateOrEditEntityView extends HookConsumerWidget {
-  final Function(DbId?) onSave;
+  final FutureOr<void> Function(DbId?) onSave;
   final bool isEdit;
   final Widget child;
   final String? editLabel;
@@ -166,13 +168,12 @@ class CreateOrEditEntityView extends HookConsumerWidget {
                                 ? vaultSelectController.value
                                 : null;
 
+                            await onSave(vaultId);
                             if (withVaultSelector) {
                               await ref
                                   .read(syncProvider.notifier)
-                                  .pullAndPushVault();
+                                  .pullAndPushVault(vaultId: vaultId);
                             }
-
-                            onSave(vaultId);
                           },
                     child: isLoading
                         ? Row(

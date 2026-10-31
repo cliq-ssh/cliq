@@ -4,6 +4,7 @@ import 'cliq_entity_impl.dart';
 
 class const VaultImpl(
   super.api, {
+  @override required final String id,
   @override required final String configuration,
   @override required final String version,
   @override required final DateTime createdAt,

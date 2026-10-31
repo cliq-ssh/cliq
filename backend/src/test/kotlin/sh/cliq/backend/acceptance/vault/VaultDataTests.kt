@@ -1,6 +1,8 @@
 package sh.cliq.backend.acceptance.vault
 
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertDoesNotThrow
+import org.junit.jupiter.api.assertThrows
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.MediaType
 import org.springframework.test.web.servlet.MockMvc
@@ -10,8 +12,11 @@ import sh.cliq.backend.acceptance.AcceptanceTest
 import sh.cliq.backend.acceptance.AcceptanceTester
 import sh.cliq.backend.support.UserCreationHelper
 import sh.cliq.backend.vault.params.VaultParams
+import sh.cliq.backend.vault.view.PartialVaultView
 import sh.cliq.backend.vault.view.VaultView
 import tools.jackson.databind.ObjectMapper
+import tools.jackson.databind.exc.MismatchedInputException
+import java.util.UUID
 import kotlin.test.assertEquals
 
 @AcceptanceTest
@@ -25,47 +30,78 @@ class VaultDataTests(
 ) : AcceptanceTester() {
     @Test
     fun `test endpoints cannot be accessed without authentication`() {
-        mockMvc
-            .perform(
-                MockMvcRequestBuilders.put("/api/vault"),
-            ).andExpect(MockMvcResultMatchers.status().isUnauthorized)
+        val uuid = UUID.fromString("01a17506-fcb5-72ef-a3c4-3d8c0b49d5cf")
+        val vaultParams = VaultParams(configuration = "testConfig", version = "1")
 
-        mockMvc
-            .perform(
-                MockMvcRequestBuilders.get("/api/vault"),
-            ).andExpect(MockMvcResultMatchers.status().isUnauthorized)
-
-        mockMvc
-            .perform(
-                MockMvcRequestBuilders.get("/api/vault/last-updated"),
-            ).andExpect(MockMvcResultMatchers.status().isUnauthorized)
-    }
-
-    @Test
-    fun `test endpoints can be accessed with authentication`() {
+        // create test vault
         val authenticatedUserData = userCreationHelper.createRandomAuthenticatedUser()
         val tokenPair = authenticatedUserData.tokenPair
 
         mockMvc
             .perform(
                 MockMvcRequestBuilders
-                    .put("/api/vault")
-                    .header("Authorization", "Bearer ${tokenPair.jwt.tokenValue}"),
-            ).andExpect(MockMvcResultMatchers.status().isBadRequest)
+                    .put("/api/vaults/{id}", uuid)
+                    .header("Authorization", "Bearer ${tokenPair.jwt.tokenValue}")
+                    .contentType(MediaType.APPLICATION_JSON_VALUE)
+                    .content(objectMapper.writeValueAsString(vaultParams)),
+            ).andExpect(MockMvcResultMatchers.status().isOk)
 
-        mockMvc
+        val listResponseAuthenticated = mockMvc
             .perform(
                 MockMvcRequestBuilders
-                    .get("/api/vault")
-                    .header("Authorization", "Bearer ${tokenPair.jwt.tokenValue}"),
-            ).andExpect(MockMvcResultMatchers.status().isNotFound)
-
-        mockMvc
-            .perform(
-                MockMvcRequestBuilders
-                    .get("/api/vault/last-updated")
+                    .get("/api/vaults")
                     .header("Authorization", "Bearer ${tokenPair.jwt.tokenValue}"),
             ).andExpect(MockMvcResultMatchers.status().isOk)
+            .andReturn()
+        assertDoesNotThrow {
+            objectMapper.readValue(
+                listResponseAuthenticated.response.contentAsString,
+                Array<PartialVaultView>::class.java,
+            )
+        }
+
+        val vaultResponseAuthenticated = mockMvc
+            .perform(
+                MockMvcRequestBuilders
+                    .get("/api/vaults/{id}", uuid)
+                    .header("Authorization", "Bearer ${tokenPair.jwt.tokenValue}"),
+            ).andExpect(MockMvcResultMatchers.status().isOk)
+            .andReturn()
+        assertDoesNotThrow {
+            objectMapper.readValue(vaultResponseAuthenticated.response.contentAsString, VaultView::class.java)
+        }
+
+        // test unauthenticated cannot access vaults
+
+        mockMvc
+            .perform(
+                MockMvcRequestBuilders.put("/api/vaults/{id}", uuid)
+                    .contentType(MediaType.APPLICATION_JSON_VALUE)
+                    .content(objectMapper.writeValueAsString(vaultParams)),
+            ).andExpect(MockMvcResultMatchers.status().isUnauthorized)
+
+        val listResponse = mockMvc
+            .perform(
+                MockMvcRequestBuilders.get("/api/vaults"),
+            ).andExpect(MockMvcResultMatchers.status().isUnauthorized)
+            .andReturn()
+        assertThrows<MismatchedInputException> {
+            objectMapper.readValue(listResponse.response.contentAsString, Array<PartialVaultView>::class.java)
+        }
+
+        val vaultResponse = mockMvc
+            .perform(
+                MockMvcRequestBuilders.get("/api/vaults/{id}", uuid),
+            ).andExpect(MockMvcResultMatchers.status().isUnauthorized)
+            .andReturn()
+        assertThrows<MismatchedInputException> {
+            objectMapper.readValue(vaultResponse.response.contentAsString, VaultView::class.java)
+        }
+
+        mockMvc
+            .perform(
+                MockMvcRequestBuilders.get("/api/vaults/{id}/last-updated", uuid),
+            ).andExpect(MockMvcResultMatchers.status().isUnauthorized)
     }
 
     @Test
@@ -74,12 +110,13 @@ class VaultDataTests(
         val tokenPair = authenticatedUserData.tokenPair
 
         val params = VaultParams(configuration = "testConfig", version = "1")
+        val uuid = UUID.fromString("01a17511-1c89-762d-a5d8-b08ab25c9ec2")
 
         // Create configuration
         mockMvc
             .perform(
                 MockMvcRequestBuilders
-                    .put("/api/vault")
+                    .put("/api/vaults/{id}", uuid)
                     .header("Authorization", "Bearer ${tokenPair.jwt.tokenValue}")
                     .contentType(MediaType.APPLICATION_JSON_VALUE)
                     .content(objectMapper.writeValueAsString(params)),
@@ -89,7 +126,7 @@ class VaultDataTests(
         mockMvc
             .perform(
                 MockMvcRequestBuilders
-                    .get("/api/vault")
+                    .get("/api/vaults/{id}", uuid)
                     .header("Authorization", "Bearer ${tokenPair.jwt.tokenValue}"),
             ).andExpect(MockMvcResultMatchers.status().isOk)
             .andExpect { result ->
@@ -104,12 +141,13 @@ class VaultDataTests(
         val tokenPair = authenticatedUserData.tokenPair
 
         val params = VaultParams(configuration = "testConfig", version = "1")
+        val uuid = UUID.fromString("01a17511-1c89-762d-a5d8-b08ab25c9ec2")
 
         // Create configuration
         mockMvc
             .perform(
                 MockMvcRequestBuilders
-                    .put("/api/vault")
+                    .put("/api/vaults/{id}", uuid)
                     .header("Authorization", "Bearer ${tokenPair.jwt.tokenValue}")
                     .contentType(MediaType.APPLICATION_JSON_VALUE)
                     .content(objectMapper.writeValueAsString(params)),
@@ -120,7 +158,7 @@ class VaultDataTests(
             mockMvc
                 .perform(
                     MockMvcRequestBuilders
-                        .get("/api/vault")
+                        .get("/api/vaults/{id}", uuid)
                         .header("Authorization", "Bearer ${tokenPair.jwt.tokenValue}"),
                 ).andExpect(MockMvcResultMatchers.status().isOk)
                 .andReturn()
@@ -135,7 +173,7 @@ class VaultDataTests(
             mockMvc
                 .perform(
                     MockMvcRequestBuilders
-                        .get("/api/vault/last-updated")
+                        .get("/api/vaults/{id}/last-updated", uuid)
                         .header("Authorization", "Bearer ${tokenPair.jwt.tokenValue}"),
                 ).andExpect(MockMvcResultMatchers.status().isOk)
                 .andReturn()
@@ -150,12 +188,13 @@ class VaultDataTests(
         val tokenPair = authenticatedUserData.tokenPair
 
         val initialParams = VaultParams(configuration = "initialConfig", version = "1")
+        val uuid = UUID.fromString("01a17511-1c89-762d-a5d8-b08ab25c9ec2")
 
         // Create initial configuration
         mockMvc
             .perform(
                 MockMvcRequestBuilders
-                    .put("/api/vault")
+                    .put("/api/vaults/{id}", uuid)
                     .header("Authorization", "Bearer ${tokenPair.jwt.tokenValue}")
                     .contentType(MediaType.APPLICATION_JSON_VALUE)
                     .content(objectMapper.writeValueAsString(initialParams)),
@@ -167,7 +206,7 @@ class VaultDataTests(
             mockMvc
                 .perform(
                     MockMvcRequestBuilders
-                        .get("/api/vault")
+                        .get("/api/vaults/{id}", uuid)
                         .header("Authorization", "Bearer ${tokenPair.jwt.tokenValue}"),
                 ).andExpect(MockMvcResultMatchers.status().isOk)
                 .andExpect { result ->
@@ -185,7 +224,7 @@ class VaultDataTests(
             mockMvc
                 .perform(
                     MockMvcRequestBuilders
-                        .get("/api/vault/last-updated")
+                        .get("/api/vaults/{id}/last-updated", uuid)
                         .header("Authorization", "Bearer ${tokenPair.jwt.tokenValue}"),
                 ).andExpect(MockMvcResultMatchers.status().isOk)
                 .andReturn()
@@ -198,7 +237,7 @@ class VaultDataTests(
         mockMvc
             .perform(
                 MockMvcRequestBuilders
-                    .put("/api/vault")
+                    .put("/api/vaults/{id}", uuid)
                     .header("Authorization", "Bearer ${tokenPair.jwt.tokenValue}")
                     .contentType(MediaType.APPLICATION_JSON_VALUE)
                     .content(objectMapper.writeValueAsString(updatedParams)),
@@ -209,7 +248,7 @@ class VaultDataTests(
             mockMvc
                 .perform(
                     MockMvcRequestBuilders
-                        .get("/api/vault")
+                        .get("/api/vaults/{id}", uuid)
                         .header("Authorization", "Bearer ${tokenPair.jwt.tokenValue}"),
                 ).andExpect(MockMvcResultMatchers.status().isOk)
                 .andExpect { result ->
@@ -227,11 +266,140 @@ class VaultDataTests(
             mockMvc
                 .perform(
                     MockMvcRequestBuilders
-                        .get("/api/vault/last-updated")
+                        .get("/api/vaults/{id}/last-updated", uuid)
                         .header("Authorization", "Bearer ${tokenPair.jwt.tokenValue}"),
                 ).andExpect(MockMvcResultMatchers.status().isOk)
                 .andReturn()
         val lastUpdatedContent = lastUpdatedResult.response.contentAsString
         assert(lastUpdatedContent == updatedConfigUpdatedAt)
+    }
+
+    @Test
+    fun `test can create multiple vaults`() {
+        val authenticatedUserData = userCreationHelper.createRandomAuthenticatedUser()
+        val tokenPair = authenticatedUserData.tokenPair
+
+        // Create first vault
+        val vault1Params = VaultParams(configuration = "vault1", version = "1")
+        val vault1Uuid = UUID.fromString("01a17511-1c89-762d-a5d8-b08ab25c9ec2")
+
+        mockMvc
+            .perform(
+                MockMvcRequestBuilders
+                    .put("/api/vaults/{id}", vault1Uuid)
+                    .header("Authorization", "Bearer ${tokenPair.jwt.tokenValue}")
+                    .contentType(MediaType.APPLICATION_JSON_VALUE)
+                    .content(objectMapper.writeValueAsString(vault1Params)),
+            ).andExpect(MockMvcResultMatchers.status().isOk)
+
+        // Create first vault
+        val vault2Params = VaultParams(configuration = "vault2", version = "1")
+        val vault2Uuid = UUID.fromString("01a17513-e07d-7210-946b-7e050b1e0276")
+
+        mockMvc
+            .perform(
+                MockMvcRequestBuilders
+                    .put("/api/vaults/{id}", vault2Uuid)
+                    .header("Authorization", "Bearer ${tokenPair.jwt.tokenValue}")
+                    .contentType(MediaType.APPLICATION_JSON_VALUE)
+                    .content(objectMapper.writeValueAsString(vault2Params)),
+            ).andExpect(MockMvcResultMatchers.status().isOk)
+
+        // Retrieve list of vaults
+        val listResponse =
+            mockMvc
+                .perform(
+                    MockMvcRequestBuilders
+                        .get("/api/vaults")
+                        .header("Authorization", "Bearer ${tokenPair.jwt.tokenValue}"),
+                ).andExpect(MockMvcResultMatchers.status().isOk)
+                .andReturn()
+        val listResponseString = listResponse.response.contentAsString
+        assert(listResponseString.isNotEmpty())
+        val vaultList = objectMapper.readValue(listResponseString, Array<PartialVaultView>::class.java)
+        assertEquals(2, vaultList.size)
+        assert(vaultList.any { it.id == vault1Uuid })
+        assert(vaultList.any { it.id == vault2Uuid })
+    }
+
+    @Test
+    fun `test users cannot access each other vaults`() {
+        val authenticatedUser1Data = userCreationHelper.createRandomAuthenticatedUser()
+        val tokenPair1 = authenticatedUser1Data.tokenPair
+
+        val authenticatedUser2Data = userCreationHelper.createRandomAuthenticatedUser()
+        val tokenPair2 = authenticatedUser2Data.tokenPair
+
+        // Create vault for user 1
+        val vaultParams = VaultParams(configuration = "user1Vault", version = "1")
+        val vaultUuid = UUID.fromString("01a17511-1c89-762d-a5d8-b08ab25c9ec2")
+
+        mockMvc
+            .perform(
+                MockMvcRequestBuilders
+                    .put("/api/vaults/{id}", vaultUuid)
+                    .header("Authorization", "Bearer ${tokenPair1.jwt.tokenValue}")
+                    .contentType(MediaType.APPLICATION_JSON_VALUE)
+                    .content(objectMapper.writeValueAsString(vaultParams)),
+            ).andExpect(MockMvcResultMatchers.status().isOk)
+
+        // User 2 tries to access user 1's vault
+        mockMvc
+            .perform(
+                MockMvcRequestBuilders
+                    .get("/api/vaults/{id}", vaultUuid)
+                    .header("Authorization", "Bearer ${tokenPair2.jwt.tokenValue}"),
+            ).andExpect(MockMvcResultMatchers.status().isNotFound)
+
+        // USer 2 tries to update user 1's vault
+        val updatedParams = VaultParams(configuration = "user2Vault", version = "2")
+        mockMvc
+            .perform(
+                MockMvcRequestBuilders
+                    .put("/api/vaults/{id}", vaultUuid)
+                    .header("Authorization", "Bearer ${tokenPair2.jwt.tokenValue}")
+                    .contentType(MediaType.APPLICATION_JSON_VALUE)
+                    .content(objectMapper.writeValueAsString(updatedParams)),
+            ).andExpect(MockMvcResultMatchers.status().isForbidden)
+    }
+
+    /**
+     * Test that two different users cannot create a vault with the same ID.
+     * The first user should be able to create the vault successfully, while the second user should receive a forbidden
+     * response when trying to create a vault with the same ID.
+     *
+     * Note: This is extremely unlikely to happen in practice, but we want to make sure that the system behaves
+     * correctly in this edge case.
+     */
+    @Test
+    fun `test two users tries to create vault with same id`() {
+        val authenticatedUser1Data = userCreationHelper.createRandomAuthenticatedUser()
+        val tokenPair1 = authenticatedUser1Data.tokenPair
+
+        val authenticatedUser2Data = userCreationHelper.createRandomAuthenticatedUser()
+        val tokenPair2 = authenticatedUser2Data.tokenPair
+
+        // Create vault for user 1
+        val vaultParams = VaultParams(configuration = "user1Vault", version = "1")
+        val vaultUuid = UUID.fromString("01a17511-1c89-762d-a5d8-b08ab25c9ec2")
+
+        mockMvc
+            .perform(
+                MockMvcRequestBuilders
+                    .put("/api/vaults/{id}", vaultUuid)
+                    .header("Authorization", "Bearer ${tokenPair1.jwt.tokenValue}")
+                    .contentType(MediaType.APPLICATION_JSON_VALUE)
+                    .content(objectMapper.writeValueAsString(vaultParams)),
+            ).andExpect(MockMvcResultMatchers.status().isOk)
+
+        // User 2 tries to create vault with same id
+        mockMvc
+            .perform(
+                MockMvcRequestBuilders
+                    .put("/api/vaults/{id}", vaultUuid)
+                    .header("Authorization", "Bearer ${tokenPair2.jwt.tokenValue}")
+                    .contentType(MediaType.APPLICATION_JSON_VALUE)
+                    .content(objectMapper.writeValueAsString(vaultParams)),
+            ).andExpect(MockMvcResultMatchers.status().isForbidden)
     }
 }

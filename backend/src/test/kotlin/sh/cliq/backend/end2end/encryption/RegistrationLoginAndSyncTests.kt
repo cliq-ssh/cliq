@@ -30,9 +30,11 @@ import sh.cliq.backend.support.encryption.EncryptionHelper
 import sh.cliq.backend.support.encryption.KeyAndHashHelper
 import sh.cliq.backend.user.view.UserResponse
 import sh.cliq.backend.vault.params.VaultParams
+import sh.cliq.backend.vault.view.PartialVaultView
 import tools.jackson.databind.ObjectMapper
 import java.security.SecureRandom
 import java.util.Base64
+import java.util.UUID
 import kotlin.test.assertEquals
 
 @End2EndTest
@@ -227,12 +229,13 @@ class RegistrationLoginAndSyncTests(
             mockMvc
                 .perform(
                     MockMvcRequestBuilders
-                        .get("/api/vault/last-updated")
+                        .get("/api/vaults")
                         .header(HttpHeaders.AUTHORIZATION, "Bearer ${refreshResponse.accessToken}"),
                 ).andExpect(status().isOk)
                 .andReturn()
         val lastUpdatedContent = lastUpdatedResult.response.contentAsString
-        assertEquals("null", lastUpdatedContent)
+        val vaults = objectMapper.readValue(lastUpdatedContent, Array<PartialVaultView>::class.java)
+        assertEquals(0, vaults.count())
 
         // Push config
         val config =
@@ -252,10 +255,12 @@ class RegistrationLoginAndSyncTests(
                 version = "1",
             )
 
+        val uuid = UUID.fromString("01a17503-0dd3-77a0-92d4-23830c1e0cb0")
+
         mockMvc
             .perform(
                 MockMvcRequestBuilders
-                    .put("/api/vault")
+                    .put("/api/vaults/{id}", uuid)
                     .header(HttpHeaders.AUTHORIZATION, "Bearer ${refreshResponse.accessToken}")
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(objectMapper.writeValueAsString(vaultParams)),

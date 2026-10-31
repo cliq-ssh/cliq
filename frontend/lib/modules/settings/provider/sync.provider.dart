@@ -98,13 +98,12 @@ class SyncProviderNotifier extends Notifier<SyncState> {
         await attemptRecovery();
       });
 
-      await ref.read(vaultProvider.notifier).findOrCreateUserVault(api);
       state = state.copyWith(
         api: api,
         refreshTimer: refreshTimer,
         error: () => null,
       );
-      await pullVault();
+      await pullAllVaults();
       _startPullTimer();
     } on CliqException catch (e) {
       await Commons.showCliqException(e);
@@ -120,7 +119,8 @@ class SyncProviderNotifier extends Notifier<SyncState> {
     final api = await _getDefaultClientBuilder(routeOptions).login(
       email: email,
       password: password,
-      sessionName: 'cliq-client', // TODO: adjust session name
+      sessionName: 'cliq-client',
+      // TODO: adjust session name
       onDataEncryptionKeyDecrypted: (dek) =>
           StoreKey.syncDataEncryptionKey.write(dek),
       onDevicePrivateKeyGenerated: (dpk) =>
@@ -129,9 +129,8 @@ class SyncProviderNotifier extends Notifier<SyncState> {
     );
 
     StoreKey.syncHost.write(routeOptions);
-    await ref.read(vaultProvider.notifier).findOrCreateUserVault(api);
     state = state.copyWith(api: api, error: () => null);
-    await pullVault();
+    await pullAllVaults();
     _startPullTimer();
   }
 
@@ -153,7 +152,6 @@ class SyncProviderNotifier extends Notifier<SyncState> {
     await StoreKey.syncDevicePrivateKey.delete();
     await StoreKey.syncDataEncryptionKey.delete();
     await StoreKey.syncRefreshToken.delete();
-    await StoreKey.syncLastUpdated.delete();
     state.refreshTimer?.cancel();
 
     await deleteNonLocalVaults();
@@ -191,38 +189,37 @@ class SyncProviderNotifier extends Notifier<SyncState> {
         .verifyEmail(email: email, verificationToken: verificationToken);
   }
 
-  /// Whether we should pull the latest vault from the server because it
+  /// Whether we should pull the vault from the server because it
   /// seems to be newer than our local vault.
-  Future<bool> shouldPull() async {
-    final remote = (await state.api?.retrieveVaultLastUpdated())
-        ?.copyWith(microsecond: 0) // drop microseconds for comparison
-        .toUtc();
+  Future<bool> shouldPull(String vaultId) async {
+    final remoteMillisUtc = (await state.api?.retrieveVaultLastUpdated(
+      id: vaultId,
+    ))?.copyWith(microsecond: 0).toUtc();
+
     // this would only ever be the case if the user has never synced before, so we
     // can consider our local vault to be the latest version in that case
-    if (remote == null) return false;
-    final localMillis = await StoreKey.syncLastUpdated.readAsync();
-    final DateTime local = localMillis != null
-        ? .fromMillisecondsSinceEpoch(
-            localMillis,
-            isUtc: true,
-          ).copyWith(microsecond: 0)
-        : .fromMillisecondsSinceEpoch(0, isUtc: true);
+    if (remoteMillisUtc == null) return false;
 
-    return remote.isAfter(local);
+    final vaultService = ref.read(vaultServiceProvider);
+    final localMillis = await vaultService.getLastSyncedById(vaultId);
+    if (localMillis == null) return true;
+
+    final localMillisUTc = DateTime.fromMillisecondsSinceEpoch(
+      localMillis.toInt(),
+      isUtc: true,
+    ).copyWith(microsecond: 0).toUtc();
+
+    return remoteMillisUtc.isAfter(localMillisUTc);
   }
 
-  /// Pulls the latest vault from the server and updates our local vault with it.
-  /// Returns true if the vault was pulled and updated, false if it was not pulled because our local vault is
+  /// Pulls the latest version from all vaults from the server and updates our local vault with it.
+  /// Returns true if at least one vault was pulled and updated, false if it was not pulled because our local vault is
   /// already up to date.
-  Future<bool> pullVault({
-    Vault? userVaultOverride,
-    bool ignoreShouldPull = false,
-  }) async {
+  ///
+  /// If  [ignoreShouldPull] is set to true, the vault is forcefully pulled.
+  Future<bool> pullAllVaults({bool ignoreShouldPull = false}) async {
     try {
-      final pulled = await _pullVault(
-        userVaultOverride: userVaultOverride,
-        ignoreShouldPull: ignoreShouldPull,
-      );
+      final pulled = await _pullAllVaults(ignoreShouldPull: ignoreShouldPull);
       // reaching the server worked, so drop any stale error
       if (state.error != null) {
         state = state.copyWith(error: () => null);
@@ -251,30 +248,41 @@ class SyncProviderNotifier extends Notifier<SyncState> {
       StringUtils.hexToArray(dek),
     );
 
-    await state.api!.upsertVault(configuration: base64Encode(encrypted));
-    final lastUpdated = await state.api!.retrieveVaultLastUpdated();
+    await state.api!.upsertVault(
+      id: userVaultId,
+      configuration: base64Encode(encrypted),
+    );
+    final lastUpdated = await state.api!.retrieveVaultLastUpdated(
+      id: userVaultId,
+    );
     if (lastUpdated == null) {
       throw StateError(
         'Failed to retrieve last updated timestamp from server after pushing vault.',
       );
     }
-    StoreKey.syncLastUpdated.write(lastUpdated.millisecondsSinceEpoch);
+
+    final vaultService = ref.read(vaultServiceProvider);
+    await vaultService.updateLastSyncedById(userVaultId, lastUpdated);
+
     return true;
   }
 
-  /// Pulls the latest vault from the server so that we are in sync with the server and
-  /// then pushes our local vault to the server.
-  /// This is done to ensure that we don't overwrite any changes that may have been made on the server since our last sync.
-  Future<bool> pullAndPushVault() async {
+  /// Pushes the locally mutated vault to the server.
+  ///
+  /// Callers use this after applying a local change. Pulling here would replace
+  /// that mutation with the previous remote configuration.
+  Future<bool> pullAndPushVault({DbId? vaultId}) async {
     if (state.api == null) return false;
 
-    final userVault = await ref
-        .read(vaultProvider.notifier)
-        .findOrCreateUserVault(state.api!);
-
-    if (await shouldPull()) {
-      await pullVault(userVaultOverride: userVault, ignoreShouldPull: true);
+    final userVault = vaultId == null
+        ? await ref
+              .read(vaultProvider.notifier)
+              .findOrCreateUserVault(state.api!)
+        : ref.read(vaultProvider.notifier).findById(vaultId);
+    if (userVault == null) {
+      throw StateError('Cannot sync missing vault $vaultId.');
     }
+
     return await pushVault(userVault.id);
   }
 
@@ -564,25 +572,41 @@ class SyncProviderNotifier extends Notifier<SyncState> {
     };
   }
 
-  Future<bool> _pullVault({
-    Vault? userVaultOverride,
-    bool ignoreShouldPull = false,
-  }) async {
+  /// Internal implementation that pulls all of the vaults that needs to be pulled from the remote server.
+  ///
+  /// If  [ignoreShouldPull] is set to true, the vault is forcefully pulled.
+  Future<bool> _pullAllVaults({bool ignoreShouldPull = false}) async {
     if (state.api == null) return false;
-    if (!ignoreShouldPull && !(await shouldPull())) {
+    final remoteVaults = await state.api!.listVaults();
+
+    var pulled = false;
+    for (final remote in remoteVaults) {
+      final updated = await _pullVault(
+        remote.id,
+        ignoreShouldPull: ignoreShouldPull,
+      );
+      if (updated) {
+        _log.info('Updated vault with id: ${remote.id}');
+        pulled = true;
+      }
+    }
+
+    return pulled;
+  }
+
+  /// Updates a single vault with the given id.
+  ///
+  /// If  [ignoreShouldPull] is set to true, the vault is forcefully pulled.
+  Future<bool> _pullVault(String id, {bool ignoreShouldPull = false}) async {
+    if (state.api == null) return false;
+    if (!ignoreShouldPull && !(await shouldPull(id))) {
       return false;
     }
 
-    final userVault =
-        userVaultOverride ??
-        (await ref
-            .read(vaultProvider.notifier)
-            .findOrCreateUserVault(state.api!));
-    final vault = await state.api!.retrieveVault();
+    final vault = await state.api!.retrieveVault(id: id);
 
     final dek = await StoreKey.syncDataEncryptionKey.readAsync();
     if (dek == null) {
-      // this should never happen, dek is set on login
       throw StateError('Data encryption key is missing, cannot pull vault.');
     }
 
@@ -590,13 +614,16 @@ class SyncProviderNotifier extends Notifier<SyncState> {
       base64Decode(vault.configuration),
       StringUtils.hexToArray(dek),
     );
-
     final settings = AppSettings.tryFromJson(jsonDecode(utf8.decode(json)));
     if (settings == null) {
       throw StateError('Failed to parse vault configuration from server.');
     }
-    await import(settings, userVault.id, cleanImport: true);
-    StoreKey.syncLastUpdated.write(vault.updatedAt.millisecondsSinceEpoch);
+    await import(settings, id, cleanImport: true);
+
+    final vaultService = ref.read(vaultServiceProvider);
+
+    await vaultService.updateLastSyncedById(id, DateTime.now());
+
     return true;
   }
 
@@ -617,7 +644,7 @@ class SyncProviderNotifier extends Notifier<SyncState> {
         if (_isPulling) return;
         _isPulling = true;
         try {
-          await pullVault();
+          await pullAllVaults();
         } catch (e) {
           _log.warning('Periodic vault pull failed: $e');
         } finally {

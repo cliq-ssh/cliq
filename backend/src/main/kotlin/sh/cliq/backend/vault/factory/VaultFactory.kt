@@ -6,12 +6,13 @@ import sh.cliq.backend.vault.VaultData
 import sh.cliq.backend.vault.params.VaultParams
 import java.time.Clock
 import java.time.OffsetDateTime
+import java.util.UUID
 
 @Service
 class
 VaultFactory(private val clock: Clock) {
-    fun createFromParams(vaultParams: VaultParams, user: User): VaultData =
-        create(vaultParams.configuration, vaultParams.version, user)
+    fun createFromParams(id: UUID, vaultCreationParams: VaultParams, user: User): VaultData =
+        create(id, vaultCreationParams.configuration, vaultCreationParams.version, user)
 
     fun updateFromParams(existingConfig: VaultData, vaultParams: VaultParams, user: User): VaultData = VaultData(
         user,
@@ -22,7 +23,8 @@ VaultFactory(private val clock: Clock) {
         id = existingConfig.id,
     )
 
-    fun create(encryptedConfig: String, version: String, user: User): VaultData = VaultData(
+    fun create(id: UUID, encryptedConfig: String, version: String, user: User): VaultData = VaultData(
+        id = id,
         user = user,
         encryptedConfig = encryptedConfig,
         version = version,

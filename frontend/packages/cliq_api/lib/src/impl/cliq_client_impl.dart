@@ -32,9 +32,24 @@ class CliqClientImpl implements CliqClient {
   }
 
   @override
-  Future<Vault> retrieveVault() async {
+  Future<List<PartialVault>> listVaults() async {
+    final result = await RequestHandler.multiRequest(
+      route: VaultRoutes.list.compile(),
+      mapper: (data) => entityBuilder.buildPartialVault(data),
+      routeOptions: routeOptions,
+      bearerToken: accessToken,
+    );
+
+    if (result.hasError) {
+      throw result.error!;
+    }
+    return result.data!;
+  }
+
+  @override
+  Future<Vault> retrieveVault({required String id}) async {
     final result = await requestHandler.authenticatedRequest(
-      route: VaultRoutes.get.compile(),
+      route: VaultRoutes.get.compile(params: [id]),
       mapper: (data) => entityBuilder.buildVault(data),
     );
 
@@ -45,9 +60,9 @@ class CliqClientImpl implements CliqClient {
   }
 
   @override
-  Future<DateTime?> retrieveVaultLastUpdated() async {
+  Future<DateTime?> retrieveVaultLastUpdated({required String id}) async {
     final result = await requestHandler.authenticatedRequest(
-      route: VaultRoutes.getLastUpdated.compile(),
+      route: VaultRoutes.getLastUpdated.compile(params: [id]),
       mapper: (data) => DateTime.tryParse(data),
     );
 
@@ -58,9 +73,12 @@ class CliqClientImpl implements CliqClient {
   }
 
   @override
-  Future<void> upsertVault({required String configuration}) async {
+  Future<void> upsertVault({
+    required String id,
+    required String configuration,
+  }) async {
     final result = await requestHandler.authenticatedNoResponseRequest(
-      route: VaultRoutes.put.compile(),
+      route: VaultRoutes.put.compile(params: [id]),
       body: {'configuration': configuration, 'version': '_unused'},
     );
 

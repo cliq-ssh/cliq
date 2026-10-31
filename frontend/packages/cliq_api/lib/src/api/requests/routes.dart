@@ -1,9 +1,14 @@
 import '../../impl/requests/model/route.dart';
 
 class const VaultRoutes._() {
-  static const get = Route(.get, '/api/vault');
-  static const put = Route(.put, '/api/vault');
-  static const getLastUpdated = Route(.get, '/api/vault/last-updated');
+  static const list = Route(.get, '/api/vaults');
+  static const get = Route(.get, '/api/vaults/{id}', paramCount: 1);
+  static const put = Route(.put, '/api/vaults/{id}', paramCount: 1);
+  static const getLastUpdated = Route(
+    .get,
+    '/api/vaults/{id}/last-updated',
+    paramCount: 1,
+  );
 }
 
 class const UserRoutes._() {

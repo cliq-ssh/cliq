@@ -35,7 +35,9 @@ class const KeyCard({super.key, required final Key keyEntity})
         entity: keyEntity.label,
         onDelete: () async {
           await ref.read(keyServiceProvider).deleteById(keyEntity.id);
-          await ref.read(syncProvider.notifier).pullAndPushVault();
+          await ref
+              .read(syncProvider.notifier)
+              .pullAndPushVault(vaultId: keyEntity.vaultId);
         },
       );
     }

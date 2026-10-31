@@ -5,8 +5,9 @@
 -- import '../../settings/data/known_hosts.drift';
 
 CREATE TABLE vaults (
-    id      TEXT NOT NULL PRIMARY KEY DEFAULT '',
-    owner   TEXT UNIQUE
+    id      TEXT NOT NULL PRIMARY KEY,
+    owner   TEXT,
+    last_synced TIMESTAMP
 );
 
 clearConnectionsByVaultId:
@@ -23,3 +24,12 @@ clearKeysByVaultId:
 
 clearKnownHostsByVaultId:
   DELETE FROM known_hosts WHERE vault_id = :vaultId;
+
+updateLastSyncedByVaultId:
+  UPDATE vaults SET last_synced = :lastSynced WHERE id = :vaultId;
+
+getLastSyncedByVaultId:
+  SELECT last_synced FROM vaults WHERE id = :vaultId;
+
+getLatestLastSyncedTimestamp:
+  SELECT last_synced FROM vaults ORDER BY last_synced DESC LIMIT 1;

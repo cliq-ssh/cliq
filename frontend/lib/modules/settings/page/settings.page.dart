@@ -12,6 +12,7 @@ import 'package:cliq/modules/settings/page/views/sync_settings.view.dart';
 import 'package:cliq/modules/settings/page/views/terminal_theme_settings.view.dart';
 import 'package:cliq/modules/settings/provider/sync.provider.dart';
 import 'package:cliq/modules/settings/ui/version_indicator.dart';
+import 'package:cliq/modules/vaults/provider/vault_service.provider.dart';
 import 'package:cliq/shared/extension/router.extension.dart';
 import 'package:cliq/shared/model/page_path.model.dart';
 import 'package:cliq/shared/provider/store.provider.dart';
@@ -19,6 +20,7 @@ import 'package:cliq/shared/utils/commons.dart';
 import 'package:cliq/shared/utils/platform_utils.dart';
 import 'package:cliq_ui/cliq_ui.dart';
 import 'package:easy_localization/easy_localization.dart';
+import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:forui/forui.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lucide_flutter/lucide_flutter.dart';
@@ -37,7 +39,17 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
   Widget build(BuildContext context) {
     final sync = ref.watch(syncProvider);
     final developerMode = useStore(.developerMode);
-    final lastUpdated = useStore(.syncLastUpdated);
+    final lastUpdated = useState<double?>(null);
+
+    useEffect(() {
+      if (sync.api == null) return;
+      final vaultService = ref.read(vaultServiceProvider);
+      vaultService.findLatestUpdatedTimestamp().then((lastUpdatedValue) {
+        lastUpdated.value = lastUpdatedValue;
+      });
+
+      return null;
+    });
 
     buildStatusSubtitle() {
       if (sync.isError) {
@@ -52,7 +64,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
             lastUpdated.value == null || lastUpdated.value == 0
                 ? 'n_a'.tr()
                 : DateTime.fromMillisecondsSinceEpoch(
-                    lastUpdated.value!,
+                    lastUpdated.value!.toInt(),
                     isUtc: true,
                   ).toIso8601String(),
           ],
