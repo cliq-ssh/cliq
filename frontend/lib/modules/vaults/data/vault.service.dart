@@ -35,7 +35,7 @@ final class VaultService {
   }
 
   Future<Vault> createVault({required String? owner, String? id}) async {
-    final vaultId = id ?? const Uuid().v4();
+    final vaultId = id ?? const Uuid().v7();
 
     return await _vaultsRepository.insert(
       VaultsCompanion.insert(
