@@ -24,7 +24,9 @@ class const KnownHostCard({super.key, required final KnownHost knownHost})
         entity: knownHost.host,
         onDelete: () async {
           await ref.read(knownHostServiceProvider).deleteById(knownHost.id);
-          await ref.read(syncProvider.notifier).pullAndPushVault();
+          await ref
+              .read(syncProvider.notifier)
+              .pullAndPushVault(vaultId: knownHost.vaultId);
         },
       );
     }

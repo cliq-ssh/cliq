@@ -12,7 +12,6 @@ import 'package:cliq/shared/model/entity_type.dart';
 import 'package:cliq/shared/model/localized_exception.dart';
 import 'package:cliq/shared/model/page_path.model.dart';
 import 'package:cliq/shared/model/router.model.dart';
-import 'package:cliq/shared/provider/store.provider.dart';
 import 'package:cliq/shared/ui/entity_list.dart';
 import 'package:cliq/shared/utils/commons.dart';
 import 'package:cliq/shared/utils/text_utils.dart';
@@ -40,7 +39,7 @@ class const SyncSettingsView({super.key}) extends AbstractSettingsPage {
   Widget buildBody(BuildContext context, WidgetRef ref) {
     final syncState = ref.watch(syncProvider);
 
-    final lastUpdated = useStore(.syncLastUpdated);
+    final lastUpdated = useState<double?>(null);
     final userVault = useState<DbId?>(null);
     final entitiesCount = useState<(int, int, int, int, int)?>(null);
     final isLoading = useState(false);
@@ -50,6 +49,16 @@ class const SyncSettingsView({super.key}) extends AbstractSettingsPage {
     );
 
     final breakpoint = useBreakpoint();
+
+    useEffect(() {
+      if (syncState.api == null) return;
+      final vaultService = ref.read(vaultServiceProvider);
+      vaultService.findLatestUpdatedTimestamp().then((lastUpdatedValue) {
+        lastUpdated.value = lastUpdatedValue;
+      });
+
+      return null;
+    }, [isLoading.value]);
 
     useEffect(() {
       if (syncState.api == null) return;
@@ -65,6 +74,7 @@ class const SyncSettingsView({super.key}) extends AbstractSettingsPage {
               entitiesCount.value = count;
             });
           });
+
       return null;
     }, [syncState, lastUpdated.value]);
 
@@ -198,7 +208,7 @@ class const SyncSettingsView({super.key}) extends AbstractSettingsPage {
                 lastUpdated.value == null || lastUpdated.value == 0
                     ? 'n_a'.tr()
                     : DateTime.fromMillisecondsSinceEpoch(
-                        lastUpdated.value!,
+                        lastUpdated.value!.toInt(),
                         isUtc: true,
                       ).toIso8601String(),
               ],
@@ -213,7 +223,9 @@ class const SyncSettingsView({super.key}) extends AbstractSettingsPage {
                   bool pulled;
 
                   try {
-                    pulled = await ref.read(syncProvider.notifier).pullVault();
+                    pulled = await ref
+                        .read(syncProvider.notifier)
+                        .pullAllVaults();
                   } finally {
                     isLoading.value = false;
                   }

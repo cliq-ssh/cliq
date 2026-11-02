@@ -14,9 +14,8 @@ class Vaults extends Table with TableInfo<Vaults, Vault> {
     aliasedName,
     false,
     type: DriftSqlType.string,
-    requiredDuringInsert: false,
-    $customConstraints: 'NOT NULL PRIMARY KEY DEFAULT \'\'',
-    defaultValue: const CustomExpression('\'\''),
+    requiredDuringInsert: true,
+    $customConstraints: 'NOT NULL PRIMARY KEY',
   );
   static const VerificationMeta _ownerMeta = const VerificationMeta('owner');
   late final GeneratedColumn<String> owner = GeneratedColumn<String>(
@@ -25,10 +24,21 @@ class Vaults extends Table with TableInfo<Vaults, Vault> {
     true,
     type: DriftSqlType.string,
     requiredDuringInsert: false,
-    $customConstraints: 'UNIQUE',
+    $customConstraints: '',
+  );
+  static const VerificationMeta _lastSyncedMeta = const VerificationMeta(
+    'lastSynced',
+  );
+  late final GeneratedColumn<double> lastSynced = GeneratedColumn<double>(
+    'last_synced',
+    aliasedName,
+    true,
+    type: DriftSqlType.double,
+    requiredDuringInsert: false,
+    $customConstraints: '',
   );
   @override
-  List<GeneratedColumn> get $columns => [id, owner];
+  List<GeneratedColumn> get $columns => [id, owner, lastSynced];
   @override
   String get aliasedName => _alias ?? actualTableName;
   @override
@@ -43,11 +53,19 @@ class Vaults extends Table with TableInfo<Vaults, Vault> {
     final data = instance.toColumns(true);
     if (data.containsKey('id')) {
       context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
     }
     if (data.containsKey('owner')) {
       context.handle(
         _ownerMeta,
         owner.isAcceptableOrUnknown(data['owner']!, _ownerMeta),
+      );
+    }
+    if (data.containsKey('last_synced')) {
+      context.handle(
+        _lastSyncedMeta,
+        lastSynced.isAcceptableOrUnknown(data['last_synced']!, _lastSyncedMeta),
       );
     }
     return context;
@@ -67,6 +85,10 @@ class Vaults extends Table with TableInfo<Vaults, Vault> {
         DriftSqlType.string,
         data['${effectivePrefix}owner'],
       ),
+      lastSynced: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}last_synced'],
+      ),
     );
   }
 
@@ -82,13 +104,17 @@ class Vaults extends Table with TableInfo<Vaults, Vault> {
 class Vault extends DataClass implements Insertable<Vault> {
   final String id;
   final String? owner;
-  const Vault({required this.id, this.owner});
+  final double? lastSynced;
+  const Vault({required this.id, this.owner, this.lastSynced});
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
     map['id'] = Variable<String>(id);
     if (!nullToAbsent || owner != null) {
       map['owner'] = Variable<String>(owner);
+    }
+    if (!nullToAbsent || lastSynced != null) {
+      map['last_synced'] = Variable<double>(lastSynced);
     }
     return map;
   }
@@ -99,6 +125,9 @@ class Vault extends DataClass implements Insertable<Vault> {
       owner: owner == null && nullToAbsent
           ? const Value.absent()
           : Value(owner),
+      lastSynced: lastSynced == null && nullToAbsent
+          ? const Value.absent()
+          : Value(lastSynced),
     );
   }
 
@@ -110,6 +139,7 @@ class Vault extends DataClass implements Insertable<Vault> {
     return Vault(
       id: serializer.fromJson<String>(json['id']),
       owner: serializer.fromJson<String?>(json['owner']),
+      lastSynced: serializer.fromJson<double?>(json['last_synced']),
     );
   }
   @override
@@ -118,15 +148,26 @@ class Vault extends DataClass implements Insertable<Vault> {
     return <String, dynamic>{
       'id': serializer.toJson<String>(id),
       'owner': serializer.toJson<String?>(owner),
+      'last_synced': serializer.toJson<double?>(lastSynced),
     };
   }
 
-  Vault copyWith({String? id, Value<String?> owner = const Value.absent()}) =>
-      Vault(id: id ?? this.id, owner: owner.present ? owner.value : this.owner);
+  Vault copyWith({
+    String? id,
+    Value<String?> owner = const Value.absent(),
+    Value<double?> lastSynced = const Value.absent(),
+  }) => Vault(
+    id: id ?? this.id,
+    owner: owner.present ? owner.value : this.owner,
+    lastSynced: lastSynced.present ? lastSynced.value : this.lastSynced,
+  );
   Vault copyWithCompanion(VaultsCompanion data) {
     return Vault(
       id: data.id.present ? data.id.value : this.id,
       owner: data.owner.present ? data.owner.value : this.owner,
+      lastSynced: data.lastSynced.present
+          ? data.lastSynced.value
+          : this.lastSynced,
     );
   }
 
@@ -134,41 +175,50 @@ class Vault extends DataClass implements Insertable<Vault> {
   String toString() {
     return (StringBuffer('Vault(')
           ..write('id: $id, ')
-          ..write('owner: $owner')
+          ..write('owner: $owner, ')
+          ..write('lastSynced: $lastSynced')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode => Object.hash(id, owner);
+  int get hashCode => Object.hash(id, owner, lastSynced);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-      (other is Vault && other.id == this.id && other.owner == this.owner);
+      (other is Vault &&
+          other.id == this.id &&
+          other.owner == this.owner &&
+          other.lastSynced == this.lastSynced);
 }
 
 class VaultsCompanion extends UpdateCompanion<Vault> {
   final Value<String> id;
   final Value<String?> owner;
+  final Value<double?> lastSynced;
   final Value<int> rowid;
   const VaultsCompanion({
     this.id = const Value.absent(),
     this.owner = const Value.absent(),
+    this.lastSynced = const Value.absent(),
     this.rowid = const Value.absent(),
   });
   VaultsCompanion.insert({
-    this.id = const Value.absent(),
+    required String id,
     this.owner = const Value.absent(),
+    this.lastSynced = const Value.absent(),
     this.rowid = const Value.absent(),
-  });
+  }) : id = Value(id);
   static Insertable<Vault> custom({
     Expression<String>? id,
     Expression<String>? owner,
+    Expression<double>? lastSynced,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
       if (owner != null) 'owner': owner,
+      if (lastSynced != null) 'last_synced': lastSynced,
       if (rowid != null) 'rowid': rowid,
     });
   }
@@ -176,11 +226,13 @@ class VaultsCompanion extends UpdateCompanion<Vault> {
   VaultsCompanion copyWith({
     Value<String>? id,
     Value<String?>? owner,
+    Value<double?>? lastSynced,
     Value<int>? rowid,
   }) {
     return VaultsCompanion(
       id: id ?? this.id,
       owner: owner ?? this.owner,
+      lastSynced: lastSynced ?? this.lastSynced,
       rowid: rowid ?? this.rowid,
     );
   }
@@ -194,6 +246,9 @@ class VaultsCompanion extends UpdateCompanion<Vault> {
     if (owner.present) {
       map['owner'] = Variable<String>(owner.value);
     }
+    if (lastSynced.present) {
+      map['last_synced'] = Variable<double>(lastSynced.value);
+    }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
     }
@@ -205,6 +260,7 @@ class VaultsCompanion extends UpdateCompanion<Vault> {
     return (StringBuffer('VaultsCompanion(')
           ..write('id: $id, ')
           ..write('owner: $owner, ')
+          ..write('lastSynced: $lastSynced, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -4698,6 +4754,10 @@ abstract class _$CliqDatabase extends GeneratedDatabase {
   late final Credentials credentials = Credentials(this);
   late final KnownHosts knownHosts = KnownHosts(this);
   late final Logs logs = Logs(this);
+  late final Trigger logsLimit = Trigger(
+    'CREATE TRIGGER logs_limit AFTER INSERT ON logs BEGIN DELETE FROM logs WHERE id <= (SELECT id FROM logs ORDER BY id DESC LIMIT 1 OFFSET 2000);END',
+    'logs_limit',
+  );
   late final IdentityCredentials identityCredentials = IdentityCredentials(
     this,
   );
@@ -4748,6 +4808,31 @@ abstract class _$CliqDatabase extends GeneratedDatabase {
     );
   }
 
+  Future<int> updateLastSyncedByVaultId(double? lastSynced, String vaultId) {
+    return customUpdate(
+      'UPDATE vaults SET last_synced = ?1 WHERE id = ?2',
+      variables: [Variable<double>(lastSynced), Variable<String>(vaultId)],
+      updates: {this.vaults},
+      updateKind: UpdateKind.update,
+    );
+  }
+
+  Selectable<double?> getLastSyncedByVaultId(String vaultId) {
+    return customSelect(
+      'SELECT last_synced FROM vaults WHERE id = ?1',
+      variables: [Variable<String>(vaultId)],
+      readsFrom: {this.vaults},
+    ).map((QueryRow row) => row.readNullable<double>('last_synced'));
+  }
+
+  Selectable<double?> getLatestLastSyncedTimestamp() {
+    return customSelect(
+      'SELECT last_synced FROM vaults ORDER BY last_synced DESC LIMIT 1',
+      variables: [],
+      readsFrom: {this.vaults},
+    ).map((QueryRow row) => row.readNullable<double>('last_synced'));
+  }
+
   Future<int> createOrUpdateKnownHost(
     String id,
     String vaultId,
@@ -4772,7 +4857,7 @@ abstract class _$CliqDatabase extends GeneratedDatabase {
     String vaultId,
   ) {
     return customSelect(
-      'SELECT"k"."id" AS "nested_0.id", "k"."vault_id" AS "nested_0.vault_id", "k"."host" AS "nested_0.host", "k"."hostKey" AS "nested_0.hostKey", "k"."created_at" AS "nested_0.created_at","v"."id" AS "nested_1.id", "v"."owner" AS "nested_1.owner" FROM known_hosts AS k INNER JOIN vaults AS v ON k.vault_id = v.id WHERE ?1 = \'\' OR k.vault_id = ?1',
+      'SELECT"k"."id" AS "nested_0.id", "k"."vault_id" AS "nested_0.vault_id", "k"."host" AS "nested_0.host", "k"."hostKey" AS "nested_0.hostKey", "k"."created_at" AS "nested_0.created_at","v"."id" AS "nested_1.id", "v"."owner" AS "nested_1.owner", "v"."last_synced" AS "nested_1.last_synced" FROM known_hosts AS k INNER JOIN vaults AS v ON k.vault_id = v.id WHERE ?1 = \'\' OR k.vault_id = ?1',
       variables: [Variable<String>(vaultId)],
       readsFrom: {this.knownHosts, this.vaults},
     ).asyncMap(
@@ -5031,7 +5116,7 @@ abstract class _$CliqDatabase extends GeneratedDatabase {
     final expandedvar1 = $expandVar($arrayStartIndex, var1.length);
     $arrayStartIndex += var1.length;
     return customSelect(
-      'SELECT"k"."id" AS "nested_0.id", "k"."vault_id" AS "nested_0.vault_id", "k"."label" AS "nested_0.label", "k"."private_key" AS "nested_0.private_key", "k"."public_key" AS "nested_0.public_key", "k"."passphrase" AS "nested_0.passphrase","v"."id" AS "nested_1.id", "v"."owner" AS "nested_1.owner" FROM keys AS k INNER JOIN vaults AS v ON k.vault_id = v.id WHERE k.id IN ($expandedvar1)',
+      'SELECT"k"."id" AS "nested_0.id", "k"."vault_id" AS "nested_0.vault_id", "k"."label" AS "nested_0.label", "k"."private_key" AS "nested_0.private_key", "k"."public_key" AS "nested_0.public_key", "k"."passphrase" AS "nested_0.passphrase","v"."id" AS "nested_1.id", "v"."owner" AS "nested_1.owner", "v"."last_synced" AS "nested_1.last_synced" FROM keys AS k INNER JOIN vaults AS v ON k.vault_id = v.id WHERE k.id IN ($expandedvar1)',
       variables: [for (var $ in var1) Variable<String>($)],
       readsFrom: {this.keys, this.vaults},
     ).asyncMap(
@@ -5099,7 +5184,7 @@ abstract class _$CliqDatabase extends GeneratedDatabase {
 
   Selectable<FindAllIdentityFullResult> findAllIdentityFull(String vaultId) {
     return customSelect(
-      'SELECT"i"."id" AS "nested_0.id", "i"."vault_id" AS "nested_0.vault_id", "i"."label" AS "nested_0.label", "i"."username" AS "nested_0.username","v"."id" AS "nested_1.id", "v"."owner" AS "nested_1.owner", i.id AS "\$n_0" FROM identities AS i INNER JOIN vaults AS v ON i.vault_id = v.id WHERE ?1 = \'\' OR i.vault_id = ?1',
+      'SELECT"i"."id" AS "nested_0.id", "i"."vault_id" AS "nested_0.vault_id", "i"."label" AS "nested_0.label", "i"."username" AS "nested_0.username","v"."id" AS "nested_1.id", "v"."owner" AS "nested_1.owner", "v"."last_synced" AS "nested_1.last_synced", i.id AS "\$n_0" FROM identities AS i INNER JOIN vaults AS v ON i.vault_id = v.id WHERE ?1 = \'\' OR i.vault_id = ?1',
       variables: [Variable<String>(vaultId)],
       readsFrom: {
         this.credentials,
@@ -5199,7 +5284,7 @@ abstract class _$CliqDatabase extends GeneratedDatabase {
     final expandedvar1 = $expandVar($arrayStartIndex, var1.length);
     $arrayStartIndex += var1.length;
     return customSelect(
-      'SELECT"c"."id" AS "nested_0.id", "c"."vault_id" AS "nested_0.vault_id", "c"."type" AS "nested_0.type", "c"."key_id" AS "nested_0.key_id", "c"."password" AS "nested_0.password","v"."id" AS "nested_1.id", "v"."owner" AS "nested_1.owner","k"."id" AS "nested_2.id", "k"."vault_id" AS "nested_2.vault_id", "k"."label" AS "nested_2.label", "k"."private_key" AS "nested_2.private_key", "k"."public_key" AS "nested_2.public_key", "k"."passphrase" AS "nested_2.passphrase" FROM credentials AS c INNER JOIN vaults AS v ON c.vault_id = v.id LEFT JOIN keys AS k ON c.key_id = k.id WHERE c.id IN ($expandedvar1)',
+      'SELECT"c"."id" AS "nested_0.id", "c"."vault_id" AS "nested_0.vault_id", "c"."type" AS "nested_0.type", "c"."key_id" AS "nested_0.key_id", "c"."password" AS "nested_0.password","v"."id" AS "nested_1.id", "v"."owner" AS "nested_1.owner", "v"."last_synced" AS "nested_1.last_synced","k"."id" AS "nested_2.id", "k"."vault_id" AS "nested_2.vault_id", "k"."label" AS "nested_2.label", "k"."private_key" AS "nested_2.private_key", "k"."public_key" AS "nested_2.public_key", "k"."passphrase" AS "nested_2.passphrase" FROM credentials AS c INNER JOIN vaults AS v ON c.vault_id = v.id LEFT JOIN keys AS k ON c.key_id = k.id WHERE c.id IN ($expandedvar1)',
       variables: [for (var $ in var1) Variable<String>($)],
       readsFrom: {this.credentials, this.vaults, this.keys},
     ).asyncMap(
@@ -5321,7 +5406,7 @@ abstract class _$CliqDatabase extends GeneratedDatabase {
     String vaultId,
   ) {
     return customSelect(
-      'SELECT"c"."id" AS "nested_0.id", "c"."vault_id" AS "nested_0.vault_id", "c"."label" AS "nested_0.label", "c"."address" AS "nested_0.address", "c"."port" AS "nested_0.port", "c"."identity_id" AS "nested_0.identity_id", "c"."username" AS "nested_0.username", "c"."group_name" AS "nested_0.group_name", "c"."icon" AS "nested_0.icon", "c"."icon_color" AS "nested_0.icon_color", "c"."icon_background_color" AS "nested_0.icon_background_color", "c"."terminal_typography_override" AS "nested_0.terminal_typography_override", "c"."terminal_theme_override_id" AS "nested_0.terminal_theme_override_id", "c"."uses_default_theme_override" AS "nested_0.uses_default_theme_override","v"."id" AS "nested_1.id", "v"."owner" AS "nested_1.owner","i"."id" AS "nested_2.id", "i"."vault_id" AS "nested_2.vault_id", "i"."label" AS "nested_2.label", "i"."username" AS "nested_2.username","iv"."id" AS "nested_3.id", "iv"."owner" AS "nested_3.owner","t"."id" AS "nested_4.id", "t"."name" AS "nested_4.name", "t"."black" AS "nested_4.black", "t"."red" AS "nested_4.red", "t"."green" AS "nested_4.green", "t"."yellow" AS "nested_4.yellow", "t"."blue" AS "nested_4.blue", "t"."purple" AS "nested_4.purple", "t"."cyan" AS "nested_4.cyan", "t"."white" AS "nested_4.white", "t"."bright_black" AS "nested_4.bright_black", "t"."bright_red" AS "nested_4.bright_red", "t"."bright_green" AS "nested_4.bright_green", "t"."bright_yellow" AS "nested_4.bright_yellow", "t"."bright_blue" AS "nested_4.bright_blue", "t"."bright_purple" AS "nested_4.bright_purple", "t"."bright_cyan" AS "nested_4.bright_cyan", "t"."bright_white" AS "nested_4.bright_white", "t"."background" AS "nested_4.background", "t"."foreground" AS "nested_4.foreground", "t"."cursor" AS "nested_4.cursor", "t"."cursor_text" AS "nested_4.cursor_text", "t"."selection_background" AS "nested_4.selection_background", "t"."selection_foreground" AS "nested_4.selection_foreground", c.id AS "\$n_0", i.id AS "\$n_1" FROM connections AS c INNER JOIN vaults AS v ON c.vault_id = v.id LEFT JOIN identities AS i ON c.identity_id = i.id LEFT JOIN vaults AS iv ON i.vault_id = iv.id LEFT JOIN custom_terminal_themes AS t ON c.terminal_theme_override_id = t.id WHERE ?1 = \'\' OR c.vault_id = ?1',
+      'SELECT"c"."id" AS "nested_0.id", "c"."vault_id" AS "nested_0.vault_id", "c"."label" AS "nested_0.label", "c"."address" AS "nested_0.address", "c"."port" AS "nested_0.port", "c"."identity_id" AS "nested_0.identity_id", "c"."username" AS "nested_0.username", "c"."group_name" AS "nested_0.group_name", "c"."icon" AS "nested_0.icon", "c"."icon_color" AS "nested_0.icon_color", "c"."icon_background_color" AS "nested_0.icon_background_color", "c"."terminal_typography_override" AS "nested_0.terminal_typography_override", "c"."terminal_theme_override_id" AS "nested_0.terminal_theme_override_id", "c"."uses_default_theme_override" AS "nested_0.uses_default_theme_override","v"."id" AS "nested_1.id", "v"."owner" AS "nested_1.owner", "v"."last_synced" AS "nested_1.last_synced","i"."id" AS "nested_2.id", "i"."vault_id" AS "nested_2.vault_id", "i"."label" AS "nested_2.label", "i"."username" AS "nested_2.username","iv"."id" AS "nested_3.id", "iv"."owner" AS "nested_3.owner", "iv"."last_synced" AS "nested_3.last_synced","t"."id" AS "nested_4.id", "t"."name" AS "nested_4.name", "t"."black" AS "nested_4.black", "t"."red" AS "nested_4.red", "t"."green" AS "nested_4.green", "t"."yellow" AS "nested_4.yellow", "t"."blue" AS "nested_4.blue", "t"."purple" AS "nested_4.purple", "t"."cyan" AS "nested_4.cyan", "t"."white" AS "nested_4.white", "t"."bright_black" AS "nested_4.bright_black", "t"."bright_red" AS "nested_4.bright_red", "t"."bright_green" AS "nested_4.bright_green", "t"."bright_yellow" AS "nested_4.bright_yellow", "t"."bright_blue" AS "nested_4.bright_blue", "t"."bright_purple" AS "nested_4.bright_purple", "t"."bright_cyan" AS "nested_4.bright_cyan", "t"."bright_white" AS "nested_4.bright_white", "t"."background" AS "nested_4.background", "t"."foreground" AS "nested_4.foreground", "t"."cursor" AS "nested_4.cursor", "t"."cursor_text" AS "nested_4.cursor_text", "t"."selection_background" AS "nested_4.selection_background", "t"."selection_foreground" AS "nested_4.selection_foreground", c.id AS "\$n_0", i.id AS "\$n_1" FROM connections AS c INNER JOIN vaults AS v ON c.vault_id = v.id LEFT JOIN identities AS i ON c.identity_id = i.id LEFT JOIN vaults AS iv ON i.vault_id = iv.id LEFT JOIN custom_terminal_themes AS t ON c.terminal_theme_override_id = t.id WHERE ?1 = \'\' OR c.vault_id = ?1',
       variables: [Variable<String>(vaultId)],
       readsFrom: {
         this.credentials,
@@ -5394,6 +5479,7 @@ abstract class _$CliqDatabase extends GeneratedDatabase {
     credentials,
     knownHosts,
     logs,
+    logsLimit,
     identityCredentials,
     connectionCredentials,
   ];
@@ -5457,6 +5543,13 @@ abstract class _$CliqDatabase extends GeneratedDatabase {
     ),
     WritePropagation(
       on: TableUpdateQuery.onTableName(
+        'logs',
+        limitUpdateKind: UpdateKind.insert,
+      ),
+      result: [TableUpdate('logs', kind: UpdateKind.delete)],
+    ),
+    WritePropagation(
+      on: TableUpdateQuery.onTableName(
         'identities',
         limitUpdateKind: UpdateKind.delete,
       ),
@@ -5487,13 +5580,15 @@ abstract class _$CliqDatabase extends GeneratedDatabase {
 }
 
 typedef $VaultsCreateCompanionBuilder = VaultsCompanion Function({
-  Value<String> id,
+  required String id,
   Value<String?> owner,
+  Value<double?> lastSynced,
   Value<int> rowid,
 });
 typedef $VaultsUpdateCompanionBuilder = VaultsCompanion Function({
   Value<String> id,
   Value<String?> owner,
+  Value<double?> lastSynced,
   Value<int> rowid,
 });
 
@@ -5610,6 +5705,11 @@ class $VaultsFilterComposer extends Composer<_$CliqDatabase, Vaults> {
 
   ColumnFilters<String> get owner => $composableBuilder(
     column: $table.owner,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get lastSynced => $composableBuilder(
+    column: $table.lastSynced,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -5756,6 +5856,11 @@ class $VaultsOrderingComposer extends Composer<_$CliqDatabase, Vaults> {
     column: $table.owner,
     builder: (column) => ColumnOrderings(column),
   );
+
+  ColumnOrderings<double> get lastSynced => $composableBuilder(
+    column: $table.lastSynced,
+    builder: (column) => ColumnOrderings(column),
+  );
 }
 
 class $VaultsAnnotationComposer extends Composer<_$CliqDatabase, Vaults> {
@@ -5771,6 +5876,11 @@ class $VaultsAnnotationComposer extends Composer<_$CliqDatabase, Vaults> {
 
   GeneratedColumn<String> get owner =>
       $composableBuilder(column: $table.owner, builder: (column) => column);
+
+  GeneratedColumn<double> get lastSynced => $composableBuilder(
+    column: $table.lastSynced,
+    builder: (column) => column,
+  );
 
   Expression<T> identitiesRefs<T extends Object>(
     Expression<T> Function($IdentitiesAnnotationComposer a) f,
@@ -5930,16 +6040,30 @@ class $VaultsTableManager
               $VaultsOrderingComposer($db: db, $table: table),
           createComputedFieldComposer: () =>
               $VaultsAnnotationComposer($db: db, $table: table),
-          updateCompanionCallback: ({
-            Value<String> id = const Value.absent(),
-            Value<String?> owner = const Value.absent(),
-            Value<int> rowid = const Value.absent(),
-          }) => VaultsCompanion(id: id, owner: owner, rowid: rowid),
-          createCompanionCallback: ({
-            Value<String> id = const Value.absent(),
-            Value<String?> owner = const Value.absent(),
-            Value<int> rowid = const Value.absent(),
-          }) => VaultsCompanion.insert(id: id, owner: owner, rowid: rowid),
+          updateCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                Value<String?> owner = const Value.absent(),
+                Value<double?> lastSynced = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => VaultsCompanion(
+                id: id,
+                owner: owner,
+                lastSynced: lastSynced,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String id,
+                Value<String?> owner = const Value.absent(),
+                Value<double?> lastSynced = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => VaultsCompanion.insert(
+                id: id,
+                owner: owner,
+                lastSynced: lastSynced,
+                rowid: rowid,
+              ),
           withReferenceMapper: (p0) => p0
               .map(
                 (e) => (
@@ -5969,67 +6093,82 @@ class $VaultsTableManager
                   getPrefetchedDataCallback: (items) async {
                     return [
                       if (identitiesRefs)
-                        await $_getPrefetchedData<Vault, Vaults, Identity>(
+                        await $_getPrefetchedDataByColumns<
+                          Vault,
+                          Vaults,
+                          Identity,
+                          Identities
+                        >(
                           currentTable: table,
                           referencedTable: $VaultsReferences
                               ._identitiesRefsTable(db),
                           managerFromTypedResult: (p0) =>
                               $VaultsReferences(db, table, p0).identitiesRefs,
-                          referencedItemsForCurrentItem:
-                              (item, referencedItems) => referencedItems.where(
-                                (e) => e.vaultId == item.id,
-                              ),
+                          currentColumn: 'id',
+                          referencedColumn: 'vault_id',
                           typedResults: items,
                         ),
                       if (connectionsRefs)
-                        await $_getPrefetchedData<Vault, Vaults, Connection>(
+                        await $_getPrefetchedDataByColumns<
+                          Vault,
+                          Vaults,
+                          Connection,
+                          Connections
+                        >(
                           currentTable: table,
                           referencedTable: $VaultsReferences
                               ._connectionsRefsTable(db),
                           managerFromTypedResult: (p0) =>
                               $VaultsReferences(db, table, p0).connectionsRefs,
-                          referencedItemsForCurrentItem:
-                              (item, referencedItems) => referencedItems.where(
-                                (e) => e.vaultId == item.id,
-                              ),
+                          currentColumn: 'id',
+                          referencedColumn: 'vault_id',
                           typedResults: items,
                         ),
                       if (keysRefs)
-                        await $_getPrefetchedData<Vault, Vaults, Key>(
+                        await $_getPrefetchedDataByColumns<
+                          Vault,
+                          Vaults,
+                          Key,
+                          Keys
+                        >(
                           currentTable: table,
                           referencedTable: $VaultsReferences._keysRefsTable(db),
                           managerFromTypedResult: (p0) =>
                               $VaultsReferences(db, table, p0).keysRefs,
-                          referencedItemsForCurrentItem:
-                              (item, referencedItems) => referencedItems.where(
-                                (e) => e.vaultId == item.id,
-                              ),
+                          currentColumn: 'id',
+                          referencedColumn: 'vault_id',
                           typedResults: items,
                         ),
                       if (credentialsRefs)
-                        await $_getPrefetchedData<Vault, Vaults, Credential>(
+                        await $_getPrefetchedDataByColumns<
+                          Vault,
+                          Vaults,
+                          Credential,
+                          Credentials
+                        >(
                           currentTable: table,
                           referencedTable: $VaultsReferences
                               ._credentialsRefsTable(db),
                           managerFromTypedResult: (p0) =>
                               $VaultsReferences(db, table, p0).credentialsRefs,
-                          referencedItemsForCurrentItem:
-                              (item, referencedItems) => referencedItems.where(
-                                (e) => e.vaultId == item.id,
-                              ),
+                          currentColumn: 'id',
+                          referencedColumn: 'vault_id',
                           typedResults: items,
                         ),
                       if (knownHostsRefs)
-                        await $_getPrefetchedData<Vault, Vaults, KnownHost>(
+                        await $_getPrefetchedDataByColumns<
+                          Vault,
+                          Vaults,
+                          KnownHost,
+                          KnownHosts
+                        >(
                           currentTable: table,
                           referencedTable: $VaultsReferences
                               ._knownHostsRefsTable(db),
                           managerFromTypedResult: (p0) =>
                               $VaultsReferences(db, table, p0).knownHostsRefs,
-                          referencedItemsForCurrentItem:
-                              (item, referencedItems) => referencedItems.where(
-                                (e) => e.vaultId == item.id,
-                              ),
+                          currentColumn: 'id',
+                          referencedColumn: 'vault_id',
                           typedResults: items,
                         ),
                     ];
@@ -6483,10 +6622,11 @@ class $IdentitiesTableManager
                   getPrefetchedDataCallback: (items) async {
                     return [
                       if (connectionsRefs)
-                        await $_getPrefetchedData<
+                        await $_getPrefetchedDataByColumns<
                           Identity,
                           Identities,
-                          Connection
+                          Connection,
+                          Connections
                         >(
                           currentTable: table,
                           referencedTable: $IdentitiesReferences
@@ -6496,17 +6636,16 @@ class $IdentitiesTableManager
                             table,
                             p0,
                           ).connectionsRefs,
-                          referencedItemsForCurrentItem:
-                              (item, referencedItems) => referencedItems.where(
-                                (e) => e.identityId == item.id,
-                              ),
+                          currentColumn: 'id',
+                          referencedColumn: 'identity_id',
                           typedResults: items,
                         ),
                       if (identityCredentialsRefs)
-                        await $_getPrefetchedData<
+                        await $_getPrefetchedDataByColumns<
                           Identity,
                           Identities,
-                          IdentityCredential
+                          IdentityCredential,
+                          IdentityCredentials
                         >(
                           currentTable: table,
                           referencedTable: $IdentitiesReferences
@@ -6516,10 +6655,8 @@ class $IdentitiesTableManager
                             table,
                             p0,
                           ).identityCredentialsRefs,
-                          referencedItemsForCurrentItem:
-                              (item, referencedItems) => referencedItems.where(
-                                (e) => e.identityId == item.id,
-                              ),
+                          currentColumn: 'id',
+                          referencedColumn: 'identity_id',
                           typedResults: items,
                         ),
                     ];
@@ -7240,10 +7377,11 @@ class $CustomTerminalThemesTableManager
               getPrefetchedDataCallback: (items) async {
                 return [
                   if (connectionsRefs)
-                    await $_getPrefetchedData<
+                    await $_getPrefetchedDataByColumns<
                       CustomTerminalTheme,
                       CustomTerminalThemes,
-                      Connection
+                      Connection,
+                      Connections
                     >(
                       currentTable: table,
                       referencedTable: $CustomTerminalThemesReferences
@@ -7254,10 +7392,8 @@ class $CustomTerminalThemesTableManager
                             table,
                             p0,
                           ).connectionsRefs,
-                      referencedItemsForCurrentItem: (item, referencedItems) =>
-                          referencedItems.where(
-                            (e) => e.terminalThemeOverrideId == item.id,
-                          ),
+                      currentColumn: 'id',
+                      referencedColumn: 'terminal_theme_override_id',
                       typedResults: items,
                     ),
                 ];
@@ -8020,10 +8156,11 @@ class $ConnectionsTableManager
                   getPrefetchedDataCallback: (items) async {
                     return [
                       if (connectionCredentialsRefs)
-                        await $_getPrefetchedData<
+                        await $_getPrefetchedDataByColumns<
                           Connection,
                           Connections,
-                          ConnectionCredential
+                          ConnectionCredential,
+                          ConnectionCredentials
                         >(
                           currentTable: table,
                           referencedTable: $ConnectionsReferences
@@ -8034,10 +8171,8 @@ class $ConnectionsTableManager
                                 table,
                                 p0,
                               ).connectionCredentialsRefs,
-                          referencedItemsForCurrentItem:
-                              (item, referencedItems) => referencedItems.where(
-                                (e) => e.connectionId == item.id,
-                              ),
+                          currentColumn: 'id',
+                          referencedColumn: 'connection_id',
                           typedResults: items,
                         ),
                     ];
@@ -8444,15 +8579,20 @@ class $KeysTableManager
               getPrefetchedDataCallback: (items) async {
                 return [
                   if (credentialsRefs)
-                    await $_getPrefetchedData<Key, Keys, Credential>(
+                    await $_getPrefetchedDataByColumns<
+                      Key,
+                      Keys,
+                      Credential,
+                      Credentials
+                    >(
                       currentTable: table,
                       referencedTable: $KeysReferences._credentialsRefsTable(
                         db,
                       ),
                       managerFromTypedResult: (p0) =>
                           $KeysReferences(db, table, p0).credentialsRefs,
-                      referencedItemsForCurrentItem: (item, referencedItems) =>
-                          referencedItems.where((e) => e.keyId == item.id),
+                      currentColumn: 'id',
+                      referencedColumn: 'key_id',
                       typedResults: items,
                     ),
                 ];
@@ -9011,10 +9151,11 @@ class $CredentialsTableManager
                   getPrefetchedDataCallback: (items) async {
                     return [
                       if (identityCredentialsRefs)
-                        await $_getPrefetchedData<
+                        await $_getPrefetchedDataByColumns<
                           Credential,
                           Credentials,
-                          IdentityCredential
+                          IdentityCredential,
+                          IdentityCredentials
                         >(
                           currentTable: table,
                           referencedTable: $CredentialsReferences
@@ -9025,17 +9166,16 @@ class $CredentialsTableManager
                                 table,
                                 p0,
                               ).identityCredentialsRefs,
-                          referencedItemsForCurrentItem:
-                              (item, referencedItems) => referencedItems.where(
-                                (e) => e.credentialId == item.id,
-                              ),
+                          currentColumn: 'id',
+                          referencedColumn: 'credential_id',
                           typedResults: items,
                         ),
                       if (connectionCredentialsRefs)
-                        await $_getPrefetchedData<
+                        await $_getPrefetchedDataByColumns<
                           Credential,
                           Credentials,
-                          ConnectionCredential
+                          ConnectionCredential,
+                          ConnectionCredentials
                         >(
                           currentTable: table,
                           referencedTable: $CredentialsReferences
@@ -9046,10 +9186,8 @@ class $CredentialsTableManager
                                 table,
                                 p0,
                               ).connectionCredentialsRefs,
-                          referencedItemsForCurrentItem:
-                              (item, referencedItems) => referencedItems.where(
-                                (e) => e.credentialId == item.id,
-                              ),
+                          currentColumn: 'id',
+                          referencedColumn: 'credential_id',
                           typedResults: items,
                         ),
                     ];

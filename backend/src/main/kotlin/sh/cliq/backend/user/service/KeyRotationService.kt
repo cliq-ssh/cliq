@@ -14,9 +14,6 @@ import sh.cliq.backend.user.KEY_ROTATION_TOKEN_INTERVAL_MINUTES
 import sh.cliq.backend.user.User
 import sh.cliq.backend.user.UserRepository
 import sh.cliq.backend.utils.TokenGenerator
-import sh.cliq.backend.vault.VaultRepository
-import sh.cliq.backend.vault.factory.VaultFactory
-import sh.cliq.backend.vault.params.VaultParams
 import java.time.Clock
 import java.time.OffsetDateTime
 import java.util.Locale
@@ -29,8 +26,6 @@ class KeyRotationService(
     private val emailSender: EmailSender,
     private val messageSource: MessageSource,
     private val sessionRepository: SessionRepository,
-    private val vaultRepository: VaultRepository,
-    private val vaultFactory: VaultFactory,
 ) {
     private val logger = LoggerFactory.getLogger(this::class.java)
 
@@ -85,7 +80,6 @@ class KeyRotationService(
         newDataEncryptionKey: String,
         srpSalt: String?,
         srpVerifier: String?,
-        vaultParams: VaultParams,
     ) {
         if (user.keyRotationToken != code) {
             throw InvalidKeyRotationCodeException()
@@ -115,15 +109,6 @@ class KeyRotationService(
         user.keyRotationSentAt = null
 
         userRepository.save(user)
-
-        val existingVault = vaultRepository.getByUser(user)
-        val vault =
-            if (existingVault == null) {
-                vaultFactory.createFromParams(vaultParams, user)
-            } else {
-                vaultFactory.updateFromParams(existingVault, vaultParams, user)
-            }
-        vaultRepository.save(vault)
 
         // Invalidate all existing sessions for this user
         sessionRepository.deleteAllByUserId(user.id!!)

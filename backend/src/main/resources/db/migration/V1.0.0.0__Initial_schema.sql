@@ -14,8 +14,8 @@ CREATE TABLE users
     "email"                      TEXT                     NOT NULL UNIQUE,
     "name"                       TEXT                     NOT NULL,
     "locale"                     TEXT                     NOT NULL,
-    "key_rotation_token"                TEXT,
-    "key_rotation_sent_at"              timestamp with time zone,
+    "key_rotation_token"         TEXT,
+    "key_rotation_sent_at"       timestamp with time zone,
     "email_verification_token"   TEXT,
     "email_verification_sent_at" timestamp with time zone,
     "email_verified_at"          timestamp with time zone,
@@ -30,7 +30,6 @@ CREATE TABLE auth_exchanges
     "id"            BIGINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
     "user_id"       BIGINT REFERENCES users (id) ON DELETE CASCADE NOT NULL,
     "exchange_code" TEXT                                           NOT NULL UNIQUE,
-    "ip_address"    inet                                           NOT NULL,
     "created_at"    timestamp with time zone                       NOT NULL,
     "expires_at"    timestamp with time zone                       NOT NULL
 );
@@ -72,10 +71,10 @@ CREATE INDEX idx_sessions_refresh_token ON sessions (refresh_token);
 
 CREATE TABLE vaults
 (
-    "id"               BIGINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
-    "user_id"          BIGINT REFERENCES "users" (id) ON DELETE CASCADE UNIQUE NOT NULL,
-    "encrypted_config" TEXT                                                    NOT NULL,
-    "version"          TEXT                                                    NOT NULL,
-    "created_at"       timestamp with time zone                                NOT NULL,
-    "updated_at"       timestamp with time zone                                NOT NULL
+    "id"               uuid PRIMARY KEY,
+    "user_id"          BIGINT REFERENCES "users" (id) ON DELETE CASCADE NOT NULL,
+    "encrypted_config" TEXT                                             NOT NULL,
+    "version"          TEXT                                             NOT NULL,
+    "created_at"       timestamp with time zone                         NOT NULL,
+    "updated_at"       timestamp with time zone                         NOT NULL
 );

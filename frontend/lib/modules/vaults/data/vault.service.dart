@@ -5,6 +5,7 @@ import 'package:cliq/modules/settings/data/known_hosts.repository.dart';
 import 'package:cliq/modules/vaults/data/vaults.repository.dart';
 import 'package:cliq/shared/data/database.dart';
 import 'package:drift/drift.dart';
+import 'package:uuid/uuid.dart';
 
 final class VaultService {
   final VaultsRepository _vaultsRepository;
@@ -24,10 +25,46 @@ final class VaultService {
 
   Stream<List<Vault>> watchAll() => _vaultsRepository.selectAll().watch();
 
-  Future<Vault> createVault({required String? owner}) async {
+  Future<Vault> getOrCreateVault({required String? owner, String? id}) async {
+    if (id != null) {
+      final existing = await findById(id);
+      if (existing != null) return existing;
+    }
+
+    return createVault(owner: owner, id: id);
+  }
+
+  Future<Vault> createVault({required String? owner, String? id}) async {
+    final vaultId = id ?? const Uuid().v4();
+
     return await _vaultsRepository.insert(
-      VaultsCompanion.insert(owner: .absentIfNull(owner)),
+      VaultsCompanion.insert(
+        id: vaultId,
+        owner: .absentIfNull(owner),
+        lastSynced: const .absent(),
+      ),
     );
+  }
+
+  Future<Vault?> findById(DbId id) async => (await (_vaultsRepository.db.select(
+    _vaultsRepository.db.vaults,
+  )..where((vault) => vault.id.equals(id))).get()).firstOrNull;
+
+  Future<double?> getLastSyncedById(DbId id) {
+    final result = _vaultsRepository.db.getLastSyncedByVaultId(id);
+
+    return result.getSingle();
+  }
+
+  Future<void> updateLastSyncedById(DbId id, DateTime lastUpdated) async {
+    await _vaultsRepository.db.updateLastSyncedByVaultId(
+      lastUpdated.millisecondsSinceEpoch.toDouble(),
+      id,
+    );
+  }
+
+  Future<double?> findLatestUpdatedTimestamp() async {
+    return _vaultsRepository.db.getLatestLastSyncedTimestamp().getSingle();
   }
 
   Future<

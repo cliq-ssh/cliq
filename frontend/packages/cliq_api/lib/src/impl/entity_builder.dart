@@ -2,13 +2,25 @@ import 'package:cliq_api/cliq_api.dart';
 
 import 'cliq_client_impl.dart';
 import 'entities/user_impl.dart';
+import 'entities/partial_vault_impl.dart';
 import 'entities/vault_impl.dart';
 
 class EntityBuilder(final CliqClientImpl api) {
   Vault buildVault(Map<String, dynamic> json) {
     return VaultImpl(
       api,
+      id: json['id'],
       configuration: json['configuration'],
+      version: json['version'],
+      createdAt: DateTime.parse(json['createdAt']),
+      updatedAt: DateTime.parse(json['updatedAt']),
+    );
+  }
+
+  PartialVault buildPartialVault(Map<String, dynamic> json) {
+    return PartialVaultImpl(
+      api,
+      id: json['id'],
       version: json['version'],
       createdAt: DateTime.parse(json['createdAt']),
       updatedAt: DateTime.parse(json['updatedAt']),

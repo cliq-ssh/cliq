@@ -13,6 +13,7 @@ final vaultProvider = NotifierProvider(VaultNotifier.new);
 class VaultNotifier extends AbstractEntityNotifier<Vault, VaultEntityState> {
   @override
   VaultEntityState buildInitialState() => .initial();
+
   @override
   Stream<List<Vault>> get entityStream =>
       ref.read(vaultServiceProvider).watchAll();
@@ -41,8 +42,22 @@ class VaultNotifier extends AbstractEntityNotifier<Vault, VaultEntityState> {
     return await ref.read(vaultServiceProvider).createVault(owner: byOwner);
   }
 
-  Future<Vault> findOrCreateUserVault(CliqClient api) =>
-      findOrCreateVault(api.selfUser.username);
+  Future<Vault> findOrCreateUserVault(CliqClient api) async {
+    await initialized;
+
+    final remoteVaults = await api.listVaults();
+    if (remoteVaults.isNotEmpty) {
+      final remoteId = remoteVaults.first.id;
+      final local = findById(remoteId);
+      if (local != null) return local;
+
+      return ref
+          .read(vaultServiceProvider)
+          .createVault(id: remoteId, owner: api.selfUser.username);
+    }
+
+    return findOrCreateVault(api.selfUser.username);
+  }
 
   /// Convenience method for retrieving the 'default' vault based on login state
   Future<Vault> retrieveDefaultVault() async {
