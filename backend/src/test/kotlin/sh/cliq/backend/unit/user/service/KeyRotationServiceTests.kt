@@ -7,7 +7,6 @@ import org.junit.jupiter.api.extension.ExtendWith
 import org.mockito.Mock
 import org.mockito.junit.jupiter.MockitoExtension
 import org.mockito.kotlin.any
-import org.mockito.kotlin.never
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
 import org.springframework.context.MessageSource
@@ -22,10 +21,6 @@ import sh.cliq.backend.user.User
 import sh.cliq.backend.user.UserRepository
 import sh.cliq.backend.user.service.KeyRotationService
 import sh.cliq.backend.utils.TokenGenerator
-import sh.cliq.backend.vault.VaultData
-import sh.cliq.backend.vault.VaultRepository
-import sh.cliq.backend.vault.factory.VaultFactory
-import sh.cliq.backend.vault.params.VaultParams
 import java.time.Clock
 import java.time.Instant
 import java.time.OffsetDateTime
@@ -43,12 +38,6 @@ class KeyRotationServiceTests {
     private lateinit var sessionRepository: SessionRepository
 
     @Mock
-    private lateinit var vaultRepository: VaultRepository
-
-    @Mock
-    private lateinit var vaultFactory: VaultFactory
-
-    @Mock
     private lateinit var tokenGenerator: TokenGenerator
 
     @Mock
@@ -59,8 +48,6 @@ class KeyRotationServiceTests {
 
     private lateinit var clock: Clock
     private lateinit var keyRotationService: KeyRotationService
-
-    private val vaultParams = VaultParams(configuration = "encrypted-vault-config", version = "2")
 
     private val testUser = User(
         email = "test@example.com",
@@ -84,8 +71,6 @@ class KeyRotationServiceTests {
             emailSender,
             messageSource,
             sessionRepository,
-            vaultRepository,
-            vaultFactory,
         )
     }
 
@@ -138,24 +123,15 @@ class KeyRotationServiceTests {
     }
 
     @Test
-    fun `verifyKeyRotationCode should validate code update keys and create vault when missing`() {
+    fun `verifyKeyRotationCode should validate code update keys`() {
         // Arrange
         val code = "ABCD1234"
         val newDataEncryptionKey = "new-key"
         val newSrpSalt = "new-salt"
         val newSrpVerifier = "new-verifier"
-        val createdVault = VaultData(
-            testUser,
-            vaultParams.configuration,
-            vaultParams.version,
-            OffsetDateTime.now(clock),
-            OffsetDateTime.now(clock),
-        )
 
         testUser.keyRotationToken = code
         testUser.keyRotationSentAt = OffsetDateTime.now(clock)
-        whenever(vaultRepository.getByUser(testUser)).thenReturn(null)
-        whenever(vaultFactory.createFromParams(vaultParams, testUser)).thenReturn(createdVault)
 
         // Act
         keyRotationService.verifyKeyRotationCode(
@@ -164,7 +140,6 @@ class KeyRotationServiceTests {
             newDataEncryptionKey,
             newSrpSalt,
             newSrpVerifier,
-            vaultParams,
         )
 
         // Assert
@@ -173,49 +148,7 @@ class KeyRotationServiceTests {
         assertEquals(newSrpVerifier, testUser.srpVerifier)
         assertEquals(null, testUser.keyRotationToken)
         verify(userRepository).save(testUser)
-        verify(vaultFactory).createFromParams(vaultParams, testUser)
-        verify(vaultRepository).save(createdVault)
         verify(sessionRepository).deleteAllByUserId(1L)
-    }
-
-    @Test
-    fun `verifyKeyRotationCode should update existing vault`() {
-        // Arrange
-        testUser.keyRotationToken = "ABCD1234"
-        testUser.keyRotationSentAt = OffsetDateTime.now(clock)
-        val existingVault = VaultData(
-            testUser,
-            "old-config",
-            "1",
-            OffsetDateTime.now(clock).minusDays(1),
-            OffsetDateTime.now(clock).minusDays(1),
-            id = 11L,
-        )
-        val updatedVault = VaultData(
-            testUser,
-            vaultParams.configuration,
-            vaultParams.version,
-            existingVault.createdAt,
-            OffsetDateTime.now(clock),
-            id = 11L,
-        )
-
-        whenever(vaultRepository.getByUser(testUser)).thenReturn(existingVault)
-        whenever(vaultFactory.updateFromParams(existingVault, vaultParams, testUser)).thenReturn(updatedVault)
-
-        // Act
-        keyRotationService.verifyKeyRotationCode(
-            testUser,
-            "ABCD1234",
-            "new-key",
-            "new-salt",
-            "new-verifier",
-            vaultParams,
-        )
-
-        // Assert
-        verify(vaultFactory).updateFromParams(existingVault, vaultParams, testUser)
-        verify(vaultRepository).save(updatedVault)
     }
 
     @Test
@@ -232,10 +165,8 @@ class KeyRotationServiceTests {
                 "new-key",
                 "new-salt",
                 "new-verifier",
-                vaultParams,
             )
         }
-        verify(vaultRepository, never()).save(any())
     }
 
     @Test
@@ -252,10 +183,8 @@ class KeyRotationServiceTests {
                 "new-key",
                 "new-salt",
                 "new-verifier",
-                vaultParams,
             )
         }
-        verify(vaultRepository, never()).save(any())
     }
 
     @Test
@@ -273,18 +202,8 @@ class KeyRotationServiceTests {
             srpVerifier = "old-verifier",
             emailVerifiedAt = OffsetDateTime.now(clock),
         )
-        val createdVault = VaultData(
-            oidcUser,
-            vaultParams.configuration,
-            vaultParams.version,
-            OffsetDateTime.now(clock),
-            OffsetDateTime.now(clock),
-        )
         oidcUser.keyRotationToken = "ABCD1234"
         oidcUser.keyRotationSentAt = OffsetDateTime.now(clock)
-
-        whenever(vaultRepository.getByUser(oidcUser)).thenReturn(null)
-        whenever(vaultFactory.createFromParams(vaultParams, oidcUser)).thenReturn(createdVault)
 
         // Act
         keyRotationService.verifyKeyRotationCode(
@@ -293,14 +212,12 @@ class KeyRotationServiceTests {
             "new-key",
             null,
             null,
-            vaultParams,
         )
 
         // Assert
         assertEquals("new-key", oidcUser.dataEncryptionKey)
         assertEquals("old-salt", oidcUser.srpSalt)
         assertEquals("old-verifier", oidcUser.srpVerifier)
-        verify(vaultRepository).save(createdVault)
         verify(sessionRepository).deleteAllByUserId(2L)
     }
 
@@ -318,9 +235,7 @@ class KeyRotationServiceTests {
                 "new-key",
                 null,
                 null,
-                vaultParams,
             )
         }
-        verify(vaultRepository, never()).save(any())
     }
 }

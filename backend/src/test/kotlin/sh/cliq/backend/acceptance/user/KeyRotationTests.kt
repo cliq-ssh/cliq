@@ -16,8 +16,6 @@ import sh.cliq.backend.user.KEY_ROTATION_TOKEN_INTERVAL_MINUTES
 import sh.cliq.backend.user.UserRepository
 import sh.cliq.backend.user.params.StartKeyRotationParams
 import sh.cliq.backend.user.params.VerifyKeyRotationParams
-import sh.cliq.backend.vault.VaultRepository
-import sh.cliq.backend.vault.params.VaultParams
 import tools.jackson.databind.ObjectMapper
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
@@ -28,7 +26,6 @@ class KeyRotationTests(
     @Autowired private val objectMapper: ObjectMapper,
     @Autowired private val userRepository: UserRepository,
     @Autowired private val sessionRepository: SessionRepository,
-    @Autowired private val vaultRepository: VaultRepository,
     @Autowired private val userCreationHelper: UserCreationHelper,
 ) : EmailAcceptanceTester() {
     @Test
@@ -124,7 +121,6 @@ class KeyRotationTests(
             dataEncryptionKey = newDataKey,
             srpSalt = newSrpSalt,
             srpVerifier = newSrpVerifier,
-            vault = defaultVaultParams(),
         )
 
         mockMvc
@@ -142,12 +138,6 @@ class KeyRotationTests(
         assertEquals(newSrpSalt, updatedUser.srpSalt)
         assertEquals(newSrpVerifier, updatedUser.srpVerifier)
         assertEquals(null, updatedUser.keyRotationToken)
-
-        // Verify vault was updated
-        val vault = vaultRepository.getByUser(updatedUser)
-        assertNotNull(vault)
-        assertEquals(defaultVaultParams().configuration, vault.encryptedConfig)
-        assertEquals(defaultVaultParams().version, vault.version)
     }
 
     @Test
@@ -161,7 +151,6 @@ class KeyRotationTests(
             dataEncryptionKey = "new-key",
             srpSalt = "new-salt",
             srpVerifier = "new-verifier",
-            vault = defaultVaultParams(),
         )
 
         mockMvc
@@ -208,7 +197,6 @@ class KeyRotationTests(
             dataEncryptionKey = "new-key",
             srpSalt = "new-salt",
             srpVerifier = "new-verifier",
-            vault = defaultVaultParams(),
         )
 
         mockMvc
@@ -253,7 +241,6 @@ class KeyRotationTests(
             dataEncryptionKey = "new-key",
             srpSalt = "new-salt",
             srpVerifier = "new-verifier",
-            vault = defaultVaultParams(),
         )
 
         mockMvc
@@ -301,7 +288,6 @@ class KeyRotationTests(
             dataEncryptionKey = "new-key-oidc",
             srpSalt = null,
             srpVerifier = null,
-            vault = defaultVaultParams(),
         )
 
         mockMvc
@@ -318,12 +304,6 @@ class KeyRotationTests(
         assertEquals("new-key-oidc", updatedUser.dataEncryptionKey)
         assertEquals(oldSrpSalt, updatedUser.srpSalt)
         assertEquals(oldSrpVerifier, updatedUser.srpVerifier)
-
-        // Verify vault updates
-        val vault = vaultRepository.getByUser(updatedUser)
-        assertNotNull(vault)
-        assertEquals(defaultVaultParams().configuration, vault.encryptedConfig)
-        assertEquals(defaultVaultParams().version, vault.version)
     }
 
     @Test
@@ -364,9 +344,4 @@ class KeyRotationTests(
         // Code should have changed
         assertTrue(updatedUser.keyRotationToken != oldCode)
     }
-
-    private fun defaultVaultParams(): VaultParams = VaultParams(
-        configuration = "encrypted-vault-config",
-        version = "2",
-    )
 }

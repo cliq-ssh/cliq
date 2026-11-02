@@ -3,23 +3,18 @@ package sh.cliq.backend.vault
 import jakarta.persistence.Column
 import jakarta.persistence.Entity
 import jakarta.persistence.FetchType
-import jakarta.persistence.GeneratedValue
-import jakarta.persistence.GenerationType
 import jakarta.persistence.Id
 import jakarta.persistence.JoinColumn
-import jakarta.persistence.OneToOne
+import jakarta.persistence.ManyToOne
 import jakarta.persistence.Table
-import jakarta.persistence.UniqueConstraint
 import sh.cliq.backend.user.User
 import java.time.OffsetDateTime
+import java.util.UUID
 
 @Entity
-@Table(
-    name = "vaults",
-    uniqueConstraints = [UniqueConstraint(columnNames = ["user_id"])],
-)
+@Table(name = "vaults")
 class VaultData(
-    @OneToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(nullable = false)
     var user: User,
     @Column var encryptedConfig: String,
@@ -27,6 +22,5 @@ class VaultData(
     @Column(nullable = false) var createdAt: OffsetDateTime,
     @Column(nullable = false) var updatedAt: OffsetDateTime,
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    var id: Long? = null,
+    var id: UUID,
 )

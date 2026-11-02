@@ -17,11 +17,11 @@ echo "Shutting down any running containers..."
 docker compose down -v
 
 echo "Installing dependencies..."
-docker compose run --rm node yarn install
+docker compose run --rm node npm install
 
 echo "Starting server..."
 docker compose up -d
 
-echo "Server listening on http://localhost:3000/cliq"
+echo "Server listening on http://localhost:3000"
 
 echo "Finished install"
