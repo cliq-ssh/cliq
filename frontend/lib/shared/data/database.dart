@@ -25,6 +25,15 @@ part 'database.g.dart';
 /// A type alias for database identifiers, represented as strings (uuids)
 typedef DbId = String;
 
+const kDbFileName = 'cliq_db.sqlite';
+
+final Future<Directory> applicationSupportDirectory =
+    getApplicationSupportDirectory();
+
+final Future<File> databaseFile = applicationSupportDirectory.then(
+  (directory) => File(CliqDatabase.buildDbFilePath(directory.path)),
+);
+
 @DriftDatabase(
   include: {
     '../../modules/connections/data/connections.drift',
@@ -82,8 +91,7 @@ final class CliqDatabase extends _$CliqDatabase {
 
   Future<void> deleteDatabaseFile() async {
     await executor.close();
-    final supportDir = await getApplicationSupportDirectory();
-    final dbFile = File('${supportDir.path}/cliq_db.sqlite');
+    final dbFile = await databaseFile;
     if (dbFile.existsSync()) {
       dbFile.deleteSync();
     }
@@ -92,9 +100,13 @@ final class CliqDatabase extends _$CliqDatabase {
   static QueryExecutor _openConnection() {
     return driftDatabase(
       name: 'cliq_db',
-      native: const DriftNativeOptions(
-        databaseDirectory: getApplicationSupportDirectory,
+      native: DriftNativeOptions(
+        databaseDirectory: () => applicationSupportDirectory,
       ),
     );
+  }
+
+  static String buildDbFilePath(String supportPath) {
+    return '$supportPath${Platform.pathSeparator}$kDbFileName';
   }
 }
