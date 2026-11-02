@@ -2,6 +2,7 @@ import 'package:cliq/modules/settings/page/abstract_settings_page.dart';
 import 'package:cliq/modules/settings/page/settings.page.dart';
 import 'package:cliq/modules/settings/provider/sync.provider.dart';
 import 'package:cliq/modules/vaults/provider/vault.provider.dart';
+import 'package:cliq/shared/data/database.dart';
 import 'package:cliq/shared/data/store.dart';
 import 'package:cliq/shared/model/page_path.model.dart';
 import 'package:cliq/shared/provider/database.provider.dart';
@@ -125,41 +126,71 @@ class const DeveloperSettingsView({super.key}) extends AbstractSettingsPage {
               ),
             ],
           ),
-        FTileGroup(
-          label: const Text('Database'),
-          children: [
-            // TODO move to commons?
-            .tile(
-              variant: .destructive,
-              prefix: const Icon(LucideIcons.databaseBackup),
-              title: const Text('Clear Database Tables'),
-              subtitle: const Text(
-                'This will delete all data in the database tables, but keep the table structure intact.',
-                overflow: .visible,
-              ),
-              onPress: () => Commons.showDeleteDialog(
-                entity: 'ALL DATABASE TABLES',
-                onDelete: () => ref.read(databaseProvider).deleteAllTables(),
-                canInstantDelete: false,
-                mayNeedAppRestart: true,
-              ),
-            ),
-            .tile(
-              variant: .destructive,
-              prefix: const Icon(LucideIcons.databaseX),
-              title: const Text('Delete Database File'),
-              subtitle: const Text(
-                'This will delete the entire database file, including all tables and data. An app restart is REQUIRED after this action.',
-                overflow: .visible,
-              ),
-              onPress: () => Commons.showDeleteDialog(
-                entity: 'THE ENTIRE DATABASE',
-                onDelete: () => ref.read(databaseProvider).deleteDatabaseFile(),
-                canInstantDelete: false,
-                mayNeedAppRestart: true,
-              ),
-            ),
-          ],
+        FutureBuilder(
+          future: applicationSupportDirectory,
+          builder: (context, snapshot) {
+            final supportPath = snapshot.data?.path;
+            final dbPath = supportPath == null
+                ? null
+                : CliqDatabase.buildDbFilePath(supportPath);
+
+            return FTileGroup(
+              label: const Text('Database'),
+              children: [
+                FTile(
+                  prefix: const Icon(LucideIcons.folder),
+                  title: const Text('Application support directory'),
+                  subtitle: Text(supportPath ?? '--'),
+                  suffix: const Icon(LucideIcons.copy),
+                  onPress: supportPath == null
+                      ? null
+                      : () => Commons.copyToClipboard(context, supportPath),
+                ),
+                FTile(
+                  prefix: const Icon(LucideIcons.database),
+                  title: const Text('Database file'),
+                  subtitle: Text(dbPath ?? '--'),
+                  suffix: const Icon(LucideIcons.copy),
+                  onPress: dbPath == null
+                      ? null
+                      : () => Commons.copyToClipboard(context, dbPath),
+                ),
+                // TODO move to commons?
+                .tile(
+                  variant: .destructive,
+                  prefix: const Icon(LucideIcons.databaseBackup),
+                  title: const Text('Clear Database Tables'),
+                  subtitle: const Text(
+                    'This will delete all data in the database tables, but keep the table structure intact.',
+                    overflow: .visible,
+                  ),
+                  onPress: () => Commons.showDeleteDialog(
+                    entity: 'ALL DATABASE TABLES',
+                    onDelete: () =>
+                        ref.read(databaseProvider).deleteAllTables(),
+                    canInstantDelete: false,
+                    mayNeedAppRestart: true,
+                  ),
+                ),
+                .tile(
+                  variant: .destructive,
+                  prefix: const Icon(LucideIcons.databaseX),
+                  title: const Text('Delete Database File'),
+                  subtitle: const Text(
+                    'This will delete the entire database file, including all tables and data. An app restart is REQUIRED after this action.',
+                    overflow: .visible,
+                  ),
+                  onPress: () => Commons.showDeleteDialog(
+                    entity: 'THE ENTIRE DATABASE',
+                    onDelete: () =>
+                        ref.read(databaseProvider).deleteDatabaseFile(),
+                    canInstantDelete: false,
+                    mayNeedAppRestart: true,
+                  ),
+                ),
+              ],
+            );
+          },
         ),
         FTileGroup(
           label: const Text('KeyValueStore'),
