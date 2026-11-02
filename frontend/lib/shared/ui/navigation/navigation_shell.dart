@@ -21,7 +21,7 @@ import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lucide_flutter/lucide_flutter.dart';
 import 'package:material_ui/material_ui.dart';
-import 'package:window_manager/window_manager.dart';
+import 'package:nativeapi_flutter/nativeapi_flutter.dart' show WindowManager;
 
 const EdgeInsetsGeometry kMacOSNavigationPadding = .only(left: 70);
 
@@ -348,11 +348,13 @@ class NavigationShellState extends ConsumerState<NavigationShell>
     }
 
     toggleMaximize() async {
-      final isMaximized = await windowManager.isMaximized();
+      final window = WindowManager.instance.getCurrent();
+      if (window == null) return;
+      final isMaximized = window.isMaximized && window.isMaximizable;
       if (isMaximized) {
-        await windowManager.unmaximize();
+        window.unmaximize();
       } else {
-        await windowManager.maximize();
+        window.maximize();
       }
     }
 
@@ -375,7 +377,7 @@ class NavigationShellState extends ConsumerState<NavigationShell>
         child: Row(
           children: [
             buildButton(
-              onPress: () async => await windowManager.minimize(),
+              onPress: () => WindowManager.instance.getCurrent()?.minimize(),
               icon: LucideIcons.minus,
             ),
             buildButton(
@@ -383,7 +385,7 @@ class NavigationShellState extends ConsumerState<NavigationShell>
               icon: LucideIcons.copy,
             ),
             buildButton(
-              onPress: () async => await windowManager.close(),
+              onPress: () => WindowManager.instance.getCurrent()?.close(),
               flipX: true,
               icon: LucideIcons.x,
             ),
@@ -412,7 +414,8 @@ class NavigationShellState extends ConsumerState<NavigationShell>
                   child: GestureDetector(
                     behavior: HitTestBehavior.opaque,
                     onDoubleTap: () async => await toggleMaximize(),
-                    onPanStart: (_) => windowManager.startDragging(),
+                    onPanStart: (_) =>
+                        WindowManager.instance.getCurrent()?.startDragging(),
                   ),
                 ),
 

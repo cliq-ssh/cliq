@@ -24,12 +24,13 @@ import 'package:logging/logging.dart';
 import 'package:lucide_flutter/lucide_flutter.dart';
 import 'package:macos_window_utils/macos_window_utils.dart';
 import 'package:material_ui/material_ui.dart' hide Router;
+import 'package:nativeapi/nativeapi.dart' show Size;
+import 'package:nativeapi_flutter/nativeapi_flutter.dart' show WindowManager;
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:window_manager/window_manager.dart';
 
 const windowMinWidth = 720.0;
 const windowMinHeight = 450.0;
-const windowMinSize = Size(windowMinWidth, windowMinHeight);
+const windowMinSize = Size(width: windowMinWidth, height: windowMinHeight);
 
 void main() async {
   await runZonedGuarded(() async {
@@ -70,25 +71,23 @@ Future<void> _configureWindow() async {
     return;
   }
 
-  await windowManager.ensureInitialized();
-
   if (Platform.isMacOS) {
     await WindowManipulator.initialize();
   }
 
-  const windowOptions = WindowOptions(
-    minimumSize: windowMinSize,
-    title: Constants.defaultTitle,
-    titleBarStyle: .hidden,
-  );
-  await windowManager.waitUntilReadyToShow(windowOptions, () async {
-    await windowManager.show();
-    await windowManager.focus();
+  final window = WindowManager.instance.getCurrent();
+  if (window == null) {
+    debugPrint('Window was null while trying to initializing it.');
+    return;
+  }
 
-    if (Platform.isMacOS) {
-      await _configureMacOSTrafficLights();
-    }
-  });
+  window.minimumSize = windowMinSize;
+  window.title = Constants.defaultTitle;
+  window.titleBarStyle = .hidden;
+
+  if (Platform.isMacOS) {
+    await _configureMacOSTrafficLights();
+  }
 }
 
 Future<void> _configureMacOSTrafficLights() async {
