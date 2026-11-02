@@ -254,7 +254,7 @@ packages:
     description:
       path: "."
       ref: master
-      resolved-ref: "4c99257866a219203f39c9d3cfb279826a6a4744"
+      resolved-ref: "3054a225a5032fb06ebf32c6e3e46ac3ae6c510b"
       url: "https://github.com/cliq-ssh/dartssh2.git"
     source: git
     version: "4.1.0"

@@ -24,7 +24,7 @@ abstract class Repository<T extends Table, R> {
         idColumn?.type == DriftSqlType.string && !columns.containsKey('id')
         ? RawValuesInsertable<R>({
             ...columns,
-            'id': Variable<String>(_uuid.v4()),
+            'id': Variable<String>(_uuid.v7()),
           })
         : row;
 
@@ -56,7 +56,7 @@ abstract class Repository<T extends Table, R> {
       if (idColumn?.type == DriftSqlType.string && !columns.containsKey('id')) {
         return RawValuesInsertable<R>({
           ...columns,
-          'id': Variable<String>(_uuid.v4()),
+          'id': Variable<String>(_uuid.v7()),
         });
       }
       return row;
