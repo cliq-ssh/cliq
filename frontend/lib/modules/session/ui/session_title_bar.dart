@@ -5,7 +5,6 @@ import 'package:cliq/modules/session/provider/session.provider.dart';
 import 'package:cliq/modules/settings/provider/terminal_theme.provider.dart';
 import 'package:cliq/shared/provider/store.provider.dart';
 import 'package:cliq/shared/ui/cliq_tooltip.dart';
-import 'package:cliq/shared/ui/navigation/navigation_shell.dart';
 import 'package:cliq_ui/cliq_ui.dart' show CliqFontFamily;
 import 'package:cupertino_ui/cupertino_ui.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
@@ -26,7 +25,7 @@ class const SessionTitleBar({
     final backgroundColor = useState<Color?>(null);
     final foregroundColor = useState<Color?>(null);
 
-    final session = ref.read(sessionProvider.notifier).findById(sessionId);
+    final session = ref.read(sessionProvider.notifier).findById(sessionId)!;
 
     // read connection again since it might have been updated
     final connection = ref
@@ -95,10 +94,7 @@ class const SessionTitleBar({
                     onPress: () {
                       ref
                           .read(sessionProvider.notifier)
-                          .closeSessionAndMaybeGo(
-                            NavigationShell.of(context),
-                            session.id,
-                          );
+                          .remove(session.id);
                     },
                     label: 'Close',
                   ),

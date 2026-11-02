@@ -1,7 +1,6 @@
 import 'package:cliq/modules/session/model/session.model.dart';
 import 'package:cliq/modules/session/provider/session.provider.dart';
 import 'package:cliq/shared/ui/cliq_tooltip.dart';
-import 'package:cliq/shared/ui/navigation/navigation_shell.dart';
 import 'package:cliq/shared/ui/title_card.dart';
 import 'package:cliq/shared/utils/commons.dart';
 import 'package:cliq/shared/utils/text_utils.dart';
@@ -34,9 +33,7 @@ class GenericSessionPage extends HookConsumerWidget {
     final typography = context.theme.typography;
 
     closeSession() {
-      ref
-          .read(sessionProvider.notifier)
-          .closeSessionAndMaybeGo(NavigationShell.of(context), session.id);
+      ref.read(sessionProvider.notifier).remove(session.id);
     }
 
     buildConnecting() {

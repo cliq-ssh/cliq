@@ -6,8 +6,6 @@ import 'package:cliq/modules/session/page/generic_session.page.dart';
 import 'package:cliq/modules/session/provider/session.provider.dart';
 import 'package:cliq/modules/settings/provider/terminal_theme.provider.dart';
 import 'package:cliq/shared/provider/store.provider.dart';
-import 'package:cliq/shared/ui/navigation/navigation_shell.dart';
-import 'package:cliq/shared/ui/repeatable_button.dart';
 import 'package:cliq/shared/utils/platform_utils.dart';
 import 'package:flterm/flterm.dart';
 import 'package:flutter/services.dart';
@@ -46,7 +44,7 @@ class _SshSessionPageState extends ConsumerState<SshSessionPage>
 
     final session = ref
         .watch(sessionProvider.notifier)
-        .getSessionById(widget.sessionId)!;
+        .findById(widget.sessionId)!;
 
     final terminalController = useState<TerminalController?>(
       session.terminalController,
@@ -55,8 +53,6 @@ class _SshSessionPageState extends ConsumerState<SshSessionPage>
     final defaultTerminalTypography = useStore(.defaultTerminalTypography);
     final defaultTerminalTheme = useStore(.defaultTerminalThemeId);
     final themes = ref.watch(terminalThemeProvider);
-
-    final shortcuts = useStore(.shortcuts);
 
     final scrollbackSize = useStore(.sshScrollbackSize);
     final bellSound = useStore(.terminalBellSound);
@@ -72,10 +68,6 @@ class _SshSessionPageState extends ConsumerState<SshSessionPage>
     final isInitialResize = useRef(true);
     final resizeOverlayEntry = useRef<OverlayEntry?>(null);
     final resizeOverlayTimer = useRef<Timer?>(null);
-
-    getEffectiveTerminalTypography() =>
-        session.connection.terminalTypographyOverride ??
-        defaultTerminalTypography.value;
 
     buildResizeOverlay(int rows, int cols) {
       return OverlayEntry(
@@ -106,12 +98,17 @@ class _SshSessionPageState extends ConsumerState<SshSessionPage>
 
       controller.onTitleChanged = () {
         if (!PlatformUtils.isDesktop) return;
-        windowManager.setTitle(controller.title);
+        final title = controller.title;
+        windowManager.setTitle(title);
+        ref
+            .read(sessionProvider.notifier)
+            .rename(session.id, title, userChangedTitle: false);
       };
 
       controller.onResize = (cols, rows) {
-        ref.read(sessionProvider.notifier)
-            .getSessionById(widget.sessionId)
+        ref
+            .read(sessionProvider.notifier)
+            .findById(widget.sessionId)
             ?.ssh
             ?.resize(cols, rows);
 
@@ -127,21 +124,21 @@ class _SshSessionPageState extends ConsumerState<SshSessionPage>
           Overlay.of(context).insert(resizeOverlayEntry.value!);
 
           resizeOverlayTimer.value?.cancel();
-          resizeOverlayTimer.value = Timer(const Duration(milliseconds: 500), () {
-            if (!mounted) return;
-            resizeOverlayEntry.value?.remove();
-            resizeOverlayEntry.value = null;
-          });
+          resizeOverlayTimer.value = Timer(
+            const Duration(milliseconds: 500),
+            () {
+              if (!mounted) return;
+              resizeOverlayEntry.value?.remove();
+              resizeOverlayEntry.value = null;
+            },
+          );
         });
       };
     }
 
     buildTerminalController() {
       final controller = TerminalController(
-        config: .new(
-          scrollbackMaxLines: scrollbackSize.value,
-          // TODO: theming
-        ),
+        config: .new(scrollbackMaxLines: scrollbackSize.value),
       );
       rebindTerminalControllerCallbacks(controller);
       return controller;
@@ -150,11 +147,7 @@ class _SshSessionPageState extends ConsumerState<SshSessionPage>
     retrySession({bool skipHostKeyVerification = false}) {
       ref
           .read(sessionProvider.notifier)
-          .resetSession(
-            NavigationShell.of(context),
-            session.id,
-            skipHostKeyVerification: skipHostKeyVerification,
-          );
+          .reset(session.id, skipHostKeyVerification: skipHostKeyVerification);
       terminalController.value = buildTerminalController();
     }
 
@@ -193,10 +186,7 @@ class _SshSessionPageState extends ConsumerState<SshSessionPage>
               terminalController.value!,
               onExit: () {
                 if (!context.mounted) return;
-                notifier.closeSessionAndMaybeGo(
-                  NavigationShell.of(context),
-                  session.id,
-                );
+                notifier.remove(session.id);
               },
             );
         if (worker == null || !mounted) return;
@@ -239,54 +229,18 @@ class _SshSessionPageState extends ConsumerState<SshSessionPage>
       ],
     );
 
-    buildAccessoryButton(
-      VoidCallback onPress, {
-      String? text,
-      IconData? icon,
-      FButtonVariant? variant,
-      bool repeatable = false,
-    }) {
-      assert(
-        text != null || icon != null,
-        'Either text or icon must be provided',
-      );
-      Widget child = FButton.icon(
-        variant: variant ?? .outline,
-        onPress: repeatable ? () {} : onPress,
-        child: text == null
-            ? Icon(icon, size: 16)
-            : Text(
-                text,
-                style: const .new().copyWith(fontSize: 12, fontWeight: .bold),
-              ),
-      );
-
-      if (repeatable) {
-        child = RepeatableButton(onPress: onPress, child: child);
-      }
-
-      return child;
-    }
-
-    final rawKeyboardInset = MediaQuery.of(context).viewInsets.bottom;
-    final adjustedKeyboardInset = PlatformUtils.isMobile
-        ? (rawKeyboardInset - kBottomNavigationBarHeight).clamp(
-            0.0,
-            double.infinity,
-          )
-        : rawKeyboardInset;
-
     return GenericSessionPage(
       session: session,
       isConnected: session.isConnected && terminalController.value != null,
       isLikelyLoading: session.isLikelyLoading,
       onRetry: retrySession,
       child: SizedBox.expand(
-        child: Container(
+        child: ColoredBox(
           color: effectiveTerminalTheme.background,
           child: TerminalView(
             controller: terminalController.value!,
             focusNode: widget.focusNode,
+            // TODO: theming
           ),
         ),
       ),

@@ -1,6 +1,5 @@
 import 'package:cliq/modules/connections/ui/connection_icon.dart';
 import 'package:cliq/modules/session/model/session.model.dart';
-import 'package:cliq/modules/session/model/tab.model.dart';
 import 'package:cliq/modules/session/provider/session.provider.dart';
 import 'package:cliq/shared/ui/cliq_tooltip.dart';
 import 'package:cliq/shared/ui/context_menu.dart';
@@ -74,13 +73,13 @@ class SessionNavigationTab extends HookConsumerWidget {
     close() {
       ref
           .read(sessionProvider.notifier)
-          .closeTabAndMaybeGo(NavigationShell.of(context), _tabId ?? root.id);
+          .remove(_tabId ?? root.id);
     }
 
     rename([String? customLabel]) {
       ref
           .read(sessionProvider.notifier)
-          .renameTab(_tabId ?? root.id, customLabel);
+          .rename(_tabId ?? root.id, customLabel);
       renameController.text = (customLabel == null || customLabel.isEmpty)
           ? root.connection.label
           : customLabel;

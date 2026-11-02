@@ -11,7 +11,6 @@ import 'package:cliq/shared/provider/file_transfer.provider.dart';
 import 'package:cliq/shared/provider/store.provider.dart';
 import 'package:cliq/shared/ui/cliq_tooltip.dart';
 import 'package:cliq/shared/ui/context_menu.dart';
-import 'package:cliq/shared/ui/navigation/navigation_shell.dart';
 import 'package:cliq/shared/ui/table_view.dart';
 import 'package:cliq/shared/utils/commons.dart';
 import 'package:cliq/shared/utils/constants.dart';
@@ -243,7 +242,7 @@ class _SftpSessionPageState extends ConsumerState<SftpSessionPage>
 
     final session = ref
         .watch(sessionProvider.notifier)
-        .getSessionById(widget.sessionId);
+        .findById(widget.sessionId);
 
     if (session == null) return const SizedBox.shrink();
 
@@ -289,8 +288,7 @@ class _SftpSessionPageState extends ConsumerState<SftpSessionPage>
     retrySession({bool skipHostKeyVerification = false}) {
       ref
           .read(sessionProvider.notifier)
-          .resetSession(
-            NavigationShell.of(context),
+          .reset(
             session.id,
             skipHostKeyVerification: skipHostKeyVerification,
           );
@@ -950,7 +948,7 @@ class _SftpSessionPageState extends ConsumerState<SftpSessionPage>
 
                       final sourceSession = ref
                           .read(sessionProvider.notifier)
-                          .getSessionById(details.data.sessionId)!;
+                          .findById(details.data.sessionId)!;
 
                       fileTransferNotifier
                           .transferSftp(

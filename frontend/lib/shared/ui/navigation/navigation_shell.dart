@@ -303,7 +303,7 @@ class NavigationShellState extends ConsumerState<NavigationShell>
 
     buildSessionSidebarTabs() {
       return [
-        for (final tab in sessions.activeTabs)
+        for (final tab in sessions.sessions)
           SessionNavigationTab(tab, selected: tab.id == selectedTab.value?.id),
         FPopoverMenu(
           control: .lifted(
