@@ -1,12 +1,12 @@
-import 'package:cliq_api/cliq_api.dart';
+import 'package:cliq_api/src/impl/entities/partial_vault_impl.dart';
 
-import 'cliq_entity_impl.dart';
+import '../../../cliq_api.dart';
 
-class const VaultImpl(
+class VaultImpl(
   super.api, {
-  @override required final String id,
   @override required final String configuration,
-  @override required final String version,
-  @override required final DateTime createdAt,
-  @override required final DateTime updatedAt,
-}) extends CliqEntityImpl implements Vault;
+  required super.id,
+  required super.version,
+  required super.createdAt,
+  required super.updatedAt,
+}) extends PartialVaultImpl implements Vault;
