@@ -243,6 +243,8 @@ jobs:
             locate \
             pkg-config \
             libgtk-3-dev \
+            libx11-dev \
+            libxi-dev \
             libglib2.0-0 \
             libglib2.0-dev \
             libx11-dev \
