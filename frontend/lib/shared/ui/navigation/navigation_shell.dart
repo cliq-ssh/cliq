@@ -347,9 +347,9 @@ class NavigationShellState extends ConsumerState<NavigationShell>
       ];
     }
 
+    final window = WindowManager.instance.getCurrent()!;
+
     toggleMaximize() async {
-      final window = WindowManager.instance.getCurrent();
-      if (window == null) return;
       final isMaximized = window.isMaximized && window.isMaximizable;
       if (isMaximized) {
         window.unmaximize();
@@ -377,7 +377,7 @@ class NavigationShellState extends ConsumerState<NavigationShell>
         child: Row(
           children: [
             buildButton(
-              onPress: () => WindowManager.instance.getCurrent()?.minimize(),
+              onPress: () => window.minimize(),
               icon: LucideIcons.minus,
             ),
             buildButton(
@@ -385,7 +385,7 @@ class NavigationShellState extends ConsumerState<NavigationShell>
               icon: LucideIcons.copy,
             ),
             buildButton(
-              onPress: () => WindowManager.instance.getCurrent()?.close(),
+              onPress: () => window.close(),
               flipX: true,
               icon: LucideIcons.x,
             ),
@@ -415,7 +415,7 @@ class NavigationShellState extends ConsumerState<NavigationShell>
                     behavior: HitTestBehavior.opaque,
                     onDoubleTap: () async => await toggleMaximize(),
                     onPanStart: (_) =>
-                        WindowManager.instance.getCurrent()?.startDragging(),
+                        window.startDragging(),
                   ),
                 ),
 
