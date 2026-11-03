@@ -414,8 +414,7 @@ class NavigationShellState extends ConsumerState<NavigationShell>
                   child: GestureDetector(
                     behavior: HitTestBehavior.opaque,
                     onDoubleTap: () async => await toggleMaximize(),
-                    onPanStart: (_) =>
-                        window.startDragging(),
+                    onPanStart: (_) => window.startDragging(),
                   ),
                 ),
 
