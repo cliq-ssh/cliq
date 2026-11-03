@@ -349,11 +349,10 @@ class NavigationShellState extends ConsumerState<NavigationShell>
 
     final window = WindowManager.instance.getCurrent()!;
 
-    toggleMaximize() async {
-      final isMaximized = window.isMaximized && window.isMaximizable;
-      if (isMaximized) {
+    toggleMaximize() {
+      if (window.isMaximized) {
         window.unmaximize();
-      } else {
+      } else if (window.isMaximizable) {
         window.maximize();
       }
     }
@@ -381,7 +380,7 @@ class NavigationShellState extends ConsumerState<NavigationShell>
               icon: LucideIcons.minus,
             ),
             buildButton(
-              onPress: () async => await toggleMaximize(),
+              onPress: () => toggleMaximize(),
               icon: LucideIcons.copy,
             ),
             buildButton(
@@ -413,7 +412,7 @@ class NavigationShellState extends ConsumerState<NavigationShell>
                 Positioned.fill(
                   child: GestureDetector(
                     behavior: HitTestBehavior.opaque,
-                    onDoubleTap: () async => await toggleMaximize(),
+                    onDoubleTap: () => toggleMaximize(),
                     onPanStart: (_) => window.startDragging(),
                   ),
                 ),
@@ -483,7 +482,9 @@ class NavigationShellState extends ConsumerState<NavigationShell>
   }
 
   void goToSessionBranch() => _goToBranch(_sessionBranchIndex);
+
   void goToDashboardBranch() => _goToBranch(_dashboardBranchIndex);
+
   void goToSettingsBranch() => _goToBranch(_settingsBranchIndex);
 
   /// Jumps to the corresponding [StatefulShellBranch], based on the specified index.
