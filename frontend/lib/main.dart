@@ -24,13 +24,12 @@ import 'package:logging/logging.dart';
 import 'package:lucide_flutter/lucide_flutter.dart';
 import 'package:macos_window_utils/macos_window_utils.dart';
 import 'package:material_ui/material_ui.dart' hide Router;
-import 'package:nativeapi/nativeapi.dart' show Size;
-import 'package:nativeapi_flutter/nativeapi_flutter.dart' show WindowManager;
+import 'package:nativeapi_flutter/nativeapi_flutter.dart' show SizeToNative, WindowManager;
 import 'package:shared_preferences/shared_preferences.dart';
 
 const windowMinWidth = 720.0;
 const windowMinHeight = 450.0;
-const windowMinSize = Size(width: windowMinWidth, height: windowMinHeight);
+const windowMinSize = Size(windowMinWidth, windowMinHeight);
 
 void main() async {
   await runZonedGuarded(() async {
@@ -81,7 +80,7 @@ Future<void> _configureWindow() async {
     return;
   }
 
-  window.minimumSize = windowMinSize;
+  window.minimumSize = windowMinSize.toNative();
   window.title = Constants.defaultTitle;
   window.titleBarStyle = .hidden;
 

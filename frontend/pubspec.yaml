@@ -55,7 +55,6 @@ dependencies:
   cupertino_ui: ^1.1.6
   material_ui: any
   nativeapi_flutter: ^0.5.7
-  nativeapi: ^0.5.7
 dev_dependencies:
   flutter_test:
     sdk: flutter
