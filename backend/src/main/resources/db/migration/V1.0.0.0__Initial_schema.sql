@@ -78,3 +78,19 @@ CREATE TABLE vaults
     "created_at"       timestamp with time zone                         NOT NULL,
     "updated_at"       timestamp with time zone                         NOT NULL
 );
+
+-- ############################################################
+-- #                                                          #
+-- #                     Preferences                          #
+-- #                                                          #
+-- ############################################################
+
+CREATE TABLE preferences
+(
+    "id"                    BIGINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
+    "user_id"               BIGINT REFERENCES "users" (id) ON DELETE CASCADE NOT NULL UNIQUE,
+    "encrypted_preferences" TEXT                                             NOT NULL,
+    "version"               TEXT                                             NOT NULL,
+    "created_at"            timestamp with time zone                         NOT NULL,
+    "updated_at"            timestamp with time zone                         NOT NULL
+);

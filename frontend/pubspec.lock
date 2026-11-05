@@ -237,10 +237,10 @@ packages:
     dependency: "direct main"
     description:
       name: cupertino_ui
-      sha256: e003b87afde18cb396ec15928c7894063d64af04462c68df9a1404c461316dd2
+      sha256: "369e39a1c5c030a6212589c3da1809920b1c2cfade7b02aade7695bfa4b88c3a"
       url: "https://pub.dev"
     source: hosted
-    version: "1.1.5"
+    version: "1.1.6"
   dart_style:
     dependency: transitive
     description:
@@ -594,10 +594,10 @@ packages:
     dependency: "direct main"
     description:
       name: go_router
-      sha256: f1c2d3c2b0b2096b435d7af033dd4e586fa31f51d988c5985e64495cd926d872
+      sha256: "5a44b0bd6131888bda5f770be5db2e08a59063724c6fa534ea4ec7c9fc3f841b"
       url: "https://pub.dev"
     source: hosted
-    version: "18.1.2"
+    version: "18.1.3"
   graphs:
     dependency: transitive
     description:
@@ -786,10 +786,10 @@ packages:
     dependency: "direct main"
     description:
       name: lucide_flutter
-      sha256: d5bd183b7b19f3666803ebce69b61cf3312a420b4ee027c8c8c74ca73f7e52eb
+      sha256: be8bf4219d3ee3c4b6e648b3d53e98125348d62897a30e483086a2af223af600
       url: "https://pub.dev"
     source: hosted
-    version: "1.47.0"
+    version: "1.66.0"
   macos_window_utils:
     dependency: "direct main"
     description:
