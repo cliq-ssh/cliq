@@ -45,7 +45,6 @@ dependencies:
   file_selector: ^1.1.0
   sodium: ^4.1.2
   pointycastle: ^4.0.0
-  window_manager: ^0.5.2
   open_app_file: ^4.0.5
   easy_localization: ^3.0.8
   macos_window_utils: ^1.9.1
@@ -55,6 +54,7 @@ dependencies:
   share_plus: ^13.3.1
   cupertino_ui: ^1.1.6
   material_ui: any
+  nativeapi_flutter: ^0.5.7
 dev_dependencies:
   flutter_test:
     sdk: flutter

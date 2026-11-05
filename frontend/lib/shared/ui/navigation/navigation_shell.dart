@@ -21,7 +21,7 @@ import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lucide_flutter/lucide_flutter.dart';
 import 'package:material_ui/material_ui.dart';
-import 'package:window_manager/window_manager.dart';
+import 'package:nativeapi_flutter/nativeapi_flutter.dart' show WindowManager;
 
 const EdgeInsetsGeometry kMacOSNavigationPadding = .only(left: 70);
 
@@ -347,12 +347,13 @@ class NavigationShellState extends ConsumerState<NavigationShell>
       ];
     }
 
-    toggleMaximize() async {
-      final isMaximized = await windowManager.isMaximized();
-      if (isMaximized) {
-        await windowManager.unmaximize();
-      } else {
-        await windowManager.maximize();
+    final window = WindowManager.instance.getCurrent()!;
+
+    toggleMaximize() {
+      if (window.isMaximized) {
+        window.unmaximize();
+      } else if (window.isMaximizable) {
+        window.maximize();
       }
     }
 
@@ -375,15 +376,15 @@ class NavigationShellState extends ConsumerState<NavigationShell>
         child: Row(
           children: [
             buildButton(
-              onPress: () async => await windowManager.minimize(),
+              onPress: () => window.minimize(),
               icon: LucideIcons.minus,
             ),
             buildButton(
-              onPress: () async => await toggleMaximize(),
+              onPress: () => toggleMaximize(),
               icon: LucideIcons.copy,
             ),
             buildButton(
-              onPress: () async => await windowManager.close(),
+              onPress: () => window.close(),
               flipX: true,
               icon: LucideIcons.x,
             ),
@@ -411,8 +412,8 @@ class NavigationShellState extends ConsumerState<NavigationShell>
                 Positioned.fill(
                   child: GestureDetector(
                     behavior: HitTestBehavior.opaque,
-                    onDoubleTap: () async => await toggleMaximize(),
-                    onPanStart: (_) => windowManager.startDragging(),
+                    onDoubleTap: () => toggleMaximize(),
+                    onPanStart: (_) => window.startDragging(),
                   ),
                 ),
 
@@ -481,7 +482,9 @@ class NavigationShellState extends ConsumerState<NavigationShell>
   }
 
   void goToSessionBranch() => _goToBranch(_sessionBranchIndex);
+
   void goToDashboardBranch() => _goToBranch(_dashboardBranchIndex);
+
   void goToSettingsBranch() => _goToBranch(_settingsBranchIndex);
 
   /// Jumps to the corresponding [StatefulShellBranch], based on the specified index.

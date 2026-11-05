@@ -20,7 +20,7 @@ import 'package:forui/forui.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lucide_flutter/lucide_flutter.dart';
 import 'package:material_ui/material_ui.dart' hide LicensePage;
-import 'package:window_manager/window_manager.dart';
+import 'package:nativeapi_flutter/nativeapi_flutter.dart';
 
 /// The padding around the terminal view in the session page.
 const kShellSessionPagePadding = EdgeInsets.symmetric(
@@ -112,7 +112,7 @@ class _SshSessionPageState extends ConsumerState<SshSessionPage>
       };
       controller.onTitleChange = (title) {
         if (!PlatformUtils.isDesktop) return;
-        windowManager.setTitle(title);
+        WindowManager.instance.getCurrent()?.title = title;
       };
       controller.onHyperlinkTap = (hyperlink) {
         debugPrint('Hyperlink tapped: $hyperlink');
