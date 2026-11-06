@@ -12,7 +12,7 @@ resolution: workspace
 dependencies:
   flutter:
     sdk: flutter
-  flutter_hooks: 0.21.3+1
+  flutter_hooks: 0.21.4
   lucide_flutter: 1.66.0
 
   cupertino_ui: any
