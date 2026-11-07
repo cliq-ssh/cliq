@@ -45,7 +45,7 @@ dependencies:
   file_selector: ^1.1.0
   sodium: ^4.1.2
   pointycastle: ^4.0.0
-  window_manager: ^0.5.2
+  window_manager: ^0.6.0
   open_app_file: ^4.0.5
   easy_localization: ^3.0.8
   macos_window_utils: ^1.9.1
