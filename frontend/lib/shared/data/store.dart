@@ -14,7 +14,6 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 enum StoreKey<T> {
   developerMode<bool>('developer_mode', type: bool, defaultValue: kDebugMode),
-
   syncHost<RouteOptions?>(
     'sync_host',
     type: RouteOptions,
@@ -24,7 +23,6 @@ enum StoreKey<T> {
   syncDevicePrivateKey<String?>('sync_dpk', type: String, isSecure: true),
   syncDataEncryptionKey<String?>('sync_dek', type: String, isSecure: true),
   syncRefreshToken<String?>('sync_refresh_token', type: String, isSecure: true),
-
   appearanceBaseColors<PresetBaseColors>(
     'appearance_base_colors',
     type: PresetBaseColors,
@@ -39,7 +37,6 @@ enum StoreKey<T> {
     fromValue: _primaryColorFromValue,
     toValue: _enumToValue,
   ),
-
   themeMode<ThemeMode>(
     'theme_mode',
     type: ThemeMode,
@@ -47,7 +44,6 @@ enum StoreKey<T> {
     fromValue: _themeModeFromValue,
     toValue: _enumToValue,
   ),
-
   defaultTerminalTypography<TerminalTypography>(
     'default_terminal_typography',
     type: TerminalTypography,
@@ -65,7 +61,6 @@ enum StoreKey<T> {
     type: bool,
     defaultValue: true,
   ),
-
   knownHostsCardViewType<EntityCardViewType>(
     'known_hosts_card_view_type',
     type: EntityCardViewType,
@@ -94,7 +89,6 @@ enum StoreKey<T> {
     fromValue: _entityCardViewTypeFromValue,
     toValue: _enumToValue,
   ),
-
   shortcuts<KeyboardShortcuts>(
     'shortcuts',
     type: KeyboardShortcutType,
@@ -102,13 +96,11 @@ enum StoreKey<T> {
     fromValue: _shortcutsFromValue,
     toValue: _shortcutsToValue,
   ),
-
   sshScrollbackSize<int>(
     'ssh_scrollback_size',
     type: int,
     defaultValue: TerminalBuffer.defaultMaxScrollbackLines,
   ),
-
   sftpShowHiddenFiles<bool>(
     'sftp_show_hidden_files',
     type: bool,
@@ -124,7 +116,6 @@ enum StoreKey<T> {
     type: bool,
     defaultValue: true,
   ),
-
   terminalBellSound<bool>(
     'terminal_bell_sound',
     type: bool,
@@ -142,7 +133,6 @@ enum StoreKey<T> {
     type: int,
     defaultValue: 600,
   ),
-
   terminalCursorBlinkTimeout<int>(
     'terminal_cursor_blink_timeout',
     type: int,
@@ -168,11 +158,16 @@ enum StoreKey<T> {
   }) : assert(defaultValue == null || defaultFactory == null);
 
   T? readSync() => KeyValueStore._instance.readSync(this);
+
   String? readAsStringSync() => KeyValueStore._instance.readAsStringSync(this);
+
   Future<T?> readAsync() => KeyValueStore._instance.readAsync(this);
+
   Future<String?> readAsStringAsync() =>
       KeyValueStore._instance.readAsStringAsync(this);
+
   void write(T value) => KeyValueStore._instance.write(this, value);
+
   FutureOr<void> delete() => KeyValueStore._instance.delete(this);
 
   // Enums
@@ -180,17 +175,22 @@ enum StoreKey<T> {
       value == null
       ? null
       : values.firstWhere((element) => element.name == value);
+
   static String? _enumToValue<T extends Enum>(dynamic value) =>
       value is T? ? value?.name : null;
 
   static PresetBaseColors? _themeFromValue(String? value) =>
       _enumFromValue(value, PresetBaseColors.values);
+
   static PresetPrimaryColor? _primaryColorFromValue(String? value) =>
       _enumFromValue(value, PresetPrimaryColor.values);
+
   static ThemeMode? _themeModeFromValue(String? value) =>
       _enumFromValue(value, ThemeMode.values);
+
   static EntityCardViewType? _entityCardViewTypeFromValue(String? value) =>
       _enumFromValue(value, EntityCardViewType.values);
+
   static CursorStyle? _cursorStyleFromValue(String? value) =>
       _enumFromValue(value, CursorStyle.values);
 
@@ -247,6 +247,9 @@ class KeyValueStore {
   static final KeyValueStore _instance = KeyValueStore._();
 
   static final Map<String, dynamic> _localCache = {};
+  static const String _secureStorageNamespace = kDebugMode
+      ? 'debug'
+      : 'release';
 
   late final SharedPreferences _preferences;
   late final FlutterSecureStorage _secureStorage;
@@ -267,12 +270,7 @@ class KeyValueStore {
       throw StateError('Store has already been initialized!');
     }
     _instance._preferences = await SharedPreferences.getInstance();
-    _instance._secureStorage = const FlutterSecureStorage(
-      mOptions: MacOsOptions(
-        accessibility: KeychainAccessibility.first_unlock_this_device,
-        usesDataProtectionKeychain: false,
-      ),
-    );
+    _instance._secureStorage = _buildFlutterSecureStorage();
     _instance._initialized = true;
     for (StoreKey key in StoreKey.values) {
       // initializes all default values for keys that do not exist &
@@ -280,6 +278,23 @@ class KeyValueStore {
       if (key.isSecure) continue;
       _localCache[key.key] = await key.readAsync();
     }
+  }
+
+  static FlutterSecureStorage _buildFlutterSecureStorage() {
+    return const FlutterSecureStorage(
+      iOptions: IOSOptions(accountName: 'cliq_$_secureStorageNamespace'),
+      aOptions: AndroidOptions(
+        storageNamespace: 'cliq_$_secureStorageNamespace',
+      ),
+      webOptions: WebOptions(
+        dbName: 'CliqSecureStorage-$_secureStorageNamespace',
+      ),
+      mOptions: MacOsOptions(
+        accountName: 'cliq_$_secureStorageNamespace',
+        accessibility: KeychainAccessibility.first_unlock_this_device,
+        usesDataProtectionKeychain: false,
+      ),
+    );
   }
 
   /// A stream of all changes made to the store.
@@ -362,7 +377,7 @@ class KeyValueStore {
 
     if (key.isSecure) {
       await _secureStorage.write(
-        key: key.key,
+        key: _secureStorageKey(key),
         value: effectiveValue.toString(),
       );
     } else {
@@ -384,7 +399,7 @@ class KeyValueStore {
     _checkInitialized();
     if (key.defaultValue == null) {
       if (key.isSecure) {
-        await _secureStorage.delete(key: key.key);
+        await _secureStorage.delete(key: _secureStorageKey(key));
       } else {
         _localCache.remove(key.key);
         await _preferences.remove(key.key);
@@ -408,10 +423,13 @@ class KeyValueStore {
   }
 
   Future<T?> _readOrInitSecureStorageKey<T>(StoreKey<T> key) async {
-    final String? value = await _secureStorage.read(key: key.key);
+    final String? value = await _secureStorage.read(
+      key: _secureStorageKey(key),
+    );
     if (value != null) {
       return _fromStringOrValue(value, key);
     }
+
     final T? defaultValue = _getDefault(key);
     if (defaultValue == null) {
       return null;
@@ -419,6 +437,9 @@ class KeyValueStore {
     await write(key, defaultValue);
     return defaultValue;
   }
+
+  String _secureStorageKey(StoreKey key) =>
+      '${_secureStorageNamespace}_${key.key}';
 
   void _checkInitialized() {
     if (!_initialized) {
