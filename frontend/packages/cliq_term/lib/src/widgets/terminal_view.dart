@@ -6,7 +6,6 @@ import 'package:cliq_term/src/widgets/terminal_input.dart';
 import 'package:cliq_term/src/widgets/terminal_painter.dart';
 import 'package:flutter/gestures.dart';
 import 'package:material_ui/material_ui.dart';
-import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 
 import '../utils/gesture_selection_handler.dart';
