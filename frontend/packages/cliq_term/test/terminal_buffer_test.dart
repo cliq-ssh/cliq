@@ -166,19 +166,16 @@ void main() {
       expect(selection, equals('1\nline 2'));
     });
 
-    test(
-      'exportSelection multi-line, preserves trailing space if text follows in same row',
-      () {
-        final buf = TerminalBuffer(rows: 3, cols: 10);
-        buf.printString('A B');
-        // Row 0: "A B       "
+    test('exportSelection multi-line, preserves trailing space if text follows in same row', () {
+      final buf = TerminalBuffer(rows: 3, cols: 10);
+      buf.printString('A B');
+      // Row 0: "A B       "
 
-        // Select from row 0 col 0 to row 0 col 1.
-        // Text after col 1 is 'B' at col 2.
-        final selection = buf.exportSelection(0, 0, 0, 1);
-        expect(selection, equals('A '));
-      },
-    );
+      // Select from row 0 col 0 to row 0 col 1.
+      // Text after col 1 is 'B' at col 2.
+      final selection = buf.exportSelection(0, 0, 0, 1);
+      expect(selection, equals('A '));
+    });
 
     test('exportSelection multi-line, trims trailing spaces at end of row', () {
       final buf = TerminalBuffer(rows: 3, cols: 10);

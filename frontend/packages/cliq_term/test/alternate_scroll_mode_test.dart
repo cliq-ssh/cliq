@@ -31,22 +31,17 @@ void main() {
       expect(handled, isFalse);
     });
 
-    test(
-      'a fresh CSI ?1049h entry resets to the default, undoing a prior app forgetting to restore it',
-      () {
-        final controller = buildController();
-        controller.feed('$kSeqEscape[?1049h');
-        controller.feed(
-          '$kSeqEscape[?1007l',
-        ); // app disables it, forgets to restore
-        controller.feed('$kSeqEscape[?1049l'); // app exits back to main screen
-        controller.feed(
-          '$kSeqEscape[?1049h',
-        ); // a NEW app enters the alt screen
+    test('a fresh CSI ?1049h entry resets to the default, undoing a prior app forgetting to restore it', () {
+      final controller = buildController();
+      controller.feed('$kSeqEscape[?1049h');
+      controller.feed(
+        '$kSeqEscape[?1007l',
+      ); // app disables it, forgets to restore
+      controller.feed('$kSeqEscape[?1049l'); // app exits back to main screen
+      controller.feed('$kSeqEscape[?1049h'); // a NEW app enters the alt screen
 
-        expect(controller.alternateScrollMode, isTrue);
-      },
-    );
+      expect(controller.alternateScrollMode, isTrue);
+    });
 
     test('tCSI ?47/?1047 toggle does not reset the mode', () {
       final controller = buildController();
