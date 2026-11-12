@@ -15,10 +15,10 @@ import 'package:cliq/modules/settings/data/logs.repository.dart';
 import 'package:cliq/modules/vaults/data/vaults.repository.dart';
 import 'package:cliq/shared/data/converters/color_converter.dart';
 import 'package:cliq/shared/data/converters/terminal_typography_converter.dart';
+import 'package:cliq/shared/utils/path_provider.dart';
 import 'package:cliq_term/cliq_term.dart';
 import 'package:drift/drift.dart';
 import 'package:drift_flutter/drift_flutter.dart';
-import 'package:path_provider/path_provider.dart';
 
 part 'database.g.dart';
 
@@ -26,11 +26,7 @@ part 'database.g.dart';
 typedef DbId = String;
 
 const kDbFileName = 'cliq_db.sqlite';
-
-final Future<Directory> applicationSupportDirectory =
-    getApplicationSupportDirectory();
-
-final Future<File> databaseFile = applicationSupportDirectory.then(
+final Future<File> databaseFile = PathProvider.applicationSupportDirectory.then(
   (directory) => File(CliqDatabase.buildDbFilePath(directory.path)),
 );
 
@@ -101,7 +97,7 @@ final class CliqDatabase extends _$CliqDatabase {
     return driftDatabase(
       name: 'cliq_db',
       native: DriftNativeOptions(
-        databaseDirectory: () => applicationSupportDirectory,
+        databaseDirectory: () => PathProvider.applicationSupportDirectory,
       ),
     );
   }
