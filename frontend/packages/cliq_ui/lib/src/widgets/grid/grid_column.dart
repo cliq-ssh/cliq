@@ -68,9 +68,8 @@ final class CliqGridColumnStyle {
     // get a random color from the theme if debug is true
     return CliqGridColumnStyle(
       debugColor: debug
-          ? Color(
-              (Random().nextDouble() * 0xFFFFFF).toInt(),
-            ).withValues(alpha: 1)
+          ? Color((Random().nextDouble() * 0xFFFFFF).toInt())
+                .withValues(alpha: 1)
           : Colors.transparent,
     );
   }
