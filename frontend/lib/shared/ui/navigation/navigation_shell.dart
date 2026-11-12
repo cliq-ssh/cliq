@@ -4,7 +4,7 @@ import 'package:cliq/modules/connections/model/connection_full.model.dart';
 import 'package:cliq/modules/connections/provider/connection.provider.dart';
 import 'package:cliq/modules/connections/ui/connection_icon.dart';
 import 'package:cliq/modules/session/provider/session.provider.dart';
-import 'package:cliq/modules/session/ui/session_navigation_tab.dart';
+import 'package:cliq/modules/settings/model/keyboard_shortcut.model.dart';
 import 'package:cliq/modules/settings/provider/terminal_theme.provider.dart';
 import 'package:cliq/shared/provider/file_transfer.provider.dart';
 import 'package:cliq/shared/provider/store.provider.dart';
@@ -13,7 +13,6 @@ import 'package:cliq/shared/ui/navigation/navigation_tab.dart';
 import 'package:cliq/shared/ui/shortcut_info.dart';
 import 'package:cliq/shared/utils/platform_utils.dart';
 import 'package:cliq/shared/utils/text_utils.dart';
-import 'package:cliq_term/cliq_term.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:forui/forui.dart';
@@ -21,9 +20,9 @@ import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lucide_flutter/lucide_flutter.dart';
 import 'package:material_ui/material_ui.dart';
-import 'package:window_manager/window_manager.dart';
+import 'package:multiview_desktop/multiview_desktop.dart';
 
-const EdgeInsetsGeometry kMacOSNavigationPadding = .only(left: 70);
+const EdgeInsetsGeometry kMacOSNavigationPadding = .only(left: 80);
 
 class NavigationShell extends StatefulHookConsumerWidget {
   final StatefulNavigationShell shell;
@@ -45,6 +44,8 @@ class NavigationShellState extends ConsumerState<NavigationShell>
 
   @override
   Widget build(BuildContext context) {
+    final win = MultiViewDesktop.of(context);
+
     final defaultTerminalTheme = useStore(.defaultTerminalThemeId);
     final applyTerminalThemeColorToNavigation = useStore(
       .applyTerminalThemeColorToNavigation,
@@ -52,7 +53,7 @@ class NavigationShellState extends ConsumerState<NavigationShell>
     final connections = ref.watch(connectionProvider);
     final sessions = ref.watch(sessionProvider);
     final terminalThemes = ref.watch(terminalThemeProvider);
-    final selectedTab = useState(sessions.selectedSession);
+    // final selectedTab = useState(sessions.selectedSession);
     final showTabs = useState(false);
 
     final fileTransfer = ref.watch(fileTransferProvider);
@@ -61,11 +62,6 @@ class NavigationShellState extends ConsumerState<NavigationShell>
       duration: const .new(seconds: 2),
     );
     final isDesktop = PlatformUtils.isDesktop;
-
-    useEffect(() {
-      selectedTab.value = sessions.selectedSession;
-      return null;
-    }, [sessions, sessions.selectedTabId]);
 
     useEffect(() {
       if (fileTransfer.isAnyPending) {
@@ -79,25 +75,7 @@ class NavigationShellState extends ConsumerState<NavigationShell>
     }, [fileTransfer.pending]);
 
     connect(ConnectionFull connection, {bool isSftp = false}) {
-      ref
-          .read(sessionProvider.notifier)
-          .createAndGo(this, connection, isSftp: isSftp);
       showTabs.value = false;
-    }
-
-    /// Gets the effective sidebar color based on the selected session and its terminal theme.
-    Color getEffectiveSidebarColor() {
-      if (applyTerminalThemeColorToNavigation.value &&
-          widget.shell.currentIndex == _sessionBranchIndex &&
-          selectedTab.value != null &&
-          selectedTab.value!.isAnyConnected) {
-        return selectedTab.value!.getEffectiveSidebarColor(
-          context,
-          terminalThemes,
-          defaultTerminalTheme.value,
-        );
-      }
-      return context.theme.colors.background;
     }
 
     buildDashboardTab() {
@@ -110,12 +88,7 @@ class NavigationShellState extends ConsumerState<NavigationShell>
         child: NavigationTab(
           icon: const Icon(LucideIcons.layoutDashboard),
           selected: widget.shell.currentIndex == _dashboardBranchIndex,
-          onPress: () {
-            ref
-                .read(sessionProvider.notifier)
-                .setSelectedAndMaybeGo(this, null);
-            goToDashboardBranch();
-          },
+          onPress: () => goToDashboardBranch(),
         ),
       );
     }
@@ -275,12 +248,7 @@ class NavigationShellState extends ConsumerState<NavigationShell>
         child: NavigationTab(
           icon: const Icon(LucideIcons.settings),
           selected: widget.shell.currentIndex == _settingsBranchIndex,
-          onPress: () {
-            ref
-                .read(sessionProvider.notifier)
-                .setSelectedAndMaybeGo(this, null);
-            goToSettingsBranch();
-          },
+          onPress: () => goToSettingsBranch(),
         ),
       );
     }
@@ -303,8 +271,8 @@ class NavigationShellState extends ConsumerState<NavigationShell>
 
     buildSessionSidebarTabs() {
       return [
-        for (final tab in sessions.sessions)
-          SessionNavigationTab(tab, selected: tab.id == selectedTab.value?.id),
+        //        for (final tab in sessions.sessions)
+        //          SessionNavigationTab(tab, selected: tab.id == selectedTab.value?.id),
         FPopoverMenu(
           control: .lifted(
             shown: showTabs.value,
@@ -347,12 +315,11 @@ class NavigationShellState extends ConsumerState<NavigationShell>
       ];
     }
 
-    toggleMaximize() async {
-      final isMaximized = await windowManager.isMaximized();
-      if (isMaximized) {
-        await windowManager.unmaximize();
+    toggleMaximize() {
+      if (win.isMaximized()) {
+        win.unmaximize();
       } else {
-        await windowManager.maximize();
+        win.maximize();
       }
     }
 
@@ -374,16 +341,13 @@ class NavigationShellState extends ConsumerState<NavigationShell>
         padding: const .only(left: 8),
         child: Row(
           children: [
-            buildButton(
-              onPress: () async => await windowManager.minimize(),
-              icon: LucideIcons.minus,
-            ),
+            buildButton(onPress: () => win.minimize(), icon: LucideIcons.minus),
             buildButton(
               onPress: () async => await toggleMaximize(),
               icon: LucideIcons.copy,
             ),
             buildButton(
-              onPress: () async => await windowManager.close(),
+              onPress: () => win.closeWindow(),
               flipX: true,
               icon: LucideIcons.x,
             ),
@@ -398,7 +362,6 @@ class NavigationShellState extends ConsumerState<NavigationShell>
       header: Container(
         constraints: const .new(minHeight: 54 - 16),
         decoration: BoxDecoration(
-          color: getEffectiveSidebarColor(),
           border: Border(
             bottom: BorderSide(color: context.theme.colors.border, width: 1),
           ),
@@ -411,8 +374,8 @@ class NavigationShellState extends ConsumerState<NavigationShell>
                 Positioned.fill(
                   child: GestureDetector(
                     behavior: HitTestBehavior.opaque,
-                    onDoubleTap: () async => await toggleMaximize(),
-                    onPanStart: (_) => windowManager.startDragging(),
+                    onDoubleTap: () => toggleMaximize(),
+                    onPanStart: (_) => win.startDragging(),
                   ),
                 ),
 
@@ -454,9 +417,6 @@ class NavigationShellState extends ConsumerState<NavigationShell>
       footer: isDesktop
           ? null
           : FBottomNavigationBar(
-              style: .delta(
-                decoration: .boxDelta(color: getEffectiveSidebarColor()),
-              ),
               index: widget.shell.currentIndex - 1,
               onChange: (index) {
                 final _ = switch (index + 1) {

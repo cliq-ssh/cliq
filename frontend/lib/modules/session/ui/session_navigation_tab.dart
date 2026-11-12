@@ -1,13 +1,12 @@
 import 'package:cliq/modules/connections/ui/connection_icon.dart';
 import 'package:cliq/modules/session/model/session.model.dart';
 import 'package:cliq/modules/session/provider/session.provider.dart';
+import 'package:cliq/modules/settings/model/keyboard_shortcut.model.dart';
 import 'package:cliq/shared/ui/cliq_tooltip.dart';
 import 'package:cliq/shared/ui/context_menu.dart';
-import 'package:cliq/shared/ui/navigation/navigation_shell.dart';
 import 'package:cliq/shared/ui/navigation/navigation_tab.dart';
 import 'package:cliq/shared/ui/shortcut_info.dart';
 import 'package:cliq/shared/utils/platform_utils.dart';
-import 'package:cliq_term/cliq_term.dart';
 import 'package:cupertino_ui/cupertino_ui.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
@@ -15,94 +14,48 @@ import 'package:forui/forui.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lucide_flutter/lucide_flutter.dart';
 
-class SessionNavigationTab extends HookConsumerWidget {
-  /// The root session for this tab.
-  /// If this is a single session tab, this will be the only session.
-  /// If this is a group tab, this will be the first session in the group.
-  final ShellSession root;
+class const SessionNavigationTab({
+  super.key,
+  required final ShellSession session,
 
-  /// The list of sessions in this tab.
-  final List<ShellSession> sessions;
-
-  /// Whether this tab is selected or not.
-  final bool selected;
-
-  /// The ID of the tab.
-  final String? _tabId;
-
-  /// The custom label for the tab. If null, the UI will fall back to the connection label or a generated label based on number of sessions.
-  final String? _customLabel;
-
-  new(SessionTab tab, {super.key, this.selected = false})
-    : root = tab.root,
-      sessions = tab.sessions,
-      _tabId = tab.id,
-      _customLabel = tab.customLabel;
-
-  String get effectiveLabel {
-    if (_customLabel != null && _customLabel.isNotEmpty) {
-      return _customLabel;
-    }
-
-    if (sessions.isEmpty) {
-      return root.connection.label;
-    }
-
-    return 'session_group_title'.plural(sessions.length + 1);
-  }
-
+  /// Whether this tab is selected or not
+  final bool selected = false,
+}) extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final isDragging = useState(false);
     final isRenaming = useState(false);
 
     final tabFocusNode = useFocusNode();
 
     final renameFocusNode = useFocusNode();
     final renameController = useTextEditingController(
-      text: root.connection.label,
+      text: session.connection.label,
     );
 
-    select() {
-      if (_tabId == null) return;
-      ref
-          .read(sessionProvider.notifier)
-          .setSelectedAndMaybeGo(NavigationShell.of(context), _tabId);
-    }
+    final effectiveLabel = session.getEffectiveTitle(context);
+
+    select() {}
 
     close() {
-      ref
-          .read(sessionProvider.notifier)
-          .remove(_tabId ?? root.id);
+      ref.read(sessionProvider.notifier).remove(session.id);
     }
 
     rename([String? customLabel]) {
-      ref
-          .read(sessionProvider.notifier)
-          .rename(_tabId ?? root.id, customLabel);
-      renameController.text = (customLabel == null || customLabel.isEmpty)
-          ? root.connection.label
-          : customLabel;
+      ref.read(sessionProvider.notifier).rename(session.id, customLabel);
+
+      renameController.text = session.getEffectiveTitle(context);
       isRenaming.value = false;
       tabFocusNode.unfocus();
     }
 
     buildIcon() {
-      if (sessions.isNotEmpty) {
-        return const Padding(
-          padding: EdgeInsets.all(3),
-          child: Icon(LucideIcons.layoutPanelLeft, size: 14),
-        );
-      }
-
       return Builder(
         builder: (context) {
-          final Widget child = ConnectionIcon.fromConnection(
-            root.connection,
+          final ConnectionIcon child = .fromConnection(
+            session.connection,
             size: 14,
             padding: 3,
           );
-
           return child;
         },
       );
@@ -118,7 +71,7 @@ class SessionNavigationTab extends HookConsumerWidget {
           // TODO: make shortcut functional
           CliqTooltip(
             text: TextWithShortcutInfo(
-              sessions.isEmpty ? 'close'.tr() : 'close_all'.tr(),
+              'close'.tr(),
               shortcut: KeyboardShortcut(.keyW, modifiers: {.control}),
             ),
             child: FTappable(
@@ -180,19 +133,16 @@ class SessionNavigationTab extends HookConsumerWidget {
             });
           },
         ),
-        if (sessions.isEmpty)
-          .new(
-            label: 'duplicate'.tr(),
-            icon: LucideIcons.copy,
-            onPress: () {
-              ref
-                  .read(sessionProvider.notifier)
-                  .createAndGo(NavigationShell.of(context), root.connection);
-            },
-            shortcut: .new(.keyD, modifiers: {.meta}),
-          ),
         .new(
-          label: sessions.isEmpty ? 'close'.tr() : 'close_all'.tr(),
+          label: 'duplicate'.tr(),
+          icon: LucideIcons.copy,
+          onPress: () {
+            // TODO: implement
+          },
+          shortcut: .new(.keyD, modifiers: {.meta}),
+        ),
+        .new(
+          label: 'close'.tr(),
           icon: LucideIcons.x,
           variant: .destructive,
           onPress: close,
@@ -207,45 +157,17 @@ class SessionNavigationTab extends HookConsumerWidget {
           itemPadding = kEditLabelPadding;
         }
 
-        final child = NavigationTab(
-          icon: buildIcon(),
-          label: isRenaming.value ? buildEditLabel() : buildLabel(),
-          selected: selected,
-          onPress: select,
-          forceIntrinsicWidth: PlatformUtils.isDesktop,
-          itemPadding: itemPadding,
-          hideFocusOutline: isRenaming.value,
-          focusNode: tabFocusNode,
-        );
-
-        if (sessions.isNotEmpty) {
-          return child;
-        }
-
         return CliqTooltip(
           text: Text(effectiveLabel),
-          child: Draggable<ShellSession>(
-            data: root,
-            maxSimultaneousDrags: PlatformUtils.isDesktop && !isRenaming.value
-                ? 1
-                : 0,
-            onDragStarted: () => isDragging.value = true,
-            onDragEnd: (_) => isDragging.value = false,
-            onDraggableCanceled: (_, _) => isDragging.value = false,
-            onDragCompleted: () => isDragging.value = false,
-            onDragUpdate: (_) => isDragging.value = true,
-            feedback: SizedBox(
-              width: 200,
-              child: Opacity(
-                opacity: 0.7,
-                child: IgnorePointer(ignoring: true, child: child),
-              ),
-            ),
-            childWhenDragging: Opacity(
-              opacity: 0.5,
-              child: IgnorePointer(ignoring: true, child: child),
-            ),
-            child: IgnorePointer(ignoring: isDragging.value, child: child),
+          child: NavigationTab(
+            icon: buildIcon(),
+            label: isRenaming.value ? buildEditLabel() : buildLabel(),
+            selected: selected,
+            onPress: select,
+            forceIntrinsicWidth: PlatformUtils.isDesktop,
+            itemPadding: itemPadding,
+            hideFocusOutline: isRenaming.value,
+            focusNode: tabFocusNode,
           ),
         );
       },

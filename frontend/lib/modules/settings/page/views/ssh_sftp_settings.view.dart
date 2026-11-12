@@ -7,7 +7,6 @@ import 'package:cliq/shared/provider/store.provider.dart';
 import 'package:cliq/shared/ui/custom_toggle_tile.dart';
 import 'package:cliq/shared/utils/constants.dart';
 import 'package:cliq/shared/utils/text_utils.dart';
-import 'package:cliq_term/cliq_term.dart';
 import 'package:cupertino_ui/cupertino_ui.dart' hide Router;
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/services.dart';
@@ -60,11 +59,11 @@ class const SshSftpSettingsView({super.key}) extends AbstractSettingsPage {
     onScrollbackSubmit(String value) {
       int amount = int.tryParse(value) ?? scrollbackSize.value;
 
-      if (amount < TerminalBuffer.minMaxScrollbackLines) {
-        amount = TerminalBuffer.minMaxScrollbackLines;
+      if (amount < Constants.minScrollbackLines) {
+        amount = Constants.minScrollbackLines;
       }
-      if (amount > TerminalBuffer.maxMaxScrollbackLines) {
-        amount = TerminalBuffer.maxMaxScrollbackLines;
+      if (amount > Constants.maxScrollbackLines) {
+        amount = Constants.maxScrollbackLines;
       }
       StoreKey.sshScrollbackSize.write(amount);
       sshScrollbackSizeController.text = amount.toString();
@@ -72,11 +71,11 @@ class const SshSftpSettingsView({super.key}) extends AbstractSettingsPage {
 
     onCursorBlinkIntervalSubmit(String value) {
       int amount = int.tryParse(value) ?? cursorBlinkInterval.value;
-      if (amount < CursorState.minCursorBlinkInterval) {
-        amount = CursorState.minCursorBlinkInterval;
+      if (amount < Constants.cursorMinBlinkInterval) {
+        amount = Constants.cursorMinBlinkInterval;
       }
-      if (amount > CursorState.maxCursorBlinkInterval) {
-        amount = CursorState.maxCursorBlinkInterval;
+      if (amount > Constants.cursorMaxBlinkInterval) {
+        amount = Constants.cursorMaxBlinkInterval;
       }
       StoreKey.terminalCursorBlinkInterval.write(amount);
       cursorBlinkIntervalController.text = amount.toString();
@@ -84,11 +83,11 @@ class const SshSftpSettingsView({super.key}) extends AbstractSettingsPage {
 
     onCursorBlinkTimeoutSubmit(String value) {
       int amount = int.tryParse(value) ?? cursorBlinkTimeout.value;
-      if (amount < CursorState.minCursorBlinkTimeout) {
-        amount = CursorState.minCursorBlinkTimeout;
+      if (amount < Constants.cursorMinBlinkTimeout) {
+        amount = Constants.cursorMinBlinkTimeout;
       }
-      if (amount > CursorState.maxCursorBlinkTimeout) {
-        amount = CursorState.maxCursorBlinkTimeout;
+      if (amount > Constants.cursorMaxBlinkTimeout) {
+        amount = Constants.cursorMaxBlinkTimeout;
       }
       StoreKey.terminalCursorBlinkTimeout.write(amount);
       cursorBlinkTimeoutController.text = amount.toString();
@@ -127,32 +126,6 @@ class const SshSftpSettingsView({super.key}) extends AbstractSettingsPage {
               storeKey: .terminalBellSound,
               value: bellSound.value,
             ),
-            FSelectMenuTile<CursorStyle>(
-              title: Text('ssh_sftp_terminal_cursor_style'.tr()),
-              prefix: const Icon(LucideIcons.textCursorInput),
-              subtitle: Text('ssh_sftp_terminal_cursor_style_subtitle'.tr()),
-              selectControl: .managedRadio(
-                initial: cursorStyle.value,
-                onChange: (value) =>
-                    StoreKey.terminalCursorStyle.write(value.first),
-              ),
-              detailsBuilder: (context, value, _) {
-                if (value.isEmpty) return const SizedBox.shrink();
-                return Text(
-                  'ssh_sftp_terminal_cursor_styles.${value.first.name}'.tr(),
-                );
-              },
-              menu: [
-                for (CursorStyle t in CursorStyle.values) ...[
-                  .tile(
-                    title: Text(
-                      'ssh_sftp_terminal_cursor_styles.${t.name}'.tr(),
-                    ),
-                    value: t,
-                  ),
-                ],
-              ],
-            ),
             FTile(
               title: Text('ssh_sftp_terminal_cursor_blink_interval'.tr()),
               subtitle: Text(
@@ -163,9 +136,7 @@ class const SshSftpSettingsView({super.key}) extends AbstractSettingsPage {
               suffix: SizedBox(
                 width: 150,
                 child: FTextField(
-                  control: FTextFieldControl.managed(
-                    controller: cursorBlinkIntervalController,
-                  ),
+                  control: .managed(controller: cursorBlinkIntervalController),
                   keyboardType: TextInputType.number,
                   inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                   onSubmit: onCursorBlinkIntervalSubmit,

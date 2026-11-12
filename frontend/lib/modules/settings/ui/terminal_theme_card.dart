@@ -1,12 +1,12 @@
 import 'dart:io';
 
+import 'package:cliq/modules/settings/model/keyboard_shortcut.model.dart';
 import 'package:cliq/modules/settings/provider/terminal_theme_service.provider.dart';
 import 'package:cliq/modules/settings/ui/create_or_edit_terminal_theme_sheet.dart';
 import 'package:cliq/shared/data/database.dart';
 import 'package:cliq/shared/ui/context_menu.dart';
 import 'package:cliq/shared/ui/title_card.dart';
 import 'package:cliq/shared/utils/commons.dart';
-import 'package:cliq_term/cliq_term.dart';
 import 'package:forui/forui.dart';
 import 'package:forui_hooks/forui_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';

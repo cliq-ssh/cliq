@@ -3,14 +3,18 @@ import 'dart:convert';
 
 import 'package:cliq/modules/settings/model/app_theme/app_theme.model.dart';
 import 'package:cliq/modules/settings/model/keyboard_shortcuts.model.dart';
+import 'package:cliq/modules/settings/model/terminal_typography.model.dart';
 import 'package:cliq/shared/data/database.dart';
 import 'package:cliq/shared/ui/entity_card_view.dart';
 import 'package:cliq_api/cliq_api.dart';
-import 'package:cliq_term/cliq_term.dart';
+import 'package:flterm/flterm.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+
+const int defaultSshScrollbackSize = 2000;
+const CursorTheme defaultCursorTheme = .new();
 
 enum StoreKey<T> {
   developerMode<bool>('developer_mode', type: bool, defaultValue: kDebugMode),
@@ -103,11 +107,7 @@ enum StoreKey<T> {
     toValue: _shortcutsToValue,
   ),
 
-  sshScrollbackSize<int>(
-    'ssh_scrollback_size',
-    type: int,
-    defaultValue: TerminalBuffer.defaultMaxScrollbackLines,
-  ),
+  sshScrollbackSize<int>('ssh_scrollback_size', type: int, defaultValue: 2000),
 
   sftpShowHiddenFiles<bool>(
     'sftp_show_hidden_files',
@@ -130,12 +130,12 @@ enum StoreKey<T> {
     type: bool,
     defaultValue: true,
   ),
-  terminalCursorStyle<CursorStyle>(
+  terminalCursorStyle<CursorTheme>(
     'terminal_cursor_style',
-    type: CursorStyle,
-    defaultValue: .bar,
-    fromValue: _cursorStyleFromValue,
-    toValue: _enumToValue,
+    type: CursorTheme,
+    defaultValue: defaultCursorTheme,
+    fromValue: _cursorThemeFromValue,
+    toValue: _cursorThemeToValue,
   ),
   terminalCursorBlinkInterval<int>(
     'terminal_cursor_blink_interval',
@@ -191,8 +191,16 @@ enum StoreKey<T> {
       _enumFromValue(value, ThemeMode.values);
   static EntityCardViewType? _entityCardViewTypeFromValue(String? value) =>
       _enumFromValue(value, EntityCardViewType.values);
-  static CursorStyle? _cursorStyleFromValue(String? value) =>
-      _enumFromValue(value, CursorStyle.values);
+
+  static String? _cursorThemeToValue(CursorTheme? value) {
+    // TODO: implement
+    return null;
+  }
+
+  static CursorTheme? _cursorThemeFromValue(String? value) {
+    // TODO: implement
+    return null;
+  }
 
   static String? _routeOptionsToValue(RouteOptions? value) {
     if (value == null) return null;
@@ -207,17 +215,16 @@ enum StoreKey<T> {
 
   static String? _typographyToValue(TerminalTypography? value) {
     if (value == null) return null;
-    return [value.fontSize, value.fontFamily].join(';');
+    return _listToValue([value.fontSize, value.fontFamily]);
   }
 
   static TerminalTypography? _typographyFromValue(String? value) {
-    if (value == null) return null;
-    final parts = value.split(';');
-    if (parts.length != 2) return null;
-    final fontSize = int.tryParse(parts[0]);
-    final fontFamily = parts[1];
-    if (fontSize == null) return null;
-    return TerminalTypography(fontSize: fontSize, fontFamily: fontFamily);
+    final List<dynamic>? list = _listFromValue(value);
+    if (list == null || list.length != 2) return null;
+    final int? fontSize = list[0] as int?;
+    final String? fontFamily = list[1] as String?;
+    if (fontSize == null || fontFamily == null) return null;
+    return TerminalTypography(fontFamily: fontFamily, fontSize: fontSize);
   }
 
   static KeyboardShortcuts _defaultShortcutsFactory() =>
@@ -229,6 +236,19 @@ enum StoreKey<T> {
   static KeyboardShortcuts? _shortcutsFromValue(String? value) => value != null
       ? KeyboardShortcuts.fromJson(.from(jsonDecode(value) as Map))
       : null;
+
+  static String? _listToValue<T>(List<T>? list) =>
+      list != null ? jsonEncode(list) : null;
+
+  static List<T>? _listFromValue<T>(String? value) {
+    List<T>? list;
+    try {
+      list = value != null ? .from(jsonDecode(value) as List) : null;
+    } catch (e) {
+      debugPrint('Failed to decode list from value: $value');
+    }
+    return list;
+  }
 }
 
 /// Small data class representing a change in the store

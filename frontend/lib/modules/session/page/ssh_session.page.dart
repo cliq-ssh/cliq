@@ -13,7 +13,6 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:forui/forui.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:material_ui/material_ui.dart' hide LicensePage;
-import 'package:window_manager/window_manager.dart';
 
 /// The padding around the terminal view in the session page.
 const kShellSessionPagePadding = EdgeInsets.symmetric(
@@ -99,7 +98,7 @@ class _SshSessionPageState extends ConsumerState<SshSessionPage>
       controller.onTitleChanged = () {
         if (!PlatformUtils.isDesktop) return;
         final title = controller.title;
-        windowManager.setTitle(title);
+        // TODO: set window title
         ref
             .read(sessionProvider.notifier)
             .rename(session.id, title, userChangedTitle: false);

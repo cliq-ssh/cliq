@@ -16,12 +16,11 @@ import 'package:cliq/shared/ui/cliq_tooltip.dart';
 import 'package:cliq/shared/ui/terminal_font_family_select.dart';
 import 'package:cliq/shared/ui/terminal_font_size_slider.dart';
 import 'package:cliq/shared/utils/commons.dart';
-import 'package:cliq/shared/utils/platform_utils.dart';
 import 'package:cliq/shared/utils/text_utils.dart';
-import 'package:cliq_term/cliq_term.dart';
 import 'package:cliq_ui/hooks/use_breakpoint.export.dart' show useBreakpoint;
 import 'package:easy_localization/easy_localization.dart';
 import 'package:file_selector/file_selector.dart';
+import 'package:flterm/flterm.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:forui/forui.dart';
 import 'package:forui_hooks/forui_hooks.dart';
@@ -37,19 +36,19 @@ class const TerminalThemeSettingsView({super.key})
   );
 
   static const String sampleInput =
-      '$kSeqEscape[31mLorem$kSeqEscape[0m '
-      '$kSeqEscape[32mipsum$kSeqEscape[0m '
-      '$kSeqEscape[33mdolor$kSeqEscape[0m '
-      '$kSeqEscape[34msit$kSeqEscape[0m '
-      '$kSeqEscape[35mamet$kSeqEscape[0m '
-      '$kSeqEscape[36mconsectetur$kSeqEscape[0m '
-      '$kSeqEscape[37madipiscing$kSeqEscape[0m '
-      '$kSeqEscape[30melit\x1b[0m\n'
-      '${kSeqEscape}7'
+      '\x1b[31mLorem\x1b[0m '
+      '\x1b[32mipsum\x1b[0m '
+      '\x1b[33mdolor\x1b[0m '
+      '\x1b[34msit\x1b[0m '
+      '\x1b[35mamet\x1b[0m '
+      '\x1b[36mconsectetur\x1b[0m '
+      '\x1b[37madipiscing\x1b[0m '
+      '\x1b[30melit\x1b[0m\n'
+      '\x1b7'
       '\r'
-      '$kSeqEscape[1B'
-      '$kSeqEscape[41m   $kSeqEscape[0m'
-      '$kSeqEscape[42m   $kSeqEscape[0m'
+      '\x1b[1B'
+      '\x1b[41m   \x1b[0m'
+      '\x1b[42m   \x1b[0m'
       '\x1b[43m   \x1b[0m'
       '\x1b[44m   \x1b[0m'
       '\x1b[45m   \x1b[0m'
@@ -98,38 +97,9 @@ class const TerminalThemeSettingsView({super.key})
 
     // init controller
     useEffect(() {
-      terminalController.value = TerminalController(
-        theme: getSelectedTheme().toTerminalTheme(),
-        typography: TerminalTypography(
-          fontFamily: selectedFontFamily.value,
-          fontSize: selectedFontSize.value,
-        ),
-      );
-      terminalController.value?.setAutoWrapMode(true);
+      terminalController.value = TerminalController();
       return () => terminalController.value?.dispose();
     }, []);
-
-    // update typography on font family change
-    useEffect(() {
-      if (terminalController.value == null) return null;
-      final typography = TerminalTypography(
-        fontFamily: selectedFontFamily.value,
-        fontSize: selectedFontSize.value,
-      );
-      terminalController.value!.setTerminalTypography(typography);
-      StoreKey.defaultTerminalTypography.write(typography);
-      return null;
-    }, [selectedFontFamily.value, selectedFontSize.value]);
-
-    // update colors on theme change
-    useEffect(() {
-      if (terminalController.value == null) return null;
-      terminalController.value!.setTerminalTheme(
-        getSelectedTheme().toTerminalTheme(),
-      );
-      StoreKey.defaultTerminalThemeId.write(selectedThemeId.value);
-      return null;
-    }, [selectedThemeId.value]);
 
     create() => Commons.showResponsiveSheet(
       (_) => const CreateOrEditTerminalThemeSheet.create(),
@@ -265,19 +235,12 @@ class const TerminalThemeSettingsView({super.key})
             height: 200,
             padding: const .all(8),
             color: getSelectedTheme().background,
-            child: LayoutBuilder(
-              builder: (_, constraints) {
-                WidgetsBinding.instance.addPostFrameCallback((_) {
-                  terminalController.value!.fitResize(constraints.biggest);
-                  terminalController.value!.activeBuffer.clear();
-                  terminalController.value!.feed(sampleInput);
-                });
-                return TerminalView(
-                  controller: terminalController.value!,
-                  readOnly: true,
-                  isMobile: PlatformUtils.isMobile,
-                );
-              },
+            child: TerminalView(
+              controller: terminalController.value!,
+              theme: getSelectedTheme().toTerminalTheme().copyWith(
+                fontFamily: selectedFontFamily.value,
+                fontSize: selectedFontSize.value.toDouble(),
+              ),
             ),
           ),
         TerminalFontSizeSlider(

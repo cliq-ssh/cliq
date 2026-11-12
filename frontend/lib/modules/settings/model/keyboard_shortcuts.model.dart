@@ -1,7 +1,6 @@
 import 'dart:io';
 
-import 'package:cliq/modules/settings/extension/keyboard_shortcut.extension.dart';
-import 'package:cliq_term/cliq_term.dart';
+import 'package:cliq/modules/settings/model/keyboard_shortcut.model.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/services.dart';
 
@@ -55,7 +54,7 @@ class KeyboardShortcuts {
       final type = KeyboardShortcutType.values.firstWhere(
         (t) => t.name == entry.key,
       );
-      final shortcut = KeyboardShortcutExtension.tryFromJson(entry.value);
+      final shortcut = KeyboardShortcut.tryFromJson(entry.value);
       if (shortcut != null) {
         shortcuts[type] = shortcut;
       }

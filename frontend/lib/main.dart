@@ -8,6 +8,7 @@ import 'package:cliq/shared/model/localized_exception.dart';
 import 'package:cliq/shared/model/router.model.dart';
 import 'package:cliq/shared/provider/router.provider.dart';
 import 'package:cliq/shared/provider/store.provider.dart';
+import 'package:cliq/shared/provider/window_scope.provider.dart';
 import 'package:cliq/shared/ui/cliq_tooltip.dart';
 import 'package:cliq/shared/ui/error_sheet.dart';
 import 'package:cliq/shared/utils/commons.dart';
@@ -24,8 +25,8 @@ import 'package:logging/logging.dart';
 import 'package:lucide_flutter/lucide_flutter.dart';
 import 'package:macos_window_utils/macos_window_utils.dart';
 import 'package:material_ui/material_ui.dart' hide Router;
+import 'package:multiview_desktop/multiview_desktop.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:window_manager/window_manager.dart';
 
 const windowMinWidth = 720.0;
 const windowMinHeight = 450.0;
@@ -45,54 +46,89 @@ void main() async {
     await KeyValueStore.init();
     await PasswordCipher.init();
 
-    await _configureWindow();
-
     final ProviderContainer container = ProviderContainer();
     _initLogger(container);
 
-    runApp(
-      EasyLocalization(
-        path: 'assets/translations',
-        supportedLocales: Constants.supportedLocales.values.toList(),
-        fallbackLocale: Constants.supportedLocales.values.first,
-        child: UncontrolledProviderScope(
-          container: container,
-          child: const CliqApp(),
+    windowRoot(int viewId) => ProviderScope(
+      overrides: [
+        currentWindowIdProvider.overrideWithValue(viewId),
+        routerProvider.overrideWith((ref) => Router(ref)),
+      ],
+      child: const CliqApp(),
+    );
+
+    globalScope(Widget child) => EasyLocalization(
+      path: 'assets/translations',
+      supportedLocales: Constants.supportedLocales.values.toList(),
+      fallbackLocale: Constants.supportedLocales.values.first,
+      child: UncontrolledProviderScope(container: container, child: child),
+    );
+
+    openNewWindow() => openWindow((_, viewId) => windowRoot(viewId));
+
+    if (kIsWeb) throw UnsupportedError('Web is not supported');
+    if (PlatformUtils.isMobile) {
+      runApp(globalScope(windowRoot(0)));
+      return;
+    }
+
+    // TODO: find out why this even runs twice and why we need this (on macos)
+    bool windowManipulatorInitialized = false;
+
+    runMultiApp(
+      home: (_, viewId) {
+        WidgetsBinding.instance.endOfFrame.then((_) async {
+          final win = MultiViewDesktop.fromId(viewId);
+          win.setTitleBarStyle(.hidden);
+          win.completeShow();
+
+          if (Platform.isMacOS && !windowManipulatorInitialized) {
+            windowManipulatorInitialized = true;
+            await WindowManipulator.initialize();
+            await _configureMacOSTrafficLights();
+          }
+        });
+        return windowRoot(viewId);
+      },
+      globalScope: globalScope,
+      config: MultiAppConfig(
+        generalParams: MultiPlatformParams(
+          closeMode: .softCascade,
+          closeAppAfterLastWindowClosed: true,
+          menuItems: [
+            .new(title: 'new_window'.tr(), onPressed: openNewWindow),
+            .new(
+              title: 'new_tab'.tr(),
+              onPressed: () {
+                // TODO:
+                debugPrint('User requested New Tab');
+              },
+            ),
+          ],
+        ),
+        mainWindowOptions: const WindowOptions(
+          size: Size(1200, 800),
+          minimumSize: windowMinSize,
+          showOnInit: false,
+          title: Constants.defaultTitle,
+          titleBarStyle: .hidden,
+          windowButtonVisibility: true,
+        ),
+        globalWindowOptions: const WindowOptions(
+          size: Size(1000, 700),
+          minimumSize: windowMinSize,
+          showOnInit: true,
+          title: Constants.defaultTitle,
+          titleBarStyle: .hidden,
+          windowButtonVisibility: true,
         ),
       ),
     );
   }, _handleError);
 }
 
-Future<void> _configureWindow() async {
-  if (!PlatformUtils.isDesktop) {
-    debugPrint('Window configuration is only supported on desktop platforms.');
-    return;
-  }
-
-  await windowManager.ensureInitialized();
-
-  if (Platform.isMacOS) {
-    await WindowManipulator.initialize();
-  }
-
-  const windowOptions = WindowOptions(
-    minimumSize: windowMinSize,
-    title: Constants.defaultTitle,
-    titleBarStyle: .hidden,
-  );
-  await windowManager.waitUntilReadyToShow(windowOptions, () async {
-    await windowManager.show();
-    await windowManager.focus();
-
-    if (Platform.isMacOS) {
-      await _configureMacOSTrafficLights();
-    }
-  });
-}
-
 Future<void> _configureMacOSTrafficLights() async {
-  const offset = Offset(10, 18);
+  const offset = Offset(20, 18);
   const buttonGap = 23.0;
 
   await WindowManipulator.overrideStandardWindowButtonPosition(

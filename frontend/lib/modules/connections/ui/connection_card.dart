@@ -4,14 +4,12 @@ import 'package:cliq/modules/connections/model/connection_full.model.dart';
 import 'package:cliq/modules/connections/provider/connection_service.provider.dart';
 import 'package:cliq/modules/connections/ui/connection_icon.dart';
 import 'package:cliq/modules/connections/ui/create_or_edit_connection_sheet.dart';
-import 'package:cliq/modules/session/provider/session.provider.dart';
+import 'package:cliq/modules/settings/model/keyboard_shortcut.model.dart';
 import 'package:cliq/modules/settings/provider/sync.provider.dart';
 import 'package:cliq/shared/ui/context_menu.dart';
-import 'package:cliq/shared/ui/navigation/navigation_shell.dart';
 import 'package:cliq/shared/ui/title_card.dart';
 import 'package:cliq/shared/utils/commons.dart';
 import 'package:cliq/shared/utils/platform_utils.dart';
-import 'package:cliq_term/cliq_term.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:forui/forui.dart';
 import 'package:forui_hooks/forui_hooks.dart';
@@ -44,10 +42,6 @@ class const ConnectionCard({
         );
         return;
       }
-
-      return ref
-          .read(sessionProvider.notifier)
-          .createAndGo(NavigationShell.of(context), connection, isSftp: isSftp);
     }
 
     edit() async {

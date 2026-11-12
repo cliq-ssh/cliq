@@ -92,9 +92,7 @@ class const SessionTitleBar({
                   buildButton(
                     icon: LucideIcons.x,
                     onPress: () {
-                      ref
-                          .read(sessionProvider.notifier)
-                          .remove(session.id);
+                      ref.read(sessionProvider.notifier).remove(session.id);
                     },
                     label: 'Close',
                   ),

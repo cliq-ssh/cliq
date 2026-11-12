@@ -288,10 +288,7 @@ class _SftpSessionPageState extends ConsumerState<SftpSessionPage>
     retrySession({bool skipHostKeyVerification = false}) {
       ref
           .read(sessionProvider.notifier)
-          .reset(
-            session.id,
-            skipHostKeyVerification: skipHostKeyVerification,
-          );
+          .reset(session.id, skipHostKeyVerification: skipHostKeyVerification);
       refreshTrigger.value++;
     }
 

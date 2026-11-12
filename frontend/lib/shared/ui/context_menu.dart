@@ -1,6 +1,6 @@
+import 'package:cliq/modules/settings/model/keyboard_shortcut.model.dart';
 import 'package:cliq/shared/ui/shortcut_info.dart';
 import 'package:cliq/shared/utils/platform_utils.dart';
-import 'package:cliq_term/cliq_term.dart';
 import 'package:cupertino_ui/cupertino_ui.dart';
 import 'package:flutter/services.dart';
 import 'package:forui/forui.dart';

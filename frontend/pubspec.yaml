@@ -5,12 +5,11 @@ publish_to: 'none'
 version: 0.0.1+12
 
 environment:
-  sdk: ^3.13.0
+  sdk: ^3.14.0
   flutter: ">=3.47.0-0"
 
 workspace:
   - packages/cliq_api
-  - packages/cliq_term
   - packages/cliq_ui
 
 dependencies:
@@ -18,8 +17,6 @@ dependencies:
     sdk: flutter
   cliq_api:
     path: packages/cliq_api
-  cliq_term:
-    path: packages/cliq_term
   cliq_ui:
     path: packages/cliq_ui
   dartssh2:
@@ -45,7 +42,6 @@ dependencies:
   file_selector: ^1.1.0
   sodium: ^4.1.2
   pointycastle: ^4.0.0
-  window_manager: ^0.5.2
   open_app_file: ^4.0.5
   easy_localization: ^3.0.8
   macos_window_utils: ^1.9.1
@@ -56,6 +52,7 @@ dependencies:
   cupertino_ui: ^1.1.6
   material_ui: any
   flterm: ^0.0.6
+  multiview_desktop: ^2.0.2
 dev_dependencies:
   flutter_test:
     sdk: flutter

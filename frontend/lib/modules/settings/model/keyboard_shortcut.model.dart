@@ -5,7 +5,7 @@ class KeyboardShortcut {
   final LogicalKeyboardKey logicalKey;
   final Set<LogicalKeyboardKey> modifiers;
 
-  KeyboardShortcut(this.logicalKey, {this.modifiers = const {}})
+  new(this.logicalKey, {this.modifiers = const {}})
     : assert(
         modifiers.every(
           (mod) =>
@@ -13,6 +13,21 @@ class KeyboardShortcut {
         ),
         'Modifiers can only be shift, control, alt, or meta',
       );
+
+  static KeyboardShortcut? tryFromJson(Map<String, dynamic> json) {
+    if (!json.containsKey('k') || !json.containsKey('m')) {
+      return null;
+    }
+
+    return KeyboardShortcut(
+      LogicalKeyboardKey(json['k']),
+      modifiers: (json['m'] as List).map((m) => LogicalKeyboardKey(m)).toSet(),
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {'k': logicalKey.keyId, 'm': modifiers.map((m) => m.keyId).toList()};
+  }
 
   /// Checks if the given [KeyEvent] matches this shortcut.
   bool isPressed(KeyEvent event) {

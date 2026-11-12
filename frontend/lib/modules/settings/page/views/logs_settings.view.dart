@@ -1,3 +1,4 @@
+import 'package:cliq/modules/settings/model/keyboard_shortcut.model.dart';
 import 'package:cliq/modules/settings/page/abstract_settings_page.dart';
 import 'package:cliq/modules/settings/page/settings.page.dart';
 import 'package:cliq/modules/settings/provider/log.provider.dart';
@@ -10,7 +11,6 @@ import 'package:cliq/shared/ui/list_icon.dart';
 import 'package:cliq/shared/ui/shortcut_info.dart';
 import 'package:cliq/shared/utils/commons.dart';
 import 'package:cliq/shared/utils/platform_utils.dart';
-import 'package:cliq_term/cliq_term.dart';
 import 'package:cliq_ui/cliq_ui.dart'
     show CliqGridColumn, CliqGridContainer, CliqGridRow, useBreakpoint;
 import 'package:easy_localization/easy_localization.dart';

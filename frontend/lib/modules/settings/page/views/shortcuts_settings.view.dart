@@ -1,3 +1,4 @@
+import 'package:cliq/modules/settings/model/keyboard_shortcut.model.dart';
 import 'package:cliq/modules/settings/model/keyboard_shortcuts.model.dart';
 import 'package:cliq/modules/settings/page/abstract_settings_page.dart';
 import 'package:cliq/modules/settings/page/settings.page.dart';
@@ -6,7 +7,6 @@ import 'package:cliq/shared/model/page_path.model.dart';
 import 'package:cliq/shared/provider/store.provider.dart';
 import 'package:cliq/shared/ui/cliq_tooltip.dart';
 import 'package:cliq/shared/ui/shortcut_info.dart';
-import 'package:cliq_term/cliq_term.dart';
 import 'package:cupertino_ui/cupertino_ui.dart' hide Router;
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/services.dart';

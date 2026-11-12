@@ -10,6 +10,15 @@ final class Constants {
   static const String githubCreateIssueUrl = '$githubUrl/issues/new';
   static const String weblateUrl = 'https://i18n.cliq.sh/projects/cliq';
 
+  static const defaultMaxScrollbackLines = 2_000;
+  static const minScrollbackLines = 0;
+  static const maxScrollbackLines = 100_000;
+
+  static const cursorMinBlinkInterval = 100;
+  static const cursorMaxBlinkInterval = 2000;
+  static const cursorMinBlinkTimeout = 0;
+  static const cursorMaxBlinkTimeout = 3600;
+
   /// The threshold size (in bytes) for considering a file as "large" when downloading over SFTP.
   /// Files larger than this size will trigger a warning if the user has enabled the large downloads warning setting.
   static const int largeFileSizeThreshold = 50 * 1024 * 1024;

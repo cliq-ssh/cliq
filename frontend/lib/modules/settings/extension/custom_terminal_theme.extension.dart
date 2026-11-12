@@ -1,31 +1,40 @@
 import 'package:cliq/shared/data/database.dart';
-import 'package:cliq_term/cliq_term.dart';
+import 'package:flterm/flterm.dart';
 
 extension CustomTerminalThemeExtension on CustomTerminalTheme {
   TerminalTheme toTerminalTheme() {
-    return TerminalTheme(
-      black: black,
-      red: red,
-      green: green,
-      yellow: yellow,
-      blue: blue,
-      purple: purple,
-      cyan: cyan,
-      white: white,
-      brightBlack: brightBlack,
-      brightRed: brightRed,
-      brightGreen: brightGreen,
-      brightYellow: brightYellow,
-      brightBlue: brightBlue,
-      brightPurple: brightPurple,
-      brightCyan: brightCyan,
-      brightWhite: brightWhite,
-      foreground: foreground,
+    return .new(palette: toColorPalette(), selection: toSelectionTheme());
+  }
+
+  ColorPalette toColorPalette() {
+    return .new(
       background: background,
-      cursor: cursor,
-      cursorText: cursorText,
-      selectionForeground: selectionForeground,
-      selectionBackground: selectionBackground,
+      foreground: foreground,
+      ansiColors: [
+        black,
+        red,
+        green,
+        yellow,
+        blue,
+        purple,
+        cyan,
+        white,
+        brightBlack,
+        brightRed,
+        brightGreen,
+        brightYellow,
+        brightBlue,
+        brightPurple,
+        brightCyan,
+        brightWhite,
+      ],
+    );
+  }
+
+  SelectionTheme toSelectionTheme() {
+    return .new(
+      foreground: .fixed(selectionForeground),
+      background: .fixed(selectionBackground),
     );
   }
 }
