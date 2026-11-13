@@ -104,7 +104,7 @@ dependencies {
 
     // E-Mail
     implementation("org.springframework.boot:spring-boot-starter-mail")
-    implementation("io.pebbletemplates:pebble-spring-boot-starter:4.1.2")
+    implementation("io.pebbletemplates:pebble-spring-boot-starter:4.1.3")
 
     // Validation
     implementation("org.springframework.boot:spring-boot-starter-validation")
