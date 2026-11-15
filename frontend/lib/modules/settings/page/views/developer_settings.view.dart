@@ -8,6 +8,7 @@ import 'package:cliq/shared/model/page_path.model.dart';
 import 'package:cliq/shared/provider/database.provider.dart';
 import 'package:cliq/shared/utils/build_metadata.dart';
 import 'package:cliq/shared/utils/commons.dart' show Commons;
+import 'package:cliq/shared/utils/path_provider.dart';
 import 'package:cupertino_ui/cupertino_ui.dart';
 import 'package:forui/forui.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -127,7 +128,7 @@ class const DeveloperSettingsView({super.key}) extends AbstractSettingsPage {
             ],
           ),
         FutureBuilder(
-          future: applicationSupportDirectory,
+          future: PathProvider.applicationSupportDirectory,
           builder: (context, snapshot) {
             final supportPath = snapshot.data?.path;
             final dbPath = supportPath == null
