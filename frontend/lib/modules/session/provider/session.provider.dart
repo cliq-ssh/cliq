@@ -23,13 +23,13 @@ class SessionNotifier extends Notifier<SessionState> {
   static const UuidV7 uuid = UuidV7();
 
   @override
-  SessionState build() => const SessionState.initial();
+  SessionState build() => const .initial();
 
   static String getSshIdent() => 'SSH-2.0-cliq_${BuildMetadata.version}';
 
   /// Connects a new SSH session for the given [connection] and adds it to the state
   Future<SshWorkerHandle?> connectSsh(
-    ShellSession session,
+    SshSession session,
     ConnectionFull connection,
     TerminalController terminal, {
     required VoidCallback onExit,
@@ -52,7 +52,7 @@ class SessionNotifier extends Notifier<SessionState> {
 
   /// Connects a new SFTP session for the given [connection] and adds it to the state
   Future<SftpWorkerHandle?> connectSftp(
-    ShellSession session,
+    SshSession session,
     ConnectionFull connection,
   ) async {
     final worker = SftpWorkerHandle();
@@ -62,8 +62,8 @@ class SessionNotifier extends Notifier<SessionState> {
     return worker;
   }
 
-  /// Finds the [ShellSession] with the given [sessionId] across all tabs, or null if not found.
-  ShellSession? findById(String sessionId) {
+  /// Finds the [SshSession] with the given [sessionId] across all tabs, or null if not found.
+  SshSession? findById(String sessionId) {
     return state.sessions.where((s) => s.id == sessionId).firstOrNull;
   }
 
@@ -153,7 +153,7 @@ class SessionNotifier extends Notifier<SessionState> {
   /// If the host key is not known or does not match, the session will be updated with a [KnownHostError] and the user
   /// will need to accept the fingerprint before retrying.
   Future<bool> _verifyHostKey(
-    ShellSession session,
+    SshSession session,
     ConnectionFull connection,
     HostKeyRequestEvent request,
   ) async {
@@ -182,7 +182,7 @@ class SessionNotifier extends Notifier<SessionState> {
   /// Returns true if the worker is connected and ready
   Future<bool> _startWorker(
     WorkerHandle worker,
-    ShellSession session,
+    SshSession session,
     ConnectionFull connection, {
     VoidCallback? onExit,
   }) async {
@@ -214,7 +214,7 @@ class SessionNotifier extends Notifier<SessionState> {
 
   /// Builds the plain-data params every worker connects with
   Future<SshConnectParams> _buildParams(
-    ShellSession session,
+    SshSession session,
     ConnectionFull connection,
   ) async {
     final ids = await ref
@@ -237,9 +237,9 @@ class SessionNotifier extends Notifier<SessionState> {
 
   /// Modifies the session with the given [sessionId] using the provided [modify] function,
   /// and updates the state accordingly.
-  void _modify(String sessionId, ShellSession Function(ShellSession) modify) {
+  void _modify(String sessionId, SshSession Function(SshSession) modify) {
     final newSessions = List.of(state.sessions, growable: false)
-        .map<ShellSession>((s) => s.id == sessionId ? modify(s) : s)
+        .map<SshSession>((s) => s.id == sessionId ? modify(s) : s)
         .toList(growable: false);
     state = state.copyWith(sessions: newSessions);
   }

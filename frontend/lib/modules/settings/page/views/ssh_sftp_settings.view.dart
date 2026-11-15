@@ -30,7 +30,6 @@ class const SshSftpSettingsView({super.key}) extends AbstractSettingsPage {
   Widget buildBody(BuildContext context, WidgetRef ref) {
     final scrollbackSize = useStore(.sshScrollbackSize);
     final bellSound = useStore(.terminalBellSound);
-    final cursorStyle = useStore(.terminalCursorStyle);
     final cursorBlinkInterval = useStore(.terminalCursorBlinkInterval);
     final cursorBlinkTimeout = useStore(.terminalCursorBlinkTimeout);
 

@@ -20,6 +20,7 @@ import 'package:material_ui/material_ui.dart';
 class const ConnectionCard({
   super.key,
   required final ConnectionFull connection,
+  final bool readonly = false,
 }) extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -74,6 +75,8 @@ class const ConnectionCard({
       required FPopoverController controller,
       required Widget child,
     }) {
+      if (readonly) return child;
+
       return FPopoverMenu(
         control: .managed(controller: controller),
         menu: [

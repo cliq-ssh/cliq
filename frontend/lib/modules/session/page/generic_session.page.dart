@@ -14,7 +14,7 @@ import 'package:material_ui/material_ui.dart' hide LicensePage;
 
 class GenericSessionPage extends HookConsumerWidget {
   final Widget child;
-  final ShellSession session;
+  final SshSession session;
   final bool isConnected;
   final bool isLikelyLoading;
   final void Function({bool skipHostKeyVerification})? onRetry;

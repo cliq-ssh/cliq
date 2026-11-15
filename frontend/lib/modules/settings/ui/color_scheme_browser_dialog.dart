@@ -5,7 +5,6 @@ import 'package:cliq/modules/settings/extension/custom_terminal_theme.extension.
 import 'package:cliq/shared/data/database.dart';
 import 'package:cliq/shared/extension/async_snapshot.extension.dart';
 import 'package:cliq/shared/hooks/use_memoized_future.dart';
-import 'package:cliq/shared/provider/store.provider.dart';
 import 'package:cliq/shared/ui/horizontal_dialog.dart';
 import 'package:cliq/shared/utils/text_utils.dart';
 import 'package:cliq_grid/cliq_grid.dart';
@@ -76,8 +75,6 @@ class ColorSchemeBrowserDialog extends HookConsumerWidget {
 
     final csFuture = useMemoizedFuture(() => cs.loadLibrary(), []);
     final terminalController = useState<TerminalController?>(null);
-
-    final defaultTerminalTypography = useStore(.defaultTerminalTypography);
 
     final selectedSchemeName = useState<String?>(null);
     final filterText = useState<TextEditingValue>(TextEditingValue.empty);

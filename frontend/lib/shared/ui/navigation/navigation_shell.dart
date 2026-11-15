@@ -1,13 +1,9 @@
 import 'dart:io';
 
-import 'package:cliq/modules/connections/model/connection_full.model.dart';
-import 'package:cliq/modules/connections/provider/connection.provider.dart';
-import 'package:cliq/modules/connections/ui/connection_icon.dart';
-import 'package:cliq/modules/session/provider/session.provider.dart';
+import 'package:cliq/modules/session/provider/tab.provider.dart';
+import 'package:cliq/modules/session/ui/tab_pill.dart';
 import 'package:cliq/modules/settings/model/keyboard_shortcut.model.dart';
-import 'package:cliq/modules/settings/provider/terminal_theme.provider.dart';
 import 'package:cliq/shared/provider/file_transfer.provider.dart';
-import 'package:cliq/shared/provider/store.provider.dart';
 import 'package:cliq/shared/ui/cliq_tooltip.dart';
 import 'package:cliq/shared/ui/navigation/navigation_tab.dart';
 import 'package:cliq/shared/ui/shortcut_info.dart';
@@ -46,15 +42,8 @@ class NavigationShellState extends ConsumerState<NavigationShell>
   Widget build(BuildContext context) {
     final win = MultiViewDesktop.of(context);
 
-    final defaultTerminalTheme = useStore(.defaultTerminalThemeId);
-    final applyTerminalThemeColorToNavigation = useStore(
-      .applyTerminalThemeColorToNavigation,
-    );
-    final connections = ref.watch(connectionProvider);
-    final sessions = ref.watch(sessionProvider);
-    final terminalThemes = ref.watch(terminalThemeProvider);
-    // final selectedTab = useState(sessions.selectedSession);
-    final showTabs = useState(false);
+    final tabs = ref.watch(tabProvider);
+    final selectedTabId = tabs.getSelectedTabIdByWindowId(win.id);
 
     final fileTransfer = ref.watch(fileTransferProvider);
 
@@ -73,10 +62,6 @@ class NavigationShellState extends ConsumerState<NavigationShell>
       }
       return null;
     }, [fileTransfer.pending]);
-
-    connect(ConnectionFull connection, {bool isSftp = false}) {
-      showTabs.value = false;
-    }
 
     buildMenuTab() {
       return NavigationTab(
@@ -232,7 +217,7 @@ class NavigationShellState extends ConsumerState<NavigationShell>
       );
     }
 
-    buildNewSessionTab() {
+    buildNewTabButton() {
       return CliqTooltip(
         text: TextWithShortcutInfo(
           'session_new'.tr(),
@@ -240,58 +225,11 @@ class NavigationShellState extends ConsumerState<NavigationShell>
         ),
         child: NavigationTab(
           icon: const Icon(LucideIcons.plus),
-          onPress: connections.entities.isNotEmpty
-              ? () => showTabs.value = !showTabs.value
-              : null,
+          onPress: () =>
+              ref.read(tabProvider.notifier).openNewAndMaybeGo(this, win.id),
           itemPadding: PlatformUtils.isMobile ? kMobileItemPadding : null,
         ),
       );
-    }
-
-    buildSessionSidebarTabs() {
-      return [
-        //        for (final tab in sessions.sessions)
-        //          SessionNavigationTab(tab, selected: tab.id == selectedTab.value?.id),
-        FPopoverMenu(
-          control: .lifted(
-            shown: showTabs.value,
-            onChange: (show) => showTabs.value = show,
-          ),
-          menu: [
-            FItemGroup(
-              children: [
-                for (final connection in connections.entities)
-                  FItem(
-                    prefix: ConnectionIcon.fromConnection(
-                      connection,
-                      size: 10,
-                      padding: 5,
-                    ),
-                    suffix: FTooltipGroup(
-                      child: Row(
-                        mainAxisSize: .min,
-                        spacing: 4,
-                        children: [
-                          CliqTooltip(
-                            text: Text('hosts_connect_sftp'.tr()),
-                            child: FButton.icon(
-                              size: .xs,
-                              child: const Icon(LucideIcons.folder, size: 12),
-                              onPress: () => connect(connection, isSftp: true),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    title: Text(connection.label),
-                    onPress: () => connect(connection),
-                  ),
-              ],
-            ),
-          ],
-          child: buildNewSessionTab(),
-        ),
-      ];
     }
 
     toggleMaximize() {
@@ -377,7 +315,12 @@ class NavigationShellState extends ConsumerState<NavigationShell>
                             children: [
                               if (isDesktop && !Platform.isMacOS)
                                 buildMenuTab(),
-                              ...buildSessionSidebarTabs(),
+                              for (final tab in tabs.getTabsByWindowId(win.id))
+                                TabPill(
+                                  tab: tab,
+                                  selected: tab.id == selectedTabId,
+                                ),
+                              buildNewTabButton(),
                             ],
                           ),
                         ),

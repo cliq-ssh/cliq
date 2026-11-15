@@ -1,5 +1,5 @@
 import 'package:cliq/modules/connections/page/connections.page.dart';
-import 'package:cliq/modules/session/ui/session_page_wrapper.dart';
+import 'package:cliq/modules/session/ui/tab_page_wrapper.dart';
 import 'package:cliq/modules/settings/page/settings.page.dart';
 import 'package:cliq/modules/settings/page/views/appearance_settings.view.dart';
 import 'package:cliq/modules/settings/page/views/developer_settings.view.dart';
@@ -44,8 +44,8 @@ class Router {
           StatefulShellBranch(
             routes: [
               GoRoute(
-                path: SessionPageWrapper.pagePath.path,
-                pageBuilder: _fade(const SessionPageWrapper()),
+                path: TabPageWrapper.pagePath.path,
+                pageBuilder: _fade(const TabPageWrapper()),
               ),
             ],
           ),

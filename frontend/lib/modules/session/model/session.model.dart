@@ -9,9 +9,9 @@ import 'package:flterm/flterm.dart';
 
 enum SessionType { ssh, sftp }
 
-/// A model representing a shell session, which can be either an SSH or SFTP session.
+/// A model representing a ssh session, which can be either SSH or SFTP.
 /// This class encapsulates the connection details, terminal controller, and state of the session.
-class ShellSession({
+class SshSession({
   /// A unique identifier for this session, used for state management and UI tracking.
   required final String id,
   required final SessionType type,
@@ -80,7 +80,7 @@ class ShellSession({
 
   /// Sets the worker handle for this session, either SSH or SFTP.
   /// Throws a [StateError] if the handle type does not match the initial session [type].
-  ShellSession setHandle(WorkerHandle handle) {
+  SshSession setHandle(WorkerHandle handle) {
     if (_ssh != null || _sftp != null) {
       throw StateError(
         'Cannot set handle on a session that already has a handle',
@@ -101,7 +101,7 @@ class ShellSession({
     return this;
   }
 
-  ShellSession copyWith({
+  SshSession copyWith({
     String? connectionError,
     DateTime? connectedAt,
     TerminalController? terminalController,
@@ -112,7 +112,7 @@ class ShellSession({
     SshWorkerHandle? ssh,
     SftpWorkerHandle? sftp,
   }) {
-    return ShellSession(
+    return SshSession(
       id: id,
       type: type,
       connection: connection,
