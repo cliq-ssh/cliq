@@ -3,7 +3,7 @@ import 'package:cliq/shared/data/database.dart';
 import 'package:cliq/shared/extension/logging.extension.dart';
 import 'package:cliq/shared/ui/title_card.dart';
 import 'package:cliq/shared/utils/commons.dart';
-import 'package:cliq_ui/cliq_ui.dart' show CliqFontFamily;
+import 'package:cliq/shared/utils/constants.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:forui/forui.dart';
 import 'package:forui_hooks/forui_hooks.dart';
@@ -47,7 +47,7 @@ class const LogCard({super.key, required final Log log})
             child: Text(
               log.message.trim(),
               style: context.theme.typography.body.xs.copyWith(
-                fontFamily: CliqFontFamily.secondary.fontFamily,
+                fontFamily: Constants.secondaryFont,
                 color: context.theme.colors.foreground,
               ),
             ),

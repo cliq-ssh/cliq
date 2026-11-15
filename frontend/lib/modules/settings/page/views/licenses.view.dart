@@ -3,7 +3,7 @@ import 'package:cliq/modules/settings/page/settings.page.dart';
 import 'package:cliq/shared/model/page_path.model.dart';
 import 'package:cliq/shared/ui/future_wrapper.dart';
 import 'package:cliq/shared/ui/title_card.dart';
-import 'package:cliq_ui/cliq_ui.dart';
+import 'package:cliq_grid/cliq_grid.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/foundation.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';

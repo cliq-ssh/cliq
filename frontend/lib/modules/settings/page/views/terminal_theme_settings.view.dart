@@ -17,7 +17,7 @@ import 'package:cliq/shared/ui/terminal_font_family_select.dart';
 import 'package:cliq/shared/ui/terminal_font_size_slider.dart';
 import 'package:cliq/shared/utils/commons.dart';
 import 'package:cliq/shared/utils/text_utils.dart';
-import 'package:cliq_ui/hooks/use_breakpoint.export.dart' show useBreakpoint;
+import 'package:cliq_grid/cliq_grid.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:file_selector/file_selector.dart';
 import 'package:flterm/flterm.dart';

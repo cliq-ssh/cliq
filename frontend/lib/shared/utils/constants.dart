@@ -6,6 +6,8 @@ final class Constants {
 
   static const String defaultTitle = 'cliq';
 
+  static const String secondaryFont = 'IBMPlexMono';
+
   static const String githubUrl = 'https://github.com/cliq-ssh/cliq';
   static const String githubCreateIssueUrl = '$githubUrl/issues/new';
   static const String weblateUrl = 'https://i18n.cliq.sh/projects/cliq';

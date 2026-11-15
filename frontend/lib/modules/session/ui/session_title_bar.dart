@@ -5,7 +5,7 @@ import 'package:cliq/modules/session/provider/session.provider.dart';
 import 'package:cliq/modules/settings/provider/terminal_theme.provider.dart';
 import 'package:cliq/shared/provider/store.provider.dart';
 import 'package:cliq/shared/ui/cliq_tooltip.dart';
-import 'package:cliq_ui/cliq_ui.dart' show CliqFontFamily;
+import 'package:cliq/shared/utils/constants.dart';
 import 'package:cupertino_ui/cupertino_ui.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:forui/forui.dart';
@@ -78,7 +78,7 @@ class const SessionTitleBar({
             Text(
               connection.label,
               style: context.theme.typography.body.xs2.copyWith(
-                fontFamily: CliqFontFamily.secondary.fontFamily,
+                fontFamily: Constants.secondaryFont,
                 color: foregroundColor.value ?? context.theme.colors.foreground,
               ),
             ),

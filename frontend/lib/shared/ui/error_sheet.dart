@@ -1,6 +1,6 @@
 import 'package:cliq/shared/model/localized_exception.dart';
 import 'package:cliq/shared/utils/commons.dart';
-import 'package:cliq_ui/cliq_ui.dart' show CliqFontFamily;
+import 'package:cliq/shared/utils/constants.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/widgets.dart';
 import 'package:forui/forui.dart';
@@ -42,7 +42,7 @@ class ErrorSheet extends ConsumerWidget {
                 child: Text(
                   content,
                   style: context.theme.typography.body.xs.copyWith(
-                    fontFamily: CliqFontFamily.secondary.fontFamily,
+                    fontFamily: Constants.secondaryFont,
                   ),
                 ),
               ),

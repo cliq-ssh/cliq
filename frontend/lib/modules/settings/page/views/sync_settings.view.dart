@@ -14,10 +14,10 @@ import 'package:cliq/shared/model/page_path.model.dart';
 import 'package:cliq/shared/model/router.model.dart';
 import 'package:cliq/shared/ui/entity_list.dart';
 import 'package:cliq/shared/utils/commons.dart';
+import 'package:cliq/shared/utils/constants.dart';
 import 'package:cliq/shared/utils/text_utils.dart';
 import 'package:cliq_api/cliq_api.dart';
-import 'package:cliq_ui/hooks/use_breakpoint.export.dart' show useBreakpoint;
-import 'package:cliq_ui/theme.export.dart' show CliqFontFamily;
+import 'package:cliq_grid/hooks/use_breakpoint.export.dart';
 import 'package:cupertino_ui/cupertino_ui.dart' hide Router;
 import 'package:easy_localization/easy_localization.dart';
 import 'package:file_selector/file_selector.dart';
@@ -87,10 +87,7 @@ class const SyncSettingsView({super.key}) extends AbstractSettingsPage {
           Icon(type.icon, size: 16, color: muted),
           Text(
             count.toString(),
-            style: .new(
-              fontFamily: CliqFontFamily.secondary.fontFamily,
-              color: muted,
-            ),
+            style: .new(fontFamily: Constants.secondaryFont, color: muted),
           ),
         ],
       );

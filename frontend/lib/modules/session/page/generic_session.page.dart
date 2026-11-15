@@ -3,9 +3,9 @@ import 'package:cliq/modules/session/provider/session.provider.dart';
 import 'package:cliq/shared/ui/cliq_tooltip.dart';
 import 'package:cliq/shared/ui/title_card.dart';
 import 'package:cliq/shared/utils/commons.dart';
+import 'package:cliq/shared/utils/constants.dart';
 import 'package:cliq/shared/utils/text_utils.dart';
-import 'package:cliq_ui/cliq_ui.dart'
-    show CliqFontFamily, CliqGridColumn, CliqGridContainer, CliqGridRow;
+import 'package:cliq_grid/cliq_grid.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:forui/forui.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -163,7 +163,7 @@ class GenericSessionPage extends HookConsumerWidget {
               child: Text(
                 session.connectionError!,
                 style: context.theme.typography.body.xs.copyWith(
-                  fontFamily: CliqFontFamily.secondary.fontFamily,
+                  fontFamily: Constants.secondaryFont,
                 ),
               ),
             ),

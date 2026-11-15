@@ -1,5 +1,4 @@
-import 'package:cliq_ui/widgets/grid.export.dart'
-    show CliqGridColumn, CliqGridContainer, CliqGridRow;
+import 'package:cliq_grid/cliq_grid.dart';
 import 'package:cupertino_ui/cupertino_ui.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:forui/forui.dart';

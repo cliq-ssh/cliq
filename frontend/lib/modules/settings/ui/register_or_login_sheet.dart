@@ -4,10 +4,10 @@ import 'package:cliq/modules/settings/provider/sync.provider.dart';
 import 'package:cliq/shared/data/store.dart';
 import 'package:cliq/shared/ui/error_card.dart';
 import 'package:cliq/shared/utils/commons.dart';
+import 'package:cliq/shared/utils/constants.dart';
 import 'package:cliq/shared/utils/input_formatters.dart';
 import 'package:cliq/shared/utils/validators.dart';
 import 'package:cliq_api/cliq_api.dart';
-import 'package:cliq_ui/cliq_ui.dart' show CliqFontFamily;
 import 'package:cupertino_ui/cupertino_ui.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/services.dart';
@@ -445,7 +445,7 @@ class const RegisterOrLoginSheet({super.key}) extends HookConsumerWidget {
                 Text(
                   'backend:${config.serverVersion}',
                   style: context.theme.typography.body.xs.copyWith(
-                    fontFamily: CliqFontFamily.secondary.fontFamily,
+                    fontFamily: Constants.secondaryFont,
                     color: context.theme.colors.mutedForeground,
                   ),
                 ),
