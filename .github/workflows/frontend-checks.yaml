@@ -32,7 +32,6 @@ jobs:
         package:
           - ./
           #         - cliq_api
-          - packages/cliq_term
           - packages/cliq_ui
     steps:
       - name: Checkout
