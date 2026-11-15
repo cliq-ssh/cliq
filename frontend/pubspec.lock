@@ -538,26 +538,26 @@ packages:
     dependency: "direct main"
     description:
       name: forui
-      sha256: af6dcb2f57467c39bc808b6576d6dfdad19be7caf788bdd89d8b2fe3b6a521a2
+      sha256: de5e4b3a2f6601c76dfaf49a49e1c1dc854867ce1399df992ce5657e251799de
       url: "https://pub.dev"
     source: hosted
-    version: "0.27.7"
+    version: "0.28.0"
   forui_hooks:
     dependency: "direct main"
     description:
       name: forui_hooks
-      sha256: "86bcc66be8fda39593dbc82d5cd842e91fb9083ce0e5e75da7f5526a80f54236"
+      sha256: "094f24e7984e900f136d9c75288a7c0f07ac3971edd877b1e0b80fb9e8ddfe66"
       url: "https://pub.dev"
     source: hosted
-    version: "0.27.0"
+    version: "0.28.0"
   forui_lucide:
     dependency: transitive
     description:
       name: forui_lucide
-      sha256: "63c660e4213309d9558cfc1c10ec52c13dab88cc2794dc41b8be769a7c86206c"
+      sha256: c7876b1007161b4a6f5d8d830bfdd3f1a0e6f4ccd810a472a936a6caa9102ffb
       url: "https://pub.dev"
     source: hosted
-    version: "0.27.0"
+    version: "0.28.0"
   freezed_annotation:
     dependency: transitive
     description:
@@ -1525,4 +1525,4 @@ packages:
     version: "2.2.4"
 sdks:
   dart: ">=3.14.0 <4.0.0"
-  flutter: ">=3.50.0-0"
+  flutter: ">=3.50.0"
