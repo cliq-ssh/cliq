@@ -193,13 +193,15 @@ enum StoreKey<T> {
       _enumFromValue(value, EntityCardViewType.values);
 
   static String? _cursorThemeToValue(CursorTheme? value) {
+    if (value == null) return null;
     // TODO: implement
-    return null;
+    return '';
   }
 
   static CursorTheme? _cursorThemeFromValue(String? value) {
+    if (value == null) return null;
     // TODO: implement
-    return null;
+    return const CursorTheme();
   }
 
   static String? _routeOptionsToValue(RouteOptions? value) {
@@ -287,12 +289,14 @@ class KeyValueStore {
       throw StateError('Store has already been initialized!');
     }
     _instance._preferences = await SharedPreferences.getInstance();
+    // print file
     _instance._secureStorage = const FlutterSecureStorage(
       mOptions: MacOsOptions(
         accessibility: KeychainAccessibility.first_unlock_this_device,
         usesDataProtectionKeychain: false,
       ),
     );
+
     _instance._initialized = true;
     for (StoreKey key in StoreKey.values) {
       // initializes all default values for keys that do not exist &
