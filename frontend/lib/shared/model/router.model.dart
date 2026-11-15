@@ -13,22 +13,26 @@ import 'package:cliq/modules/settings/page/views/shortcuts_settings.view.dart';
 import 'package:cliq/modules/settings/page/views/ssh_sftp_settings.view.dart';
 import 'package:cliq/modules/settings/page/views/sync_settings.view.dart';
 import 'package:cliq/modules/settings/page/views/terminal_theme_settings.view.dart';
+import 'package:cliq/shared/provider/window_scope.provider.dart';
 import 'package:cliq/shared/ui/navigation/navigation_shell.dart';
 import 'package:cupertino_ui/cupertino_ui.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:multiview_desktop/multiview_desktop.dart';
 
 class Router {
+  static final Map<int, Router> _byWindow = {};
+
   final Ref ref;
+  final int windowId;
 
-  new(this.ref);
+  new(this.ref) : windowId = ref.read(currentWindowIdProvider) {
+    _byWindow[windowId] = this;
+    ref.onDispose(() => _byWindow.remove(windowId));
+  }
 
-  static final GlobalKey<NavigatorState> rootNavigatorKey = GlobalKey(
-    debugLabel: 'root',
-  );
-  static final GlobalKey<NavigatorState> shellNavigatorKey = GlobalKey(
-    debugLabel: 'shell',
-  );
+  final GlobalKey<NavigatorState> rootNavigatorKey = .new(debugLabel: 'root');
+  final GlobalKey<NavigatorState> shellNavigatorKey = .new(debugLabel: 'shell');
 
   late GoRouter goRouter = GoRouter(
     initialLocation: '/',
@@ -116,6 +120,15 @@ class Router {
       ),
     ],
   );
+
+  /// Allows to access the [Router] for the currently focused window, determined
+  /// by [MultiViewDesktop.isFocused].
+  static Router? get focused {
+    for (final e in _byWindow.entries) {
+      if (MultiViewDesktop.fromId(e.key).isFocused()) return e.value;
+    }
+    return _byWindow.values.firstOrNull;
+  }
 
   static Page<T> Function(BuildContext, GoRouterState) _swipe<T>(Widget child) {
     return (_, _) => CupertinoPage(child: child);

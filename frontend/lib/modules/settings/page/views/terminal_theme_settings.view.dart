@@ -103,7 +103,6 @@ class const TerminalThemeSettingsView({super.key})
 
     create() => Commons.showResponsiveSheet(
       (_) => const CreateOrEditTerminalThemeSheet.create(),
-      context: context,
     );
 
     openBrowser() async {

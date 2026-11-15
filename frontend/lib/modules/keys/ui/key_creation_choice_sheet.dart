@@ -15,7 +15,6 @@ class const KeyCreationChoiceSheet({super.key}) extends HookConsumerWidget {
       WidgetsBinding.instance.addPostFrameCallback((_) async {
         await Commons.showResponsiveSheet(
           (_) => const CreateOrEditKeySheet.create(),
-          context: context,
         );
       });
     }
@@ -23,10 +22,7 @@ class const KeyCreationChoiceSheet({super.key}) extends HookConsumerWidget {
     openGenerate() {
       Navigator.of(context).pop();
       WidgetsBinding.instance.addPostFrameCallback((_) async {
-        await Commons.showResponsiveSheet(
-          (_) => const GenerateKeyView(),
-          context: context,
-        );
+        await Commons.showResponsiveSheet((_) => const GenerateKeyView());
       });
     }
 

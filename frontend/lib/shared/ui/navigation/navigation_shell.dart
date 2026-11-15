@@ -78,18 +78,12 @@ class NavigationShellState extends ConsumerState<NavigationShell>
       showTabs.value = false;
     }
 
-    buildDashboardTab() {
-      // TODO: make shortcut functional
-      return CliqTooltip(
-        text: TextWithShortcutInfo(
-          'dashboard'.tr(),
-          shortcut: KeyboardShortcut(.keyD, modifiers: {.control}),
-        ),
-        child: NavigationTab(
-          icon: const Icon(LucideIcons.layoutDashboard),
-          selected: widget.shell.currentIndex == _dashboardBranchIndex,
-          onPress: () => goToDashboardBranch(),
-        ),
+    buildMenuTab() {
+      return NavigationTab(
+        icon: const Icon(LucideIcons.menu),
+        onPress: () {
+          // TODO: open file menu
+        },
       );
     }
 
@@ -238,21 +232,6 @@ class NavigationShellState extends ConsumerState<NavigationShell>
       );
     }
 
-    buildSettingsTab() {
-      // TODO: make shortcut functional
-      return CliqTooltip(
-        text: TextWithShortcutInfo(
-          'settings'.tr(),
-          shortcut: KeyboardShortcut(.comma, modifiers: {.control}),
-        ),
-        child: NavigationTab(
-          icon: const Icon(LucideIcons.settings),
-          selected: widget.shell.currentIndex == _settingsBranchIndex,
-          onPress: () => goToSettingsBranch(),
-        ),
-      );
-    }
-
     buildNewSessionTab() {
       return CliqTooltip(
         text: TextWithShortcutInfo(
@@ -396,14 +375,15 @@ class NavigationShellState extends ConsumerState<NavigationShell>
                           child: Row(
                             spacing: 8,
                             children: [
-                              if (isDesktop) buildDashboardTab(),
+                              if (isDesktop && !Platform.isMacOS)
+                                buildMenuTab(),
                               ...buildSessionSidebarTabs(),
                             ],
                           ),
                         ),
                       ),
+                      // TODO: popup instead of icon
                       if (isDesktop && fileTransfer.isNotEmpty) buildQueue(),
-                      if (isDesktop) buildSettingsTab(),
                       if (isDesktop && !Platform.isMacOS)
                         buildCustomNavigationButtons(),
                     ],

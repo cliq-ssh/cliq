@@ -32,7 +32,6 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:forui/forui.dart';
 import 'package:forui_hooks/forui_hooks.dart';
-import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lucide_flutter/lucide_flutter.dart';
 import 'package:material_ui/material_ui.dart' hide Router;
@@ -189,7 +188,7 @@ class CreateOrEditConnectionSheet extends HookConsumerWidget {
             );
 
       if (!context.mounted) return;
-      context.pop(connectionId);
+      Navigator.of(context).pop(connectionId);
     }
 
     /// Gets the effective typography based on the provided [fontSize] and [fontFamily].
@@ -545,7 +544,7 @@ class CreateOrEditConnectionSheet extends HookConsumerWidget {
         if (!context.mounted) return;
 
         return showFDialog(
-          context: Router.rootNavigatorKey.currentContext ?? context,
+          context: Router.focused?.rootNavigatorKey.currentContext ?? context,
           builder: (_, style, animation) => VaultTransferDialog(
             style: style,
             animation: animation,

@@ -4,7 +4,6 @@ import 'package:cliq_ui/cliq_ui.dart' show CliqFontFamily;
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/widgets.dart';
 import 'package:forui/forui.dart';
-import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lucide_flutter/lucide_flutter.dart';
 import 'package:simple_icons/simple_icons.dart';
@@ -64,7 +63,7 @@ class ErrorSheet extends ConsumerWidget {
               children: [
                 FButton.icon(
                   variant: .outline,
-                  onPress: () => context.pop(),
+                  onPress: () => Navigator.of(context).pop(),
                   child: const Icon(LucideIcons.x),
                 ),
               ],

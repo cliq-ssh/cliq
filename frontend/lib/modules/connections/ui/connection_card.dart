@@ -51,7 +51,6 @@ class const ConnectionCard({
 
       return Commons.showResponsiveSheet(
         (_) => CreateOrEditConnectionSheet.edit(connection),
-        context: context,
       );
     }
 

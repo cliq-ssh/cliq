@@ -49,7 +49,7 @@ abstract class const AbstractSettingsPage({super.key})
           prefixes: [
             FButton.icon(
               variant: .outline,
-              onPress: () => context.pop(),
+              onPress: () => Navigator.of(context).pop(),
               child: const Icon(LucideIcons.arrowLeft),
             ),
           ],

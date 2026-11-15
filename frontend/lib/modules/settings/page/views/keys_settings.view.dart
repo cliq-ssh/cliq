@@ -50,7 +50,6 @@ class const KeysSettingsView({super.key}) extends AbstractSettingsPage {
           filterableVaultId: (k) => k.vaultId,
           onAddEntity: () => Commons.showResponsiveSheet(
             (_) => const KeyCreationChoiceSheet(),
-            context: context,
           ),
         );
       },

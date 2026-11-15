@@ -268,7 +268,6 @@ class CreateOrEditCredentialsFormState
                                       ? null
                                       : data.key.trim(),
                                 ),
-                                context: context,
                               );
                               if (result != null) {
                                 final newText =

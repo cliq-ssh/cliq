@@ -57,7 +57,6 @@ class _ConnectionsPageState extends ConsumerState<ConnectionsPage> {
         filterableVaultId: (c) => c.vaultId,
         onAddEntity: () => Commons.showResponsiveSheet(
           (_) => const CreateOrEditConnectionSheet.create(),
-          context: context,
         ),
       ),
     );

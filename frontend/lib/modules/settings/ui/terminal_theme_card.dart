@@ -74,7 +74,6 @@ class const TerminalThemeCard({
 
       return Commons.showResponsiveSheet(
         (_) => CreateOrEditTerminalThemeSheet.edit(theme),
-        context: context,
       ).then((_) => onEdit?.call());
     }
 

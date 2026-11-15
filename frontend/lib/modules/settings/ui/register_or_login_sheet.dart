@@ -13,7 +13,6 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:forui/forui.dart';
-import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lucide_flutter/lucide_flutter.dart';
 
@@ -66,7 +65,7 @@ class const RegisterOrLoginSheet({super.key}) extends HookConsumerWidget {
 
       await Commons.showToast('sync_login_success'.tr());
       if (!context.mounted) return;
-      context.pop();
+      Navigator.of(context).pop();
     }
 
     Future<void> onTestHostUrl() async {
@@ -426,7 +425,7 @@ class const RegisterOrLoginSheet({super.key}) extends HookConsumerWidget {
 
                   FButton.icon(
                     variant: .outline,
-                    onPress: () => context.pop(),
+                    onPress: () => Navigator.of(context).pop(),
                     child: const Icon(LucideIcons.x),
                   ),
                 ],

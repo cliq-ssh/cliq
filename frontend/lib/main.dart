@@ -93,9 +93,12 @@ void main() async {
       globalScope: globalScope,
       config: MultiAppConfig(
         generalParams: MultiPlatformParams(
-          closeMode: .softCascade,
+          // ignore: experimental_member_use
+          closeMode: .none,
+          enableDynamicAnchor: true,
           closeAppAfterLastWindowClosed: true,
           menuItems: [
+            // TODO: i18n
             .new(title: 'new_window'.tr(), onPressed: openNewWindow),
             .new(
               title: 'new_tab'.tr(),
@@ -149,15 +152,16 @@ void _handleError(Object error, StackTrace stackTrace) {
   debugPrint(stackTrace.toString());
 
   String errorMessage = error is LocalizedException
-      ? error.tr(context: Router.rootNavigatorKey.currentContext)
+      ? error.tr(context: Router.focused?.rootNavigatorKey.currentContext)
       : error.toString();
   if (errorMessage.length > 150) {
     errorMessage = '${errorMessage.substring(0, 150)}...';
   }
 
   WidgetsBinding.instance.addPostFrameCallback((_) {
+    if (Router.focused == null) return;
     showFToast(
-      context: Router.rootNavigatorKey.currentContext!,
+      context: Router.focused!.rootNavigatorKey.currentContext!,
       variant: .destructive,
       title: Text(errorMessage),
       suffixBuilder: (context, entry) {
@@ -169,7 +173,6 @@ void _handleError(Object error, StackTrace stackTrace) {
               entry.dismiss();
               await Commons.showResponsiveSheet(
                 (_) => ErrorSheet(error: error, stackTrace: stackTrace),
-                context: null,
               );
             },
             child: Icon(

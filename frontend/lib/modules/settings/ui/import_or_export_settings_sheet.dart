@@ -17,7 +17,6 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:forui/forui.dart';
 import 'package:forui_hooks/forui_hooks.dart';
-import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lucide_flutter/lucide_flutter.dart';
 import 'package:material_ui/material_ui.dart' hide Key;
@@ -247,7 +246,7 @@ class _ImportOrExportSettingsViewState
       }
 
       if (!context.mounted) return;
-      context.pop();
+      Navigator.of(context).pop();
     }
 
     getConnectionById(DbId id) {

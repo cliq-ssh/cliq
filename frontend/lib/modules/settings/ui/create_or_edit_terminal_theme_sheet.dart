@@ -11,7 +11,6 @@ import 'package:drift/drift.dart' hide Column;
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:forui/forui.dart';
-import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lucide_flutter/lucide_flutter.dart';
 import 'package:material_ui/material_ui.dart' hide Key;
@@ -224,7 +223,7 @@ class CreateOrEditTerminalThemeSheet extends HookConsumerWidget {
           : await terminalThemeService.createCustomTerminalTheme(toInsert);
 
       if (!context.mounted) return;
-      context.pop(themeId);
+      Navigator.of(context).pop(themeId);
     }
 
     buildHexColorField(String labelKey, TextEditingController controller) {

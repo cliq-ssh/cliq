@@ -167,7 +167,6 @@ class const SyncSettingsView({super.key}) extends AbstractSettingsPage {
           subtitle: Text('sync_setup_sync_subtitle'.tr(), overflow: .visible),
           onPress: () => Commons.showResponsiveSheet(
             (_) => const RegisterOrLoginSheet(),
-            context: context,
             dismissable: false,
           ),
         ),
@@ -290,7 +289,8 @@ class const SyncSettingsView({super.key}) extends AbstractSettingsPage {
                     // prompt password input
                     final password = await showFDialog(
                       context:
-                          Router.rootNavigatorKey.currentContext ?? context,
+                          Router.focused?.rootNavigatorKey.currentContext ??
+                          context,
                       builder: (context, style, animation) =>
                           PasswordDialog(style: style, animation: animation),
                     );
@@ -304,7 +304,6 @@ class const SyncSettingsView({super.key}) extends AbstractSettingsPage {
 
                 await Commons.showResponsiveSheet(
                   (_) => ImportOrExportSettingsSheet.import(current: settings),
-                  context: context,
                 );
               },
             ),
@@ -314,7 +313,6 @@ class const SyncSettingsView({super.key}) extends AbstractSettingsPage {
               title: Text('sync_export_file'.tr()),
               onPress: () => Commons.showResponsiveSheet(
                 (_) => const ImportOrExportSettingsSheet.export(),
-                context: context,
               ),
             ),
           ],
