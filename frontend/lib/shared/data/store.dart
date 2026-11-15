@@ -286,9 +286,6 @@ class KeyValueStore {
       aOptions: AndroidOptions(
         storageNamespace: 'cliq_$_secureStorageNamespace',
       ),
-      webOptions: WebOptions(
-        dbName: 'CliqSecureStorage-$_secureStorageNamespace',
-      ),
       mOptions: MacOsOptions(
         accountName: 'cliq_$_secureStorageNamespace',
         accessibility: KeychainAccessibility.first_unlock_this_device,
