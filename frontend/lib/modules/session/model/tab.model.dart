@@ -12,7 +12,7 @@ class Tab({
   var SshSession? session,
 }) {
   String getEffectiveLabel(BuildContext context) =>
-      session?.getEffectiveTitle(context) ?? 'new_tab'.tr(context: context);
+      session?.getEffectiveTitle(context) ?? 'tab_new'.tr(context: context);
 
   void dispose() => session?.dispose();
 }

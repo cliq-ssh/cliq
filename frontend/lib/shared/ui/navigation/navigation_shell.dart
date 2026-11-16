@@ -117,7 +117,7 @@ class NavigationShellState extends ConsumerState<NavigationShell>
     buildNewTabButton() {
       return CliqTooltip(
         text: TextWithShortcutInfo(
-          'new_tab'.tr(),
+          'tab_new'.tr(),
           shortcut: KeyboardShortcut(.keyT, modifiers: {.meta}),
         ),
         child: FButton.icon(

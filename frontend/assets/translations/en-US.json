@@ -224,8 +224,6 @@
   "logs_all": "all logs",
   "my_vault": "My Vault",
   "n_a": "N/A",
-  "new_tab": "New Tab",
-  "new_window": "New Window",
   "no_logs": "No logs found",
   "password": "Password",
   "queue": "Queue",
@@ -357,6 +355,8 @@
   "sync_verification_code_placeholder": "Enter verification code",
   "sync_verification_code_subtitle": "We've sent a verification code to your email. Please enter it below to verify your account.",
   "sync_verify_code": "Verify Code",
+  "tab_close": "Close Tab",
+  "tab_new": "New Tab",
   "terminal_themes": "Terminal Theme",
   "terminal_themes_already_exist": "A color scheme with that name and colors already exists",
   "terminal_themes_import": "Import",
@@ -419,5 +419,7 @@
   "validator_error_null": "Value may not be null",
   "vault_local": "Local Vault",
   "vault_user": "{}'s Vault",
-  "verification_code": "Verification Code"
+  "verification_code": "Verification Code",
+  "window_close": "Close Window",
+  "window_new": "New Window"
 }

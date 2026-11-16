@@ -41,8 +41,8 @@ class DesktopMenuState extends ConsumerState<DesktopMenu> {
     }
 
     MultiViewDesktop.setMenuItems([
-      .new(title: 'new_window'.tr(), onPressed: _openNewWindow),
-      .new(title: 'new_tab'.tr(), onPressed: _openNewTab),
+      .new(title: 'window_new'.tr(), onPressed: _openNewWindow),
+      .new(title: 'tab_new'.tr(), onPressed: _openNewTab),
     ]);
   }
 
@@ -115,18 +115,33 @@ class DesktopMenuState extends ConsumerState<DesktopMenu> {
   /// Opens a new tab in the currently focused window.
   /// See [TabNotifier.openNewAndMaybeGo] for more details.
   void _openNewTab() {
-    final allWindowIds = MultiViewDesktop.allWindowViewIds;
-    final focused = allWindowIds.where(
-      (id) => id != _windowId && MultiViewDesktop.fromId(id).isFocused(),
-    );
-
     ref
         .read(tabProvider.notifier)
-        .openNewAndMaybeGo(_navigationShell, focused.firstOrNull ?? _windowId);
+        .openNewAndMaybeGo(_navigationShell, getFocusedWindowId() ?? _windowId);
+  }
+
+  /// Closes the currently selected tab in the currently focused window.
+  /// See [TabNotifier.close] for more details.
+  void _closeTab() {
+    final selectedTabId = ref.read(tabProvider).getSelectedTabIdByWindowId(getFocusedWindowId() ?? _windowId);
+    if (selectedTabId != null) {
+      ref.read(tabProvider.notifier).close(selectedTabId);
+    }
   }
 
   /// Opens a new window with the current [windowRoot] as its root widget.
   void _openNewWindow() => openWindow((_, viewId) => windowRoot(viewId));
+
+  /// Closes the currently focused window.
+  void _closeWindow() => MultiViewDesktop.fromId(getFocusedWindowId() ?? _windowId).closeWindow();
+
+  /// Gets the currently focused window id, or null if no window is focused.
+  int? getFocusedWindowId() {
+    for (final e in MultiViewDesktop.allWindowViewIds) {
+      if (MultiViewDesktop.fromId(e).isFocused()) return e;
+    }
+    return null;
+  }
 
   /// Returns a platform-specific [SingleActivator] for the given [LogicalKeyboardKey].
   SingleActivator _activator(LogicalKeyboardKey key, {bool shift = false}) {
@@ -158,16 +173,30 @@ class DesktopMenuState extends ConsumerState<DesktopMenu> {
       label: 'desktop_menu.file'.tr(),
       menus: [
         ?prefix,
-        PlatformMenuItem(
-          label: 'new_tab'.tr(),
-          shortcut: _activator(.keyT),
-          onSelected: _openNewTab,
-        ),
-        PlatformMenuItem(
-          label: 'new_window'.tr(),
-          shortcut: _activator(.keyN),
-          onSelected: _openNewWindow,
-        ),
+        PlatformMenuItemGroup(members: [
+          PlatformMenuItem(
+            label: 'tab_new'.tr(),
+            shortcut: _activator(.keyT),
+            onSelected: _openNewTab,
+          ),
+          PlatformMenuItem(
+            label: 'tab_close'.tr(),
+            shortcut: _activator(.keyW),
+            onSelected: _closeTab,
+          ),
+        ]),
+        PlatformMenuItemGroup(members: [
+          PlatformMenuItem(
+            label: 'window_new'.tr(),
+            shortcut: _activator(.keyN),
+            onSelected: _openNewWindow,
+          ),
+          PlatformMenuItem(
+            label: 'window_close'.tr(),
+            shortcut: _activator(.keyW, shift: true),
+            onSelected: _closeWindow,
+          ),
+        ])
       ],
     );
   }
