@@ -4,6 +4,7 @@ import 'package:cliq/main.dart';
 import 'package:cliq/modules/session/provider/tab.provider.dart';
 import 'package:cliq/shared/provider/window_scope.provider.dart';
 import 'package:cliq/shared/ui/navigation/navigation_shell.dart';
+import 'package:cliq/shared/utils/constants.dart';
 import 'package:cliq/shared/utils/platform_utils.dart';
 import 'package:cupertino_ui/cupertino_ui.dart';
 import 'package:easy_localization/easy_localization.dart';
@@ -30,21 +31,116 @@ class DesktopMenuState extends ConsumerState<DesktopMenu> {
   void initState() {
     super.initState();
     final windowId = ref.read(currentWindowIdProvider);
+    final navigationShell = NavigationShell.of(context);
+
+    invoke(Intent intent) {
+      final context = FocusManager.instance.primaryFocus?.context;
+      if (context != null) {
+        Actions.maybeInvoke(context, intent);
+      }
+    }
 
     openNewTab() => ref
         .read(tabProvider.notifier)
-        .openNewAndMaybeGo(NavigationShell.of(context), windowId);
+        .openNewAndMaybeGo(navigationShell, windowId);
 
-    _menus = [
-      .new(
+    final menus = [
+      PlatformMenuItem(
         label: 'new_tab'.tr(),
         shortcut: _activator(.keyT),
         onSelected: openNewTab,
       ),
-      .new(
+      PlatformMenuItem(
         label: 'new_window'.tr(),
         shortcut: _activator(.keyN),
         onSelected: _openNewWindow,
+      ),
+    ];
+
+    _menus = [
+      PlatformMenu(
+        label: Constants.defaultTitle,
+        menus: [
+          const PlatformMenuItemGroup(
+            members: [PlatformProvidedMenuItem(type: .about)],
+          ),
+          PlatformMenuItemGroup(
+            members: [
+              PlatformMenuItem(
+                label: 'settings'.tr(),
+                shortcut: _activator(.comma),
+                onSelected: () => navigationShell.goToSettingsBranch(),
+              ),
+            ],
+          ),
+          if (PlatformProvidedMenuItem.hasMenu(.servicesSubmenu))
+            const PlatformMenuItemGroup(
+              members: [PlatformProvidedMenuItem(type: .servicesSubmenu)],
+            ),
+          const PlatformMenuItemGroup(
+            members: [
+              PlatformProvidedMenuItem(type: .hide),
+              PlatformProvidedMenuItem(type: .hideOtherApplications),
+              PlatformProvidedMenuItem(type: .showAllApplications),
+            ],
+          ),
+          const PlatformMenuItemGroup(
+            members: [PlatformProvidedMenuItem(type: .quit)],
+          ),
+        ],
+      ),
+
+      PlatformMenu(label: 'desktop_menu.file'.tr(), menus: menus),
+
+      PlatformMenu(label: 'desktop_menu.edit'.tr(), menus: [
+        PlatformMenuItemGroup(members: [
+          PlatformMenuItem(
+            label: 'desktop_menu.undo'.tr(),
+            shortcut: _activator(.keyZ),
+            onSelected: () => invoke(const UndoTextIntent(.keyboard)),
+          ),
+          PlatformMenuItem(
+            label: 'desktop_menu.redo'.tr(),
+            shortcut: _activator(.keyZ, shift: true),
+            onSelected: () => invoke(const RedoTextIntent(.keyboard)),
+          ),
+        ]),
+        PlatformMenuItemGroup(members: [
+          PlatformMenuItem(
+            label: 'desktop_menu.cut'.tr(),
+            shortcut: _activator(.keyX),
+            onSelected: () => invoke(const CopySelectionTextIntent.cut(.keyboard)),
+          ),
+          PlatformMenuItem(
+            label: 'desktop_menu.copy'.tr(),
+            shortcut: _activator(.keyC),
+            onSelected: () => invoke(CopySelectionTextIntent.copy),
+          ),
+          PlatformMenuItem(
+            label: 'desktop_menu.paste'.tr(),
+            shortcut: _activator(.keyV),
+            onSelected: () => invoke(const PasteTextIntent(.keyboard)),
+          ),
+          PlatformMenuItem(
+            label: 'desktop_menu.select_all'.tr(),
+            shortcut: _activator(.keyA),
+            onSelected: () => invoke(const SelectAllTextIntent(.keyboard)),
+          ),
+        ])
+      ]),
+
+      PlatformMenu(
+        label: 'desktop_menu.view'.tr(),
+        menus: const [PlatformProvidedMenuItem(type: .toggleFullScreen)],
+      ),
+
+      PlatformMenu(
+        label: 'desktop_menu.window'.tr(),
+        menus: const [
+          PlatformProvidedMenuItem(type: .minimizeWindow),
+          PlatformProvidedMenuItem(type: .zoomWindow),
+          PlatformProvidedMenuItem(type: .arrangeWindowsInFront),
+        ],
       ),
     ];
 
@@ -76,7 +172,7 @@ class DesktopMenuState extends ConsumerState<DesktopMenu> {
   void _openNewWindow() => openWindow((_, viewId) => windowRoot(viewId));
 
   /// Returns a platform-specific [SingleActivator] for the given [LogicalKeyboardKey].
-  SingleActivator _activator(LogicalKeyboardKey key) {
-    return SingleActivator(key, meta: _isMac, control: !_isMac);
+  SingleActivator _activator(LogicalKeyboardKey key, {bool shift = false}) {
+    return SingleActivator(key, meta: _isMac, control: !_isMac, shift: shift);
   }
 }

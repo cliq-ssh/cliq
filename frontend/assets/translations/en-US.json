@@ -74,6 +74,18 @@
   "delete": "Delete",
   "delete_all": "Delete All",
   "deselect_all": "Deselect All",
+  "desktop_menu": {
+    "copy": "Copy",
+    "cut": "Cut",
+    "edit": "Edit",
+    "file": "File",
+    "paste": "Paste",
+    "redo": "Redo",
+    "select_all": "Select All",
+    "undo": "Undo",
+    "view": "View",
+    "window": "Window"
+  },
   "developer": "Developer",
   "dialog_cancel": "Cancel",
   "dialog_color_scheme_browser_subtitle": "Color Schemes provided by <link url=\"https://iterm2colorschemes.com/\">iTerm2 Color Schemes</link>",
