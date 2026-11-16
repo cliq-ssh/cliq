@@ -11,6 +11,7 @@ import 'package:cliq/shared/provider/store.provider.dart';
 import 'package:cliq/shared/provider/window_scope.provider.dart';
 import 'package:cliq/shared/ui/cliq_tooltip.dart';
 import 'package:cliq/shared/ui/error_sheet.dart';
+import 'package:cliq/shared/ui/navigation/desktop_menu.dart';
 import 'package:cliq/shared/utils/commons.dart';
 import 'package:cliq/shared/utils/constants.dart';
 import 'package:cliq/shared/utils/password_cipher.dart';
@@ -32,6 +33,14 @@ const windowMinWidth = 720.0;
 const windowMinHeight = 450.0;
 const windowMinSize = Size(windowMinWidth, windowMinHeight);
 
+windowRoot(int viewId) => ProviderScope(
+  overrides: [
+    currentWindowIdProvider.overrideWithValue(viewId),
+    routerProvider.overrideWith((ref) => Router(ref)),
+  ],
+  child: const CliqApp(),
+);
+
 void main() async {
   await runZonedGuarded(() async {
     WidgetsFlutterBinding.ensureInitialized();
@@ -49,22 +58,12 @@ void main() async {
     final ProviderContainer container = ProviderContainer();
     _initLogger(container);
 
-    windowRoot(int viewId) => ProviderScope(
-      overrides: [
-        currentWindowIdProvider.overrideWithValue(viewId),
-        routerProvider.overrideWith((ref) => Router(ref)),
-      ],
-      child: const CliqApp(),
-    );
-
     globalScope(Widget child) => EasyLocalization(
       path: 'assets/translations',
       supportedLocales: Constants.supportedLocales.values.toList(),
       fallbackLocale: Constants.supportedLocales.values.first,
       child: UncontrolledProviderScope(container: container, child: child),
     );
-
-    openNewWindow() => openWindow((_, viewId) => windowRoot(viewId));
 
     if (kIsWeb) throw UnsupportedError('Web is not supported');
     if (PlatformUtils.isMobile) {
@@ -92,22 +91,11 @@ void main() async {
       },
       globalScope: globalScope,
       config: MultiAppConfig(
-        generalParams: MultiPlatformParams(
+        generalParams: const MultiPlatformParams(
           // ignore: experimental_member_use
           closeMode: .none,
           enableDynamicAnchor: true,
           closeAppAfterLastWindowClosed: true,
-          menuItems: [
-            // TODO: i18n
-            .new(title: 'new_window'.tr(), onPressed: openNewWindow),
-            .new(
-              title: 'new_tab'.tr(),
-              onPressed: () {
-                // TODO:
-                debugPrint('User requested New Tab');
-              },
-            ),
-          ],
         ),
         mainWindowOptions: const WindowOptions(
           size: Size(1200, 800),

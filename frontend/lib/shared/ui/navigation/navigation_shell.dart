@@ -5,6 +5,7 @@ import 'package:cliq/modules/session/ui/tab_pill.dart';
 import 'package:cliq/modules/settings/model/keyboard_shortcut.model.dart';
 import 'package:cliq/shared/provider/file_transfer.provider.dart';
 import 'package:cliq/shared/ui/cliq_tooltip.dart';
+import 'package:cliq/shared/ui/navigation/desktop_menu.dart';
 import 'package:cliq/shared/ui/navigation/navigation_tab.dart';
 import 'package:cliq/shared/ui/shortcut_info.dart';
 import 'package:cliq/shared/utils/platform_utils.dart';
@@ -273,93 +274,97 @@ class NavigationShellState extends ConsumerState<NavigationShell>
       );
     }
 
-    return FScaffold(
-      childPad: false,
-      resizeToAvoidBottomInset: false,
-      header: Container(
-        constraints: const .new(minHeight: 54 - 16),
-        decoration: BoxDecoration(
-          border: Border(
-            bottom: BorderSide(color: context.theme.colors.border, width: 1),
+    return DesktopMenu(
+      child: FScaffold(
+        childPad: false,
+        resizeToAvoidBottomInset: false,
+        header: Container(
+          constraints: const .new(minHeight: 54 - 16),
+          decoration: BoxDecoration(
+            border: Border(
+              bottom: BorderSide(color: context.theme.colors.border, width: 1),
+            ),
           ),
-        ),
-        child: SafeArea(
-          bottom: false,
-          child: Stack(
-            children: [
-              if (PlatformUtils.isDesktop)
-                Positioned.fill(
-                  child: GestureDetector(
-                    behavior: HitTestBehavior.opaque,
-                    onDoubleTap: () => toggleMaximize(),
-                    onPanStart: (_) => win.startDragging(),
+          child: SafeArea(
+            bottom: false,
+            child: Stack(
+              children: [
+                if (PlatformUtils.isDesktop)
+                  Positioned.fill(
+                    child: GestureDetector(
+                      behavior: HitTestBehavior.opaque,
+                      onDoubleTap: () => toggleMaximize(),
+                      onPanStart: (_) => win.startDragging(),
+                    ),
                   ),
-                ),
 
-              Padding(
-                padding:
-                    (Platform.isMacOS
-                            ? kMacOSNavigationPadding
-                            : EdgeInsets.zero)
-                        .add(const .all(8)),
-                child: FTooltipGroup(
-                  child: Row(
-                    children: [
-                      Expanded(
-                        // TODO: implement ReorderableListView for session tabs
-                        child: SingleChildScrollView(
-                          hitTestBehavior: .translucent,
-                          scrollDirection: .horizontal,
-                          child: Row(
-                            spacing: 8,
-                            children: [
-                              if (isDesktop && !Platform.isMacOS)
-                                buildMenuTab(),
-                              for (final tab in tabs.getTabsByWindowId(win.id))
-                                TabPill(
-                                  tab: tab,
-                                  selected: tab.id == selectedTabId,
-                                ),
-                              buildNewTabButton(),
-                            ],
+                Padding(
+                  padding:
+                      (Platform.isMacOS
+                              ? kMacOSNavigationPadding
+                              : EdgeInsets.zero)
+                          .add(const .all(8)),
+                  child: FTooltipGroup(
+                    child: Row(
+                      children: [
+                        Expanded(
+                          // TODO: implement ReorderableListView for session tabs
+                          child: SingleChildScrollView(
+                            hitTestBehavior: .translucent,
+                            scrollDirection: .horizontal,
+                            child: Row(
+                              spacing: 8,
+                              children: [
+                                if (isDesktop && !Platform.isMacOS)
+                                  buildMenuTab(),
+                                for (final tab in tabs.getTabsByWindowId(
+                                  win.id,
+                                ))
+                                  TabPill(
+                                    tab: tab,
+                                    selected: tab.id == selectedTabId,
+                                  ),
+                                buildNewTabButton(),
+                              ],
+                            ),
                           ),
                         ),
-                      ),
-                      // TODO: popup instead of icon
-                      if (isDesktop && fileTransfer.isNotEmpty) buildQueue(),
-                      if (isDesktop && !Platform.isMacOS)
-                        buildCustomNavigationButtons(),
-                    ],
+                        // TODO: popup instead of icon
+                        if (isDesktop && fileTransfer.isNotEmpty) buildQueue(),
+                        if (isDesktop && !Platform.isMacOS)
+                          buildCustomNavigationButtons(),
+                      ],
+                    ),
                   ),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-      footer: isDesktop
-          ? null
-          : FBottomNavigationBar(
-              index: widget.shell.currentIndex - 1,
-              onChange: (index) {
-                final _ = switch (index + 1) {
-                  _dashboardBranchIndex => goToDashboardBranch(),
-                  _settingsBranchIndex => goToSettingsBranch(),
-                  _ => throw UnimplementedError(),
-                };
-              },
-              children: [
-                FBottomNavigationBarItem(
-                  icon: const Icon(LucideIcons.layoutDashboard),
-                  label: Text('dashboard'.tr()),
-                ),
-                FBottomNavigationBarItem(
-                  icon: const Icon(LucideIcons.settings),
-                  label: Text('settings'.tr()),
                 ),
               ],
             ),
-      child: widget.shell,
+          ),
+        ),
+        footer: isDesktop
+            ? null
+            : FBottomNavigationBar(
+                index: widget.shell.currentIndex - 1,
+                onChange: (index) {
+                  final _ = switch (index + 1) {
+                    _dashboardBranchIndex => goToDashboardBranch(),
+                    _settingsBranchIndex => goToSettingsBranch(),
+                    _ => throw UnimplementedError(),
+                  };
+                },
+                children: [
+                  FBottomNavigationBarItem(
+                    icon: const Icon(LucideIcons.layoutDashboard),
+                    label: Text('dashboard'.tr()),
+                  ),
+                  FBottomNavigationBarItem(
+                    icon: const Icon(LucideIcons.settings),
+                    label: Text('settings'.tr()),
+                  ),
+                ],
+              ),
+        child: widget.shell,
+      ),
     );
   }
 
