@@ -30,6 +30,8 @@ class DesktopMenuState extends ConsumerState<DesktopMenu> {
   @override
   void initState() {
     super.initState();
+
+    final allWindowIds = MultiViewDesktop.allWindowViewIds;
     final windowId = ref.read(currentWindowIdProvider);
     final navigationShell = NavigationShell.of(context);
 
@@ -40,22 +42,15 @@ class DesktopMenuState extends ConsumerState<DesktopMenu> {
       }
     }
 
-    openNewTab() => ref
-        .read(tabProvider.notifier)
-        .openNewAndMaybeGo(navigationShell, windowId);
+    openNewTab() {
+      final focused = allWindowIds.where(
+        (id) => id != windowId && MultiViewDesktop.fromId(id).isFocused(),
+      );
 
-    final menus = [
-      PlatformMenuItem(
-        label: 'new_tab'.tr(),
-        shortcut: _activator(.keyT),
-        onSelected: openNewTab,
-      ),
-      PlatformMenuItem(
-        label: 'new_window'.tr(),
-        shortcut: _activator(.keyN),
-        onSelected: _openNewWindow,
-      ),
-    ];
+      ref
+          .read(tabProvider.notifier)
+          .openNewAndMaybeGo(navigationShell, focused.firstOrNull ?? windowId);
+    }
 
     _menus = [
       PlatformMenu(
@@ -90,44 +85,66 @@ class DesktopMenuState extends ConsumerState<DesktopMenu> {
         ],
       ),
 
-      PlatformMenu(label: 'desktop_menu.file'.tr(), menus: menus),
+      PlatformMenu(
+        label: 'desktop_menu.file'.tr(),
+        menus: [
+          PlatformMenuItem(
+            label: 'new_tab'.tr(),
+            shortcut: _activator(.keyT),
+            onSelected: openNewTab,
+          ),
+          PlatformMenuItem(
+            label: 'new_window'.tr(),
+            shortcut: _activator(.keyN),
+            onSelected: _openNewWindow,
+          ),
+        ],
+      ),
 
-      PlatformMenu(label: 'desktop_menu.edit'.tr(), menus: [
-        PlatformMenuItemGroup(members: [
-          PlatformMenuItem(
-            label: 'desktop_menu.undo'.tr(),
-            shortcut: _activator(.keyZ),
-            onSelected: () => invoke(const UndoTextIntent(.keyboard)),
+      PlatformMenu(
+        label: 'desktop_menu.edit'.tr(),
+        menus: [
+          PlatformMenuItemGroup(
+            members: [
+              PlatformMenuItem(
+                label: 'desktop_menu.undo'.tr(),
+                shortcut: _activator(.keyZ),
+                onSelected: () => invoke(const UndoTextIntent(.keyboard)),
+              ),
+              PlatformMenuItem(
+                label: 'desktop_menu.redo'.tr(),
+                shortcut: _activator(.keyZ, shift: true),
+                onSelected: () => invoke(const RedoTextIntent(.keyboard)),
+              ),
+            ],
           ),
-          PlatformMenuItem(
-            label: 'desktop_menu.redo'.tr(),
-            shortcut: _activator(.keyZ, shift: true),
-            onSelected: () => invoke(const RedoTextIntent(.keyboard)),
+          PlatformMenuItemGroup(
+            members: [
+              PlatformMenuItem(
+                label: 'desktop_menu.cut'.tr(),
+                shortcut: _activator(.keyX),
+                onSelected: () =>
+                    invoke(const CopySelectionTextIntent.cut(.keyboard)),
+              ),
+              PlatformMenuItem(
+                label: 'desktop_menu.copy'.tr(),
+                shortcut: _activator(.keyC),
+                onSelected: () => invoke(CopySelectionTextIntent.copy),
+              ),
+              PlatformMenuItem(
+                label: 'desktop_menu.paste'.tr(),
+                shortcut: _activator(.keyV),
+                onSelected: () => invoke(const PasteTextIntent(.keyboard)),
+              ),
+              PlatformMenuItem(
+                label: 'desktop_menu.select_all'.tr(),
+                shortcut: _activator(.keyA),
+                onSelected: () => invoke(const SelectAllTextIntent(.keyboard)),
+              ),
+            ],
           ),
-        ]),
-        PlatformMenuItemGroup(members: [
-          PlatformMenuItem(
-            label: 'desktop_menu.cut'.tr(),
-            shortcut: _activator(.keyX),
-            onSelected: () => invoke(const CopySelectionTextIntent.cut(.keyboard)),
-          ),
-          PlatformMenuItem(
-            label: 'desktop_menu.copy'.tr(),
-            shortcut: _activator(.keyC),
-            onSelected: () => invoke(CopySelectionTextIntent.copy),
-          ),
-          PlatformMenuItem(
-            label: 'desktop_menu.paste'.tr(),
-            shortcut: _activator(.keyV),
-            onSelected: () => invoke(const PasteTextIntent(.keyboard)),
-          ),
-          PlatformMenuItem(
-            label: 'desktop_menu.select_all'.tr(),
-            shortcut: _activator(.keyA),
-            onSelected: () => invoke(const SelectAllTextIntent(.keyboard)),
-          ),
-        ])
-      ]),
+        ],
+      ),
 
       PlatformMenu(
         label: 'desktop_menu.view'.tr(),
@@ -143,6 +160,12 @@ class DesktopMenuState extends ConsumerState<DesktopMenu> {
         ],
       ),
     ];
+
+    if (_isMac) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        WidgetsBinding.instance.platformMenuDelegate.setMenus(_menus);
+      });
+    }
 
     MultiViewDesktop.setMenuItems([
       .new(title: 'new_window'.tr(), onPressed: _openNewWindow),
@@ -166,7 +189,7 @@ class DesktopMenuState extends ConsumerState<DesktopMenu> {
       );
     }
 
-    return PlatformMenuBar(menus: menus, child: widget.child);
+    return widget.child;
   }
 
   void _openNewWindow() => openWindow((_, viewId) => windowRoot(viewId));
