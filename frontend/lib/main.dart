@@ -11,7 +11,6 @@ import 'package:cliq/shared/provider/store.provider.dart';
 import 'package:cliq/shared/provider/window_scope.provider.dart';
 import 'package:cliq/shared/ui/cliq_tooltip.dart';
 import 'package:cliq/shared/ui/error_sheet.dart';
-import 'package:cliq/shared/ui/navigation/desktop_menu.dart';
 import 'package:cliq/shared/utils/commons.dart';
 import 'package:cliq/shared/utils/constants.dart';
 import 'package:cliq/shared/utils/password_cipher.dart';
@@ -33,7 +32,8 @@ const windowMinWidth = 720.0;
 const windowMinHeight = 450.0;
 const windowMinSize = Size(windowMinWidth, windowMinHeight);
 
-windowRoot(int viewId) => ProviderScope(
+/// Root for every new window.
+ProviderScope windowRoot(int viewId) => ProviderScope(
   overrides: [
     currentWindowIdProvider.overrideWithValue(viewId),
     routerProvider.overrideWith((ref) => Router(ref)),
