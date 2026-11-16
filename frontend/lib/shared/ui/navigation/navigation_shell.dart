@@ -200,7 +200,7 @@ class NavigationShellState extends ConsumerState<NavigationShell>
                     Expanded(
                       child: Row(
                         children: [
-                          if (isDesktop) buildMenuTab(),
+                          if (isDesktop && !Platform.isMacOS) buildMenuTab(),
                           Flexible(
                             child: SizedBox(
                               height: 38,
