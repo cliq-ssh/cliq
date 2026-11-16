@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:math';
 
 import 'package:cliq/modules/session/provider/tab.provider.dart';
 import 'package:cliq/modules/session/ui/tab_pill.dart';
@@ -19,6 +20,10 @@ import 'package:material_ui/material_ui.dart';
 import 'package:multiview_desktop/multiview_desktop.dart';
 
 const EdgeInsetsGeometry kMacOSNavigationPadding = .only(left: 80);
+
+const _tabGap = 8.0;
+const _minTabWidth = 75.0;
+const _maxTabWidth = 200.0;
 
 class NavigationShell extends StatefulHookConsumerWidget {
   final StatefulNavigationShell shell;
@@ -218,30 +223,38 @@ class NavigationShellState extends ConsumerState<NavigationShell>
                           Flexible(
                             child: SizedBox(
                               height: 30,
-                              child: ReorderableListView.builder(
-                                scrollController: scrollController,
-                                scrollDirection: .horizontal,
-                                shrinkWrap: true,
-                                buildDefaultDragHandles: false,
-                                proxyDecorator: (child, _, _) => child,
-                                itemCount: windowTabs.length,
-                                onReorderItem: (from, to) {
-                                  ref
-                                      .read(tabProvider.notifier)
-                                      .reorder(from, to);
-                                },
-                                itemBuilder: (context, index) {
-                                  final tab = windowTabs[index];
-                                  return ReorderableDragStartListener(
-                                    key: ValueKey(tab.id),
-                                    index: index,
-                                    child: Padding(
-                                      padding: const .only(right: 8),
-                                      child: TabPill(
-                                        tab: tab,
-                                        selected: tab.id == selectedTabId,
-                                      ),
-                                    ),
+                              child: LayoutBuilder(
+                                builder: (context, constraints) {
+                                  final count = max(1, windowTabs.length);
+                                  final tabWidth =
+                                      (constraints.maxWidth / count - _tabGap)
+                                          .clamp(_minTabWidth, _maxTabWidth);
+
+                                  return ReorderableListView.builder(
+                                    scrollController: scrollController,
+                                    scrollDirection: .horizontal,
+                                    shrinkWrap: true,
+                                    itemExtent: tabWidth + _tabGap,
+                                    buildDefaultDragHandles: false,
+                                    proxyDecorator: (child, _, _) => child,
+                                    itemCount: windowTabs.length,
+                                    onReorderItem: (from, to) => ref
+                                        .read(tabProvider.notifier)
+                                        .reorder(from, to),
+                                    itemBuilder: (context, index) {
+                                      final tab = windowTabs[index];
+                                      return ReorderableDragStartListener(
+                                        key: ValueKey(tab.id),
+                                        index: index,
+                                        child: Padding(
+                                          padding: const .only(right: _tabGap),
+                                          child: TabPill(
+                                            tab: tab,
+                                            selected: tab.id == selectedTabId,
+                                          ),
+                                        ),
+                                      );
+                                    },
                                   );
                                 },
                               ),

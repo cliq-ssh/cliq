@@ -131,7 +131,6 @@ class const TabPill({
                     (cardStyleDecoration.shape as OutlinedBorder).side,
                   ),
                 ),
-                constraints: const .new(minWidth: 100, maxWidth: 200),
                 child: Padding(
                   padding: const .only(left: 12, right: 4),
                   child: Row(
