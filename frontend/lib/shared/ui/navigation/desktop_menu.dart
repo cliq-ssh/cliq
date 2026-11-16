@@ -110,7 +110,7 @@ class DesktopMenuState extends ConsumerState<DesktopMenu> {
     if (event is! KeyDownEvent) return false;
 
     // Only the focused window should act
-    if (getFocusedWindowId() != _windowId) return false;
+    if (_getFocusedWindowId() != _windowId) return false;
 
     for (final item in _flatten(buildMenu())) {
       final shortcut = item.shortcut;
@@ -141,7 +141,10 @@ class DesktopMenuState extends ConsumerState<DesktopMenu> {
   void _openNewTab() {
     ref
         .read(tabProvider.notifier)
-        .openNewAndMaybeGo(_navigationShell, getFocusedWindowId() ?? _windowId);
+        .openNewAndMaybeGo(
+          _navigationShell,
+          _getFocusedWindowId() ?? _windowId,
+        );
   }
 
   /// Closes the currently selected tab in the currently focused window.
@@ -149,7 +152,7 @@ class DesktopMenuState extends ConsumerState<DesktopMenu> {
   void _closeTab() {
     final selectedTabId = ref
         .read(tabProvider)
-        .getSelectedTabIdByWindowId(getFocusedWindowId() ?? _windowId);
+        .getSelectedTabIdByWindowId(_getFocusedWindowId() ?? _windowId);
     if (selectedTabId != null) {
       ref.read(tabProvider.notifier).close(selectedTabId);
     }
@@ -160,10 +163,10 @@ class DesktopMenuState extends ConsumerState<DesktopMenu> {
 
   /// Closes the currently focused window.
   void _closeWindow() =>
-      MultiViewDesktop.fromId(getFocusedWindowId() ?? _windowId).closeWindow();
+      MultiViewDesktop.fromId(_getFocusedWindowId() ?? _windowId).closeWindow();
 
   /// Gets the currently focused window id, or null if no window is focused.
-  int? getFocusedWindowId() {
+  int? _getFocusedWindowId() {
     for (final e in MultiViewDesktop.allWindowViewIds) {
       if (MultiViewDesktop.fromId(e).isFocused()) return e;
     }
