@@ -41,7 +41,24 @@ class TabNotifier extends Notifier<TabState> {
     state = state.copyWith(selectedTabs: newSelectedTabs);
   }
 
-  void reorderTab(int currentIndex, int newIndex) {
+  /// Pins the tab with the given id.
+  /// Unpins the tab if [unpin] is true.
+  ///
+  /// This also re-orders the tab to be in the front (index 0)
+  void pin(String tabId, {bool unpin = false}) {
+    _updateTab(tabId, (tab) => tab.pinned = !unpin);
+    // re-order tab to be in the front
+    reorder(_getIndexByTabId(tabId), 0);
+  }
+
+  /// Renames the tab with the given id.
+  /// Set [newLabel] to null to remove the custom label.
+  void rename(String tabId, String? newLabel) {
+    _updateTab(tabId, (tab) => tab.customLabel = newLabel);
+  }
+
+  /// Re-orders the tabs in the given index to the new index.
+  void reorder(int currentIndex, int newIndex) {
     final newTabs = List.of(state.tabs);
     final tab = newTabs.removeAt(currentIndex);
     newTabs.insert(newIndex, tab);
@@ -58,6 +75,17 @@ class TabNotifier extends Notifier<TabState> {
 
     final newTabs = List.of(state.tabs);
     newTabs.removeWhere((t) => t.id == tabId);
+    state = state.copyWith(tabs: newTabs);
+  }
+
+  int _getIndexByTabId(String tabId) =>
+      state.tabs.indexWhere((t) => t.id == tabId);
+
+  /// Reactively updates the tab by applying the [update] function and then updating the state.
+  void _updateTab(String tabId, Function(Tab) update) {
+    final index = _getIndexByTabId(tabId);
+    final newTabs = List.of(state.tabs);
+    update(newTabs[index]);
     state = state.copyWith(tabs: newTabs);
   }
 }

@@ -228,7 +228,7 @@ class NavigationShellState extends ConsumerState<NavigationShell>
                                 onReorderItem: (from, to) {
                                   ref
                                       .read(tabProvider.notifier)
-                                      .reorderTab(from, to);
+                                      .reorder(from, to);
                                 },
                                 itemBuilder: (context, index) {
                                   final tab = windowTabs[index];
