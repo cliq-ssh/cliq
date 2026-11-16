@@ -6,10 +6,8 @@ import 'package:cliq/modules/settings/model/keyboard_shortcut.model.dart';
 import 'package:cliq/shared/provider/file_transfer.provider.dart';
 import 'package:cliq/shared/ui/cliq_tooltip.dart';
 import 'package:cliq/shared/ui/navigation/desktop_menu.dart';
-import 'package:cliq/shared/ui/navigation/navigation_tab.dart';
 import 'package:cliq/shared/ui/shortcut_info.dart';
 import 'package:cliq/shared/utils/platform_utils.dart';
-import 'package:cliq/shared/utils/text_utils.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:forui/forui.dart';
@@ -43,19 +41,21 @@ class NavigationShellState extends ConsumerState<NavigationShell>
   @override
   Widget build(BuildContext context) {
     final win = MultiViewDesktop.of(context);
-    final desktopMenuKey = useMemoized(() => GlobalKey());
-
-    final popoverMenuController = useFPopoverController();
-
-    final tabs = ref.watch(tabProvider);
-    final selectedTabId = tabs.getSelectedTabIdByWindowId(win.id);
+    final desktopMenuKey = useMemoized(() => GlobalKey<DesktopMenuState>());
+    final isDesktop = PlatformUtils.isDesktop;
 
     final fileTransfer = ref.watch(fileTransferProvider);
+    final tabs = ref.watch(tabProvider);
+    final windowTabs = tabs.getTabsByWindowId(win.id);
+    final previousTabs = usePrevious(windowTabs.length);
 
+    final selectedTabId = tabs.getSelectedTabIdByWindowId(win.id);
+
+    final scrollController = useScrollController();
+    final popoverController = useFPopoverController();
     final rotationAnimation = useAnimationController(
       duration: const .new(seconds: 2),
     );
-    final isDesktop = PlatformUtils.isDesktop;
 
     useEffect(() {
       if (fileTransfer.isAnyPending) {
@@ -68,10 +68,42 @@ class NavigationShellState extends ConsumerState<NavigationShell>
       return null;
     }, [fileTransfer.pending]);
 
+    // scroll to end when tab is opened
+    useEffect(() {
+      final grew = previousTabs != null && windowTabs.length > previousTabs;
+      if (!grew) return;
+      // Wait until the new tab is laid out, otherwise maxScrollExtent is stale
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!scrollController.hasClients) return;
+        scrollController.animateTo(
+          scrollController.position.maxScrollExtent,
+          duration: const .new(milliseconds: 200),
+          curve: Curves.easeInOut,
+        );
+      });
+      return null;
+    }, [windowTabs.length]);
+
     buildMenuTab() {
+      final platformMenu = desktopMenuKey.currentState?.buildMenu() ?? [];
+      final List<FItemGroupMixin> menu = [];
+
+      for (final item in platformMenu) {
+        if (item is! PlatformMenu) continue;
+
+        final groups = _toGroups(item.menus, popoverController);
+        if (groups.isEmpty) continue;
+
+        menu.add(
+          FItemGroup(
+            children: [.submenu(title: Text(item.label), submenu: groups)],
+          ),
+        );
+      }
+
       return FPopoverMenu(
-        menu: const [],
-        control: .managed(controller: popoverMenuController),
+        menu: menu,
+        control: .managed(controller: popoverController),
         builder: (context, controller, _) {
           return FButton.icon(
             variant: .ghost,
@@ -82,162 +114,17 @@ class NavigationShellState extends ConsumerState<NavigationShell>
       );
     }
 
-    buildQueue() {
-      return FPopover(
-        popoverBuilder: (context, controller) {
-          // latest transfer on top
-          final items = fileTransfer.pending.entries.toList()
-            ..sort((a, b) => b.value.startTime.compareTo(a.value.startTime));
-
-          return Container(
-            width: 300,
-            constraints: const .new(maxHeight: 400),
-            child: FTileGroup(
-              divider: .full,
-              children: [
-                if (fileTransfer.isEmpty)
-                  FTile(title: Text('queue_empty'.tr()))
-                else
-                  for (final item in items)
-                    FTile(
-                      title: Row(
-                        mainAxisAlignment: .spaceBetween,
-                        children: [
-                          Expanded(
-                            child: SingleChildScrollView(
-                              scrollDirection: Axis.horizontal,
-                              child: Text(
-                                item.value.file.fileName,
-                                softWrap: false,
-                              ),
-                            ),
-                          ),
-                          if (item.value.isInProgress)
-                            Text(
-                              '${(item.value.progressData.progress * 100).toStringAsFixed(1)}%',
-                              style: context.theme.typography.body.xs.copyWith(
-                                color: context.theme.colors.mutedForeground,
-                              ),
-                            ),
-                        ],
-                      ),
-                      subtitle: SizedBox(
-                        width: 300,
-                        child: Builder(
-                          builder: (context) {
-                            if (item.value.isInProgress) {
-                              return Padding(
-                                padding: const .symmetric(vertical: 4),
-                                child: Column(
-                                  crossAxisAlignment: .start,
-                                  spacing: 8,
-                                  children: [
-                                    SizedBox(
-                                      width: double.infinity,
-                                      child: FDeterminateProgress(
-                                        value: item.value.progressData.progress,
-                                      ),
-                                    ),
-                                    Row(
-                                      spacing: 8,
-                                      mainAxisAlignment: .spaceBetween,
-                                      children: [
-                                        Text(
-                                          '${TextUtils.formatBytes(item.value.progressData.currentBytes) ?? '--'} / ${TextUtils.formatBytes(item.value.progressData.totalBytes) ?? '--'}',
-                                        ),
-                                        if (item
-                                                .value
-                                                .progressData
-                                                .bytesPerSecond !=
-                                            null)
-                                          Text(
-                                            '${TextUtils.formatDuration(item.value.progressData.estimatedSecondsRemaining!)}, ${TextUtils.formatBytes(item.value.progressData.bytesPerSecond) ?? '--'}/s',
-                                          ),
-                                      ],
-                                    ),
-                                  ],
-                                ),
-                              );
-                            }
-
-                            if (item.value.error != null) {
-                              return Text(
-                                item.value.error!,
-                                style: context.theme.typography.body.xs
-                                    .copyWith(
-                                      color: context.theme.colors.destructive,
-                                    ),
-                              );
-                            }
-
-                            final seconds =
-                                DateTime.fromMillisecondsSinceEpoch(
-                                      item.value.endTime!,
-                                    )
-                                    .difference(
-                                      DateTime.fromMillisecondsSinceEpoch(
-                                        item.value.startTime,
-                                      ),
-                                    )
-                                    .inSeconds;
-                            return Text(
-                              'completed in ${TextUtils.formatDuration(seconds)}',
-                            );
-                          },
-                        ),
-                      ),
-                      suffix: FButton.icon(
-                        variant: item.value.tempFile != null
-                            ? .destructive
-                            : .ghost,
-                        child: Icon(
-                          item.value.tempFile != null
-                              ? LucideIcons.trash
-                              : LucideIcons.x,
-                        ),
-                        onPress: () async {
-                          final fileTransferNotifier = ref.read(
-                            fileTransferProvider.notifier,
-                          );
-                          if (item.value.isInProgress) {
-                            fileTransferNotifier.cancel(context, item.key);
-                          } else {
-                            await fileTransferNotifier.remove(item.key);
-                          }
-                        },
-                      ),
-                    ),
-              ],
-            ),
-          );
-        },
-        builder: (_, controller, _) {
-          return NavigationTab(
-            icon: RotationTransition(
-              turns: rotationAnimation,
-              child: Icon(
-                fileTransfer.isEmpty
-                    ? LucideIcons.refreshCwOff
-                    : LucideIcons.refreshCw,
-              ),
-            ),
-            onPress: fileTransfer.isEmpty ? null : controller.toggle,
-          );
-        },
-      );
-    }
-
     buildNewTabButton() {
       return CliqTooltip(
         text: TextWithShortcutInfo(
-          'session_new'.tr(),
+          'new_tab'.tr(),
           shortcut: KeyboardShortcut(.keyT, modifiers: {.meta}),
         ),
-        child: NavigationTab(
-          icon: const Icon(LucideIcons.plus),
+        child: FButton.icon(
+          variant: .ghost,
+          child: const Icon(LucideIcons.plus),
           onPress: () =>
               ref.read(tabProvider.notifier).openNewAndMaybeGo(this, win.id),
-          itemPadding: PlatformUtils.isMobile ? kMobileItemPadding : null,
         ),
       );
     }
@@ -283,96 +170,115 @@ class NavigationShellState extends ConsumerState<NavigationShell>
       );
     }
 
+    buildHeader() {
+      return Container(
+        constraints: const .new(minHeight: 54 - 16),
+        decoration: BoxDecoration(
+          border: Border(
+            bottom: BorderSide(color: context.theme.colors.border, width: 1),
+          ),
+        ),
+        child: Stack(
+          children: [
+            if (PlatformUtils.isDesktop)
+              Positioned.fill(
+                child: DragToMoveArea(
+                  child: GestureDetector(
+                    behavior: .opaque,
+                    onDoubleTap: () => toggleMaximize(),
+                  ),
+                ),
+              ),
+
+            Padding(
+              padding:
+                  (Platform.isMacOS ? kMacOSNavigationPadding : EdgeInsets.zero)
+                      .add(const .all(8)),
+              child: FTooltipGroup(
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Row(
+                        children: [
+                          if (isDesktop) buildMenuTab(),
+                          Flexible(
+                            child: SizedBox(
+                              height: 38,
+                              child: ReorderableListView.builder(
+                                scrollController: scrollController,
+                                scrollDirection: .horizontal,
+                                shrinkWrap: true,
+                                buildDefaultDragHandles: false,
+                                proxyDecorator: (child, _, _) => child,
+                                itemCount: windowTabs.length,
+                                onReorderItem: (from, to) {
+                                  ref
+                                      .read(tabProvider.notifier)
+                                      .reorderTab(from, to);
+                                },
+                                itemBuilder: (context, index) {
+                                  final tab = windowTabs[index];
+                                  return ReorderableDragStartListener(
+                                    key: ValueKey(tab.id),
+                                    index: index,
+                                    child: Padding(
+                                      padding: const .only(right: 8),
+                                      child: TabPill(
+                                        tab: tab,
+                                        selected: tab.id == selectedTabId,
+                                      ),
+                                    ),
+                                  );
+                                },
+                              ),
+                            ),
+                          ),
+                          buildNewTabButton(),
+                        ],
+                      ),
+                    ),
+                    if (isDesktop && !Platform.isMacOS)
+                      buildCustomNavigationButtons(),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    buildFooter() {
+      if (isDesktop) return null;
+      return FBottomNavigationBar(
+        index: widget.shell.currentIndex - 1,
+        onChange: (index) {
+          final _ = switch (index + 1) {
+            _dashboardBranchIndex => goToDashboardBranch(),
+            _settingsBranchIndex => goToSettingsBranch(),
+            _ => throw UnimplementedError(),
+          };
+        },
+        children: [
+          FBottomNavigationBarItem(
+            icon: const Icon(LucideIcons.layoutDashboard),
+            label: Text('dashboard'.tr()),
+          ),
+          FBottomNavigationBarItem(
+            icon: const Icon(LucideIcons.settings),
+            label: Text('settings'.tr()),
+          ),
+        ],
+      );
+    }
+
     return DesktopMenu(
       key: desktopMenuKey,
       child: FScaffold(
         childPad: false,
         resizeToAvoidBottomInset: false,
-        header: Container(
-          constraints: const .new(minHeight: 54 - 16),
-          decoration: BoxDecoration(
-            border: Border(
-              bottom: BorderSide(color: context.theme.colors.border, width: 1),
-            ),
-          ),
-          child: SafeArea(
-            bottom: false,
-            child: Stack(
-              children: [
-                if (PlatformUtils.isDesktop)
-                  Positioned.fill(
-                    child: GestureDetector(
-                      behavior: HitTestBehavior.opaque,
-                      onDoubleTap: () => toggleMaximize(),
-                      onPanStart: (_) => win.startDragging(),
-                    ),
-                  ),
-
-                Padding(
-                  padding:
-                      (Platform.isMacOS
-                              ? kMacOSNavigationPadding
-                              : EdgeInsets.zero)
-                          .add(const .all(8)),
-                  child: FTooltipGroup(
-                    child: Row(
-                      children: [
-                        Expanded(
-                          // TODO: implement ReorderableListView for session tabs
-                          child: SingleChildScrollView(
-                            hitTestBehavior: .translucent,
-                            scrollDirection: .horizontal,
-                            child: Row(
-                              spacing: 8,
-                              children: [
-                                if (isDesktop && !Platform.isMacOS)
-                                  buildMenuTab(),
-                                for (final tab in tabs.getTabsByWindowId(
-                                  win.id,
-                                ))
-                                  TabPill(
-                                    tab: tab,
-                                    selected: tab.id == selectedTabId,
-                                  ),
-                                buildNewTabButton(),
-                              ],
-                            ),
-                          ),
-                        ),
-                        // TODO: popup instead of icon
-                        if (isDesktop && fileTransfer.isNotEmpty) buildQueue(),
-                        if (isDesktop && !Platform.isMacOS)
-                          buildCustomNavigationButtons(),
-                      ],
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-        footer: isDesktop
-            ? null
-            : FBottomNavigationBar(
-                index: widget.shell.currentIndex - 1,
-                onChange: (index) {
-                  final _ = switch (index + 1) {
-                    _dashboardBranchIndex => goToDashboardBranch(),
-                    _settingsBranchIndex => goToSettingsBranch(),
-                    _ => throw UnimplementedError(),
-                  };
-                },
-                children: [
-                  FBottomNavigationBarItem(
-                    icon: const Icon(LucideIcons.layoutDashboard),
-                    label: Text('dashboard'.tr()),
-                  ),
-                  FBottomNavigationBarItem(
-                    icon: const Icon(LucideIcons.settings),
-                    label: Text('settings'.tr()),
-                  ),
-                ],
-              ),
+        header: buildHeader(),
+        footer: buildFooter(),
         child: widget.shell,
       ),
     );
@@ -388,5 +294,61 @@ class NavigationShellState extends ConsumerState<NavigationShell>
       index,
       initialLocation: widget.shell.currentIndex == index,
     );
+  }
+
+  List<FItemGroupMixin> _toGroups(
+    List<PlatformMenuItem> items,
+    FPopoverController popoverController,
+  ) {
+    final List<FItemGroupMixin> groups = [];
+    final List<PlatformMenuItem> loose = [];
+
+    void flush() {
+      final children = _toItems(loose, popoverController);
+      loose.clear();
+      if (children.isNotEmpty) groups.add(.group(children: children));
+    }
+
+    for (final i in items) {
+      if (i is PlatformMenuItemGroup) {
+        flush();
+        loose.addAll(i.members);
+        flush();
+      } else {
+        loose.add(i);
+      }
+    }
+    flush();
+    return groups;
+  }
+
+  List<FItemMixin> _toItems(
+    List<PlatformMenuItem> items,
+    FPopoverController popoverController,
+  ) {
+    return [
+      for (final i in items)
+        ?switch (i) {
+          PlatformProvidedMenuItem() || PlatformMenuItemGroup() => null,
+          PlatformMenu() => .submenu(
+            title: Text(i.label),
+            submenu: _toGroups(i.menus, popoverController),
+          ),
+          _ => .item(
+            title: i.shortcut == null
+                ? Text(i.label)
+                : TextWithShortcutInfo(
+                    i.label,
+                    shortcut: .fromSingleActivator(
+                      i.shortcut! as SingleActivator,
+                    ),
+                  ),
+            onPress: () {
+              i.onSelected?.call();
+              popoverController.hide();
+            },
+          ),
+        },
+    ];
   }
 }

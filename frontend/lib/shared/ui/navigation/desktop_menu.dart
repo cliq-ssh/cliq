@@ -24,27 +24,25 @@ class const DesktopMenu({super.key, required final Widget child})
 class DesktopMenuState extends ConsumerState<DesktopMenu> {
   static bool get _isMac => Platform.isMacOS;
 
+  late final int _windowId;
+  late final NavigationShellState _navigationShell;
+
   @override
   void initState() {
     super.initState();
 
-    final windowId = ref.read(currentWindowIdProvider);
-    final navigationShell = NavigationShell.of(context);
+    _windowId = ref.read(currentWindowIdProvider);
+    _navigationShell = NavigationShell.of(context);
 
     if (_isMac) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        WidgetsBinding.instance.platformMenuDelegate.setMenus(
-          buildMacOSMenu(navigationShell, windowId),
-        );
+        WidgetsBinding.instance.platformMenuDelegate.setMenus(buildMacOSMenu());
       });
     }
 
     MultiViewDesktop.setMenuItems([
       .new(title: 'new_window'.tr(), onPressed: _openNewWindow),
-      .new(
-        title: 'new_tab'.tr(),
-        onPressed: () => _openNewTab(navigationShell, windowId),
-      ),
+      .new(title: 'new_tab'.tr(), onPressed: _openNewTab),
     ]);
   }
 
@@ -56,7 +54,7 @@ class DesktopMenuState extends ConsumerState<DesktopMenu> {
     if (!_isMac) {
       return CallbackShortcuts(
         bindings: {
-          for (final menu in _menus)
+          for (final menu in buildMenu())
             if (menu.shortcut != null)
               menu.shortcut! as SingleActivator: (menu.onSelected ?? () {}),
         },
@@ -67,36 +65,12 @@ class DesktopMenuState extends ConsumerState<DesktopMenu> {
     return widget.child;
   }
 
-  void _openNewTab(NavigationShellState navigationShell, int windowId) {
-    final allWindowIds = MultiViewDesktop.allWindowViewIds;
-
-    final focused = allWindowIds.where(
-      (id) => id != windowId && MultiViewDesktop.fromId(id).isFocused(),
-    );
-
-    ref
-        .read(tabProvider.notifier)
-        .openNewAndMaybeGo(navigationShell, focused.firstOrNull ?? windowId);
+  List<PlatformMenuItem> buildMenu() {
+    return [_buildFileMenu(prefix: _buildSettingsMenuItem()), _buildEditMenu()];
   }
 
-  void _openNewWindow() => openWindow((_, viewId) => windowRoot(viewId));
-
-  /// Returns a platform-specific [SingleActivator] for the given [LogicalKeyboardKey].
-  SingleActivator _activator(LogicalKeyboardKey key, {bool shift = false}) {
-    return SingleActivator(key, meta: _isMac, control: !_isMac, shift: shift);
-  }
-
-  void _invoke(Intent intent) {
-    final context = FocusManager.instance.primaryFocus?.context;
-    if (context != null) {
-      Actions.maybeInvoke(context, intent);
-    }
-  }
-
-  List<PlatformMenuItem> buildMacOSMenu(
-    NavigationShellState navigationShell,
-    int windowId,
-  ) {
+  /// Builds the macOS-specific menu which integrates some more [PlatformProvidedMenuItem]s.
+  List<PlatformMenuItem> buildMacOSMenu() {
     return [
       PlatformMenu(
         label: Constants.defaultTitle,
@@ -104,15 +78,7 @@ class DesktopMenuState extends ConsumerState<DesktopMenu> {
           const PlatformMenuItemGroup(
             members: [PlatformProvidedMenuItem(type: .about)],
           ),
-          PlatformMenuItemGroup(
-            members: [
-              PlatformMenuItem(
-                label: 'settings'.tr(),
-                shortcut: _activator(.comma),
-                onSelected: () => navigationShell.goToSettingsBranch(),
-              ),
-            ],
-          ),
+          _buildSettingsMenuItem(),
           if (PlatformProvidedMenuItem.hasMenu(.servicesSubmenu))
             const PlatformMenuItemGroup(
               members: [PlatformProvidedMenuItem(type: .servicesSubmenu)],
@@ -129,73 +95,12 @@ class DesktopMenuState extends ConsumerState<DesktopMenu> {
           ),
         ],
       ),
-
-      PlatformMenu(
-        label: 'desktop_menu.file'.tr(),
-        menus: [
-          PlatformMenuItem(
-            label: 'new_tab'.tr(),
-            shortcut: _activator(.keyT),
-            onSelected: () => _openNewTab(navigationShell, windowId),
-          ),
-          PlatformMenuItem(
-            label: 'new_window'.tr(),
-            shortcut: _activator(.keyN),
-            onSelected: _openNewWindow,
-          ),
-        ],
-      ),
-
-      PlatformMenu(
-        label: 'desktop_menu.edit'.tr(),
-        menus: [
-          PlatformMenuItemGroup(
-            members: [
-              PlatformMenuItem(
-                label: 'desktop_menu.undo'.tr(),
-                shortcut: _activator(.keyZ),
-                onSelected: () => _invoke(const UndoTextIntent(.keyboard)),
-              ),
-              PlatformMenuItem(
-                label: 'desktop_menu.redo'.tr(),
-                shortcut: _activator(.keyZ, shift: true),
-                onSelected: () => _invoke(const RedoTextIntent(.keyboard)),
-              ),
-            ],
-          ),
-          PlatformMenuItemGroup(
-            members: [
-              PlatformMenuItem(
-                label: 'desktop_menu.cut'.tr(),
-                shortcut: _activator(.keyX),
-                onSelected: () =>
-                    _invoke(const CopySelectionTextIntent.cut(.keyboard)),
-              ),
-              PlatformMenuItem(
-                label: 'desktop_menu.copy'.tr(),
-                shortcut: _activator(.keyC),
-                onSelected: () => _invoke(CopySelectionTextIntent.copy),
-              ),
-              PlatformMenuItem(
-                label: 'desktop_menu.paste'.tr(),
-                shortcut: _activator(.keyV),
-                onSelected: () => _invoke(const PasteTextIntent(.keyboard)),
-              ),
-              PlatformMenuItem(
-                label: 'desktop_menu.select_all'.tr(),
-                shortcut: _activator(.keyA),
-                onSelected: () => _invoke(const SelectAllTextIntent(.keyboard)),
-              ),
-            ],
-          ),
-        ],
-      ),
-
+      _buildFileMenu(),
+      _buildEditMenu(),
       PlatformMenu(
         label: 'desktop_menu.view'.tr(),
         menus: const [PlatformProvidedMenuItem(type: .toggleFullScreen)],
       ),
-
       PlatformMenu(
         label: 'desktop_menu.window'.tr(),
         menus: const [
@@ -205,5 +110,112 @@ class DesktopMenuState extends ConsumerState<DesktopMenu> {
         ],
       ),
     ];
+  }
+
+  /// Opens a new tab in the currently focused window.
+  /// See [TabNotifier.openNewAndMaybeGo] for more details.
+  void _openNewTab() {
+    final allWindowIds = MultiViewDesktop.allWindowViewIds;
+    final focused = allWindowIds.where(
+      (id) => id != _windowId && MultiViewDesktop.fromId(id).isFocused(),
+    );
+
+    ref
+        .read(tabProvider.notifier)
+        .openNewAndMaybeGo(_navigationShell, focused.firstOrNull ?? _windowId);
+  }
+
+  /// Opens a new window with the current [windowRoot] as its root widget.
+  void _openNewWindow() => openWindow((_, viewId) => windowRoot(viewId));
+
+  /// Returns a platform-specific [SingleActivator] for the given [LogicalKeyboardKey].
+  SingleActivator _activator(LogicalKeyboardKey key, {bool shift = false}) {
+    return SingleActivator(key, meta: _isMac, control: !_isMac, shift: shift);
+  }
+
+  /// Safely invokes an [Intent]
+  void _invoke(Intent intent) {
+    final context = FocusManager.instance.primaryFocus?.context;
+    if (context != null) {
+      Actions.maybeInvoke(context, intent);
+    }
+  }
+
+  PlatformMenuItem _buildSettingsMenuItem() {
+    return PlatformMenuItemGroup(
+      members: [
+        PlatformMenuItem(
+          label: 'settings'.tr(),
+          shortcut: _activator(.comma),
+          onSelected: () => _navigationShell.goToSettingsBranch(),
+        ),
+      ],
+    );
+  }
+
+  PlatformMenuItem _buildFileMenu({PlatformMenuItem? prefix}) {
+    return PlatformMenu(
+      label: 'desktop_menu.file'.tr(),
+      menus: [
+        ?prefix,
+        PlatformMenuItem(
+          label: 'new_tab'.tr(),
+          shortcut: _activator(.keyT),
+          onSelected: _openNewTab,
+        ),
+        PlatformMenuItem(
+          label: 'new_window'.tr(),
+          shortcut: _activator(.keyN),
+          onSelected: _openNewWindow,
+        ),
+      ],
+    );
+  }
+
+  PlatformMenuItem _buildEditMenu() {
+    return PlatformMenu(
+      label: 'desktop_menu.edit'.tr(),
+      menus: [
+        PlatformMenuItemGroup(
+          members: [
+            PlatformMenuItem(
+              label: 'desktop_menu.undo'.tr(),
+              shortcut: _activator(.keyZ),
+              onSelected: () => _invoke(const UndoTextIntent(.keyboard)),
+            ),
+            PlatformMenuItem(
+              label: 'desktop_menu.redo'.tr(),
+              shortcut: _activator(.keyZ, shift: true),
+              onSelected: () => _invoke(const RedoTextIntent(.keyboard)),
+            ),
+          ],
+        ),
+        PlatformMenuItemGroup(
+          members: [
+            PlatformMenuItem(
+              label: 'desktop_menu.cut'.tr(),
+              shortcut: _activator(.keyX),
+              onSelected: () =>
+                  _invoke(const CopySelectionTextIntent.cut(.keyboard)),
+            ),
+            PlatformMenuItem(
+              label: 'desktop_menu.copy'.tr(),
+              shortcut: _activator(.keyC),
+              onSelected: () => _invoke(CopySelectionTextIntent.copy),
+            ),
+            PlatformMenuItem(
+              label: 'desktop_menu.paste'.tr(),
+              shortcut: _activator(.keyV),
+              onSelected: () => _invoke(const PasteTextIntent(.keyboard)),
+            ),
+            PlatformMenuItem(
+              label: 'desktop_menu.select_all'.tr(),
+              shortcut: _activator(.keyA),
+              onSelected: () => _invoke(const SelectAllTextIntent(.keyboard)),
+            ),
+          ],
+        ),
+      ],
+    );
   }
 }

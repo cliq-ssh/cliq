@@ -16,6 +16,7 @@ import 'package:cliq/modules/vaults/provider/vault_service.provider.dart';
 import 'package:cliq/shared/extension/router.extension.dart';
 import 'package:cliq/shared/model/page_path.model.dart';
 import 'package:cliq/shared/provider/store.provider.dart';
+import 'package:cliq/shared/ui/navigation/navigation_shell.dart';
 import 'package:cliq/shared/utils/commons.dart';
 import 'package:cliq/shared/utils/platform_utils.dart';
 import 'package:cliq_grid/cliq_grid.dart';
@@ -84,6 +85,16 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                   child: Column(
                     spacing: 16,
                     children: [
+                      Row(
+                        children: [
+                          FButton.icon(
+                            child: const Icon(LucideIcons.arrowLeft),
+                            onPress: () {
+                              NavigationShell.of(context).goToDashboardBranch();
+                            },
+                          ),
+                        ],
+                      ),
                       FTileGroup(
                         label: Text('my_vault'.tr()),
                         children: [

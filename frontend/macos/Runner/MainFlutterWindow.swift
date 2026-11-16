@@ -3,6 +3,16 @@ import FlutterMacOS
 import multiview_desktop
 
 class MainFlutterWindow: NSWindow {
+  override var isMovable: Bool {
+    get { false }
+    set { }
+  }
+
+  override var isMovableByWindowBackground: Bool {
+    get { false }
+    set { }
+  }
+
   override func awakeFromNib() {
     let engine = FlutterEngine(
       name: "main_flutter_engine",

@@ -41,6 +41,13 @@ class TabNotifier extends Notifier<TabState> {
     state = state.copyWith(selectedTabs: newSelectedTabs);
   }
 
+  void reorderTab(int currentIndex, int newIndex) {
+    final newTabs = List.of(state.tabs);
+    final tab = newTabs.removeAt(currentIndex);
+    newTabs.insert(newIndex, tab);
+    state = state.copyWith(tabs: newTabs);
+  }
+
   /// Closes the tab with the given id.
   void close(String tabId) {
     unselect(tabId);

@@ -118,8 +118,8 @@ class TextWithShortcutInfo extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Row(
-      mainAxisSize: .min,
-      spacing: 12,
+      spacing: 20,
+      mainAxisAlignment: .spaceBetween,
       children: [
         Text(text),
         ShortcutInfo(shortcut: shortcut),

@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter/widgets.dart';
 
 class KeyboardShortcut {
   final LogicalKeyboardKey logicalKey;
@@ -13,6 +14,15 @@ class KeyboardShortcut {
         ),
         'Modifiers can only be shift, control, alt, or meta',
       );
+
+  new fromSingleActivator(SingleActivator activator)
+    : logicalKey = activator.trigger,
+      modifiers = {
+        if (activator.alt) .alt,
+        if (activator.control) .control,
+        if (activator.meta) .meta,
+        if (activator.shift) .shift,
+      };
 
   static KeyboardShortcut? tryFromJson(Map<String, dynamic> json) {
     if (!json.containsKey('k') || !json.containsKey('m')) {

@@ -1,5 +1,6 @@
 import 'package:cliq/modules/session/model/tab.model.dart';
 import 'package:cliq/modules/session/provider/tab.provider.dart';
+import 'package:cliq/shared/ui/hover_builder.dart';
 import 'package:cliq/shared/ui/navigation/navigation_shell.dart';
 import 'package:flutter/widgets.dart';
 import 'package:forui/forui.dart';
@@ -32,36 +33,41 @@ class const TabPill({
       onPress: select,
       child: GestureDetector(
         onTertiaryTapUp: (_) => close(),
-        child: Container(
-          decoration: BoxDecoration(
-            color: selected ? cardStyleDecoration.color : null,
-            borderRadius: cardStyleDecoration.borderRadius?.subtract(
-              const .all(.circular(4)),
-            ),
-            border: .fromBorderSide(
-              (cardStyleDecoration.shape as OutlinedBorder).side,
-            ),
-          ),
-          constraints: const .new(minWidth: 120),
-          padding: .symmetric(vertical: selected ? 4 : 7),
-          child: Padding(
-            padding: const .only(left: 12, right: 2),
-            child: Row(
-              spacing: 12,
-              mainAxisSize: .min,
-              mainAxisAlignment: .spaceBetween,
-              children: [
-                Text(tab.getEffectiveLabel(context)),
-                if (selected)
-                  FButton.icon(
-                    size: .xs,
-                    variant: .ghost,
-                    child: const Icon(LucideIcons.x),
-                    onPress: () => ref.read(tabProvider.notifier).close(tab.id),
-                  ),
-              ],
-            ),
-          ),
+        child: HoverBuilder(
+          builder: (context, isHovered) {
+            return Container(
+              decoration: BoxDecoration(
+                color: selected ? cardStyleDecoration.color : null,
+                borderRadius: cardStyleDecoration.borderRadius?.subtract(
+                  const .all(.circular(4)),
+                ),
+                border: .fromBorderSide(
+                  (cardStyleDecoration.shape as OutlinedBorder).side,
+                ),
+              ),
+              constraints: const .new(minWidth: 120),
+              padding: .symmetric(vertical: selected ? 4 : 7),
+              child: Padding(
+                padding: const .only(left: 12, right: 4),
+                child: Row(
+                  spacing: 12,
+                  mainAxisSize: .min,
+                  mainAxisAlignment: .spaceBetween,
+                  children: [
+                    Text(tab.getEffectiveLabel(context)),
+                    if (selected || isHovered)
+                      FButton.icon(
+                        size: .xs,
+                        variant: .ghost,
+                        child: const Icon(LucideIcons.x),
+                        onPress: () =>
+                            ref.read(tabProvider.notifier).close(tab.id),
+                      ),
+                  ],
+                ),
+              ),
+            );
+          },
         ),
       ),
     );
