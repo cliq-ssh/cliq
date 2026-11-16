@@ -3,6 +3,7 @@ import 'package:cliq/modules/session/provider/tab.provider.dart';
 import 'package:cliq/shared/ui/hover_builder.dart';
 import 'package:cliq/shared/ui/navigation/navigation_shell.dart';
 import 'package:easy_localization/easy_localization.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:forui/forui.dart';
@@ -22,6 +23,7 @@ class const TabPill({
 
     final cardStyleDecoration =
         context.theme.cardStyle.decoration as ShapeDecoration;
+    final textFieldStyle = context.theme.textFieldStyles.sm;
     final popoverController = useFPopoverController();
 
     final renameController = useTextEditingController(
@@ -38,7 +40,7 @@ class const TabPill({
     }
 
     pin({bool unpin = false}) {
-      popoverController.hide();
+      popoverController.hide(animated: false);
       ref.read(tabProvider.notifier).pin(tab.id, unpin: unpin);
     }
 
@@ -99,11 +101,13 @@ class const TabPill({
           },
           child: IntrinsicWidth(
             child: EditableText(
+              inputFormatters: [LengthLimitingTextInputFormatter(32)],
               controller: renameController,
               focusNode: renameFocusNode,
-              style: context.theme.typography.body.sm,
-              cursorColor: context.theme.colors.primary,
+              style: textFieldStyle.contentTextStyle.base,
+              cursorColor: textFieldStyle.cursorColor,
               backgroundCursorColor: context.theme.colors.background,
+              selectionColor: DefaultSelectionStyle.of(context).selectionColor,
               selectAllOnFocus: true,
               onTapOutside: (_) => isRenaming.value = false,
             ),
