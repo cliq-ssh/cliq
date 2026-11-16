@@ -109,17 +109,18 @@ class ShortcutInfo extends StatelessWidget {
   }
 }
 
-class TextWithShortcutInfo extends StatelessWidget {
-  final String text;
-  final KeyboardShortcut shortcut;
-
-  const new(this.text, {super.key, required this.shortcut});
-
+class const TextWithShortcutInfo(
+  final String text, {
+  super.key,
+  required final KeyboardShortcut shortcut,
+  final bool spaceBetween = false,
+}) extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Row(
       spacing: 20,
-      mainAxisAlignment: .spaceBetween,
+      mainAxisSize: spaceBetween ? .max : .min,
+      mainAxisAlignment: spaceBetween ? .spaceBetween : .start,
       children: [
         Text(text),
         ShortcutInfo(shortcut: shortcut),

@@ -342,6 +342,7 @@ class NavigationShellState extends ConsumerState<NavigationShell>
                     shortcut: .fromSingleActivator(
                       i.shortcut! as SingleActivator,
                     ),
+                    spaceBetween: true,
                   ),
             onPress: () {
               i.onSelected?.call();
