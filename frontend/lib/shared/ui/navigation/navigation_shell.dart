@@ -13,6 +13,7 @@ import 'package:cliq/shared/utils/text_utils.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:forui/forui.dart';
+import 'package:forui_hooks/forui_hooks.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lucide_flutter/lucide_flutter.dart';
@@ -42,6 +43,9 @@ class NavigationShellState extends ConsumerState<NavigationShell>
   @override
   Widget build(BuildContext context) {
     final win = MultiViewDesktop.of(context);
+    final desktopMenuKey = useMemoized(() => GlobalKey());
+
+    final popoverMenuController = useFPopoverController();
 
     final tabs = ref.watch(tabProvider);
     final selectedTabId = tabs.getSelectedTabIdByWindowId(win.id);
@@ -65,10 +69,15 @@ class NavigationShellState extends ConsumerState<NavigationShell>
     }, [fileTransfer.pending]);
 
     buildMenuTab() {
-      return NavigationTab(
-        icon: const Icon(LucideIcons.menu),
-        onPress: () {
-          // TODO: open file menu
+      return FPopoverMenu(
+        menu: const [],
+        control: .managed(controller: popoverMenuController),
+        builder: (context, controller, _) {
+          return FButton.icon(
+            variant: .ghost,
+            onPress: controller.toggle,
+            child: const Icon(LucideIcons.menu),
+          );
         },
       );
     }
@@ -275,6 +284,7 @@ class NavigationShellState extends ConsumerState<NavigationShell>
     }
 
     return DesktopMenu(
+      key: desktopMenuKey,
       child: FScaffold(
         childPad: false,
         resizeToAvoidBottomInset: false,

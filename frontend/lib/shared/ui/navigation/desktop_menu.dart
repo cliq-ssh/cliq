@@ -23,36 +23,81 @@ class const DesktopMenu({super.key, required final Widget child})
 
 class DesktopMenuState extends ConsumerState<DesktopMenu> {
   static bool get _isMac => Platform.isMacOS;
-  late final List<PlatformMenuItem> _menus;
-
-  List<PlatformMenuItem> get menus => _menus;
 
   @override
   void initState() {
     super.initState();
 
-    final allWindowIds = MultiViewDesktop.allWindowViewIds;
     final windowId = ref.read(currentWindowIdProvider);
     final navigationShell = NavigationShell.of(context);
 
-    invoke(Intent intent) {
-      final context = FocusManager.instance.primaryFocus?.context;
-      if (context != null) {
-        Actions.maybeInvoke(context, intent);
-      }
+    if (_isMac) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        WidgetsBinding.instance.platformMenuDelegate.setMenus(
+          buildMacOSMenu(navigationShell, windowId),
+        );
+      });
     }
 
-    openNewTab() {
-      final focused = allWindowIds.where(
-        (id) => id != windowId && MultiViewDesktop.fromId(id).isFocused(),
+    MultiViewDesktop.setMenuItems([
+      .new(title: 'new_window'.tr(), onPressed: _openNewWindow),
+      .new(
+        title: 'new_tab'.tr(),
+        onPressed: () => _openNewTab(navigationShell, windowId),
+      ),
+    ]);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (!PlatformUtils.isDesktop) return widget.child;
+
+    // register callbacks independently on windows and linux
+    if (!_isMac) {
+      return CallbackShortcuts(
+        bindings: {
+          for (final menu in _menus)
+            if (menu.shortcut != null)
+              menu.shortcut! as SingleActivator: (menu.onSelected ?? () {}),
+        },
+        child: Focus(autofocus: true, child: widget.child),
       );
-
-      ref
-          .read(tabProvider.notifier)
-          .openNewAndMaybeGo(navigationShell, focused.firstOrNull ?? windowId);
     }
 
-    _menus = [
+    return widget.child;
+  }
+
+  void _openNewTab(NavigationShellState navigationShell, int windowId) {
+    final allWindowIds = MultiViewDesktop.allWindowViewIds;
+
+    final focused = allWindowIds.where(
+      (id) => id != windowId && MultiViewDesktop.fromId(id).isFocused(),
+    );
+
+    ref
+        .read(tabProvider.notifier)
+        .openNewAndMaybeGo(navigationShell, focused.firstOrNull ?? windowId);
+  }
+
+  void _openNewWindow() => openWindow((_, viewId) => windowRoot(viewId));
+
+  /// Returns a platform-specific [SingleActivator] for the given [LogicalKeyboardKey].
+  SingleActivator _activator(LogicalKeyboardKey key, {bool shift = false}) {
+    return SingleActivator(key, meta: _isMac, control: !_isMac, shift: shift);
+  }
+
+  void _invoke(Intent intent) {
+    final context = FocusManager.instance.primaryFocus?.context;
+    if (context != null) {
+      Actions.maybeInvoke(context, intent);
+    }
+  }
+
+  List<PlatformMenuItem> buildMacOSMenu(
+    NavigationShellState navigationShell,
+    int windowId,
+  ) {
+    return [
       PlatformMenu(
         label: Constants.defaultTitle,
         menus: [
@@ -91,7 +136,7 @@ class DesktopMenuState extends ConsumerState<DesktopMenu> {
           PlatformMenuItem(
             label: 'new_tab'.tr(),
             shortcut: _activator(.keyT),
-            onSelected: openNewTab,
+            onSelected: () => _openNewTab(navigationShell, windowId),
           ),
           PlatformMenuItem(
             label: 'new_window'.tr(),
@@ -109,12 +154,12 @@ class DesktopMenuState extends ConsumerState<DesktopMenu> {
               PlatformMenuItem(
                 label: 'desktop_menu.undo'.tr(),
                 shortcut: _activator(.keyZ),
-                onSelected: () => invoke(const UndoTextIntent(.keyboard)),
+                onSelected: () => _invoke(const UndoTextIntent(.keyboard)),
               ),
               PlatformMenuItem(
                 label: 'desktop_menu.redo'.tr(),
                 shortcut: _activator(.keyZ, shift: true),
-                onSelected: () => invoke(const RedoTextIntent(.keyboard)),
+                onSelected: () => _invoke(const RedoTextIntent(.keyboard)),
               ),
             ],
           ),
@@ -124,22 +169,22 @@ class DesktopMenuState extends ConsumerState<DesktopMenu> {
                 label: 'desktop_menu.cut'.tr(),
                 shortcut: _activator(.keyX),
                 onSelected: () =>
-                    invoke(const CopySelectionTextIntent.cut(.keyboard)),
+                    _invoke(const CopySelectionTextIntent.cut(.keyboard)),
               ),
               PlatformMenuItem(
                 label: 'desktop_menu.copy'.tr(),
                 shortcut: _activator(.keyC),
-                onSelected: () => invoke(CopySelectionTextIntent.copy),
+                onSelected: () => _invoke(CopySelectionTextIntent.copy),
               ),
               PlatformMenuItem(
                 label: 'desktop_menu.paste'.tr(),
                 shortcut: _activator(.keyV),
-                onSelected: () => invoke(const PasteTextIntent(.keyboard)),
+                onSelected: () => _invoke(const PasteTextIntent(.keyboard)),
               ),
               PlatformMenuItem(
                 label: 'desktop_menu.select_all'.tr(),
                 shortcut: _activator(.keyA),
-                onSelected: () => invoke(const SelectAllTextIntent(.keyboard)),
+                onSelected: () => _invoke(const SelectAllTextIntent(.keyboard)),
               ),
             ],
           ),
@@ -160,42 +205,5 @@ class DesktopMenuState extends ConsumerState<DesktopMenu> {
         ],
       ),
     ];
-
-    if (_isMac) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        WidgetsBinding.instance.platformMenuDelegate.setMenus(_menus);
-      });
-    }
-
-    MultiViewDesktop.setMenuItems([
-      .new(title: 'new_window'.tr(), onPressed: _openNewWindow),
-      .new(title: 'new_tab'.tr(), onPressed: openNewTab),
-    ]);
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    if (!PlatformUtils.isDesktop) return widget.child;
-
-    // register callbacks independently on windows and linux
-    if (!_isMac) {
-      return CallbackShortcuts(
-        bindings: {
-          for (final menu in _menus)
-            if (menu.shortcut != null)
-              menu.shortcut! as SingleActivator: (menu.onSelected ?? () {}),
-        },
-        child: Focus(autofocus: true, child: widget.child),
-      );
-    }
-
-    return widget.child;
-  }
-
-  void _openNewWindow() => openWindow((_, viewId) => windowRoot(viewId));
-
-  /// Returns a platform-specific [SingleActivator] for the given [LogicalKeyboardKey].
-  SingleActivator _activator(LogicalKeyboardKey key, {bool shift = false}) {
-    return SingleActivator(key, meta: _isMac, control: !_isMac, shift: shift);
   }
 }
