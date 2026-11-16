@@ -1,6 +1,7 @@
 import 'package:cliq/shared/data/database.dart';
+import 'package:cliq/shared/model/filterable.dart';
 
-class IdentityFull extends Identity {
+class IdentityFull extends Identity implements Filterable {
   final List<DbId> credentialIds;
   final Vault vault;
 
@@ -31,4 +32,7 @@ class IdentityFull extends Identity {
       vault: result.vault,
     );
   }
+
+  @override
+  List<String> getFilterableFields() => [?vault.owner, label, username];
 }

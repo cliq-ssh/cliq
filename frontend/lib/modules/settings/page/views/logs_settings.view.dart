@@ -160,6 +160,7 @@ class const LogsSettingsView({super.key}) extends AbstractSettingsPage {
       return CliqTooltip(
         text: Text('filter'.tr()),
         child: FPopoverMenu(
+          arrow: .childCenter,
           menu: [
             .group(
               children: [
@@ -188,6 +189,7 @@ class const LogsSettingsView({super.key}) extends AbstractSettingsPage {
 
     buildCombinedOptionsButton() {
       return FPopoverMenu(
+        arrow: .childCenter,
         menu: [
           .group(
             children: [

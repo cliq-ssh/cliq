@@ -371,6 +371,7 @@ class CreateOrEditCredentialsFormState
                   alignment: WrapAlignment.center,
                   children: [
                     FPopoverMenu(
+                      arrow: .childCenter,
                       control: .managed(controller: popoverController),
                       menu: [
                         FItemGroup(

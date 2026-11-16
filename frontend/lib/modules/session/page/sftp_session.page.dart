@@ -856,6 +856,7 @@ class _SftpSessionPageState extends ConsumerState<SftpSessionPage>
                     spacing: 8,
                     children: [
                       FPopoverMenu(
+                        arrow: .childCenter,
                         menu: [
                           .group(
                             children: [

@@ -3,11 +3,13 @@ import 'package:cliq/modules/vaults/extension/vault.extension.dart';
 import 'package:cliq/modules/vaults/provider/vault.provider.dart';
 import 'package:cliq/shared/data/database.dart';
 import 'package:cliq/shared/data/store.dart';
+import 'package:cliq/shared/model/filterable.dart';
 import 'package:cliq/shared/provider/store.provider.dart';
 import 'package:cliq/shared/ui/cliq_tooltip.dart';
 import 'package:cliq/shared/ui/list_icon.dart';
 import 'package:cliq/shared/ui/shortcut_info.dart';
 import 'package:cliq/shared/utils/platform_utils.dart';
+import 'package:cliq/shared/utils/text_utils.dart';
 import 'package:cliq_grid/cliq_grid.dart';
 import 'package:cupertino_ui/cupertino_ui.dart';
 import 'package:easy_localization/easy_localization.dart';
@@ -19,13 +21,12 @@ import 'package:lucide_flutter/lucide_flutter.dart';
 
 enum EntityCardViewType { list, grid }
 
-class EntityCardView<E> extends HookConsumerWidget {
+class EntityCardView<E extends Filterable> extends HookConsumerWidget {
   static final BreakpointMap<int> _gridWidths = {Breakpoint.sm: 2}
       .cascadeUp(defaultValue: 2);
 
   final List<E>? entities;
   final Map<String, List<E>>? groupedEntities;
-  final List<String> Function(E)? filterableFields;
   final DbId? Function(E)? filterableVaultId;
   final StoreKey<EntityCardViewType> viewTypeKey;
   final String noEntitiesTitle;
@@ -41,7 +42,6 @@ class EntityCardView<E> extends HookConsumerWidget {
     required this.entityCardBuilder,
     required this.noEntitiesTitle,
     required this.noEntitiesSubtitle,
-    this.filterableFields,
     required this.filterableVaultId,
     this.addEntityTitle,
     this.onAddEntity,
@@ -54,7 +54,6 @@ class EntityCardView<E> extends HookConsumerWidget {
     required this.entityCardBuilder,
     required this.noEntitiesTitle,
     required this.noEntitiesSubtitle,
-    this.filterableFields,
     required this.filterableVaultId,
     this.addEntityTitle,
     this.onAddEntity,
@@ -82,16 +81,11 @@ class EntityCardView<E> extends HookConsumerWidget {
         }
       }
 
-      if (filterableFields == null || filterTextController.value.text.isEmpty) {
+      if (filterTextController.value.text.isEmpty) {
         return false;
       }
 
-      final fields = filterableFields!(entity);
-      return !fields.any(
-        (field) => field.toLowerCase().contains(
-          filterTextController.value.text.toLowerCase(),
-        ),
-      );
+      return TextUtils.matches(entity, filterTextController.value.text);
     }
 
     isFilterViewEmpty() =>
@@ -256,6 +250,7 @@ class EntityCardView<E> extends HookConsumerWidget {
 
     buildDesktopMenu() {
       return FPopoverMenu(
+        arrow: .childCenter,
         control: .managed(controller: popoverController),
         menu: [
           .group(children: [buildFilterSubmenu()]),
@@ -273,6 +268,7 @@ class EntityCardView<E> extends HookConsumerWidget {
 
     buildMobileMenu() {
       return FPopoverMenu(
+        arrow: .childCenter,
         control: .managed(controller: popoverController),
         menu: [
           if (addEntityTitle != null && onAddEntity != null)
@@ -311,39 +307,33 @@ class EntityCardView<E> extends HookConsumerWidget {
         children: [
           CliqGridRow(
             children: [
-              if (filterableFields != null)
-                CliqGridColumn(
-                  sizes: const {.sm: 8, .md: 6, .lg: 4},
-                  child: Padding(
-                    padding: const .only(bottom: 16),
-                    child: CliqTooltip(
-                      text: TextWithShortcutInfo(
-                        'filter_items'.tr(),
-                        shortcut: KeyboardShortcut(
-                          .keyF,
-                          modifiers: {.control},
+              CliqGridColumn(
+                sizes: const {.sm: 8, .md: 6, .lg: 4},
+                child: Padding(
+                  padding: const .only(bottom: 16),
+                  child: CliqTooltip(
+                    text: TextWithShortcutInfo(
+                      'filter_items'.tr(),
+                      shortcut: KeyboardShortcut(.keyF, modifiers: {.control}),
+                    ),
+                    child: FTextField(
+                      control: .managed(controller: filterTextController),
+                      focusNode: filterFocusNode,
+                      hint: 'filter'.tr(),
+                      prefixBuilder: (_, _, _) => IconTheme(
+                        data: context.theme.textFieldStyles.md.iconStyle.base,
+                        child: const Padding(
+                          padding: .only(left: 8, right: 4),
+                          child: Icon(LucideIcons.search),
                         ),
                       ),
-                      child: FTextField(
-                        control: .managed(controller: filterTextController),
-                        focusNode: filterFocusNode,
-                        hint: 'filter'.tr(),
-                        prefixBuilder: (_, _, _) => IconTheme(
-                          data: context.theme.textFieldStyles.md.iconStyle.base,
-                          child: const Padding(
-                            padding: .only(left: 8, right: 4),
-                            child: Icon(LucideIcons.search),
-                          ),
-                        ),
-                        clearable: (value) => value.text.isNotEmpty,
-                      ),
+                      clearable: (value) => value.text.isNotEmpty,
                     ),
                   ),
                 ),
+              ),
               CliqGridColumn(
-                sizes: filterableFields == null
-                    ? const {}
-                    : const {.sm: 4, .md: 6, .lg: 8},
+                sizes: const {.sm: 4, .md: 6, .lg: 8},
                 child: Row(
                   spacing: 8,
                   mainAxisSize: .min,

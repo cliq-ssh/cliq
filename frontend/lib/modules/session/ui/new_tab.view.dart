@@ -1,5 +1,6 @@
 import 'package:cliq/modules/connections/provider/connection.provider.dart';
 import 'package:cliq/modules/connections/ui/connection_icon.dart';
+import 'package:cliq/shared/utils/text_utils.dart';
 import 'package:cliq_grid/cliq_grid.dart';
 import 'package:cupertino_ui/cupertino_ui.dart';
 import 'package:easy_localization/easy_localization.dart';
@@ -12,9 +13,32 @@ class const NewTabView({super.key}) extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final connections = ref.watch(connectionProvider);
-
-    // TODO: make functional
     final filterController = useTextEditingController();
+
+    buildNoMatch() {
+      return Column(
+        spacing: 8,
+        children: [
+          Text(
+            'filters_no_match'.tr(),
+            textAlign: TextAlign.center,
+            style: context.theme.typography.body.md.copyWith(
+              color: context.theme.colors.mutedForeground,
+            ),
+          ),
+          Row(
+            mainAxisSize: .min,
+            children: [
+              FButton(
+                variant: .outline,
+                onPress: filterController.clear,
+                child: Text('filters_reset'.tr()),
+              ),
+            ],
+          ),
+        ],
+      );
+    }
 
     return CliqGridContainer(
       alignment: .topCenter,
@@ -41,42 +65,57 @@ class const NewTabView({super.key}) extends HookConsumerWidget {
                       clearable: (value) => value.text.isNotEmpty,
                     ),
                   ),
-                  FTileGroup(
-                    children: [
-                      for (final connection in connections.entities)
-                        .tile(
-                          prefix: ConnectionIcon.fromConnection(
-                            connection,
-                            size: 20,
-                            padding: 8,
-                            borderRadius: 12,
-                          ),
-                          suffix: Row(
-                            spacing: 8,
-                            mainAxisSize: .min,
-                            mainAxisAlignment: .end,
-                            children: [
-                              FButton.icon(
-                                child: const Icon(LucideIcons.terminal),
-                                onPress: () {
-                                  // TODO: open ssh
-                                },
+                  ValueListenableBuilder(
+                    valueListenable: filterController,
+                    builder: (context, value, _) {
+                      final filtered = connections.entities
+                          .where((c) => TextUtils.matches(c, value.text))
+                          .toList();
+
+                      if (filtered.isEmpty) {
+                        return value.text.isEmpty
+                            ? const SizedBox.shrink()
+                            : buildNoMatch();
+                      }
+
+                      return FTileGroup(
+                        children: [
+                          for (final connection in filtered)
+                            .tile(
+                              prefix: ConnectionIcon.fromConnection(
+                                connection,
+                                size: 20,
+                                padding: 8,
+                                borderRadius: 12,
                               ),
-                              FButton.icon(
-                                child: const Icon(LucideIcons.folder),
-                                onPress: () {
-                                  // TODO: open sftp
-                                },
+                              suffix: Row(
+                                spacing: 8,
+                                mainAxisSize: .min,
+                                mainAxisAlignment: .end,
+                                children: [
+                                  FButton.icon(
+                                    child: const Icon(LucideIcons.terminal),
+                                    onPress: () {
+                                      // TODO: open ssh
+                                    },
+                                  ),
+                                  FButton.icon(
+                                    child: const Icon(LucideIcons.folder),
+                                    onPress: () {
+                                      // TODO: open sftp
+                                    },
+                                  ),
+                                ],
                               ),
-                            ],
-                          ),
-                          title: Text(connection.label),
-                          subtitle: Text(
-                            connection.effectiveUsername ??
-                                connection.addressAndPort,
-                          ),
-                        ),
-                    ],
+                              title: Text(connection.label),
+                              subtitle: Text(
+                                connection.effectiveUsername ??
+                                    connection.addressAndPort,
+                              ),
+                            ),
+                        ],
+                      );
+                    },
                   ),
                 ],
               ),

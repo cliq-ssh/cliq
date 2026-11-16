@@ -44,6 +44,9 @@ class NavigationShellState extends ConsumerState<NavigationShell>
     final desktopMenuKey = useMemoized(() => GlobalKey<DesktopMenuState>());
     final isDesktop = PlatformUtils.isDesktop;
 
+    // delayed until post frame
+    final menuReady = useState(false);
+
     final fileTransfer = ref.watch(fileTransferProvider);
     final tabs = ref.watch(tabProvider);
     final windowTabs = tabs.getTabsByWindowId(win.id);
@@ -56,6 +59,13 @@ class NavigationShellState extends ConsumerState<NavigationShell>
     final rotationAnimation = useAnimationController(
       duration: const .new(seconds: 2),
     );
+
+    useEffect(() {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (context.mounted) menuReady.value = true;
+      });
+      return null;
+    }, const []);
 
     useEffect(() {
       if (fileTransfer.isAnyPending) {
@@ -101,16 +111,20 @@ class NavigationShellState extends ConsumerState<NavigationShell>
         );
       }
 
-      return FPopoverMenu(
-        menu: menu,
-        control: .managed(controller: popoverController),
-        builder: (context, controller, _) {
-          return FButton.icon(
-            variant: .ghost,
-            onPress: controller.toggle,
-            child: const Icon(LucideIcons.menu),
-          );
-        },
+      return Padding(
+        padding: const .only(right: 8),
+        child: FPopoverMenu(
+          menu: menu,
+          arrow: .childCenter,
+          control: .managed(controller: popoverController),
+          builder: (context, controller, _) {
+            return FButton.icon(
+              variant: .ghost,
+              onPress: controller.toggle,
+              child: const Icon(LucideIcons.menu),
+            );
+          },
+        ),
       );
     }
 
@@ -203,7 +217,7 @@ class NavigationShellState extends ConsumerState<NavigationShell>
                           if (isDesktop && !Platform.isMacOS) buildMenuTab(),
                           Flexible(
                             child: SizedBox(
-                              height: 38,
+                              height: 30,
                               child: ReorderableListView.builder(
                                 scrollController: scrollController,
                                 scrollDirection: .horizontal,

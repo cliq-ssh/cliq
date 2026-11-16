@@ -53,6 +53,7 @@ class const LogCard({super.key, required final Log log})
             ),
           ),
           FPopoverMenu(
+            arrow: .childCenter,
             control: .managed(controller: popoverController),
             menu: [
               .group(

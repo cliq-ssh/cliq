@@ -92,6 +92,7 @@ class const IdentityCard({super.key, required final IdentityFull identity})
             ),
           ),
           FPopoverMenu(
+            arrow: .childCenter,
             control: .managed(controller: popoverController),
             menu: [
               FItemGroup(

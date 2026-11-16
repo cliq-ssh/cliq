@@ -283,6 +283,7 @@ class const TerminalThemeSettingsView({super.key})
                 )
               else
                 FPopoverMenu.tiles(
+                  arrow: .childCenter,
                   control: .managed(controller: popoverController),
                   menu: [
                     .group(

@@ -46,7 +46,6 @@ class const TabPill({
                 ),
               ),
               constraints: const .new(minWidth: 120),
-              padding: .symmetric(vertical: selected ? 4 : 7),
               child: Padding(
                 padding: const .only(left: 12, right: 4),
                 child: Row(

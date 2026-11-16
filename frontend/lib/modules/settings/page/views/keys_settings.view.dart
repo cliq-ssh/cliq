@@ -45,7 +45,6 @@ class const KeysSettingsView({super.key}) extends AbstractSettingsPage {
           noEntitiesTitle: 'keys_empty'.tr(),
           noEntitiesSubtitle: 'keys_empty_subtitle'.tr(),
           addEntityTitle: 'keys_add'.tr(),
-          filterableFields: (k) => [?k.vault.owner, k.label],
           filterableVaultId: (k) => k.vaultId,
           onAddEntity: () => Commons.showResponsiveSheet(
             (_) => const KeyCreationChoiceSheet(),

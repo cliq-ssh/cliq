@@ -37,7 +37,6 @@ class const IdentitiesSettingsView({super.key}) extends AbstractSettingsPage {
       onAddEntity: () => Commons.showResponsiveSheet(
         (_) => const CreateOrEditIdentitySheet.create(),
       ),
-      filterableFields: (i) => [?i.vault.owner, i.label, i.username],
       filterableVaultId: (i) => i.vaultId,
       entityCardBuilder: (identity) => IdentityCard(identity: identity),
     );

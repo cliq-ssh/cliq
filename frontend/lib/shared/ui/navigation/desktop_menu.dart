@@ -123,7 +123,9 @@ class DesktopMenuState extends ConsumerState<DesktopMenu> {
   /// Closes the currently selected tab in the currently focused window.
   /// See [TabNotifier.close] for more details.
   void _closeTab() {
-    final selectedTabId = ref.read(tabProvider).getSelectedTabIdByWindowId(getFocusedWindowId() ?? _windowId);
+    final selectedTabId = ref
+        .read(tabProvider)
+        .getSelectedTabIdByWindowId(getFocusedWindowId() ?? _windowId);
     if (selectedTabId != null) {
       ref.read(tabProvider.notifier).close(selectedTabId);
     }
@@ -133,7 +135,8 @@ class DesktopMenuState extends ConsumerState<DesktopMenu> {
   void _openNewWindow() => openWindow((_, viewId) => windowRoot(viewId));
 
   /// Closes the currently focused window.
-  void _closeWindow() => MultiViewDesktop.fromId(getFocusedWindowId() ?? _windowId).closeWindow();
+  void _closeWindow() =>
+      MultiViewDesktop.fromId(getFocusedWindowId() ?? _windowId).closeWindow();
 
   /// Gets the currently focused window id, or null if no window is focused.
   int? getFocusedWindowId() {
@@ -173,30 +176,34 @@ class DesktopMenuState extends ConsumerState<DesktopMenu> {
       label: 'desktop_menu.file'.tr(),
       menus: [
         ?prefix,
-        PlatformMenuItemGroup(members: [
-          PlatformMenuItem(
-            label: 'tab_new'.tr(),
-            shortcut: _activator(.keyT),
-            onSelected: _openNewTab,
-          ),
-          PlatformMenuItem(
-            label: 'tab_close'.tr(),
-            shortcut: _activator(.keyW),
-            onSelected: _closeTab,
-          ),
-        ]),
-        PlatformMenuItemGroup(members: [
-          PlatformMenuItem(
-            label: 'window_new'.tr(),
-            shortcut: _activator(.keyN),
-            onSelected: _openNewWindow,
-          ),
-          PlatformMenuItem(
-            label: 'window_close'.tr(),
-            shortcut: _activator(.keyW, shift: true),
-            onSelected: _closeWindow,
-          ),
-        ])
+        PlatformMenuItemGroup(
+          members: [
+            PlatformMenuItem(
+              label: 'tab_new'.tr(),
+              shortcut: _activator(.keyT),
+              onSelected: _openNewTab,
+            ),
+            PlatformMenuItem(
+              label: 'tab_close'.tr(),
+              shortcut: _activator(.keyW),
+              onSelected: _closeTab,
+            ),
+          ],
+        ),
+        PlatformMenuItemGroup(
+          members: [
+            PlatformMenuItem(
+              label: 'window_new'.tr(),
+              shortcut: _activator(.keyN),
+              onSelected: _openNewWindow,
+            ),
+            PlatformMenuItem(
+              label: 'window_close'.tr(),
+              shortcut: _activator(.keyW, shift: true),
+              onSelected: _closeWindow,
+            ),
+          ],
+        ),
       ],
     );
   }

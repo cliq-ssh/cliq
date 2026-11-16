@@ -78,6 +78,7 @@ class const ConnectionCard({
       if (readonly) return child;
 
       return FPopoverMenu(
+        arrow: .childCenter,
         control: .managed(controller: controller),
         menu: [
           FItemGroup(

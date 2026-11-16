@@ -95,6 +95,7 @@ class const TerminalThemeCard({
       required Widget child,
     }) {
       return FPopoverMenu(
+        arrow: .childCenter,
         control: .managed(controller: controller),
         menu: [
           FItemGroup(

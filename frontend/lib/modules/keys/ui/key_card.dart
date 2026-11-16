@@ -75,6 +75,7 @@ class const KeyCard({super.key, required final Key keyEntity})
             ),
           ),
           FPopoverMenu(
+            arrow: .childCenter,
             menu: [
               FItemGroup(
                 children: [
