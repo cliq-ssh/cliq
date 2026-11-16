@@ -34,6 +34,10 @@ class DesktopMenuState extends ConsumerState<DesktopMenu> {
     _windowId = ref.read(currentWindowIdProvider);
     _navigationShell = NavigationShell.of(context);
 
+    if (PlatformUtils.isDesktop && !_isMac) {
+      HardwareKeyboard.instance.addHandler(_handleKeyEvent);
+    }
+
     if (_isMac) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         WidgetsBinding.instance.platformMenuDelegate.setMenus(buildMacOSMenu());
@@ -47,23 +51,13 @@ class DesktopMenuState extends ConsumerState<DesktopMenu> {
   }
 
   @override
-  Widget build(BuildContext context) {
-    if (!PlatformUtils.isDesktop) return widget.child;
-
-    // register callbacks independently on windows and linux
-    if (!_isMac) {
-      return CallbackShortcuts(
-        bindings: {
-          for (final menu in buildMenu())
-            if (menu.shortcut != null)
-              menu.shortcut! as SingleActivator: (menu.onSelected ?? () {}),
-        },
-        child: Focus(autofocus: true, child: widget.child),
-      );
-    }
-
-    return widget.child;
+  void dispose() {
+    HardwareKeyboard.instance.removeHandler(_handleKeyEvent);
+    super.dispose();
   }
+
+  @override
+  Widget build(BuildContext context) => widget.child;
 
   List<PlatformMenuItem> buildMenu() {
     return [_buildFileMenu(prefix: _buildSettingsMenuItem()), _buildEditMenu()];
@@ -110,6 +104,36 @@ class DesktopMenuState extends ConsumerState<DesktopMenu> {
         ],
       ),
     ];
+  }
+
+  bool _handleKeyEvent(KeyEvent event) {
+    if (event is! KeyDownEvent) return false;
+
+    // Only the focused window should act
+    if (getFocusedWindowId() != _windowId) return false;
+
+    for (final item in _flatten(buildMenu())) {
+      final shortcut = item.shortcut;
+      if (shortcut is SingleActivator &&
+          shortcut.accepts(event, HardwareKeyboard.instance)) {
+        item.onSelected?.call();
+        return true;
+      }
+    }
+    return false;
+  }
+
+  /// Flattens a nested list of [PlatformMenuItem]s into a single list.
+  Iterable<PlatformMenuItem> _flatten(Iterable<PlatformMenuItem> items) sync* {
+    for (final item in items) {
+      if (item is PlatformMenu) {
+        yield* _flatten(item.menus);
+      } else if (item is PlatformMenuItemGroup) {
+        yield* _flatten(item.members);
+      } else {
+        yield item;
+      }
+    }
   }
 
   /// Opens a new tab in the currently focused window.
