@@ -121,7 +121,7 @@ class const TabPill({
           onTertiaryTapUp: (_) => tab.pinned ? null : close(),
           child: HoverBuilder(
             builder: (context, isHovered) {
-              return Container(
+              return DecoratedBox(
                 decoration: BoxDecoration(
                   color: selected ? cardStyleDecoration.color : null,
                   borderRadius: cardStyleDecoration.borderRadius?.subtract(
