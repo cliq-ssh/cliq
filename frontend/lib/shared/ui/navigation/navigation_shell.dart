@@ -24,6 +24,7 @@ const EdgeInsetsGeometry kMacOSNavigationPadding = .only(left: 80);
 const _tabGap = 8.0;
 const _minTabWidth = 75.0;
 const _maxTabWidth = 200.0;
+const _arrowWidth = 28.0;
 
 class NavigationShell extends StatefulHookConsumerWidget {
   final StatefulNavigationShell shell;
@@ -189,6 +190,116 @@ class NavigationShellState extends ConsumerState<NavigationShell>
       );
     }
 
+    buildScrollArrow({
+      required Function(ScrollPosition) enabledWhen,
+      required VoidCallback onPress,
+      required Widget icon,
+    }) {
+      return SizedBox(
+        width: _arrowWidth,
+        child: ListenableBuilder(
+          listenable: scrollController,
+          builder: (context, _) {
+            final enabled =
+                scrollController.positions.length == 1 &&
+                scrollController.position.hasContentDimensions &&
+                enabledWhen(scrollController.position);
+
+            return FButton.icon(
+              size: .xs,
+              variant: .ghost,
+              onPress: enabled ? onPress : null,
+              child: icon,
+            );
+          },
+        ),
+      );
+    }
+
+    buildTabList() {
+      return Flexible(
+        child: SizedBox(
+          height: 30,
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              final count = max(1, windowTabs.length);
+              final fullTabWidth = (constraints.maxWidth / count - _tabGap)
+                  .clamp(_minTabWidth, _maxTabWidth);
+              final overflows =
+                  windowTabs.length * (fullTabWidth + _tabGap) >
+                  constraints.maxWidth + 0.5;
+
+              final tabWidth = overflows
+                  ? _minTabWidth // overflow only happens once tabs hit the minimum
+                  : fullTabWidth;
+              final step = (tabWidth + _tabGap) * 3;
+
+              final contentWidth = windowTabs.length * (tabWidth + _tabGap);
+              final listWidth = overflows
+                  ? constraints.maxWidth - 2 * _arrowWidth
+                  : min(constraints.maxWidth, contentWidth);
+
+              void scrollBy(double delta) {
+                final pos = scrollController.position;
+                scrollController.animateTo(
+                  (pos.pixels + delta).clamp(0.0, pos.maxScrollExtent),
+                  duration: const Duration(milliseconds: 200),
+                  curve: Curves.easeInOut,
+                );
+              }
+
+              return Row(
+                mainAxisSize: .min,
+                children: [
+                  if (overflows)
+                    buildScrollArrow(
+                      icon: const Icon(LucideIcons.chevronLeft),
+                      enabledWhen: (pos) => pos.pixels > 0.5,
+                      onPress: () => scrollBy(-step),
+                    ),
+                  SizedBox(
+                    key: const ValueKey('tab_list'),
+                    width: listWidth,
+                    child: ReorderableListView.builder(
+                      scrollController: scrollController,
+                      scrollDirection: .horizontal,
+                      itemExtent: tabWidth + _tabGap,
+                      buildDefaultDragHandles: false,
+                      proxyDecorator: (child, _, _) => child,
+                      itemCount: windowTabs.length,
+                      onReorderItem: (from, to) =>
+                          ref.read(tabProvider.notifier).reorder(from, to),
+                      itemBuilder: (context, index) {
+                        final tab = windowTabs[index];
+                        return ReorderableDragStartListener(
+                          key: ValueKey(tab.id),
+                          index: index,
+                          child: Padding(
+                            padding: const .only(right: _tabGap),
+                            child: TabPill(
+                              tab: tab,
+                              selected: tab.id == selectedTabId,
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                  if (overflows)
+                    buildScrollArrow(
+                      icon: const Icon(LucideIcons.chevronRight),
+                      enabledWhen: (pos) =>
+                          pos.pixels < pos.maxScrollExtent - 0.5,
+                      onPress: () => scrollBy(step),
+                    ),
+                ],
+              );
+            },
+          ),
+        ),
+      );
+    }
+
     buildHeader() {
       return Container(
         constraints: const .new(minHeight: 54 - 16),
@@ -220,46 +331,7 @@ class NavigationShellState extends ConsumerState<NavigationShell>
                       child: Row(
                         children: [
                           if (isDesktop && !Platform.isMacOS) buildMenuTab(),
-                          Flexible(
-                            child: SizedBox(
-                              height: 30,
-                              child: LayoutBuilder(
-                                builder: (context, constraints) {
-                                  final count = max(1, windowTabs.length);
-                                  final tabWidth =
-                                      (constraints.maxWidth / count - _tabGap)
-                                          .clamp(_minTabWidth, _maxTabWidth);
-
-                                  return ReorderableListView.builder(
-                                    scrollController: scrollController,
-                                    scrollDirection: .horizontal,
-                                    shrinkWrap: true,
-                                    itemExtent: tabWidth + _tabGap,
-                                    buildDefaultDragHandles: false,
-                                    proxyDecorator: (child, _, _) => child,
-                                    itemCount: windowTabs.length,
-                                    onReorderItem: (from, to) => ref
-                                        .read(tabProvider.notifier)
-                                        .reorder(from, to),
-                                    itemBuilder: (context, index) {
-                                      final tab = windowTabs[index];
-                                      return ReorderableDragStartListener(
-                                        key: ValueKey(tab.id),
-                                        index: index,
-                                        child: Padding(
-                                          padding: const .only(right: _tabGap),
-                                          child: TabPill(
-                                            tab: tab,
-                                            selected: tab.id == selectedTabId,
-                                          ),
-                                        ),
-                                      );
-                                    },
-                                  );
-                                },
-                              ),
-                            ),
-                          ),
+                          buildTabList(),
                           buildNewTabButton(),
                         ],
                       ),
