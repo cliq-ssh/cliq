@@ -13,8 +13,19 @@ class TabNotifier extends Notifier<TabState> {
   TabState build() => const .initial();
 
   /// Opens a new tab in the current window and attempts to navigate to it.
-  void openNewAndMaybeGo(NavigationShellState navigationState, int windowId) {
-    final newTab = Tab(id: v7.generate(), windowId: windowId);
+  void openNewAndMaybeGo(
+    NavigationShellState navigationState,
+    int windowId, {
+    TabContent content = .newTab,
+  }) {
+    if (content.isSingleTab && state.tabs.any((t) => t.content == content)) {
+      // focus the first tab of this content instead
+      final firstTab = state.tabs.firstWhere((t) => t.content == content);
+      select(navigationState, windowId, firstTab.id);
+      return;
+    }
+
+    final newTab = Tab(id: v7.generate(), windowId: windowId, content: content);
     state = state.copyWith(tabs: [...state.tabs, newTab]);
 
     select(navigationState, windowId, newTab.id);

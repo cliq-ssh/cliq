@@ -70,14 +70,16 @@ class const TabPill({
         menu: [
           .group(
             children: [
-              if (!tab.pinned)
-                .item(title: Text('tab_pin'.tr()), onPress: pin)
-              else
-                .item(
-                  title: Text('tab_unpin'.tr()),
-                  onPress: () => pin(unpin: true),
-                ),
-              .item(title: Text('tab_rename'.tr()), onPress: rename),
+              if (tab.content.canPin)
+                if (!tab.pinned)
+                  .item(title: Text('tab_pin'.tr()), onPress: pin)
+                else
+                  .item(
+                    title: Text('tab_unpin'.tr()),
+                    onPress: () => pin(unpin: true),
+                  ),
+              if (tab.content.canRename)
+                .item(title: Text('tab_rename'.tr()), onPress: rename),
             ],
           ),
           .group(
@@ -147,6 +149,7 @@ class const TabPill({
                           mainAxisSize: .min,
                           spacing: 8,
                           children: [
+                            ?tab.getIcon(context),
                             if (tab.pinned)
                               const Icon(LucideIcons.pin, size: 16),
                             Flexible(

@@ -1,5 +1,4 @@
 import 'package:cliq/modules/session/provider/tab.provider.dart';
-import 'package:cliq/modules/session/ui/new_tab.view.dart';
 import 'package:cliq/shared/model/page_path.model.dart';
 import 'package:cliq/shared/ui/navigation/navigation_shell.dart';
 import 'package:cupertino_ui/cupertino_ui.dart';
@@ -28,7 +27,7 @@ class _SessionPageState extends ConsumerState<TabPageWrapper> {
     useEffect(() {
       final Map<String, Widget> newChildren = {};
       for (final tab in tabs.getTabsByWindowId(win.id)) {
-        newChildren[tab.id] = const NewTabView();
+        newChildren[tab.id] = tab.getEffectiveContent(context);
       }
       children.value = newChildren;
       return null;

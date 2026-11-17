@@ -85,16 +85,6 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                   child: Column(
                     spacing: 16,
                     children: [
-                      Row(
-                        children: [
-                          FButton.icon(
-                            child: const Icon(LucideIcons.arrowLeft),
-                            onPress: () {
-                              NavigationShell.of(context).goToDashboardBranch();
-                            },
-                          ),
-                        ],
-                      ),
                       FTileGroup(
                         label: Text('my_vault'.tr()),
                         children: [

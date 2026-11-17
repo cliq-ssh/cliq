@@ -192,7 +192,13 @@ class DesktopMenuState extends ConsumerState<DesktopMenu> {
         PlatformMenuItem(
           label: 'settings'.tr(),
           shortcut: _activator(.comma),
-          onSelected: () => _navigationShell.goToSettingsBranch(),
+          onSelected: () => ref
+              .read(tabProvider.notifier)
+              .openNewAndMaybeGo(
+                _navigationShell,
+                _windowId,
+                content: .settings,
+              ),
         ),
       ],
     );
