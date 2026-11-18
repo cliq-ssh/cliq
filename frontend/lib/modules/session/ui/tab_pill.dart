@@ -27,7 +27,7 @@ class const TabPill({
     final popoverController = useFPopoverController();
 
     final renameController = useTextEditingController(
-      text: tab.getEffectiveLabel(context),
+      text: tab.getEffectiveLabel(context, ref),
     );
     final renameFocusNode = useFocusNode();
     final isRenaming = useState(false);
@@ -149,14 +149,14 @@ class const TabPill({
                           mainAxisSize: .min,
                           spacing: 8,
                           children: [
-                            ?tab.getIcon(context),
+                            ?tab.getIcon(context, ref),
                             if (tab.pinned)
                               const Icon(LucideIcons.pin, size: 16),
                             Flexible(
                               child: isRenaming.value
                                   ? buildEditableText()
                                   : Text(
-                                      tab.getEffectiveLabel(context),
+                                      tab.getEffectiveLabel(context, ref),
                                       overflow: TextOverflow.fade,
                                       maxLines: 1,
                                       softWrap: false,

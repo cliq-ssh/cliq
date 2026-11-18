@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:cliq/modules/connections/model/connection_full.model.dart';
 import 'package:cliq/modules/connections/provider/connection.provider.dart';
+import 'package:cliq/modules/session/hook/use_ssh_session.dart';
 import 'package:cliq/modules/session/page/generic_session.page.dart';
 import 'package:cliq/modules/session/provider/session.provider.dart';
 import 'package:cliq/modules/settings/provider/terminal_theme.provider.dart';
@@ -41,9 +42,8 @@ class _SshSessionPageState extends ConsumerState<SshSessionPage>
   Widget build(BuildContext context) {
     super.build(context);
 
-    final session = ref
-        .watch(sessionProvider.notifier)
-        .findById(widget.sessionId)!;
+    final session = useSshSession(ref, widget.sessionId);
+    if (session == null) return const SizedBox.shrink();
 
     final terminalController = useState<TerminalController?>(
       session.terminalController,
@@ -99,9 +99,6 @@ class _SshSessionPageState extends ConsumerState<SshSessionPage>
         if (!PlatformUtils.isDesktop) return;
         final title = controller.title;
         // TODO: set window title
-        ref
-            .read(sessionProvider.notifier)
-            .rename(session.id, title, userChangedTitle: false);
       };
 
       controller.onResize = (cols, rows) {

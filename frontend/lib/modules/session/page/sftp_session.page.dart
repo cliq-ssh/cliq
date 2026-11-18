@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:cliq/modules/connections/model/connection_full.model.dart';
 import 'package:cliq/modules/connections/provider/connection.provider.dart';
+import 'package:cliq/modules/session/hook/use_ssh_session.dart';
 import 'package:cliq/modules/session/model/sftp_transfer_params.model.dart';
 import 'package:cliq/modules/session/page/generic_session.page.dart';
 import 'package:cliq/modules/session/provider/session.provider.dart';
@@ -240,10 +241,7 @@ class _SftpSessionPageState extends ConsumerState<SftpSessionPage>
   Widget build(BuildContext context) {
     super.build(context);
 
-    final session = ref
-        .watch(sessionProvider.notifier)
-        .findById(widget.sessionId);
-
+    final session = useSshSession(ref, widget.sessionId);
     if (session == null) return const SizedBox.shrink();
 
     // used to trigger a reconnect when the user clicks "Retry" after a connection error

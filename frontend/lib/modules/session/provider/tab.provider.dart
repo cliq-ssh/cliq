@@ -1,3 +1,5 @@
+import 'package:cliq/modules/connections/model/connection_full.model.dart';
+import 'package:cliq/modules/session/model/session.model.dart';
 import 'package:cliq/modules/session/model/tab.model.dart';
 import 'package:cliq/modules/session/model/tab.state.dart';
 import 'package:cliq/shared/ui/navigation/navigation_shell.dart';
@@ -13,22 +15,43 @@ class TabNotifier extends Notifier<TabState> {
   TabState build() => const .initial();
 
   /// Opens a new tab in the current window and attempts to navigate to it.
-  void openNewAndMaybeGo(
+  /// Returns the tab id of the newly opened tab or null if the tab already exists.
+  String? openNewAndMaybeGo(
     NavigationShellState navigationState,
     int windowId, {
     TabContent content = .newTab,
+    ConnectionFull? connection,
   }) {
     if (content.isSingleTab && state.tabs.any((t) => t.content == content)) {
       // focus the first tab of this content instead
       final firstTab = state.tabs.firstWhere((t) => t.content == content);
       select(navigationState, windowId, firstTab.id);
-      return;
+      return null;
     }
 
-    final newTab = Tab(id: v7.generate(), windowId: windowId, content: content);
+    SshSession? session;
+    if (content == .ssh && connection != null) {
+      session = _buildSshSession(connection);
+    }
+
+    final newTab = Tab(
+      id: v7.generate(),
+      windowId: windowId,
+      content: content,
+      session: session,
+    );
     state = state.copyWith(tabs: [...state.tabs, newTab]);
 
     select(navigationState, windowId, newTab.id);
+    return newTab.id;
+  }
+
+  /// Switches to a ssh/sftp view with the given connection.
+  void goSsh(String tabId, ConnectionFull connection, {bool sftp = false}) {
+    _updateTab(tabId, (tab) {
+      tab.session = _buildSshSession(connection, sftp: sftp);
+      return tab.content = sftp ? .sftp : .ssh;
+    });
   }
 
   /// Selects the tab with the given id.
@@ -99,4 +122,11 @@ class TabNotifier extends Notifier<TabState> {
     update(newTabs[index]);
     state = state.copyWith(tabs: newTabs);
   }
+
+  SshSession _buildSshSession(ConnectionFull connection, {bool sftp = false}) =>
+      SshSession(
+        id: v7.generate(),
+        type: sftp ? .sftp : .ssh,
+        connection: connection,
+      );
 }

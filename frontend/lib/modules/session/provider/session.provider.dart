@@ -27,6 +27,9 @@ class SessionNotifier extends Notifier<SessionState> {
 
   static String getSshIdent() => 'SSH-2.0-cliq_${BuildMetadata.version}';
 
+  SshSession? findById(String sessionId) =>
+      state.sessions.where((s) => s.id == sessionId).firstOrNull;
+
   /// Connects a new SSH session for the given [connection] and adds it to the state
   Future<SshWorkerHandle?> connectSsh(
     SshSession session,
@@ -65,24 +68,6 @@ class SessionNotifier extends Notifier<SessionState> {
   /// Finds the [SshSession] with the given [sessionId] across all tabs, or null if not found.
   SshSession? findById(String sessionId) {
     return state.sessions.where((s) => s.id == sessionId).firstOrNull;
-  }
-
-  /// Renames the session to [customTitle]. If [customTitle] is null or empty the custom label will be
-  /// cleared and UI will fall back to the default connection label.
-  void rename(
-    String sessionId,
-    String? customTitle, {
-    bool userChangedTitle = true,
-  }) {
-    // check if user changed title before, do nothing it they have
-    if (!userChangedTitle && findById(sessionId)?.userChangedTitle == true) {
-      return;
-    }
-
-    _modify(
-      sessionId,
-      (s) => s.copyWith(title: customTitle, userChangedTitle: userChangedTitle),
-    );
   }
 
   /// Accepts the host key for the given [sessionId] and [vaultId], updating the known hosts database accordingly.
