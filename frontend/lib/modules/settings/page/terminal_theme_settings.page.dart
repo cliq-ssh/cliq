@@ -2,7 +2,6 @@ import 'package:cliq/modules/connections/provider/connection.provider.dart';
 import 'package:cliq/modules/connections/ui/connection_icon.dart';
 import 'package:cliq/modules/settings/extension/custom_terminal_theme.extension.dart';
 import 'package:cliq/modules/settings/page/abstract_settings_page.dart';
-import 'package:cliq/modules/settings/page/settings.page.dart';
 import 'package:cliq/modules/settings/provider/terminal_theme.provider.dart';
 import 'package:cliq/modules/settings/provider/terminal_theme_service.provider.dart';
 import 'package:cliq/modules/settings/ui/color_scheme_browser_dialog.dart';
@@ -11,7 +10,6 @@ import 'package:cliq/modules/settings/ui/terminal_theme_card.dart';
 import 'package:cliq/shared/data/database.dart';
 import 'package:cliq/shared/data/store.dart';
 import 'package:cliq/shared/model/localized_exception.dart';
-import 'package:cliq/shared/model/page_path.model.dart';
 import 'package:cliq/shared/ui/cliq_tooltip.dart';
 import 'package:cliq/shared/ui/terminal_font_family_select.dart';
 import 'package:cliq/shared/ui/terminal_font_size_slider.dart';
@@ -28,13 +26,8 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lucide_flutter/lucide_flutter.dart';
 import 'package:material_ui/material_ui.dart' hide Router;
 
-class const TerminalThemeSettingsView({super.key})
+class const TerminalThemeSettingsPage({super.key})
     extends AbstractSettingsPage {
-  static const PagePathBuilder pagePath = .child(
-    parent: SettingsPage.pagePath,
-    path: 'terminal-theme',
-  );
-
   static const String sampleInput =
       '\x1b[31mLorem\x1b[0m '
       '\x1b[32mipsum\x1b[0m '

@@ -1,6 +1,4 @@
 import 'package:cliq/modules/settings/page/abstract_settings_page.dart';
-import 'package:cliq/modules/settings/page/settings.page.dart';
-import 'package:cliq/shared/model/page_path.model.dart';
 import 'package:cliq/shared/utils/commons.dart';
 import 'package:cliq/shared/utils/constants.dart';
 import 'package:cupertino_ui/cupertino_ui.dart' hide Router;
@@ -10,12 +8,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lucide_flutter/lucide_flutter.dart';
 import 'package:material_ui/material_ui.dart';
 
-class const I18nSettingsView({super.key}) extends AbstractSettingsPage {
-  static const PagePathBuilder pagePath = .child(
-    parent: SettingsPage.pagePath,
-    path: 'i18n',
-  );
-
+class const I18nSettingsPage({super.key}) extends AbstractSettingsPage {
   @override
   String get title => 'language'.tr();
 

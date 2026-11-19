@@ -2,7 +2,6 @@ import 'package:cliq_grid/cliq_grid.dart';
 import 'package:cupertino_ui/cupertino_ui.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:forui/forui.dart';
-import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lucide_flutter/lucide_flutter.dart';
 
@@ -39,7 +38,8 @@ abstract class const AbstractSettingsPage({super.key})
           title: FBreadcrumb(
             children: [
               FBreadcrumbItem(
-                onPress: context.pop,
+                onPress: () =>
+                    Navigator.of(context).popUntil((route) => route.isFirst),
                 child: Text('settings'.tr()),
               ),
               FBreadcrumbItem(current: true, child: Text(title)),

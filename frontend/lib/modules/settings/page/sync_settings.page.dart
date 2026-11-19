@@ -1,6 +1,5 @@
 import 'package:cliq/modules/settings/model/settings_importer/app_settings.model.dart';
 import 'package:cliq/modules/settings/page/abstract_settings_page.dart';
-import 'package:cliq/modules/settings/page/settings.page.dart';
 import 'package:cliq/modules/settings/provider/sync.provider.dart';
 import 'package:cliq/modules/settings/ui/import_or_export_settings_sheet.dart';
 import 'package:cliq/modules/settings/ui/password_dialog.dart';
@@ -10,7 +9,6 @@ import 'package:cliq/modules/vaults/provider/vault_service.provider.dart';
 import 'package:cliq/shared/data/database.dart';
 import 'package:cliq/shared/model/entity_type.dart';
 import 'package:cliq/shared/model/localized_exception.dart';
-import 'package:cliq/shared/model/page_path.model.dart';
 import 'package:cliq/shared/model/router.model.dart';
 import 'package:cliq/shared/ui/entity_list.dart';
 import 'package:cliq/shared/utils/commons.dart';
@@ -26,12 +24,7 @@ import 'package:forui/forui.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lucide_flutter/lucide_flutter.dart';
 
-class const SyncSettingsView({super.key}) extends AbstractSettingsPage {
-  static const PagePathBuilder pagePath = .child(
-    parent: SettingsPage.pagePath,
-    path: 'sync',
-  );
-
+class const SyncSettingsPage({super.key}) extends AbstractSettingsPage {
   @override
   String get title => 'sync'.tr();
 

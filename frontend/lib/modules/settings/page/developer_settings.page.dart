@@ -1,10 +1,8 @@
 import 'package:cliq/modules/settings/page/abstract_settings_page.dart';
-import 'package:cliq/modules/settings/page/settings.page.dart';
 import 'package:cliq/modules/settings/provider/sync.provider.dart';
 import 'package:cliq/modules/vaults/provider/vault.provider.dart';
 import 'package:cliq/shared/data/database.dart';
 import 'package:cliq/shared/data/store.dart';
-import 'package:cliq/shared/model/page_path.model.dart';
 import 'package:cliq/shared/provider/database.provider.dart';
 import 'package:cliq/shared/utils/build_metadata.dart';
 import 'package:cliq/shared/utils/commons.dart' show Commons;
@@ -14,12 +12,7 @@ import 'package:forui/forui.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lucide_flutter/lucide_flutter.dart';
 
-class const DeveloperSettingsView({super.key}) extends AbstractSettingsPage {
-  static const PagePathBuilder pagePath = .child(
-    parent: SettingsPage.pagePath,
-    path: 'developer',
-  );
-
+class const DeveloperSettingsPage({super.key}) extends AbstractSettingsPage {
   @override
   String get title => 'Developer';
 

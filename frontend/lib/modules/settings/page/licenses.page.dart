@@ -1,6 +1,4 @@
 import 'package:cliq/modules/settings/page/abstract_settings_page.dart';
-import 'package:cliq/modules/settings/page/settings.page.dart';
-import 'package:cliq/shared/model/page_path.model.dart';
 import 'package:cliq/shared/ui/future_wrapper.dart';
 import 'package:cliq/shared/ui/title_card.dart';
 import 'package:cliq_grid/cliq_grid.dart';
@@ -9,12 +7,7 @@ import 'package:flutter/foundation.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:material_ui/material_ui.dart';
 
-class const LicenseSettingsView({super.key}) extends AbstractSettingsPage {
-  static const PagePathBuilder pagePath = .child(
-    parent: SettingsPage.pagePath,
-    path: 'licenses',
-  );
-
+class const LicenseSettingsPage({super.key}) extends AbstractSettingsPage {
   @override
   String get title => 'licenses'.tr();
 

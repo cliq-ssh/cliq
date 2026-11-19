@@ -1,7 +1,5 @@
 import 'package:cliq/modules/settings/page/abstract_settings_page.dart';
-import 'package:cliq/modules/settings/page/settings.page.dart';
 import 'package:cliq/shared/data/store.dart';
-import 'package:cliq/shared/model/page_path.model.dart';
 import 'package:cliq/shared/provider/file_transfer.provider.dart';
 import 'package:cliq/shared/provider/store.provider.dart';
 import 'package:cliq/shared/ui/custom_toggle_tile.dart';
@@ -17,12 +15,7 @@ import 'package:lucide_flutter/lucide_flutter.dart';
 import 'package:material_ui/material_ui.dart';
 
 //TODO: add proper error handling
-class const SshSftpSettingsView({super.key}) extends AbstractSettingsPage {
-  static const PagePathBuilder pagePath = .child(
-    parent: SettingsPage.pagePath,
-    path: 'ssh-sftp',
-  );
-
+class const SshSftpSettingsPage({super.key}) extends AbstractSettingsPage {
   @override
   String get title => 'ssh_sftp'.tr();
 

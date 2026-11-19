@@ -1,11 +1,9 @@
 import 'package:cliq/modules/settings/model/keyboard_shortcut.model.dart';
 import 'package:cliq/modules/settings/page/abstract_settings_page.dart';
-import 'package:cliq/modules/settings/page/settings.page.dart';
 import 'package:cliq/modules/settings/provider/log.provider.dart';
 import 'package:cliq/modules/settings/provider/log_service.provider.dart';
 import 'package:cliq/modules/settings/ui/log_card.dart';
 import 'package:cliq/shared/extension/logging.extension.dart';
-import 'package:cliq/shared/model/page_path.model.dart';
 import 'package:cliq/shared/ui/cliq_tooltip.dart';
 import 'package:cliq/shared/ui/list_icon.dart';
 import 'package:cliq/shared/ui/shortcut_info.dart';
@@ -20,12 +18,7 @@ import 'package:logging/logging.dart';
 import 'package:lucide_flutter/lucide_flutter.dart';
 import 'package:material_ui/material_ui.dart';
 
-class const LogsSettingsView({super.key}) extends AbstractSettingsPage {
-  static const PagePathBuilder pagePath = .child(
-    parent: SettingsPage.pagePath,
-    path: 'logs',
-  );
-
+class const LogsSettingsPage({super.key}) extends AbstractSettingsPage {
   static final _allLevels = Level.LEVELS
       .where((level) => level != Level.OFF && level != Level.ALL)
       .toList();

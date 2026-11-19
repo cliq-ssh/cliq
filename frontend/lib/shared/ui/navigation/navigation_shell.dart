@@ -42,7 +42,6 @@ class NavigationShellState extends ConsumerState<NavigationShell>
     with TickerProviderStateMixin {
   static const _sessionBranchIndex = 0;
   static const _dashboardBranchIndex = 1;
-  static const _settingsBranchIndex = 2;
 
   @override
   Widget build(BuildContext context) {
@@ -354,7 +353,6 @@ class NavigationShellState extends ConsumerState<NavigationShell>
         onChange: (index) {
           final _ = switch (index + 1) {
             _dashboardBranchIndex => goToDashboardBranch(),
-            _settingsBranchIndex => goToSettingsBranch(),
             _ => throw UnimplementedError(),
           };
         },
@@ -385,7 +383,6 @@ class NavigationShellState extends ConsumerState<NavigationShell>
 
   void goToSessionBranch() => _goToBranch(_sessionBranchIndex);
   void goToDashboardBranch() => _goToBranch(_dashboardBranchIndex);
-  void goToSettingsBranch() => _goToBranch(_settingsBranchIndex);
 
   /// Jumps to the corresponding [StatefulShellBranch], based on the specified index.
   void _goToBranch(int index) {

@@ -3,20 +3,13 @@ import 'package:cliq/modules/identities/provider/identity.provider.dart';
 import 'package:cliq/modules/identities/ui/create_or_edit_identity_sheet.dart';
 import 'package:cliq/modules/identities/ui/identity_card.dart';
 import 'package:cliq/modules/settings/page/abstract_settings_page.dart';
-import 'package:cliq/modules/settings/page/settings.page.dart';
-import 'package:cliq/shared/model/page_path.model.dart';
 import 'package:cliq/shared/ui/entity_card_view.dart';
 import 'package:cliq/shared/utils/commons.dart';
 import 'package:cupertino_ui/cupertino_ui.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
-class const IdentitiesSettingsView({super.key}) extends AbstractSettingsPage {
-  static const PagePathBuilder pagePath = .child(
-    parent: SettingsPage.pagePath,
-    path: 'identities',
-  );
-
+class const IdentitiesSettingsPage({super.key}) extends AbstractSettingsPage {
   @override
   String get title => 'identities'.tr();
 

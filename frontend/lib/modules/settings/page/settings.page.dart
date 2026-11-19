@@ -1,30 +1,30 @@
-import 'package:cliq/modules/settings/page/views/appearance_settings.view.dart';
-import 'package:cliq/modules/settings/page/views/developer_settings.view.dart';
-import 'package:cliq/modules/settings/page/views/i18n_settings.view.dart';
-import 'package:cliq/modules/settings/page/views/identities_settings.view.dart';
-import 'package:cliq/modules/settings/page/views/keys_settings.view.dart';
-import 'package:cliq/modules/settings/page/views/known_hosts_settings.view.dart';
-import 'package:cliq/modules/settings/page/views/licenses.view.dart';
-import 'package:cliq/modules/settings/page/views/logs_settings.view.dart';
-import 'package:cliq/modules/settings/page/views/shortcuts_settings.view.dart';
-import 'package:cliq/modules/settings/page/views/ssh_sftp_settings.view.dart';
-import 'package:cliq/modules/settings/page/views/sync_settings.view.dart';
-import 'package:cliq/modules/settings/page/views/terminal_theme_settings.view.dart';
+import 'package:cliq/modules/settings/page/abstract_settings_page.dart';
+import 'package:cliq/modules/settings/page/appearance_settings.page.dart';
+import 'package:cliq/modules/settings/page/developer_settings.page.dart';
+import 'package:cliq/modules/settings/page/i18n_settings.page.dart';
+import 'package:cliq/modules/settings/page/identities_settings.page.dart';
+import 'package:cliq/modules/settings/page/keys_settings.page.dart';
+import 'package:cliq/modules/settings/page/known_hosts_settings.page.dart';
+import 'package:cliq/modules/settings/page/licenses.page.dart';
+import 'package:cliq/modules/settings/page/logs_settings.page.dart';
+import 'package:cliq/modules/settings/page/shortcuts_settings.page.dart';
+import 'package:cliq/modules/settings/page/ssh_sftp_settings.page.dart';
+import 'package:cliq/modules/settings/page/sync_settings.page.dart';
+import 'package:cliq/modules/settings/page/terminal_theme_settings.page.dart';
 import 'package:cliq/modules/settings/provider/sync.provider.dart';
 import 'package:cliq/modules/settings/ui/version_indicator.dart';
 import 'package:cliq/modules/vaults/provider/vault_service.provider.dart';
-import 'package:cliq/shared/extension/router.extension.dart';
 import 'package:cliq/shared/model/page_path.model.dart';
 import 'package:cliq/shared/provider/store.provider.dart';
 import 'package:cliq/shared/utils/commons.dart';
 import 'package:cliq/shared/utils/platform_utils.dart';
 import 'package:cliq_grid/cliq_grid.dart';
+import 'package:cupertino_ui/cupertino_ui.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:forui/forui.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lucide_flutter/lucide_flutter.dart';
-import 'package:material_ui/material_ui.dart' hide LicensePage;
 import 'package:simple_icons/simple_icons.dart';
 
 class const SettingsPage({super.key}) extends StatefulHookConsumerWidget {
@@ -35,8 +35,24 @@ class const SettingsPage({super.key}) extends StatefulHookConsumerWidget {
 }
 
 class _SettingsPageState extends ConsumerState<SettingsPage> {
+  final _navKey = GlobalKey<NavigatorState>();
+
   @override
   Widget build(BuildContext context) {
+    return NavigatorPopHandler(
+      onPopWithResult: (r) => _navKey.currentState?.maybePop(r),
+      child: Navigator(
+        key: _navKey,
+        onGenerateRoute: (_) =>
+            CupertinoPageRoute(builder: (_) => const _SettingsOverview()),
+      ),
+    );
+  }
+}
+
+class const _SettingsOverview() extends HookConsumerWidget {
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
     final sync = ref.watch(syncProvider);
     final developerMode = useStore(.developerMode);
     final lastUpdated = useState<double?>(null);
@@ -72,6 +88,26 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
       );
     }
 
+    buildSettingsTile({
+      AbstractSettingsPage? settingsPage,
+      IconData? prefix,
+      IconData? suffix,
+      Widget? subtitle,
+      FItemVariant variant = .primary,
+    }) {
+      return FTile(
+        prefix: prefix != null ? Icon(prefix) : null,
+        suffix: suffix != null ? Icon(suffix) : null,
+        variant: variant,
+        title: Text(settingsPage!.title),
+        subtitle: subtitle,
+        onPress: () => Navigator.push(
+          context,
+          CupertinoPageRoute(builder: (context) => settingsPage),
+        ),
+      );
+    }
+
     return SingleChildScrollView(
       child: CliqGridContainer(
         children: [
@@ -87,102 +123,69 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                       FTileGroup(
                         label: Text('my_vault'.tr()),
                         children: [
-                          FTile(
-                            prefix: const Icon(LucideIcons.refreshCcw),
-                            suffix: const Icon(LucideIcons.chevronRight),
-                            title: Text('sync'.tr()),
+                          buildSettingsTile(
+                            prefix: LucideIcons.refreshCcw,
+                            suffix: LucideIcons.chevronRight,
                             subtitle: buildStatusSubtitle(),
-                            onPress: () => context.pushPath(
-                              SyncSettingsView.pagePath.build(),
-                            ),
+                            settingsPage: const SyncSettingsPage(),
                           ),
-                          FTile(
-                            prefix: const Icon(LucideIcons.users),
-                            suffix: const Icon(LucideIcons.chevronRight),
-                            title: Text('identities'.tr()),
-                            onPress: () => context.pushPath(
-                              IdentitiesSettingsView.pagePath.build(),
-                            ),
+                          buildSettingsTile(
+                            prefix: LucideIcons.users,
+                            suffix: LucideIcons.chevronRight,
+                            settingsPage: const IdentitiesSettingsPage(),
                           ),
-                          FTile(
-                            prefix: const Icon(LucideIcons.keyRound),
-                            suffix: const Icon(LucideIcons.chevronRight),
-                            title: Text('keys'.tr()),
-                            onPress: () => context.pushPath(
-                              KeysSettingsView.pagePath.build(),
-                            ),
+                          buildSettingsTile(
+                            prefix: LucideIcons.keyRound,
+                            suffix: LucideIcons.chevronRight,
+                            settingsPage: const KeysSettingsPage(),
                           ),
-                          FTile(
-                            prefix: const Icon(LucideIcons.fingerprintPattern),
-                            suffix: const Icon(LucideIcons.chevronRight),
-                            title: Text('known_hosts'.tr()),
-                            onPress: () => context.pushPath(
-                              KnownHostsSettingsView.pagePath.build(),
-                            ),
+                          buildSettingsTile(
+                            prefix: LucideIcons.fingerprintPattern,
+                            suffix: LucideIcons.chevronRight,
+                            settingsPage: const KnownHostsSettingsPage(),
                           ),
-                          FTile(
-                            prefix: const Icon(LucideIcons.swatchBook),
-                            suffix: const Icon(LucideIcons.chevronRight),
-                            title: Text('terminal_themes'.tr()),
-                            onPress: () => context.pushPath(
-                              TerminalThemeSettingsView.pagePath.build(),
-                            ),
+                          buildSettingsTile(
+                            prefix: LucideIcons.swatchBook,
+                            suffix: LucideIcons.chevronRight,
+                            settingsPage: const TerminalThemeSettingsPage(),
                           ),
                         ],
                       ),
                       FTileGroup(
                         label: Text('app'.tr()),
                         children: [
-                          FTile(
-                            prefix: const Icon(LucideIcons.palette),
-                            suffix: const Icon(LucideIcons.chevronRight),
-                            title: Text('appearance'.tr()),
-                            onPress: () => context.pushPath(
-                              AppearanceSettingsView.pagePath.build(),
-                            ),
+                          buildSettingsTile(
+                            prefix: LucideIcons.palette,
+                            suffix: LucideIcons.chevronRight,
+                            settingsPage: const AppearanceSettingsPage(),
                           ),
-                          FTile(
-                            prefix: const Icon(LucideIcons.languages),
-                            suffix: const Icon(LucideIcons.chevronRight),
-                            title: Text('language'.tr()),
-                            onPress: () => context.pushPath(
-                              I18nSettingsView.pagePath.build(),
-                            ),
+                          buildSettingsTile(
+                            prefix: LucideIcons.languages,
+                            suffix: LucideIcons.chevronRight,
+                            settingsPage: const I18nSettingsPage(),
                           ),
                           if (PlatformUtils.isDesktop)
-                            FTile(
-                              prefix: const Icon(LucideIcons.keyboard),
-                              suffix: const Icon(LucideIcons.chevronRight),
-                              title: Text('shortcuts'.tr()),
-                              onPress: () => context.pushPath(
-                                ShortcutsSettingsView.pagePath.build(),
-                              ),
+                            buildSettingsTile(
+                              prefix: LucideIcons.keyboard,
+                              suffix: LucideIcons.chevronRight,
+                              settingsPage: const ShortcutsSettingsPage(),
                             ),
-                          FTile(
-                            prefix: const Icon(LucideIcons.terminal),
-                            suffix: const Icon(LucideIcons.chevronRight),
-                            title: Text('ssh_sftp'.tr()),
-                            onPress: () => context.pushPath(
-                              SshSftpSettingsView.pagePath.build(),
-                            ),
+                          buildSettingsTile(
+                            prefix: LucideIcons.terminal,
+                            suffix: LucideIcons.chevronRight,
+                            settingsPage: const SshSftpSettingsPage(),
                           ),
-                          FTile(
-                            prefix: const Icon(LucideIcons.fileText),
-                            suffix: const Icon(LucideIcons.chevronRight),
-                            title: Text('logs'.tr()),
-                            onPress: () => context.pushPath(
-                              LogsSettingsView.pagePath.build(),
-                            ),
+                          buildSettingsTile(
+                            prefix: LucideIcons.fileText,
+                            suffix: LucideIcons.chevronRight,
+                            settingsPage: const LogsSettingsPage(),
                           ),
                           if (developerMode.value)
-                            FTile(
+                            buildSettingsTile(
                               variant: .destructive,
-                              prefix: const Icon(LucideIcons.hammer),
-                              suffix: const Icon(LucideIcons.chevronRight),
-                              title: Text('developer'.tr()),
-                              onPress: () => context.pushPath(
-                                DeveloperSettingsView.pagePath.build(),
-                              ),
+                              prefix: LucideIcons.hammer,
+                              suffix: LucideIcons.chevronRight,
+                              settingsPage: const DeveloperSettingsPage(),
                             ),
                         ],
                       ),
@@ -190,13 +193,10 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                       const SizedBox.shrink(),
                       FTileGroup(
                         children: [
-                          FTile(
-                            prefix: const Icon(LucideIcons.scale),
-                            suffix: const Icon(LucideIcons.chevronRight),
-                            title: Text('licenses'.tr()),
-                            onPress: () => context.pushPath(
-                              LicenseSettingsView.pagePath.build(),
-                            ),
+                          buildSettingsTile(
+                            prefix: LucideIcons.scale,
+                            suffix: LucideIcons.chevronRight,
+                            settingsPage: const LicenseSettingsPage(),
                           ),
                           FTile(
                             prefix: const Icon(SimpleIcons.github),
