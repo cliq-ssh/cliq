@@ -5,8 +5,9 @@ import 'package:cliq/modules/session/hook/use_ssh_session.dart';
 import 'package:cliq/modules/session/model/session.model.dart';
 import 'package:cliq/modules/session/page/generic_session.page.dart';
 import 'package:cliq/modules/session/provider/session.provider.dart';
+import 'package:cliq/modules/session/provider/terminal_zoom.provider.dart';
 import 'package:cliq/modules/settings/extension/custom_terminal_theme.extension.dart';
-import 'package:cliq/modules/settings/provider/terminal_theme.provider.dart';
+import 'package:cliq/modules/settings/provider/custom_terminal_theme.provider.dart';
 import 'package:cliq/shared/model/tab.model.dart';
 import 'package:cliq/shared/provider/store.provider.dart';
 import 'package:cliq/shared/provider/tab.provider.dart';
@@ -57,6 +58,10 @@ class _SshSessionPageState extends ConsumerState<SshSessionPage>
     final themes = ref.watch(terminalThemeProvider);
     final scrollbackSize = useStore(.sshScrollbackSize);
     final bellSound = useStore(.terminalBellSound);
+
+    final zoom = ref.watch(
+      terminalZoomProvider.select((m) => m[widget.sessionId] ?? 0),
+    );
 
     final attempt = useState(0);
 
@@ -200,6 +205,8 @@ class _SshSessionPageState extends ConsumerState<SshSessionPage>
       defaultTerminalTheme.value,
     );
 
+    final baseTheme = effectiveTerminalTheme.toTerminalTheme();
+
     return GenericSessionPage(
       session: session,
       tabId: widget.tab.id,
@@ -215,7 +222,9 @@ class _SshSessionPageState extends ConsumerState<SshSessionPage>
               autofocus: true,
               controller: controller,
               focusNode: focusNode,
-              theme: effectiveTerminalTheme.toTerminalTheme(),
+              theme: zoom == 0
+                  ? baseTheme
+                  : baseTheme.copyWith(fontSize: baseTheme.fontSize + zoom),
             ),
           ),
         );

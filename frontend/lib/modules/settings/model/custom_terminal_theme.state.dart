@@ -1,4 +1,4 @@
-import 'package:cliq/modules/settings/provider/terminal_theme.provider.dart';
+import 'package:cliq/modules/settings/provider/custom_terminal_theme.provider.dart';
 import 'package:cliq/shared/data/database.dart';
 import 'package:cliq/shared/data/store.dart';
 import 'package:cliq/shared/provider/abstract_entity.state.dart';

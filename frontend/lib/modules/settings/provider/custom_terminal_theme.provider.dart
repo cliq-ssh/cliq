@@ -1,8 +1,8 @@
 import 'dart:ui';
 
-import 'package:cliq/modules/settings/model/terminal_theme.state.dart';
+import 'package:cliq/modules/settings/model/custom_terminal_theme.state.dart';
 import 'package:cliq/modules/settings/model/theme_parser/terminal_theme_parser.dart';
-import 'package:cliq/modules/settings/provider/terminal_theme_service.provider.dart';
+import 'package:cliq/modules/settings/provider/custom_terminal_theme_service.provider.dart';
 import 'package:cliq/shared/data/database.dart';
 import 'package:cliq/shared/model/localized_exception.dart';
 import 'package:cliq/shared/provider/abstract_entity.notifier.dart';

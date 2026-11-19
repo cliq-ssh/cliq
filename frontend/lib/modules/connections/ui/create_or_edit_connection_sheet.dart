@@ -7,8 +7,8 @@ import 'package:cliq/modules/connections/provider/connection_service.provider.da
 import 'package:cliq/modules/credentials/model/credential_type.model.dart';
 import 'package:cliq/modules/identities/provider/identity.provider.dart';
 import 'package:cliq/modules/settings/model/terminal_typography.model.dart';
+import 'package:cliq/modules/settings/provider/custom_terminal_theme.provider.dart';
 import 'package:cliq/modules/settings/provider/sync.provider.dart';
-import 'package:cliq/modules/settings/provider/terminal_theme.provider.dart';
 import 'package:cliq/modules/vaults/provider/vault_move_service.provider.dart';
 import 'package:cliq/modules/vaults/ui/vault_transfer_dialog.dart';
 import 'package:cliq/shared/data/database.dart';

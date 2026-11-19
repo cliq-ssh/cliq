@@ -1,6 +1,6 @@
 import 'package:cliq/modules/identities/model/identity_full.model.dart';
-import 'package:cliq/modules/settings/model/terminal_theme.state.dart';
-import 'package:cliq/modules/settings/provider/terminal_theme.provider.dart';
+import 'package:cliq/modules/settings/model/custom_terminal_theme.state.dart';
+import 'package:cliq/modules/settings/provider/custom_terminal_theme.provider.dart';
 import 'package:cliq/shared/data/database.dart';
 import 'package:cliq/shared/model/filterable.dart';
 

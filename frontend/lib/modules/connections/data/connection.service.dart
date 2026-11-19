@@ -6,7 +6,7 @@ import 'package:cliq/modules/connections/model/connection_full.model.dart';
 import 'package:cliq/modules/connections/model/connection_icons.model.dart';
 import 'package:cliq/modules/credentials/data/credential.service.dart';
 import 'package:cliq/modules/settings/model/terminal_typography.model.dart';
-import 'package:cliq/modules/settings/provider/terminal_theme.provider.dart';
+import 'package:cliq/modules/settings/provider/custom_terminal_theme.provider.dart';
 import 'package:cliq/shared/data/database.dart';
 import 'package:cliq/shared/extension/value.extension.dart';
 import 'package:drift/drift.dart';

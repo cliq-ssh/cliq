@@ -81,10 +81,14 @@
     "file": "File",
     "paste": "Paste",
     "redo": "Redo",
+    "reset_zoom": "Reset Zoom",
     "select_all": "Select All",
+    "terminal": "Terminal",
     "undo": "Undo",
     "view": "View",
-    "window": "Window"
+    "window": "Window",
+    "zoom_in": "Zoom In",
+    "zoom_out": "Zoom Out"
   },
   "developer": "Developer",
   "dialog_cancel": "Cancel",

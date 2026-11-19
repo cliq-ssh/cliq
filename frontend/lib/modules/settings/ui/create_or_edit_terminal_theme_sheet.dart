@@ -1,6 +1,6 @@
 import 'dart:async';
 
-import 'package:cliq/modules/settings/provider/terminal_theme_service.provider.dart';
+import 'package:cliq/modules/settings/provider/custom_terminal_theme_service.provider.dart';
 import 'package:cliq/shared/data/database.dart';
 import 'package:cliq/shared/extension/color.extension.dart';
 import 'package:cliq/shared/ui/create_or_edit_entity_view.dart';

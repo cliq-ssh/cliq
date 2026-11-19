@@ -20,7 +20,7 @@ import 'package:uuid/v7.dart';
 final sessionProvider = NotifierProvider(SessionNotifier.new);
 
 class SessionNotifier extends Notifier<SessionState> {
-  static const UuidV7 uuid = UuidV7();
+  static const UuidV7 v7 = UuidV7();
 
   @override
   SessionState build() => const .initial();
@@ -34,7 +34,7 @@ class SessionNotifier extends Notifier<SessionState> {
   /// Creates a new SSH session for the given [connection] and adds it to the state.
   SshSession create(ConnectionFull connection, {bool sftp = false}) {
     final session = SshSession(
-      id: uuid.generate(),
+      id: v7.generate(),
       type: sftp ? .sftp : .ssh,
       connection: connection,
     );

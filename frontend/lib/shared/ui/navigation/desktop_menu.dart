@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:cliq/main.dart';
+import 'package:cliq/modules/session/provider/terminal_zoom.provider.dart';
 import 'package:cliq/shared/provider/tab.provider.dart';
 import 'package:cliq/shared/provider/window_scope.provider.dart';
 import 'package:cliq/shared/ui/navigation/navigation_shell.dart';
@@ -65,7 +66,11 @@ class DesktopMenuState extends ConsumerState<DesktopMenu> {
   Widget build(BuildContext context) => widget.child;
 
   List<PlatformMenuItem> buildMenu() {
-    return [_buildFileMenu(prefix: _buildSettingsMenuItem()), _buildEditMenu()];
+    return [
+      _buildFileMenu(prefix: _buildSettingsMenuItem()),
+      _buildEditMenu(),
+      _buildTerminalMenu(),
+    ];
   }
 
   /// Builds the macOS-specific menu which integrates some more [PlatformProvidedMenuItem]s.
@@ -108,6 +113,7 @@ class DesktopMenuState extends ConsumerState<DesktopMenu> {
           PlatformProvidedMenuItem(type: .arrangeWindowsInFront),
         ],
       ),
+      _buildTerminalMenu(),
     ];
   }
 
@@ -188,6 +194,9 @@ class DesktopMenuState extends ConsumerState<DesktopMenu> {
     );
   }
 
+  SingleActivator _zoomActivator(LogicalKeyboardKey key) =>
+      SingleActivator(key, meta: _isMac, control: !_isMac);
+
   void _trackFocus() {
     final node = FocusManager.instance.primaryFocus;
     final ctx = node?.context;
@@ -206,6 +215,17 @@ class DesktopMenuState extends ConsumerState<DesktopMenu> {
       final ctx = node.context;
       if (ctx != null) Actions.maybeInvoke(ctx, intent);
     });
+  }
+
+  void _zoom(void Function(TerminalZoomNotifier n, String sessionId) action) {
+    final tabState = ref.read(tabProvider);
+    final tabId = tabState.getSelectedTabIdByWindowId(
+      _getFocusedWindowId() ?? _windowId,
+    );
+    final tab = tabState.tabs.where((t) => t.id == tabId).firstOrNull;
+
+    if (tab == null || tab.content != .ssh || tab.sessionId == null) return;
+    action(ref.read(terminalZoomProvider.notifier), tab.sessionId!);
   }
 
   PlatformMenuItem _buildSettingsMenuItem() {
@@ -303,6 +323,33 @@ class DesktopMenuState extends ConsumerState<DesktopMenu> {
               label: 'desktop_menu.select_all'.tr(),
               shortcut: _activator(.keyA),
               onSelected: () => _invoke(const SelectAllTextIntent(.keyboard)),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  PlatformMenuItem _buildTerminalMenu() {
+    return PlatformMenu(
+      label: 'desktop_menu.terminal'.tr(),
+      menus: [
+        PlatformMenuItemGroup(
+          members: [
+            PlatformMenuItem(
+              label: 'desktop_menu.zoom_in'.tr(),
+              shortcut: _zoomActivator(.add),
+              onSelected: () => _zoom((n, id) => n.zoomIn(id)),
+            ),
+            PlatformMenuItem(
+              label: 'desktop_menu.zoom_out'.tr(),
+              shortcut: _zoomActivator(.minus),
+              onSelected: () => _zoom((n, id) => n.zoomOut(id)),
+            ),
+            PlatformMenuItem(
+              label: 'desktop_menu.reset_zoom'.tr(),
+              shortcut: _zoomActivator(.digit0),
+              onSelected: () => _zoom((n, id) => n.reset(id)),
             ),
           ],
         ),

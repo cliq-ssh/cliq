@@ -1,7 +1,7 @@
 import 'dart:io';
 
 import 'package:cliq/modules/settings/model/keyboard_shortcut.model.dart';
-import 'package:cliq/modules/settings/provider/terminal_theme_service.provider.dart';
+import 'package:cliq/modules/settings/provider/custom_terminal_theme_service.provider.dart';
 import 'package:cliq/modules/settings/ui/create_or_edit_terminal_theme_sheet.dart';
 import 'package:cliq/shared/data/database.dart';
 import 'package:cliq/shared/ui/context_menu.dart';

@@ -10,8 +10,8 @@ import 'package:cliq/modules/settings/model/settings_importer/app_settings.model
 import 'package:cliq/modules/settings/model/settings_importer/cliq_settings_importer.dart';
 import 'package:cliq/modules/settings/model/settings_importer/settings_importer.dart';
 import 'package:cliq/modules/settings/model/sync.state.dart';
+import 'package:cliq/modules/settings/provider/custom_terminal_theme_service.provider.dart';
 import 'package:cliq/modules/settings/provider/known_host_service.provider.dart';
-import 'package:cliq/modules/settings/provider/terminal_theme_service.provider.dart';
 import 'package:cliq/modules/vaults/provider/vault.provider.dart';
 import 'package:cliq/modules/vaults/provider/vault_service.provider.dart';
 import 'package:cliq/shared/data/database.dart';

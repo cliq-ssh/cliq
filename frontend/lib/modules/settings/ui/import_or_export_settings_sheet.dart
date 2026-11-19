@@ -5,9 +5,9 @@ import 'package:cliq/modules/credentials/provider/credential_service.provider.da
 import 'package:cliq/modules/identities/provider/identity.provider.dart';
 import 'package:cliq/modules/keys/provider/key_service.provider.dart';
 import 'package:cliq/modules/settings/model/settings_importer/app_settings.model.dart';
+import 'package:cliq/modules/settings/provider/custom_terminal_theme.provider.dart';
 import 'package:cliq/modules/settings/provider/known_host.provider.dart';
 import 'package:cliq/modules/settings/provider/sync.provider.dart';
-import 'package:cliq/modules/settings/provider/terminal_theme.provider.dart';
 import 'package:cliq/shared/data/database.dart';
 import 'package:cliq/shared/ui/create_or_edit_entity_view.dart';
 import 'package:cliq/shared/utils/commons.dart';
