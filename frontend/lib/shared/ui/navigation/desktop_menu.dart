@@ -1,7 +1,7 @@
 import 'dart:io';
 
 import 'package:cliq/main.dart';
-import 'package:cliq/modules/session/provider/tab.provider.dart';
+import 'package:cliq/shared/provider/tab.provider.dart';
 import 'package:cliq/shared/provider/window_scope.provider.dart';
 import 'package:cliq/shared/ui/navigation/navigation_shell.dart';
 import 'package:cliq/shared/utils/constants.dart';

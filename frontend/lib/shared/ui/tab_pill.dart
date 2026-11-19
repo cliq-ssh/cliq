@@ -1,7 +1,7 @@
 import 'package:cliq/modules/connections/ui/connection_icon.dart';
 import 'package:cliq/modules/session/hook/use_ssh_session.dart';
-import 'package:cliq/modules/session/model/tab.model.dart';
-import 'package:cliq/modules/session/provider/tab.provider.dart';
+import 'package:cliq/shared/model/tab.model.dart';
+import 'package:cliq/shared/provider/tab.provider.dart' show tabProvider;
 import 'package:cliq/shared/ui/hover_builder.dart';
 import 'package:cliq/shared/ui/navigation/navigation_shell.dart';
 import 'package:easy_localization/easy_localization.dart';
@@ -30,11 +30,23 @@ class const TabPill({
     final textFieldStyle = context.theme.textFieldStyles.sm;
     final popoverController = useFPopoverController();
 
-    final renameController = useTextEditingController(
-      text: tab.getEffectiveLabel(context, ref),
-    );
     final renameFocusNode = useFocusNode();
     final isRenaming = useState(false);
+
+    getEffectiveLabel() {
+      if (tab.customLabel != null && tab.content.canRename) {
+        return tab.customLabel!;
+      }
+      return switch (tab.content) {
+        .newTab => 'tab_new'.tr(context: context),
+        .settings => 'settings'.tr(context: context),
+        .ssh || .sftp => session!.connection.label,
+      };
+    }
+
+    final renameController = useTextEditingController(
+      text: getEffectiveLabel(),
+    );
 
     select() {
       popoverController.hide();
@@ -167,7 +179,7 @@ class const TabPill({
                               child: isRenaming.value
                                   ? buildEditableText()
                                   : Text(
-                                      tab.getEffectiveLabel(context, ref),
+                                      getEffectiveLabel(),
                                       overflow: TextOverflow.fade,
                                       maxLines: 1,
                                       softWrap: false,

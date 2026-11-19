@@ -4,7 +4,7 @@ import 'package:cliq/modules/settings/extension/color_scheme.extension.dart';
 import 'package:cliq/modules/settings/extension/custom_terminal_theme.extension.dart';
 import 'package:cliq/shared/data/database.dart';
 import 'package:cliq/shared/extension/async_snapshot.extension.dart';
-import 'package:cliq/shared/hooks/use_memoized_future.dart';
+import 'package:cliq/shared/hook/use_memoized_future.dart';
 import 'package:cliq/shared/ui/horizontal_dialog.dart';
 import 'package:cliq/shared/utils/text_utils.dart';
 import 'package:cliq_grid/cliq_grid.dart';

@@ -1,5 +1,4 @@
 import 'package:cliq/modules/connections/page/connections.page.dart';
-import 'package:cliq/modules/session/ui/tab_page_wrapper.dart';
 import 'package:cliq/modules/settings/page/settings.page.dart';
 import 'package:cliq/modules/settings/page/views/appearance_settings.view.dart';
 import 'package:cliq/modules/settings/page/views/developer_settings.view.dart';
@@ -15,6 +14,7 @@ import 'package:cliq/modules/settings/page/views/sync_settings.view.dart';
 import 'package:cliq/modules/settings/page/views/terminal_theme_settings.view.dart';
 import 'package:cliq/shared/provider/window_scope.provider.dart';
 import 'package:cliq/shared/ui/navigation/navigation_shell.dart';
+import 'package:cliq/shared/ui/tab_page_wrapper.dart';
 import 'package:cupertino_ui/cupertino_ui.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';

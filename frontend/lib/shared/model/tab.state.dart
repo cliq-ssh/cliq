@@ -1,4 +1,4 @@
-import 'package:cliq/modules/session/model/tab.model.dart';
+import 'package:cliq/shared/model/tab.model.dart';
 
 class const TabState({
   required final List<Tab> tabs,

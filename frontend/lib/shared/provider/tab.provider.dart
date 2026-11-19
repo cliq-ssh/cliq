@@ -1,7 +1,7 @@
 import 'package:cliq/modules/session/model/session.model.dart';
-import 'package:cliq/modules/session/model/tab.model.dart';
-import 'package:cliq/modules/session/model/tab.state.dart';
 import 'package:cliq/modules/session/provider/session.provider.dart';
+import 'package:cliq/shared/model/tab.model.dart';
+import 'package:cliq/shared/model/tab.state.dart';
 import 'package:cliq/shared/ui/navigation/navigation_shell.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:uuid/v7.dart';
@@ -101,7 +101,7 @@ class TabNotifier extends Notifier<TabState> {
 
     /// Dispose session
     if (tab.sessionId != null) {
-      ref.read(sessionProvider.notifier).removeAndDispose(tab.sessionId!);
+      ref.read(sessionProvider.notifier).remove(tab.sessionId!);
     }
 
     final newTabs = List.of(state.tabs);

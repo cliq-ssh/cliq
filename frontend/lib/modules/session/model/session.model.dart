@@ -1,16 +1,24 @@
 import 'package:cliq/modules/connections/model/connection_full.model.dart';
-import 'package:cliq/modules/session/worker/sftp_worker.dart';
-import 'package:cliq/modules/session/worker/ssh_worker.dart';
-import 'package:cliq/modules/session/worker/worker_core.dart';
+import 'package:cliq/modules/session/model/session_resources.model.dart';
 import 'package:cliq/modules/settings/model/known_host_error.model.dart';
-import 'package:cupertino_ui/cupertino_ui.dart';
-import 'package:flterm/flterm.dart';
 
 enum SessionType { ssh, sftp }
 
+/// A model representing the status of a session.
+sealed class const SessionStatus();
+
+class const SessionConnecting() extends SessionStatus;
+class const SessionNeedsHostTrust(final KnownHostError error)
+    extends SessionStatus;
+class const SessionFailed(final String message) extends SessionStatus;
+class SessionConnected(
+  final DateTime connectedAt,
+  final SessionResources resources,
+) extends SessionStatus;
+
 /// A model representing a ssh session, which can be either SSH or SFTP.
 /// This class encapsulates the connection details, terminal controller, and state of the session.
-class SshSession({
+class const SshSession({
   /// A unique identifier for this session, used for state management and UI tracking.
   required final String id,
   required final SessionType type,
@@ -18,109 +26,25 @@ class SshSession({
   /// The connection details associated with this session, including host, port, username, and authentication method.
   required final ConnectionFull connection,
 
-  /// A potential error that occurred during the connection attempt.
-  /// If this is non-null, the session is considered disconnected.
-  final String? connectionError,
-
-  /// The timestamp when the session was successfully connected.
-  final DateTime? connectedAt,
-
-  /// The terminal controller associated with this session, only set if connected.
-  final TerminalController? terminalController,
-
-  /// An optional known host error state for this session.
-  /// May indicate that the host is unknown or has a mismatched fingerprint.
-  final KnownHostError? knownHostError,
+  /// The sessions current status. Can either be of type [SessionConnecting], [SessionNeedsHostTrust], [SessionFailed], or [SessionConnected].
+  final SessionStatus status = const SessionConnecting(),
 
   /// Whether to skip host key verification for this session.
   final bool skipHostKeyVerification = false,
-
-  /// The sessions's title, which may be used in the UI to display a custom label for the session.
-  /// If [userChangedTitle] is true, this is a custom title set by the user which should not be changed.
-  final String? title,
-
-  /// Whether the user has manually changed the session's title.
-  /// If true, the UI will not override the title with a default label.
-  final bool userChangedTitle = false,
-
-  var SshWorkerHandle? _ssh,
-  var SftpWorkerHandle? _sftp,
 }) {
-  SshWorkerHandle? get ssh => _ssh;
-  SftpWorkerHandle? get sftp => _sftp;
+  SessionResources? get resources => switch (status) {
+    SessionConnected(:final resources) => resources,
+    _ => null,
+  };
 
-  bool get isConnected => _ssh != null || _sftp != null;
-
-  /// Whether the session is likely in the process of connecting, since it is not connected and has no error.
-  bool get isLikelyLoading => !isConnected && connectionError == null;
-
-  String getEffectiveTitle(BuildContext context) {
-    if (userChangedTitle && title != null && title!.isNotEmpty) {
-      return title!;
-    }
-
-    return connection.label;
-  }
-
-  /// Dispose of any resources associated with this session,
-  /// including the SSH/SFTP handles and the terminal controller.
-  void dispose() {
-    _ssh?.dispose();
-    _sftp?.dispose();
-    _ssh = null;
-    _sftp = null;
-
-    terminalController?.dispose();
-  }
-
-  /// Sets the worker handle for this session, either SSH or SFTP.
-  /// Throws a [StateError] if the handle type does not match the initial session [type].
-  SshSession setHandle(WorkerHandle handle) {
-    if (_ssh != null || _sftp != null) {
-      throw StateError(
-        'Cannot set handle on a session that already has a handle',
-      );
-    }
-
-    if (handle is SshWorkerHandle) {
-      if (type != .ssh) {
-        throw StateError('Cannot set SSH handle on a non-SSH session');
-      }
-      return copyWith(ssh: handle);
-    } else if (handle is SftpWorkerHandle) {
-      if (type != .sftp) {
-        throw StateError('Cannot set SFTP handle on a non-SFTP session');
-      }
-      return copyWith(sftp: handle);
-    }
-    return this;
-  }
-
-  SshSession copyWith({
-    String? connectionError,
-    DateTime? connectedAt,
-    TerminalController? terminalController,
-    KnownHostError? knownHostError,
-    bool? skipHostKeyVerification,
-    String? title,
-    bool? userChangedTitle,
-    SshWorkerHandle? ssh,
-    SftpWorkerHandle? sftp,
-  }) {
+  SshSession copyWith({SessionStatus? status, bool? skipHostKeyVerification}) {
     return SshSession(
       id: id,
       type: type,
       connection: connection,
-      ssh: ssh ?? _ssh,
-      sftp: sftp ?? _sftp,
-      connectionError: connectionError ?? this.connectionError,
-      connectedAt: connectedAt ?? this.connectedAt,
-      terminalController: terminalController ?? this.terminalController,
-      knownHostError: knownHostError ?? this.knownHostError,
+      status: status ?? this.status,
       skipHostKeyVerification:
           skipHostKeyVerification ?? this.skipHostKeyVerification,
-      title: title ?? this.title,
-      userChangedTitle: userChangedTitle ?? this.userChangedTitle,
     );
   }
 }

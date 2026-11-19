@@ -1,15 +1,15 @@
 import 'dart:async';
 
-import 'package:cliq/modules/connections/model/connection_full.model.dart';
 import 'package:cliq/modules/connections/provider/connection.provider.dart';
 import 'package:cliq/modules/session/hook/use_ssh_session.dart';
-import 'package:cliq/modules/session/model/tab.model.dart';
+import 'package:cliq/modules/session/model/session.model.dart';
 import 'package:cliq/modules/session/page/generic_session.page.dart';
 import 'package:cliq/modules/session/provider/session.provider.dart';
-import 'package:cliq/modules/session/provider/tab.provider.dart';
 import 'package:cliq/modules/settings/extension/custom_terminal_theme.extension.dart';
 import 'package:cliq/modules/settings/provider/terminal_theme.provider.dart';
+import 'package:cliq/shared/model/tab.model.dart';
 import 'package:cliq/shared/provider/store.provider.dart';
+import 'package:cliq/shared/provider/tab.provider.dart';
 import 'package:cliq/shared/utils/platform_utils.dart';
 import 'package:flterm/flterm.dart';
 import 'package:flutter/services.dart';
@@ -46,60 +46,48 @@ class _SshSessionPageState extends ConsumerState<SshSessionPage>
     super.build(context);
 
     final win = MultiViewDesktop.of(context);
-
     final session = useSshSession(ref, widget.sessionId);
-    if (session == null) return const SizedBox.shrink();
-
-    final terminalController = useState<TerminalController?>(
-      session.terminalController,
-    );
 
     final focusedTab = ref
         .watch(tabProvider)
         .getSelectedTabIdByWindowId(win.id);
     final focusNode = useFocusNode();
 
-    final defaultTerminalTypography = useStore(.defaultTerminalTypography);
     final defaultTerminalTheme = useStore(.defaultTerminalThemeId);
     final themes = ref.watch(terminalThemeProvider);
-
     final scrollbackSize = useStore(.sshScrollbackSize);
     final bellSound = useStore(.terminalBellSound);
-    final cursorStyle = useStore(.terminalCursorStyle);
-    final cursorBlinkInterval = useStore(.terminalCursorBlinkInterval);
-    final cursorBlinkTimeout = useStore(.terminalCursorBlinkTimeout);
 
-    final effectiveTerminalTheme = session.connection.getEffectiveTerminalTheme(
-      themes,
-      defaultTerminalTheme.value,
-    );
+    final attempt = useState(0);
 
     final isInitialResize = useRef(true);
     final resizeOverlayEntry = useRef<OverlayEntry?>(null);
     final resizeOverlayTimer = useRef<Timer?>(null);
 
-    buildResizeOverlay(int rows, int cols) {
+    OverlayEntry buildResizeOverlay(int rows, int cols) {
       return OverlayEntry(
-        builder: (context) {
-          return Positioned(
-            left: 0,
-            right: 0,
-            child: Center(
-              child: Container(
-                color: context.theme.colors.background,
-                padding: const .all(8),
-                child: Text(
-                  '$cols x $rows',
-                  style: context.theme.typography.body.md,
-                ),
+        builder: (context) => Positioned(
+          left: 0,
+          right: 0,
+          child: Center(
+            child: Container(
+              color: context.theme.colors.background,
+              padding: const .all(8),
+              child: Text(
+                '$cols x $rows',
+                style: context.theme.typography.body.md,
               ),
             ),
-          );
-        },
+          ),
+        ),
       );
     }
 
-    void rebindTerminalControllerCallbacks(TerminalController controller) {
+    TerminalController buildTerminalController() {
+      final controller = TerminalController(
+        config: .new(scrollbackMaxLines: scrollbackSize.value),
+      );
+
       controller.onBell = () async {
         if (!bellSound.value) return;
         await SystemSound.play(.alert);
@@ -115,6 +103,7 @@ class _SshSessionPageState extends ConsumerState<SshSessionPage>
         ref
             .read(sessionProvider.notifier)
             .findById(widget.sessionId)
+            ?.resources
             ?.ssh
             ?.resize(cols, rows);
 
@@ -140,21 +129,19 @@ class _SshSessionPageState extends ConsumerState<SshSessionPage>
           );
         });
       };
-    }
 
-    buildTerminalController() {
-      final controller = TerminalController(
-        config: .new(scrollbackMaxLines: scrollbackSize.value),
-      );
-      rebindTerminalControllerCallbacks(controller);
       return controller;
     }
 
-    retrySession({bool skipHostKeyVerification = false}) {
+    void retrySession({bool skipHostKeyVerification = false}) {
+      isInitialResize.value = true;
       ref
           .read(sessionProvider.notifier)
-          .reset(session.id, skipHostKeyVerification: skipHostKeyVerification);
-      terminalController.value = buildTerminalController();
+          .reset(
+            widget.sessionId,
+            skipHostKeyVerification: skipHostKeyVerification,
+          );
+      attempt.value++;
     }
 
     // focus terminal when tab is opened
@@ -166,93 +153,73 @@ class _SshSessionPageState extends ConsumerState<SshSessionPage>
       return null;
     }, [focusedTab]);
 
-    // initial setup of terminal controller
+    // (re)connect whenever a new attempt starts
     useEffect(() {
-      if (terminalController.value == null) {
-        terminalController.value = buildTerminalController();
-      } else {
-        rebindTerminalControllerCallbacks(terminalController.value!);
-      }
-      return null;
-    }, []);
+      bool cancelled = false;
 
-    // open SSH connection when terminal controller is set
-    useEffect(() {
-      if (terminalController.value == null) return null;
-
-      Future<void> openSsh(ConnectionFull connection) async {
-        if (!mounted || terminalController.value == null) return;
+      Future<void> open() async {
         final notifier = ref.read(sessionProvider.notifier);
+        final current = notifier.findById(widget.sessionId);
+        // already connected
+        if (current == null || current.status is! SessionConnecting) return;
 
-        // reuse the worker if the session is already connected (page was rebuilt)
-        final worker =
-            session.ssh ??
-            await notifier.connectSsh(
-              session,
-              connection,
-              terminalController.value!,
-              onExit: () {
-                if (!context.mounted) return;
-                ref.read(tabProvider.notifier).close(widget.tab.id);
-              },
-            );
-        if (worker == null || !mounted) return;
+        final connection =
+            ref
+                .read(connectionProvider.notifier)
+                .findById(current.connection.id) ??
+            current.connection;
 
-        // always rebind, also when the worker already existed
-        terminalController.value!.onOutput = worker.write;
+        final controller = buildTerminalController();
+        final worker = await notifier.connectSsh(
+          current,
+          connection,
+          controller,
+          onExit: () {
+            if (!mounted) return;
+            ref.read(tabProvider.notifier).close(widget.tab.id);
+          },
+        );
+
+        if (worker == null) {
+          controller.dispose();
+          return;
+        }
+        controller.onOutput = worker.write;
       }
 
-      final connectionFull = ref
-          .read(connectionProvider.notifier)
-          .findById(session.connection.id);
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!cancelled && mounted) open();
+      });
+      return () => cancelled = true;
+    }, [attempt.value]);
 
-      if (connectionFull != null) {
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          if (!mounted) return;
-          openSsh(connectionFull);
-        });
-      }
+    if (session == null) return const SizedBox.shrink();
 
-      return null;
-    }, [terminalController.value]);
-
-    // update terminal controller when typography or theme changes
-    useEffect(
-      () {
-        if (terminalController.value == null) return null;
-
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          if (!mounted) return;
-        });
-
-        return null;
-      },
-      [
-        defaultTerminalTypography.value,
-        defaultTerminalTheme.value,
-        cursorStyle.value,
-        cursorBlinkInterval.value,
-        cursorBlinkTimeout.value,
-      ],
+    final effectiveTerminalTheme = session.connection.getEffectiveTerminalTheme(
+      themes,
+      defaultTerminalTheme.value,
     );
 
     return GenericSessionPage(
       session: session,
-      isConnected: session.isConnected && terminalController.value != null,
-      isLikelyLoading: session.isLikelyLoading,
+      tabId: widget.tab.id,
       onRetry: retrySession,
-      tab: widget.tab,
-      child: SizedBox.expand(
-        child: ColoredBox(
-          color: effectiveTerminalTheme.background,
-          child: TerminalView(
-            autofocus: true,
-            controller: terminalController.value!,
-            focusNode: focusNode,
-            theme: effectiveTerminalTheme.toTerminalTheme(),
+      builder: (context) {
+        final controller = session.resources?.terminalController;
+        if (controller == null) return const SizedBox.shrink();
+
+        return SizedBox.expand(
+          child: ColoredBox(
+            color: effectiveTerminalTheme.background,
+            child: TerminalView(
+              autofocus: true,
+              controller: controller,
+              focusNode: focusNode,
+              theme: effectiveTerminalTheme.toTerminalTheme(),
+            ),
           ),
-        ),
-      ),
+        );
+      },
     );
   }
 }

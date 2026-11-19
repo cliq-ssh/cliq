@@ -27,6 +27,10 @@ class SessionNotifier extends Notifier<SessionState> {
 
   static String getSshIdent() => 'SSH-2.0-cliq_${BuildMetadata.version}';
 
+  /// Finds the [SshSession] with the given [sessionId] across all tabs, or null if not found.
+  SshSession? findById(String sessionId) =>
+      state.sessions.where((s) => s.id == sessionId).firstOrNull;
+
   /// Creates a new SSH session for the given [connection] and adds it to the state.
   SshSession create(ConnectionFull connection, {bool sftp = false}) {
     final session = SshSession(
@@ -53,9 +57,10 @@ class SessionNotifier extends Notifier<SessionState> {
     _modify(
       session.id,
       (s) => s.copyWith(
-        connectedAt: .now(),
-        ssh: worker,
-        terminalController: terminal,
+        status: SessionConnected(
+          .now(),
+          .new(ssh: worker, sftp: null, terminalController: terminal),
+        ),
       ),
     );
     return worker;
@@ -69,13 +74,16 @@ class SessionNotifier extends Notifier<SessionState> {
     final worker = SftpWorkerHandle();
     if (!await _startWorker(worker, session, connection)) return null;
 
-    _modify(session.id, (s) => s.copyWith(connectedAt: .now(), sftp: worker));
+    _modify(
+      session.id,
+      (s) => s.copyWith(
+        status: SessionConnected(
+          .now(),
+          .new(ssh: null, sftp: worker, terminalController: null),
+        ),
+      ),
+    );
     return worker;
-  }
-
-  /// Finds the [SshSession] with the given [sessionId] across all tabs, or null if not found.
-  SshSession? findById(String sessionId) {
-    return state.sessions.where((s) => s.id == sessionId).firstOrNull;
   }
 
   /// Accepts the host key for the given [sessionId] and [vaultId], updating the known hosts database accordingly.
@@ -94,6 +102,7 @@ class SessionNotifier extends Notifier<SessionState> {
             fingerprint: error.fingerprint,
             compareTo: error.knownHost,
           );
+      return;
     }
     await ref
         .read(knownHostServiceProvider)
@@ -108,33 +117,28 @@ class SessionNotifier extends Notifier<SessionState> {
   /// Optionally, [skipHostKeyVerification] can be set to true to skip host key verification for the next connection attempt.
   void reset(String sessionId, {bool? skipHostKeyVerification}) {
     _modify(sessionId, (session) {
-      session.dispose();
+      session.resources?.dispose();
       return session.copyWith(
-        connectedAt: null,
-        terminalController: null,
+        status: const SessionConnecting(),
         skipHostKeyVerification: skipHostKeyVerification,
       );
     });
   }
 
   /// Closes the session with the given [sessionId], disposing of any existing resources and setting the connection error state.
-  void failAndDispose(String sessionId, String? error) {
+  void setError(String sessionId, String? error) {
     _modify(sessionId, (session) {
-      session.dispose();
+      session.resources?.dispose();
+      if (session.status is SessionNeedsHostTrust) return session;
       return session.copyWith(
-        connectionError: error,
-        connectedAt: null,
-        terminalController: null,
+        status: SessionFailed(error ?? 'Connection closed'),
       );
     });
   }
 
   /// Removes the session with the given [sessionId] from the state, disposing of any existing resources.
-  void removeAndDispose(String sessionId) {
-    _modify(sessionId, (session) {
-      session.dispose();
-      return session;
-    });
+  void remove(String sessionId) {
+    findById(sessionId)?.resources?.dispose();
     state = state.copyWith(
       sessions: state.sessions
           .where((s) => s.id != sessionId)
@@ -159,11 +163,13 @@ class SessionNotifier extends Notifier<SessionState> {
     _modify(
       session.id,
       (s) => s.copyWith(
-        knownHostError: KnownHostError(
-          host: connection.addressAndPort,
-          algorithm: request.algorithm,
-          fingerprint: request.fingerprint,
-          knownHost: knownHost,
+        status: SessionNeedsHostTrust(
+          KnownHostError(
+            host: connection.addressAndPort,
+            algorithm: request.algorithm,
+            fingerprint: request.fingerprint,
+            knownHost: knownHost,
+          ),
         ),
       ),
     );
@@ -183,7 +189,7 @@ class SessionNotifier extends Notifier<SessionState> {
     try {
       params = await _buildParams(session, connection);
     } catch (e) {
-      failAndDispose(session.id, e.toString());
+      setError(session.id, e.toString());
       return false;
     }
 
@@ -191,9 +197,8 @@ class SessionNotifier extends Notifier<SessionState> {
       params,
       onHostKey: (r) => _verifyHostKey(session, connection, r),
       // clean exit
-      onClosed: (e) => e == null && onExit != null
-          ? onExit()
-          : failAndDispose(session.id, e),
+      onClosed: (e) =>
+          e == null && onExit != null ? onExit() : setError(session.id, e),
     );
     if (!ok) return false; // onClosed already reported the error
 

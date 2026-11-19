@@ -1,5 +1,5 @@
-import 'package:cliq/modules/session/provider/tab.provider.dart';
 import 'package:cliq/shared/model/page_path.model.dart';
+import 'package:cliq/shared/provider/tab.provider.dart';
 import 'package:cliq/shared/ui/navigation/navigation_shell.dart';
 import 'package:cupertino_ui/cupertino_ui.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';

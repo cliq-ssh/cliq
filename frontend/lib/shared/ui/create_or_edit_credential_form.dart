@@ -5,7 +5,7 @@ import 'package:cliq/modules/keys/provider/key_service.provider.dart';
 import 'package:cliq/modules/keys/ui/create_or_edit_key_sheet.dart';
 import 'package:cliq/shared/data/database.dart';
 import 'package:cliq/shared/extension/async_snapshot.extension.dart';
-import 'package:cliq/shared/hooks/use_memoized_future.dart';
+import 'package:cliq/shared/hook/use_memoized_future.dart';
 import 'package:cliq/shared/utils/autocomplete_utils.dart';
 import 'package:cliq/shared/utils/commons.dart';
 import 'package:cliq/shared/utils/validators.dart';

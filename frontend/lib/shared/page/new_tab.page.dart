@@ -1,7 +1,7 @@
 import 'package:cliq/modules/connections/provider/connection.provider.dart';
 import 'package:cliq/modules/connections/ui/connection_icon.dart';
 import 'package:cliq/modules/session/provider/session.provider.dart';
-import 'package:cliq/modules/session/provider/tab.provider.dart';
+import 'package:cliq/shared/provider/tab.provider.dart';
 import 'package:cliq/shared/utils/text_utils.dart';
 import 'package:cliq_grid/cliq_grid.dart';
 import 'package:cupertino_ui/cupertino_ui.dart';

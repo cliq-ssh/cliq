@@ -1,7 +1,7 @@
 import 'package:cliq/modules/session/model/session.model.dart';
-import 'package:cliq/modules/session/model/tab.model.dart';
 import 'package:cliq/modules/session/provider/session.provider.dart';
-import 'package:cliq/modules/session/provider/tab.provider.dart';
+import 'package:cliq/modules/settings/model/known_host_error.model.dart';
+import 'package:cliq/shared/provider/tab.provider.dart';
 import 'package:cliq/shared/ui/cliq_tooltip.dart';
 import 'package:cliq/shared/ui/error_card.dart';
 import 'package:cliq/shared/ui/title_card.dart';
@@ -14,30 +14,19 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lucide_flutter/lucide_flutter.dart';
 import 'package:material_ui/material_ui.dart' hide LicensePage, Tab;
 
-class GenericSessionPage extends HookConsumerWidget {
-  final Widget child;
-  final Tab tab;
-  final SshSession session;
-  final bool isConnected;
-  final bool isLikelyLoading;
-  final void Function({bool skipHostKeyVerification})? onRetry;
-
-  const new({
-    super.key,
-    required this.child,
-    required this.tab,
-    required this.session,
-    required this.isConnected,
-    required this.isLikelyLoading,
-    this.onRetry,
-  });
-
+class const GenericSessionPage({
+  super.key,
+  required final WidgetBuilder builder,
+  required final String tabId,
+  required final SshSession session,
+  final void Function({bool skipHostKeyVerification})? onRetry,
+}) extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final typography = context.theme.typography;
 
     close() {
-      ref.read(tabProvider.notifier).close(tab.id);
+      ref.read(tabProvider.notifier).close(tabId);
     }
 
     buildConnecting() {
@@ -56,7 +45,7 @@ class GenericSessionPage extends HookConsumerWidget {
       ];
     }
 
-    buildKnownHostWarning() {
+    buildKnownHostError(KnownHostError error) {
       return [
         const Icon(LucideIcons.fingerprintPattern, size: 48),
         const SizedBox(height: 16),
@@ -65,15 +54,15 @@ class GenericSessionPage extends HookConsumerWidget {
           TextSpan(
             children: TextUtils.renderText(
               context,
-              (session.knownHostError!.knownHost != null
+              (error.knownHost != null
                       ? 'hosts_update_fingerprint_title'
                       : 'hosts_accept_fingerprint_title')
-                  .tr(args: [session.knownHostError!.host]),
+                  .tr(args: [error.host]),
             ),
           ),
           style: typography.body.xl,
         ),
-        if (session.knownHostError!.knownHost != null)
+        if (error.knownHost != null)
           Text(
             'hosts_update_fingerprint_subtitle'.tr(),
             style: typography.body.md.copyWith(
@@ -86,20 +75,18 @@ class GenericSessionPage extends HookConsumerWidget {
           subtitle: Row(
             mainAxisAlignment: .spaceBetween,
             children: [
-              Text('${session.knownHostError!.algorithm} (SHA256)'),
+              Text('${error.algorithm} (SHA256)'),
               CliqTooltip(
                 text: Text('click_to_copy'.tr()),
                 child: FButton.icon(
-                  onPress: () => Commons.copyToClipboard(
-                    context,
-                    session.knownHostError!.fingerprintString,
-                  ),
+                  onPress: () =>
+                      Commons.copyToClipboard(context, error.fingerprintString),
                   child: const Icon(LucideIcons.copy, size: 14),
                 ),
               ),
             ],
           ),
-          child: SelectableText(session.knownHostError!.fingerprintString),
+          child: SelectableText(error.fingerprintString),
         ),
         const SizedBox(height: 8),
         Row(
@@ -123,7 +110,7 @@ class GenericSessionPage extends HookConsumerWidget {
                     .acceptFingerprint(
                       session.connection.vaultId,
                       session.id,
-                      session.knownHostError!,
+                      error,
                     );
                 onRetry?.call();
               },
@@ -134,7 +121,7 @@ class GenericSessionPage extends HookConsumerWidget {
       ];
     }
 
-    buildError() {
+    buildError(String message) {
       return [
         const Icon(LucideIcons.plugZap, size: 48),
         const SizedBox(height: 16),
@@ -150,12 +137,9 @@ class GenericSessionPage extends HookConsumerWidget {
           style: typography.body.xl,
         ),
         const SizedBox(height: 16),
-        if (session.connectionError != null)
-          Row(
-            children: [
-              Expanded(child: ErrorCard(text: session.connectionError!)),
-            ],
-          ),
+        Row(
+          children: [Expanded(child: ErrorCard(text: message))],
+        ),
         const SizedBox(height: 8),
         Row(
           mainAxisAlignment: .spaceBetween,
@@ -171,18 +155,14 @@ class GenericSessionPage extends HookConsumerWidget {
       ];
     }
 
-    if (isConnected) {
-      return child;
-    }
+    if (session.status is SessionConnected) return builder(context);
 
-    List<Widget> children = [];
-    if (session.knownHostError != null) {
-      children = buildKnownHostWarning();
-    } else if (session.connectionError != null) {
-      children = buildError();
-    } else if (isLikelyLoading) {
-      children = buildConnecting();
-    }
+    final List<Widget> children = switch (session.status) {
+      SessionConnecting() => buildConnecting(),
+      SessionNeedsHostTrust(:final error) => buildKnownHostError(error),
+      SessionFailed(:final message) => buildError(message),
+      SessionConnected() => const [],
+    };
 
     const verticalPadding = 20.0;
     return LayoutBuilder(

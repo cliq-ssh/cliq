@@ -15,7 +15,7 @@ import 'package:cliq/shared/data/database.dart';
 import 'package:cliq/shared/extension/async_snapshot.extension.dart';
 import 'package:cliq/shared/extension/color.extension.dart';
 import 'package:cliq/shared/extension/text_controller.extension.dart';
-import 'package:cliq/shared/hooks/use_memoized_future.dart';
+import 'package:cliq/shared/hook/use_memoized_future.dart';
 import 'package:cliq/shared/model/entity_type.dart';
 import 'package:cliq/shared/model/router.model.dart';
 import 'package:cliq/shared/provider/store.provider.dart';

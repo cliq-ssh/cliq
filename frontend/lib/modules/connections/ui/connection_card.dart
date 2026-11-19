@@ -5,9 +5,9 @@ import 'package:cliq/modules/connections/provider/connection_service.provider.da
 import 'package:cliq/modules/connections/ui/connection_icon.dart';
 import 'package:cliq/modules/connections/ui/create_or_edit_connection_sheet.dart';
 import 'package:cliq/modules/session/provider/session.provider.dart';
-import 'package:cliq/modules/session/provider/tab.provider.dart';
 import 'package:cliq/modules/settings/model/keyboard_shortcut.model.dart';
 import 'package:cliq/modules/settings/provider/sync.provider.dart';
+import 'package:cliq/shared/provider/tab.provider.dart';
 import 'package:cliq/shared/ui/context_menu.dart';
 import 'package:cliq/shared/ui/navigation/navigation_shell.dart';
 import 'package:cliq/shared/ui/title_card.dart';

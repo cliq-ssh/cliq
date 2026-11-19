@@ -1,13 +1,13 @@
 import 'dart:io';
 import 'dart:math';
 
-import 'package:cliq/modules/session/provider/tab.provider.dart';
-import 'package:cliq/modules/session/ui/tab_pill.dart';
 import 'package:cliq/modules/settings/model/keyboard_shortcut.model.dart';
 import 'package:cliq/shared/provider/file_transfer.provider.dart';
+import 'package:cliq/shared/provider/tab.provider.dart';
 import 'package:cliq/shared/ui/cliq_tooltip.dart';
 import 'package:cliq/shared/ui/navigation/desktop_menu.dart';
 import 'package:cliq/shared/ui/shortcut_info.dart';
+import 'package:cliq/shared/ui/tab_pill.dart';
 import 'package:cliq/shared/utils/platform_utils.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
