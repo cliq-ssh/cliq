@@ -27,9 +27,13 @@ class DesktopMenuState extends ConsumerState<DesktopMenu> {
   late final int _windowId;
   late final NavigationShellState _navigationShell;
 
+  FocusNode? _lastEditableFocus;
+
   @override
   void initState() {
     super.initState();
+
+    FocusManager.instance.addListener(_trackFocus);
 
     _windowId = ref.read(currentWindowIdProvider);
     _navigationShell = NavigationShell.of(context);
@@ -52,6 +56,7 @@ class DesktopMenuState extends ConsumerState<DesktopMenu> {
 
   @override
   void dispose() {
+    FocusManager.instance.removeListener(_trackFocus);
     HardwareKeyboard.instance.removeHandler(_handleKeyEvent);
     super.dispose();
   }
@@ -175,15 +180,27 @@ class DesktopMenuState extends ConsumerState<DesktopMenu> {
 
   /// Returns a platform-specific [SingleActivator] for the given [LogicalKeyboardKey].
   SingleActivator _activator(LogicalKeyboardKey key, {bool shift = false}) {
-    return SingleActivator(key, meta: _isMac, control: !_isMac, shift: shift);
+    return SingleActivator(key, meta: _isMac, control: !_isMac, shift: shift || !_isMac);
   }
 
-  /// Safely invokes an [Intent]
-  void _invoke(Intent intent) {
-    final context = FocusManager.instance.primaryFocus?.context;
-    if (context != null) {
-      Actions.maybeInvoke(context, intent);
+  void _trackFocus() {
+    final node = FocusManager.instance.primaryFocus;
+    final ctx = node?.context;
+    if (ctx != null &&
+        ctx.findAncestorStateOfType<EditableTextState>() != null) {
+      _lastEditableFocus = node;
     }
+  }
+
+  /// Safely invokes an [Intent] on the currently focused widget
+  void _invoke(Intent intent) {
+    final node = _lastEditableFocus;
+    if (node == null || node.context == null) return;
+    node.requestFocus();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final ctx = node.context;
+      if (ctx != null) Actions.maybeInvoke(ctx, intent);
+    });
   }
 
   PlatformMenuItem _buildSettingsMenuItem() {
