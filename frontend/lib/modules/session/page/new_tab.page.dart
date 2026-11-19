@@ -1,5 +1,6 @@
 import 'package:cliq/modules/connections/provider/connection.provider.dart';
 import 'package:cliq/modules/connections/ui/connection_icon.dart';
+import 'package:cliq/modules/session/provider/session.provider.dart';
 import 'package:cliq/modules/session/provider/tab.provider.dart';
 import 'package:cliq/shared/utils/text_utils.dart';
 import 'package:cliq_grid/cliq_grid.dart';
@@ -99,13 +100,23 @@ class const NewTabPage({super.key, required final String tabId})
                                     child: const Icon(LucideIcons.terminal),
                                     onPress: () => ref
                                         .read(tabProvider.notifier)
-                                        .goSsh(tabId, connection),
+                                        .goSsh(
+                                          tabId,
+                                          ref
+                                              .read(sessionProvider.notifier)
+                                              .create(connection),
+                                        ),
                                   ),
                                   FButton.icon(
                                     child: const Icon(LucideIcons.folder),
                                     onPress: () => ref
                                         .read(tabProvider.notifier)
-                                        .goSsh(tabId, connection, sftp: true),
+                                        .goSsh(
+                                          tabId,
+                                          ref
+                                              .read(sessionProvider.notifier)
+                                              .create(connection, sftp: true),
+                                        ),
                                   ),
                                 ],
                               ),

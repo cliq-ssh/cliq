@@ -3,8 +3,11 @@ import 'dart:async';
 import 'package:cliq/modules/connections/model/connection_full.model.dart';
 import 'package:cliq/modules/connections/provider/connection.provider.dart';
 import 'package:cliq/modules/session/hook/use_ssh_session.dart';
+import 'package:cliq/modules/session/model/tab.model.dart';
 import 'package:cliq/modules/session/page/generic_session.page.dart';
 import 'package:cliq/modules/session/provider/session.provider.dart';
+import 'package:cliq/modules/session/provider/tab.provider.dart';
+import 'package:cliq/modules/settings/extension/custom_terminal_theme.extension.dart';
 import 'package:cliq/modules/settings/provider/terminal_theme.provider.dart';
 import 'package:cliq/shared/provider/store.provider.dart';
 import 'package:cliq/shared/utils/platform_utils.dart';
@@ -13,7 +16,8 @@ import 'package:flutter/services.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:forui/forui.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:material_ui/material_ui.dart' hide LicensePage;
+import 'package:material_ui/material_ui.dart' hide LicensePage, Tab;
+import 'package:multiview_desktop/multiview_desktop.dart';
 
 /// The padding around the terminal view in the session page.
 const kShellSessionPagePadding = EdgeInsets.symmetric(
@@ -23,12 +27,11 @@ const kShellSessionPagePadding = EdgeInsets.symmetric(
 
 const kBottomNavigationBarHeight = 80.0;
 
-class SshSessionPage extends StatefulHookConsumerWidget {
-  final String sessionId;
-  final FocusNode? focusNode;
-
-  const new({super.key, required this.sessionId, this.focusNode});
-
+class const SshSessionPage({
+  super.key,
+  required final Tab tab,
+  required final String sessionId,
+}) extends StatefulHookConsumerWidget {
   @override
   ConsumerState<ConsumerStatefulWidget> createState() => _SshSessionPageState();
 }
@@ -42,12 +45,19 @@ class _SshSessionPageState extends ConsumerState<SshSessionPage>
   Widget build(BuildContext context) {
     super.build(context);
 
+    final win = MultiViewDesktop.of(context);
+
     final session = useSshSession(ref, widget.sessionId);
     if (session == null) return const SizedBox.shrink();
 
     final terminalController = useState<TerminalController?>(
       session.terminalController,
     );
+
+    final focusedTab = ref
+        .watch(tabProvider)
+        .getSelectedTabIdByWindowId(win.id);
+    final focusNode = useFocusNode();
 
     final defaultTerminalTypography = useStore(.defaultTerminalTypography);
     final defaultTerminalTheme = useStore(.defaultTerminalThemeId);
@@ -97,7 +107,7 @@ class _SshSessionPageState extends ConsumerState<SshSessionPage>
 
       controller.onTitleChanged = () {
         if (!PlatformUtils.isDesktop) return;
-        final title = controller.title;
+        // final title = controller.title;
         // TODO: set window title
       };
 
@@ -147,13 +157,14 @@ class _SshSessionPageState extends ConsumerState<SshSessionPage>
       terminalController.value = buildTerminalController();
     }
 
-    // focus terminal when page is opened
+    // focus terminal when tab is opened
     useEffect(() {
+      if (focusedTab != widget.tab.id) return null;
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        widget.focusNode?.requestFocus();
+        focusNode.requestFocus();
       });
       return null;
-    }, []);
+    }, [focusedTab]);
 
     // initial setup of terminal controller
     useEffect(() {
@@ -182,7 +193,7 @@ class _SshSessionPageState extends ConsumerState<SshSessionPage>
               terminalController.value!,
               onExit: () {
                 if (!context.mounted) return;
-                notifier.remove(session.id);
+                ref.read(tabProvider.notifier).close(widget.tab.id);
               },
             );
         if (worker == null || !mounted) return;
@@ -230,13 +241,15 @@ class _SshSessionPageState extends ConsumerState<SshSessionPage>
       isConnected: session.isConnected && terminalController.value != null,
       isLikelyLoading: session.isLikelyLoading,
       onRetry: retrySession,
+      tab: widget.tab,
       child: SizedBox.expand(
         child: ColoredBox(
           color: effectiveTerminalTheme.background,
           child: TerminalView(
+            autofocus: true,
             controller: terminalController.value!,
-            focusNode: widget.focusNode,
-            // TODO: theming
+            focusNode: focusNode,
+            theme: effectiveTerminalTheme.toTerminalTheme(),
           ),
         ),
       ),

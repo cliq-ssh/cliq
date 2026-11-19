@@ -4,6 +4,7 @@ import 'package:cliq/modules/connections/model/connection_full.model.dart';
 import 'package:cliq/modules/connections/provider/connection_service.provider.dart';
 import 'package:cliq/modules/connections/ui/connection_icon.dart';
 import 'package:cliq/modules/connections/ui/create_or_edit_connection_sheet.dart';
+import 'package:cliq/modules/session/provider/session.provider.dart';
 import 'package:cliq/modules/session/provider/tab.provider.dart';
 import 'package:cliq/modules/settings/model/keyboard_shortcut.model.dart';
 import 'package:cliq/modules/settings/provider/sync.provider.dart';
@@ -55,7 +56,9 @@ class const ConnectionCard({
             NavigationShell.of(context),
             win.id,
             content: sftp ? .sftp : .ssh,
-            connection: connection,
+            session: ref
+                .read(sessionProvider.notifier)
+                .create(connection, sftp: sftp),
           );
     }
 

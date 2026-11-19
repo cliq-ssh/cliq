@@ -1,6 +1,4 @@
-import 'package:cliq/modules/connections/ui/connection_icon.dart';
 import 'package:cliq/modules/session/hook/use_ssh_session.dart';
-import 'package:cliq/modules/session/model/session.model.dart';
 import 'package:cliq/modules/session/page/new_tab.page.dart';
 import 'package:cliq/modules/session/page/sftp_session.page.dart';
 import 'package:cliq/modules/session/page/ssh_session.page.dart';
@@ -8,7 +6,6 @@ import 'package:cliq/modules/settings/page/settings.page.dart';
 import 'package:cupertino_ui/cupertino_ui.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:lucide_flutter/lucide_flutter.dart';
 
 enum TabContent({
   final bool canRename = true,
@@ -51,16 +48,6 @@ class Tab({
   /// The tab's custom label, given by the user
   var String? customLabel,
 }) {
-  Widget? getIcon(BuildContext context, WidgetRef ref) {
-    // TODO: do we want a ref here?
-    final session = useSshSession(ref, sessionId);
-    return switch (content) {
-      .settings => const Icon(LucideIcons.settings),
-      .ssh || .sftp => ConnectionIcon.fromConnection(session!.connection),
-      _ => null,
-    };
-  }
-
   /// Returns the effective label for the tab.
   /// If [customLabel] is set and the content allows renaming, it will be used.
   /// If not, it will be based on the [TabContent]
@@ -81,8 +68,8 @@ class Tab({
     return switch (content) {
       .newTab => NewTabPage(tabId: id),
       .settings => const SettingsPage(),
-      .ssh => SshSessionPage(sessionId: sessionId!),
-      .sftp => SftpSessionPage(sessionId: sessionId!),
+      .ssh => SshSessionPage(tab: this, sessionId: sessionId!),
+      .sftp => SftpSessionPage(tab: this, sessionId: sessionId!),
     };
   }
 }

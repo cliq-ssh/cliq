@@ -1,3 +1,5 @@
+import 'package:cliq/modules/connections/ui/connection_icon.dart';
+import 'package:cliq/modules/session/hook/use_ssh_session.dart';
 import 'package:cliq/modules/session/model/tab.model.dart';
 import 'package:cliq/modules/session/provider/tab.provider.dart';
 import 'package:cliq/shared/ui/hover_builder.dart';
@@ -20,6 +22,8 @@ class const TabPill({
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final win = MultiViewDesktop.of(context);
+
+    final session = useSshSession(ref, tab.sessionId);
 
     final cardStyleDecoration =
         context.theme.cardStyle.decoration as ShapeDecoration;
@@ -63,6 +67,15 @@ class const TabPill({
     close() {
       popoverController.hide();
       ref.read(tabProvider.notifier).close(tab.id);
+    }
+
+    buildIcon() {
+      return switch (tab.content) {
+        .settings => const Icon(LucideIcons.settings),
+        .ssh ||
+        .sftp => ConnectionIcon.fromConnection(session!.connection, size: 12),
+        _ => null,
+      };
     }
 
     buildPopoverMenu({required Widget child}) {
@@ -149,9 +162,7 @@ class const TabPill({
                           mainAxisSize: .min,
                           spacing: 8,
                           children: [
-                            ?tab.getIcon(context, ref),
-                            if (tab.pinned)
-                              const Icon(LucideIcons.pin, size: 16),
+                            ?buildIcon(),
                             Flexible(
                               child: isRenaming.value
                                   ? buildEditableText()
@@ -165,9 +176,12 @@ class const TabPill({
                           ],
                         ),
                       ),
-                      if (!isRenaming.value &&
-                          !tab.pinned &&
-                          (selected || isHovered))
+                      if (tab.pinned)
+                        const Padding(
+                          padding: .only(right: 4),
+                          child: Icon(LucideIcons.pin, size: 16),
+                        )
+                      else if (!isRenaming.value && (selected || isHovered))
                         FButton.icon(
                           size: .xs,
                           variant: .ghost,

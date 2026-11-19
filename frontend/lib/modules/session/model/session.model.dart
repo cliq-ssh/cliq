@@ -4,7 +4,6 @@ import 'package:cliq/modules/session/worker/ssh_worker.dart';
 import 'package:cliq/modules/session/worker/worker_core.dart';
 import 'package:cliq/modules/settings/model/known_host_error.model.dart';
 import 'package:cupertino_ui/cupertino_ui.dart';
-import 'package:easy_localization/easy_localization.dart';
 import 'package:flterm/flterm.dart';
 
 enum SessionType { ssh, sftp }
@@ -60,10 +59,6 @@ class SshSession({
       return title!;
     }
 
-    if (connectionError != null) {
-      return 'session_error_title'.tr(context: context);
-    }
-
     return connection.label;
   }
 
@@ -91,12 +86,12 @@ class SshSession({
       if (type != .ssh) {
         throw StateError('Cannot set SSH handle on a non-SSH session');
       }
-      _ssh = handle;
+      return copyWith(ssh: handle);
     } else if (handle is SftpWorkerHandle) {
       if (type != .sftp) {
         throw StateError('Cannot set SFTP handle on a non-SFTP session');
       }
-      _sftp = handle;
+      return copyWith(sftp: handle);
     }
     return this;
   }
@@ -116,8 +111,8 @@ class SshSession({
       id: id,
       type: type,
       connection: connection,
-      ssh: _ssh,
-      sftp: _sftp,
+      ssh: ssh ?? _ssh,
+      sftp: sftp ?? _sftp,
       connectionError: connectionError ?? this.connectionError,
       connectedAt: connectedAt ?? this.connectedAt,
       terminalController: terminalController ?? this.terminalController,

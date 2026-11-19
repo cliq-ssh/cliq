@@ -1,6 +1,6 @@
 import 'package:cliq/shared/model/localized_exception.dart';
+import 'package:cliq/shared/ui/error_card.dart';
 import 'package:cliq/shared/utils/commons.dart';
-import 'package:cliq/shared/utils/constants.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/widgets.dart';
 import 'package:forui/forui.dart';
@@ -22,33 +22,7 @@ class ErrorSheet extends ConsumerWidget {
 
     buildErrorDetailsCard(String content) {
       return Row(
-        children: [
-          Expanded(
-            child: FCard(
-              style: .delta(
-                decoration: .boxDelta(
-                  color: context.theme.colors.destructive.withValues(
-                    alpha: 0.1,
-                  ),
-                  border: Border.all(
-                    color: context.theme.colors.destructive.withValues(
-                      alpha: 0.2,
-                    ),
-                  ),
-                ),
-              ),
-              child: Padding(
-                padding: const .all(12),
-                child: Text(
-                  content,
-                  style: context.theme.typography.body.xs.copyWith(
-                    fontFamily: Constants.secondaryFont,
-                  ),
-                ),
-              ),
-            ),
-          ),
-        ],
+        children: [Expanded(child: ErrorCard(text: content))],
       );
     }
 

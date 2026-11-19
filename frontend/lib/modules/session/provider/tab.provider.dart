@@ -1,7 +1,7 @@
-import 'package:cliq/modules/connections/model/connection_full.model.dart';
 import 'package:cliq/modules/session/model/session.model.dart';
 import 'package:cliq/modules/session/model/tab.model.dart';
 import 'package:cliq/modules/session/model/tab.state.dart';
+import 'package:cliq/modules/session/provider/session.provider.dart';
 import 'package:cliq/shared/ui/navigation/navigation_shell.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:uuid/v7.dart';
@@ -20,7 +20,7 @@ class TabNotifier extends Notifier<TabState> {
     NavigationShellState navigationState,
     int windowId, {
     TabContent content = .newTab,
-    ConnectionFull? connection,
+    SshSession? session,
   }) {
     if (content.isSingleTab && state.tabs.any((t) => t.content == content)) {
       // focus the first tab of this content instead
@@ -29,16 +29,11 @@ class TabNotifier extends Notifier<TabState> {
       return null;
     }
 
-    SshSession? session;
-    if (content == .ssh && connection != null) {
-      session = _buildSshSession(connection);
-    }
-
     final newTab = Tab(
       id: v7.generate(),
       windowId: windowId,
       content: content,
-      session: session,
+      sessionId: session?.id,
     );
     state = state.copyWith(tabs: [...state.tabs, newTab]);
 
@@ -47,10 +42,10 @@ class TabNotifier extends Notifier<TabState> {
   }
 
   /// Switches to a ssh/sftp view with the given connection.
-  void goSsh(String tabId, ConnectionFull connection, {bool sftp = false}) {
+  void goSsh(String tabId, SshSession session) {
     _updateTab(tabId, (tab) {
-      tab.session = _buildSshSession(connection, sftp: sftp);
-      return tab.content = sftp ? .sftp : .ssh;
+      tab.sessionId = session.id;
+      return tab.content = session.type == .sftp ? .sftp : .ssh;
     });
   }
 
@@ -102,10 +97,12 @@ class TabNotifier extends Notifier<TabState> {
   /// Closes the tab with the given id.
   void close(String tabId) {
     unselect(tabId);
-
-    // dispose
     final tab = state.tabs.firstWhere((t) => t.id == tabId);
-    tab.dispose();
+
+    /// Dispose session
+    if (tab.sessionId != null) {
+      ref.read(sessionProvider.notifier).removeAndDispose(tab.sessionId!);
+    }
 
     final newTabs = List.of(state.tabs);
     newTabs.removeWhere((t) => t.id == tabId);
@@ -122,11 +119,4 @@ class TabNotifier extends Notifier<TabState> {
     update(newTabs[index]);
     state = state.copyWith(tabs: newTabs);
   }
-
-  SshSession _buildSshSession(ConnectionFull connection, {bool sftp = false}) =>
-      SshSession(
-        id: v7.generate(),
-        type: sftp ? .sftp : .ssh,
-        connection: connection,
-      );
 }

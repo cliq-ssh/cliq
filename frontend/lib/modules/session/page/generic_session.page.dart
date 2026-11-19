@@ -1,19 +1,22 @@
 import 'package:cliq/modules/session/model/session.model.dart';
+import 'package:cliq/modules/session/model/tab.model.dart';
 import 'package:cliq/modules/session/provider/session.provider.dart';
+import 'package:cliq/modules/session/provider/tab.provider.dart';
 import 'package:cliq/shared/ui/cliq_tooltip.dart';
+import 'package:cliq/shared/ui/error_card.dart';
 import 'package:cliq/shared/ui/title_card.dart';
 import 'package:cliq/shared/utils/commons.dart';
-import 'package:cliq/shared/utils/constants.dart';
 import 'package:cliq/shared/utils/text_utils.dart';
 import 'package:cliq_grid/cliq_grid.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:forui/forui.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lucide_flutter/lucide_flutter.dart';
-import 'package:material_ui/material_ui.dart' hide LicensePage;
+import 'package:material_ui/material_ui.dart' hide LicensePage, Tab;
 
 class GenericSessionPage extends HookConsumerWidget {
   final Widget child;
+  final Tab tab;
   final SshSession session;
   final bool isConnected;
   final bool isLikelyLoading;
@@ -22,6 +25,7 @@ class GenericSessionPage extends HookConsumerWidget {
   const new({
     super.key,
     required this.child,
+    required this.tab,
     required this.session,
     required this.isConnected,
     required this.isLikelyLoading,
@@ -32,14 +36,14 @@ class GenericSessionPage extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final typography = context.theme.typography;
 
-    closeSession() {
-      ref.read(sessionProvider.notifier).remove(session.id);
+    close() {
+      ref.read(tabProvider.notifier).close(tab.id);
     }
 
     buildConnecting() {
       return [
         const FCircularProgress(),
-        const SizedBox(height: 8),
+        const SizedBox(height: 16),
         Text.rich(
           TextSpan(
             children: TextUtils.renderText(
@@ -55,7 +59,7 @@ class GenericSessionPage extends HookConsumerWidget {
     buildKnownHostWarning() {
       return [
         const Icon(LucideIcons.fingerprintPattern, size: 48),
-        const SizedBox(height: 8),
+        const SizedBox(height: 16),
         Text.rich(
           textAlign: .center,
           TextSpan(
@@ -103,7 +107,7 @@ class GenericSessionPage extends HookConsumerWidget {
           children: [
             FButton(
               variant: .outline,
-              onPress: closeSession,
+              onPress: close,
               child: Text('close'.tr()),
             ),
             const Spacer(),
@@ -133,7 +137,7 @@ class GenericSessionPage extends HookConsumerWidget {
     buildError() {
       return [
         const Icon(LucideIcons.plugZap, size: 48),
-        const SizedBox(height: 8),
+        const SizedBox(height: 16),
         Text.rich(
           TextSpan(
             children: TextUtils.renderText(
@@ -147,26 +151,10 @@ class GenericSessionPage extends HookConsumerWidget {
         ),
         const SizedBox(height: 16),
         if (session.connectionError != null)
-          FCard(
-            style: .delta(
-              decoration: .boxDelta(
-                color: context.theme.colors.destructive.withValues(alpha: 0.1),
-                border: Border.all(
-                  color: context.theme.colors.destructive.withValues(
-                    alpha: 0.2,
-                  ),
-                ),
-              ),
-            ),
-            child: Padding(
-              padding: const .all(12),
-              child: Text(
-                session.connectionError!,
-                style: context.theme.typography.body.xs.copyWith(
-                  fontFamily: Constants.secondaryFont,
-                ),
-              ),
-            ),
+          Row(
+            children: [
+              Expanded(child: ErrorCard(text: session.connectionError!)),
+            ],
           ),
         const SizedBox(height: 8),
         Row(
@@ -174,13 +162,17 @@ class GenericSessionPage extends HookConsumerWidget {
           children: [
             FButton(
               variant: .outline,
-              onPress: closeSession,
+              onPress: close,
               child: Text('close'.tr()),
             ),
             FButton(onPress: () => onRetry?.call(), child: Text('retry'.tr())),
           ],
         ),
       ];
+    }
+
+    if (isConnected) {
+      return child;
     }
 
     List<Widget> children = [];
@@ -190,17 +182,39 @@ class GenericSessionPage extends HookConsumerWidget {
       children = buildError();
     } else if (isLikelyLoading) {
       children = buildConnecting();
-    } else if (isConnected) {
-      return child;
     }
 
-    return CliqGridContainer(
-      alignment: .center,
-      children: [
-        CliqGridRow(
-          children: [CliqGridColumn(child: Column(children: children))],
-        ),
-      ],
+    const verticalPadding = 20.0;
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        return SingleChildScrollView(
+          padding: const EdgeInsets.symmetric(vertical: verticalPadding),
+          child: ConstrainedBox(
+            constraints: BoxConstraints(
+              minHeight: constraints.maxHeight - (verticalPadding * 2),
+            ),
+            child: Center(
+              child: CliqGridContainer(
+                alignment: .center,
+                children: [
+                  CliqGridRow(
+                    children: [
+                      CliqGridColumn(
+                        sizes: const {.md: 6},
+                        child: Column(
+                          mainAxisSize: .min,
+                          crossAxisAlignment: .center,
+                          children: children,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
     );
   }
 }

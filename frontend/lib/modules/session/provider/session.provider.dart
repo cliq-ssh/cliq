@@ -27,8 +27,16 @@ class SessionNotifier extends Notifier<SessionState> {
 
   static String getSshIdent() => 'SSH-2.0-cliq_${BuildMetadata.version}';
 
-  SshSession? findById(String sessionId) =>
-      state.sessions.where((s) => s.id == sessionId).firstOrNull;
+  /// Creates a new SSH session for the given [connection] and adds it to the state.
+  SshSession create(ConnectionFull connection, {bool sftp = false}) {
+    final session = SshSession(
+      id: uuid.generate(),
+      type: sftp ? .sftp : .ssh,
+      connection: connection,
+    );
+    state = state.copyWith(sessions: [...state.sessions, session]);
+    return session;
+  }
 
   /// Connects a new SSH session for the given [connection] and adds it to the state
   Future<SshWorkerHandle?> connectSsh(
@@ -122,7 +130,7 @@ class SessionNotifier extends Notifier<SessionState> {
   }
 
   /// Removes the session with the given [sessionId] from the state, disposing of any existing resources.
-  void remove(String sessionId) {
+  void removeAndDispose(String sessionId) {
     _modify(sessionId, (session) {
       session.dispose();
       return session;

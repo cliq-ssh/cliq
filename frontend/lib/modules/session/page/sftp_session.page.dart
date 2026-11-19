@@ -5,6 +5,7 @@ import 'package:cliq/modules/connections/model/connection_full.model.dart';
 import 'package:cliq/modules/connections/provider/connection.provider.dart';
 import 'package:cliq/modules/session/hook/use_ssh_session.dart';
 import 'package:cliq/modules/session/model/sftp_transfer_params.model.dart';
+import 'package:cliq/modules/session/model/tab.model.dart';
 import 'package:cliq/modules/session/page/generic_session.page.dart';
 import 'package:cliq/modules/session/provider/session.provider.dart';
 import 'package:cliq/shared/data/store.dart';
@@ -26,7 +27,7 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:forui/forui.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lucide_flutter/lucide_flutter.dart';
-import 'package:material_ui/material_ui.dart' hide LicensePage;
+import 'package:material_ui/material_ui.dart' hide LicensePage, Tab;
 import 'package:open_app_file/open_app_file.dart';
 
 enum _SftpColumn {
@@ -222,11 +223,11 @@ const _ignoredSelectableFilenames = {'.', '..'};
 /// A special file name (and thus id) used to represent a new folder being created in the file list.
 const _createFolderFileName = '@new-folder';
 
-class SftpSessionPage extends StatefulHookConsumerWidget {
-  final String sessionId;
-
-  const new({super.key, required this.sessionId});
-
+class const SftpSessionPage({
+  super.key,
+  required final Tab tab,
+  required final String sessionId,
+}) extends StatefulHookConsumerWidget {
   @override
   ConsumerState<ConsumerStatefulWidget> createState() =>
       _SftpSessionPageState();
@@ -762,6 +763,7 @@ class _SftpSessionPageState extends ConsumerState<SftpSessionPage>
       isConnected: session.isConnected && currentDirectory.value != null,
       isLikelyLoading: session.isLikelyLoading,
       onRetry: retrySession,
+      tab: widget.tab,
       child: SizedBox.expand(
         child: Column(
           spacing: 8,

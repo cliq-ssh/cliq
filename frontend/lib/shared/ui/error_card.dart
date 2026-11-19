@@ -1,6 +1,6 @@
+import 'package:cliq/shared/utils/constants.dart';
 import 'package:cupertino_ui/cupertino_ui.dart';
 import 'package:forui/forui.dart';
-import 'package:lucide_flutter/lucide_flutter.dart';
 
 class ErrorCard extends StatelessWidget {
   final String text;
@@ -18,12 +18,14 @@ class ErrorCard extends StatelessWidget {
           ),
         ),
       ),
-      child: Row(
-        spacing: 12,
-        children: [
-          const Icon(LucideIcons.triangleAlert),
-          Expanded(child: Text(text)),
-        ],
+      child: Padding(
+        padding: const .all(12),
+        child: Text(
+          text,
+          style: context.theme.typography.body.xs.copyWith(
+            fontFamily: Constants.secondaryFont,
+          ),
+        ),
       ),
     );
   }
