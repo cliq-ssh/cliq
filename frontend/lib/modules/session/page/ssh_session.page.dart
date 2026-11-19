@@ -64,7 +64,7 @@ class _SshSessionPageState extends ConsumerState<SshSessionPage>
     final resizeOverlayEntry = useRef<OverlayEntry?>(null);
     final resizeOverlayTimer = useRef<Timer?>(null);
 
-    OverlayEntry buildResizeOverlay(int rows, int cols) {
+    buildResizeOverlay(int rows, int cols) {
       return OverlayEntry(
         builder: (context) => Positioned(
           left: 0,
@@ -83,7 +83,7 @@ class _SshSessionPageState extends ConsumerState<SshSessionPage>
       );
     }
 
-    TerminalController buildTerminalController() {
+    buildTerminalController() {
       final controller = TerminalController(
         config: .new(scrollbackMaxLines: scrollbackSize.value),
       );
@@ -133,7 +133,7 @@ class _SshSessionPageState extends ConsumerState<SshSessionPage>
       return controller;
     }
 
-    void retrySession({bool skipHostKeyVerification = false}) {
+    retrySession({bool skipHostKeyVerification = false}) {
       isInitialResize.value = true;
       ref
           .read(sessionProvider.notifier)
