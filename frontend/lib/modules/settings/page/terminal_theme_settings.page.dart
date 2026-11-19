@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:cliq/modules/connections/provider/connection.provider.dart';
 import 'package:cliq/modules/connections/ui/connection_icon.dart';
 import 'package:cliq/modules/settings/extension/custom_terminal_theme.extension.dart';
@@ -7,7 +9,6 @@ import 'package:cliq/modules/settings/provider/terminal_theme_service.provider.d
 import 'package:cliq/modules/settings/ui/color_scheme_browser_dialog.dart';
 import 'package:cliq/modules/settings/ui/create_or_edit_terminal_theme_sheet.dart';
 import 'package:cliq/modules/settings/ui/terminal_theme_card.dart';
-import 'package:cliq/shared/data/database.dart';
 import 'package:cliq/shared/data/store.dart';
 import 'package:cliq/shared/model/localized_exception.dart';
 import 'package:cliq/shared/ui/cliq_tooltip.dart';
@@ -69,17 +70,21 @@ class const TerminalThemeSettingsPage({super.key})
     final terminalThemes = ref.watch(terminalThemeProvider);
     final connections = ref.watch(connectionProvider);
 
-    final terminalController = useState<TerminalController?>(null);
-    final selectedFontFamily = useState<String>(
-      StoreKey.defaultTerminalTypography.readSync()?.fontFamily ??
-          TerminalFontFamilySelect.fonts.first,
+    final terminalController = useMemoized(() => TerminalController());
+
+    final defaults = useMemoized(
+      () => (
+        fontFamily:
+            StoreKey.defaultTerminalTypography.readSync()?.fontFamily ??
+            TerminalFontFamilySelect.fonts.first,
+        fontSize: StoreKey.defaultTerminalTypography.readSync()!.fontSize,
+        themeId: StoreKey.defaultTerminalThemeId.readSync()!,
+      ),
     );
-    final selectedFontSize = useState<int>(
-      StoreKey.defaultTerminalTypography.readSync()!.fontSize,
-    );
-    final selectedThemeId = useState<DbId>(
-      StoreKey.defaultTerminalThemeId.readSync()!,
-    );
+
+    final selectedFontFamily = useState(defaults.fontFamily);
+    final selectedFontSize = useState(defaults.fontSize);
+    final selectedThemeId = useState(defaults.themeId);
 
     final subtitleStyle = context.theme.typography.body.xs.copyWith(
       color: context.theme.colors.mutedForeground,
@@ -88,11 +93,23 @@ class const TerminalThemeSettingsPage({super.key})
 
     getSelectedTheme() => terminalThemes.findById(selectedThemeId.value)!;
 
-    // init controller
+    final terminalTheme = useMemoized(
+      () => getSelectedTheme().toTerminalTheme().copyWith(
+        fontFamily: selectedFontFamily.value,
+        fontSize: selectedFontSize.value.toDouble(),
+      ),
+      [
+        terminalThemes,
+        selectedThemeId.value,
+        selectedFontFamily.value,
+        selectedFontSize.value,
+      ],
+    );
+
     useEffect(() {
-      terminalController.value = TerminalController();
-      return () => terminalController.value?.dispose();
-    }, []);
+      terminalController.write(utf8.encode(sampleInput));
+      return terminalController.dispose;
+    }, [terminalController]);
 
     create() => Commons.showResponsiveSheet(
       (_) => const CreateOrEditTerminalThemeSheet.create(),
@@ -221,20 +238,21 @@ class const TerminalThemeSettingsPage({super.key})
     return Column(
       spacing: 20,
       children: [
-        if (terminalController.value != null)
-          Container(
-            width: double.infinity,
-            height: 200,
-            padding: const .all(8),
-            color: getSelectedTheme().background,
+        Container(
+          width: double.infinity,
+          height: 200,
+          padding: const .all(8),
+          color: terminalTheme.background,
+          child: IgnorePointer(
             child: TerminalView(
-              controller: terminalController.value!,
-              theme: getSelectedTheme().toTerminalTheme().copyWith(
+              controller: terminalController,
+              theme: terminalTheme.copyWith(
                 fontFamily: selectedFontFamily.value,
                 fontSize: selectedFontSize.value.toDouble(),
               ),
             ),
           ),
+        ),
         TerminalFontSizeSlider(
           selectedFontSize: selectedFontSize.value,
           onEnd: (value) => selectedFontSize.value = value,

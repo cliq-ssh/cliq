@@ -67,37 +67,22 @@ class ColorSchemeBrowserDialog extends HookConsumerWidget {
       '\x1b[104m   \x1b[0m'
       '\x1b[105m   \x1b[0m'
       '\x1b[106m   \x1b[0m'
-      '\x1b[107m   \x1b[0m\n';
+      '\x1b[107m   \x1b[0m';
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final breakpoint = useBreakpoint();
 
     final csFuture = useMemoizedFuture(() => cs.loadLibrary(), []);
-    final terminalController = useState<TerminalController?>(null);
+    final terminalController = useMemoized(() => TerminalController());
 
     final selectedSchemeName = useState<String?>(null);
     final filterText = useState<TextEditingValue>(TextEditingValue.empty);
 
     useEffect(() {
-      setController() {
-        // set default to first theme
-        final first = ([
-          ...cs.iterm2ColorSchemeValues,
-        ]..sort((a, b) => a.name.compareTo(b.name))).first;
-        selectedSchemeName.value = first.name;
-        terminalController.value = TerminalController();
-      }
-
-      cs.loadLibrary().then((_) => setController());
-      return () => terminalController.value?.dispose();
-    }, []);
-
-    useEffect(() {
-      if (terminalController.value == null) return null;
-      terminalController.value!.write(utf8.encode(sampleInput));
-      return null;
-    }, [selectedSchemeName.value]);
+      terminalController.write(utf8.encode(sampleInput));
+      return terminalController.dispose;
+    }, [terminalController]);
 
     final subtitleStyle = context.theme.typography.body.xs.copyWith(
       color: context.theme.colors.mutedForeground,
@@ -245,14 +230,19 @@ class ColorSchemeBrowserDialog extends HookConsumerWidget {
                     ],
                   ),
                 ),
-                if (terminalController.value != null)
+                if (selectedTheme != null)
                   Expanded(
                     child: Container(
                       width: double.infinity,
                       padding: const .all(8),
-                      color: selectedTheme?.background,
-                      child: TerminalView(
-                        controller: terminalController.value!,
+                      color: selectedTheme.background,
+                      child: IgnorePointer(
+                        child: ExcludeFocus(
+                          child: TerminalView(
+                            controller: terminalController,
+                            theme: selectedTheme,
+                          ),
+                        ),
                       ),
                     ),
                   ),
