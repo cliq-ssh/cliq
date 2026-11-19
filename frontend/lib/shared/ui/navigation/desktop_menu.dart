@@ -180,7 +180,12 @@ class DesktopMenuState extends ConsumerState<DesktopMenu> {
 
   /// Returns a platform-specific [SingleActivator] for the given [LogicalKeyboardKey].
   SingleActivator _activator(LogicalKeyboardKey key, {bool shift = false}) {
-    return SingleActivator(key, meta: _isMac, control: !_isMac, shift: shift || !_isMac);
+    return SingleActivator(
+      key,
+      meta: _isMac,
+      control: !_isMac,
+      shift: shift || !_isMac,
+    );
   }
 
   void _trackFocus() {
