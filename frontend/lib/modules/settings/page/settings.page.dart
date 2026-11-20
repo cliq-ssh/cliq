@@ -34,11 +34,17 @@ class const SettingsPage({super.key}) extends StatefulHookConsumerWidget {
   ConsumerState<ConsumerStatefulWidget> createState() => _SettingsPageState();
 }
 
-class _SettingsPageState extends ConsumerState<SettingsPage> {
+class _SettingsPageState extends ConsumerState<SettingsPage>
+    with AutomaticKeepAliveClientMixin {
   final _navKey = GlobalKey<NavigatorState>();
 
   @override
+  bool get wantKeepAlive => true;
+
+  @override
   Widget build(BuildContext context) {
+    super.build(context);
+
     return NavigatorPopHandler(
       onPopWithResult: (r) => _navKey.currentState?.maybePop(r),
       child: Navigator(

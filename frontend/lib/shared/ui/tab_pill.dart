@@ -109,7 +109,7 @@ class const TabPill({
           ),
           .group(
             children: [
-              .item(title: Text('shortcut.tab_close'.tr()), onPress: close),
+              .item(title: Text('shortcut.close_tab'.tr()), onPress: close),
             ],
           ),
         ],

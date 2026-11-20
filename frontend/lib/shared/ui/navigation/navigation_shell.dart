@@ -22,7 +22,7 @@ import 'package:multiview_desktop/multiview_desktop.dart';
 const EdgeInsetsGeometry kMacOSNavigationPadding = .only(left: 80);
 
 const _tabGap = 8.0;
-const _minTabWidth = 75.0;
+const _minTabWidth = 80.0;
 const _maxTabWidth = 200.0;
 const _arrowWidth = 28.0;
 
@@ -262,7 +262,14 @@ class NavigationShellState extends ConsumerState<NavigationShell>
                     child: ReorderableListView.builder(
                       scrollController: scrollController,
                       scrollDirection: .horizontal,
-                      itemExtent: tabWidth + _tabGap,
+                      itemExtentBuilder: (index, _) {
+                        final tab = windowTabs[index];
+                        if (tab.pinned) {
+                          // pinned tabs are always full-size
+                          return _maxTabWidth;
+                        }
+                        return tabWidth + _tabGap;
+                      },
                       buildDefaultDragHandles: false,
                       proxyDecorator: (child, _, _) => child,
                       itemCount: windowTabs.length,
