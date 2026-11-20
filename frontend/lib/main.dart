@@ -119,7 +119,7 @@ void main() async {
 }
 
 Future<void> _configureMacOSTrafficLights() async {
-  const offset = Offset(20, 18);
+  const offset = Offset(16, 18);
   const buttonGap = 23.0;
 
   await WindowManipulator.overrideStandardWindowButtonPosition(
