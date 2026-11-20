@@ -166,12 +166,13 @@ class const ShortcutsSettingsPage({super.key}) extends AbstractSettingsPage {
       mainAxisAlignment: .center,
       spacing: 16,
       children: [
-        FTileGroup(
-          children: [
-            for (final s in KeyboardShortcutType.values)
-              buildShortcutTile(type: s),
-          ],
-        ),
+        for (final group in KeyboardShortcutTypeGroup.values)
+          FTileGroup(
+            label: Text(group.getDisplayName()),
+            children: [
+              for (final type in group.children) buildShortcutTile(type: type),
+            ],
+          ),
         FTileGroup(
           label: Text('shortcuts_presets'.tr()),
           children: [

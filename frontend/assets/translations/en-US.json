@@ -75,20 +75,11 @@
   "delete_all": "Delete All",
   "deselect_all": "Deselect All",
   "desktop_menu": {
-    "copy": "Copy",
-    "cut": "Cut",
     "edit": "Edit",
     "file": "File",
-    "paste": "Paste",
-    "redo": "Redo",
-    "reset_zoom": "Reset Zoom",
-    "select_all": "Select All",
     "terminal": "Terminal",
-    "undo": "Undo",
     "view": "View",
-    "window": "Window",
-    "zoom_in": "Zoom In",
-    "zoom_out": "Zoom Out"
+    "window": "Window"
   },
   "developer": "Developer",
   "dialog_cancel": "Cancel",
@@ -280,8 +271,32 @@
   },
   "share": "Share",
   "shortcut": {
+    "close_tab": "Close Tab",
+    "close_window": "Close Window",
     "copy": "Copy",
-    "paste": "Paste"
+    "cut": "Cut",
+    "home": "Home",
+    "new_tab": "New Tab",
+    "new_window": "New Window",
+    "paste": "Paste",
+    "redo": "Redo",
+    "select_all": "Select All",
+    "select_tab": "Select Tab {}",
+    "select_tab_last": "Select Last Tab",
+    "settings": "Settings",
+    "terminal_copy": "Terminal Copy",
+    "terminal_paste": "Terminal Paste",
+    "undo": "Undo",
+    "zoom_in": "Zoom In",
+    "zoom_out": "Zoom Out",
+    "zoom_reset": "Reset Zoom"
+  },
+  "shortcut_group": {
+    "edit": "Edit",
+    "file": "File",
+    "tabs": "Tabs",
+    "terminal": "Terminal",
+    "view": "Window"
   },
   "shortcuts": "Shortcuts",
   "shortcuts_conflicts": {
@@ -359,8 +374,6 @@
   "sync_verification_code_placeholder": "Enter verification code",
   "sync_verification_code_subtitle": "We've sent a verification code to your email. Please enter it below to verify your account.",
   "sync_verify_code": "Verify Code",
-  "tab_close": "Close Tab",
-  "tab_new": "New Tab",
   "tab_pin": "Pin Tab",
   "tab_rename": "Rename Tab",
   "tab_unpin": "Unpin Tab",
@@ -426,7 +439,5 @@
   "validator_error_null": "Value may not be null",
   "vault_local": "Local Vault",
   "vault_user": "{}'s Vault",
-  "verification_code": "Verification Code",
-  "window_close": "Close Window",
-  "window_new": "New Window"
+  "verification_code": "Verification Code"
 }

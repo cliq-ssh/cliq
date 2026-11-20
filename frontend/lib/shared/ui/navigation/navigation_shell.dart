@@ -136,7 +136,7 @@ class NavigationShellState extends ConsumerState<NavigationShell>
     buildNewTabButton() {
       return CliqTooltip(
         text: TextWithShortcutInfo(
-          'tab_new'.tr(),
+          'shortcut.new_tab'.tr(),
           shortcut: KeyboardShortcut(.keyT, modifiers: {.meta}),
         ),
         child: FButton.icon(
@@ -218,7 +218,7 @@ class NavigationShellState extends ConsumerState<NavigationShell>
     buildTabList() {
       return Flexible(
         child: SizedBox(
-          height: 30,
+          height: 34,
           child: LayoutBuilder(
             builder: (context, constraints) {
               final count = max(1, windowTabs.length);
@@ -270,6 +270,7 @@ class NavigationShellState extends ConsumerState<NavigationShell>
                           ref.read(tabProvider.notifier).reorder(from, to),
                       itemBuilder: (context, index) {
                         final tab = windowTabs[index];
+
                         return ReorderableDragStartListener(
                           key: ValueKey(tab.id),
                           index: index,
@@ -277,7 +278,10 @@ class NavigationShellState extends ConsumerState<NavigationShell>
                             padding: const .only(right: _tabGap),
                             child: TabPill(
                               tab: tab,
-                              selected: tab.id == selectedTabId,
+                              selected:
+                                  tab.id == selectedTabId &&
+                                  widget.shell.currentIndex ==
+                                      _sessionBranchIndex,
                             ),
                           ),
                         );
@@ -330,6 +334,20 @@ class NavigationShellState extends ConsumerState<NavigationShell>
                       child: Row(
                         children: [
                           if (isDesktop && !Platform.isMacOS) buildMenuTab(),
+                          Padding(
+                            padding: const .only(right: _tabGap),
+                            child: CliqTooltip(
+                              text: Text('dashboard'.tr()),
+                              child: FButton.icon(
+                                variant: .ghost,
+                                selected:
+                                    widget.shell.currentIndex ==
+                                    _dashboardBranchIndex,
+                                onPress: goToDashboardBranch,
+                                child: const Icon(LucideIcons.home),
+                              ),
+                            ),
+                          ),
                           buildTabList(),
                           buildNewTabButton(),
                         ],

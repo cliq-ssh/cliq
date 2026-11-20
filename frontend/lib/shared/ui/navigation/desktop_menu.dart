@@ -2,6 +2,8 @@ import 'dart:io';
 
 import 'package:cliq/main.dart';
 import 'package:cliq/modules/session/provider/terminal_zoom.provider.dart';
+import 'package:cliq/modules/settings/model/keyboard_shortcuts.model.dart';
+import 'package:cliq/shared/provider/store.provider.dart';
 import 'package:cliq/shared/provider/tab.provider.dart';
 import 'package:cliq/shared/provider/window_scope.provider.dart';
 import 'package:cliq/shared/ui/navigation/navigation_shell.dart';
@@ -28,6 +30,7 @@ class DesktopMenuState extends ConsumerState<DesktopMenu> {
   late final int _windowId;
   late final NavigationShellState _navigationShell;
 
+  KeyboardShortcuts _shortcuts = .platformDefaults;
   FocusNode? _lastEditableFocus;
 
   @override
@@ -43,15 +46,9 @@ class DesktopMenuState extends ConsumerState<DesktopMenu> {
       HardwareKeyboard.instance.addHandler(_handleKeyEvent);
     }
 
-    if (_isMac) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        WidgetsBinding.instance.platformMenuDelegate.setMenus(buildMacOSMenu());
-      });
-    }
-
     MultiViewDesktop.setMenuItems([
-      .new(title: 'window_new'.tr(), onPressed: _openNewWindow),
-      .new(title: 'tab_new'.tr(), onPressed: _openNewTab),
+      .new(title: 'shortcut.new_window'.tr(), onPressed: _openNewWindow),
+      .new(title: 'shortcut.new_tab'.tr(), onPressed: _openNewTab),
     ]);
   }
 
@@ -63,13 +60,29 @@ class DesktopMenuState extends ConsumerState<DesktopMenu> {
   }
 
   @override
-  Widget build(BuildContext context) => widget.child;
+  Widget build(BuildContext context) {
+    final shortcuts = useStore(.shortcuts);
+
+    _shortcuts = KeyboardShortcuts.merge(.platformDefaults, shortcuts.value);
+
+    if (_isMac) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          WidgetsBinding.instance.platformMenuDelegate.setMenus(
+            buildMacOSMenu(),
+          );
+        }
+      });
+    }
+
+    return widget.child;
+  }
 
   List<PlatformMenuItem> buildMenu() {
     return [
-      _buildFileMenu(prefix: _buildSettingsMenuItem()),
+      _buildFileMenu(prefix: _buildTabsMenuItems()),
       _buildEditMenu(),
-      _buildTerminalMenu(),
+      _buildViewMenu(),
     ];
   }
 
@@ -82,7 +95,7 @@ class DesktopMenuState extends ConsumerState<DesktopMenu> {
           const PlatformMenuItemGroup(
             members: [PlatformProvidedMenuItem(type: .about)],
           ),
-          _buildSettingsMenuItem(),
+          _buildTabsMenuItems(),
           if (PlatformProvidedMenuItem.hasMenu(.servicesSubmenu))
             const PlatformMenuItemGroup(
               members: [PlatformProvidedMenuItem(type: .servicesSubmenu)],
@@ -101,10 +114,7 @@ class DesktopMenuState extends ConsumerState<DesktopMenu> {
       ),
       _buildFileMenu(),
       _buildEditMenu(),
-      PlatformMenu(
-        label: 'desktop_menu.view'.tr(),
-        menus: const [PlatformProvidedMenuItem(type: .toggleFullScreen)],
-      ),
+      _buildViewMenu(showPlatformProvidedItems: true),
       PlatformMenu(
         label: 'desktop_menu.window'.tr(),
         menus: const [
@@ -113,7 +123,6 @@ class DesktopMenuState extends ConsumerState<DesktopMenu> {
           PlatformProvidedMenuItem(type: .arrangeWindowsInFront),
         ],
       ),
-      _buildTerminalMenu(),
     ];
   }
 
@@ -184,19 +193,6 @@ class DesktopMenuState extends ConsumerState<DesktopMenu> {
     return null;
   }
 
-  /// Returns a platform-specific [SingleActivator] for the given [LogicalKeyboardKey].
-  SingleActivator _activator(LogicalKeyboardKey key, {bool shift = false}) {
-    return SingleActivator(
-      key,
-      meta: _isMac,
-      control: !_isMac,
-      shift: shift || !_isMac,
-    );
-  }
-
-  SingleActivator _zoomActivator(LogicalKeyboardKey key) =>
-      SingleActivator(key, meta: _isMac, control: !_isMac);
-
   void _trackFocus() {
     final node = FocusManager.instance.primaryFocus;
     final ctx = node?.context;
@@ -228,12 +224,11 @@ class DesktopMenuState extends ConsumerState<DesktopMenu> {
     action(ref.read(terminalZoomProvider.notifier), tab.sessionId!);
   }
 
-  PlatformMenuItem _buildSettingsMenuItem() {
+  PlatformMenuItem _buildTabsMenuItems() {
     return PlatformMenuItemGroup(
       members: [
-        PlatformMenuItem(
-          label: 'settings'.tr(),
-          shortcut: _activator(.comma),
+        _buildShortcutItem(
+          type: .settings,
           onSelected: () => ref
               .read(tabProvider.notifier)
               .openNewAndMaybeGo(
@@ -242,6 +237,42 @@ class DesktopMenuState extends ConsumerState<DesktopMenu> {
                 content: .settings,
               ),
         ),
+        _buildShortcutItem(
+          type: .home,
+          onSelected: () => _navigationShell.goToDashboardBranch(),
+        ),
+      ],
+    );
+  }
+
+  PlatformMenuItem _buildTabSelectionMenu() {
+    final List<(int, KeyboardShortcutType)> selectTabTypes = [
+      (0, .selectTab1),
+      (1, .selectTab2),
+      (2, .selectTab3),
+      (3, .selectTab4),
+      (4, .selectTab5),
+      (5, .selectTab6),
+      (6, .selectTab7),
+      (7, .selectTab8),
+      (8, .selectTabLast),
+    ];
+
+    return PlatformMenu(
+      label: 'shortcut_group.tabs'.tr(),
+      menus: [
+        for (final type in selectTabTypes)
+          _buildShortcutItem(
+            type: type.$2,
+            onSelected: () {
+              final notifier = ref.read(tabProvider.notifier);
+              if (type.$1 == 8) {
+                notifier.selectLast(_navigationShell, _windowId);
+              } else {
+                notifier.selectByIndex(_navigationShell, _windowId, type.$1);
+              }
+            },
+          ),
       ],
     );
   }
@@ -253,30 +284,14 @@ class DesktopMenuState extends ConsumerState<DesktopMenu> {
         ?prefix,
         PlatformMenuItemGroup(
           members: [
-            PlatformMenuItem(
-              label: 'tab_new'.tr(),
-              shortcut: _activator(.keyT),
-              onSelected: _openNewTab,
-            ),
-            PlatformMenuItem(
-              label: 'tab_close'.tr(),
-              shortcut: _activator(.keyW),
-              onSelected: _closeTab,
-            ),
+            _buildShortcutItem(type: .newTab, onSelected: _openNewTab),
+            _buildShortcutItem(type: .closeTab, onSelected: _closeTab),
           ],
         ),
         PlatformMenuItemGroup(
           members: [
-            PlatformMenuItem(
-              label: 'window_new'.tr(),
-              shortcut: _activator(.keyN),
-              onSelected: _openNewWindow,
-            ),
-            PlatformMenuItem(
-              label: 'window_close'.tr(),
-              shortcut: _activator(.keyW, shift: true),
-              onSelected: _closeWindow,
-            ),
+            _buildShortcutItem(type: .newWindow, onSelected: _openNewWindow),
+            _buildShortcutItem(type: .closeWindow, onSelected: _closeWindow),
           ],
         ),
       ],
@@ -289,39 +304,33 @@ class DesktopMenuState extends ConsumerState<DesktopMenu> {
       menus: [
         PlatformMenuItemGroup(
           members: [
-            PlatformMenuItem(
-              label: 'desktop_menu.undo'.tr(),
-              shortcut: _activator(.keyZ),
+            _buildShortcutItem(
+              type: .undo,
               onSelected: () => _invoke(const UndoTextIntent(.keyboard)),
             ),
-            PlatformMenuItem(
-              label: 'desktop_menu.redo'.tr(),
-              shortcut: _activator(.keyZ, shift: true),
+            _buildShortcutItem(
+              type: .redo,
               onSelected: () => _invoke(const RedoTextIntent(.keyboard)),
             ),
           ],
         ),
         PlatformMenuItemGroup(
           members: [
-            PlatformMenuItem(
-              label: 'desktop_menu.cut'.tr(),
-              shortcut: _activator(.keyX),
+            _buildShortcutItem(
+              type: .cut,
               onSelected: () =>
                   _invoke(const CopySelectionTextIntent.cut(.keyboard)),
             ),
-            PlatformMenuItem(
-              label: 'desktop_menu.copy'.tr(),
-              shortcut: _activator(.keyC),
+            _buildShortcutItem(
+              type: .copy,
               onSelected: () => _invoke(CopySelectionTextIntent.copy),
             ),
-            PlatformMenuItem(
-              label: 'desktop_menu.paste'.tr(),
-              shortcut: _activator(.keyV),
+            _buildShortcutItem(
+              type: .paste,
               onSelected: () => _invoke(const PasteTextIntent(.keyboard)),
             ),
-            PlatformMenuItem(
-              label: 'desktop_menu.select_all'.tr(),
-              shortcut: _activator(.keyA),
+            _buildShortcutItem(
+              type: .selectAll,
               onSelected: () => _invoke(const SelectAllTextIntent(.keyboard)),
             ),
           ],
@@ -330,30 +339,48 @@ class DesktopMenuState extends ConsumerState<DesktopMenu> {
     );
   }
 
-  PlatformMenuItem _buildTerminalMenu() {
+  PlatformMenuItem _buildViewMenu({bool showPlatformProvidedItems = false}) {
     return PlatformMenu(
-      label: 'desktop_menu.terminal'.tr(),
+      label: 'desktop_menu.view'.tr(),
       menus: [
+        if (showPlatformProvidedItems)
+          const PlatformProvidedMenuItem(type: .toggleFullScreen),
         PlatformMenuItemGroup(
           members: [
-            PlatformMenuItem(
-              label: 'desktop_menu.zoom_in'.tr(),
-              shortcut: _zoomActivator(.add),
+            _buildShortcutItem(
+              type: .zoomIn,
               onSelected: () => _zoom((n, id) => n.zoomIn(id)),
             ),
-            PlatformMenuItem(
-              label: 'desktop_menu.zoom_out'.tr(),
-              shortcut: _zoomActivator(.minus),
+            _buildShortcutItem(
+              type: .zoomOut,
               onSelected: () => _zoom((n, id) => n.zoomOut(id)),
             ),
-            PlatformMenuItem(
-              label: 'desktop_menu.reset_zoom'.tr(),
-              shortcut: _zoomActivator(.digit0),
+            _buildShortcutItem(
+              type: .zoomReset,
               onSelected: () => _zoom((n, id) => n.reset(id)),
             ),
           ],
         ),
+        PlatformMenuItemGroup(members: [_buildTabSelectionMenu()]),
       ],
+    );
+  }
+
+  PlatformMenuItem _buildShortcutItem({
+    required KeyboardShortcutType type,
+    required VoidCallback onSelected,
+  }) {
+    final shortcut = _shortcuts.shortcuts[type]!;
+    return PlatformMenuItem(
+      label: type.getDisplayName(),
+      shortcut: SingleActivator(
+        shortcut.logicalKey,
+        shift: shortcut.modifiers.contains(LogicalKeyboardKey.shift),
+        control: shortcut.modifiers.contains(LogicalKeyboardKey.control),
+        alt: shortcut.modifiers.contains(LogicalKeyboardKey.alt),
+        meta: shortcut.modifiers.contains(LogicalKeyboardKey.meta),
+      ),
+      onSelected: onSelected,
     );
   }
 }

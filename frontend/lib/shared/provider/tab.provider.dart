@@ -63,6 +63,24 @@ class TabNotifier extends Notifier<TabState> {
     state = state.copyWith(selectedTabs: newSelectedTabs);
   }
 
+  /// Selects the tab at the given index in the current window.
+  void selectByIndex(
+    NavigationShellState navigationState,
+    int windowId,
+    int index,
+  ) {
+    if (index < 0 || index >= state.tabs.length) return;
+    final tabs = state.getTabsByWindowId(windowId);
+    select(navigationState, windowId, tabs[index].id);
+  }
+
+  /// Selects the last tab in the current window.
+  void selectLast(NavigationShellState navigationState, int windowId) {
+    final tabs = state.getTabsByWindowId(windowId);
+    if (tabs.isEmpty) return;
+    select(navigationState, windowId, tabs.last.id);
+  }
+
   /// Unselects the tab with the given id.
   void unselect(String tabId) {
     final newSelectedTabs = Map.of(state.selectedTabs);

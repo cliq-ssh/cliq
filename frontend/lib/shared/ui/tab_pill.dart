@@ -38,7 +38,7 @@ class const TabPill({
         return tab.customLabel!;
       }
       return switch (tab.content) {
-        .newTab => 'tab_new'.tr(context: context),
+        .newTab => 'shortcut.new_tab'.tr(context: context),
         .settings => 'settings'.tr(context: context),
         .ssh || .sftp => session!.connection.label,
       };
@@ -85,7 +85,7 @@ class const TabPill({
       return switch (tab.content) {
         .settings => const Icon(LucideIcons.settings),
         .ssh ||
-        .sftp => ConnectionIcon.fromConnection(session!.connection, size: 12),
+        .sftp => ConnectionIcon.fromConnection(session!.connection, size: 14),
         _ => null,
       };
     }
@@ -108,7 +108,9 @@ class const TabPill({
             ],
           ),
           .group(
-            children: [.item(title: Text('tab_close'.tr()), onPress: close)],
+            children: [
+              .item(title: Text('shortcuts.tab_close'.tr()), onPress: close),
+            ],
           ),
         ],
         control: .managed(controller: popoverController),
@@ -163,7 +165,7 @@ class const TabPill({
                   ),
                 ),
                 child: Padding(
-                  padding: const .only(left: 12, right: 4),
+                  padding: const .only(left: 8, right: 6),
                   child: Row(
                     mainAxisSize: .min,
                     mainAxisAlignment: .spaceBetween,

@@ -30,13 +30,22 @@ class TabPageWrapperState extends ConsumerState<TabPageWrapper> {
 
       if (selectedTabId == null) {
         if (windowTabs.isEmpty) {
-          NavigationShell.of(context).goToDashboardBranch();
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (context.mounted) {
+              NavigationShell.of(context).goToDashboardBranch();
+            }
+          });
         } else {
-          ref
-              .read(tabProvider.notifier)
-              .select(NavigationShell.of(context), win.id, windowTabs.last.id);
+          final lastTabId = windowTabs.last.id;
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (context.mounted) {
+              ref
+                  .read(tabProvider.notifier)
+                  .select(NavigationShell.of(context), win.id, lastTabId);
+            }
+          });
         }
-        return;
+        return null;
       }
 
       final selectedIndex = windowTabs.indexWhere(
