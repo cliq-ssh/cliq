@@ -4,6 +4,7 @@ import 'package:cliq/shared/model/tab.model.dart';
 import 'package:cliq/shared/model/tab.state.dart';
 import 'package:cliq/shared/ui/navigation/navigation_shell.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:multiview_desktop/multiview_desktop.dart';
 import 'package:uuid/v7.dart';
 
 final tabProvider = NotifierProvider(TabNotifier.new);
@@ -25,7 +26,10 @@ class TabNotifier extends Notifier<TabState> {
     if (content.isSingleTab && state.tabs.any((t) => t.content == content)) {
       // focus the first tab of this content instead
       final firstTab = state.tabs.firstWhere((t) => t.content == content);
-      select(navigationState, windowId, firstTab.id);
+      final win = MultiViewDesktop.fromId(firstTab.windowId);
+
+      if (!win.isFocused()) win.focus();
+      select(navigationState, firstTab.windowId, firstTab.id);
       return null;
     }
 
