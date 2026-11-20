@@ -87,9 +87,9 @@ class TabNotifier extends Notifier<TabState> {
   }
 
   /// Re-orders the tabs in the given index to the new index.
-  void reorder(int currentIndex, int newIndex) {
+  void reorder(int oldIndex, int newIndex) {
     final newTabs = List.of(state.tabs);
-    final tab = newTabs.removeAt(currentIndex);
+    final tab = newTabs.removeAt(oldIndex);
     newTabs.insert(newIndex, tab);
     state = state.copyWith(tabs: newTabs);
   }
