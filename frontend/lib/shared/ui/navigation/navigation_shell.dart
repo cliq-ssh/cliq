@@ -1,13 +1,18 @@
 import 'dart:io';
 import 'dart:math';
 
+import 'package:cliq/modules/session/hook/use_ssh_session.dart';
+import 'package:cliq/modules/session/model/session.model.dart';
 import 'package:cliq/modules/settings/model/keyboard_shortcut.model.dart';
+import 'package:cliq/modules/settings/provider/custom_terminal_theme.provider.dart';
 import 'package:cliq/shared/provider/file_transfer.provider.dart';
+import 'package:cliq/shared/provider/store.provider.dart';
 import 'package:cliq/shared/provider/tab.provider.dart';
 import 'package:cliq/shared/ui/cliq_tooltip.dart';
 import 'package:cliq/shared/ui/navigation/desktop_menu.dart';
 import 'package:cliq/shared/ui/shortcut_info.dart';
 import 'package:cliq/shared/ui/tab_pill.dart';
+import 'package:cliq/shared/utils/color_utils.dart';
 import 'package:cliq/shared/utils/platform_utils.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
@@ -49,6 +54,16 @@ class NavigationShellState extends ConsumerState<NavigationShell>
     final desktopMenuKey = useMemoized(() => GlobalKey<DesktopMenuState>());
     final isDesktop = PlatformUtils.isDesktop;
 
+    final themes = ref.watch(terminalThemeProvider);
+    final defaultTerminalThemeId = useStore(.defaultTerminalThemeId);
+    final applyTerminalThemeColorToNavigation = useStore(
+      .applyTerminalThemeColorToNavigation,
+    );
+
+    final appearanceBaseColors = useStore(.appearanceBaseColors);
+    final appearancePrimaryColor = useStore(.appearancePrimaryColor);
+    final themeMode = useStore(.themeMode);
+
     // delayed until post frame
     final menuReady = useState(false);
 
@@ -58,6 +73,9 @@ class NavigationShellState extends ConsumerState<NavigationShell>
     final previousTabs = usePrevious(windowTabs.length);
 
     final selectedTabId = tabs.getSelectedTabIdByWindowId(win.id);
+    final selectedTab = tabs.findById(selectedTabId);
+
+    final session = useSshSession(ref, selectedTab?.sessionId);
 
     final scrollController = useScrollController();
     final popoverController = useFPopoverController();
@@ -310,64 +328,108 @@ class NavigationShellState extends ConsumerState<NavigationShell>
       );
     }
 
-    buildHeader() {
-      return Container(
-        constraints: const .new(minHeight: 54 - 16),
-        decoration: BoxDecoration(
-          border: Border(
-            bottom: BorderSide(color: context.theme.colors.border, width: 1),
-          ),
-        ),
-        child: Stack(
-          children: [
-            if (PlatformUtils.isDesktop)
-              Positioned.fill(
-                child: DragToMoveArea(
-                  child: GestureDetector(
-                    behavior: .opaque,
-                    onDoubleTap: () => toggleMaximize(),
-                  ),
-                ),
-              ),
-
-            Padding(
-              padding:
-                  (Platform.isMacOS ? kMacOSNavigationPadding : EdgeInsets.zero)
-                      .add(const .all(8)),
-              child: FTooltipGroup(
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: Row(
-                        children: [
-                          if (isDesktop && !Platform.isMacOS) buildMenuTab(),
-                          Padding(
-                            padding: const .only(right: _tabGap),
-                            child: CliqTooltip(
-                              text: Text('dashboard'.tr()),
-                              child: FButton.icon(
-                                variant: .ghost,
-                                selected:
-                                    widget.shell.currentIndex ==
-                                    _dashboardBranchIndex,
-                                onPress: goToDashboardBranch,
-                                child: const Icon(LucideIcons.home),
-                              ),
-                            ),
-                          ),
-                          buildTabList(),
-                          buildNewTabButton(),
-                        ],
-                      ),
-                    ),
-                    if (isDesktop && !Platform.isMacOS)
-                      buildCustomNavigationButtons(),
-                  ],
+    buildHeaderChild(Color? backgroundColor) {
+      return Builder(
+        builder: (context) {
+          return Container(
+            constraints: const .new(minHeight: 54 - 16),
+            decoration: BoxDecoration(
+              color: backgroundColor,
+              border: Border(
+                bottom: BorderSide(
+                  color: context.theme.colors.border,
+                  width: 1,
                 ),
               ),
             ),
-          ],
+            child: Stack(
+              children: [
+                if (PlatformUtils.isDesktop)
+                  Positioned.fill(
+                    child: DragToMoveArea(
+                      child: GestureDetector(
+                        behavior: .opaque,
+                        onDoubleTap: () => toggleMaximize(),
+                      ),
+                    ),
+                  ),
+
+                Padding(
+                  padding:
+                      (Platform.isMacOS
+                              ? kMacOSNavigationPadding
+                              : EdgeInsets.zero)
+                          .add(const .all(8)),
+                  child: FTooltipGroup(
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: Row(
+                            children: [
+                              if (isDesktop && !Platform.isMacOS)
+                                buildMenuTab(),
+                              Padding(
+                                padding: const .only(right: _tabGap),
+                                child: CliqTooltip(
+                                  text: Text('dashboard'.tr()),
+                                  child: FButton.icon(
+                                    variant: .ghost,
+                                    selected:
+                                        widget.shell.currentIndex ==
+                                        _dashboardBranchIndex,
+                                    onPress: goToDashboardBranch,
+                                    child: const Icon(LucideIcons.home),
+                                  ),
+                                ),
+                              ),
+                              buildTabList(),
+                              buildNewTabButton(),
+                            ],
+                          ),
+                        ),
+                        if (isDesktop && !Platform.isMacOS)
+                          buildCustomNavigationButtons(),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          );
+        },
+      );
+    }
+
+    buildHeader() {
+      Color? backgroundColor;
+      ThemeMode mode = themeMode.value;
+
+      if (applyTerminalThemeColorToNavigation.value &&
+          widget.shell.currentIndex == _sessionBranchIndex &&
+          session != null &&
+          session.status is SessionConnected) {
+        backgroundColor = session.connection
+            .getEffectiveTerminalTheme(themes, defaultTerminalThemeId.value)
+            .background;
+
+        final isBright =
+            ColorUtils.contrastRatio(Colors.black, backgroundColor) >
+            ColorUtils.contrastRatio(Colors.white, backgroundColor);
+
+        mode = isBright ? ThemeMode.light : ThemeMode.dark;
+        backgroundColor = backgroundColor.withValues(
+          alpha: isBright ? 0.96 : 0.8,
+        );
+      }
+
+      return FTheme(
+        key: const ValueKey('navigation_header_theme'),
+        data: appearanceBaseColors.value.withPrimaryAndMode(
+          primaryColor: appearancePrimaryColor.value,
+          mode: mode,
+          isTouch: PlatformUtils.isMobile,
         ),
+        child: buildHeaderChild(backgroundColor),
       );
     }
 
@@ -466,8 +528,8 @@ class NavigationShellState extends ConsumerState<NavigationShell>
                     spaceBetween: true,
                   ),
             onPress: () {
+              popoverController.hide(animated: false);
               i.onSelected?.call();
-              popoverController.hide();
             },
           ),
         },

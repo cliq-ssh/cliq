@@ -83,7 +83,10 @@ class const TabPill({
 
     buildIcon() {
       return switch (tab.content) {
-        .settings => const Icon(LucideIcons.settings),
+        .settings => Icon(
+          LucideIcons.settings,
+          color: context.theme.colors.foreground,
+        ),
         .ssh ||
         .sftp => ConnectionIcon.fromConnection(session!.connection, size: 14),
         _ => null,

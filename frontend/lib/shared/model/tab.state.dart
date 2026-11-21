@@ -6,6 +6,11 @@ class const TabState({
 }) {
   const new initial() : this(tabs: const [], selectedTabs: const {});
 
+  Tab? findById(String? id) {
+    if (id == null) return null;
+    return tabs.where((t) => t.id == id).firstOrNull;
+  }
+
   /// Gets the tabs for the given window id.
   List<Tab> getTabsByWindowId(int windowId) =>
       tabs.where((t) => t.windowId == windowId).toList();
