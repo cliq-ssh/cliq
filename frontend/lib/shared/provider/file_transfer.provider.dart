@@ -29,8 +29,8 @@ class FileTransferNotifier extends Notifier<FileTransferState> {
   /// Returns a stream of [FileProgressData] objects, which can be used to track the progress of the transfer.
   Stream<FileProgressData> transferSftp(
     String id, {
-    ShellSession? source,
-    ShellSession? destination,
+    SshSession? source,
+    SshSession? destination,
     String? sourcePath,
     String? destinationPath,
     String? localPath,
@@ -47,7 +47,7 @@ class FileTransferNotifier extends Notifier<FileTransferState> {
 
     final controller = StreamController<FileProgressData>();
 
-    resolveParams(ShellSession? session) async {
+    resolveParams(SshSession? session) async {
       if (session == null) return null;
       final conn = session.connection;
       final creds = await ref

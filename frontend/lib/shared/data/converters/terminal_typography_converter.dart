@@ -1,4 +1,4 @@
-import 'package:cliq_term/cliq_term.dart';
+import 'package:cliq/modules/settings/model/terminal_typography.model.dart';
 import 'package:drift/drift.dart';
 
 class TerminalTypographyConverter

@@ -1,29 +1,35 @@
 import 'dart:io';
+import 'dart:math';
 
-import 'package:cliq/modules/connections/model/connection_full.model.dart';
-import 'package:cliq/modules/connections/provider/connection.provider.dart';
-import 'package:cliq/modules/connections/ui/connection_icon.dart';
-import 'package:cliq/modules/session/provider/session.provider.dart';
-import 'package:cliq/modules/session/ui/session_navigation_tab.dart';
-import 'package:cliq/modules/settings/provider/terminal_theme.provider.dart';
+import 'package:cliq/modules/session/hook/use_ssh_session.dart';
+import 'package:cliq/modules/session/model/session.model.dart';
+import 'package:cliq/modules/settings/model/keyboard_shortcut.model.dart';
+import 'package:cliq/modules/settings/provider/custom_terminal_theme.provider.dart';
 import 'package:cliq/shared/provider/file_transfer.provider.dart';
 import 'package:cliq/shared/provider/store.provider.dart';
+import 'package:cliq/shared/provider/tab.provider.dart';
 import 'package:cliq/shared/ui/cliq_tooltip.dart';
-import 'package:cliq/shared/ui/navigation/navigation_tab.dart';
+import 'package:cliq/shared/ui/navigation/desktop_menu.dart';
 import 'package:cliq/shared/ui/shortcut_info.dart';
+import 'package:cliq/shared/ui/tab_pill.dart';
+import 'package:cliq/shared/utils/color_utils.dart';
 import 'package:cliq/shared/utils/platform_utils.dart';
-import 'package:cliq/shared/utils/text_utils.dart';
-import 'package:cliq_term/cliq_term.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:forui/forui.dart';
+import 'package:forui_hooks/forui_hooks.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lucide_flutter/lucide_flutter.dart';
 import 'package:material_ui/material_ui.dart';
-import 'package:window_manager/window_manager.dart';
+import 'package:multiview_desktop/multiview_desktop.dart';
 
-const EdgeInsetsGeometry kMacOSNavigationPadding = .only(left: 70);
+const EdgeInsetsGeometry kMacOSNavigationPadding = .only(left: 80);
+
+const _tabGap = 8.0;
+const _minTabWidth = 80.0;
+const _maxTabWidth = 200.0;
+const _arrowWidth = 28.0;
 
 class NavigationShell extends StatefulHookConsumerWidget {
   final StatefulNavigationShell shell;
@@ -41,31 +47,48 @@ class NavigationShellState extends ConsumerState<NavigationShell>
     with TickerProviderStateMixin {
   static const _sessionBranchIndex = 0;
   static const _dashboardBranchIndex = 1;
-  static const _settingsBranchIndex = 2;
 
   @override
   Widget build(BuildContext context) {
-    final defaultTerminalTheme = useStore(.defaultTerminalThemeId);
+    final win = MultiViewDesktop.of(context);
+    final desktopMenuKey = useMemoized(() => GlobalKey<DesktopMenuState>());
+    final isDesktop = PlatformUtils.isDesktop;
+
+    final themes = ref.watch(terminalThemeProvider);
+    final defaultTerminalThemeId = useStore(.defaultTerminalThemeId);
     final applyTerminalThemeColorToNavigation = useStore(
       .applyTerminalThemeColorToNavigation,
     );
-    final connections = ref.watch(connectionProvider);
-    final sessions = ref.watch(sessionProvider);
-    final terminalThemes = ref.watch(terminalThemeProvider);
-    final selectedTab = useState(sessions.selectedSession);
-    final showTabs = useState(false);
+
+    final appearanceBaseColors = useStore(.appearanceBaseColors);
+    final appearancePrimaryColor = useStore(.appearancePrimaryColor);
+    final themeMode = useStore(.themeMode);
+
+    // delayed until post frame
+    final menuReady = useState(false);
 
     final fileTransfer = ref.watch(fileTransferProvider);
+    final tabs = ref.watch(tabProvider);
+    final windowTabs = tabs.getTabsByWindowId(win.id);
+    final previousTabs = usePrevious(windowTabs.length);
 
+    final selectedTabId = tabs.getSelectedTabIdByWindowId(win.id);
+    final selectedTab = tabs.findById(selectedTabId);
+
+    final session = useSshSession(ref, selectedTab?.sessionId);
+
+    final scrollController = useScrollController();
+    final popoverController = useFPopoverController();
     final rotationAnimation = useAnimationController(
       duration: const .new(seconds: 2),
     );
-    final isDesktop = PlatformUtils.isDesktop;
 
     useEffect(() {
-      selectedTab.value = sessions.selectedSession;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (context.mounted) menuReady.value = true;
+      });
       return null;
-    }, [sessions, sessions.selectedTabId]);
+    }, const []);
 
     useEffect(() {
       if (fileTransfer.isAnyPending) {
@@ -78,281 +101,76 @@ class NavigationShellState extends ConsumerState<NavigationShell>
       return null;
     }, [fileTransfer.pending]);
 
-    connect(ConnectionFull connection, {bool isSftp = false}) {
-      ref
-          .read(sessionProvider.notifier)
-          .createAndGo(this, connection, isSftp: isSftp);
-      showTabs.value = false;
-    }
+    // scroll to end when tab is opened
+    useEffect(() {
+      final grew = previousTabs != null && windowTabs.length > previousTabs;
+      if (!grew) return;
+      // Wait until the new tab is laid out, otherwise maxScrollExtent is stale
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!scrollController.hasClients) return;
+        scrollController.animateTo(
+          scrollController.position.maxScrollExtent,
+          duration: const .new(milliseconds: 200),
+          curve: Curves.easeInOut,
+        );
+      });
+      return null;
+    }, [windowTabs.length]);
 
-    /// Gets the effective sidebar color based on the selected session and its terminal theme.
-    Color getEffectiveSidebarColor() {
-      if (applyTerminalThemeColorToNavigation.value &&
-          widget.shell.currentIndex == _sessionBranchIndex &&
-          selectedTab.value != null &&
-          selectedTab.value!.isAnyConnected) {
-        return selectedTab.value!.getEffectiveSidebarColor(
-          context,
-          terminalThemes,
-          defaultTerminalTheme.value,
+    buildMenuTab() {
+      final platformMenu = desktopMenuKey.currentState?.buildMenu() ?? [];
+      final List<FItemGroupMixin> menu = [];
+
+      for (final item in platformMenu) {
+        if (item is! PlatformMenu) continue;
+
+        final groups = _toGroups(item.menus, popoverController);
+        if (groups.isEmpty) continue;
+
+        menu.add(
+          FItemGroup(
+            children: [.submenu(title: Text(item.label), submenu: groups)],
+          ),
         );
       }
-      return context.theme.colors.background;
-    }
 
-    buildDashboardTab() {
-      // TODO: make shortcut functional
-      return CliqTooltip(
-        text: TextWithShortcutInfo(
-          'dashboard'.tr(),
-          shortcut: KeyboardShortcut(.keyD, modifiers: {.control}),
-        ),
-        child: NavigationTab(
-          icon: const Icon(LucideIcons.layoutDashboard),
-          selected: widget.shell.currentIndex == _dashboardBranchIndex,
-          onPress: () {
-            ref
-                .read(sessionProvider.notifier)
-                .setSelectedAndMaybeGo(this, null);
-            goToDashboardBranch();
+      return Padding(
+        padding: const .only(right: 8),
+        child: FPopoverMenu(
+          menu: menu,
+          arrow: .childCenter,
+          control: .managed(controller: popoverController),
+          builder: (context, controller, _) {
+            return FButton.icon(
+              variant: .ghost,
+              onPress: controller.toggle,
+              child: const Icon(LucideIcons.menu),
+            );
           },
         ),
       );
     }
 
-    buildQueue() {
-      return FPopover(
-        popoverBuilder: (context, controller) {
-          // latest transfer on top
-          final items = fileTransfer.pending.entries.toList()
-            ..sort((a, b) => b.value.startTime.compareTo(a.value.startTime));
-
-          return Container(
-            width: 300,
-            constraints: const .new(maxHeight: 400),
-            child: FTileGroup(
-              divider: .full,
-              children: [
-                if (fileTransfer.isEmpty)
-                  FTile(title: Text('queue_empty'.tr()))
-                else
-                  for (final item in items)
-                    FTile(
-                      title: Row(
-                        mainAxisAlignment: .spaceBetween,
-                        children: [
-                          Expanded(
-                            child: SingleChildScrollView(
-                              scrollDirection: Axis.horizontal,
-                              child: Text(
-                                item.value.file.fileName,
-                                softWrap: false,
-                              ),
-                            ),
-                          ),
-                          if (item.value.isInProgress)
-                            Text(
-                              '${(item.value.progressData.progress * 100).toStringAsFixed(1)}%',
-                              style: context.theme.typography.body.xs.copyWith(
-                                color: context.theme.colors.mutedForeground,
-                              ),
-                            ),
-                        ],
-                      ),
-                      subtitle: SizedBox(
-                        width: 300,
-                        child: Builder(
-                          builder: (context) {
-                            if (item.value.isInProgress) {
-                              return Padding(
-                                padding: const .symmetric(vertical: 4),
-                                child: Column(
-                                  crossAxisAlignment: .start,
-                                  spacing: 8,
-                                  children: [
-                                    SizedBox(
-                                      width: double.infinity,
-                                      child: FDeterminateProgress(
-                                        value: item.value.progressData.progress,
-                                      ),
-                                    ),
-                                    Row(
-                                      spacing: 8,
-                                      mainAxisAlignment: .spaceBetween,
-                                      children: [
-                                        Text(
-                                          '${TextUtils.formatBytes(item.value.progressData.currentBytes) ?? '--'} / ${TextUtils.formatBytes(item.value.progressData.totalBytes) ?? '--'}',
-                                        ),
-                                        if (item
-                                                .value
-                                                .progressData
-                                                .bytesPerSecond !=
-                                            null)
-                                          Text(
-                                            '${TextUtils.formatDuration(item.value.progressData.estimatedSecondsRemaining!)}, ${TextUtils.formatBytes(item.value.progressData.bytesPerSecond) ?? '--'}/s',
-                                          ),
-                                      ],
-                                    ),
-                                  ],
-                                ),
-                              );
-                            }
-
-                            if (item.value.error != null) {
-                              return Text(
-                                item.value.error!,
-                                style: context.theme.typography.body.xs
-                                    .copyWith(
-                                      color: context.theme.colors.destructive,
-                                    ),
-                              );
-                            }
-
-                            final seconds =
-                                DateTime.fromMillisecondsSinceEpoch(
-                                      item.value.endTime!,
-                                    )
-                                    .difference(
-                                      DateTime.fromMillisecondsSinceEpoch(
-                                        item.value.startTime,
-                                      ),
-                                    )
-                                    .inSeconds;
-                            return Text(
-                              'completed in ${TextUtils.formatDuration(seconds)}',
-                            );
-                          },
-                        ),
-                      ),
-                      suffix: FButton.icon(
-                        variant: item.value.tempFile != null
-                            ? .destructive
-                            : .ghost,
-                        child: Icon(
-                          item.value.tempFile != null
-                              ? LucideIcons.trash
-                              : LucideIcons.x,
-                        ),
-                        onPress: () async {
-                          final fileTransferNotifier = ref.read(
-                            fileTransferProvider.notifier,
-                          );
-                          if (item.value.isInProgress) {
-                            fileTransferNotifier.cancel(context, item.key);
-                          } else {
-                            await fileTransferNotifier.remove(item.key);
-                          }
-                        },
-                      ),
-                    ),
-              ],
-            ),
-          );
-        },
-        builder: (_, controller, _) {
-          return NavigationTab(
-            icon: RotationTransition(
-              turns: rotationAnimation,
-              child: Icon(
-                fileTransfer.isEmpty
-                    ? LucideIcons.refreshCwOff
-                    : LucideIcons.refreshCw,
-              ),
-            ),
-            onPress: fileTransfer.isEmpty ? null : controller.toggle,
-          );
-        },
-      );
-    }
-
-    buildSettingsTab() {
-      // TODO: make shortcut functional
+    buildNewTabButton() {
       return CliqTooltip(
         text: TextWithShortcutInfo(
-          'settings'.tr(),
-          shortcut: KeyboardShortcut(.comma, modifiers: {.control}),
-        ),
-        child: NavigationTab(
-          icon: const Icon(LucideIcons.settings),
-          selected: widget.shell.currentIndex == _settingsBranchIndex,
-          onPress: () {
-            ref
-                .read(sessionProvider.notifier)
-                .setSelectedAndMaybeGo(this, null);
-            goToSettingsBranch();
-          },
-        ),
-      );
-    }
-
-    buildNewSessionTab() {
-      return CliqTooltip(
-        text: TextWithShortcutInfo(
-          'session_new'.tr(),
+          'shortcut.new_tab'.tr(),
           shortcut: KeyboardShortcut(.keyT, modifiers: {.meta}),
         ),
-        child: NavigationTab(
-          icon: const Icon(LucideIcons.plus),
-          onPress: connections.entities.isNotEmpty
-              ? () => showTabs.value = !showTabs.value
-              : null,
-          itemPadding: PlatformUtils.isMobile ? kMobileItemPadding : null,
+        child: FButton.icon(
+          variant: .ghost,
+          child: const Icon(LucideIcons.plus),
+          onPress: () =>
+              ref.read(tabProvider.notifier).openNewAndMaybeGo(this, win.id),
         ),
       );
     }
 
-    buildSessionSidebarTabs() {
-      return [
-        for (final tab in sessions.activeTabs)
-          SessionNavigationTab(tab, selected: tab.id == selectedTab.value?.id),
-        FPopoverMenu(
-          control: .lifted(
-            shown: showTabs.value,
-            onChange: (show) => showTabs.value = show,
-          ),
-          menu: [
-            FItemGroup(
-              children: [
-                for (final connection in connections.entities)
-                  FItem(
-                    prefix: ConnectionIcon.fromConnection(
-                      connection,
-                      size: 10,
-                      padding: 5,
-                    ),
-                    suffix: FTooltipGroup(
-                      child: Row(
-                        mainAxisSize: .min,
-                        spacing: 4,
-                        children: [
-                          CliqTooltip(
-                            text: Text('hosts_connect_sftp'.tr()),
-                            child: FButton.icon(
-                              size: .xs,
-                              child: const Icon(LucideIcons.folder, size: 12),
-                              onPress: () => connect(connection, isSftp: true),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    title: Text(connection.label),
-                    onPress: () => connect(connection),
-                  ),
-              ],
-            ),
-          ],
-          child: buildNewSessionTab(),
-        ),
-      ];
-    }
-
-    toggleMaximize() async {
-      final isMaximized = await windowManager.isMaximized();
-      if (isMaximized) {
-        await windowManager.unmaximize();
+    toggleMaximize() {
+      if (win.isMaximized()) {
+        win.unmaximize();
       } else {
-        await windowManager.maximize();
+        win.maximize();
       }
     }
 
@@ -374,16 +192,13 @@ class NavigationShellState extends ConsumerState<NavigationShell>
         padding: const .only(left: 8),
         child: Row(
           children: [
-            buildButton(
-              onPress: () async => await windowManager.minimize(),
-              icon: LucideIcons.minus,
-            ),
+            buildButton(onPress: () => win.minimize(), icon: LucideIcons.minus),
             buildButton(
               onPress: () async => await toggleMaximize(),
               icon: LucideIcons.copy,
             ),
             buildButton(
-              onPress: () async => await windowManager.close(),
+              onPress: () => win.closeWindow(),
               flipX: true,
               icon: LucideIcons.x,
             ),
@@ -392,97 +207,269 @@ class NavigationShellState extends ConsumerState<NavigationShell>
       );
     }
 
-    return FScaffold(
-      childPad: false,
-      resizeToAvoidBottomInset: false,
-      header: Container(
-        constraints: const .new(minHeight: 54 - 16),
-        decoration: BoxDecoration(
-          color: getEffectiveSidebarColor(),
-          border: Border(
-            bottom: BorderSide(color: context.theme.colors.border, width: 1),
+    buildScrollArrow({
+      required Function(ScrollPosition) enabledWhen,
+      required VoidCallback onPress,
+      required Widget icon,
+    }) {
+      return SizedBox(
+        width: _arrowWidth,
+        child: ListenableBuilder(
+          listenable: scrollController,
+          builder: (context, _) {
+            final enabled =
+                scrollController.positions.length == 1 &&
+                scrollController.position.hasContentDimensions &&
+                enabledWhen(scrollController.position);
+
+            return FButton.icon(
+              size: .xs,
+              variant: .ghost,
+              onPress: enabled ? onPress : null,
+              child: icon,
+            );
+          },
+        ),
+      );
+    }
+
+    buildTabList() {
+      return Flexible(
+        child: SizedBox(
+          height: 34,
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              final count = max(1, windowTabs.length);
+              final fullTabWidth = (constraints.maxWidth / count - _tabGap)
+                  .clamp(_minTabWidth, _maxTabWidth);
+              final overflows =
+                  windowTabs.length * (fullTabWidth + _tabGap) >
+                  constraints.maxWidth + 0.5;
+
+              final tabWidth = overflows
+                  ? _minTabWidth // overflow only happens once tabs hit the minimum
+                  : fullTabWidth;
+              final step = (tabWidth + _tabGap) * 3;
+
+              final contentWidth = windowTabs.length * (tabWidth + _tabGap);
+              final listWidth = overflows
+                  ? constraints.maxWidth - 2 * _arrowWidth
+                  : min(constraints.maxWidth, contentWidth);
+
+              void scrollBy(double delta) {
+                final pos = scrollController.position;
+                scrollController.animateTo(
+                  (pos.pixels + delta).clamp(0.0, pos.maxScrollExtent),
+                  duration: const Duration(milliseconds: 200),
+                  curve: Curves.easeInOut,
+                );
+              }
+
+              return Row(
+                mainAxisSize: .min,
+                children: [
+                  if (overflows)
+                    buildScrollArrow(
+                      icon: const Icon(LucideIcons.chevronLeft),
+                      enabledWhen: (pos) => pos.pixels > 0.5,
+                      onPress: () => scrollBy(-step),
+                    ),
+                  SizedBox(
+                    key: const ValueKey('tab_list'),
+                    width: listWidth,
+                    child: ReorderableListView.builder(
+                      scrollController: scrollController,
+                      scrollDirection: .horizontal,
+                      itemExtentBuilder: (index, _) {
+                        final tab = windowTabs[index];
+                        if (tab.pinned) {
+                          // pinned tabs are always full-size
+                          return _maxTabWidth;
+                        }
+                        return tabWidth + _tabGap;
+                      },
+                      buildDefaultDragHandles: false,
+                      proxyDecorator: (child, _, _) => child,
+                      itemCount: windowTabs.length,
+                      onReorderItem: (from, to) =>
+                          ref.read(tabProvider.notifier).reorder(from, to),
+                      itemBuilder: (context, index) {
+                        final tab = windowTabs[index];
+
+                        return ReorderableDragStartListener(
+                          key: ValueKey(tab.id),
+                          index: index,
+                          child: Padding(
+                            padding: const .only(right: _tabGap),
+                            child: TabPill(
+                              tab: tab,
+                              selected:
+                                  tab.id == selectedTabId &&
+                                  widget.shell.currentIndex ==
+                                      _sessionBranchIndex,
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                  if (overflows)
+                    buildScrollArrow(
+                      icon: const Icon(LucideIcons.chevronRight),
+                      enabledWhen: (pos) =>
+                          pos.pixels < pos.maxScrollExtent - 0.5,
+                      onPress: () => scrollBy(step),
+                    ),
+                ],
+              );
+            },
           ),
         ),
-        child: SafeArea(
-          bottom: false,
-          child: Stack(
-            children: [
-              if (PlatformUtils.isDesktop)
-                Positioned.fill(
-                  child: GestureDetector(
-                    behavior: HitTestBehavior.opaque,
-                    onDoubleTap: () async => await toggleMaximize(),
-                    onPanStart: (_) => windowManager.startDragging(),
-                  ),
-                ),
+      );
+    }
 
-              Padding(
-                padding:
-                    (Platform.isMacOS
-                            ? kMacOSNavigationPadding
-                            : EdgeInsets.zero)
-                        .add(const .all(8)),
-                child: FTooltipGroup(
-                  child: Row(
-                    children: [
-                      Expanded(
-                        // TODO: implement ReorderableListView for session tabs
-                        child: SingleChildScrollView(
-                          hitTestBehavior: .translucent,
-                          scrollDirection: .horizontal,
+    buildHeaderChild(Color? backgroundColor) {
+      return Builder(
+        builder: (context) {
+          return Container(
+            constraints: const .new(minHeight: 54 - 16),
+            decoration: BoxDecoration(
+              color: backgroundColor,
+              border: Border(
+                bottom: BorderSide(
+                  color: context.theme.colors.border,
+                  width: 1,
+                ),
+              ),
+            ),
+            child: Stack(
+              children: [
+                if (PlatformUtils.isDesktop)
+                  Positioned.fill(
+                    child: DragToMoveArea(
+                      child: GestureDetector(
+                        behavior: .opaque,
+                        onDoubleTap: () => toggleMaximize(),
+                      ),
+                    ),
+                  ),
+
+                Padding(
+                  padding:
+                      (Platform.isMacOS
+                              ? kMacOSNavigationPadding
+                              : EdgeInsets.zero)
+                          .add(const .all(8)),
+                  child: FTooltipGroup(
+                    child: Row(
+                      children: [
+                        Expanded(
                           child: Row(
-                            spacing: 8,
                             children: [
-                              if (isDesktop) buildDashboardTab(),
-                              ...buildSessionSidebarTabs(),
+                              if (isDesktop && !Platform.isMacOS)
+                                buildMenuTab(),
+                              Padding(
+                                padding: const .only(right: _tabGap),
+                                child: CliqTooltip(
+                                  text: Text('dashboard'.tr()),
+                                  child: FButton.icon(
+                                    variant: .ghost,
+                                    selected:
+                                        widget.shell.currentIndex ==
+                                        _dashboardBranchIndex,
+                                    onPress: goToDashboardBranch,
+                                    child: const Icon(LucideIcons.home),
+                                  ),
+                                ),
+                              ),
+                              buildTabList(),
+                              buildNewTabButton(),
                             ],
                           ),
                         ),
-                      ),
-                      if (isDesktop && fileTransfer.isNotEmpty) buildQueue(),
-                      if (isDesktop) buildSettingsTab(),
-                      if (isDesktop && !Platform.isMacOS)
-                        buildCustomNavigationButtons(),
-                    ],
+                        if (isDesktop && !Platform.isMacOS)
+                          buildCustomNavigationButtons(),
+                      ],
+                    ),
                   ),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-      footer: isDesktop
-          ? null
-          : FBottomNavigationBar(
-              style: .delta(
-                decoration: .boxDelta(color: getEffectiveSidebarColor()),
-              ),
-              index: widget.shell.currentIndex - 1,
-              onChange: (index) {
-                final _ = switch (index + 1) {
-                  _dashboardBranchIndex => goToDashboardBranch(),
-                  _settingsBranchIndex => goToSettingsBranch(),
-                  _ => throw UnimplementedError(),
-                };
-              },
-              children: [
-                FBottomNavigationBarItem(
-                  icon: const Icon(LucideIcons.layoutDashboard),
-                  label: Text('dashboard'.tr()),
-                ),
-                FBottomNavigationBarItem(
-                  icon: const Icon(LucideIcons.settings),
-                  label: Text('settings'.tr()),
                 ),
               ],
             ),
-      child: widget.shell,
+          );
+        },
+      );
+    }
+
+    buildHeader() {
+      Color? backgroundColor;
+      ThemeMode mode = themeMode.value;
+
+      if (applyTerminalThemeColorToNavigation.value &&
+          widget.shell.currentIndex == _sessionBranchIndex &&
+          session != null &&
+          session.status is SessionConnected) {
+        backgroundColor = session.connection
+            .getEffectiveTerminalTheme(themes, defaultTerminalThemeId.value)
+            .background;
+
+        final isBright =
+            ColorUtils.contrastRatio(Colors.black, backgroundColor) >
+            ColorUtils.contrastRatio(Colors.white, backgroundColor);
+
+        mode = isBright ? ThemeMode.light : ThemeMode.dark;
+        backgroundColor = backgroundColor.withValues(
+          alpha: isBright ? 0.96 : 0.8,
+        );
+      }
+
+      return FTheme(
+        key: const ValueKey('navigation_header_theme'),
+        data: appearanceBaseColors.value.withPrimaryAndMode(
+          primaryColor: appearancePrimaryColor.value,
+          mode: mode,
+          isTouch: PlatformUtils.isMobile,
+        ),
+        child: buildHeaderChild(backgroundColor),
+      );
+    }
+
+    buildFooter() {
+      if (isDesktop) return null;
+      return FBottomNavigationBar(
+        index: widget.shell.currentIndex - 1,
+        onChange: (index) {
+          final _ = switch (index + 1) {
+            _dashboardBranchIndex => goToDashboardBranch(),
+            _ => throw UnimplementedError(),
+          };
+        },
+        children: [
+          FBottomNavigationBarItem(
+            icon: const Icon(LucideIcons.layoutDashboard),
+            label: Text('dashboard'.tr()),
+          ),
+          FBottomNavigationBarItem(
+            icon: const Icon(LucideIcons.settings),
+            label: Text('settings'.tr()),
+          ),
+        ],
+      );
+    }
+
+    return DesktopMenu(
+      key: desktopMenuKey,
+      child: FScaffold(
+        childPad: false,
+        resizeToAvoidBottomInset: false,
+        header: buildHeader(),
+        footer: buildFooter(),
+        child: widget.shell,
+      ),
     );
   }
 
   void goToSessionBranch() => _goToBranch(_sessionBranchIndex);
   void goToDashboardBranch() => _goToBranch(_dashboardBranchIndex);
-  void goToSettingsBranch() => _goToBranch(_settingsBranchIndex);
 
   /// Jumps to the corresponding [StatefulShellBranch], based on the specified index.
   void _goToBranch(int index) {
@@ -490,5 +477,62 @@ class NavigationShellState extends ConsumerState<NavigationShell>
       index,
       initialLocation: widget.shell.currentIndex == index,
     );
+  }
+
+  List<FItemGroupMixin> _toGroups(
+    List<PlatformMenuItem> items,
+    FPopoverController popoverController,
+  ) {
+    final List<FItemGroupMixin> groups = [];
+    final List<PlatformMenuItem> loose = [];
+
+    void flush() {
+      final children = _toItems(loose, popoverController);
+      loose.clear();
+      if (children.isNotEmpty) groups.add(.group(children: children));
+    }
+
+    for (final i in items) {
+      if (i is PlatformMenuItemGroup) {
+        flush();
+        loose.addAll(i.members);
+        flush();
+      } else {
+        loose.add(i);
+      }
+    }
+    flush();
+    return groups;
+  }
+
+  List<FItemMixin> _toItems(
+    List<PlatformMenuItem> items,
+    FPopoverController popoverController,
+  ) {
+    return [
+      for (final i in items)
+        ?switch (i) {
+          PlatformProvidedMenuItem() || PlatformMenuItemGroup() => null,
+          PlatformMenu() => .submenu(
+            title: Text(i.label),
+            submenu: _toGroups(i.menus, popoverController),
+          ),
+          _ => .item(
+            title: i.shortcut == null
+                ? Text(i.label)
+                : TextWithShortcutInfo(
+                    i.label,
+                    shortcut: .fromSingleActivator(
+                      i.shortcut! as SingleActivator,
+                    ),
+                    spaceBetween: true,
+                  ),
+            onPress: () {
+              popoverController.hide(animated: false);
+              i.onSelected?.call();
+            },
+          ),
+        },
+    ];
   }
 }

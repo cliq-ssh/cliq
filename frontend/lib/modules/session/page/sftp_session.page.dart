@@ -1,17 +1,18 @@
 import 'dart:async';
 import 'dart:io';
 
-import 'package:cliq/modules/connections/model/connection_full.model.dart';
 import 'package:cliq/modules/connections/provider/connection.provider.dart';
+import 'package:cliq/modules/session/hook/use_ssh_session.dart';
+import 'package:cliq/modules/session/model/session.model.dart';
 import 'package:cliq/modules/session/model/sftp_transfer_params.model.dart';
 import 'package:cliq/modules/session/page/generic_session.page.dart';
 import 'package:cliq/modules/session/provider/session.provider.dart';
 import 'package:cliq/shared/data/store.dart';
+import 'package:cliq/shared/model/tab.model.dart';
 import 'package:cliq/shared/provider/file_transfer.provider.dart';
 import 'package:cliq/shared/provider/store.provider.dart';
 import 'package:cliq/shared/ui/cliq_tooltip.dart';
 import 'package:cliq/shared/ui/context_menu.dart';
-import 'package:cliq/shared/ui/navigation/navigation_shell.dart';
 import 'package:cliq/shared/ui/table_view.dart';
 import 'package:cliq/shared/utils/commons.dart';
 import 'package:cliq/shared/utils/constants.dart';
@@ -26,7 +27,7 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:forui/forui.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lucide_flutter/lucide_flutter.dart';
-import 'package:material_ui/material_ui.dart' hide LicensePage;
+import 'package:material_ui/material_ui.dart' hide LicensePage, Tab;
 import 'package:open_app_file/open_app_file.dart';
 
 enum _SftpColumn {
@@ -222,11 +223,11 @@ const _ignoredSelectableFilenames = {'.', '..'};
 /// A special file name (and thus id) used to represent a new folder being created in the file list.
 const _createFolderFileName = '@new-folder';
 
-class SftpSessionPage extends StatefulHookConsumerWidget {
-  final String sessionId;
-
-  const new({super.key, required this.sessionId});
-
+class const SftpSessionPage({
+  super.key,
+  required final Tab tab,
+  required final String sessionId,
+}) extends StatefulHookConsumerWidget {
   @override
   ConsumerState<ConsumerStatefulWidget> createState() =>
       _SftpSessionPageState();
@@ -241,14 +242,11 @@ class _SftpSessionPageState extends ConsumerState<SftpSessionPage>
   Widget build(BuildContext context) {
     super.build(context);
 
-    final session = ref
-        .watch(sessionProvider.notifier)
-        .getSessionById(widget.sessionId);
-
-    if (session == null) return const SizedBox.shrink();
+    final session = useSshSession(ref, widget.sessionId);
+    final sftp = session?.resources?.sftp;
 
     // used to trigger a reconnect when the user clicks "Retry" after a connection error
-    final refreshTrigger = useState(0);
+    final attempt = useState(0);
 
     final isLoading = useState(true);
     final largeDownloadWarning = useStore(.sftpLargeDownloadWarning);
@@ -271,7 +269,7 @@ class _SftpSessionPageState extends ConsumerState<SftpSessionPage>
     final renameController = useTextEditingController();
 
     final tempDir = useMemoized(
-      () => Constants.sftpTempDirectory.createTempSync('${session.id}_'),
+      () => Constants.sftpTempDirectory.createTempSync('${widget.sessionId}_'),
     );
 
     final visibleColumns = useState<Set<_SftpColumn>>({
@@ -287,72 +285,64 @@ class _SftpSessionPageState extends ConsumerState<SftpSessionPage>
     final isDesktop = PlatformUtils.isDesktop;
 
     retrySession({bool skipHostKeyVerification = false}) {
+      isLoading.value = true;
       ref
           .read(sessionProvider.notifier)
-          .resetSession(
-            NavigationShell.of(context),
-            session.id,
+          .reset(
+            widget.sessionId,
             skipHostKeyVerification: skipHostKeyVerification,
           );
-      refreshTrigger.value++;
+      attempt.value++;
     }
 
-    // open SFTP connection when terminal controller is set
+    // (re)connect whenever a new attempt starts
     useEffect(() {
-      Future<void> openSftp(ConnectionFull connection) async {
+      bool cancelled = false;
+
+      Future<void> open() async {
+        final notifier = ref.read(sessionProvider.notifier);
+        final current = notifier.findById(widget.sessionId);
+        if (current == null) return;
+
         isLoading.value = true;
 
-        final client =
-            session.client ??
-            await ref
-                .read(sessionProvider.notifier)
-                .createSSHClient(session, connection);
+        // reuse the worker if the session is already connected
+        final worker =
+            sftp ??
+            (current.status is SessionConnecting
+                ? await notifier.connectSftp(
+                    current,
+                    ref
+                            .read(connectionProvider.notifier)
+                            .findById(current.connection.id) ??
+                        current.connection,
+                  )
+                : null);
+        if (worker == null || cancelled || !mounted) return;
 
-        if (client == null || !mounted) {
-          return;
-        }
-
-        final sftpSession = await ref
-            .read(sessionProvider.notifier)
-            .spawnSftp(session.id, client);
-
-        currentDirectory.value = (await sftpSession.absolute('.')).split('/');
-
+        currentDirectory.value = (await worker.absolute('.')).split('/');
         isLoading.value = false;
       }
 
-      final connectionFull = ref
-          .read(connectionProvider.notifier)
-          .findById(session.connection.id);
-
-      if (connectionFull != null) {
-        WidgetsBinding.instance.addPostFrameCallback((_) async {
-          if (!mounted) return;
-          await openSftp(connectionFull);
-        });
-      }
-
-      return null;
-    }, [refreshTrigger.value]);
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!cancelled && mounted) open();
+      });
+      return () => cancelled = true;
+    }, [attempt.value]);
 
     // fetch files in current directory
     useEffect(() {
-      if (session.sftpClient == null ||
-          currentDirectory.value == null ||
-          isLoading.value) {
+      if (sftp == null || currentDirectory.value == null || isLoading.value) {
         return null;
       }
 
       fetch() async {
         isLoading.value = true;
-
         try {
           final path = currentDirectory.value!.join('/');
-
-          currentFiles.value =
-              (await session.sftpClient!.listdir(path.isEmpty ? '/' : path))
-                  .where((file) => !_ignoredFilenames.contains(file.filename))
-                  .toList();
+          currentFiles.value = (await sftp.listdir(path.isEmpty ? '/' : path))
+              .where((file) => !_ignoredFilenames.contains(file.filename))
+              .toList();
         } on SftpStatusError catch (e) {
           if (!context.mounted) return;
 
@@ -378,7 +368,7 @@ class _SftpSessionPageState extends ConsumerState<SftpSessionPage>
     }, [currentDirectory.value]);
 
     getFileIdFromSftpName(SftpName file) {
-      return '${session.id}:${[...?currentDirectory.value, file.filename].join('/')}';
+      return '${widget.sessionId}:${[...?currentDirectory.value, file.filename].join('/')}';
     }
 
     getFileByIndex(int index) {
@@ -441,7 +431,7 @@ class _SftpSessionPageState extends ConsumerState<SftpSessionPage>
     isDirectoryEmpty(SftpName file) async {
       if (!file.attr.isDirectory) return false;
       final path = [...?currentDirectory.value, file.filename].join('/');
-      final entries = await session.sftpClient!.listdir(path);
+      final entries = await sftp!.listdir(path);
       return !entries.any(
         (e) => !_ignoredSelectableFilenames.contains(e.filename),
       );
@@ -481,7 +471,7 @@ class _SftpSessionPageState extends ConsumerState<SftpSessionPage>
       }
       isLoading.value = true;
       final path =
-          await session.sftpClient!.absolute(
+          await sftp!.absolute(
               [...?currentDirectory.value, file.filename].join('/'),
             )
             ..trim();
@@ -582,10 +572,10 @@ class _SftpSessionPageState extends ConsumerState<SftpSessionPage>
       isLoading.value = true;
 
       final symlinkPath = [...?currentDirectory.value, file.filename].join('/');
-      final targetAttr = await session.sftpClient!.stat(symlinkPath);
+      final targetAttr = await sftp!.stat(symlinkPath);
 
       if (targetAttr.isDirectory) {
-        final absolutePath = await session.sftpClient!.absolute(symlinkPath);
+        final absolutePath = await sftp.absolute(symlinkPath);
         navigateTo(absolutePath.split('/'));
       } else {
         await openFile(file, id);
@@ -643,9 +633,9 @@ class _SftpSessionPageState extends ConsumerState<SftpSessionPage>
 
       try {
         if (isCreatingDirectory.value) {
-          await session.sftpClient!.mkdir(newPath);
+          await sftp!.mkdir(newPath);
         } else {
-          await session.sftpClient!.rename(oldPath, newPath);
+          await sftp!.rename(oldPath, newPath);
         }
         resetRename();
         reloadDirectory();
@@ -672,32 +662,17 @@ class _SftpSessionPageState extends ConsumerState<SftpSessionPage>
         return;
       }
 
-      deleteRecursive(SftpClient sftp, String path) async {
-        final attrs = await sftp.stat(path);
-
-        if (attrs.isDirectory) {
-          final entries = await sftp.listdir(path);
-          for (final entry in entries) {
-            if (_ignoredSelectableFilenames.contains(entry.filename)) continue;
-            await deleteRecursive(sftp, '$path/${entry.filename}');
-          }
-          await sftp.rmdir(path);
-        } else {
-          await sftp.remove(path);
-        }
-      }
-
       delete() async {
         isLoading.value = true;
         final fullPath = [...?currentDirectory.value, file.filename].join('/');
 
         if (forceRecursive) {
-          await deleteRecursive(session.sftpClient!, fullPath);
+          await sftp!.removeRecursive(fullPath);
         } else if (!file.attr.isDirectory) {
-          await session.sftpClient!.remove(fullPath);
+          await sftp!.remove(fullPath);
         } else {
           if (await isDirectoryEmpty(file)) {
-            await session.sftpClient!.rmdir(fullPath);
+            await sftp!.rmdir(fullPath);
           } else {
             // warn user if enabled
             bool result = false;
@@ -712,7 +687,7 @@ class _SftpSessionPageState extends ConsumerState<SftpSessionPage>
               );
             }
             if (!directoryNotEmptyWarning.value || result) {
-              await deleteRecursive(session.sftpClient!, fullPath);
+              await sftp!.removeRecursive(fullPath);
             }
           }
         }
@@ -786,12 +761,13 @@ class _SftpSessionPageState extends ConsumerState<SftpSessionPage>
       );
     }
 
+    if (session == null) return const SizedBox.shrink();
+
     return GenericSessionPage(
       session: session,
-      isConnected: session.isConnected && currentDirectory.value != null,
-      isLikelyLoading: session.isLikelyLoading,
       onRetry: retrySession,
-      child: SizedBox.expand(
+      tabId: widget.tab.id,
+      builder: (context) => SizedBox.expand(
         child: Column(
           spacing: 8,
           children: [
@@ -883,6 +859,7 @@ class _SftpSessionPageState extends ConsumerState<SftpSessionPage>
                     spacing: 8,
                     children: [
                       FPopoverMenu(
+                        arrow: .childCenter,
                         menu: [
                           .group(
                             children: [
@@ -972,7 +949,7 @@ class _SftpSessionPageState extends ConsumerState<SftpSessionPage>
 
                       final sourceSession = ref
                           .read(sessionProvider.notifier)
-                          .getSessionById(details.data.sessionId)!;
+                          .findById(details.data.sessionId)!;
 
                       fileTransferNotifier
                           .transferSftp(
@@ -990,7 +967,7 @@ class _SftpSessionPageState extends ConsumerState<SftpSessionPage>
 
                     // check if file exists
                     try {
-                      await session.sftpClient!.stat(destinationPath);
+                      await sftp!.stat(destinationPath);
                       await Commons.showConfirmationDialog(
                         title: 'dialog_overwrite_title'.tr(),
                         children: (context, _, _) => TextUtils.renderText(

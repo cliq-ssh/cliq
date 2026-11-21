@@ -1,6 +1,6 @@
 import 'dart:io';
 
-import 'package:cliq_term/cliq_term.dart';
+import 'package:cliq/modules/settings/model/keyboard_shortcut.model.dart';
 import 'package:cupertino_ui/cupertino_ui.dart';
 import 'package:flutter/services.dart';
 import 'package:forui/forui.dart';
@@ -109,17 +109,18 @@ class ShortcutInfo extends StatelessWidget {
   }
 }
 
-class TextWithShortcutInfo extends StatelessWidget {
-  final String text;
-  final KeyboardShortcut shortcut;
-
-  const new(this.text, {super.key, required this.shortcut});
-
+class const TextWithShortcutInfo(
+  final String text, {
+  super.key,
+  required final KeyboardShortcut shortcut,
+  final bool spaceBetween = false,
+}) extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Row(
-      mainAxisSize: .min,
-      spacing: 12,
+      spacing: 20,
+      mainAxisSize: spaceBetween ? .max : .min,
+      mainAxisAlignment: spaceBetween ? .spaceBetween : .start,
       children: [
         Text(text),
         ShortcutInfo(shortcut: shortcut),

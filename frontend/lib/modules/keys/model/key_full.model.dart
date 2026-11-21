@@ -1,6 +1,7 @@
 import 'package:cliq/shared/data/database.dart';
+import 'package:cliq/shared/model/filterable.dart';
 
-class KeyFull extends Key {
+class KeyFull extends Key implements Filterable {
   final Vault vault;
 
   const new(
@@ -26,4 +27,7 @@ class KeyFull extends Key {
   factory fromFindAllResult(FindAllKeyFullByIdsResult result) {
     return KeyFull.fromKey(result.keyEntity, vault: result.vault);
   }
+
+  @override
+  List<String> getFilterableFields() => [?vault.owner, label];
 }

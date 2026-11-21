@@ -5,32 +5,37 @@ import 'package:cliq/modules/connections/provider/connection_service.provider.da
 import 'package:cliq/modules/connections/ui/connection_icon.dart';
 import 'package:cliq/modules/connections/ui/create_or_edit_connection_sheet.dart';
 import 'package:cliq/modules/session/provider/session.provider.dart';
+import 'package:cliq/modules/settings/model/keyboard_shortcut.model.dart';
 import 'package:cliq/modules/settings/provider/sync.provider.dart';
+import 'package:cliq/shared/provider/tab.provider.dart';
 import 'package:cliq/shared/ui/context_menu.dart';
 import 'package:cliq/shared/ui/navigation/navigation_shell.dart';
 import 'package:cliq/shared/ui/title_card.dart';
 import 'package:cliq/shared/utils/commons.dart';
 import 'package:cliq/shared/utils/platform_utils.dart';
-import 'package:cliq_term/cliq_term.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:forui/forui.dart';
 import 'package:forui_hooks/forui_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lucide_flutter/lucide_flutter.dart';
 import 'package:material_ui/material_ui.dart';
+import 'package:multiview_desktop/multiview_desktop.dart';
 
 class const ConnectionCard({
   super.key,
   required final ConnectionFull connection,
+  final bool readonly = false,
 }) extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final win = MultiViewDesktop.of(context);
+
     final primaryPopoverController = useFPopoverController();
     final secondaryPopoverController = useFPopoverController();
 
     final hasVaultError = ref.watch(vaultHasErrorProvider(connection.vault.id));
 
-    connect({bool isSftp = false}) async {
+    connect({bool sftp = false}) async {
       await primaryPopoverController.hide();
       await secondaryPopoverController.hide();
       if (!context.mounted) return;
@@ -45,9 +50,16 @@ class const ConnectionCard({
         return;
       }
 
-      return ref
-          .read(sessionProvider.notifier)
-          .createAndGo(NavigationShell.of(context), connection, isSftp: isSftp);
+      ref
+          .read(tabProvider.notifier)
+          .openNewAndMaybeGo(
+            NavigationShell.of(context),
+            win.id,
+            content: sftp ? .sftp : .ssh,
+            session: ref
+                .read(sessionProvider.notifier)
+                .create(connection, sftp: sftp),
+          );
     }
 
     edit() async {
@@ -57,7 +69,6 @@ class const ConnectionCard({
 
       return Commons.showResponsiveSheet(
         (_) => CreateOrEditConnectionSheet.edit(connection),
-        context: context,
       );
     }
 
@@ -81,28 +92,35 @@ class const ConnectionCard({
       required FPopoverController controller,
       required Widget child,
     }) {
+      if (readonly) return child;
+
       return FPopoverMenu(
+        arrow: .childCenter,
         control: .managed(controller: controller),
         menu: [
-          FItemGroup(
+          .group(
             children: [
-              FItem(
+              .item(
                 prefix: const Icon(LucideIcons.unplug),
                 title: Text('hosts_connect_ssh'.tr()),
                 onPress: connect,
               ),
-              FItem(
+              .item(
                 prefix: const Icon(LucideIcons.folderOpen),
                 title: Text('hosts_connect_sftp'.tr()),
-                onPress: () => connect(isSftp: true),
+                onPress: () => connect(sftp: true),
               ),
-              FItem(
+            ],
+          ),
+          .group(
+            children: [
+              .item(
                 prefix: const Icon(LucideIcons.pencil),
                 title: Text('edit'.tr()),
                 enabled: !hasVaultError,
                 onPress: hasVaultError ? null : edit,
               ),
-              FItem(
+              .item(
                 variant: .destructive,
                 prefix: const Icon(LucideIcons.trash),
                 title: Text('delete'.tr()),
@@ -127,7 +145,7 @@ class const ConnectionCard({
         .new(
           label: 'hosts_connect_sftp'.tr(),
           icon: LucideIcons.folderOpen,
-          onPress: () => connect(isSftp: true),
+          onPress: () => connect(sftp: true),
           shortcut: KeyboardShortcut(.enter, modifiers: {.shift}),
         ),
         .new(

@@ -2,7 +2,7 @@ import 'dart:async';
 
 import 'package:cliq/shared/data/store.dart';
 import 'package:cliq/shared/utils/build_metadata.dart';
-import 'package:cliq_ui/cliq_ui.dart' show CliqFontFamily;
+import 'package:cliq/shared/utils/constants.dart';
 import 'package:cupertino_ui/cupertino_ui.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:forui/forui.dart';
@@ -33,7 +33,7 @@ class const VersionIndicator({super.key}) extends HookConsumerWidget {
       child: Text(
         'v${BuildMetadata.version}+${BuildMetadata.buildNumber} (${BuildMetadata.gitShaShort})',
         style: .new(
-          fontFamily: CliqFontFamily.secondary.fontFamily,
+          fontFamily: Constants.secondaryFont,
           color: context.theme.colors.mutedForeground,
         ),
       ),

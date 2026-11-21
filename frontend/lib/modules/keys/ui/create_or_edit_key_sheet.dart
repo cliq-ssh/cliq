@@ -19,7 +19,6 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:file_selector/file_selector.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:forui/forui.dart';
-import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lucide_flutter/lucide_flutter.dart';
 import 'package:material_ui/material_ui.dart' hide Key, Router;
@@ -87,7 +86,7 @@ class CreateOrEditKeySheet extends HookConsumerWidget {
             );
 
       if (!context.mounted) return;
-      context.pop((keyId, labelCtrl.text));
+      Navigator.of(context).pop((keyId, labelCtrl.text));
     }
 
     buildImportKeyButton(
@@ -170,7 +169,7 @@ class CreateOrEditKeySheet extends HookConsumerWidget {
         if (!context.mounted) return;
 
         await showFDialog(
-          context: Router.rootNavigatorKey.currentContext ?? context,
+          context: Router.focused?.rootNavigatorKey.currentContext ?? context,
           builder: (_, style, animation) => VaultTransferDialog(
             style: style,
             animation: animation,

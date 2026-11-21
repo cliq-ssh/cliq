@@ -58,12 +58,11 @@ final class const Commons._() {
 
   static Future<T?> showResponsiveSheet<T>(
     WidgetBuilder builder, {
-    required BuildContext? context,
     bool dismissable = true,
   }) {
     return showFSheet(
       useRootNavigator: true,
-      context: (context ?? Router.shellNavigatorKey.currentContext)!,
+      context: Router.focused!.shellNavigatorKey.currentContext!,
       side: FLayout.rtl,
       mainAxisMaxRatio: 1,
       draggable: false,
@@ -87,7 +86,7 @@ final class const Commons._() {
     String? confirmButtonText,
   }) {
     return showFDialog(
-      context: (Router.rootNavigatorKey.currentContext ?? context)!,
+      context: (Router.focused?.rootNavigatorKey.currentContext ?? context)!,
       builder: (context, style, animation) {
         final text = RichText(
           text: TextSpan(children: children(context, style, animation)),
@@ -161,7 +160,7 @@ final class const Commons._() {
     Widget? prefix,
     FToastVariant? variant,
   }) async {
-    final context = Router.rootNavigatorKey.currentContext;
+    final context = Router.focused?.rootNavigatorKey.currentContext;
     if (context != null) {
       showFToast(
         variant: variant ?? .primary,

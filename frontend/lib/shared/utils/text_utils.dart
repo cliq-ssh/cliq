@@ -1,7 +1,8 @@
 import 'dart:math';
 
+import 'package:cliq/modules/settings/model/keyboard_shortcut.model.dart';
+import 'package:cliq/shared/model/filterable.dart';
 import 'package:cliq/shared/ui/shortcut_info.dart';
-import 'package:cliq_term/cliq_term.dart';
 import 'package:cupertino_ui/cupertino_ui.dart';
 import 'package:forui/forui.dart';
 import 'package:lucide_flutter/lucide_flutter.dart';
@@ -115,6 +116,13 @@ enum _RenderableTag {
 
 class TextUtils {
   const new _();
+
+  static bool matches(Filterable filterable, String query) {
+    if (query.isEmpty) return true;
+    return filterable.getFilterableFields().any(
+      (f) => f.trim().toLowerCase().contains(query.trim().toLowerCase()),
+    );
+  }
 
   static String? formatBytes(num? bytes, {int decimals = 2}) {
     if (bytes == null || bytes <= 0) return null;

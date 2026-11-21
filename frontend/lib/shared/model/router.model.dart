@@ -1,34 +1,25 @@
 import 'package:cliq/modules/connections/page/connections.page.dart';
-import 'package:cliq/modules/session/ui/session_page_wrapper.dart';
-import 'package:cliq/modules/settings/page/settings.page.dart';
-import 'package:cliq/modules/settings/page/views/appearance_settings.view.dart';
-import 'package:cliq/modules/settings/page/views/developer_settings.view.dart';
-import 'package:cliq/modules/settings/page/views/i18n_settings.view.dart';
-import 'package:cliq/modules/settings/page/views/identities_settings.view.dart';
-import 'package:cliq/modules/settings/page/views/keys_settings.view.dart';
-import 'package:cliq/modules/settings/page/views/known_hosts_settings.view.dart';
-import 'package:cliq/modules/settings/page/views/licenses.view.dart';
-import 'package:cliq/modules/settings/page/views/logs_settings.view.dart';
-import 'package:cliq/modules/settings/page/views/shortcuts_settings.view.dart';
-import 'package:cliq/modules/settings/page/views/ssh_sftp_settings.view.dart';
-import 'package:cliq/modules/settings/page/views/sync_settings.view.dart';
-import 'package:cliq/modules/settings/page/views/terminal_theme_settings.view.dart';
+import 'package:cliq/shared/provider/window_scope.provider.dart';
 import 'package:cliq/shared/ui/navigation/navigation_shell.dart';
+import 'package:cliq/shared/ui/tab_page_wrapper.dart';
 import 'package:cupertino_ui/cupertino_ui.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:multiview_desktop/multiview_desktop.dart';
 
 class Router {
+  static final Map<int, Router> _byWindow = {};
+
   final Ref ref;
+  final int windowId;
 
-  new(this.ref);
+  new(this.ref) : windowId = ref.read(currentWindowIdProvider) {
+    _byWindow[windowId] = this;
+    ref.onDispose(() => _byWindow.remove(windowId));
+  }
 
-  static final GlobalKey<NavigatorState> rootNavigatorKey = GlobalKey(
-    debugLabel: 'root',
-  );
-  static final GlobalKey<NavigatorState> shellNavigatorKey = GlobalKey(
-    debugLabel: 'shell',
-  );
+  final GlobalKey<NavigatorState> rootNavigatorKey = .new(debugLabel: 'root');
+  final GlobalKey<NavigatorState> shellNavigatorKey = .new(debugLabel: 'shell');
 
   late GoRouter goRouter = GoRouter(
     initialLocation: '/',
@@ -40,8 +31,8 @@ class Router {
           StatefulShellBranch(
             routes: [
               GoRoute(
-                path: SessionPageWrapper.pagePath.path,
-                pageBuilder: _fade(const SessionPageWrapper()),
+                path: TabPageWrapper.pagePath.path,
+                pageBuilder: _fade(const TabPageWrapper()),
               ),
             ],
           ),
@@ -54,71 +45,18 @@ class Router {
               ),
             ],
           ),
-          StatefulShellBranch(
-            routes: [
-              GoRoute(
-                path: SettingsPage.pagePath.path,
-                pageBuilder: _fade(const SettingsPage()),
-                routes: [
-                  GoRoute(
-                    path: DeveloperSettingsView.pagePath.path,
-                    pageBuilder: _swipe(const DeveloperSettingsView()),
-                  ),
-                  GoRoute(
-                    path: I18nSettingsView.pagePath.path,
-                    pageBuilder: _swipe(const I18nSettingsView()),
-                  ),
-                  GoRoute(
-                    path: IdentitiesSettingsView.pagePath.path,
-                    pageBuilder: _swipe(const IdentitiesSettingsView()),
-                  ),
-                  GoRoute(
-                    path: KeysSettingsView.pagePath.path,
-                    pageBuilder: _swipe(const KeysSettingsView()),
-                  ),
-                  GoRoute(
-                    path: KnownHostsSettingsView.pagePath.path,
-                    pageBuilder: _swipe(const KnownHostsSettingsView()),
-                  ),
-                  GoRoute(
-                    path: LicenseSettingsView.pagePath.path,
-                    pageBuilder: _swipe(const LicenseSettingsView()),
-                  ),
-                  GoRoute(
-                    path: TerminalThemeSettingsView.pagePath.path,
-                    pageBuilder: _swipe(const TerminalThemeSettingsView()),
-                  ),
-                  GoRoute(
-                    path: ShortcutsSettingsView.pagePath.path,
-                    pageBuilder: _swipe(const ShortcutsSettingsView()),
-                  ),
-                  GoRoute(
-                    path: LogsSettingsView.pagePath.path,
-                    pageBuilder: _swipe(const LogsSettingsView()),
-                  ),
-                  GoRoute(
-                    path: SshSftpSettingsView.pagePath.path,
-                    pageBuilder: _swipe(const SshSftpSettingsView()),
-                  ),
-                  GoRoute(
-                    path: SyncSettingsView.pagePath.path,
-                    pageBuilder: _swipe(const SyncSettingsView()),
-                  ),
-                  GoRoute(
-                    path: AppearanceSettingsView.pagePath.path,
-                    pageBuilder: _swipe(const AppearanceSettingsView()),
-                  ),
-                ],
-              ),
-            ],
-          ),
         ],
       ),
     ],
   );
 
-  static Page<T> Function(BuildContext, GoRouterState) _swipe<T>(Widget child) {
-    return (_, _) => CupertinoPage(child: child);
+  /// Allows to access the [Router] for the currently focused window, determined
+  /// by [MultiViewDesktop.isFocused].
+  static Router? get focused {
+    for (final e in _byWindow.entries) {
+      if (MultiViewDesktop.fromId(e.key).isFocused()) return e.value;
+    }
+    return _byWindow.values.firstOrNull;
   }
 
   static Page<T> Function(BuildContext, GoRouterState) _fade<T>(Widget child) {

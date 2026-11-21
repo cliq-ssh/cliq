@@ -1,4 +1,4 @@
-import 'package:cliq_ui/cliq_ui.dart';
+import 'package:cliq_grid/cliq_grid.dart';
 import 'package:cupertino_ui/cupertino_ui.dart';
 import 'package:forui/forui.dart' show FScaffold;
 
@@ -12,7 +12,8 @@ class ResponsiveSheet extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
-    final isLg = context.theme.breakpoints.getBreakpoint(size.width) >= .lg;
+    final isLg =
+        CliqTheme.of(context).breakpoints.getBreakpoint(size.width) >= .lg;
 
     final dialog = SafeArea(
       child: LayoutBuilder(

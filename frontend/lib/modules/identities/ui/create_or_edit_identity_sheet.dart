@@ -18,7 +18,6 @@ import 'package:drift/drift.dart' hide Column;
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:forui/forui.dart';
-import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:material_ui/material_ui.dart' hide Router;
 
@@ -86,7 +85,7 @@ class CreateOrEditIdentitySheet extends HookConsumerWidget {
             );
 
       if (!context.mounted) return;
-      context.pop((identityId, labelCtrl.text));
+      Navigator.of(context).pop((identityId, labelCtrl.text));
     }
 
     return CreateOrEditEntityView(
@@ -123,7 +122,7 @@ class CreateOrEditIdentitySheet extends HookConsumerWidget {
         if (!context.mounted) return;
 
         await showFDialog(
-          context: Router.rootNavigatorKey.currentContext ?? context,
+          context: Router.focused?.rootNavigatorKey.currentContext ?? context,
           builder: (_, style, animation) => VaultTransferDialog(
             style: style,
             animation: animation,

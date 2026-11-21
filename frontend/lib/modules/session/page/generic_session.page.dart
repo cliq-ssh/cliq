@@ -1,48 +1,38 @@
 import 'package:cliq/modules/session/model/session.model.dart';
 import 'package:cliq/modules/session/provider/session.provider.dart';
+import 'package:cliq/modules/settings/model/known_host_error.model.dart';
+import 'package:cliq/shared/provider/tab.provider.dart';
 import 'package:cliq/shared/ui/cliq_tooltip.dart';
-import 'package:cliq/shared/ui/navigation/navigation_shell.dart';
+import 'package:cliq/shared/ui/error_card.dart';
 import 'package:cliq/shared/ui/title_card.dart';
 import 'package:cliq/shared/utils/commons.dart';
 import 'package:cliq/shared/utils/text_utils.dart';
-import 'package:cliq_ui/cliq_ui.dart'
-    show CliqFontFamily, CliqGridColumn, CliqGridContainer, CliqGridRow;
+import 'package:cliq_grid/cliq_grid.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:forui/forui.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lucide_flutter/lucide_flutter.dart';
-import 'package:material_ui/material_ui.dart' hide LicensePage;
+import 'package:material_ui/material_ui.dart' hide LicensePage, Tab;
 
-class GenericSessionPage extends HookConsumerWidget {
-  final Widget child;
-  final ShellSession session;
-  final bool isConnected;
-  final bool isLikelyLoading;
-  final void Function({bool skipHostKeyVerification})? onRetry;
-
-  const new({
-    super.key,
-    required this.child,
-    required this.session,
-    required this.isConnected,
-    required this.isLikelyLoading,
-    this.onRetry,
-  });
-
+class const GenericSessionPage({
+  super.key,
+  required final WidgetBuilder builder,
+  required final String tabId,
+  required final SshSession session,
+  final void Function({bool skipHostKeyVerification})? onRetry,
+}) extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final typography = context.theme.typography;
 
-    closeSession() {
-      ref
-          .read(sessionProvider.notifier)
-          .closeSessionAndMaybeGo(NavigationShell.of(context), session.id);
+    close() {
+      ref.read(tabProvider.notifier).close(tabId);
     }
 
     buildConnecting() {
       return [
         const FCircularProgress(),
-        const SizedBox(height: 8),
+        const SizedBox(height: 16),
         Text.rich(
           TextSpan(
             children: TextUtils.renderText(
@@ -55,24 +45,24 @@ class GenericSessionPage extends HookConsumerWidget {
       ];
     }
 
-    buildKnownHostWarning() {
+    buildKnownHostError(KnownHostError error) {
       return [
         const Icon(LucideIcons.fingerprintPattern, size: 48),
-        const SizedBox(height: 8),
+        const SizedBox(height: 16),
         Text.rich(
           textAlign: .center,
           TextSpan(
             children: TextUtils.renderText(
               context,
-              (session.knownHostError!.knownHost != null
+              (error.knownHost != null
                       ? 'hosts_update_fingerprint_title'
                       : 'hosts_accept_fingerprint_title')
-                  .tr(args: [session.knownHostError!.host]),
+                  .tr(args: [error.host]),
             ),
           ),
           style: typography.body.xl,
         ),
-        if (session.knownHostError!.knownHost != null)
+        if (error.knownHost != null)
           Text(
             'hosts_update_fingerprint_subtitle'.tr(),
             style: typography.body.md.copyWith(
@@ -85,20 +75,18 @@ class GenericSessionPage extends HookConsumerWidget {
           subtitle: Row(
             mainAxisAlignment: .spaceBetween,
             children: [
-              Text('${session.knownHostError!.algorithm} (SHA256)'),
+              Text('${error.algorithm} (SHA256)'),
               CliqTooltip(
                 text: Text('click_to_copy'.tr()),
                 child: FButton.icon(
-                  onPress: () => Commons.copyToClipboard(
-                    context,
-                    session.knownHostError!.fingerprintString,
-                  ),
+                  onPress: () =>
+                      Commons.copyToClipboard(context, error.fingerprintString),
                   child: const Icon(LucideIcons.copy, size: 14),
                 ),
               ),
             ],
           ),
-          child: SelectableText(session.knownHostError!.fingerprintString),
+          child: SelectableText(error.fingerprintString),
         ),
         const SizedBox(height: 8),
         Row(
@@ -106,7 +94,7 @@ class GenericSessionPage extends HookConsumerWidget {
           children: [
             FButton(
               variant: .outline,
-              onPress: closeSession,
+              onPress: close,
               child: Text('close'.tr()),
             ),
             const Spacer(),
@@ -122,7 +110,7 @@ class GenericSessionPage extends HookConsumerWidget {
                     .acceptFingerprint(
                       session.connection.vaultId,
                       session.id,
-                      session.knownHostError!,
+                      error,
                     );
                 onRetry?.call();
               },
@@ -133,10 +121,10 @@ class GenericSessionPage extends HookConsumerWidget {
       ];
     }
 
-    buildError() {
+    buildError(String message) {
       return [
         const Icon(LucideIcons.plugZap, size: 48),
-        const SizedBox(height: 8),
+        const SizedBox(height: 16),
         Text.rich(
           TextSpan(
             children: TextUtils.renderText(
@@ -149,35 +137,16 @@ class GenericSessionPage extends HookConsumerWidget {
           style: typography.body.xl,
         ),
         const SizedBox(height: 16),
-        if (session.connectionError != null)
-          FCard(
-            style: .delta(
-              decoration: .boxDelta(
-                color: context.theme.colors.destructive.withValues(alpha: 0.1),
-                border: Border.all(
-                  color: context.theme.colors.destructive.withValues(
-                    alpha: 0.2,
-                  ),
-                ),
-              ),
-            ),
-            child: Padding(
-              padding: const .all(12),
-              child: Text(
-                session.connectionError!,
-                style: context.theme.typography.body.xs.copyWith(
-                  fontFamily: CliqFontFamily.secondary.fontFamily,
-                ),
-              ),
-            ),
-          ),
+        Row(
+          children: [Expanded(child: ErrorCard(text: message))],
+        ),
         const SizedBox(height: 8),
         Row(
           mainAxisAlignment: .spaceBetween,
           children: [
             FButton(
               variant: .outline,
-              onPress: closeSession,
+              onPress: close,
               child: Text('close'.tr()),
             ),
             FButton(onPress: () => onRetry?.call(), child: Text('retry'.tr())),
@@ -186,24 +155,46 @@ class GenericSessionPage extends HookConsumerWidget {
       ];
     }
 
-    List<Widget> children = [];
-    if (session.knownHostError != null) {
-      children = buildKnownHostWarning();
-    } else if (session.connectionError != null) {
-      children = buildError();
-    } else if (isLikelyLoading) {
-      children = buildConnecting();
-    } else if (isConnected) {
-      return child;
-    }
+    if (session.status is SessionConnected) return builder(context);
 
-    return CliqGridContainer(
-      alignment: .center,
-      children: [
-        CliqGridRow(
-          children: [CliqGridColumn(child: Column(children: children))],
-        ),
-      ],
+    final List<Widget> children = switch (session.status) {
+      SessionConnecting() => buildConnecting(),
+      SessionNeedsHostTrust(:final error) => buildKnownHostError(error),
+      SessionFailed(:final message) => buildError(message),
+      SessionConnected() => const [],
+    };
+
+    const verticalPadding = 20.0;
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        return SingleChildScrollView(
+          padding: const EdgeInsets.symmetric(vertical: verticalPadding),
+          child: ConstrainedBox(
+            constraints: BoxConstraints(
+              minHeight: constraints.maxHeight - (verticalPadding * 2),
+            ),
+            child: Center(
+              child: CliqGridContainer(
+                alignment: .center,
+                children: [
+                  CliqGridRow(
+                    children: [
+                      CliqGridColumn(
+                        sizes: const {.md: 6},
+                        child: Column(
+                          mainAxisSize: .min,
+                          crossAxisAlignment: .center,
+                          children: children,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
     );
   }
 }

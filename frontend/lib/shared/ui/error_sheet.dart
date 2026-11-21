@@ -1,10 +1,9 @@
 import 'package:cliq/shared/model/localized_exception.dart';
+import 'package:cliq/shared/ui/error_card.dart';
 import 'package:cliq/shared/utils/commons.dart';
-import 'package:cliq_ui/cliq_ui.dart' show CliqFontFamily;
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/widgets.dart';
 import 'package:forui/forui.dart';
-import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lucide_flutter/lucide_flutter.dart';
 import 'package:simple_icons/simple_icons.dart';
@@ -23,33 +22,7 @@ class ErrorSheet extends ConsumerWidget {
 
     buildErrorDetailsCard(String content) {
       return Row(
-        children: [
-          Expanded(
-            child: FCard(
-              style: .delta(
-                decoration: .boxDelta(
-                  color: context.theme.colors.destructive.withValues(
-                    alpha: 0.1,
-                  ),
-                  border: Border.all(
-                    color: context.theme.colors.destructive.withValues(
-                      alpha: 0.2,
-                    ),
-                  ),
-                ),
-              ),
-              child: Padding(
-                padding: const .all(12),
-                child: Text(
-                  content,
-                  style: context.theme.typography.body.xs.copyWith(
-                    fontFamily: CliqFontFamily.secondary.fontFamily,
-                  ),
-                ),
-              ),
-            ),
-          ),
-        ],
+        children: [Expanded(child: ErrorCard(text: content))],
       );
     }
 
@@ -64,7 +37,7 @@ class ErrorSheet extends ConsumerWidget {
               children: [
                 FButton.icon(
                   variant: .outline,
-                  onPress: () => context.pop(),
+                  onPress: () => Navigator.of(context).pop(),
                   child: const Icon(LucideIcons.x),
                 ),
               ],

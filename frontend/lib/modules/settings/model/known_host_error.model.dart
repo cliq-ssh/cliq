@@ -3,19 +3,14 @@ import 'dart:typed_data';
 
 import 'package:cliq/shared/data/database.dart';
 
-class KnownHostError {
-  final String host;
-  final String algorithm;
-  final Uint8List fingerprint;
-  // The known host entry that was found, if any.
-  final KnownHostsCompanion? knownHost;
+/// A model representing a known host error encountered during SSH connection.
+class const KnownHostError({
+  required final String host,
+  required final String algorithm,
+  required final Uint8List fingerprint,
 
-  const new({
-    required this.host,
-    required this.algorithm,
-    required this.fingerprint,
-    this.knownHost,
-  });
-
+  /// The known host entry that was found, if any.
+  required final KnownHostsCompanion? knownHost,
+}) {
   String get fingerprintString => utf8.decode(fingerprint);
 }

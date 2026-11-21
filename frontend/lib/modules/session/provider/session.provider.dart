@@ -1,349 +1,93 @@
 import 'dart:async';
+import 'dart:ui';
 
 import 'package:cliq/modules/connections/model/connection_full.model.dart';
 import 'package:cliq/modules/credentials/data/credential.service.dart';
 import 'package:cliq/modules/credentials/provider/credential_service.provider.dart';
 import 'package:cliq/modules/session/model/session.model.dart';
 import 'package:cliq/modules/session/model/session.state.dart';
-import 'package:cliq/modules/session/model/tab.model.dart';
+import 'package:cliq/modules/session/worker/sftp_worker.dart';
+import 'package:cliq/modules/session/worker/ssh_worker.dart';
+import 'package:cliq/modules/session/worker/worker_core.dart';
 import 'package:cliq/modules/settings/model/known_host_error.model.dart';
 import 'package:cliq/modules/settings/provider/known_host_service.provider.dart';
 import 'package:cliq/shared/data/database.dart';
-import 'package:cliq/shared/ui/navigation/navigation_shell.dart';
 import 'package:cliq/shared/utils/build_metadata.dart';
-import 'package:cliq_term/cliq_term.dart';
-import 'package:dartssh2/dartssh2.dart';
+import 'package:flterm/flterm.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:uuid/v4.dart';
+import 'package:uuid/v7.dart';
 
 final sessionProvider = NotifierProvider(SessionNotifier.new);
 
 class SessionNotifier extends Notifier<SessionState> {
-  static const UuidV4 uuid = UuidV4();
+  static const UuidV7 v7 = UuidV7();
 
   @override
-  SessionState build() => const SessionState.initial();
+  SessionState build() => const .initial();
 
-  /// Creates a new session and navigates to the session branch, where the tab is selected.
-  void createAndGo(
-    NavigationShellState shellState,
-    ConnectionFull connection, {
-    bool isSftp = false,
-  }) {
-    final newSession = ShellSession.disconnected(
-      id: uuid.generate(),
-      type: isSftp ? .sftp : .ssh,
+  static String getSshIdent() => 'SSH-2.0-cliq_${BuildMetadata.version}';
+
+  /// Finds the [SshSession] with the given [sessionId] across all tabs, or null if not found.
+  SshSession? findById(String sessionId) =>
+      state.sessions.where((s) => s.id == sessionId).firstOrNull;
+
+  /// Creates a new SSH session for the given [connection] and adds it to the state.
+  SshSession create(ConnectionFull connection, {bool sftp = false}) {
+    final session = SshSession(
+      id: v7.generate(),
+      type: sftp ? .sftp : .ssh,
       connection: connection,
     );
+    state = state.copyWith(sessions: [...state.sessions, session]);
+    return session;
+  }
 
-    final tab = SessionTab.create(id: uuid.generate(), root: newSession);
+  /// Connects a new SSH session for the given [connection] and adds it to the state
+  Future<SshWorkerHandle?> connectSsh(
+    SshSession session,
+    ConnectionFull connection,
+    TerminalController terminal, {
+    required VoidCallback onExit,
+  }) async {
+    final worker = SshWorkerHandle(terminal);
+    if (!await _startWorker(worker, session, connection, onExit: onExit)) {
+      return null;
+    }
 
-    final newActiveTabs = [...state.activeTabs, tab];
-    final newTabPageIndices = _generatePageIndices(newActiveTabs);
-    shellState.goToSessionBranch();
-
-    state = state.copyWith(
-      activeTabs: newActiveTabs,
-      selectedTabId: tab.id,
-      tabPageIndices: newTabPageIndices,
+    _modify(
+      session.id,
+      (s) => s.copyWith(
+        status: SessionConnected(
+          .now(),
+          .new(ssh: worker, sftp: null, terminalController: terminal),
+        ),
+      ),
     );
+    return worker;
   }
 
-  /// Selects the tab with the given [tabId].
-  /// If [tabId] is not null, navigates to the session branch.
-  void setSelectedAndMaybeGo(NavigationShellState shellState, String? tabId) {
-    if (tabId != null) {
-      shellState.goToSessionBranch();
-    }
-    state = state.copyWith(selectedTabId: tabId ?? '');
-  }
-
-  /// Closes the session with the given [tabId].
-  /// If the closed session was the selected one, selects the last session in the list or navigates to the default branch if no sessions remain.
-  void closeTabAndMaybeGo(
-    NavigationShellState shellState,
-    String tabId, {
-    bool dispose = true,
-  }) {
-    final tab = state.activeTabs.firstWhere((s) => s.id == tabId);
-
-    final newActiveTabs = state.activeTabs.where((s) => s.id != tabId).toList();
-    final newTabPageIndices = _generatePageIndices(newActiveTabs);
-    String? newSelectedTabId = state.selectedTabId;
-
-    // If the closed tab was the selected one, update the selected tab to the last one in the list,
-    // or go to the dashboard if no tabs remain.
-    if (state.selectedTabId == tabId) {
-      if (newActiveTabs.isNotEmpty) {
-        newSelectedTabId = newActiveTabs.last.id;
-      } else {
-        newSelectedTabId = null;
-        shellState.goToDashboardBranch(); // Go to dashboard branch if no sessions left.
-      }
-    }
-
-    if (dispose) {
-      // dispose tab resources
-      tab.dispose();
-    }
-
-    state = state.copyWith(
-      activeTabs: newActiveTabs,
-      selectedTabId: newSelectedTabId,
-      tabPageIndices: newTabPageIndices,
-    );
-  }
-
-  Future<SftpFile?> readFileFromSession(
-    String sessionId,
-    String filePath,
-  ) async {
-    final session = getSessionById(sessionId);
-    if (session == null || session.sftpClient == null) return null;
-    return await session.sftpClient!.open(filePath);
-  }
-
-  void closeSessionAndMaybeGo(
-    NavigationShellState shellState,
-    String sessionId, {
-    bool dispose = true,
-  }) {
-    final tabId = findTabIdBySessionId(sessionId);
-    if (tabId == null) {
-      // This should never happen
-      return;
-    }
-
-    final tab = state.activeTabs.firstWhere((s) => s.id == tabId);
-    final allSessions = [...tab.sessions, tab.root];
-
-    if (dispose) allSessions.firstWhere((s) => s.id == sessionId).dispose();
-
-    final remaining = allSessions.where((s) => s.id != sessionId).toList();
-
-    // if no sessions remain, close the whole tab
-    if (remaining.isEmpty) {
-      closeTabAndMaybeGo(shellState, tabId, dispose: false);
-      return;
-    }
-
-    // otherwise promote first remaining as new root
-    final newRoot = tab.root.id == sessionId ? remaining.first : tab.root;
-    final newSessions = remaining.where((s) => s.id != newRoot.id).toList();
-
-    final newTab = tab.copyWith(root: newRoot, sessions: newSessions);
-    state = state.copyWith(
-      activeTabs: state.activeTabs
-          .map((t) => t.id == tabId ? newTab : t)
-          .toList(),
-    );
-  }
-
-  ShellSession findById(String sessionId) {
-    for (final tab in state.activeTabs) {
-      for (final session in [...tab.sessions, tab.root]) {
-        if (session.id == sessionId) {
-          return session;
-        }
-      }
-    }
-    throw Exception('Session with id $sessionId not found in any active tab.');
-  }
-
-  /// Resets the session to a disconnected state, disposing of any existing SSH resources.
-  void resetSession(
-    NavigationShellState shellState,
-    String sessionId, {
-    bool skipHostKeyVerification = false,
-  }) {
-    _modifySession(sessionId, (session) {
-      session.dispose();
-      return ShellSession.disconnected(
-        id: session.id,
-        type: session.type,
-        connection: session.connection,
-        skipHostKeyVerification: skipHostKeyVerification,
-      );
-    });
-  }
-
-  /// Merges a single session into an existing tab, closing the merged session and adding it to the
-  /// tab's sessions list. This is used for drag-and-drop merging of sessions.
-  void merge(
-    NavigationShellState shellState,
-    String tabId,
-    ShellSession newSession,
-  ) {
-    closeSessionAndMaybeGo(shellState, newSession.id, dispose: false);
-
-    final tab = state.activeTabs.firstWhere((s) => s.id == tabId);
-    final newSessions = [...tab.sessions, newSession];
-
-    final newTab = tab.copyWith(
-      sessions: newSessions,
-      customLabel: tab.customLabel,
-    );
-    final newActiveTabs = state.activeTabs.map((t) {
-      if (t.id == tabId) return newTab;
-      return t;
-    }).toList();
-    state = state.copyWith(activeTabs: newActiveTabs);
-  }
-
-  /// Renames the tab with [tabId] to [customLabel]. If [customLabel] is null or empty the custom label will be
-  /// cleared and UI will fall back to the default connection label.
-  void renameTab(String tabId, String? customLabel) {
-    final newActiveTabs = state.activeTabs.map((t) {
-      if (t.id != tabId) return t;
-      return t.copyWith(customLabel: customLabel?.trim());
-    }).toList();
-
-    state = state.copyWith(activeTabs: newActiveTabs);
-  }
-
-  Future<SSHClient?> createSSHClient(
-    ShellSession session,
+  /// Connects a new SFTP session for the given [connection] and adds it to the state
+  Future<SftpWorkerHandle?> connectSftp(
+    SshSession session,
     ConnectionFull connection,
   ) async {
-    final (
-      password,
-      keys,
-    ) = await CredentialService.collectAuthenticationMethods(
-      await ref
-          .read(credentialServiceProvider)
-          .findByIds(
-            connection.identity?.credentialIds ?? connection.credentialIds,
-          ),
+    final worker = SftpWorkerHandle();
+    if (!await _startWorker(worker, session, connection)) return null;
+
+    _modify(
+      session.id,
+      (s) => s.copyWith(
+        status: SessionConnected(
+          .now(),
+          .new(ssh: null, sftp: worker, terminalController: null),
+        ),
+      ),
     );
-
-    try {
-      final socket = await SSHSocket.connect(
-        connection.address,
-        connection.port,
-        timeout: const .new(seconds: 10), // TODO:
-      );
-
-      unawaited(
-        socket.done.then(
-          (_) => _close(session.id),
-          onError: (e) => _close(session.id, e.toString()),
-        ),
-      );
-
-      final sshClient = SSHClient(
-        socket,
-        username: connection.effectiveUsername!,
-        identities: keys,
-        onVerifyHostKey: (algorithm, fingerprint) async {
-          if (session.skipHostKeyVerification) {
-            return true;
-          }
-
-          // check db whether host is known
-          final (knownHost, isKeyMatch) = await ref
-              .read(knownHostServiceProvider)
-              .isHostKnown(connection.addressAndPort, fingerprint);
-
-          if (knownHost != null && isKeyMatch) return true;
-
-          _modifySession(
-            session.id,
-            (session) => session.copyWith(
-              knownHostError: KnownHostError(
-                host: connection.addressAndPort,
-                algorithm: algorithm,
-                fingerprint: fingerprint,
-                knownHost: knownHost,
-              ),
-            ),
-          );
-
-          // fail the verification for now, try again if the user accepts
-          return false;
-        },
-        onPasswordRequest: password != null ? () => password : null,
-        ident: _getSshIdent(),
-      );
-
-      unawaited(
-        sshClient.done.then(
-          (_) => _close(session.id),
-          onError: (e) => _close(session.id, e.toString()),
-        ),
-      );
-
-      return sshClient;
-    } catch (e) {
-      _close(session.id, e.toString());
-      return null;
-    }
+    return worker;
   }
 
-  Future<SSHSession?> spawnSsh(
-    String sessionId,
-    SSHClient client,
-    TerminalController controller,
-  ) async {
-    try {
-      await client.authenticated.onError(
-        (e, _) => _close(sessionId, e.toString()),
-      );
-      final sshSession = await client.shell(
-        pty: SSHPtyConfig(
-          width: controller.cols,
-          height: controller.rows,
-          pixelHeight: controller.height.toInt(),
-          pixelWidth: controller.width.toInt(),
-        ),
-      );
-      _modifySession(
-        sessionId,
-        (session) => session.copyWith(
-          connectedAt: DateTime.now(),
-          client: client,
-          sshSession: sshSession,
-          terminalController: controller,
-        ),
-      );
-      return sshSession;
-    } catch (e) {
-      await client.close();
-      _close(sessionId, e.toString());
-      return null;
-    }
-  }
-
-  Future<SftpClient> spawnSftp(String sessionId, SSHClient client) async {
-    try {
-      await client.authenticated;
-      final sftpClient = await client.sftp();
-      _modifySession(
-        sessionId,
-        (session) => session.copyWith(
-          connectedAt: DateTime.now(),
-          client: client,
-          sftpClient: sftpClient,
-        ),
-      );
-      return sftpClient;
-    } catch (e) {
-      await client.close();
-      _close(sessionId, e.toString());
-      rethrow;
-    }
-  }
-
-  void setStreamListeners(
-    String sessionId,
-    StreamSubscription? stdoutSub,
-    StreamSubscription? stderrSub,
-  ) {
-    _modifySession(
-      sessionId,
-      (session) => session.copyWith(stdoutSub: stdoutSub, stderrSub: stderrSub),
-    );
-  }
-
+  /// Accepts the host key for the given [sessionId] and [vaultId], updating the known hosts database accordingly.
+  /// This should be called after the user has accepted the fingerprint presented in a [KnownHostError].
   Future<void> acceptFingerprint(
     DbId vaultId,
     String sessionId,
@@ -358,6 +102,7 @@ class SessionNotifier extends Notifier<SessionState> {
             fingerprint: error.fingerprint,
             compareTo: error.knownHost,
           );
+      return;
     }
     await ref
         .read(knownHostServiceProvider)
@@ -368,76 +113,132 @@ class SessionNotifier extends Notifier<SessionState> {
         );
   }
 
-  void _close(String sessionId, [String? message]) {
-    _modifySession(
-      sessionId,
-      (session) =>
-          session.copyWith(connectionError: message ?? 'Connection closed'),
+  /// Resets a session with the given [sessionId], disposing of any existing resources and clearing the connection state.
+  /// Optionally, [skipHostKeyVerification] can be set to true to skip host key verification for the next connection attempt.
+  void reset(String sessionId, {bool? skipHostKeyVerification}) {
+    _modify(sessionId, (session) {
+      session.resources?.dispose();
+      return session.copyWith(
+        status: const SessionConnecting(),
+        skipHostKeyVerification: skipHostKeyVerification,
+      );
+    });
+  }
+
+  /// Closes the session with the given [sessionId], disposing of any existing resources and setting the connection error state.
+  void setError(String sessionId, String? error) {
+    _modify(sessionId, (session) {
+      session.resources?.dispose();
+      if (session.status is SessionNeedsHostTrust) return session;
+      return session.copyWith(
+        status: SessionFailed(error ?? 'Connection closed'),
+      );
+    });
+  }
+
+  /// Removes the session with the given [sessionId] from the state, disposing of any existing resources.
+  void remove(String sessionId) {
+    findById(sessionId)?.resources?.dispose();
+    state = state.copyWith(
+      sessions: state.sessions
+          .where((s) => s.id != sessionId)
+          .toList(growable: false),
     );
   }
 
-  void _modifySession(
-    String sessionId,
-    ShellSession Function(ShellSession) modify,
-  ) {
-    final tabId = findTabIdBySessionId(sessionId);
-    if (tabId == null) {
-      // This should never happen
-      return;
-    }
+  /// Verifies the host key for the given [session] and [connection] against the provided [request].
+  /// If the host key is not known or does not match, the session will be updated with a [KnownHostError] and the user
+  /// will need to accept the fingerprint before retrying.
+  Future<bool> _verifyHostKey(
+    SshSession session,
+    ConnectionFull connection,
+    HostKeyRequestEvent request,
+  ) async {
+    final (knownHost, isKeyMatch) = await ref
+        .read(knownHostServiceProvider)
+        .isHostKnown(connection.addressAndPort, request.fingerprint);
 
-    // replace tab with modified session
-    final List<SessionTab> newActiveTabs = [...state.activeTabs].map((tab) {
-      if (tab.id != tabId) return tab;
+    if (knownHost != null && isKeyMatch) return true;
 
-      // update session in sessions list
-      final newSessions = tab.sessions.map((s) {
-        if (s.id != sessionId) return s;
-        return modify(s);
-      }).toList();
+    _modify(
+      session.id,
+      (s) => s.copyWith(
+        status: SessionNeedsHostTrust(
+          KnownHostError(
+            host: connection.addressAndPort,
+            algorithm: request.algorithm,
+            fingerprint: request.fingerprint,
+            knownHost: knownHost,
+          ),
+        ),
+      ),
+    );
 
-      // update root session if it is the one being modified
-      final newRoot = tab.root.id == sessionId ? modify(tab.root) : tab.root;
-      return tab.copyWith(root: newRoot, sessions: newSessions);
-    }).toList();
-
-    state = state.copyWith(activeTabs: newActiveTabs);
+    // fail for now, the user can accept the key and retry
+    return false;
   }
 
-  /// Finds the [ShellSession] with the given [sessionId] across all tabs, or null if not found.
-  ShellSession? getSessionById(String sessionId) {
-    for (final tabs in state.activeTabs) {
-      for (final session in [...tabs.sessions, tabs.root]) {
-        if (session.id == sessionId) {
-          return session;
-        }
-      }
+  /// Returns true if the worker is connected and ready
+  Future<bool> _startWorker(
+    WorkerHandle worker,
+    SshSession session,
+    ConnectionFull connection, {
+    VoidCallback? onExit,
+  }) async {
+    final SshConnectParams params;
+    try {
+      params = await _buildParams(session, connection);
+    } catch (e) {
+      setError(session.id, e.toString());
+      return false;
     }
-    return null;
+
+    final ok = await worker.start(
+      params,
+      onHostKey: (r) => _verifyHostKey(session, connection, r),
+      // clean exit
+      onClosed: (e) =>
+          e == null && onExit != null ? onExit() : setError(session.id, e),
+    );
+    if (!ok) return false; // onClosed already reported the error
+
+    // the session was closed or reset while we were connecting
+    if (findById(session.id) == null) {
+      worker.dispose();
+      return false;
+    }
+    return true;
   }
 
-  /// Finds the tab ID that contains the session with the given [sessionId].
-  String? findTabIdBySessionId(String sessionId) {
-    for (final entry in state.activeTabs) {
-      final tab = entry;
-      for (final session in [...tab.sessions, tab.root]) {
-        if (session.id == sessionId) {
-          return tab.id;
-        }
-      }
-    }
-    return null;
+  /// Builds the plain-data params every worker connects with
+  Future<SshConnectParams> _buildParams(
+    SshSession session,
+    ConnectionFull connection,
+  ) async {
+    final ids = await ref
+        .read(credentialServiceProvider)
+        .findByIds(
+          connection.identity?.credentialIds ?? connection.credentialIds,
+        );
+    final (password, keys) =
+        await CredentialService.collectAuthenticationMethods(ids);
+
+    return .new(
+      host: connection.address,
+      port: connection.port,
+      username: connection.effectiveUsername!,
+      password: password,
+      keys: keys.map((k) => (k.toPem(), password)).toList(),
+      skipHostKeyVerification: session.skipHostKeyVerification,
+    );
   }
 
-  Map<String, int> _generatePageIndices(List<SessionTab> tabs) {
-    final Map<String, int> pageIndices = {};
-    for (var i = 0; i < tabs.length; i++) {
-      pageIndices[tabs[i].id] = i;
-    }
-    return pageIndices;
-  }
-
-  String _getSshIdent() {
-    return 'SSH-2.0-cliq_${BuildMetadata.version}';
+  /// Modifies the session with the given [sessionId] using the provided [modify] function,
+  /// and updates the state accordingly.
+  void _modify(String sessionId, SshSession Function(SshSession) modify) {
+    final newSessions = List.of(state.sessions, growable: false)
+        .map<SshSession>((s) => s.id == sessionId ? modify(s) : s)
+        .toList(growable: false);
+    state = state.copyWith(sessions: newSessions);
   }
 }

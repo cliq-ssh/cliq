@@ -74,6 +74,13 @@
   "delete": "Delete",
   "delete_all": "Delete All",
   "deselect_all": "Deselect All",
+  "desktop_menu": {
+    "edit": "Edit",
+    "file": "File",
+    "terminal": "Terminal",
+    "view": "View",
+    "window": "Window"
+  },
   "developer": "Developer",
   "dialog_cancel": "Cancel",
   "dialog_color_scheme_browser_subtitle": "Color Schemes provided by <link url=\"https://iterm2colorschemes.com/\">iTerm2 Color Schemes</link>",
@@ -264,8 +271,32 @@
   },
   "share": "Share",
   "shortcut": {
+    "close_tab": "Close Tab",
+    "close_window": "Close Window",
     "copy": "Copy",
-    "paste": "Paste"
+    "cut": "Cut",
+    "home": "Home",
+    "new_tab": "New Tab",
+    "new_window": "New Window",
+    "paste": "Paste",
+    "redo": "Redo",
+    "select_all": "Select All",
+    "select_tab": "Select Tab {}",
+    "select_tab_last": "Select Last Tab",
+    "settings": "Settings",
+    "terminal_copy": "Terminal Copy",
+    "terminal_paste": "Terminal Paste",
+    "undo": "Undo",
+    "zoom_in": "Zoom In",
+    "zoom_out": "Zoom Out",
+    "zoom_reset": "Reset Zoom"
+  },
+  "shortcut_group": {
+    "edit": "Edit",
+    "file": "File",
+    "tabs": "Tabs",
+    "terminal": "Terminal",
+    "view": "Window"
   },
   "shortcuts": "Shortcuts",
   "shortcuts_conflicts": {
@@ -343,6 +374,9 @@
   "sync_verification_code_placeholder": "Enter verification code",
   "sync_verification_code_subtitle": "We've sent a verification code to your email. Please enter it below to verify your account.",
   "sync_verify_code": "Verify Code",
+  "tab_pin": "Pin Tab",
+  "tab_rename": "Rename Tab",
+  "tab_unpin": "Unpin Tab",
   "terminal_themes": "Terminal Theme",
   "terminal_themes_already_exist": "A color scheme with that name and colors already exists",
   "terminal_themes_import": "Import",

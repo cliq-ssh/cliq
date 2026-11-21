@@ -5,9 +5,9 @@ import 'package:cliq/modules/credentials/provider/credential_service.provider.da
 import 'package:cliq/modules/identities/provider/identity.provider.dart';
 import 'package:cliq/modules/keys/provider/key_service.provider.dart';
 import 'package:cliq/modules/settings/model/settings_importer/app_settings.model.dart';
+import 'package:cliq/modules/settings/provider/custom_terminal_theme.provider.dart';
 import 'package:cliq/modules/settings/provider/known_host.provider.dart';
 import 'package:cliq/modules/settings/provider/sync.provider.dart';
-import 'package:cliq/modules/settings/provider/terminal_theme.provider.dart';
 import 'package:cliq/shared/data/database.dart';
 import 'package:cliq/shared/ui/create_or_edit_entity_view.dart';
 import 'package:cliq/shared/utils/commons.dart';
@@ -17,7 +17,6 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:forui/forui.dart';
 import 'package:forui_hooks/forui_hooks.dart';
-import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lucide_flutter/lucide_flutter.dart';
 import 'package:material_ui/material_ui.dart' hide Key;
@@ -247,7 +246,7 @@ class _ImportOrExportSettingsViewState
       }
 
       if (!context.mounted) return;
-      context.pop();
+      Navigator.of(context).pop();
     }
 
     getConnectionById(DbId id) {

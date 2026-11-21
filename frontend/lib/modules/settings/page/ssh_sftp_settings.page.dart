@@ -1,0 +1,226 @@
+import 'package:cliq/modules/settings/page/abstract_settings_page.dart';
+import 'package:cliq/shared/data/store.dart';
+import 'package:cliq/shared/provider/file_transfer.provider.dart';
+import 'package:cliq/shared/provider/store.provider.dart';
+import 'package:cliq/shared/ui/custom_toggle_tile.dart';
+import 'package:cliq/shared/utils/constants.dart';
+import 'package:cliq/shared/utils/text_utils.dart';
+import 'package:cupertino_ui/cupertino_ui.dart' hide Router;
+import 'package:easy_localization/easy_localization.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_hooks/flutter_hooks.dart';
+import 'package:forui/forui.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:lucide_flutter/lucide_flutter.dart';
+import 'package:material_ui/material_ui.dart';
+
+//TODO: add proper error handling
+class const SshSftpSettingsPage({super.key}) extends AbstractSettingsPage {
+  @override
+  String get title => 'ssh_sftp'.tr();
+
+  @override
+  Widget buildBody(BuildContext context, WidgetRef ref) {
+    final scrollbackSize = useStore(.sshScrollbackSize);
+    final bellSound = useStore(.terminalBellSound);
+    final cursorBlinkInterval = useStore(.terminalCursorBlinkInterval);
+    final cursorBlinkTimeout = useStore(.terminalCursorBlinkTimeout);
+
+    final showHiddenFiles = useStore(.sftpShowHiddenFiles);
+    final largeDownloadsWarning = useStore(.sftpLargeDownloadWarning);
+    final directoryNotEmptyWarning = useStore(.sftpDirectoryNotEmptyWarning);
+
+    final refreshTrigger = useState(0);
+    final tempDirSizeFuture = useMemoized(
+      () => ref.read(fileTransferProvider.notifier).readTempDirectorySize(),
+      [refreshTrigger.value],
+    );
+
+    final sshScrollbackSizeController = useTextEditingController(
+      text: scrollbackSize.value.toString(),
+    );
+
+    final cursorBlinkIntervalController = useTextEditingController(
+      text: cursorBlinkInterval.value.toString(),
+    );
+
+    final cursorBlinkTimeoutController = useTextEditingController(
+      text: cursorBlinkTimeout.value.toString(),
+    );
+
+    onScrollbackSubmit(String value) {
+      int amount = int.tryParse(value) ?? scrollbackSize.value;
+
+      if (amount < Constants.minScrollbackLines) {
+        amount = Constants.minScrollbackLines;
+      }
+      if (amount > Constants.maxScrollbackLines) {
+        amount = Constants.maxScrollbackLines;
+      }
+      StoreKey.sshScrollbackSize.write(amount);
+      sshScrollbackSizeController.text = amount.toString();
+    }
+
+    onCursorBlinkIntervalSubmit(String value) {
+      int amount = int.tryParse(value) ?? cursorBlinkInterval.value;
+      if (amount < Constants.cursorMinBlinkInterval) {
+        amount = Constants.cursorMinBlinkInterval;
+      }
+      if (amount > Constants.cursorMaxBlinkInterval) {
+        amount = Constants.cursorMaxBlinkInterval;
+      }
+      StoreKey.terminalCursorBlinkInterval.write(amount);
+      cursorBlinkIntervalController.text = amount.toString();
+    }
+
+    onCursorBlinkTimeoutSubmit(String value) {
+      int amount = int.tryParse(value) ?? cursorBlinkTimeout.value;
+      if (amount < Constants.cursorMinBlinkTimeout) {
+        amount = Constants.cursorMinBlinkTimeout;
+      }
+      if (amount > Constants.cursorMaxBlinkTimeout) {
+        amount = Constants.cursorMaxBlinkTimeout;
+      }
+      StoreKey.terminalCursorBlinkTimeout.write(amount);
+      cursorBlinkTimeoutController.text = amount.toString();
+    }
+
+    return Column(
+      mainAxisAlignment: .center,
+      spacing: 16,
+      children: [
+        FTileGroup(
+          label: Text('ssh'.tr()),
+          children: [
+            FTile(
+              title: Text('ssh_sftp_scrollback'.tr()),
+              subtitle: Text(
+                'ssh_sftp_scrollback_subtitle'.tr(),
+                overflow: .visible,
+              ),
+              prefix: const Icon(LucideIcons.history),
+              suffix: SizedBox(
+                width: 150,
+                child: FTextField(
+                  control: FTextFieldControl.managed(
+                    controller: sshScrollbackSizeController,
+                  ),
+                  keyboardType: TextInputType.number,
+                  inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                  onSubmit: onScrollbackSubmit,
+                ),
+              ),
+            ),
+            CustomToggleTile(
+              title: 'ssh_sftp_bell_sound',
+              subtitle: 'ssh_sftp_bell_sound_subtitle',
+              prefix: const Icon(LucideIcons.bellRing),
+              storeKey: .terminalBellSound,
+              value: bellSound.value,
+            ),
+            FTile(
+              title: Text('ssh_sftp_terminal_cursor_blink_interval'.tr()),
+              subtitle: Text(
+                'ssh_sftp_terminal_cursor_blink_interval_subtitle'.tr(),
+                overflow: .visible,
+              ),
+              prefix: const Icon(LucideIcons.timer),
+              suffix: SizedBox(
+                width: 150,
+                child: FTextField(
+                  control: .managed(controller: cursorBlinkIntervalController),
+                  keyboardType: TextInputType.number,
+                  inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                  onSubmit: onCursorBlinkIntervalSubmit,
+                ),
+              ),
+            ),
+            FTile(
+              title: Text('ssh_sftp_terminal_cursor_blink_timeout'.tr()),
+              subtitle: Text(
+                'ssh_sftp_terminal_cursor_blink_timeout_subtitle'.tr(),
+                overflow: .visible,
+              ),
+              prefix: const Icon(LucideIcons.timerOff),
+              suffix: SizedBox(
+                width: 150,
+                child: FTextField(
+                  control: FTextFieldControl.managed(
+                    controller: cursorBlinkTimeoutController,
+                  ),
+                  keyboardType: TextInputType.number,
+                  inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                  onSubmit: onCursorBlinkTimeoutSubmit,
+                ),
+              ),
+            ),
+          ],
+        ),
+        FTileGroup(
+          label: Text('sftp'.tr()),
+          children: [
+            CustomToggleTile(
+              title: 'ssh_sftp_show_hidden_files',
+              subtitle: 'ssh_sftp_show_hidden_files_subtitle',
+              prefix: const Icon(LucideIcons.fileSearchCorner),
+              storeKey: .sftpShowHiddenFiles,
+              value: showHiddenFiles.value,
+            ),
+            CustomToggleTile(
+              title: 'ssh_sftp_large_download_warning',
+              subtitle: 'ssh_sftp_large_download_warning_subtitle',
+              subtitleArgs: [
+                TextUtils.formatBytes(
+                  Constants.largeFileSizeThreshold,
+                  decimals: 0,
+                )!,
+              ],
+              prefix: const Icon(LucideIcons.fileExclamationPoint),
+              storeKey: .sftpLargeDownloadWarning,
+              value: largeDownloadsWarning.value,
+            ),
+            CustomToggleTile(
+              title: 'ssh_sftp_directory_not_empty_warning',
+              subtitle: 'ssh_sftp_directory_not_empty_warning_subtitle',
+              prefix: const Icon(LucideIcons.folders),
+              storeKey: .sftpDirectoryNotEmptyWarning,
+              value: directoryNotEmptyWarning.value,
+            ),
+            FTile(
+              title: Row(
+                children: [
+                  Row(
+                    children: [
+                      Text('ssh_sftp_clear_temporary_files'.tr()),
+                      FutureBuilder(
+                        future: tempDirSizeFuture,
+                        builder: (context, snap) {
+                          if (snap.hasData) {
+                            final formatted = TextUtils.formatBytes(snap.data);
+                            if (formatted != null) {
+                              return Text(' ($formatted)');
+                            }
+                          }
+                          return const SizedBox.shrink();
+                        },
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+              subtitle: Text('ssh_sftp_clear_temporary_files_subtitle'.tr()),
+              prefix: const Icon(LucideIcons.brushCleaning),
+              variant: .destructive,
+              onPress: () async {
+                await ref
+                    .read(fileTransferProvider.notifier)
+                    .clearTempDirectory();
+                refreshTrigger.value++;
+              },
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+}

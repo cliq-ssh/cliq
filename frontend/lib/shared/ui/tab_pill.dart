@@ -1,0 +1,218 @@
+import 'package:cliq/modules/connections/ui/connection_icon.dart';
+import 'package:cliq/modules/session/hook/use_ssh_session.dart';
+import 'package:cliq/shared/model/tab.model.dart';
+import 'package:cliq/shared/provider/tab.provider.dart' show tabProvider;
+import 'package:cliq/shared/ui/hover_builder.dart';
+import 'package:cliq/shared/ui/navigation/navigation_shell.dart';
+import 'package:easy_localization/easy_localization.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter/widgets.dart';
+import 'package:flutter_hooks/flutter_hooks.dart';
+import 'package:forui/forui.dart';
+import 'package:forui_hooks/forui_hooks.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:lucide_flutter/lucide_flutter.dart';
+import 'package:multiview_desktop/multiview_desktop.dart';
+
+class const TabPill({
+  super.key,
+  required final Tab tab,
+  final bool selected = false,
+}) extends HookConsumerWidget {
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final win = MultiViewDesktop.of(context);
+
+    final session = useSshSession(ref, tab.sessionId);
+
+    final cardStyleDecoration =
+        context.theme.cardStyle.decoration as ShapeDecoration;
+    final textFieldStyle = context.theme.textFieldStyles.sm;
+    final popoverController = useFPopoverController();
+
+    final renameFocusNode = useFocusNode();
+    final isRenaming = useState(false);
+
+    getEffectiveLabel() {
+      if (tab.customLabel != null && tab.content.canRename) {
+        return tab.customLabel!;
+      }
+      return switch (tab.content) {
+        .newTab => 'shortcut.new_tab'.tr(context: context),
+        .settings => 'settings'.tr(context: context),
+        .ssh || .sftp => session!.connection.label,
+      };
+    }
+
+    final renameController = useTextEditingController(
+      text: getEffectiveLabel(),
+    );
+
+    select() {
+      popoverController.hide();
+      ref
+          .read(tabProvider.notifier)
+          .select(NavigationShell.of(context), win.id, tab.id);
+    }
+
+    pin({bool unpin = false}) {
+      popoverController.hide(animated: false);
+      ref.read(tabProvider.notifier).pin(tab.id, unpin: unpin);
+    }
+
+    rename() {
+      popoverController.hide();
+      isRenaming.value = true;
+
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        renameFocusNode.requestFocus();
+      });
+    }
+
+    renameComplete() {
+      ref
+          .read(tabProvider.notifier)
+          .rename(tab.id, renameController.text.trim());
+      isRenaming.value = false;
+    }
+
+    close() {
+      popoverController.hide();
+      ref.read(tabProvider.notifier).close(tab.id);
+    }
+
+    buildIcon() {
+      return switch (tab.content) {
+        .settings => Icon(
+          LucideIcons.settings,
+          color: context.theme.colors.foreground,
+        ),
+        .ssh ||
+        .sftp => ConnectionIcon.fromConnection(session!.connection, size: 14),
+        _ => null,
+      };
+    }
+
+    buildPopoverMenu({required Widget child}) {
+      return FPopoverMenu(
+        menu: [
+          .group(
+            children: [
+              if (tab.content.canPin)
+                if (!tab.pinned)
+                  .item(title: Text('tab_pin'.tr()), onPress: pin)
+                else
+                  .item(
+                    title: Text('tab_unpin'.tr()),
+                    onPress: () => pin(unpin: true),
+                  ),
+              if (tab.content.canRename)
+                .item(title: Text('tab_rename'.tr()), onPress: rename),
+            ],
+          ),
+          .group(
+            children: [
+              .item(title: Text('shortcut.close_tab'.tr()), onPress: close),
+            ],
+          ),
+        ],
+        control: .managed(controller: popoverController),
+        arrow: .childCenter,
+        child: child,
+      );
+    }
+
+    buildEditableText() {
+      return SizedBox(
+        width: 160,
+        child: CallbackShortcuts(
+          bindings: {
+            const SingleActivator(.enter): renameComplete,
+            const SingleActivator(.numpadEnter): renameComplete,
+            const SingleActivator(.escape): () => isRenaming.value = false,
+          },
+          child: IntrinsicWidth(
+            child: EditableText(
+              inputFormatters: [LengthLimitingTextInputFormatter(32)],
+              controller: renameController,
+              focusNode: renameFocusNode,
+              style: textFieldStyle.contentTextStyle.base,
+              cursorColor: textFieldStyle.cursorColor,
+              backgroundCursorColor: context.theme.colors.background,
+              selectionColor: DefaultSelectionStyle.of(context).selectionColor,
+              selectAllOnFocus: true,
+              onTapOutside: (_) => isRenaming.value = false,
+            ),
+          ),
+        ),
+      );
+    }
+
+    return buildPopoverMenu(
+      child: FTappable(
+        onPress: select,
+        onSecondaryPress: () =>
+            isRenaming.value ? null : popoverController.toggle(),
+        child: GestureDetector(
+          onTertiaryTapUp: (_) => tab.pinned ? null : close(),
+          child: HoverBuilder(
+            builder: (context, isHovered) {
+              return DecoratedBox(
+                decoration: BoxDecoration(
+                  color: selected ? cardStyleDecoration.color : null,
+                  borderRadius: cardStyleDecoration.borderRadius?.subtract(
+                    const .all(.circular(4)),
+                  ),
+                  border: .fromBorderSide(
+                    (cardStyleDecoration.shape as OutlinedBorder).side,
+                  ),
+                ),
+                child: Padding(
+                  padding: const .only(left: 8, right: 6),
+                  child: Row(
+                    mainAxisSize: .min,
+                    mainAxisAlignment: .spaceBetween,
+                    spacing: 12,
+                    children: [
+                      Flexible(
+                        child: Row(
+                          mainAxisSize: .min,
+                          spacing: 8,
+                          children: [
+                            ?buildIcon(),
+                            Flexible(
+                              child: isRenaming.value
+                                  ? buildEditableText()
+                                  : Text(
+                                      getEffectiveLabel(),
+                                      overflow: TextOverflow.fade,
+                                      maxLines: 1,
+                                      softWrap: false,
+                                    ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      if (tab.pinned)
+                        const Padding(
+                          padding: .only(right: 4),
+                          child: Icon(LucideIcons.pin, size: 16),
+                        )
+                      else if (!isRenaming.value && (selected || isHovered))
+                        FButton.icon(
+                          size: .xs,
+                          variant: .ghost,
+                          onPress: close,
+                          child: const Icon(LucideIcons.x),
+                        ),
+                    ],
+                  ),
+                ),
+              );
+            },
+          ),
+        ),
+      ),
+    );
+  }
+}

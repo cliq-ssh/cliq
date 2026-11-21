@@ -1,10 +1,11 @@
 import 'package:cliq/modules/identities/model/identity_full.model.dart';
-import 'package:cliq/modules/settings/model/terminal_theme.state.dart';
-import 'package:cliq/modules/settings/provider/terminal_theme.provider.dart';
+import 'package:cliq/modules/settings/model/custom_terminal_theme.state.dart';
+import 'package:cliq/modules/settings/provider/custom_terminal_theme.provider.dart';
 import 'package:cliq/shared/data/database.dart';
+import 'package:cliq/shared/model/filterable.dart';
 
 /// Model class that better wraps the [FindFullConnectionByIdResult] class.
-class ConnectionFull extends Connection {
+class ConnectionFull extends Connection implements Filterable {
   final List<DbId> credentialIds;
   final Vault vault;
   final IdentityFull? identity;
@@ -68,4 +69,12 @@ class ConnectionFull extends Connection {
       credentialIds: result.connectionCredentials,
     );
   }
+
+  @override
+  List<String> getFilterableFields() => [
+    ?vault.owner,
+    label,
+    ?effectiveUsername,
+    port.toString(),
+  ];
 }

@@ -25,7 +25,6 @@ class const KeyCard({super.key, required final Key keyEntity})
 
       return Commons.showResponsiveSheet(
         (_) => CreateOrEditKeySheet.edit(keyEntity),
-        context: context,
       );
     }
 
@@ -76,6 +75,7 @@ class const KeyCard({super.key, required final Key keyEntity})
             ),
           ),
           FPopoverMenu(
+            arrow: .childCenter,
             menu: [
               FItemGroup(
                 children: [

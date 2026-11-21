@@ -11,7 +11,6 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:forui/forui.dart';
 import 'package:forui_hooks/forui_hooks.dart';
-import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lucide_flutter/lucide_flutter.dart';
 
@@ -133,7 +132,7 @@ class CreateOrEditEntityView extends HookConsumerWidget {
                   if (withVaultSelector) buildVaultSelector(),
                   FButton.icon(
                     variant: .outline,
-                    onPress: () => context.pop(),
+                    onPress: () => Navigator.of(context).pop(),
                     child: const Icon(LucideIcons.x),
                   ),
                 ],

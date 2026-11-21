@@ -1,7 +1,6 @@
 import 'dart:ui';
 
 import 'package:cliq/shared/data/database.dart';
-import 'package:cliq_term/cliq_term.dart';
 import 'package:iterm2_color_schemes_dart/iterm2_color_schemes_dart.dart';
 
 extension ITerm2ColorSchemeExtension on ITerm2ColorScheme {
@@ -33,8 +32,10 @@ extension ITerm2ColorSchemeExtension on ITerm2ColorScheme {
     );
   }
 
-  TerminalTheme toTerminalTheme() {
-    return TerminalTheme(
+  CustomTerminalTheme toCustomTerminalTheme() {
+    return CustomTerminalTheme(
+      id: '-1',
+      name: name,
       black: Color(black),
       red: Color(red),
       green: Color(green),

@@ -1,0 +1,49 @@
+import 'package:cliq/modules/keys/model/key_full.model.dart';
+import 'package:cliq/modules/keys/provider/key.provider.dart';
+import 'package:cliq/modules/keys/provider/key_service.provider.dart';
+import 'package:cliq/modules/keys/ui/key_card.dart';
+import 'package:cliq/modules/keys/ui/key_creation_choice_sheet.dart';
+import 'package:cliq/modules/settings/page/abstract_settings_page.dart';
+import 'package:cliq/shared/extension/async_snapshot.extension.dart';
+import 'package:cliq/shared/hook/use_memoized_future.dart';
+import 'package:cliq/shared/ui/entity_card_view.dart';
+import 'package:cliq/shared/utils/commons.dart';
+import 'package:cupertino_ui/cupertino_ui.dart' hide Key;
+import 'package:easy_localization/easy_localization.dart';
+import 'package:forui/forui.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
+
+class const KeysSettingsPage({super.key}) extends AbstractSettingsPage {
+  @override
+  String get title => 'keys'.tr();
+
+  @override
+  Widget buildBodyWrapper(BuildContext context, WidgetRef ref, Widget body) =>
+      body;
+
+  @override
+  Widget buildBody(BuildContext context, WidgetRef ref) {
+    final keyIds = ref.watch(keyIdProvider);
+    final keysFuture = useMemoizedFuture(() async {
+      return await ref.read(keyServiceProvider).findByIds(keyIds.entities);
+    }, [keyIds]);
+
+    return keysFuture.on(
+      onLoading: () => const Center(child: FCircularProgress()),
+      onData: (keys) {
+        return EntityCardView<KeyFull>(
+          entities: keys,
+          entityCardBuilder: (key) => KeyCard(keyEntity: key),
+          viewTypeKey: .keysCardViewType,
+          noEntitiesTitle: 'keys_empty'.tr(),
+          noEntitiesSubtitle: 'keys_empty_subtitle'.tr(),
+          addEntityTitle: 'keys_add'.tr(),
+          filterableVaultId: (k) => k.vaultId,
+          onAddEntity: () => Commons.showResponsiveSheet(
+            (_) => const KeyCreationChoiceSheet(),
+          ),
+        );
+      },
+    );
+  }
+}

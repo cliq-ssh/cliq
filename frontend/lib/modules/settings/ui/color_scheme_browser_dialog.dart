@@ -1,15 +1,16 @@
+import 'dart:convert';
+
 import 'package:cliq/modules/settings/extension/color_scheme.extension.dart';
+import 'package:cliq/modules/settings/extension/custom_terminal_theme.extension.dart';
 import 'package:cliq/shared/data/database.dart';
 import 'package:cliq/shared/extension/async_snapshot.extension.dart';
-import 'package:cliq/shared/provider/store.provider.dart';
+import 'package:cliq/shared/hook/use_memoized_future.dart';
 import 'package:cliq/shared/ui/horizontal_dialog.dart';
-import 'package:cliq/shared/utils/platform_utils.dart';
 import 'package:cliq/shared/utils/text_utils.dart';
-import 'package:cliq_term/cliq_term.dart';
-import 'package:cliq_ui/cliq_ui.dart' show useMemoizedFuture;
-import 'package:cliq_ui/hooks/use_breakpoint.export.dart' show useBreakpoint;
+import 'package:cliq_grid/cliq_grid.dart';
 import 'package:cupertino_ui/cupertino_ui.dart';
 import 'package:easy_localization/easy_localization.dart';
+import 'package:flterm/flterm.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:forui/forui.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -45,7 +46,7 @@ class ColorSchemeBrowserDialog extends HookConsumerWidget {
       '\x1b[7meget\x1b[0m '
       'auctor. Praesent convallis, lacus quis egestas tincidunt, mauris arcu volutpat purus, ut ullamcorper dui turpis nec sapien.'
       '\n'
-      '${kSeqEscape}7'
+      '\x1b7'
       '\r'
       '\x1b[1B'
       '\x1b[40m   \x1b[0m'
@@ -66,45 +67,22 @@ class ColorSchemeBrowserDialog extends HookConsumerWidget {
       '\x1b[104m   \x1b[0m'
       '\x1b[105m   \x1b[0m'
       '\x1b[106m   \x1b[0m'
-      '\x1b[107m   \x1b[0m\n';
+      '\x1b[107m   \x1b[0m';
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final breakpoint = useBreakpoint();
 
     final csFuture = useMemoizedFuture(() => cs.loadLibrary(), []);
-    final terminalController = useState<TerminalController?>(null);
-
-    final defaultTerminalTypography = useStore(.defaultTerminalTypography);
+    final terminalController = useMemoized(() => TerminalController());
 
     final selectedSchemeName = useState<String?>(null);
     final filterText = useState<TextEditingValue>(TextEditingValue.empty);
 
     useEffect(() {
-      setController() {
-        // set default to first theme
-        final first = ([
-          ...cs.iterm2ColorSchemeValues,
-        ]..sort((a, b) => a.name.compareTo(b.name))).first;
-        selectedSchemeName.value = first.name;
-        terminalController.value = TerminalController(
-          theme: first.toTerminalTheme(),
-          typography: defaultTerminalTypography.value,
-        );
-        terminalController.value?.setAutoWrapMode(true);
-      }
-
-      cs.loadLibrary().then((_) => setController());
-      return () => terminalController.value?.dispose();
-    }, []);
-
-    useEffect(() {
-      if (terminalController.value == null) return null;
-      terminalController.value!.activeBuffer.clear();
-      terminalController.value!.feed('${selectedSchemeName.value}\n\n\r');
-      terminalController.value!.feed(sampleInput);
-      return null;
-    }, [selectedSchemeName.value]);
+      terminalController.write(utf8.encode(sampleInput));
+      return terminalController.dispose;
+    }, [terminalController]);
 
     final subtitleStyle = context.theme.typography.body.xs.copyWith(
       color: context.theme.colors.mutedForeground,
@@ -157,7 +135,8 @@ class ColorSchemeBrowserDialog extends HookConsumerWidget {
                 .where((theme) => theme.name == selectedSchemeName.value)
                 .toList()
                 .firstOrNull
-                ?.toTerminalTheme();
+                ?.toCustomTerminalTheme()
+                .toTerminalTheme();
 
             final isMobile = breakpoint < .md;
 
@@ -208,12 +187,8 @@ class ColorSchemeBrowserDialog extends HookConsumerWidget {
                                 prefix: isSelected
                                     ? const Icon(LucideIcons.check)
                                     : null,
-                                onPress: () {
-                                  selectedSchemeName.value = theme.name;
-                                  terminalController.value?.setTerminalTheme(
-                                    theme.toTerminalTheme(),
-                                  );
-                                },
+                                onPress: () =>
+                                    selectedSchemeName.value = theme.name,
                               );
                             },
                           ),
@@ -255,25 +230,19 @@ class ColorSchemeBrowserDialog extends HookConsumerWidget {
                     ],
                   ),
                 ),
-                if (terminalController.value != null)
+                if (selectedTheme != null)
                   Expanded(
                     child: Container(
                       width: double.infinity,
                       padding: const .all(8),
-                      color: selectedTheme?.background,
-                      child: LayoutBuilder(
-                        builder: (_, constraints) {
-                          WidgetsBinding.instance.addPostFrameCallback((_) {
-                            terminalController.value!.fitResize(
-                              constraints.biggest,
-                            );
-                          });
-                          return TerminalView(
-                            controller: terminalController.value!,
-                            readOnly: true,
-                            isMobile: PlatformUtils.isMobile,
-                          );
-                        },
+                      color: selectedTheme.background,
+                      child: IgnorePointer(
+                        child: ExcludeFocus(
+                          child: TerminalView(
+                            controller: terminalController,
+                            theme: selectedTheme,
+                          ),
+                        ),
                       ),
                     ),
                   ),

@@ -4,16 +4,15 @@ import 'package:cliq/modules/settings/provider/sync.provider.dart';
 import 'package:cliq/shared/data/store.dart';
 import 'package:cliq/shared/ui/error_card.dart';
 import 'package:cliq/shared/utils/commons.dart';
+import 'package:cliq/shared/utils/constants.dart';
 import 'package:cliq/shared/utils/input_formatters.dart';
 import 'package:cliq/shared/utils/validators.dart';
 import 'package:cliq_api/cliq_api.dart';
-import 'package:cliq_ui/cliq_ui.dart' show CliqFontFamily;
 import 'package:cupertino_ui/cupertino_ui.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:forui/forui.dart';
-import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lucide_flutter/lucide_flutter.dart';
 
@@ -66,7 +65,7 @@ class const RegisterOrLoginSheet({super.key}) extends HookConsumerWidget {
 
       await Commons.showToast('sync_login_success'.tr());
       if (!context.mounted) return;
-      context.pop();
+      Navigator.of(context).pop();
     }
 
     Future<void> onTestHostUrl() async {
@@ -426,7 +425,7 @@ class const RegisterOrLoginSheet({super.key}) extends HookConsumerWidget {
 
                   FButton.icon(
                     variant: .outline,
-                    onPress: () => context.pop(),
+                    onPress: () => Navigator.of(context).pop(),
                     child: const Icon(LucideIcons.x),
                   ),
                 ],
@@ -446,7 +445,7 @@ class const RegisterOrLoginSheet({super.key}) extends HookConsumerWidget {
                 Text(
                   'backend:${config.serverVersion}',
                   style: context.theme.typography.body.xs.copyWith(
-                    fontFamily: CliqFontFamily.secondary.fontFamily,
+                    fontFamily: Constants.secondaryFont,
                     color: context.theme.colors.mutedForeground,
                   ),
                 ),

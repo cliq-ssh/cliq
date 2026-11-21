@@ -48,16 +48,9 @@ class _ConnectionsPageState extends ConsumerState<ConnectionsPage> {
         noEntitiesTitle: 'hosts_empty'.tr(),
         noEntitiesSubtitle: 'hosts_empty_subtitle'.tr(),
         addEntityTitle: 'hosts_add'.tr(),
-        filterableFields: (c) => [
-          ?c.vault.owner,
-          c.label,
-          ?c.effectiveUsername,
-          c.port.toString(),
-        ],
         filterableVaultId: (c) => c.vaultId,
         onAddEntity: () => Commons.showResponsiveSheet(
           (_) => const CreateOrEditConnectionSheet.create(),
-          context: context,
         ),
       ),
     );

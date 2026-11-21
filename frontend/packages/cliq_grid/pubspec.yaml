@@ -1,0 +1,22 @@
+name: cliq_grid
+description: "Bootstrap-inspired grid system for Flutter"
+version: 0.0.1
+homepage:
+
+environment:
+  sdk: ^3.14.0
+  flutter: ">=3.50.0-0"
+
+resolution: workspace
+
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_hooks: 0.21.4
+
+  cupertino_ui: any
+  material_ui: any
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0

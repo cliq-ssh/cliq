@@ -25,7 +25,6 @@ class const IdentityCard({super.key, required final IdentityFull identity})
 
       return Commons.showResponsiveSheet(
         (_) => CreateOrEditIdentitySheet.edit(identity),
-        context: context,
       );
     }
 
@@ -93,6 +92,7 @@ class const IdentityCard({super.key, required final IdentityFull identity})
             ),
           ),
           FPopoverMenu(
+            arrow: .childCenter,
             control: .managed(controller: popoverController),
             menu: [
               FItemGroup(
