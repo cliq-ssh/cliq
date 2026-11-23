@@ -674,10 +674,10 @@ packages:
     dependency: "direct main"
     description:
       name: iterm2_color_schemes_dart
-      sha256: "522298c6177b8f8273030433b3705805460c5c6931b86fb6eedafb5fb9109c23"
+      sha256: ccf7040aec0399a11c99f59c377e2589553ec022e0b29a50d3e209e19984ef62
       url: "https://pub.dev"
     source: hosted
-    version: "2.1.0"
+    version: "2.2.0"
   jni:
     dependency: transitive
     description:
