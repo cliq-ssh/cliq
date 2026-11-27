@@ -159,7 +159,7 @@ dependencies {
     testImplementation("org.assertj:assertj-core:3.27.7")
 
     // Kotlin specifics
-    testImplementation("org.awaitility:awaitility-kotlin:4.3.0")
+    testImplementation("org.awaitility:awaitility-kotlin:4.4.0")
 
     // Linting
 
